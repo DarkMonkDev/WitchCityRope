@@ -38,15 +38,16 @@ public class CsvRowMap : ClassMap<CsvRow>
     public CsvRowMap()
     {
         // Core applicant information
-        Map(m => m.ApplicationDate).Name("App Submitted", "ApplicationDate", "Submitted", "Date Submitted");
+        Map(m => m.ApplicationDate).Name("App Submitted Date", "App Submitted", "ApplicationDate", "Submitted", "Date Submitted");
         Map(m => m.SceneName).Name("Vettee's nickname", "Vettees nickname", "SceneName", "Nickname", "Scene Name");
-        Map(m => m.FetLifeHandle).Name("FL handles (specify if current, alternative or previous)", "FL handles", "FetLifeHandle", "FetLife").Optional();
+        Map(m => m.FetLifeHandle).Name("Fetlife Name", "FL handles (specify if current, alternative or previous)", "FL handles", "FetLifeHandle", "FetLife").Optional();
         Map(m => m.Pronouns).Name("Vettee's pronouns", "Vettees pronouns", "Pronouns").Optional();
         Map(m => m.Email).Name("Vettee's email", "Vettees email", "Email");
 
         // Additional information
         Map(m => m.SponsorInfo).Name("Sponsor's nickname and email (if applicable)", "Sponsor's nickname and email", "SponsorInfo").Optional();
         Map(m => m.Vettor).Name("Assigned Vettor", "Vettor").Optional();
+        Map(m => m.VettingStatus).Name("Vetting status \n(specify dates and sign)", "Vetting status\n(specify dates and sign)", "Vetting status (specify dates and sign)", "Vetting status", "VettingStatus").Optional();
         Map(m => m.Notes).Name("Relevant notes", "Notes").Optional();
 
         // Motivation and background
@@ -55,7 +56,7 @@ public class CsvRowMap : ClassMap<CsvRow>
         Map(m => m.OtherHandles).Name("Othert handles (specify platform and if current or previous)", "Other handles (specify platform and if current or previous)", "Other handles", "OtherHandles").Optional();
 
         // Critical mapping columns
-        Map(m => m.RelationshipWithSponsor).Name("Relationship with Sponsor or how did they learn about Dark Alchemy", "RelationshipWithSponsor").Optional();
+        Map(m => m.RelationshipWithSponsor).Name("How did they learn about Dark Alchemy", "Relationship with Sponsor or how did they learn about Dark Alchemy", "RelationshipWithSponsor").Optional();
         Map(m => m.FitForDarkAlchemy).Name("Fit for Dark Alchemy", "FitForDarkAlchemy").Optional();
         Map(m => m.References).Name("References (additional if sponsored)", "References").Optional();
     }

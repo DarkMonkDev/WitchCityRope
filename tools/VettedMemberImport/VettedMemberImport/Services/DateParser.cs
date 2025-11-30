@@ -8,7 +8,12 @@ namespace VettedMemberImport.Services;
 /// </summary>
 public class DateParser
 {
-    private readonly int _defaultYear = 2022;
+    private readonly int _defaultYear;
+
+    public DateParser(int defaultYear = 2024)
+    {
+        _defaultYear = defaultYear;
+    }
 
     public DateTime? ParseDate(string? dateStr)
     {
@@ -20,11 +25,15 @@ public class DateParser
         // Clean up the string
         dateStr = dateStr.Trim();
 
+        // Check if the date string contains a year (4 digits or 2 digits after second slash/dash)
+        var hasYear = System.Text.RegularExpressions.Regex.IsMatch(dateStr, @"\d{1,2}[/-]\d{1,2}[/-]\d{2,4}") ||
+                      System.Text.RegularExpressions.Regex.IsMatch(dateStr, @"\d{4}");
+
         // Try standard date formats
         if (DateTime.TryParse(dateStr, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate))
         {
-            // If year is missing or very small, assume default year
-            if (parsedDate.Year < 2000)
+            // If year is missing (detected from input) or very small, use default year
+            if (!hasYear || parsedDate.Year < 2000)
             {
                 parsedDate = new DateTime(_defaultYear, parsedDate.Month, parsedDate.Day, 0, 0, 0, DateTimeKind.Utc);
             }

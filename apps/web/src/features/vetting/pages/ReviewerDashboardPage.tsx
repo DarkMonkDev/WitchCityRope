@@ -37,7 +37,7 @@ import { ReviewerDashboard } from '../components/reviewer/ReviewerDashboard';
 import { useQuery } from '@tanstack/react-query';
 import { vettingApi } from '../api/vettingApi';
 import type { ApplicationSummaryDto, ApplicationDetailResponse } from '../types/vetting.types';
-import { APPLICATION_STATUS_CONFIGS, EXPERIENCE_LEVEL_CONFIGS } from '../types/vetting.types';
+import { APPLICATION_STATUS_CONFIGS } from '../types/vetting.types';
 import type { components } from '@witchcityrope/shared-types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 

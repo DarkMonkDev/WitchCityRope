@@ -3,13 +3,6 @@
 
 // ===== ENUMS =====
 
-export enum ExperienceLevel {
-  Beginner = 1,
-  Intermediate = 2,
-  Advanced = 3,
-  Expert = 4
-}
-
 export enum ApplicationStatus {
   Draft = 'draft',
   Submitted = 'submitted',
@@ -70,8 +63,6 @@ export interface CreateApplicationRequest {
   phone?: string;
 
   // Experience & Knowledge (Step 2)
-  experienceLevel: ExperienceLevel;
-  yearsExperience: number;
   experienceDescription: string;
   safetyKnowledge: string;
   consentUnderstanding: string;
@@ -178,8 +169,6 @@ export interface ApplicationSummaryDto {
   
   // Applicant information (privacy-masked)
   sceneName: string;
-  experienceLevel: string;
-  yearsExperience: number;
   isAnonymous: boolean;
   
   // Review information
@@ -233,8 +222,6 @@ export interface ApplicationDetailResponse {
   
   // Experience Details
   experience: {
-    level: ExperienceLevel;
-    yearsExperience: number;
     description: string;
     safetyKnowledge: string;
     consentUnderstanding: string;
@@ -365,8 +352,6 @@ export interface ApplicationFormData {
   
   // Step 2: Experience & Knowledge
   experience: {
-    level: ExperienceLevel;
-    yearsExperience: number;
     description: string;
     safetyKnowledge: string;
     consentUnderstanding: string;
@@ -433,16 +418,6 @@ export interface DashboardStats {
 // ===== UI CONFIGURATION TYPES =====
 
 /**
- * Experience level configuration for UI
- */
-export interface ExperienceLevelConfig {
-  value: ExperienceLevel;
-  label: string;
-  description: string;
-  color: string;
-}
-
-/**
  * Application status configuration for UI
  */
 export interface ApplicationStatusConfig {
@@ -454,33 +429,6 @@ export interface ApplicationStatusConfig {
 }
 
 // ===== UI CONFIGURATIONS =====
-
-export const EXPERIENCE_LEVEL_CONFIGS: Record<ExperienceLevel, ExperienceLevelConfig> = {
-  [ExperienceLevel.Beginner]: {
-    value: ExperienceLevel.Beginner,
-    label: 'Beginner',
-    description: 'New to rope bondage, eager to learn',
-    color: '#4285F4'
-  },
-  [ExperienceLevel.Intermediate]: {
-    value: ExperienceLevel.Intermediate,
-    label: 'Intermediate',
-    description: 'Some experience with basic techniques',
-    color: '#34A853'
-  },
-  [ExperienceLevel.Advanced]: {
-    value: ExperienceLevel.Advanced,
-    label: 'Advanced',
-    description: 'Extensive experience and knowledge',
-    color: '#FBBC05'
-  },
-  [ExperienceLevel.Expert]: {
-    value: ExperienceLevel.Expert,
-    label: 'Expert',
-    description: 'Professional level expertise',
-    color: '#EA4335'
-  }
-};
 
 export const APPLICATION_STATUS_CONFIGS: Record<ApplicationStatus, ApplicationStatusConfig> = {
   [ApplicationStatus.Draft]: {

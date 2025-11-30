@@ -32,7 +32,6 @@ interface FormData {
   confirmPassword: string
   bio: string
   country: string
-  experienceLevel: string
 }
 
 const COUNTRY_OPTIONS = [
@@ -46,12 +45,6 @@ const COUNTRY_OPTIONS = [
   { value: 'other', label: 'Other' },
 ]
 
-const EXPERIENCE_OPTIONS = [
-  { value: 'beginner', label: 'Beginner (0-1 years)' },
-  { value: 'intermediate', label: 'Intermediate (1-3 years)' },
-  { value: 'advanced', label: 'Advanced (3-5 years)' },
-  { value: 'expert', label: 'Expert (5+ years)' },
-]
 
 export const MantineFormTest: React.FC = () => {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme()
@@ -68,7 +61,6 @@ export const MantineFormTest: React.FC = () => {
       confirmPassword: '',
       bio: '',
       country: '',
-      experienceLevel: '',
     },
     validate: {
       firstName: (value) => (!value ? 'First name is required' : null),
@@ -93,7 +85,6 @@ export const MantineFormTest: React.FC = () => {
         return null
       },
       country: (value) => (!value ? 'Please select your country' : null),
-      experienceLevel: (value) => (!value ? 'Please select your experience level' : null),
     },
   })
 
@@ -188,7 +179,6 @@ export const MantineFormTest: React.FC = () => {
                   confirmPassword: 'SecurePass123!',
                   bio: 'I am passionate about rope bondage and looking to learn more techniques.',
                   country: 'us',
-                  experienceLevel: 'intermediate',
                 })
               }}
               data-testid="populate-form-button"
@@ -280,29 +270,17 @@ export const MantineFormTest: React.FC = () => {
               />
 
               {/* Select Inputs */}
-              <Group grow align="flex-start">
-                <MantineSelect
-                  label="Country"
-                  placeholder="Select your country"
-                  data={COUNTRY_OPTIONS}
-                  taperedUnderline={true}
-                  loading={simulateLoading}
-                  error={getError('country')}
-                  searchable
-                  data-testid="country-select"
-                  {...form.getInputProps('country')}
-                />
-                <MantineSelect
-                  label="Experience Level"
-                  placeholder="Select your experience"
-                  data={EXPERIENCE_OPTIONS}
-                  taperedUnderline={true}
-                  loading={simulateLoading}
-                  error={getError('experienceLevel')}
-                  data-testid="experience-select"
-                  {...form.getInputProps('experienceLevel')}
-                />
-              </Group>
+              <MantineSelect
+                label="Country"
+                placeholder="Select your country"
+                data={COUNTRY_OPTIONS}
+                taperedUnderline={true}
+                loading={simulateLoading}
+                error={getError('country')}
+                searchable
+                data-testid="country-select"
+                {...form.getInputProps('country')}
+              />
 
               <Divider my="md" />
 

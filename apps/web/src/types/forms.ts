@@ -100,7 +100,6 @@ export interface UserProfileFormData {
   bio?: string;
   location?: string;
   website?: string;
-  experienceLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   interests?: string[];
 }
 
@@ -166,12 +165,6 @@ export const membershipTypeOptions: SelectOption[] = [
   { value: 'admin', label: 'Administrator', description: 'Community administrator' }
 ];
 
-export const experienceLevelOptions: SelectOption[] = [
-  { value: 'beginner', label: 'Beginner', description: 'New to rope bondage' },
-  { value: 'intermediate', label: 'Intermediate', description: 'Some experience' },
-  { value: 'advanced', label: 'Advanced', description: 'Experienced practitioner' },
-  { value: 'expert', label: 'Expert', description: 'Teaching level expertise' }
-];
 
 export const contactTypeOptions: SelectOption[] = [
   { value: 'general', label: 'General Inquiry' },

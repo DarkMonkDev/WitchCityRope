@@ -111,8 +111,6 @@ export type LoginResponse = schemas['LoginResponse'];
 export type RegisterRequest = schemas['RegisterRequest'];
 export type AuthUserResponse = schemas['AuthUserResponse'];
 export type UpdateEventRequest = schemas['UpdateEventRequest'];
-export type ApiResponseOfListOfEventDto = schemas['ApiResponseOfListOfEventDto'];
-export type ApiResponseOfEventDto = schemas['ApiResponseOfEventDto'];
 
 // Dashboard types
 export type AdminDashboardResponse = schemas['AdminDashboardResponse'];
@@ -187,15 +185,14 @@ async function createClientWrapper() {
  * Generated on: ${new Date().toISOString()}
  */
 
-import type { 
-  UserDto, 
-  LoginRequest, 
+import type {
+  UserDto,
+  EventDto,
+  LoginRequest,
   LoginResponse,
   RegisterRequest,
   AuthUserResponse,
   UpdateEventRequest,
-  ApiResponseOfListOfEventDto,
-  ApiResponseOfEventDto,
   AdminDashboardResponse,
   CreateIncidentRequest,
   SubmissionResponse,
@@ -303,16 +300,16 @@ class ApiClient {
   }
 
   // Events endpoints
-  async getEvents(): Promise<ApiResponseOfListOfEventDto> {
-    return this.request<ApiResponseOfListOfEventDto>('/api/events');
+  async getEvents(): Promise<EventDto[]> {
+    return this.request<EventDto[]>('/api/events');
   }
 
-  async getEvent(id: string): Promise<ApiResponseOfEventDto> {
-    return this.request<ApiResponseOfEventDto>(\`/api/events/\${id}\`);
+  async getEvent(id: string): Promise<EventDto> {
+    return this.request<EventDto>(\`/api/events/\${id}\`);
   }
 
-  async updateEvent(id: string, event: UpdateEventRequest): Promise<ApiResponseOfEventDto> {
-    return this.request<ApiResponseOfEventDto>(\`/api/events/\${id}\`, {
+  async updateEvent(id: string, event: UpdateEventRequest): Promise<EventDto> {
+    return this.request<EventDto>(\`/api/events/\${id}\`, {
       method: 'PUT',
       body: JSON.stringify(event),
     });

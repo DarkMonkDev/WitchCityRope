@@ -16,6 +16,7 @@ public class CsvRow
     // Additional information
     public string SponsorInfo { get; set; } = string.Empty; // "Sponsor's nickname and email"
     public string Vettor { get; set; } = string.Empty; // "Assigned Vettor"
+    public string VettingStatus { get; set; } = string.Empty; // "Vetting status (specify dates and sign)" - contains vetting notes/history
     public string Notes { get; set; } = string.Empty; // "Relevant notes"
 
     // Motivation and background

@@ -95,24 +95,26 @@ public class UserImporter
         var normalizedEmail = row.Email.Trim().ToUpperInvariant();
         var email = row.Email.Trim().ToLowerInvariant();
 
-        // Check for duplicates
+        // Check for duplicate email only (scene names can be duplicated)
         var existingByEmail = await _context.Users
             .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
 
-        var existingBySceneName = await _context.Users
-            .FirstOrDefaultAsync(u => u.SceneName.ToLower() == row.SceneName.Trim().ToLower(), cancellationToken);
-
-        if (existingByEmail != null || existingBySceneName != null)
+        if (existingByEmail != null)
         {
             summary.SkippedCount++;
-            var skipMsg = $"Row {rowNum}: Duplicate - Email: {email}, SceneName: {row.SceneName} (Skipped)";
+            var skipMsg = $"Row {rowNum}: Duplicate email - {email} (Skipped)";
             summary.Warnings.Add(skipMsg);
             _logger.LogWarning(skipMsg);
             return;
         }
 
         // Parse submission date
-        var submittedAt = _dateParser.ParseDate(row.ApplicationDate) ?? DateTime.UtcNow.AddYears(-2);
+        var parsedDate = _dateParser.ParseDate(row.ApplicationDate);
+        if (!parsedDate.HasValue)
+        {
+            _logger.LogWarning("Row {RowNum}: Could not parse date '{DateStr}', using current date", rowNum, row.ApplicationDate);
+        }
+        var submittedAt = parsedDate ?? DateTime.UtcNow;
         var decisionDate = _dateParser.InferDecisionDate(row.Notes, submittedAt);
 
         if (isDryRun)
@@ -219,8 +221,12 @@ public class UserImporter
 
         _context.VettingApplications.Add(application);
 
-        // Create audit logs from notes
-        var auditLogs = ParseNotesIntoAuditLogs(row.Notes, application.Id, submittedAt, row.Vettor);
+        // Combine VettingStatus and Notes columns for audit log creation
+        // VettingStatus column typically contains the vetting history/notes
+        var combinedNotes = CombineNotes(row.VettingStatus, row.Notes);
+
+        // Create audit logs from notes and system events
+        var auditLogs = ParseNotesIntoAuditLogs(combinedNotes, application.Id, submittedAt, row.Vettor, vettingStatus, workflowStatus);
         _context.VettingAuditLogs.AddRange(auditLogs);
 
         // Save to database
@@ -248,7 +254,17 @@ public class UserImporter
         return $"VET-{submittedAt:yyyyMMdd}-{Guid.NewGuid().ToString("N").Substring(0, 5).ToUpper()}";
     }
 
-    private List<VettingAuditLog> ParseNotesIntoAuditLogs(string? notes, Guid applicationId, DateTime submittedAt, string? vettorName)
+    private string? CombineNotes(string? vettingStatus, string? notes)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(vettingStatus))
+            parts.Add(vettingStatus.Trim());
+        if (!string.IsNullOrWhiteSpace(notes))
+            parts.Add(notes.Trim());
+        return parts.Count > 0 ? string.Join("\n", parts) : null;
+    }
+
+    private List<VettingAuditLog> ParseNotesIntoAuditLogs(string? notes, Guid applicationId, DateTime submittedAt, string? vettorName, int vettingStatus, int workflowStatus)
     {
         var auditLogs = new List<VettingAuditLog>();
 
@@ -259,6 +275,19 @@ public class UserImporter
         {
             defaultAdminId = Guid.Parse("00000000-0000-0000-0000-000000000001");
         }
+
+        // System audit log: Application Submitted (Status Changed from null to UnderReview)
+        auditLogs.Add(new VettingAuditLog
+        {
+            Id = Guid.NewGuid(),
+            ApplicationId = applicationId,
+            Action = "Status Changed",
+            PerformedBy = defaultAdminId,
+            PerformedAt = submittedAt,
+            OldValue = null,
+            NewValue = "UnderReview",
+            Notes = "Application submitted (imported from legacy system)"
+        });
 
         // Add vettor assignment note if vettor is assigned
         if (!string.IsNullOrWhiteSpace(vettorName))
@@ -277,35 +306,65 @@ public class UserImporter
             });
         }
 
-        if (string.IsNullOrWhiteSpace(notes))
+        // Parse notes from CSV (if any)
+        if (!string.IsNullOrWhiteSpace(notes))
         {
-            return auditLogs;
-        }
+            // Split notes by newlines first (each line is a separate note entry)
+            var noteLines = notes.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
-        // Split notes by newlines first (each line is a separate note entry)
-        var noteLines = notes.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var noteLine in noteLines)
-        {
-            var trimmedLine = noteLine.Trim();
-            if (string.IsNullOrWhiteSpace(trimmedLine))
+            foreach (var noteLine in noteLines)
             {
-                continue;
+                var trimmedLine = noteLine.Trim();
+                if (string.IsNullOrWhiteSpace(trimmedLine))
+                {
+                    continue;
+                }
+
+                // Try to extract abbreviated date and action from note line
+                var (action, performedAt, performedBy) = ParseNoteSegment(trimmedLine, submittedAt, adminLookup, defaultAdminId);
+
+                auditLogs.Add(new VettingAuditLog
+                {
+                    Id = Guid.NewGuid(),
+                    ApplicationId = applicationId,
+                    Action = action,
+                    PerformedBy = performedBy,
+                    PerformedAt = performedAt,
+                    Notes = trimmedLine
+                });
             }
-
-            // Try to extract abbreviated date and action from note line
-            var (action, performedAt, performedBy) = ParseNoteSegment(trimmedLine, submittedAt, adminLookup, defaultAdminId);
-
-            auditLogs.Add(new VettingAuditLog
-            {
-                Id = Guid.NewGuid(),
-                ApplicationId = applicationId,
-                Action = action,
-                PerformedBy = performedBy,
-                PerformedAt = performedAt,
-                Notes = trimmedLine
-            });
         }
+
+        // System audit log: Status change based on import status
+        // vettingStatus: 1=InterviewApproved, 3=Approved
+        // Map status integers to enum names
+        var newStatusName = vettingStatus switch
+        {
+            1 => "InterviewApproved",
+            3 => "Approved",
+            _ => "UnderReview"
+        };
+        var statusNote = vettingStatus == 1
+            ? "Approved for interview (imported from legacy system)"
+            : "Application approved (imported from legacy system)";
+
+        // Use the last date from notes if available, otherwise use submitted date + 30 days
+        var statusChangeDate = auditLogs
+            .Where(a => a.Action == "Note Added")
+            .OrderByDescending(a => a.PerformedAt)
+            .FirstOrDefault()?.PerformedAt ?? submittedAt.AddDays(30);
+
+        auditLogs.Add(new VettingAuditLog
+        {
+            Id = Guid.NewGuid(),
+            ApplicationId = applicationId,
+            Action = "Status Changed",
+            PerformedBy = defaultAdminId,
+            PerformedAt = statusChangeDate,
+            OldValue = "UnderReview",
+            NewValue = newStatusName,
+            Notes = statusNote
+        });
 
         return auditLogs;
     }

@@ -3483,9 +3483,6 @@ export interface components {
             email?: string;
             fetLifeHandle?: string | null;
             otherNames?: string | null;
-            experienceLevel?: string;
-            /** Format: int32 */
-            yearsExperience?: number;
             experienceDescription?: string;
             whyJoinCommunity?: string;
             howDidYouHearAboutUs?: string | null;
@@ -3519,11 +3516,6 @@ export interface components {
             /** Format: uuid */
             assignedReviewerId?: string | null;
             priorityFilters?: number[];
-            experienceLevelFilters?: number[];
-            /** Format: int32 */
-            minYearsExperience?: number | null;
-            /** Format: int32 */
-            maxYearsExperience?: number | null;
             skillsFilters?: string[];
             /** Format: date-time */
             submittedAfter?: string | null;
@@ -3628,9 +3620,6 @@ export interface components {
             sceneName?: string;
             email?: string;
             fetLifeHandle?: string | null;
-            experienceLevel?: string;
-            /** Format: int32 */
-            yearsExperience?: number;
             assignedReviewerName?: string | null;
             /** Format: date-time */
             reviewStartedAt?: string | null;
@@ -5394,10 +5383,6 @@ export interface components {
             fetLifeHandle?: string | null;
             pronouns?: string | null;
             aboutYourself?: string | null;
-            /** Format: int32 */
-            experienceLevel?: number | null;
-            /** Format: int32 */
-            yearsExperience?: number | null;
             experienceDescription?: string | null;
             safetyKnowledge?: string | null;
             consentUnderstanding?: string | null;

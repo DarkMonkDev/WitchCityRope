@@ -9699,13 +9699,6 @@
             "type": "string",
             "nullable": true
           },
-          "experienceLevel": {
-            "type": "string"
-          },
-          "yearsExperience": {
-            "type": "integer",
-            "format": "int32"
-          },
           "experienceDescription": {
             "type": "string"
           },
@@ -9819,23 +9812,6 @@
               "type": "integer",
               "format": "int32"
             }
-          },
-          "experienceLevelFilters": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "minYearsExperience": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "maxYearsExperience": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
           },
           "skillsFilters": {
             "type": "array",
@@ -10116,13 +10092,6 @@
           "fetLifeHandle": {
             "type": "string",
             "nullable": true
-          },
-          "experienceLevel": {
-            "type": "string"
-          },
-          "yearsExperience": {
-            "type": "integer",
-            "format": "int32"
           },
           "assignedReviewerName": {
             "type": "string",
@@ -15246,16 +15215,6 @@
           },
           "aboutYourself": {
             "type": "string",
-            "nullable": true
-          },
-          "experienceLevel": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "yearsExperience": {
-            "type": "integer",
-            "format": "int32",
             "nullable": true
           },
           "experienceDescription": {

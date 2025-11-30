@@ -78,7 +78,6 @@ export const userProfileSchema = z.object({
   bio: z.string().max(1000, 'Bio must not exceed 1000 characters').optional(),
   location: z.string().max(100, 'Location must not exceed 100 characters').optional(),
   website: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
-  experienceLevel: z.enum(['beginner', 'intermediate', 'advanced', 'expert']).optional(),
   interests: z.array(z.string()).optional(),
 })
 
@@ -181,7 +180,6 @@ export const userManagementSchema = z.object({
 
 export const vettingApplicationSchema = z.object({
   applicantId: z.string().uuid('Invalid applicant ID'),
-  experienceLevel: z.enum(['beginner', 'intermediate', 'advanced', 'expert']),
   ropeExperience: z
     .string()
     .min(50, 'Please provide at least 50 characters about your rope experience'),
@@ -248,7 +246,6 @@ export const eventSearchSchema = z.object({
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
   location: z.string().optional(),
-  experienceLevel: z.enum(['beginner', 'intermediate', 'advanced', 'expert']).optional(),
   requiresVetting: z.boolean().optional(),
   tags: z.array(z.string()).optional(),
   priceMin: z.number().min(0).optional(),
@@ -260,7 +257,6 @@ export const userSearchSchema = z.object({
   query: z.string().optional(),
   membershipType: z.enum(['guest', 'member', 'vetted', 'instructor', 'admin']).optional(),
   isActive: z.boolean().optional(),
-  experienceLevel: z.enum(['beginner', 'intermediate', 'advanced', 'expert']).optional(),
   location: z.string().optional(),
   joinedAfter: z.string().datetime().optional(),
   joinedBefore: z.string().datetime().optional(),
