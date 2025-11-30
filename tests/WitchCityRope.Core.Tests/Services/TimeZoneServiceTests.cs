@@ -64,21 +64,11 @@ public class TimeZoneServiceTests
         result.Should().BeTrue("NULL registrationCloseHours should allow action (no restriction)");
     }
 
-    [Fact]
+    [Fact(Skip = "Obsolete: CancellationOpenHours removed - cancellation is always open until CancellationCloseHours")]
     public async Task IsActionAllowedAsync_WithNullCancellationOpenHours_ReturnsTrue()
     {
-        // Arrange: Event with NULL cancellation open hours (no restriction)
-        var eventEntity = CreateTestEvent(
-            startDateTime: DateTime.UtcNow.AddDays(7),
-            cancellationOpenHours: null,
-            cancellationCloseHours: 1
-        );
-
-        // Act
-        var result = await _service.IsActionAllowedAsync(eventEntity, EventActionType.CancelRsvp);
-
-        // Assert
-        result.Should().BeTrue("NULL cancellationOpenHours should allow action (no restriction)");
+        // This test is obsolete - cancellation no longer has "opens" restriction
+        // Cancellation is now always available until CancellationCloseHours
     }
 
     [Fact]
@@ -87,7 +77,6 @@ public class TimeZoneServiceTests
         // Arrange: Event with NULL cancellation close hours (no restriction)
         var eventEntity = CreateTestEvent(
             startDateTime: DateTime.UtcNow.AddDays(3),
-            cancellationOpenHours: 168,
             cancellationCloseHours: null
         );
 
@@ -212,7 +201,6 @@ public class TimeZoneServiceTests
         // Arrange: Cancel allowed up to 24 hours after event start, event was 12 hours ago
         var eventEntity = CreateTestEvent(
             startDateTime: DateTime.UtcNow.AddHours(-12),
-            cancellationOpenHours: 168,
             cancellationCloseHours: -24 // 24 hours AFTER event start
         );
 
@@ -229,7 +217,6 @@ public class TimeZoneServiceTests
         // Arrange: Cancel allowed up to 24 hours after, event was 25 hours ago
         var eventEntity = CreateTestEvent(
             startDateTime: DateTime.UtcNow.AddHours(-25),
-            cancellationOpenHours: 168,
             cancellationCloseHours: -24
         );
 
@@ -246,7 +233,6 @@ public class TimeZoneServiceTests
         // Arrange: Cancel allowed up to 1 hour after, event was 30 minutes ago
         var eventEntity = CreateTestEvent(
             startDateTime: DateTime.UtcNow.AddMinutes(-30),
-            cancellationOpenHours: 168,
             cancellationCloseHours: -1 // 1 hour AFTER event start
         );
 
@@ -267,7 +253,6 @@ public class TimeZoneServiceTests
         // Arrange: Exactly 24 hours after event start (boundary case)
         var eventEntity = CreateTestEvent(
             startDateTime: DateTime.UtcNow.AddHours(-24),
-            cancellationOpenHours: 168,
             cancellationCloseHours: -24 // Exactly at limit
         );
 
@@ -373,7 +358,6 @@ public class TimeZoneServiceTests
         // Arrange: Cancel allowed up to 0.5 hours (30 min) after event, event was 15 min ago
         var eventEntity = CreateTestEvent(
             startDateTime: DateTime.UtcNow.AddMinutes(-15),
-            cancellationOpenHours: 168,
             cancellationCloseHours: -0.5m // 30 minutes after event
         );
 
@@ -415,7 +399,6 @@ public class TimeZoneServiceTests
         // Arrange: RSVP and Ticket cancellation should use same timing fields
         var eventEntity = CreateTestEvent(
             startDateTime: DateTime.UtcNow.AddDays(3),
-            cancellationOpenHours: 168,
             cancellationCloseHours: 1
         );
 
@@ -476,7 +459,6 @@ public class TimeZoneServiceTests
             startDateTime: DateTime.UtcNow.AddDays(3),
             registrationOpenHours: 168,
             registrationCloseHours: 24,
-            cancellationOpenHours: 168,
             cancellationCloseHours: 12,
             volunteerRegistrationCloseHours: 48,
             volunteerCancellationCloseHours: 36
@@ -535,7 +517,6 @@ public class TimeZoneServiceTests
         DateTime startDateTime,
         decimal? registrationOpenHours = null,
         decimal? registrationCloseHours = null,
-        decimal? cancellationOpenHours = null,
         decimal? cancellationCloseHours = null,
         decimal? volunteerRegistrationCloseHours = null,
         decimal? volunteerCancellationCloseHours = null)
@@ -552,7 +533,6 @@ public class TimeZoneServiceTests
             VenueId = 1,
             RegistrationOpenHours = registrationOpenHours,
             RegistrationCloseHours = registrationCloseHours,
-            CancellationOpenHours = cancellationOpenHours,
             CancellationCloseHours = cancellationCloseHours,
             VolunteerRegistrationCloseHours = volunteerRegistrationCloseHours,
             VolunteerCancellationCloseHours = volunteerCancellationCloseHours,

@@ -3890,8 +3890,6 @@ export interface components {
             /** Format: double */
             registrationCloseHours?: number | null;
             /** Format: double */
-            cancellationOpenHours?: number | null;
-            /** Format: double */
             cancellationCloseHours?: number | null;
             /** Format: double */
             volunteerRegistrationCloseHours?: number | null;
@@ -4055,8 +4053,6 @@ export interface components {
             registrationOpenHours?: number | null;
             /** Format: double */
             registrationCloseHours?: number | null;
-            /** Format: double */
-            cancellationOpenHours?: number | null;
             /** Format: double */
             cancellationCloseHours?: number | null;
             /** Format: double */
@@ -5062,8 +5058,6 @@ export interface components {
             registrationOpenHours?: number | null;
             /** Format: double */
             registrationCloseHours?: number | null;
-            /** Format: double */
-            cancellationOpenHours?: number | null;
             /** Format: double */
             cancellationCloseHours?: number | null;
             /** Format: double */

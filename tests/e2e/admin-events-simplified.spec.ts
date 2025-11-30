@@ -162,31 +162,30 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
       await createButton!.click();
       await page.waitForTimeout(2000);
 
-      // Look for basic form fields
+      // Look for basic form fields on the Basic Info tab
+      // Note: Date/Time fields are on the Sessions tab, not Basic Info
       const fieldTypes = [
-        { type: 'name', selectors: ['[data-testid*="name"]', 'input[placeholder*="name" i]', 'input[name="name"]'] },
-        { type: 'date', selectors: ['[data-testid*="date"]', 'input[type="date"]', 'input[name="date"]'] },
-        { type: 'time', selectors: ['[data-testid*="time"]', 'input[type="time"]', 'input[name*="time"]'] },
-        { type: 'description', selectors: ['[data-testid*="description"]', 'textarea', 'input[name="description"]'] }
+        { type: 'name', label: 'Event Title' },
+        { type: 'description', label: 'Short Description' },
+        { type: 'venue', label: 'Venue' },
+        { type: 'teachers', label: 'Select Teachers' }
       ];
 
       for (const fieldType of fieldTypes) {
-        let foundField = false;
-        for (const selector of fieldType.selectors) {
-          const locator = page.locator(selector);
-          const count = await locator.count();
+        // Use getByLabel with regex for flexible matching
+        const locator = page.getByLabel(new RegExp(fieldType.label, 'i')).first();
+        const count = await locator.count();
 
-          // HARD ASSERTION: Field must be visible
-          if (count > 0) {
-            await expect(locator.first()).toBeVisible();
-            console.log(`✅ ${fieldType.type} field found: ${selector}`);
-            foundField = true;
-            break;
-          }
+        // HARD ASSERTION: Field must be visible
+        if (count > 0) {
+          await expect(locator).toBeVisible();
+          console.log(`✅ ${fieldType.type} field found: ${fieldType.label}`);
+        } else {
+          console.log(`⚠️ ${fieldType.type} field not found by label: ${fieldType.label}`);
         }
 
         // HARD ASSERTION: Each field type must exist
-        expect(foundField).toBeTruthy();
+        expect(count).toBeGreaterThan(0);
       }
     });
   });
@@ -408,37 +407,23 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
 
       await page.waitForTimeout(2000);
 
-      // Try to fill a basic field
-      const nameSelectors = [
-        '[data-testid*="name"]',
-        'input[placeholder*="name" i]',
-        'input[name="name"]',
-        'input[name="title"]'
-      ];
+      // Try to fill the Event Title field using label-based selector
+      const titleField = page.getByLabel('Event Title');
+      const count = await titleField.count();
 
-      let fieldFilled = false;
-      for (const selector of nameSelectors) {
-        const field = page.locator(selector).first();
-        const count = await field.count();
+      // HARD ASSERTION: Title field must exist
+      expect(count).toBeGreaterThan(0);
 
-        // HARD ASSERTION: Field must be visible and enabled
-        if (count > 0) {
-          await expect(field).toBeVisible();
-          await expect(field).toBeEnabled();
+      // HARD ASSERTION: Field must be visible and enabled
+      await expect(titleField).toBeVisible();
+      await expect(titleField).toBeEnabled();
 
-          await field.fill('Test Event Name');
-          const value = await field.inputValue();
+      await titleField.fill('Test Event Name');
+      const value = await titleField.inputValue();
 
-          // HARD ASSERTION: Field must accept input
-          expect(value).toBe('Test Event Name');
-          console.log(`✅ Form field interaction works: ${selector}`);
-          fieldFilled = true;
-          break;
-        }
-      }
-
-      // HARD ASSERTION: Must find and fill at least one field
-      expect(fieldFilled).toBeTruthy();
+      // HARD ASSERTION: Field must accept input
+      expect(value).toBe('Test Event Name');
+      console.log('✅ Form field interaction works: Event Title');
     });
   });
 

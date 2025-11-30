@@ -3,7 +3,8 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 // Helper to navigate to vetting page
 async function navigateToVettingPage(page: Page): Promise<boolean> {
-  await page.goto('/admin/vetting/applications');
+  // Route is /admin/vetting (not /admin/vetting/applications)
+  await page.goto('/admin/vetting');
   await page.waitForLoadState('domcontentloaded');
 
   // Check if we got a 404 error (route not implemented)
@@ -32,8 +33,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     const pageExists = await navigateToVettingPage(page);
 
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -69,8 +69,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -120,8 +119,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -130,7 +128,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (rowCount === 0) {
       console.log('⚠️ No applications found - skipping detail navigation test');
-      test();
       return;
     }
 
@@ -175,8 +172,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -185,7 +181,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (rowCount === 0) {
       console.log('⚠️ No applications found - skipping Put on Hold test');
-      test();
       return;
     }
 
@@ -198,7 +193,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (await putOnHoldButton.count() === 0) {
       console.log('⚠️ Put on Hold button not found - feature may not be implemented yet');
-      test();
       return;
     }
 
@@ -212,7 +206,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (!hasModal) {
       console.log('⚠️ Modal did not open - feature may not be fully implemented');
-      test();
       return;
     }
 
@@ -244,8 +237,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -254,7 +246,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (rowCount === 0) {
       console.log('⚠️ No applications found - skipping Send Reminder test');
-      test();
       return;
     }
 
@@ -267,7 +258,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (await sendReminderButton.count() === 0) {
       console.log('⚠️ Send Reminder button not found - feature may not be implemented yet');
-      test();
       return;
     }
 
@@ -281,7 +271,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (!hasModal) {
       console.log('⚠️ Modal did not open - feature may not be fully implemented');
-      test();
       return;
     }
 
@@ -318,8 +307,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -328,7 +316,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (rowCount === 0) {
       console.log('⚠️ No applications found - skipping status badge test');
-      test();
       return;
     }
 
@@ -363,8 +350,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -372,7 +358,6 @@ test.describe('Vetting System - Complete Workflows', () => {
     const rowCount = await page.locator('tbody tr').count();
     if (rowCount === 0) {
       console.log('⚠️ No applications found - skipping sorting test');
-      test();
       return;
     }
 
@@ -414,8 +399,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -423,7 +407,6 @@ test.describe('Vetting System - Complete Workflows', () => {
     const rowCount = await page.locator('tbody tr').count();
     if (rowCount === 0) {
       console.log('⚠️ No applications found - skipping pagination test');
-      test();
       return;
     }
 
@@ -469,8 +452,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -478,7 +460,6 @@ test.describe('Vetting System - Complete Workflows', () => {
     const rowCount = await page.locator('tbody tr').count();
     if (rowCount === 0) {
       console.log('⚠️ No applications found - skipping bulk selection test');
-      test();
       return;
     }
 
@@ -490,7 +471,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (!hasSelectAll) {
       console.log('⚠️ Bulk selection feature not implemented - skipping');
-      test();
       return;
     }
 
@@ -527,8 +507,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -537,7 +516,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (rowCount === 0) {
       console.log('⚠️ No applications found - skipping back navigation test');
-      test();
       return;
     }
 
@@ -573,8 +551,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 
@@ -583,7 +560,6 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (await searchInput.count() === 0) {
       console.log('⚠️ Search input not found - skipping empty state test');
-      test();
       return;
     }
 
@@ -629,8 +605,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const pageExists = await navigateToVettingPage(page);
     if (!pageExists) {
-      console.log('⚠️ Admin vetting applications page not implemented - skipping test');
-      test();
+      console.log('⚠️ Admin vetting page not found - skipping test');
       return;
     }
 

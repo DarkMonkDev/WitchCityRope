@@ -73,7 +73,6 @@ public class EventServiceCopyTests : IAsyncLifetime
             IsPublished = true,
             RegistrationOpenHours = 72,
             RegistrationCloseHours = 1,
-            CancellationOpenHours = 24,
             CancellationCloseHours = 1,
             VolunteerRegistrationCloseHours = 2,
             VolunteerCancellationCloseHours = 1,
@@ -109,7 +108,6 @@ public class EventServiceCopyTests : IAsyncLifetime
         response.VenueId.Should().Be(originalEvent.VenueId?.ToString());
         response.RegistrationOpenHours.Should().Be(originalEvent.RegistrationOpenHours);
         response.RegistrationCloseHours.Should().Be(originalEvent.RegistrationCloseHours);
-        response.CancellationOpenHours.Should().Be(originalEvent.CancellationOpenHours);
         response.CancellationCloseHours.Should().Be(originalEvent.CancellationCloseHours);
         response.VolunteerRegistrationCloseHours.Should().Be(originalEvent.VolunteerRegistrationCloseHours);
         response.VolunteerCancellationCloseHours.Should().Be(originalEvent.VolunteerCancellationCloseHours);

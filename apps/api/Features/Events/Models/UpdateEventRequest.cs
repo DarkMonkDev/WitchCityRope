@@ -93,12 +93,6 @@ public class UpdateEventRequest
     /// </summary>
     public decimal? RegistrationCloseHours { get; set; }
 
-    /// <summary>
-    /// Hours before/after event start when cancellation opens (optional)
-    /// Negative = before start, Positive = after start, null = no restriction
-    /// Example: -48 = can cancel starting 48 hours before event
-    /// </summary>
-    public decimal? CancellationOpenHours { get; set; }
 
     /// <summary>
     /// Hours before/after event start when cancellation closes (optional)

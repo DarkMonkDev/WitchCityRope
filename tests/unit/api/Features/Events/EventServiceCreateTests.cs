@@ -498,7 +498,6 @@ public class EventServiceCreateTests : DatabaseTestBase
             TeacherIds = new List<string> { teacher.Id.ToString() },
             RegistrationOpenHours = 48m,
             RegistrationCloseHours = 2m,
-            CancellationOpenHours = 48m,
             CancellationCloseHours = 4m
         };
 

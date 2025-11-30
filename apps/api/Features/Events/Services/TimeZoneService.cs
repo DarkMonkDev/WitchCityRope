@@ -104,7 +104,7 @@ public class TimeZoneService : ITimeZoneService
 
                 case EventActionType.CancelRsvp:
                 case EventActionType.CancelTicket:
-                    openHours = eventEntity.CancellationOpenHours;
+                    // Cancellation is always open (no open restriction), only close hours matter
                     closeHours = eventEntity.CancellationCloseHours;
                     break;
 

@@ -115,13 +115,6 @@ public class Event
     /// </summary>
     public decimal? RegistrationCloseHours { get; set; }
 
-    /// <summary>
-    /// Hours before/after event start when RSVP/Ticket cancellation opens.
-    /// Positive = before event start (e.g., 72 = 3 days before)
-    /// Negative = after event start (e.g., -1 = 1 hour after start, max -24)
-    /// NULL = no restriction (cancellation available any time before event)
-    /// </summary>
-    public decimal? CancellationOpenHours { get; set; }
 
     /// <summary>
     /// Hours before/after event start when RSVP/Ticket cancellation closes.

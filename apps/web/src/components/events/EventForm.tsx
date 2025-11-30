@@ -361,7 +361,6 @@ export interface EventFormData {
   // Timing Controls (nullable, in hours relative to event start)
   registrationOpenHours?: number | null
   registrationCloseHours?: number | null
-  cancellationOpenHours?: number | null
   cancellationCloseHours?: number | null
   volunteerRegistrationCloseHours?: number | null
   volunteerCancellationCloseHours?: number | null
@@ -400,7 +399,6 @@ export const EventForm: React.FC<EventFormProps> = ({
     rsvp: {
       registrationOpenHours: initialData?.registrationOpenHours ?? null,
       registrationCloseHours: initialData?.registrationCloseHours ?? null,
-      cancellationOpenHours: initialData?.cancellationOpenHours ?? null,
       cancellationCloseHours: initialData?.cancellationCloseHours ?? null,
     },
     volunteer: {
@@ -541,7 +539,6 @@ export const EventForm: React.FC<EventFormProps> = ({
       volunteerPositions: [],
       registrationOpenHours: null,
       registrationCloseHours: -12,
-      cancellationOpenHours: null,
       cancellationCloseHours: -12,
       volunteerRegistrationCloseHours: 24,
       volunteerCancellationCloseHours: 48,
@@ -563,12 +560,6 @@ export const EventForm: React.FC<EventFormProps> = ({
         return null
       },
       registrationCloseHours: (value) => {
-        if (value !== null && value !== undefined && value < -24) {
-          return 'Cannot be more than 24 hours after event start'
-        }
-        return null
-      },
-      cancellationOpenHours: (value) => {
         if (value !== null && value !== undefined && value < -24) {
           return 'Cannot be more than 24 hours after event start'
         }
@@ -621,7 +612,6 @@ export const EventForm: React.FC<EventFormProps> = ({
           volunteerPositions: [],
           registrationOpenHours: null,
           registrationCloseHours: null,
-          cancellationOpenHours: null,
           cancellationCloseHours: null,
           volunteerRegistrationCloseHours: null,
           volunteerCancellationCloseHours: null,
@@ -658,7 +648,6 @@ export const EventForm: React.FC<EventFormProps> = ({
         rsvp: {
           registrationOpenHours: initialData.registrationOpenHours ?? null,
           registrationCloseHours: initialData.registrationCloseHours ?? null,
-          cancellationOpenHours: initialData.cancellationOpenHours ?? null,
           cancellationCloseHours: initialData.cancellationCloseHours ?? null,
         },
         volunteer: {
@@ -674,14 +663,12 @@ export const EventForm: React.FC<EventFormProps> = ({
     const hasRsvpTimingChanged =
       form.values.registrationOpenHours !== initialTimingValues.rsvp.registrationOpenHours ||
       form.values.registrationCloseHours !== initialTimingValues.rsvp.registrationCloseHours ||
-      form.values.cancellationOpenHours !== initialTimingValues.rsvp.cancellationOpenHours ||
       form.values.cancellationCloseHours !== initialTimingValues.rsvp.cancellationCloseHours
 
     setRsvpTimingDirty(hasRsvpTimingChanged)
   }, [
     form.values.registrationOpenHours,
     form.values.registrationCloseHours,
-    form.values.cancellationOpenHours,
     form.values.cancellationCloseHours,
     initialTimingValues.rsvp,
   ])
@@ -1173,7 +1160,6 @@ export const EventForm: React.FC<EventFormProps> = ({
         id: eventId,
         registrationOpenHours: form.values.registrationOpenHours,
         registrationCloseHours: form.values.registrationCloseHours,
-        cancellationOpenHours: form.values.cancellationOpenHours,
         cancellationCloseHours: form.values.cancellationCloseHours,
         volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours,
         volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours,
@@ -1185,7 +1171,6 @@ export const EventForm: React.FC<EventFormProps> = ({
         rsvp: {
           registrationOpenHours: form.values.registrationOpenHours,
           registrationCloseHours: form.values.registrationCloseHours,
-          cancellationOpenHours: form.values.cancellationOpenHours,
           cancellationCloseHours: form.values.cancellationCloseHours,
         },
       }))
@@ -1220,7 +1205,6 @@ export const EventForm: React.FC<EventFormProps> = ({
         id: eventId,
         registrationOpenHours: form.values.registrationOpenHours,
         registrationCloseHours: form.values.registrationCloseHours,
-        cancellationOpenHours: form.values.cancellationOpenHours,
         cancellationCloseHours: form.values.cancellationCloseHours,
         volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours,
         volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours,
@@ -2061,62 +2045,33 @@ export const EventForm: React.FC<EventFormProps> = ({
                         </Stack>
                       </Group>
 
-                      {/* Row 2: Two-column layout with inline labels */}
-                      <Group grow align="flex-start">
-                        {/* Column 1: Cancellation Opens */}
-                        <Stack gap="xs">
-                          <Group gap="xs" align="center" wrap="nowrap">
-                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
-                              Cancellation Opens:
-                            </Text>
-                            <NumberInput
-                              placeholder="Not Set = Always Open"
-                              min={-24}
-                              max={8760}
-                              allowNegative={true}
-                              value={form.values.cancellationOpenHours ?? undefined}
-                              onChange={(value) =>
-                                form.setFieldValue(
-                                  'cancellationOpenHours',
-                                  typeof value === 'number' ? value : null
-                                )
-                              }
-                              error={form.errors.cancellationOpenHours}
-                              aria-label="Cancellation Opens"
-                              aria-describedby="cancellation-open-help"
-                              style={{ flex: 1 }}
-                            />
-                          </Group>
-                        </Stack>
-
-                        {/* Column 2: Cancellation Closes */}
-                        <Stack gap="xs">
-                          <Group gap="xs" align="center" wrap="nowrap">
-                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
-                              Cancellation Closes:
-                            </Text>
-                            <NumberInput
-                              placeholder="Not Set = Never Closes"
-                              min={-24}
-                              max={8760}
-                              step={0.5}
-                              decimalScale={1}
-                              allowNegative={true}
-                              value={form.values.cancellationCloseHours ?? undefined}
-                              onChange={(value) =>
-                                form.setFieldValue(
-                                  'cancellationCloseHours',
-                                  typeof value === 'number' ? value : null
-                                )
-                              }
-                              error={form.errors.cancellationCloseHours}
-                              aria-label="Cancellation Closes"
-                              aria-describedby="cancellation-close-help"
-                              style={{ flex: 1 }}
-                            />
-                          </Group>
-                        </Stack>
-                      </Group>
+                      {/* Row 2: Cancellation Closes */}
+                      <Stack gap="xs">
+                        <Group gap="xs" align="center" wrap="nowrap">
+                          <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                            Cancellation Closes:
+                          </Text>
+                          <NumberInput
+                            placeholder="Not Set = Never Closes"
+                            min={-24}
+                            max={8760}
+                            step={0.5}
+                            decimalScale={1}
+                            allowNegative={true}
+                            value={form.values.cancellationCloseHours ?? undefined}
+                            onChange={(value) =>
+                              form.setFieldValue(
+                                'cancellationCloseHours',
+                                typeof value === 'number' ? value : null
+                              )
+                            }
+                            error={form.errors.cancellationCloseHours}
+                            aria-label="Cancellation Closes"
+                            aria-describedby="cancellation-close-help"
+                            style={{ flex: 1 }}
+                          />
+                        </Group>
+                      </Stack>
 
                       {/* Save Timing Button */}
                       <Group justify="flex-start" mt="md">

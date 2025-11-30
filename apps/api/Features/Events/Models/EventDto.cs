@@ -102,12 +102,6 @@ public class EventDto
     /// </summary>
     public decimal? RegistrationCloseHours { get; set; }
 
-    /// <summary>
-    /// Hours before/after event start when RSVP/Ticket cancellation opens.
-    /// Positive = before event, Negative = after event (max -24).
-    /// NULL = no restriction (can cancel any time before event).
-    /// </summary>
-    public decimal? CancellationOpenHours { get; set; }
 
     /// <summary>
     /// Hours before/after event start when RSVP/Ticket cancellation closes.

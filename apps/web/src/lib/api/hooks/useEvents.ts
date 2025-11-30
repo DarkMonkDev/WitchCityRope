@@ -56,7 +56,6 @@ interface ApiEvent {
   // Timing control fields
   registrationOpenHours?: number | null
   registrationCloseHours?: number | null
-  cancellationOpenHours?: number | null
   cancellationCloseHours?: number | null
   volunteerRegistrationCloseHours?: number | null
   volunteerCancellationCloseHours?: number | null
@@ -154,7 +153,6 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     // Timing control fields
     registrationOpenHours: apiEvent.registrationOpenHours ?? null,
     registrationCloseHours: apiEvent.registrationCloseHours ?? null,
-    cancellationOpenHours: apiEvent.cancellationOpenHours ?? null,
     cancellationCloseHours: apiEvent.cancellationCloseHours ?? null,
     volunteerRegistrationCloseHours: apiEvent.volunteerRegistrationCloseHours ?? null,
     volunteerCancellationCloseHours: apiEvent.volunteerCancellationCloseHours ?? null

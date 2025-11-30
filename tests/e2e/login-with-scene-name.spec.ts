@@ -309,7 +309,6 @@ test.describe('Login with Email or Scene Name', () => {
 
       // Skip test if scene name is already all uppercase
       if (sceneName === upperCaseSceneName) {
-        test();
         return;
       }
 

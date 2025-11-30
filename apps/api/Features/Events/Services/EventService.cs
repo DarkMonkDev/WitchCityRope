@@ -116,7 +116,6 @@ public class EventService : IEventService
                 // Granular timing controls
                 RegistrationOpenHours = e.RegistrationOpenHours,
                 RegistrationCloseHours = e.RegistrationCloseHours,
-                CancellationOpenHours = e.CancellationOpenHours,
                 CancellationCloseHours = e.CancellationCloseHours,
                 VolunteerRegistrationCloseHours = e.VolunteerRegistrationCloseHours,
                 VolunteerCancellationCloseHours = e.VolunteerCancellationCloseHours
@@ -223,7 +222,6 @@ public class EventService : IEventService
                 // Granular timing controls
                 RegistrationOpenHours = eventEntity.RegistrationOpenHours,
                 RegistrationCloseHours = eventEntity.RegistrationCloseHours,
-                CancellationOpenHours = eventEntity.CancellationOpenHours,
                 CancellationCloseHours = eventEntity.CancellationCloseHours,
                 VolunteerRegistrationCloseHours = eventEntity.VolunteerRegistrationCloseHours,
                 VolunteerCancellationCloseHours = eventEntity.VolunteerCancellationCloseHours
@@ -430,7 +428,6 @@ public class EventService : IEventService
             bool hasRsvpTimingFields =
                 request.RegistrationOpenHours.HasValue ||
                 request.RegistrationCloseHours.HasValue ||
-                request.CancellationOpenHours.HasValue ||
                 request.CancellationCloseHours.HasValue;
 
             if (hasRsvpTimingFields || isTimingOnlyUpdate)
@@ -441,13 +438,12 @@ public class EventService : IEventService
                 // 2. All fields are null but this is a timing-only update (clear all)
                 eventEntity.RegistrationOpenHours = request.RegistrationOpenHours;
                 eventEntity.RegistrationCloseHours = request.RegistrationCloseHours;
-                eventEntity.CancellationOpenHours = request.CancellationOpenHours;
                 eventEntity.CancellationCloseHours = request.CancellationCloseHours;
 
                 _logger.LogDebug("Updated RSVP timing: RegOpen={RegOpen}, RegClose={RegClose}, " +
-                    "CancelOpen={CancelOpen}, CancelClose={CancelClose}",
+                    "CancelClose={CancelClose}",
                     request.RegistrationOpenHours, request.RegistrationCloseHours,
-                    request.CancellationOpenHours, request.CancellationCloseHours);
+                    request.CancellationCloseHours);
             }
 
             // Volunteer timing fields (frontend sends both together as a group)
@@ -533,7 +529,6 @@ public class EventService : IEventService
                 // Granular timing controls
                 RegistrationOpenHours = eventEntity.RegistrationOpenHours,
                 RegistrationCloseHours = eventEntity.RegistrationCloseHours,
-                CancellationOpenHours = eventEntity.CancellationOpenHours,
                 CancellationCloseHours = eventEntity.CancellationCloseHours,
                 VolunteerRegistrationCloseHours = eventEntity.VolunteerRegistrationCloseHours,
                 VolunteerCancellationCloseHours = eventEntity.VolunteerCancellationCloseHours
@@ -547,6 +542,42 @@ public class EventService : IEventService
         {
             _logger.LogError(ex, "Failed to update event: {EventId}", eventId);
             return (false, null, "Failed to update event");
+        }
+    }
+
+    /// <summary>
+    /// Recalculates the event's StartDate based on its sessions.
+    /// StartDate = earliest session that hasn't passed yet.
+    /// If all sessions have passed, StartDate = earliest session overall.
+    /// </summary>
+    private void RecalculateEventStartDate(WitchCityRope.Api.Models.Event eventEntity)
+    {
+        if (eventEntity.Sessions == null || !eventEntity.Sessions.Any())
+        {
+            // No sessions - keep existing StartDate
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+
+        // Get earliest future session
+        var earliestFutureSession = eventEntity.Sessions
+            .Where(s => s.StartTime > now)
+            .OrderBy(s => s.StartTime)
+            .FirstOrDefault();
+
+        if (earliestFutureSession != null)
+        {
+            // Use earliest future session's start time
+            eventEntity.StartDate = earliestFutureSession.StartTime;
+        }
+        else
+        {
+            // All sessions have passed - use earliest session overall
+            var earliestSession = eventEntity.Sessions
+                .OrderBy(s => s.StartTime)
+                .First();
+            eventEntity.StartDate = earliestSession.StartTime;
         }
     }
 
@@ -615,6 +646,9 @@ public class EventService : IEventService
         {
             eventEntity.Sessions.Remove(sessionToRemove);
         }
+
+        // Recalculate event's StartDate based on updated sessions
+        RecalculateEventStartDate(eventEntity);
 
         return Task.CompletedTask;
     }
@@ -959,10 +993,9 @@ public class EventService : IEventService
                     EventType = sourceEvent.EventType,
                     VenueId = sourceEvent.VenueId,
 
-                    // COPY timing controls (6 fields)
+                    // COPY timing controls (5 fields)
                     RegistrationOpenHours = sourceEvent.RegistrationOpenHours,
                     RegistrationCloseHours = sourceEvent.RegistrationCloseHours,
-                    CancellationOpenHours = sourceEvent.CancellationOpenHours,
                     CancellationCloseHours = sourceEvent.CancellationCloseHours,
                     VolunteerRegistrationCloseHours = sourceEvent.VolunteerRegistrationCloseHours,
                     VolunteerCancellationCloseHours = sourceEvent.VolunteerCancellationCloseHours
@@ -997,6 +1030,9 @@ public class EventService : IEventService
 
                 _logger.LogInformation("Copied {SessionCount} sessions for event {NewEventId}",
                     sourceEvent.Sessions.Count, copiedEvent.Id);
+
+                // Recalculate StartDate based on copied session times
+                RecalculateEventStartDate(copiedEvent);
 
                 // 7. Deep copy TicketTypes with SessionId remapping
                 foreach (var sourceTicket in sourceEvent.TicketTypes)
@@ -1148,7 +1184,6 @@ public class EventService : IEventService
                     TeacherIds = copiedEventWithNav.Organizers.Select(o => o.Id.ToString()).ToList(),
                     RegistrationOpenHours = copiedEventWithNav.RegistrationOpenHours,
                     RegistrationCloseHours = copiedEventWithNav.RegistrationCloseHours,
-                    CancellationOpenHours = copiedEventWithNav.CancellationOpenHours,
                     CancellationCloseHours = copiedEventWithNav.CancellationCloseHours,
                     VolunteerRegistrationCloseHours = copiedEventWithNav.VolunteerRegistrationCloseHours,
                     VolunteerCancellationCloseHours = copiedEventWithNav.VolunteerCancellationCloseHours
@@ -1237,7 +1272,6 @@ public class EventService : IEventService
                     // Timing controls (all optional)
                     RegistrationOpenHours = request.RegistrationOpenHours,
                     RegistrationCloseHours = request.RegistrationCloseHours,
-                    CancellationOpenHours = request.CancellationOpenHours,
                     CancellationCloseHours = request.CancellationCloseHours,
                     VolunteerRegistrationCloseHours = request.VolunteerRegistrationCloseHours,
                     VolunteerCancellationCloseHours = request.VolunteerCancellationCloseHours
@@ -1267,6 +1301,9 @@ public class EventService : IEventService
                     }
 
                     _logger.LogInformation("Added {SessionCount} sessions to new event", request.Sessions.Count);
+
+                    // Recalculate StartDate based on actual session times
+                    RecalculateEventStartDate(newEvent);
                 }
 
                 // 5. Add ticket types if provided
@@ -1429,7 +1466,6 @@ public class EventService : IEventService
                     TeacherIds = createdEventWithNav.Organizers.Select(o => o.Id.ToString()).ToList(),
                     RegistrationOpenHours = createdEventWithNav.RegistrationOpenHours,
                     RegistrationCloseHours = createdEventWithNav.RegistrationCloseHours,
-                    CancellationOpenHours = createdEventWithNav.CancellationOpenHours,
                     CancellationCloseHours = createdEventWithNav.CancellationCloseHours,
                     VolunteerRegistrationCloseHours = createdEventWithNav.VolunteerRegistrationCloseHours,
                     VolunteerCancellationCloseHours = createdEventWithNav.VolunteerCancellationCloseHours

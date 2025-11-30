@@ -302,7 +302,6 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     // SKIP: This test requires backend API integration
     // The current implementation uses local form state, not API calls during form editing
     // API errors would be handled during event save, not during volunteer position form submission
-    test();
   });
 
   test('should show "Add New Position" button below volunteer grid for UI consistency', async ({ page }) => {

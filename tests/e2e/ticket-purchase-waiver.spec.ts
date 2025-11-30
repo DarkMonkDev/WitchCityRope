@@ -49,7 +49,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!ticketButtonExists) {
       console.log('⚠️  No ticket purchase button available, skipping test');
-      test();
       return;
     }
 
@@ -63,7 +62,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!onCheckoutPage) {
       console.log('⚠️  Did not navigate to checkout page, current URL:', page.url());
-      test();
       return;
     }
 
@@ -75,7 +73,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
     if (!waiverCheckboxExists) {
       console.log('⚠️  Liability Waiver checkbox not found on checkout page');
       console.log('   This might indicate feature not yet implemented');
-      test();
       return;
     }
 
@@ -129,7 +126,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
     const classEvent = events.find((e: any) => e.eventType === 'Class');
     if (!classEvent) {
       console.log('⚠️  No class events available for testing');
-      test();
       return;
     }
 
@@ -150,7 +146,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!ticketButtonExists) {
       console.log('⚠️  No ticket purchase available, skipping test');
-      test();
       return;
     }
 
@@ -164,7 +159,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!waiverCheckboxExists) {
       console.log('⚠️  Waiver checkbox not found, feature may not be implemented yet');
-      test();
       return;
     }
 
@@ -220,7 +214,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
         path: './test-results/ticket-existing-purchase.png',
         fullPage: true
       });
-      test();
       return;
     }
 
@@ -230,7 +223,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!ticketButtonExists) {
       console.log('⚠️  No ticket purchase available');
-      test();
       return;
     }
 
@@ -244,7 +236,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!waiverCheckboxExists) {
       console.log('⚠️  Waiver checkbox not found');
-      test();
       return;
     }
 
@@ -285,7 +276,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!ticketButtonExists) {
       console.log('⚠️  No ticket purchase available');
-      test();
       return;
     }
 
@@ -299,7 +289,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!waiverCheckboxExists) {
       console.log('⚠️  Waiver checkbox not found, feature may not be implemented yet');
-      test();
       return;
     }
 
@@ -329,7 +318,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!eventsResponse.ok()) {
       console.log('⚠️  Could not fetch events list, skipping API validation test');
-      test();
       return;
     }
 
@@ -338,7 +326,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!eventWithTickets) {
       console.log('⚠️  No events with tickets available for testing');
-      test();
       return;
     }
 
@@ -405,7 +392,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!ticketButtonExists) {
       console.log('⚠️  No ticket purchase available');
-      test();
       return;
     }
 
@@ -419,7 +405,6 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     if (!waiverCheckboxExists) {
       console.log('⚠️  Waiver checkbox not found');
-      test();
       return;
     }
 

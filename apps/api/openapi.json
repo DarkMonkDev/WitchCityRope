@@ -10855,11 +10855,6 @@
             "format": "double",
             "nullable": true
           },
-          "cancellationOpenHours": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
           "cancellationCloseHours": {
             "type": "number",
             "format": "double",
@@ -11369,11 +11364,6 @@
             "nullable": true
           },
           "registrationCloseHours": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "cancellationOpenHours": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -14241,11 +14231,6 @@
             "nullable": true
           },
           "registrationCloseHours": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "cancellationOpenHours": {
             "type": "number",
             "format": "double",
             "nullable": true

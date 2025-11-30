@@ -54,7 +54,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!volunteerSectionExists) {
       console.log('⚠️  No volunteer opportunities on this event, skipping test');
-      test();
       return;
     }
 
@@ -65,7 +64,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!volunteerButtonExists) {
       console.log('⚠️  No volunteer signup buttons available, skipping test');
-      test();
       return;
     }
 
@@ -76,7 +74,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     if (!waiverCheckboxExists) {
       console.log('ℹ️  Event Waiver checkbox not shown - user already has RSVP/ticket for this event');
       console.log('   Waiver was already accepted during previous participation');
-      test();
       return;
     }
 
@@ -129,7 +126,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     const event = events[0];
     if (!event) {
       console.log('⚠️  No events available for testing');
-      test();
       return;
     }
 
@@ -150,7 +146,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!volunteerButtonExists) {
       console.log('⚠️  No volunteer opportunities, skipping test');
-      test();
       return;
     }
 
@@ -160,7 +155,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!waiverCheckboxExists) {
       console.log('ℹ️  No waiver checkbox - user already participated');
-      test();
       return;
     }
 
@@ -223,7 +217,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
         });
       }
 
-      test();
       return;
     }
 
@@ -233,7 +226,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!waiverCheckboxExists) {
       console.log('ℹ️  No waiver checkbox - user already participated');
-      test();
       return;
     }
 
@@ -272,7 +264,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!volunteerButtonExists) {
       console.log('⚠️  No volunteer signup buttons, skipping test');
-      test();
       return;
     }
 
@@ -283,7 +274,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     if (!waiverCheckboxExists) {
       console.log('ℹ️  No waiver checkbox - user already participated (waiver already accepted)');
       console.log('   This is correct behavior - waiver only shown for first participation');
-      test();
       return;
     }
 
@@ -312,7 +302,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!eventsResponse.ok()) {
       console.log('⚠️  Could not fetch events list, skipping API validation test');
-      test();
       return;
     }
 
@@ -321,7 +310,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!eventWithVolunteers) {
       console.log('⚠️  No events available for testing');
-      test();
       return;
     }
 
@@ -333,7 +321,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!volunteersResponse.ok()) {
       console.log('⚠️  No volunteer positions available');
-      test();
       return;
     }
 
@@ -342,7 +329,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!firstPosition) {
       console.log('⚠️  No volunteer positions found');
-      test();
       return;
     }
 
@@ -395,7 +381,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!volunteerButtonExists) {
       console.log('⚠️  No volunteer signup buttons, skipping test');
-      test();
       return;
     }
 
@@ -405,7 +390,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!waiverCheckboxExists) {
       console.log('ℹ️  No waiver checkbox - user already participated');
-      test();
       return;
     }
 
@@ -446,7 +430,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!alreadyParticipated) {
       console.log('ℹ️  User has not participated yet, waiver checkbox should be shown');
-      test();
       return;
     }
 
@@ -459,7 +442,6 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     if (!volunteerSectionExists) {
       console.log('⚠️  No volunteer section on this event');
-      test();
       return;
     }
 

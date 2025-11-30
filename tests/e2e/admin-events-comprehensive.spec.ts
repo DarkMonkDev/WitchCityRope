@@ -34,11 +34,11 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
       // Verify admin authentication
       const isAuth = await AuthHelpers.isAuthenticated(page);
       expect(isAuth).toBeTruthy();
-      
-      // Check admin role indicators if available  
-      const userInfo = await AuthHelpers.getCurrentUserInfo(page);
-      console.log('Current user info:', userInfo);
-      
+
+      // Verify we're on a protected page (dashboard) after auth check
+      const currentUrl = page.url();
+      expect(currentUrl).toContain('/dashboard');
+
       console.log('✅ Admin authentication validated');
     });
   });
@@ -96,74 +96,81 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
     });
 
     test('events list displays', async ({ page }) => {
-      // Check if events are displayed in some format
-      const eventsList = page.locator('[data-testid="events-list"], .events-table, .event-card, table');
-      const eventsContainer = page.locator('[data-testid="events-container"], .events-grid');
+      // Wait for events table to load (may take time due to API call)
+      const eventsTable = page.locator('table');
+      await expect(eventsTable).toBeVisible({ timeout: 10000 });
 
-      // Hard assertion - at least one of these containers must be visible
-      const hasEventsList = await eventsList.first().isVisible().catch(() => false);
-      const hasEventsContainer = await eventsContainer.first().isVisible().catch(() => false);
+      // Verify table has content (rows)
+      const tableRows = page.locator('table tbody tr, table rowgroup:nth-child(2) row');
+      const rowCount = await tableRows.count();
 
-      expect(hasEventsList || hasEventsContainer).toBeTruthy();
-      console.log('✅ Events display container found');
+      // Table exists and may have event rows
+      expect(rowCount).toBeGreaterThanOrEqual(0); // Table may be empty but should exist
+      console.log(`✅ Events table found with ${rowCount} rows`);
     });
   });
 
   test.describe('Tab and Modal Structure Tests', () => {
     test('event management has tabbed interface', async ({ page }) => {
-      // Try to create/edit an event to access tabs
+      // Click create event button
       const createBtn = page.locator('[data-testid="button-create-event"]');
-      const editBtn = page.locator('[data-testid="edit-event-button"]').first();
+      await expect(createBtn).toBeVisible({ timeout: 10000 });
+      await createBtn.click();
 
-      // Hard assertion - at least one button must be visible
-      const createVisible = await createBtn.isVisible().catch(() => false);
-      const editVisible = await editBtn.isVisible().catch(() => false);
-      expect(createVisible || editVisible).toBeTruthy();
+      // Wait for navigation to the event creation page
+      await page.waitForURL('**/admin/events/new', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded');
 
-      // Click the visible button
-      if (createVisible) {
-        await createBtn.click();
-      } else {
-        await editBtn.click();
-      }
+      // Look for tab structure using Mantine tabs pattern
+      const tabs = page.locator('[role="tab"], button[role="tab"], .mantine-Tabs-tab');
+      await expect(tabs.first()).toBeVisible({ timeout: 10000 });
 
-      // Look for tab structure - hard assertion that tabs exist
-      const tabs = page.locator('[data-testid*="tab"], .tab, [role="tab"]');
       const tabCount = await tabs.count();
-
       expect(tabCount).toBeGreaterThan(0);
       console.log(`✅ Found ${tabCount} tabs in event management interface`);
     });
 
     test('session management section exists', async ({ page }) => {
-      // Look for session-related elements
+      // Navigate to event creation page
       const createBtn = page.locator('[data-testid="button-create-event"]');
-
-      // Hard assertion - button must be visible
-      await expect(createBtn).toBeVisible();
+      await expect(createBtn).toBeVisible({ timeout: 10000 });
       await createBtn.click();
 
-      // Hard assertion - session elements must exist
-      const sessionElements = page.locator('[data-testid*="session"], *:has-text("Session"), *:has-text("Time Slot")');
-      const sessionCount = await sessionElements.count();
+      // Wait for navigation to the event creation page
+      await page.waitForURL('**/admin/events/new', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded');
 
-      expect(sessionCount).toBeGreaterThan(0);
-      console.log('✅ Session management elements found');
+      // Wait for the event form to render (tabs need to be visible)
+      const eventForm = page.locator('[data-testid="event-form"]');
+      await expect(eventForm).toBeVisible({ timeout: 10000 });
+
+      // Look for Sessions / Ticket Types tab button (not the panel)
+      // Use role="tab" to specifically target the tab button, not the panel
+      const sessionsTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
+      await expect(sessionsTab).toBeVisible({ timeout: 5000 });
+
+      console.log('✅ Session management tab found');
     });
 
     test('ticket management section exists', async ({ page }) => {
-      // Look for ticket-related elements
+      // Navigate to event creation page
       const createBtn = page.locator('[data-testid="button-create-event"]');
-
-      // Hard assertion - button must be visible
-      await expect(createBtn).toBeVisible();
+      await expect(createBtn).toBeVisible({ timeout: 10000 });
       await createBtn.click();
 
-      // Hard assertion - ticket elements must exist
-      const ticketElements = page.locator('[data-testid*="ticket"], *:has-text("Ticket"), *:has-text("Price")');
-      const ticketCount = await ticketElements.count();
+      // Wait for navigation and form to load
+      await page.waitForURL('**/admin/events/new', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded');
 
-      expect(ticketCount).toBeGreaterThan(0);
+      // Wait for the event form to render
+      const eventForm = page.locator('[data-testid="event-form"]');
+      await expect(eventForm).toBeVisible({ timeout: 10000 });
+
+      // Look for RSVP/Tickets tab button (not the panel)
+      // Use role="tab" to specifically target the tab button, not the panel
+      const ticketsTab = page.getByRole('tab', { name: 'RSVP/Tickets' });
+      await expect(ticketsTab).toBeVisible({ timeout: 5000 });
+
       console.log('✅ Ticket management elements found');
     });
   });

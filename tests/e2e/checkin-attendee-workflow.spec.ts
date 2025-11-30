@@ -33,6 +33,9 @@ import {
   getAttendees
 } from './checkin/helpers/tokenHelpers';
 
+// CHECK-IN KIOSK MODE TESTS - ATTENDEE WORKFLOW
+// Routes: /events/:eventId/checkin
+// Uses session tokens for access control - NO user login required
 test.describe('Check-In Attendee Workflow', () => {
   let testEventId: string;
   let sessionToken: string;
@@ -70,7 +73,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     // Skip test if no attendees or all are checked in
     if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test(true, 'No registered attendees found for this event');
+      test.skip();
       return;
     }
 
@@ -81,7 +84,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     if (!uncheckedAttendee) {
       // All attendees are already checked in - create a test registration first
-      test(true, 'All attendees are already checked in - need to create test registration');
+      test.skip();
       return;
     }
 
@@ -90,39 +93,21 @@ test.describe('Check-In Attendee Workflow', () => {
     const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
-    // Click "Check In" button within this attendee's row
+    // Click "Covid Test" button first (initial state for unchecked attendees)
+    // The workflow is: Covid Test → Check In → Checked In
+    const covidTestButton = attendeeRow.locator('button').filter({ hasText: /covid test/i }).first();
+    await expect(covidTestButton).toBeVisible({ timeout: 5000 });
+    await covidTestButton.click();
+
+    // Now "Check In" button appears
     const checkInButton = attendeeRow.locator('button').filter({ hasText: /check.?in/i }).first();
     await expect(checkInButton).toBeVisible({ timeout: 5000 });
     await checkInButton.click();
 
-    // Verify confirmation modal appears
-    const confirmationModal = page.locator('[role="dialog"], .modal, [data-testid="checkin-confirmation-modal"]');
-    await expect(confirmationModal).toBeVisible({ timeout: 5000 });
-
-    // Click "Complete Check-In" button in modal
-    const confirmButton = page.locator('button').filter({ hasText: /complete.*check.*in/i }).last();
-    await confirmButton.click();
-
-    // Wait for modal to close (indicates mutation started)
-    await expect(confirmationModal).not.toBeVisible({ timeout: 5000 });
-
-    // Verify success notification appears
-    // Mantine v7 creates multiple root containers (one per position), only the active one is visible
-    // Look for the actual notification element with success text (will be in the visible container)
-    const successNotification = page.locator('[class*="Notification"]').filter({ hasText: /success|checked/i }).first();
-    await expect(successNotification).toBeVisible({ timeout: 8000 }); // Match increased autoClose time
-
-    // Verify attendee shows as checked in
-    // Look for checked-in badge or indicator
-    const checkedInBadge = page.locator('text=/checked.?in/i').first();
-    await expect(checkedInBadge).toBeVisible({ timeout: 5000 });
-
-    // Verify capacity counter updates (if displayed)
-    const capacityDisplay = page.locator('text=/capacity|checked.?in.*\\d+|\\d+.*checked.?in/i').first();
-    if (await capacityDisplay.isVisible()) {
-      // Capacity counter exists - verify it updated
-      await expect(capacityDisplay).toBeVisible();
-    }
+    // KIOSK MODE: Notifications are disabled for streamlined UX
+    // Instead, verify the attendee shows as checked in (text changes to "✓ Checked In")
+    const checkedInText = attendeeRow.locator('text=/Checked In/i').first();
+    await expect(checkedInText).toBeVisible({ timeout: 5000 });
   });
 
   test('Cannot check in same attendee twice', async ({ page }) => {
@@ -131,7 +116,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     // Skip test if no checked-in attendees exist
     if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test(true, 'No attendees found for this event');
+      test.skip();
       return;
     }
 
@@ -141,7 +126,7 @@ test.describe('Check-In Attendee Workflow', () => {
     );
 
     if (!checkedInAttendee) {
-      test(true, 'No checked-in attendees found - cannot test duplicate check-in prevention');
+      test.skip();
       return;
     }
 
@@ -150,22 +135,30 @@ test.describe('Check-In Attendee Workflow', () => {
     const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
-    // Verify attendee shows as checked in (not a button, but a "✓ Checked In" text)
-    const checkedInIndicator = attendeeRow.locator('text=/✓.*checked.?in/i').first();
-    await expect(checkedInIndicator).toBeVisible({ timeout: 5000 });
+    // Verify attendee shows "Checked In" text (complete state shows "✓ Checked In")
+    const checkedInText = attendeeRow.locator('text=/Checked In/i').first();
+    await expect(checkedInText).toBeVisible({ timeout: 5000 });
 
-    // Verify NO "Check In" button exists for this attendee (button is removed for checked-in attendees)
+    // Verify NO "Covid Test" or "Check In" buttons exist for this attendee (complete state shows text, not buttons)
+    const covidTestButton = attendeeRow.locator('button').filter({ hasText: /covid test/i });
+    await expect(covidTestButton).toHaveCount(0);
+
     const checkInButton = attendeeRow.locator('button').filter({ hasText: /^check.?in$/i });
     await expect(checkInButton).toHaveCount(0);
   });
 
-  test('Check-in modal displays attendee information', async ({ page }) => {
+  test('Two-step check-in workflow (Covid Test → Check In)', async ({ page }) => {
+    // This test verifies the streamlined check-in workflow:
+    // 1. Click "Covid Test" button (purple) - marks COVID test complete
+    // 2. Click "Check In" button (green) - completes the check-in
+    // No confirmation modal - direct button workflow for kiosk efficiency
+
     // Get attendees from API using session token
     const attendeesData = await getAttendees(page, testEventId, sessionToken);
 
     // Skip if no unchecked attendees
     if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test(true, 'No attendees found for this event');
+      test.skip();
       return;
     }
 
@@ -174,7 +167,7 @@ test.describe('Check-In Attendee Workflow', () => {
     );
 
     if (!uncheckedAttendee) {
-      test(true, 'All attendees are already checked in');
+      test.skip();
       return;
     }
 
@@ -183,47 +176,27 @@ test.describe('Check-In Attendee Workflow', () => {
     const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
-    // Click "Check In" button within this attendee's row
+    // Verify the attendee name is displayed correctly
+    const nameDisplay = attendeeRow.locator(`text=${sceneName}`);
+    await expect(nameDisplay).toBeVisible({ timeout: 3000 });
+
+    // Step 1: Verify "Covid Test" button is visible (initial state)
+    const covidTestButton = attendeeRow.locator('button').filter({ hasText: /covid test/i }).first();
+    await expect(covidTestButton).toBeVisible({ timeout: 5000 });
+
+    // Click "Covid Test" button
+    await covidTestButton.click();
+
+    // Step 2: Verify "Check In" button appears (intermediate state)
     const checkInButton = attendeeRow.locator('button').filter({ hasText: /check.?in/i }).first();
     await expect(checkInButton).toBeVisible({ timeout: 5000 });
+
+    // Click "Check In" button to complete
     await checkInButton.click();
 
-    // Wait for modal
-    const modal = page.locator('[role="dialog"], .modal, [data-testid="checkin-confirmation-modal"]');
-    await expect(modal).toBeVisible({ timeout: 5000 });
-
-    // Verify modal shows attendee information
-    // Scene name (email not displayed in modal - UI only shows scene name and pronouns)
-    const sceneNameDisplay = modal.locator(`text=${uncheckedAttendee.sceneName || uncheckedAttendee.email}`);
-    await expect(sceneNameDisplay).toBeVisible({ timeout: 3000 });
-
-    // Pronouns (if available)
-    if (uncheckedAttendee.pronouns) {
-      const pronounsDisplay = modal.locator(`text=${uncheckedAttendee.pronouns}`);
-      await expect(pronounsDisplay).toBeVisible({ timeout: 3000 });
-    }
-
-    // Ticket number (if available)
-    if (uncheckedAttendee.ticketNumber) {
-      const ticketDisplay = modal.locator(`text=${uncheckedAttendee.ticketNumber}`);
-      await expect(ticketDisplay).toBeVisible({ timeout: 3000 });
-    }
-
-    // Special needs (if any)
-    // This may not always be present, so we don't assert visibility
-
-    // Waiver status - look for signed badge or waiver on file text
-    const waiverBadge = modal.locator('text=/✓.*signed|waiver.*on.*file/i').first();
-    if (await waiverBadge.count() > 0) {
-      await expect(waiverBadge).toBeVisible();
-    }
-
-    // Close modal without confirming (test cancel functionality)
-    const cancelButton = modal.locator('button').filter({ hasText: /cancel|close/i }).first();
-    if (await cancelButton.count() > 0) {
-      await cancelButton.click();
-      await expect(modal).not.toBeVisible({ timeout: 3000 });
-    }
+    // Verify final state: "Checked In" text appears (complete state)
+    const checkedInText = attendeeRow.locator('text=/Checked In/i').first();
+    await expect(checkedInText).toBeVisible({ timeout: 5000 });
   });
 
   test('Token validation fails for expired token during check-in', async ({ browser }) => {

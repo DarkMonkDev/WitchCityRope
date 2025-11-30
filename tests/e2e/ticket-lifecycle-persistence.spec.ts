@@ -185,13 +185,11 @@ test.describe('Ticket Persistence Edge Cases', () => {
   test('should handle network errors gracefully during cancellation', async ({ page }) => {
     // This would test offline/network error scenarios
     // For now, we'll skip as it requires network mocking
-    test();
   });
 
   test('should handle concurrent cancellation attempts', async ({ page }) => {
     // This would test race conditions
     // For now, we'll skip as it requires multiple browser contexts
-    test();
   });
 
   test('should verify endpoint called is correct', async ({ page }) => {

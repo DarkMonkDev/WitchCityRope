@@ -16,12 +16,12 @@ test.describe('Admin Events Management Detailed Test', () => {
     console.log('✅ Admin dashboard loaded');
     
     // Step 3: Click on Events Management card
-    // Use h3 selector to specifically target the card heading, not the navigation link
-    const eventsManagementCard = page.locator('h3:has-text("Events Management")');
-    
+    // Use h3 selector with visibility class to get the desktop version
+    const eventsManagementCard = page.locator('h3:has-text("Events Management").mantine-visible-from-md, h3:has-text("Events Management"):visible').first();
+
     const cardExists = await eventsManagementCard.count() > 0;
     console.log(`✅ Events Management card exists: ${cardExists}`);
-    
+
     if (cardExists) {
       await eventsManagementCard.click();
       await page.waitForLoadState('domcontentloaded');
@@ -51,17 +51,11 @@ test.describe('Admin Events Management Detailed Test', () => {
         console.log('✅ Clicked Create Event button');
         
         // Step 5: Check for Event Session Matrix form elements
-        const formTitle = page.locator('input[name="title"]').or(
-          page.locator('[data-testid*="title"]').or(
-            page.locator('label:has-text("Title")').locator('..').locator('input')
-          )
-        );
+        // Use specific label-based selector for Event Title
+        const formTitle = page.getByRole('textbox', { name: 'Event Title' });
         
-        const formDescription = page.locator('textarea[name="description"]').or(
-          page.locator('[data-testid*="description"]').or(
-            page.locator('label:has-text("Description")').locator('..').locator('textarea')
-          )
-        );
+        // Use Short Description label-based selector
+        const formDescription = page.getByLabel('Short Description').first();
         
         // Look for session-related elements
         const sessionElements = page.locator('text=Session').or(
@@ -91,16 +85,20 @@ test.describe('Admin Events Management Detailed Test', () => {
         console.log('✅ Event creation form elements found:', formElements);
         
         // Step 6: Try to fill the form if basic elements exist
-        if (formElements.title) {
+        if (formElements.title && await formTitle.isVisible()) {
           await formTitle.fill('Test Event - Session Matrix Verification');
           await page.screenshot({ path: 'test-results/form-title-filled.png', fullPage: true });
           console.log('✅ Title field filled');
+        } else {
+          console.log('⚠️ Title field not visible - skipping');
         }
         
-        if (formElements.description) {
+        if (formElements.description && await formDescription.isVisible()) {
           await formDescription.fill('This is a test event to verify the Event Session Matrix system is working properly.');
           await page.screenshot({ path: 'test-results/form-description-filled.png', fullPage: true });
           console.log('✅ Description field filled');
+        } else {
+          console.log('⚠️ Description field not visible - skipping');
         }
         
         // Step 7: Look for any session/time controls

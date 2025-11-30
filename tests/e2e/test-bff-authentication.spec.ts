@@ -16,8 +16,11 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('BFF Authentication Flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear all cookies and localStorage before each test
+    // Clear all cookies before each test
     await page.context().clearCookies();
+    // Navigate to app first, then clear localStorage (can't access localStorage on about:blank)
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
     await page.evaluate(() => localStorage.clear());
   });
 
@@ -30,7 +33,7 @@ test.describe('BFF Authentication Flow', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Verify login page loads correctly
-    await expect(page).toHaveTitle(/WitchCityRope/);
+    await expect(page).toHaveTitle(/Witch City Rope/);
     console.log('✅ Login page loaded successfully');
 
     // Step 2: Wait for login form to be visible
@@ -107,7 +110,8 @@ test.describe('BFF Authentication Flow', () => {
     
     if (isStillOnLoginPage || hasLoginForm) {
       console.log('❌ Still on login page, checking for error messages...');
-      const errorMessage = await page.locator('.error, .alert-danger, [data-testid="error"]').textContent();
+      const errorLocator = page.locator('.error, .alert-danger, [data-testid="error"]');
+      const errorMessage = await errorLocator.count() > 0 ? await errorLocator.first().textContent() : null;
       if (errorMessage) {
         console.log(`Login error: ${errorMessage}`);
       }

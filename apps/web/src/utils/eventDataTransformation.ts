@@ -98,9 +98,6 @@ export function convertEventFormDataToUpdateDto(
   if (formData.registrationCloseHours !== undefined) {
     updateDto.registrationCloseHours = formData.registrationCloseHours;
   }
-  if (formData.cancellationOpenHours !== undefined) {
-    updateDto.cancellationOpenHours = formData.cancellationOpenHours;
-  }
   if (formData.cancellationCloseHours !== undefined) {
     updateDto.cancellationCloseHours = formData.cancellationCloseHours;
   }
@@ -275,9 +272,6 @@ export function getChangedEventFields(
   }
   if (current.registrationCloseHours !== initial.registrationCloseHours) {
     changes.registrationCloseHours = current.registrationCloseHours;
-  }
-  if (current.cancellationOpenHours !== initial.cancellationOpenHours) {
-    changes.cancellationOpenHours = current.cancellationOpenHours;
   }
   if (current.cancellationCloseHours !== initial.cancellationCloseHours) {
     changes.cancellationCloseHours = current.cancellationCloseHours;

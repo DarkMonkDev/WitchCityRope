@@ -34,13 +34,13 @@ public class EnhancedParticipationStatusDto
 
     /// <summary>
     /// Whether user can cancel their RSVP based on event timing rules
-    /// Determined by event's CancellationOpenHours and CancellationCloseHours
+    /// Determined by event's CancellationCloseHours
     /// </summary>
     public bool CanCancelRSVP { get; set; }
 
     /// <summary>
     /// Whether user can cancel their ticket based on event timing rules
-    /// Determined by event's CancellationOpenHours and CancellationCloseHours
+    /// Determined by event's CancellationCloseHours
     /// </summary>
     public bool CanCancelTicket { get; set; }
 

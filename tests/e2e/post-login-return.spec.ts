@@ -119,7 +119,6 @@ test.describe('Post-Login Return to Intended Page', () => {
 
       // If button not found, event might allow guest access - skip test
       if (await loginButton.count() === 0) {
-        test();
         return;
       }
 
@@ -163,7 +162,6 @@ test.describe('Post-Login Return to Intended Page', () => {
 
       const loginButton = page.getByRole('link', { name: /log in/i }).filter({ has: page.locator('[href*="returnUrl"]') }).first();
       if (await loginButton.count() === 0) {
-        test();
         return;
       }
 

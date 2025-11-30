@@ -182,8 +182,6 @@ export const AdminEventDetailsPage: React.FC = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       registrationCloseHours: (event as any)?.registrationCloseHours ?? null,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      cancellationOpenHours: (event as any)?.cancellationOpenHours ?? null,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       cancellationCloseHours: (event as any)?.cancellationCloseHours ?? null,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       volunteerRegistrationCloseHours: (event as any)?.volunteerRegistrationCloseHours ?? null,

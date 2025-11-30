@@ -64,7 +64,6 @@ public class CreateEventRequest
     // Granular timing controls (all optional)
     public decimal? RegistrationOpenHours { get; set; }
     public decimal? RegistrationCloseHours { get; set; }
-    public decimal? CancellationOpenHours { get; set; }
     public decimal? CancellationCloseHours { get; set; }
     public decimal? VolunteerRegistrationCloseHours { get; set; }
     public decimal? VolunteerCancellationCloseHours { get; set; }

@@ -115,7 +115,6 @@ export const NewEventPage: React.FC = () => {
         // Timing controls (all optional)
         registrationOpenHours: formData.registrationOpenHours || null,
         registrationCloseHours: formData.registrationCloseHours || null,
-        cancellationOpenHours: formData.cancellationOpenHours || null,
         cancellationCloseHours: formData.cancellationCloseHours || null,
         volunteerRegistrationCloseHours: formData.volunteerRegistrationCloseHours || null,
         volunteerCancellationCloseHours: formData.volunteerCancellationCloseHours || null,

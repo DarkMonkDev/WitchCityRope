@@ -61,8 +61,6 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
       timeZone: eventTimeZone
     });
   };

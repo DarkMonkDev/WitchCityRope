@@ -141,7 +141,6 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
         var (client, userId) = await CreateAuthenticatedUserAsync($"ticket-user-{Guid.NewGuid():N}@test.com");
         var eventEntity = await CreateTestEventAsync(
             startDateTime: DateTime.UtcNow.AddDays(3),
-            cancellationOpenHours: 168, // Opens 7 days before
             cancellationCloseHours: 12   // Closes 12 hours before
         );
         var ticket = await CreateTestTicketAsync(eventEntity.Id, userId);
@@ -153,26 +152,11 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
         response.StatusCode.Should().Be(HttpStatusCode.NoContent, "Ticket cancel should succeed within cancellation window");
     }
 
-    [Fact]
+    [Fact(Skip = "Obsolete: CancellationOpenHours removed - cancellation is always open until CancellationCloseHours")]
     public async Task CancelTicket_BeforeCancellationOpens_Fails()
     {
-        // Arrange: Event 10 days away, cancellation opens 7 days before
-        var (client, userId) = await CreateAuthenticatedUserAsync($"ticket-user-{Guid.NewGuid():N}@test.com");
-        var eventEntity = await CreateTestEventAsync(
-            startDateTime: DateTime.UtcNow.AddDays(10),
-            cancellationOpenHours: 168, // Opens 7 days before (event is 10 days away)
-            cancellationCloseHours: 12
-        );
-        var ticket = await CreateTestTicketAsync(eventEntity.Id, userId);
-
-        // Act
-        var response = await client.DeleteAsync($"/api/attendance/{ticket.Id}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest, "Cancel should fail before cancellation opens");
-        var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("Cancellation window is not currently open",
-            "error message should explain timing restriction");
+        // This test is obsolete - cancellation no longer has "opens" restriction
+        // Cancellation is now always available until CancellationCloseHours
     }
 
     [Fact]
@@ -182,7 +166,6 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
         var (client, userId) = await CreateAuthenticatedUserAsync($"ticket-user-{Guid.NewGuid():N}@test.com");
         var eventEntity = await CreateTestEventAsync(
             startDateTime: DateTime.UtcNow.AddHours(6),
-            cancellationOpenHours: 168,
             cancellationCloseHours: 12 // Closes 12 hours before (event is 6 hours away)
         );
         var ticket = await CreateTestTicketAsync(eventEntity.Id, userId);
@@ -204,7 +187,6 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
         var (client, userId) = await CreateAuthenticatedUserAsync($"ticket-user-{Guid.NewGuid():N}@test.com");
         var eventEntity = await CreateTestEventAsync(
             startDateTime: DateTime.UtcNow.AddHours(-12), // Event was 12 hours ago
-            cancellationOpenHours: 168,
             cancellationCloseHours: -24 // Allowed up to 24 hours AFTER event
         );
         var ticket = await CreateTestTicketAsync(eventEntity.Id, userId);
@@ -224,7 +206,6 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
         var (client, userId) = await CreateAuthenticatedUserAsync($"ticket-user-{Guid.NewGuid():N}@test.com");
         var eventEntity = await CreateTestEventAsync(
             startDateTime: DateTime.UtcNow.AddHours(-25), // Event was 25 hours ago
-            cancellationOpenHours: 168,
             cancellationCloseHours: -24 // Allowed up to 24 hours AFTER event
         );
         var ticket = await CreateTestTicketAsync(eventEntity.Id, userId);
@@ -247,7 +228,6 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
         var (client, userId) = await CreateAuthenticatedUserAsync($"ticket-user-{Guid.NewGuid():N}@test.com");
         var eventEntity = await CreateTestEventAsync(
             startDateTime: DateTime.UtcNow.AddMinutes(30), // Even very close to start
-            cancellationOpenHours: null, // No restriction
             cancellationCloseHours: null  // No restriction
         );
         var ticket = await CreateTestTicketAsync(eventEntity.Id, userId);
@@ -268,7 +248,6 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
         DateTime startDateTime,
         decimal? registrationOpenHours = null,
         decimal? registrationCloseHours = null,
-        decimal? cancellationOpenHours = null,
         decimal? cancellationCloseHours = null)
     {
         await using var context = CreateDbContext();
@@ -289,7 +268,6 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
             IsPublished = true,
             RegistrationOpenHours = registrationOpenHours,
             RegistrationCloseHours = registrationCloseHours,
-            CancellationOpenHours = cancellationOpenHours,
             CancellationCloseHours = cancellationCloseHours,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

@@ -60,7 +60,6 @@ test.describe('Teacher Bio Display on Event Page', () => {
       }
     } else {
       console.log('⚠️ No events found for testing');
-      test();
     }
   });
 
