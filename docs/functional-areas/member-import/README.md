@@ -213,8 +213,56 @@ dotnet test
 - Duplicate records → Expected for production, review skipped users
 - Wrong status imported → Verify `--status` parameter
 - Date parsing failures → Check CSV date format
+- "value too long for type character varying(X)" → Fields are auto-truncated (see below)
 
 **Detailed Troubleshooting**: See usage guide linked above
+
+## Critical Implementation Notes (2025-11-30)
+
+### Field Truncation
+The import tool automatically truncates fields to fit database column constraints:
+- **User.SceneName**: max 50 chars
+- **User.Pronouns**: max 50 chars
+- **User.FetLifeName**: max 100 chars
+- **VettingApplication.SceneName**: max 100 chars
+- **VettingApplication.Pronouns**: max 50 chars
+- **VettingApplication.FetLifeHandle**: max 100 chars
+- **VettingApplication.OtherNames**: max 1000 chars
+
+### Field Mapping Differences Between CSVs
+The Accepted and Pre-Vetted CSVs have different data semantics for the same columns. The import tool uses **conditional field mapping** based on the `--status` parameter:
+
+**For Accepted (--status=approved)**:
+| CSV Column | Maps To |
+|------------|---------|
+| RelationshipWithSponsor ("How did they learn about DA") | WhyJoinCommunity |
+| FitForDarkAlchemy ("Fit for Dark Alchemy") | HowDidYouHearAboutUs |
+| MotivationDescription ("Description of applicant") | ExperienceDescription |
+
+**For Pre-Vetted (--status=interview-approved)**:
+| CSV Column | Maps To |
+|------------|---------|
+| MotivationDescription ("Description of applicant") | WhyJoinCommunity |
+| RelationshipWithSponsor ("How did they learn about DA") | HowDidYouHearAboutUs |
+| FitForDarkAlchemy ("Fit for Dark Alchemy") | ExperienceDescription |
+
+### Date Parsing
+- Dates without year (e.g., "7/11") default to **2024**, not current year
+- Dates with 2-digit year (e.g., "7/11/22") are converted to 2000s (2022)
+- Dates are stored as UTC
+
+### Audit Log Creation
+Each imported application creates these audit log entries:
+1. **"Application Submitted"** - NewValue="UnderReview", with descriptive note
+2. **"Vettor Assigned"** - If vettor name present in CSV
+3. **"Note Added"** - For each note line parsed from VettingStatus/Notes columns
+4. **"Status Changed"** - OldValue="UnderReview", NewValue="Approved" or "InterviewApproved" (Notes=null per system standard)
+
+### CSV Column Mapping
+The import tool handles multiple column name variations for the same data:
+- Application date: "App Submitted Date", "App Submitted", "ApplicationDate", etc.
+- Vetting notes: "Vetting status \n(specify dates and sign)", "Vetting status", etc.
+- See `CsvReader.cs` for full mapping definitions
 
 ## Quick Start
 
@@ -253,6 +301,14 @@ dotnet run -- --input=pre-vetted.csv --status=interview-approved
 - Functional Area: `/home/chad/repos/witchcityrope/docs/functional-areas/vetting-system/`
 
 ## History
+
+**2025-11-30**: Field mapping and truncation improvements
+- Added automatic field truncation for database column constraints
+- Fixed date parsing to use 2024 as default year instead of current year
+- Added conditional field mapping for Accepted vs Pre-Vetted CSVs
+- Fixed audit log creation to match system standard format
+- Added inner exception extraction for better error diagnostics
+- Successfully imported 598 vetted members and 75 interview-approved members to staging
 
 **2025-11-24**: Added interview-approved import mode
 - New `--status` parameter supports both import modes

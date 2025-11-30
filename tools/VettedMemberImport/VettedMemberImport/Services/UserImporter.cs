@@ -58,9 +58,10 @@ public class UserImporter
             catch (Exception ex)
             {
                 summary.ErrorCount++;
-                var errorMsg = $"Row {rowNum}: Unexpected error - {ex.Message}";
+                var innerMsg = GetInnermostExceptionMessage(ex);
+                var errorMsg = $"Row {rowNum}: Unexpected error - {innerMsg}";
                 summary.Errors.Add(errorMsg);
-                _logger.LogError(ex, errorMsg);
+                _logger.LogError(ex, "Row {RowNum}: Error importing - {InnerMessage}", rowNum, innerMsg);
             }
         }
 
@@ -125,7 +126,8 @@ public class UserImporter
             return;
         }
 
-        // Create user
+        // Create user - truncate fields to fit database column constraints
+        // SceneName: max 50 chars, Pronouns: max 50 chars, FetLifeName: max 100 chars
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
@@ -133,9 +135,9 @@ public class UserImporter
             NormalizedEmail = normalizedEmail,
             UserName = email,
             NormalizedUserName = normalizedEmail,
-            SceneName = row.SceneName.Trim(),
-            Pronouns = row.Pronouns?.Trim() ?? "",
-            FetLifeName = row.FetLifeHandle?.Trim(),
+            SceneName = Truncate(row.SceneName, 50) ?? "",
+            Pronouns = Truncate(row.Pronouns, 50) ?? "",
+            FetLifeName = Truncate(row.FetLifeHandle, 100),
 
             // Security - Generate random secure password hash (user must reset via email)
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(GenerateRandomPassword()),
@@ -183,26 +185,32 @@ public class UserImporter
         }
         var combinedOtherNames = otherNames.Count > 0 ? string.Join("\n", otherNames) : null;
 
-        // Create vetting application
+        // Create vetting application - truncate fields to fit database column constraints
+        // SceneName: max 100 chars, Pronouns: max 50 chars, FetLifeHandle: max 100 chars, OtherNames: max 1000 chars
         var application = new VettingApplication
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
             ApplicationNumber = GenerateApplicationNumber(submittedAt),
             StatusToken = Guid.NewGuid().ToString("N"),
-            SceneName = row.SceneName.Trim(),
+            SceneName = Truncate(row.SceneName, 100) ?? "",
             Email = email,
-            Pronouns = row.Pronouns?.Trim(),
-            FetLifeHandle = row.FetLifeHandle?.Trim(),
-            OtherNames = combinedOtherNames,
+            Pronouns = Truncate(row.Pronouns, 50),
+            FetLifeHandle = Truncate(row.FetLifeHandle, 100),
+            OtherNames = Truncate(combinedOtherNames, 1000),
 
-            // Experience/motivation (using correct columns)
-            // "Description of the applicant and motivation to join" → WhyJoinCommunity
-            // "Relationship with Sponsor or how did they learn about Dark Alchemy" → HowDidYouHearAboutUs
-            // "Fit for Dark Alchemy" → ExperienceDescription (reviewer notes about applicant fit)
-            WhyJoinCommunity = row.MotivationDescription?.Trim(),
-            HowDidYouHearAboutUs = row.RelationshipWithSponsor?.Trim(),
-            ExperienceDescription = row.FitForDarkAlchemy?.Trim(),
+            // Experience/motivation - field mappings differ between Accepted and Pre-Vetted CSVs
+            // For Accepted (vettingStatus=3): RelationshipWithSponsor→WhyJoin, FitForDarkAlchemy→HowHeard, MotivationDescription→Experience
+            // For Pre-Vetted (vettingStatus=1): RelationshipWithSponsor→HowHeard, MotivationDescription→WhyJoin, FitForDarkAlchemy→Experience
+            WhyJoinCommunity = vettingStatus == 3
+                ? row.RelationshipWithSponsor?.Trim()
+                : row.MotivationDescription?.Trim(),
+            HowDidYouHearAboutUs = vettingStatus == 3
+                ? row.FitForDarkAlchemy?.Trim()
+                : row.RelationshipWithSponsor?.Trim(),
+            ExperienceDescription = vettingStatus == 3
+                ? row.MotivationDescription?.Trim()
+                : row.FitForDarkAlchemy?.Trim(),
 
             // Workflow status - Set based on import parameter (1=InterviewApproved, 3=Approved)
             WorkflowStatus = workflowStatus,
@@ -235,6 +243,28 @@ public class UserImporter
         summary.SuccessCount++;
         _logger.LogInformation("Row {RowNum}: Created user {Email} (SceneName: {SceneName})",
             rowNum, email, row.SceneName);
+    }
+
+    private string GetInnermostExceptionMessage(Exception ex)
+    {
+        var current = ex;
+        while (current.InnerException != null)
+        {
+            current = current.InnerException;
+        }
+        return current.Message;
+    }
+
+    /// <summary>
+    /// Truncate string to max length to fit database column constraints
+    /// </summary>
+    private string? Truncate(string? value, int maxLength)
+    {
+        if (string.IsNullOrEmpty(value))
+            return value;
+
+        var trimmed = value.Trim();
+        return trimmed.Length <= maxLength ? trimmed : trimmed.Substring(0, maxLength);
     }
 
     private string GenerateRandomPassword()
@@ -276,17 +306,17 @@ public class UserImporter
             defaultAdminId = Guid.Parse("00000000-0000-0000-0000-000000000001");
         }
 
-        // System audit log: Application Submitted (Status Changed from null to UnderReview)
+        // System audit log: Application Submitted
         auditLogs.Add(new VettingAuditLog
         {
             Id = Guid.NewGuid(),
             ApplicationId = applicationId,
-            Action = "Status Changed",
+            Action = "Application Submitted",
             PerformedBy = defaultAdminId,
             PerformedAt = submittedAt,
             OldValue = null,
             NewValue = "UnderReview",
-            Notes = "Application submitted (imported from legacy system)"
+            Notes = "Initial application submitted - imported from legacy vetting system"
         });
 
         // Add vettor assignment note if vettor is assigned
@@ -344,9 +374,6 @@ public class UserImporter
             3 => "Approved",
             _ => "UnderReview"
         };
-        var statusNote = vettingStatus == 1
-            ? "Approved for interview (imported from legacy system)"
-            : "Application approved (imported from legacy system)";
 
         // Use the last date from notes if available, otherwise use submitted date + 30 days
         var statusChangeDate = auditLogs
@@ -354,6 +381,7 @@ public class UserImporter
             .OrderByDescending(a => a.PerformedAt)
             .FirstOrDefault()?.PerformedAt ?? submittedAt.AddDays(30);
 
+        // Status Changed entries have empty Notes (system standard)
         auditLogs.Add(new VettingAuditLog
         {
             Id = Guid.NewGuid(),
@@ -363,7 +391,7 @@ public class UserImporter
             PerformedAt = statusChangeDate,
             OldValue = "UnderReview",
             NewValue = newStatusName,
-            Notes = statusNote
+            Notes = null
         });
 
         return auditLogs;
