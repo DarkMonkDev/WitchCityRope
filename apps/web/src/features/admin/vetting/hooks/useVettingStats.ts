@@ -22,7 +22,6 @@ export function useVettingStats() {
           pageSize: 1, // We only need the count
           statusFilters: ['UnderReview', 'FinalReview'],
           priorityFilters: [],
-          experienceLevelFilters: [],
           skillsFilters: [],
           sortBy: 'SubmittedAt',
           sortDirection: 'desc'

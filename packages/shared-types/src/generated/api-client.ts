@@ -2,17 +2,18 @@
 /* tslint:disable */
 /**
  * API Client wrapper for type-safe API calls
- * Generated on: 2025-11-29T23:43:59.090Z
+ * Generated on: 2025-11-30T18:38:54.603Z
  */
 
-import type {
-  UserDto,
-  LoginRequest,
+import type { 
+  UserDto, 
+  LoginRequest, 
   LoginResponse,
   RegisterRequest,
   AuthUserResponse,
   UpdateEventRequest,
-  EventDto,
+  ApiResponseOfListOfEventDto,
+  ApiResponseOfEventDto,
   AdminDashboardResponse,
   CreateIncidentRequest,
   SubmissionResponse,
@@ -120,16 +121,16 @@ class ApiClient {
   }
 
   // Events endpoints
-  async getEvents(): Promise<EventDto[]> {
-    return this.request<EventDto[]>('/api/events');
+  async getEvents(): Promise<ApiResponseOfListOfEventDto> {
+    return this.request<ApiResponseOfListOfEventDto>('/api/events');
   }
 
-  async getEvent(id: string): Promise<EventDto> {
-    return this.request<EventDto>(`/api/events/${id}`);
+  async getEvent(id: string): Promise<ApiResponseOfEventDto> {
+    return this.request<ApiResponseOfEventDto>(`/api/events/${id}`);
   }
 
-  async updateEvent(id: string, event: UpdateEventRequest): Promise<EventDto> {
-    return this.request<EventDto>(`/api/events/${id}`, {
+  async updateEvent(id: string, event: UpdateEventRequest): Promise<ApiResponseOfEventDto> {
+    return this.request<ApiResponseOfEventDto>(`/api/events/${id}`, {
       method: 'PUT',
       body: JSON.stringify(event),
     });

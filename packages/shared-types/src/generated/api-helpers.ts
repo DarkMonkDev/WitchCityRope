@@ -2,7 +2,7 @@
 /* tslint:disable */
 /**
  * Helper functions for working with the generated API types
- * Generated on: 2025-11-29T23:43:59.090Z
+ * Generated on: 2025-11-30T18:38:54.603Z
  */
 
 import type { paths, components } from './api-types';
@@ -30,6 +30,8 @@ export type LoginResponse = schemas['LoginResponse'];
 export type RegisterRequest = schemas['RegisterRequest'];
 export type AuthUserResponse = schemas['AuthUserResponse'];
 export type UpdateEventRequest = schemas['UpdateEventRequest'];
+export type ApiResponseOfListOfEventDto = schemas['ApiResponseOfListOfEventDto'];
+export type ApiResponseOfEventDto = schemas['ApiResponseOfEventDto'];
 
 // Dashboard types
 export type AdminDashboardResponse = schemas['AdminDashboardResponse'];
