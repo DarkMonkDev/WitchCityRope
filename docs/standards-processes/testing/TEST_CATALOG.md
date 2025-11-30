@@ -604,6 +604,107 @@ Per `/docs/functional-areas/e2e-testing/test-modernization-handoff-2025-11-30.md
 
 ---
 
+
+## 🎯 PHASE 3.7: FULL E2E SUITE BASELINE (UPDATED) - November 30, 2025
+
+**EXECUTION DATE**: 2025-11-30T19:23:00Z
+**LAST UPDATED**: 2025-11-30T19:23:00Z
+**STATUS**: ⚠️ **BASELINE UPDATED - 69.2% PASS RATE**
+**GIT SHA**: a61c725
+**DURATION**: ~35 minutes
+**ENVIRONMENT**: Dev containers (docker-compose v1 compatibility issue with test containers)
+
+### Full Suite Results
+
+**Test Execution**: Full E2E suite against dev Docker containers
+
+| Metric | Count | Percentage |
+|--------|-------|------------|
+| Total Tests | 848 | 100% |
+| Passed | 587 | 69.2% |
+| Failed | 261 | 30.8% |
+| Skipped | 0 | 0.0% |
+
+**Status**: ❌ FAIL (69.2% pass rate, threshold 90%)
+
+### Improvement from Phase 3.6
+- **Pass rate**: 36.1% → 69.2% (+33.1 percentage points)
+- **Tests passed**: 317 → 587 (+270 tests)
+- **Tests failed**: 561 → 261 (-300 tests)
+- **Massive improvement**: Deleted stale wireframe/design tests, fixed login selectors
+
+### Top 15 Failing Test Files
+
+| Test File | Failures | Priority |
+|-----------|----------|----------|
+| vetting-system-complete-workflows.spec.ts | 12 | 🔴 HIGH |
+| vetting-email-templates.spec.ts | 9 | 🟡 MEDIUM |
+| paypal-integration.spec.ts | 8 | 🟡 MEDIUM |
+| events/admin-event-copy.spec.ts | 8 | 🟡 MEDIUM |
+| admin-events-volunteers.spec.ts | 8 | 🟡 MEDIUM |
+| volunteer-event-waiver.spec.ts | 7 | 🟢 LOW |
+| payment.spec.ts | 7 | 🟢 LOW |
+| admin-variable-refund.spec.ts | 7 | 🟢 LOW |
+| admin-events-ui-consistency.spec.ts | 7 | 🟢 LOW |
+| admin-events-dependencies.spec.ts | 7 | 🟢 LOW |
+| ticket-purchase-waiver.spec.ts | 6 | 🟢 LOW |
+| rsvp-event-waiver.spec.ts | 6 | 🟢 LOW |
+| password-reset.spec.ts | 6 | 🟢 LOW |
+| event-update-e2e-test.spec.ts | 6 | 🟢 LOW |
+| checkin-staff-authentication.spec.ts | 6 | 🟢 LOW |
+
+### Key Findings
+
+1. **Vetting System Tests** - 21 failures across 2 files
+   - Most likely authentication/state management issues
+   - Email templates failing consistently
+   
+2. **Payment Integration** - 15 failures across 2 files
+   - PayPal integration tests may need mock services or test keys
+   - Variable pricing/sliding scale tests failing
+   
+3. **Admin Event Management** - 22 failures across 4 files
+   - Complex workflows (copying, volunteers, dependencies)
+   - UI consistency checks
+   
+4. **Waiver Compliance** - 13 failures across 3 files
+   - Event waivers, ticket waivers, RSVP waivers
+   - Likely form validation or checkbox state issues
+   
+5. **Authentication** - 6 failures
+   - Password reset flows
+   - Staff authentication for check-in
+
+### Test Environment Health
+
+- ✅ **Docker Containers**: All dev containers healthy
+- ✅ **Database**: PostgreSQL seeded with 19 users (4 active)
+- ✅ **API Service**: Responding on http://localhost:5655
+- ✅ **Web Service**: Responding on http://localhost:5173
+- ⚠️ **Test Isolation**: Used dev containers (test containers failed due to docker-compose v1 issue)
+
+### Comparison to Previous Baselines
+
+| Phase | Tests Run | Passed | Pass Rate | Notes |
+|-------|-----------|--------|-----------|-------|
+| 3.6 (Nov 29) | 878 | 317 | 36.1% | Initial baseline with design tests |
+| 3.7 (Nov 30) | 848 | 587 | 69.2% | After design test cleanup |
+
+### Next Steps
+
+1. ✅ **COMPLETED**: Updated baseline metrics after test cleanup
+2. ⏳ **INVESTIGATE**: Vetting system test failures (highest priority)
+3. ⏳ **FIX**: Docker-compose test environment compatibility for isolated testing
+4. ⏳ **REVIEW**: Payment integration test configuration
+5. ⏳ **ANALYZE**: Waiver form logic (13 failures suggest systematic issue)
+
+### Artifacts
+
+- **Full Report**: `/test-results/test-execution-report.md`
+- **Full Log**: `/tmp/e2e-test-output.log`
+- **Failed Tests**: `/test-results/.last-run.json` (264 failed test IDs)
+
+---
 ## 🚨 PHASE 3.6: FULL E2E SUITE BASELINE - November 29, 2025
 
 **EXECUTION DATE**: 2025-11-29T23:41:29Z
