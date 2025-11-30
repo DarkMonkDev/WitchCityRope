@@ -51,8 +51,6 @@ public class VettingDetailsResponse
     public string? FetLifeHandle { get; set; }
     public string? Pronouns { get; set; }
     public string? AboutYourself { get; set; }
-    public int? ExperienceLevel { get; set; }
-    public int? YearsExperience { get; set; }
     public string? ExperienceDescription { get; set; }
     public string? SafetyKnowledge { get; set; }
     public string? ConsentUnderstanding { get; set; }

@@ -201,8 +201,6 @@ public class UserImporter
             WhyJoinCommunity = row.MotivationDescription?.Trim(),
             HowDidYouHearAboutUs = row.RelationshipWithSponsor?.Trim(),
             ExperienceDescription = row.FitForDarkAlchemy?.Trim(),
-            ExperienceLevel = 2, // Intermediate (default assumption)
-            YearsExperience = 1, // Default
 
             // Workflow status - Set based on import parameter (1=InterviewApproved, 3=Approved)
             WorkflowStatus = workflowStatus,

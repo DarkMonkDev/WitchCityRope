@@ -506,7 +506,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                     How did you learn about WitchCityRope?
                   </Text>
                   <Text style={{ whiteSpace: 'pre-wrap' }}>
-                    {application.howDidYouHearAboutUs || 'Not provided'}
+                    {application.howDidYouHearAboutUs}
                   </Text>
                 </div>
               </Stack>

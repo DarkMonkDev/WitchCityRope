@@ -234,17 +234,6 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                       Experience & Knowledge
                     </Text>
                     <Stack gap="md">
-                      <SimpleGrid cols={{ base: 1, sm: 2 }}>
-                        <Box>
-                          <Text size="sm" fw={500} c="dimmed">Experience Level</Text>
-                          <Text size="sm">{EXPERIENCE_LEVEL_CONFIGS[(applicationDetail as any)?.experience?.level]?.label}</Text>
-                        </Box>
-                        <Box>
-                          <Text size="sm" fw={500} c="dimmed">Years of Experience</Text>
-                          <Text size="sm">{(applicationDetail as any)?.experience?.yearsExperience} years</Text>
-                        </Box>
-                      </SimpleGrid>
-                      
                       <Box>
                         <Text size="sm" fw={500} c="dimmed" mb="xs">Experience Description</Text>
                         <Paper p="sm" bg="gray.0" withBorder>

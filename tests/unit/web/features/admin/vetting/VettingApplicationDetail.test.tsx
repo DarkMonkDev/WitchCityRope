@@ -46,8 +46,6 @@ const mockApplication: ApplicationDetailResponse = {
   sceneName: 'TestUser1',
   pronouns: 'he/him',
   email: 'john.doe@example.com',
-  experienceLevel: 'Beginner',
-  yearsExperience: 1,
   experienceDescription: 'I have been interested in rope bondage for about a year.',
   safetyKnowledge: 'I understand the basics of safe rope practices.',
   consentUnderstanding: 'Consent is paramount in all activities.',

@@ -110,8 +110,6 @@ public class VettingSeeder
                 FetLifeHandle = "RopeMaster_Admin",
                 Pronouns = "they/them",
                 OtherNames = "Master, RM", // Alternate names for admin
-                ExperienceLevel = 4, // Expert
-                YearsExperience = 10,
                 ExperienceDescription = "Professional rigger and educator with 10+ years experience in rope bondage. Have taught at multiple regional conferences and run regular workshops. Specialize in suspension and advanced floor work with strong emphasis on safety protocols.",
                 WhyJoinCommunity = "As a founding member, I want to help build a safe, consent-focused community in Salem where experienced practitioners and newcomers alike can learn and grow together. I'm passionate about education and creating a welcoming space for all.",
                 AgreesToGuidelines = true,
@@ -138,8 +136,6 @@ public class VettingSeeder
                 FetLifeHandle = "RopeEnthusiast_Test",
                 Pronouns = "he/him",
                 OtherNames = "Enthusiast, RE",
-                ExperienceLevel = 3, // Advanced
-                YearsExperience = 5,
                 ExperienceDescription = "Experienced rigger with 5 years of practice, skilled in suspensions and complex floor work. Have assisted with teaching at local workshops and prioritize safety and communication in all rope sessions.",
                 WhyJoinCommunity = "I've recently moved to Salem and want to continue my rope journey with a supportive community. Looking forward to both learning from experienced practitioners and sharing my knowledge with newer members.",
                 AgreesToGuidelines = true,
@@ -167,8 +163,6 @@ public class VettingSeeder
                 FetLifeHandle = users[0].FetLifeName,
                 Pronouns = users[0].Pronouns,
                 OtherNames = users[0].FirstName,
-                ExperienceLevel = 1, // Beginner
-                YearsExperience = 0,
                 ExperienceDescription = "I'm completely new to rope bondage but have been researching for several months. I've read safety guides and watched educational videos. Very eager to learn from experienced practitioners in a safe environment.",
                 WhyJoinCommunity = "I want to learn rope bondage in a safe, consent-focused environment from experienced teachers. I'm committed to understanding the safety fundamentals and building a strong foundation.",
                 AgreesToGuidelines = true,
@@ -189,8 +183,6 @@ public class VettingSeeder
                 FetLifeHandle = users[1].FetLifeName,
                 Pronouns = users[1].Pronouns,
                 OtherNames = users[1].FirstName,
-                ExperienceLevel = 1, // Beginner
-                YearsExperience = 1,
                 ExperienceDescription = "I've attended a few workshops over the past year and practiced basic ties with a partner. Still learning fundamentals but very enthusiastic about rope and community.",
                 WhyJoinCommunity = "I want to deepen my rope knowledge and learn from more experienced practitioners. I'm particularly interested in understanding the deeper aspects of consent and communication in rope.",
                 AgreesToGuidelines = true,
@@ -212,8 +204,6 @@ public class VettingSeeder
                 FetLifeHandle = users[2].FetLifeName,
                 Pronouns = users[2].Pronouns,
                 OtherNames = $"{users[2].FirstName}",
-                ExperienceLevel = 2, // Intermediate
-                YearsExperience = 2,
                 ExperienceDescription = "I've been practicing rope bondage for 2 years and know most basic ties. I focus on speed and efficiency in tying and like to push boundaries to help my partners grow.",
                 WhyJoinCommunity = "I want access to more advanced techniques and to find new practice partners who are serious about rope. Looking to take my skills to the next level.",
                 AgreesToGuidelines = true,
@@ -238,8 +228,6 @@ public class VettingSeeder
                 FetLifeHandle = users[3].FetLifeName,
                 Pronouns = users[3].Pronouns,
                 OtherNames = users[3].FirstName,
-                ExperienceLevel = 3, // Advanced
-                YearsExperience = 6,
                 ExperienceDescription = "I've been practicing rope bondage for 6 years with strong foundation in both technical skills and safety. Experience includes floor work, partial suspension, and have assisted teaching beginner workshops. I prioritize clear communication and safety protocols in all my rope work.",
                 WhyJoinCommunity = "I recently relocated to Salem for work and am looking to connect with the local rope community. I want to continue learning from other experienced practitioners while also sharing my knowledge and helping newcomers develop good safety habits.",
                 AgreesToGuidelines = true,
@@ -273,8 +261,6 @@ public class VettingSeeder
                 FetLifeHandle = user4.FetLifeName,
                 Pronouns = user4.Pronouns,
                 OtherNames = user4.FirstName,
-                ExperienceLevel = 2, // Intermediate
-                YearsExperience = 2,
                 ExperienceDescription = "I've been practicing rope bondage for about 2 years, comfortable with single-column ties and basic suspension prep. I've taken several workshops and practice regularly with a trusted partner, always prioritizing safety and consent.",
                 WhyJoinCommunity = "I want to connect with like-minded individuals and expand my rope knowledge in a structured, safe environment. I'm particularly interested in learning more advanced techniques and understanding the deeper emotional aspects of rope work.",
                 AgreesToGuidelines = true,
@@ -299,8 +285,6 @@ public class VettingSeeder
                     FetLifeHandle = user5.FetLifeName,
                     Pronouns = user5.Pronouns,
                     OtherNames = user5.FirstName,
-                    ExperienceLevel = 1, // Beginner
-                    YearsExperience = 1,
                     ExperienceDescription = "I've attended a couple of beginner workshops and have been practicing basic ties for about a year. Still learning the fundamentals but dedicated to improving my skills and understanding of safety.",
                     WhyJoinCommunity = "I'm looking for a supportive community where I can learn proper rope techniques and safety practices. I want to connect with experienced practitioners who can mentor me as I develop my skills.",
                     AgreesToGuidelines = true,
@@ -327,8 +311,6 @@ public class VettingSeeder
                     FetLifeHandle = user6.FetLifeName,
                     Pronouns = user6.Pronouns,
                     OtherNames = user6.FirstName,
-                    ExperienceLevel = 4, // Expert
-                    YearsExperience = 8,
                     ExperienceDescription = "Professional rigger with 8 years of experience specializing in both performance and educational rope work. Have taught workshops at regional events and maintain a strong focus on safety, communication, and consent. Experienced with suspensions and complex floor work.",
                     WhyJoinCommunity = "I'm interested in teaching and giving back to the local rope community. I have extensive experience and want to help create a safe, educational environment where practitioners of all levels can learn and grow.",
                     AgreesToGuidelines = true,
@@ -357,8 +339,6 @@ public class VettingSeeder
                     FetLifeHandle = user7.FetLifeName,
                     Pronouns = user7.Pronouns,
                     OtherNames = user7.FirstName,
-                    ExperienceLevel = 3, // Advanced
-                    YearsExperience = 5,
                     ExperienceDescription = "I've been an active member of the Boston rope community for 5 years, with experience in both performing and teaching. I'm skilled in floor work and partial suspensions, and have helped organize community events and workshops.",
                     WhyJoinCommunity = "I'm relocating to Salem and want to continue my involvement in the rope community. I hope to bring my experience in community building and event organization to help support this group while continuing to learn and grow.",
                     AgreesToGuidelines = true,
@@ -384,8 +364,6 @@ public class VettingSeeder
                     FetLifeHandle = user8.FetLifeName,
                     Pronouns = user8.Pronouns,
                     OtherNames = user8.FirstName,
-                    ExperienceLevel = 1, // Beginner
-                    YearsExperience = 0,
                     ExperienceDescription = "I'm very new to rope bondage and honestly quite nervous but also excited to learn. I've been reading about safety and consent extensively and attended one beginner workshop. I want to make sure I learn the right way from the start.",
                     WhyJoinCommunity = "I'm looking for a welcoming, educational environment where I can learn proper rope techniques and safety practices. I'm committed to being a respectful member and learning from more experienced practitioners.",
                     AgreesToGuidelines = true,
@@ -410,8 +388,6 @@ public class VettingSeeder
                     FetLifeHandle = user10.FetLifeName,
                     Pronouns = user10.Pronouns,
                     OtherNames = user10.FirstName,
-                    ExperienceLevel = 4, // Expert
-                    YearsExperience = 9,
                     ExperienceDescription = "Professional rigger with 9 years of experience, specializing in safety education and risk awareness. Have taught workshops at national conferences and served as a safety monitor at major events. Extensive experience with suspensions, complex floor work, and emergency response protocols.",
                     WhyJoinCommunity = "I'm relocating from Portland and am passionate about teaching safety-focused rope practices. I want to contribute my expertise to the Salem community and help build a strong safety culture while continuing to learn from other experienced practitioners.",
                     AgreesToGuidelines = true,
@@ -439,8 +415,6 @@ public class VettingSeeder
                     FetLifeHandle = "PatientPractitioner_JC",
                     Pronouns = "he/him",
                     OtherNames = "Jim",
-                    ExperienceLevel = 4, // Expert
-                    YearsExperience = 12,
                     ExperienceDescription = "Highly experienced rigger with 12 years in the rope community. I specialize in teaching beginners and have a patient, methodical approach to instruction. Have taught at regional conferences and maintain a strong emphasis on building solid fundamentals and understanding the 'why' behind techniques.",
                     WhyJoinCommunity = "I'm passionate about education and mentoring new practitioners. After years of teaching, I understand the value of a strong community foundation. I want to contribute my teaching experience to help Salem develop skilled, safety-conscious practitioners.",
                     AgreesToGuidelines = true,

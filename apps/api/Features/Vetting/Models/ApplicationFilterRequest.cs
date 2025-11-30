@@ -21,11 +21,6 @@ public class ApplicationFilterRequest
     // Priority filtering
     public List<int> PriorityFilters { get; set; } = new(); // 1=Standard, 2=High, 3=Urgent
 
-    // Experience filtering
-    public List<int> ExperienceLevelFilters { get; set; } = new(); // 1=Beginner, 2=Intermediate, etc.
-    public int? MinYearsExperience { get; set; }
-    public int? MaxYearsExperience { get; set; }
-
     // Skills/interests filtering
     public List<string> SkillsFilters { get; set; } = new();
 

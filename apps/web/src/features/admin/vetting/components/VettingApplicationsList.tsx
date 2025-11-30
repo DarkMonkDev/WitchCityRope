@@ -39,7 +39,6 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
     pageSize: 25,
     statusFilters: ['UnderReview', 'InterviewApproved', 'FinalReview'], // Default checked statuses
     priorityFilters: [],
-    experienceLevelFilters: [],
     skillsFilters: [],
     searchQuery: '',
     sortBy: 'SubmittedAt',
@@ -378,7 +377,6 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                   pageSize: 25,
                   statusFilters: [],
                   priorityFilters: [],
-                  experienceLevelFilters: [],
                   skillsFilters: [],
                   searchQuery: '',
                   sortBy: 'SubmittedAt',

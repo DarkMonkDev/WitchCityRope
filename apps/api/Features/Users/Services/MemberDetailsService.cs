@@ -199,8 +199,6 @@ public class MemberDetailsService : IMemberDetailsService
                 FetLifeHandle = application.FetLifeHandle,
                 Pronouns = application.Pronouns,
                 AboutYourself = application.OtherNames, // Migrated to OtherNames
-                ExperienceLevel = application.ExperienceLevel,
-                YearsExperience = application.YearsExperience,
                 ExperienceDescription = application.ExperienceDescription,
                 SafetyKnowledge = null, // Field removed from entity
                 ConsentUnderstanding = null, // Field removed from entity

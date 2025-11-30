@@ -141,7 +141,6 @@ public class MemberDetailsEndpointsTests
             WorkflowStatusDisplay = "Approved",
             SceneName = "Test Member",
             Email = "test@witchcityrope.com",
-            ExperienceLevel = 2,
             AgreesToGuidelines = true,
             AgreesToTerms = true
         };

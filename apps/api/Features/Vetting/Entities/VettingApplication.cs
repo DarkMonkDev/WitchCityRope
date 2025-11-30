@@ -56,8 +56,6 @@ public class VettingApplication
     public string? OtherNames { get; set; }
 
     // Experience & Knowledge (from CreateApplicationRequest)
-    public int ExperienceLevel { get; set; } // 1=Beginner, 2=Intermediate, 3=Advanced, 4=Expert
-    public int YearsExperience { get; set; }
     public string? ExperienceDescription { get; set; }
 
     // Community Understanding (from CreateApplicationRequest)

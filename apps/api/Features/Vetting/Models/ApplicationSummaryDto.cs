@@ -16,8 +16,6 @@ public class ApplicationSummaryDto
     public string SceneName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? FetLifeHandle { get; set; }
-    public string ExperienceLevel { get; set; } = string.Empty;
-    public int YearsExperience { get; set; }
 
     // Review information
     public string? AssignedReviewerName { get; set; }

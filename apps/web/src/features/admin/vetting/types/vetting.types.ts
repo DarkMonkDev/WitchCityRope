@@ -40,11 +40,6 @@ export interface ApplicationFilterRequest {
   // Priority filtering
   priorityFilters: number[];
 
-  // Experience filtering
-  experienceLevelFilters: number[];
-  minYearsExperience?: number;
-  maxYearsExperience?: number;
-
   // Skills/interests filtering
   skillsFilters: string[];
 

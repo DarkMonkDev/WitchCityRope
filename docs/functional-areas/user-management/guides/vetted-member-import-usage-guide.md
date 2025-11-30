@@ -1,6 +1,6 @@
 # VettedMemberImport Tool - Complete Usage Guide
-<!-- Date: 2025-11-24 -->
-<!-- Version: 2.0 -->
+<!-- Date: 2025-11-30 -->
+<!-- Version: 2.1 -->
 <!-- Owner: Backend Team -->
 <!-- Status: Active -->
 
@@ -176,8 +176,10 @@ Reference #1 response, Reference #2 response
 ### Basic Syntax
 
 ```bash
-dotnet run -- --input=<file> [--status=<mode>] [--environment=<env>] [--dry-run]
+dotnet run -- --input <file> [--status <mode>] [--environment <env>] [--dry-run]
 ```
+
+**IMPORTANT**: Arguments must use space-separated format (e.g., `--input file.csv`), NOT equals format (e.g., `--input=file.csv`). The tool's command line parser does not support the equals sign format.
 
 ### Parameters
 
@@ -188,13 +190,13 @@ Path to CSV file exported from Google Sheet.
 **Examples**:
 ```bash
 # Relative path
---input=vetted-members.csv
+--input vetted-members.csv
 
 # Absolute path
---input=/home/chad/repos/witchcityrope/docs/functional-areas/member-import/Import-CSV-files/WCR\ Vetting\ Database\ -\ New\ -\ Accepted.csv
+--input /home/chad/repos/witchcityrope/docs/functional-areas/member-import/Import-CSV-files/WCR\ Vetting\ Database\ -\ New\ -\ Accepted.csv
 
 # Path with spaces (use quotes)
---input="/path/with spaces/file.csv"
+--input "/path/with spaces/file.csv"
 ```
 
 ---
@@ -212,13 +214,13 @@ Controls vetting status of imported users.
 **Examples**:
 ```bash
 # Default (fully vetted)
-dotnet run -- --input=accepted.csv
+dotnet run -- --input accepted.csv
 
 # Explicit approved
-dotnet run -- --input=accepted.csv --status=approved
+dotnet run -- --input accepted.csv --status approved
 
 # Interview-approved
-dotnet run -- --input=pre-vetted.csv --status=interview-approved
+dotnet run -- --input pre-vetted.csv --status interview-approved
 ```
 
 **Status Comparison**:
@@ -244,19 +246,38 @@ Target environment for import.
 **Examples**:
 ```bash
 # Local (default)
-dotnet run -- --input=file.csv
+dotnet run -- --input file.csv
 
 # Staging
-dotnet run -- --input=file.csv --environment=Staging
+dotnet run -- --input file.csv --environment Staging
 
 # Production
-dotnet run -- --input=file.csv --environment=Production
+dotnet run -- --input file.csv --environment Production
 ```
 
 **Configuration Files**:
 - Development: `appsettings.json`
 - Staging: `appsettings.Staging.json`
 - Production: `appsettings.Production.json`
+
+**Staging/Production Connection String Setup**:
+
+Before running against Staging or Production, you MUST configure the connection string in the appropriate `appsettings.[Environment].json` file:
+
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Host=<hostname>;Port=25061;Database=<database>;Username=<username>;Password=<password>;SSL Mode=Require;Trust Server Certificate=true"
+  }
+}
+```
+
+**IMPORTANT**:
+- Use PgBouncer port **25061** (NOT the direct database port 25060)
+- For staging: Database name is `pgbouncer-staging`
+- For production: Database name is `pgbouncer-prod`
+- SSL Mode and Trust Server Certificate are required for DigitalOcean connections
+- Get credentials from DigitalOcean database dashboard or team secrets manager
 
 ---
 
@@ -273,13 +294,13 @@ Test import without writing to database.
 **Examples**:
 ```bash
 # Dry-run locally
-dotnet run -- --input=file.csv --dry-run
+dotnet run -- --input file.csv --dry-run
 
 # Dry-run with interview-approved status
-dotnet run -- --input=pre-vetted.csv --status=interview-approved --dry-run
+dotnet run -- --input pre-vetted.csv --status interview-approved --dry-run
 
 # Dry-run on staging
-dotnet run -- --input=file.csv --environment=Staging --dry-run
+dotnet run -- --input file.csv --environment Staging --dry-run
 ```
 
 **Output**: Same as actual import but with "Dry Run: True" and no database writes
@@ -996,23 +1017,23 @@ dotnet test
 cd /home/chad/repos/witchcityrope/tools/VettedMemberImport/VettedMemberImport
 
 # Dry-run (local, fully vetted)
-dotnet run -- --input=accepted.csv --dry-run
+dotnet run -- --input accepted.csv --dry-run
 
 # Dry-run (local, interview-approved)
-dotnet run -- --input=pre-vetted.csv --status=interview-approved --dry-run
+dotnet run -- --input pre-vetted.csv --status interview-approved --dry-run
 
 # Import locally (fully vetted)
-dotnet run -- --input=accepted.csv
+dotnet run -- --input accepted.csv
 
 # Import locally (interview-approved)
-dotnet run -- --input=pre-vetted.csv --status=interview-approved
+dotnet run -- --input pre-vetted.csv --status interview-approved
 
 # Import to staging (interview-approved)
-dotnet run -- --input=pre-vetted.csv --status=interview-approved --environment=Staging
+dotnet run -- --input pre-vetted.csv --status interview-approved --environment Staging
 
 # Import to production (interview-approved, with dry-run first)
-dotnet run -- --input=pre-vetted.csv --status=interview-approved --environment=Production --dry-run
-dotnet run -- --input=pre-vetted.csv --status=interview-approved --environment=Production
+dotnet run -- --input pre-vetted.csv --status interview-approved --environment Production --dry-run
+dotnet run -- --input pre-vetted.csv --status interview-approved --environment Production
 ```
 
 ### Status Values Reference
@@ -1055,14 +1076,26 @@ WHERE u."CreatedAt" > NOW() - INTERVAL '1 hour';
 
 ## Document Metadata
 
-**Version**: 2.0
-**Last Updated**: 2025-11-24
+**Version**: 2.1
+**Last Updated**: 2025-11-30
 **Status**: Active
 **Owner**: Backend Team
 **Related Documents**:
 - Tool README: `/home/chad/repos/witchcityrope/tools/VettedMemberImport/README.md`
 - Implementation Plan: `/home/chad/repos/witchcityrope/docs/functional-areas/user-management/new-work/2025-11-24-approved-for-interview-import/implementation-plan.md`
 - Member Import Files: `/home/chad/repos/witchcityrope/docs/functional-areas/member-import/Import-CSV-files/`
+
+---
+
+## Changelog
+
+### Version 2.1 (2025-11-30)
+- **Fixed**: Command line argument format changed from equals sign (`--input=file.csv`) to space-separated (`--input file.csv`) throughout all examples
+- **Added**: Staging/Production connection string setup section with PgBouncer configuration details
+- **Added**: Important note clarifying that equals sign format is NOT supported by the command line parser
+
+### Version 2.0 (2025-11-24)
+- Initial comprehensive guide with full procedures for both import modes
 
 ---
 

@@ -32,7 +32,6 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
     pageSize: 100, // Get all applications
     statusFilters: ['PendingInterview'], // Only pending interview applications
     priorityFilters: [],
-    experienceLevelFilters: [],
     skillsFilters: [],
     searchQuery: '',
     sortBy: 'SubmittedAt',

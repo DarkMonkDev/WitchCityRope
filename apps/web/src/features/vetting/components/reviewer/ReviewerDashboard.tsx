@@ -148,14 +148,6 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
               >
                 {statusConfig?.label || application.status}
               </Badge>
-              
-              <Badge color="gray" variant="outline" size="sm">
-                {application.experienceLevel}
-              </Badge>
-              
-              <Badge color="gray" variant="outline" size="sm">
-                {application.yearsExperience} years
-              </Badge>
             </Group>
 
             <Text size="xs" c="dimmed">

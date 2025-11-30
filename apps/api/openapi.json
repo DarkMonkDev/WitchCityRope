@@ -9712,6 +9712,10 @@
           "whyJoinCommunity": {
             "type": "string"
           },
+          "howDidYouHearAboutUs": {
+            "type": "string",
+            "nullable": true
+          },
           "agreesToGuidelines": {
             "type": "boolean"
           },

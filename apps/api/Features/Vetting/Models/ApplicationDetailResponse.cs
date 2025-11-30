@@ -22,8 +22,6 @@ public class ApplicationDetailResponse
     public string? OtherNames { get; set; }
 
     // Experience Information
-    public string ExperienceLevel { get; set; } = string.Empty;
-    public int YearsExperience { get; set; }
     public string ExperienceDescription { get; set; } = string.Empty;
 
     // Community Information

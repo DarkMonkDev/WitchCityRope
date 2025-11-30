@@ -14,8 +14,6 @@ public class VettingApplication
     public string? FetLifeHandle { get; set; }
     public string? Pronouns { get; set; }
     public string? OtherNames { get; set; }
-    public int ExperienceLevel { get; set; }
-    public int YearsExperience { get; set; }
     public string? ExperienceDescription { get; set; }
     public string? WhyJoinCommunity { get; set; }
     public string? HowDidYouHearAboutUs { get; set; }

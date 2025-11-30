@@ -117,8 +117,6 @@ public class VettingService : IVettingService
                     SceneName = app.SceneName,
                     Email = app.Email,
                     FetLifeHandle = app.FetLifeHandle,
-                    ExperienceLevel = "Beginner", // Default for now
-                    YearsExperience = 0, // Default for now
                     AssignedReviewerName = null, // Not implemented yet
                     ReviewStartedAt = app.ReviewStartedAt,
                     Priority = 1, // Default priority
@@ -251,8 +249,6 @@ public class VettingService : IVettingService
                 Email = application.Email,
                 FetLifeHandle = application.FetLifeHandle,
                 OtherNames = application.OtherNames,
-                ExperienceLevel = "Beginner", // Default for now
-                YearsExperience = 0,
                 ExperienceDescription = application.ExperienceDescription ?? string.Empty,
                 WhyJoinCommunity = application.WhyJoinCommunity ?? string.Empty,
                 HowDidYouHearAboutUs = application.HowDidYouHearAboutUs,
@@ -705,7 +701,6 @@ public class VettingService : IVettingService
                 OtherNames = application.OtherNames,
                 SubmittedAt = application.SubmittedAt,
                 UpdatedAt = application.UpdatedAt,
-                ExperienceLevel = "Beginner", // Default for simplified entity
                 ExperienceDescription = application.ExperienceDescription ?? string.Empty,
                 WhyJoinCommunity = application.WhyJoinCommunity ?? "Not provided",
                 HowDidYouHearAboutUs = application.HowDidYouHearAboutUs,
@@ -1001,8 +996,6 @@ public class VettingService : IVettingService
                 UserId = user?.Id, // Link to user if exists
 
                 // Experience & knowledge (minimal for public submission)
-                ExperienceLevel = experienceLevel,
-                YearsExperience = 0,
                 ExperienceDescription = request.Interests,
 
                 // Community understanding
@@ -1151,8 +1144,6 @@ public class VettingService : IVettingService
                 UserId = user?.Id, // Link to user if exists
 
                 // Experience & knowledge
-                ExperienceLevel = 1, // Default to beginner for simplified form
-                YearsExperience = 0,
                 ExperienceDescription = request.ExperienceWithRope,
 
                 // Community understanding
