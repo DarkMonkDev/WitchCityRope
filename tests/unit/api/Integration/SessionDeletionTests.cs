@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Enums;
@@ -35,9 +36,12 @@ public class SessionDeletionTests : IDisposable
 
         _context = new ApplicationDbContext(options);
 
+        var mockTimeZoneService = new Mock<ITimeZoneService>();
+
         _eventService = new EventService(
             _context,
-            new Mock<ILogger<EventService>>().Object);
+            new Mock<ILogger<EventService>>().Object,
+            mockTimeZoneService.Object);
 
         // Seed test user
         var testUser = new ApplicationUser

@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Tests.Common.Fixtures;
+using WitchCityRope.Models;
 using Xunit;
 
 namespace WitchCityRope.IntegrationTests.Features.Attendance;
@@ -91,7 +92,7 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
         var ticketType = await CreateTestTicketTypeAsync(eventEntity.Id, null, "All Access Pass");
 
         // Act: Attempt to purchase ticket
-        var request = new { EventWaiverAccepted = true };
+        var request = new { EventId = eventEntity.Id, TicketTypeId = ticketType.Id, EventWaiverAccepted = true };
         var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
 
         // Assert: Should succeed because Session 2 (tomorrow) is > 12 hours away
@@ -137,13 +138,18 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
         var ticketType = await CreateTestTicketTypeAsync(eventEntity.Id, null, "Past Event Pass");
 
         // Act: Attempt purchase
-        var request = new { EventWaiverAccepted = true };
+        var request = new { EventId = eventEntity.Id, TicketTypeId = ticketType.Id, EventWaiverAccepted = true };
         var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
 
         // Assert: Should fail because no future sessions exist
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
-            "Ticket purchase should fail when all sessions have passed");
         var content = await response.Content.ReadAsStringAsync();
+        // Debug: Log actual response for troubleshooting
+        if (response.StatusCode == HttpStatusCode.InternalServerError)
+        {
+            throw new Exception($"Got 500 error. Response body: {content}");
+        }
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            $"Ticket purchase should fail when all sessions have passed. Response: {content}");
         content.Should().Contain("All sessions for this ticket have passed",
             "Error message should explain that no future sessions exist");
     }
@@ -185,15 +191,15 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
         var ticketType = await CreateTestTicketTypeAsync(eventEntity.Id, null, "Last Minute Ticket");
 
         // Act: Attempt purchase
-        var request = new { EventWaiverAccepted = true };
+        var request = new { EventId = eventEntity.Id, TicketTypeId = ticketType.Id, EventWaiverAccepted = true };
         var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
 
         // Assert: Should fail because within close window (6 hours < 12 hours)
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
             "Ticket purchase should fail when session is within RegistrationCloseHours window");
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("sales window",
-            "Error message should mention sales window closure");
+        content.Should().Contain("purchase window",
+            "Error message should mention purchase window closure");
     }
 
     #endregion
@@ -357,22 +363,25 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
             UpdatedAt = DateTime.UtcNow
         };
 
-        context.EventAttendances.Add(ticket);
-
         // Create associated TicketPurchase
         var purchase = new TicketPurchase
         {
             Id = Guid.NewGuid(),
-            EventAttendanceId = ticket.Id,
             TicketTypeId = ticketTypeId,
-            PurchasePrice = 25.00m,
-            PaymentMethod = PaymentMethod.Cash,
-            PaymentStatus = PaymentStatus.Paid,
+            UserId = userId,
+            TotalPrice = 25.00m,
+            PaymentMethod = "Cash",
+            PaymentStatus = "Completed",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         context.TicketPurchases.Add(purchase);
+
+        // Link the ticket to the purchase
+        ticket.TicketPurchaseId = purchase.Id;
+        context.EventAttendances.Add(ticket);
+
         await context.SaveChangesAsync();
 
         return ticket;
@@ -400,10 +409,9 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
-        // Create authenticated HTTP client from factory
-        var client = _factory.CreateClient();
+        // Create authenticated HTTP client from factory with CSRF token
         var token = GenerateJwtToken(userId, email, role: "Member", sceneName: user.SceneName);
-        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, token);
 
         return (client, userId);
     }

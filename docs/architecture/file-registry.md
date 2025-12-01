@@ -33,3 +33,14 @@
 | 2025-11-30 | /home/chad/repos/witchcityrope/apps/web/src/components/events/EventTicketPurchaseModal.tsx | MODIFIED | Updated EventTicketPurchaseModal to support new session-based timing fields. Extended EventTicketType interface (lines 40-43) with canPurchase, referenceSessionId, referenceSessionName, availabilityMessage fields. Updated ticket card display logic (lines 147-221) to check canPurchase and show appropriate badges/messages. Added isNotPurchasable check, shows "Not Available" badge for non-purchasable tickets, displays availabilityMessage in orange text, shows referenceSessionName for context. Disabled selection for non-purchasable tickets. Part of session-based timing refactor frontend implementation. Modal now properly respects session-based timing windows | Session Timing Refactor - EventTicketPurchaseModal | ACTIVE | - |
 |
 
+
+## Session-Based Timing E2E Tests - December 1, 2025
+
+| Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
+|------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-12-01 | /tests/e2e/session-based-timing.spec.ts | CREATED | Comprehensive edge case E2E tests for session-based timing functionality. Covers boundary conditions, past session handling, multi-day events, and complex scenarios. | Session-based timing E2E test creation | ACTIVE | N/A - Permanent test file |
+| 2025-12-01 | /tests/e2e/session-based-timing-SCENARIOS.md | CREATED | Documentation of all session-based timing test scenarios, including edge cases, business rules, and test data requirements. Complements existing test files. | Session-based timing E2E test creation | ACTIVE | N/A - Permanent documentation |
+| 2025-12-01 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Updated with new comprehensive edge case tests for session-based timing. Added entry at top of catalog with test coverage details. | Session-based timing E2E test creation | ACTIVE | N/A |
+
+| 2025-12-01 | /tests/e2e/SESSION-TIMING-TEST-SUMMARY.md | CREATED | Complete summary of session-based timing E2E test deliverables. Documents all files created, test coverage breakdown, integration with backend tests, execution plan, maintenance guide. Serves as handoff document and reference for test execution phase. | Session-based timing E2E test creation | ACTIVE | N/A - Permanent documentation |
+

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Enums;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
@@ -25,6 +26,7 @@ public class EventServiceTests : IAsyncLifetime
     private ApplicationDbContext _context = null!;
     private IEventService _service = null!;
     private ILogger<EventService> _logger = null!;
+    private ITimeZoneService _timeZoneService = null!;
     private string _connectionString = null!;
 
     public EventServiceTests()
@@ -53,8 +55,11 @@ public class EventServiceTests : IAsyncLifetime
         // Setup logger
         _logger = Substitute.For<ILogger<EventService>>();
 
+        // Setup time zone service
+        _timeZoneService = Substitute.For<ITimeZoneService>();
+
         // Create service instance
-        _service = new EventService(_context, _logger);
+        _service = new EventService(_context, _logger, _timeZoneService);
     }
 
     public async Task DisposeAsync()

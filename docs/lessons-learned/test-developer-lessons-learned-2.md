@@ -1330,6 +1330,154 @@ test('user can submit vetting application', async ({ page }) => {
 
 ---
 
+## 🚨 CRITICAL: TestHelperService for E2E Test Data Isolation (2025-11-30)
+
+**Problem**: E2E tests relying on seed data are fragile - tests break when seed data changes, and multiple tests using the same data create race conditions.
+
+**Solution**: Use the `/api/test-helpers/*` endpoints to create isolated test data per test run, then clean up after.
+
+### Available Test Helper Endpoints
+
+**1. Create Test User**: `POST /api/test-helpers/users`
+```typescript
+const response = await page.request.post('/api/test-helpers/users', {
+  data: {
+    email: `e2e-test-${Date.now()}@test.local`,
+    password: 'Test123!',
+    sceneName: `E2E Test User ${Date.now()}`,
+    firstName: 'Test',
+    lastName: 'User',
+    role: 'Member',            // Optional: 'Member', 'Administrator', 'Teacher'
+    vettingStatus: 3,          // Optional: 0-6 enum, 3 = Approved (vetted)
+    bio: 'Test bio',           // Optional
+    pronouns: 'they/them',     // Optional
+    dateOfBirth: '1990-01-01', // Optional
+  }
+});
+const { id, email, sceneName } = await response.json();
+```
+
+**2. Delete Test User**: `DELETE /api/test-helpers/users/{userId}`
+```typescript
+await page.request.delete(`/api/test-helpers/users/${userId}`);
+```
+
+**3. Create Test Ticket Purchase**: `POST /api/test-helpers/ticket-purchases`
+```typescript
+const response = await page.request.post('/api/test-helpers/ticket-purchases', {
+  data: {
+    ticketTypeId: 'guid-string',  // Optional: uses first available if not provided
+    totalPrice: 25.00,            // REQUIRED
+    quantity: 1,
+    paymentMethod: 'PayPal',      // 'PayPal', 'Venmo', 'Cash', 'Free'
+    paymentStatus: 'Completed',   // 'Pending', 'Completed', 'Failed'
+    userId: 'guid-string',        // Optional: creates unique user if not provided
+    notes: 'E2E Test Purchase',   // Optional
+    includePayPalCaptureId: true, // Optional: for refund testing
+  }
+});
+const { id, paymentReference, userId, ticketTypeId, eventName } = await response.json();
+```
+
+**4. Delete Test Ticket Purchase**: `DELETE /api/test-helpers/ticket-purchases/{purchaseId}`
+```typescript
+await page.request.delete(`/api/test-helpers/ticket-purchases/${purchaseId}`);
+```
+
+### CRITICAL: What the Service Creates Automatically
+
+When creating ticket purchases, TestHelperService automatically creates:
+1. ✅ **TicketPurchase record** - The payment record
+2. ✅ **EventAttendance record** - Links user to event (AttendanceType.Ticket, Status.Active)
+3. ✅ **Unique test user** (if no userId provided) - Avoids unique constraint violations
+
+**This is important because**:
+- Deletion checks look for sales via EventAttendance, not just TicketPurchase
+- Multiple purchases for same user/event/type violate unique constraints
+- Tests that need to verify "tickets sold" blocking will work correctly
+
+### CRITICAL: CSRF Token Required for Protected Endpoints
+
+Some test helper endpoints require CSRF tokens. Use this pattern:
+
+```typescript
+// Helper to get CSRF token from cookies
+async function getCsrfToken(page: Page): Promise<string> {
+  const cookies = await page.context().cookies();
+  const csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
+  if (!csrfCookie) {
+    throw new Error('CSRF token cookie not found - ensure user is logged in');
+  }
+  return csrfCookie.value;
+}
+
+// Using the token
+const csrfToken = await getCsrfToken();
+await page.request.post('/api/events', {
+  headers: { 'X-CSRF-TOKEN': csrfToken },
+  data: { /* ... */ }
+});
+```
+
+### Correct Test Pattern - Create and Cleanup
+
+```typescript
+test.describe('Feature Tests', () => {
+  let testPurchaseId: string;
+
+  test('ticket type with sales cannot be deleted', async ({ page }) => {
+    // Create isolated test data
+    const response = await page.request.post('/api/test-helpers/ticket-purchases', {
+      data: {
+        ticketTypeId: ticketType.id,
+        totalPrice: 25.00,
+        quantity: 1,
+        paymentMethod: 'PayPal',
+        paymentStatus: 'Completed'
+      }
+    });
+    const purchase = await response.json();
+    testPurchaseId = purchase.id;
+
+    // Test logic...
+  });
+
+  test.afterEach(async ({ page }) => {
+    // Cleanup test data
+    if (testPurchaseId) {
+      await page.request.delete(`/api/test-helpers/ticket-purchases/${testPurchaseId}`);
+    }
+  });
+});
+```
+
+### Also See: PaymentHelper Utility
+
+For common ticket purchase scenarios, use the PaymentHelper:
+
+```typescript
+import { PaymentHelper } from './test-utils/helpers/payment.helper';
+
+// Creates purchase with all proper records
+const purchase = await PaymentHelper.createTestTicketPurchase(page, {
+  ticketTypeId: 'guid',
+  totalPrice: 25.00,
+  paymentMethod: 'PayPal'
+});
+```
+
+**Location**: `/tests/e2e/test-utils/helpers/payment.helper.ts`
+
+### Prevention Rules
+
+1. ✅ **NEVER rely on specific seed data** - Create test data per test
+2. ✅ **ALWAYS clean up in afterEach/afterAll** - Prevent test pollution
+3. ✅ **USE unique identifiers** - Prevent race conditions between tests
+4. ✅ **CHECK CSRF tokens** - Some endpoints require X-CSRF-TOKEN header
+5. ✅ **USE PaymentHelper** - Encapsulates common purchase scenarios
+
+---
+
 ## Prevention Pattern: Ambiguous Label Selectors in Playwright Tests (2025-11-29)
 
 **Problem**: Playwright tests failed with "strict mode violation" when using `getByLabel()` for form fields with duplicate labels on the same page.

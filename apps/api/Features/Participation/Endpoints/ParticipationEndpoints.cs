@@ -310,7 +310,7 @@ public static class ParticipationEndpoints
                             detail: result.Error,
                             statusCode: 409);
                     }
-                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window"))
+                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window") || result.Error.Contains("sessions"))
                     {
                         return Results.Problem(
                             title: "Bad Request",
@@ -422,7 +422,7 @@ public static class ParticipationEndpoints
                             detail: result.Error,
                             statusCode: 409);
                     }
-                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window"))
+                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window") || result.Error.Contains("sessions"))
                     {
                         return Results.Problem(
                             title: "Bad Request",
@@ -514,7 +514,7 @@ public static class ParticipationEndpoints
                     {
                         return Results.NotFound();
                     }
-                    if (result.Error.Contains("cannot be cancelled"))
+                    if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("Cancellation window") || result.Error.Contains("Cancellation"))
                     {
                         return Results.BadRequest(result.Error);
                     }
@@ -586,7 +586,7 @@ public static class ParticipationEndpoints
                     {
                         return Results.NotFound();
                     }
-                    if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open"))
+                    if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open") || result.Error.Contains("Cancellation window") || result.Error.Contains("Cancellation"))
                     {
                         return Results.BadRequest(result.Error);
                     }

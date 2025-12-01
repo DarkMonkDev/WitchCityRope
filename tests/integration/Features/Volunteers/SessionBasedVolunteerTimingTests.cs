@@ -245,7 +245,9 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
         var signup = await CreateTestVolunteerSignupAsync(eventEntity.Id, userId, position.Id);
 
         // Act: Attempt cancel when > 24 hours before session
-        var response = await client.DeleteAsync($"/api/volunteer-signups/{signup.Id}");
+        // Note: POST /api/volunteer-signups/{id}/cancel is the user self-cancellation endpoint
+        // DELETE /api/volunteer-signups/{id} is admin-only
+        var response = await client.PostAsync($"/api/volunteer-signups/{signup.Id}/cancel", null);
 
         // Assert: Should succeed because 3 days > 24 hours
         response.StatusCode.Should().Be(HttpStatusCode.NoContent,
@@ -308,7 +310,6 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
         var signup = new VolunteerSignup
         {
             Id = Guid.NewGuid(),
-            EventId = eventId,
             UserId = userId,
             VolunteerPositionId = positionId,
             Status = VolunteerSignupStatus.Confirmed,
@@ -344,10 +345,9 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
-        // Create authenticated HTTP client from factory
-        var client = _factory.CreateClient();
+        // Create authenticated HTTP client from factory with CSRF token
         var token = GenerateJwtToken(userId, email, role: "Member", sceneName: user.SceneName);
-        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, token);
 
         return (client, userId);
     }

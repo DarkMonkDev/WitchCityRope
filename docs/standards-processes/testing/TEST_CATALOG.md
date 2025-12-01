@@ -1,11 +1,66 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-30 -->
-<!-- Version: 11.30.12 - SESSION-BASED TIMING E2E TESTS ADDED -->
+<!-- Last Updated: 2025-12-01 -->
+<!-- Version: 12.01.1 - COMPREHENSIVE SESSION-BASED TIMING EDGE CASES ADDED -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
 
-## ✅ NEW TEST: SESSION-BASED TIMING E2E TESTS - November 30, 2025
+## ✅ NEW TEST: COMPREHENSIVE SESSION-BASED TIMING EDGE CASES - December 1, 2025
+
+**CREATION DATE**: 2025-12-01T05:30:00Z
+**STATUS**: ✅ **COMPREHENSIVE EDGE CASE TESTS CREATED**
+**IMPACT**: 1 new comprehensive E2E test file (10 edge case tests)
+
+### New E2E Test File Created
+
+#### Session-Based Timing - Comprehensive Edge Cases ✅
+- **File**: `tests/e2e/session-based-timing.spec.ts`
+- **Tests**: 10 comprehensive edge case tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Edge cases and complex scenarios for session-based timing
+- **Focus**: Boundary conditions, multi-day events, past session handling
+
+**Test Coverage**:
+1. **Past sessions ignored** - Timing uses first future session, NOT first session
+2. **All sessions passed** - Clear error message when no future sessions
+3. **Close window edge case** - Exactly at boundary (e.g., 12 hours away, CloseHours=12)
+4. **Multi-day event** - Sessions on different days handled correctly
+5. **Session with no ticket types** - Event-level tickets still work
+6. **Volunteer position with past session** - Past sessions filtered out
+7. **Volunteer cancellation timing** - Uses session-based VolunteerCancellationCloseHours
+8. **RegistrationOpenHours boundary** - Tickets not available before window opens
+9. **VolunteerRegistrationCloseHours** - Enforced for session-specific positions
+10. **Ticket cancellation window** - Uses first future session for timing
+
+**Key Patterns Used**:
+- Defensive skip conditions for missing seed data
+- Clear console logging for test intent and results
+- Heuristic detection of multi-session/multi-day events
+- UI state verification (buttons enabled/disabled, messages shown)
+- AuthHelpers for authentication (admin, vetted member access)
+
+**Complements Existing Tests**:
+- This file covers **EDGE CASES** not covered in:
+  - `session-based-ticket-timing.spec.ts` (basic ticket scenarios)
+  - `session-based-volunteer-timing.spec.ts` (basic volunteer scenarios)
+- Focuses on boundary conditions, error cases, and complex multi-session scenarios
+- Tests user-facing behavior from UI perspective (not backend API)
+
+**Architecture Alignment**:
+- ✅ Matches specification at `/docs/functional-areas/events/session-timing-refactor/SPECIFICATION.md`
+- ✅ Tests integration tests didn't cover: UI edge cases, error messaging, boundary conditions
+- ✅ Verifies graceful degradation when sessions are past, unavailable, or misconfigured
+- ✅ Ensures user-facing messages are clear and informative
+
+**Related Files**:
+- Specification: `/docs/functional-areas/events/session-timing-refactor/SPECIFICATION.md`
+- Basic ticket tests: `/tests/e2e/session-based-ticket-timing.spec.ts`
+- Basic volunteer tests: `/tests/e2e/session-based-volunteer-timing.spec.ts`
+- Backend integration tests: `/tests/integration/Features/Attendance/SessionBasedTicketTimingTests.cs`
+
+---
+
+## ✅ EXISTING TEST: SESSION-BASED TIMING E2E TESTS - November 30, 2025
 
 **CREATION DATE**: 2025-11-30T02:30:00Z
 **STATUS**: ✅ **SESSION-BASED TIMING E2E TESTS CREATED**

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Enums;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
@@ -23,12 +24,14 @@ public class EventServiceCreateTests : DatabaseTestBase
 {
     private readonly EventService _sut;
     private readonly Mock<ILogger<EventService>> _mockLogger;
+    private readonly Mock<ITimeZoneService> _mockTimeZoneService;
     private int _testVenueId;
 
     public EventServiceCreateTests(DatabaseTestFixture databaseFixture) : base(databaseFixture)
     {
         _mockLogger = new Mock<ILogger<EventService>>();
-        _sut = new EventService(DbContext, _mockLogger.Object);
+        _mockTimeZoneService = new Mock<ITimeZoneService>();
+        _sut = new EventService(DbContext, _mockLogger.Object, _mockTimeZoneService.Object);
     }
 
     public override async Task InitializeAsync()
