@@ -3,8 +3,31 @@ using System.ComponentModel.DataAnnotations;
 namespace WitchCityRope.Api.Features.Volunteers.Models;
 
 /// <summary>
-/// Volunteer position response DTO
+/// Volunteer position response DTO - RICH VERSION for user-facing volunteer signup API.
+/// Contains additional fields for user context, permissions, and session information.
 /// </summary>
+/// <remarks>
+/// This is the RICH version of VolunteerPositionDto designed for user-facing volunteer signup operations.
+/// It extends the basic volunteer position fields with user-specific context and permission checks:
+///
+/// KEY ADDITIONAL FIELDS:
+/// - CanSignUp: Whether the current user can sign up (based on timing rules, capacity, existing signup)
+/// - CanCancel: Whether the current user can cancel their signup (based on cancellation window)
+/// - HasUserSignedUp: Whether the current user has already signed up for this position
+/// - UserSignupId: The ID of the user's signup if they have one
+/// - Session timing info: SessionName, SessionStartTime, SessionEndTime for session-specific positions
+///
+/// IMPORTANT: A simpler version exists at Features/Events/Models/VolunteerPositionDto.cs that contains
+/// only the core fields needed for admin event management CRUD operations. That version is used by the
+/// Events feature for creating/updating events without the user-context complexity.
+///
+/// Both DTOs exist intentionally as part of our vertical slice architecture - each feature slice has its own
+/// models optimized for its specific use case. This prevents coupling between features and keeps models focused.
+///
+/// This DTO is used by:
+/// - VolunteerService (calculates CanSignUp/CanCancel based on business rules)
+/// - VolunteerEndpoints (public-facing volunteer signup/cancellation API)
+/// </remarks>
 public class VolunteerPositionDto
 {
     public Guid Id { get; set; }

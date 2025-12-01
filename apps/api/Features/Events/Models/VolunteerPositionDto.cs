@@ -1,9 +1,27 @@
 namespace WitchCityRope.Api.Features.Events.Models;
 
 /// <summary>
-/// Data Transfer Object for VolunteerPosition information.
-/// Used in the Events feature vertical slice.
+/// Data Transfer Object for VolunteerPosition information - SIMPLE VERSION for admin/event management operations.
+/// Used in the Events feature vertical slice for CRUD operations on events and their volunteer positions.
 /// </summary>
+/// <remarks>
+/// This is the SIMPLE version of VolunteerPositionDto designed for admin and event management operations.
+/// It contains only the core fields needed for creating, updating, and displaying events in admin contexts.
+///
+/// IMPORTANT: A second, richer version exists at Features/Volunteers/Models/VolunteerModels.cs that includes
+/// additional user-facing fields like CanSignUp, CanCancel, HasUserSignedUp, and session timing information.
+/// That version is used by the Volunteers feature for public-facing volunteer signup operations where user
+/// context and permission checks are needed.
+///
+/// Both DTOs exist intentionally as part of our vertical slice architecture - each feature slice has its own
+/// models optimized for its specific use case. This prevents coupling between features and keeps models focused.
+///
+/// This DTO is used by:
+/// - EventDto (includes list of volunteer positions)
+/// - CreateEventRequest (for creating events with volunteer positions)
+/// - UpdateEventRequest (for updating event volunteer positions)
+/// - EventService (for admin event management operations)
+/// </remarks>
 public class VolunteerPositionDto
 {
     public string Id { get; set; } = string.Empty;
