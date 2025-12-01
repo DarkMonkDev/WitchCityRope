@@ -11,12 +11,116 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * - Success workflow for ticket types without sales
  * - Modal button states (enabled/disabled based on blocking conditions)
  *
- * CRITICAL: Tests read actual source code patterns from DeleteConfirmationModal.tsx
+ * CRITICAL: Tests create their own data and do NOT rely on seed data
  */
+
+interface TestEvent {
+  id: string;
+  title: string;
+  sessions: Array<{ id: string; name: string }>;
+  ticketTypes: Array<{ id: string; name: string }>;
+}
 
 test.describe('Admin Ticket Type Deletion', () => {
   let page: Page;
-  let testEventId: string;
+
+  // Helper to get CSRF token from cookies
+  async function getCsrfToken(): Promise<string> {
+    const cookies = await page.context().cookies();
+    const csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
+    if (!csrfCookie) {
+      throw new Error('CSRF token cookie not found - ensure user is logged in');
+    }
+    return csrfCookie.value;
+  }
+
+  // Helper to create a test event with sessions and ticket types
+  async function createTestEvent(sessionCount: number, ticketTypeCount: number): Promise<TestEvent> {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 30);
+
+    const sessions = Array.from({ length: sessionCount }, (_, i) => ({
+      sessionIdentifier: `S${i + 1}`,
+      name: `Test Session ${i + 1}`,
+      date: futureDate.toISOString(),
+      startTime: new Date(futureDate.getTime() + i * 3 * 60 * 60 * 1000).toISOString(),
+      endTime: new Date(futureDate.getTime() + (i + 1) * 3 * 60 * 60 * 1000).toISOString(),
+      capacity: 20,
+    }));
+
+    const ticketTypes = Array.from({ length: ticketTypeCount }, (_, i) => ({
+      name: `Test Ticket ${i + 1}`,
+      price: 25.0,
+      quantityAvailable: 20,
+      pricingType: 'Fixed',
+      sessionIdentifiers: [], // Event-level ticket (all sessions)
+    }));
+
+    // Get CSRF token for protected endpoint
+    const csrfToken = await getCsrfToken();
+
+    const response = await page.request.post('/api/events', {
+      headers: {
+        'X-CSRF-TOKEN': csrfToken,
+      },
+      data: {
+        title: `E2E Test Event ${Date.now()}`,
+        description: 'Test event for ticket type deletion E2E tests',
+        startDate: futureDate.toISOString(),
+        endDate: new Date(futureDate.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+        venueId: 1,
+        eventType: 'Class',
+        capacity: 20,
+        isPublished: false,
+        sessions,
+        ticketTypes,
+      },
+    });
+
+    if (!response.ok()) {
+      const errorBody = await response.text();
+      throw new Error(`Failed to create test event: ${response.status()} - ${errorBody}`);
+    }
+
+    const event = await response.json();
+    return {
+      id: event.id,
+      title: event.title,
+      sessions: event.sessions || [],
+      ticketTypes: event.ticketTypes || [],
+    };
+  }
+
+  // Helper to create a ticket purchase for a ticket type
+  async function createTicketPurchase(ticketTypeId: string): Promise<string> {
+    const response = await page.request.post('/api/test-helpers/ticket-purchases', {
+      data: {
+        ticketTypeId: ticketTypeId, // GUID as string - API will parse
+        totalPrice: 25.0, // Required field
+        quantity: 1,
+        paymentMethod: 'PayPal',
+        paymentStatus: 'Completed',
+      },
+    });
+
+    if (!response.ok()) {
+      const errorBody = await response.text();
+      throw new Error(`Failed to create ticket purchase: ${response.status()} - ${errorBody}`);
+    }
+
+    const purchase = await response.json();
+    return purchase.id;
+  }
+
+  // Helper to delete a test event (cleanup)
+  async function deleteTestEvent(eventId: string): Promise<void> {
+    const csrfToken = await getCsrfToken();
+    await page.request.delete(`/api/events/${eventId}`, {
+      headers: {
+        'X-CSRF-TOKEN': csrfToken,
+      },
+    });
+  }
 
   test.beforeAll(async ({ browser }) => {
     const context = await browser.newContext();
@@ -24,278 +128,254 @@ test.describe('Admin Ticket Type Deletion', () => {
 
     // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
-
-    // Get test event ID from API
-    const eventsResponse = await page.request.get('/api/events');
-    const events = await eventsResponse.json();
-
-    if (!events || events.length === 0) {
-      throw new Error('No events found. Run seed data first.');
-    }
-
-    testEventId = events[0].id;
   });
 
   test.afterAll(async () => {
     await page?.close();
   });
 
-  test('can delete ticket type with no sales', async () => {
-    // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
-    await page.waitForLoadState('domcontentloaded');
+  test('can delete ticket type with no sales - shows confirmation modal with enabled button', async () => {
+    // Create event with 1 session and 2 ticket types (so we can delete one)
+    const testEvent = await createTestEvent(1, 2);
 
-    // Navigate to Setup tab
-    const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
-    await setupTab.click();
+    try {
+      // Navigate to event edit page
+      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.waitForLoadState('domcontentloaded');
 
-    // Wait for ticket types section
-    const ticketTypesSection = page.locator('[data-testid="ticket-types-section"]');
-    await expect(ticketTypesSection).toBeVisible({ timeout: 10000 });
+      // Navigate to Setup tab
+      const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
+      await setupTab.click();
 
-    // Find delete button in ticket types grid
-    const deleteButton = page.locator('[data-testid="button-delete-tickettype"]').first();
+      // Wait for ticket types section
+      const ticketsSection = page.locator('[data-testid="tickets-section"]');
+      await expect(ticketsSection).toBeVisible({ timeout: 10000 });
 
-    const deleteButtonCount = await deleteButton.count();
-    if (deleteButtonCount === 0) {
-      console.log('⚠️ Delete ticket type button not found - feature may not be implemented yet. Skipping test.');
-      test.skip();
-      return;
-    }
+      // Click delete on first ticket type
+      const deleteButton = page.locator('[data-testid="button-delete-tickettype"]').first();
+      await deleteButton.click();
 
-    await deleteButton.click();
-
-    // Verify confirmation modal opens
-    const modal = page.locator('[data-testid="delete-confirmation-modal"]');
-    await expect(modal).toBeVisible({ timeout: 5000 });
-
-    // Check if this ticket type is deletable (no sales)
-    const confirmButton = page.locator('[data-testid="delete-confirm-button"]');
-    const isEnabled = await confirmButton.isEnabled();
-
-    if (!isEnabled) {
-      // Ticket type has sales - close modal and try next one
-      console.log('⚠️ First ticket type has sales, closing modal and skipping this specific test case.');
-      const cancelButton = page.locator('[data-testid="delete-cancel-button"]');
-      await cancelButton.click();
-      test.skip();
-      return;
-    }
-
-    // Verify modal shows "canDelete" state
-    const alertBox = modal.locator('[role="alert"]');
-    await expect(alertBox).toBeVisible();
-
-    // Verify confirm button is enabled
-    await expect(confirmButton).toBeEnabled();
-
-    // Verify button text
-    await expect(confirmButton).toHaveText(/Delete Ticket Type/i);
-
-    // Take screenshot
-    await page.screenshot({ path: './test-results/tickettype-deletion-canDelete.png' });
-
-    // Count ticket types before deletion
-    const ticketTypeRowsBefore = page.locator('[data-testid="tickettype-row"]');
-    const countBefore = await ticketTypeRowsBefore.count();
-
-    // Confirm deletion
-    await confirmButton.click();
-
-    // Wait for modal to close
-    await expect(modal).not.toBeVisible({ timeout: 5000 });
-
-    // Verify success notification
-    const successAlert = page.locator('[role="alert"]').filter({ hasText: /success|deleted|removed/i }).first();
-    await expect(successAlert).toBeVisible({ timeout: 10000 });
-
-    // Verify ticket type count decreased
-    const ticketTypeRowsAfter = page.locator('[data-testid="tickettype-row"]');
-    const countAfter = await ticketTypeRowsAfter.count();
-
-    expect(countAfter).toBe(countBefore - 1);
-
-    // Take screenshot of success
-    await page.screenshot({ path: './test-results/tickettype-deletion-success.png' });
-  });
-
-  test('cannot delete ticket type with sales - shows blocked modal', async () => {
-    // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
-    await page.waitForLoadState('domcontentloaded');
-
-    // Navigate to Setup tab
-    const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
-    await setupTab.click();
-
-    // Wait for ticket types section
-    const ticketTypesSection = page.locator('[data-testid="ticket-types-section"]');
-    await expect(ticketTypesSection).toBeVisible({ timeout: 10000 });
-
-    // Find delete buttons
-    const deleteButtons = page.locator('[data-testid="button-delete-tickettype"]');
-
-    const deleteButtonCount = await deleteButtons.count();
-    if (deleteButtonCount === 0) {
-      console.log('⚠️ Delete ticket type button not found - feature may not be implemented yet. Skipping test.');
-      test.skip();
-      return;
-    }
-
-    // Try all ticket types to find one with sales
-    for (let i = 0; i < await deleteButtons.count(); i++) {
-      await deleteButtons.nth(i).click();
+      // Wait for modal
+      await page.waitForTimeout(500);
+      const modalTitle = page.getByRole('heading', { name: /Delete Ticket Type|Cannot Delete Ticket Type/i }).first();
+      await expect(modalTitle).toBeVisible({ timeout: 10000 });
 
       const modal = page.locator('[data-testid="delete-confirmation-modal"]');
-      await expect(modal).toBeVisible({ timeout: 5000 });
 
-      // Check if this ticket type has sales (button disabled)
+      // Verify confirm button is ENABLED (ticket type is deletable)
       const confirmButton = page.locator('[data-testid="delete-confirm-button"]');
-      const isDisabled = await confirmButton.isDisabled();
+      await expect(confirmButton).toBeEnabled();
 
-      if (isDisabled) {
-        // Found ticket type with sales - verify blocked state
-        const alertBox = modal.locator('[role="alert"]');
-        await expect(alertBox).toBeVisible();
+      // Verify button text
+      await expect(confirmButton).toHaveText(/Delete Ticket Type/i);
 
-        // Verify alert shows tickets sold message
-        await expect(alertBox).toContainText(/tickets sold/i);
-
-        // Verify confirm button is disabled
-        await expect(confirmButton).toBeDisabled();
-
-        // Verify blocking message
-        await expect(modal).toContainText(/Cannot be deleted to protect member purchases/i);
-
-        // Take screenshot
-        await page.screenshot({ path: './test-results/tickettype-deletion-blocked.png' });
-
-        // Close modal
-        const cancelButton = page.locator('[data-testid="delete-cancel-button"]');
-        await cancelButton.click();
-
-        // Test passed - found and verified blocked ticket type
-        return;
-      }
-
-      // Not blocked - close modal and try next ticket type
+      // Close modal without deleting
       const cancelButton = page.locator('[data-testid="delete-cancel-button"]');
       await cancelButton.click();
-      await page.waitForTimeout(500);
+      await expect(modal).not.toBeVisible({ timeout: 3000 });
+    } finally {
+      // Cleanup
+      await deleteTestEvent(testEvent.id);
     }
+  });
 
-    // If we get here, no ticket types with sales were found
-    console.log('⚠️ No ticket types with sales found - cannot test blocked state. Test may need seeded data.');
-    test.skip();
+  test('cannot delete ticket type with sales - shows blocked modal with disabled button', async () => {
+    // Create event with 1 session and 1 ticket type
+    const testEvent = await createTestEvent(1, 1);
+
+    try {
+      // Create a ticket purchase to block deletion
+      if (testEvent.ticketTypes.length > 0) {
+        await createTicketPurchase(testEvent.ticketTypes[0].id);
+      }
+
+      // Navigate to event edit page
+      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.waitForLoadState('domcontentloaded');
+
+      // Navigate to Setup tab
+      const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
+      await setupTab.click();
+
+      // Wait for ticket types section
+      const ticketsSection = page.locator('[data-testid="tickets-section"]');
+      await expect(ticketsSection).toBeVisible({ timeout: 10000 });
+
+      // Click delete on the ticket type
+      const deleteButton = page.locator('[data-testid="button-delete-tickettype"]').first();
+      await deleteButton.click();
+
+      // Wait for modal
+      await page.waitForTimeout(500);
+      const modalTitle = page.getByRole('heading', { name: /Delete Ticket Type|Cannot Delete Ticket Type/i }).first();
+      await expect(modalTitle).toBeVisible({ timeout: 10000 });
+
+      const modal = page.locator('[data-testid="delete-confirmation-modal"]');
+
+      // Verify blocked state - button should be DISABLED
+      const confirmButton = page.locator('[data-testid="delete-confirm-button"]');
+      await expect(confirmButton).toBeDisabled();
+
+      // Verify alert shows blocking reason
+      const alertBox = modal.locator('[role="alert"]');
+      await expect(alertBox).toBeVisible();
+      await expect(alertBox).toContainText(/tickets sold/i);
+
+      // Verify blocking message
+      await expect(modal).toContainText(/Cannot be deleted to protect member purchases/i);
+
+      // Close modal
+      const cancelButton = page.locator('[data-testid="delete-cancel-button"]');
+      await cancelButton.click();
+    } finally {
+      // Cleanup
+      await deleteTestEvent(testEvent.id);
+    }
+  });
+
+  test('delete ticket type successfully removes it from the list', async () => {
+    // Create event with 1 session and 3 ticket types
+    const testEvent = await createTestEvent(1, 3);
+
+    try {
+      // Navigate to event edit page
+      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.waitForLoadState('domcontentloaded');
+
+      // Navigate to Setup tab
+      const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
+      await setupTab.click();
+
+      // Wait for ticket types section
+      const ticketsSection = page.locator('[data-testid="tickets-section"]');
+      await expect(ticketsSection).toBeVisible({ timeout: 10000 });
+
+      // Count ticket types before
+      const ticketRowsBefore = page.locator('[data-testid="tickettype-row"]');
+      const countBefore = await ticketRowsBefore.count();
+      expect(countBefore).toBe(3);
+
+      // Click delete on first ticket type
+      const deleteButton = page.locator('[data-testid="button-delete-tickettype"]').first();
+      await deleteButton.click();
+
+      // Wait for modal
+      await page.waitForTimeout(500);
+      const modalTitle = page.getByRole('heading', { name: /Delete Ticket Type|Cannot Delete Ticket Type/i }).first();
+      await expect(modalTitle).toBeVisible({ timeout: 10000 });
+
+      const modal = page.locator('[data-testid="delete-confirmation-modal"]');
+
+      // Confirm deletion
+      const confirmButton = page.locator('[data-testid="delete-confirm-button"]');
+      await expect(confirmButton).toBeEnabled();
+      await confirmButton.click();
+
+      // Wait for modal to close
+      await expect(modal).not.toBeVisible({ timeout: 5000 });
+
+      // Verify ticket type count decreased
+      await page.waitForTimeout(500);
+      const ticketRowsAfter = page.locator('[data-testid="tickettype-row"]');
+      const countAfter = await ticketRowsAfter.count();
+      expect(countAfter).toBe(countBefore - 1);
+    } finally {
+      // Cleanup
+      await deleteTestEvent(testEvent.id);
+    }
   });
 
   test('delete button in table opens confirmation modal', async () => {
-    // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
-    await page.waitForLoadState('domcontentloaded');
+    // Create event with 1 session and 2 ticket types
+    const testEvent = await createTestEvent(1, 2);
 
-    // Navigate to Setup tab
-    const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
-    await setupTab.click();
+    try {
+      // Navigate to event edit page
+      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.waitForLoadState('domcontentloaded');
 
-    // Wait for ticket types section
-    const ticketTypesSection = page.locator('[data-testid="ticket-types-section"]');
-    await expect(ticketTypesSection).toBeVisible({ timeout: 10000 });
+      // Navigate to Setup tab
+      const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
+      await setupTab.click();
 
-    // Verify delete buttons exist in table
-    const deleteButtons = page.locator('[data-testid="button-delete-tickettype"]');
-    const buttonCount = await deleteButtons.count();
+      // Wait for ticket types section
+      const ticketsSection = page.locator('[data-testid="tickets-section"]');
+      await expect(ticketsSection).toBeVisible({ timeout: 10000 });
 
-    if (buttonCount === 0) {
-      console.log('⚠️ Delete ticket type buttons not found - feature may not be implemented yet. Skipping test.');
-      test.skip();
-      return;
+      // Verify delete buttons exist
+      const deleteButtons = page.locator('[data-testid="button-delete-tickettype"]');
+      const buttonCount = await deleteButtons.count();
+      expect(buttonCount).toBeGreaterThan(0);
+
+      // Click first delete button
+      await deleteButtons.first().click();
+
+      // Wait for modal
+      await page.waitForTimeout(500);
+
+      // Verify modal opens with correct title
+      const modalTitle = page.getByRole('heading', { name: /Delete Ticket Type|Cannot Delete Ticket Type/i }).first();
+      await expect(modalTitle).toBeVisible({ timeout: 10000 });
+
+      const modal = page.locator('[data-testid="delete-confirmation-modal"]');
+      await expect(modal).toContainText(/Delete Ticket Type|Cannot Delete Ticket Type/i);
+
+      // Close modal
+      const cancelButton = page.locator('[data-testid="delete-cancel-button"]');
+      await cancelButton.click();
+      await expect(modal).not.toBeVisible({ timeout: 3000 });
+    } finally {
+      // Cleanup
+      await deleteTestEvent(testEvent.id);
     }
-
-    expect(buttonCount).toBeGreaterThan(0);
-
-    // Click first delete button
-    await deleteButtons.first().click();
-
-    // Verify modal opens
-    const modal = page.locator('[data-testid="delete-confirmation-modal"]');
-    await expect(modal).toBeVisible({ timeout: 5000 });
-
-    // Verify modal has correct title
-    await expect(modal).toContainText(/Delete Ticket Type|Cannot Delete Ticket Type/i);
-
-    // Close modal
-    const cancelButton = page.locator('[data-testid="delete-cancel-button"]');
-    await cancelButton.click();
-
-    // Verify modal closes
-    await expect(modal).not.toBeVisible({ timeout: 3000 });
   });
 
   test('ticket type deletion shows correct sales count in blocked modal', async () => {
-    // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
-    await page.waitForLoadState('domcontentloaded');
+    // Create event with 1 session and 1 ticket type
+    const testEvent = await createTestEvent(1, 1);
 
-    // Navigate to Setup tab
-    const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
-    await setupTab.click();
-
-    // Wait for ticket types section
-    const ticketTypesSection = page.locator('[data-testid="ticket-types-section"]');
-    await expect(ticketTypesSection).toBeVisible({ timeout: 10000 });
-
-    // Find delete buttons
-    const deleteButtons = page.locator('[data-testid="button-delete-tickettype"]');
-
-    const deleteButtonCount = await deleteButtons.count();
-    if (deleteButtonCount === 0) {
-      console.log('⚠️ Delete ticket type button not found - feature may not be implemented yet. Skipping test.');
-      test.skip();
-      return;
-    }
-
-    // Try all ticket types to find one with sales
-    for (let i = 0; i < await deleteButtons.count(); i++) {
-      await deleteButtons.nth(i).click();
-
-      const modal = page.locator('[data-testid="delete-confirmation-modal"]');
-      await expect(modal).toBeVisible({ timeout: 5000 });
-
-      // Check if this ticket type has sales
-      const confirmButton = page.locator('[data-testid="delete-confirm-button"]');
-      const isDisabled = await confirmButton.isDisabled();
-
-      if (isDisabled) {
-        // Found ticket type with sales
-        const alertBox = modal.locator('[role="alert"]');
-
-        // Verify sales count is displayed
-        const alertText = await alertBox.textContent();
-        const salesMatch = alertText?.match(/(\d+)\s+tickets?\s+sold/i);
-
-        if (salesMatch) {
-          const salesCount = parseInt(salesMatch[1], 10);
-          expect(salesCount).toBeGreaterThan(0);
-          console.log(`✅ Found ticket type with ${salesCount} tickets sold`);
-        }
-
-        // Close modal
-        const cancelButton = page.locator('[data-testid="delete-cancel-button"]');
-        await cancelButton.click();
-
-        // Test passed
-        return;
+    try {
+      // Create 3 ticket purchases to show count
+      if (testEvent.ticketTypes.length > 0) {
+        await createTicketPurchase(testEvent.ticketTypes[0].id);
+        await createTicketPurchase(testEvent.ticketTypes[0].id);
+        await createTicketPurchase(testEvent.ticketTypes[0].id);
       }
 
-      // Not blocked - close modal and try next
+      // Navigate to event edit page
+      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.waitForLoadState('domcontentloaded');
+
+      // Navigate to Setup tab
+      const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
+      await setupTab.click();
+
+      // Wait for ticket types section
+      const ticketsSection = page.locator('[data-testid="tickets-section"]');
+      await expect(ticketsSection).toBeVisible({ timeout: 10000 });
+
+      // Click delete
+      const deleteButton = page.locator('[data-testid="button-delete-tickettype"]').first();
+      await deleteButton.click();
+
+      // Wait for modal
+      await page.waitForTimeout(500);
+      const modalTitle = page.getByRole('heading', { name: /Delete Ticket Type|Cannot Delete Ticket Type/i }).first();
+      await expect(modalTitle).toBeVisible({ timeout: 10000 });
+
+      const modal = page.locator('[data-testid="delete-confirmation-modal"]');
+
+      // Verify sales count is shown (should be 3)
+      const alertBox = modal.locator('[role="alert"]');
+      const alertText = await alertBox.textContent();
+      expect(alertText).toMatch(/3\s+tickets?\s+sold/i);
+
+      // Close modal
       const cancelButton = page.locator('[data-testid="delete-cancel-button"]');
       await cancelButton.click();
-      await page.waitForTimeout(500);
+    } finally {
+      // Cleanup
+      await deleteTestEvent(testEvent.id);
     }
-
-    // No ticket types with sales found
-    console.log('⚠️ No ticket types with sales found - cannot verify sales count display. Skipping test.');
-    test.skip();
   });
 });

@@ -4,6 +4,7 @@ import { TimeInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import type { EventSession } from './EventSessionsGrid';
 import { StyledDatePicker } from '../forms/StyledDatePicker';
+import { localTimeStringToUtc, utcToLocal, DEFAULT_EVENT_TIMEZONE } from '@/utils/eventUtils';
 
 interface SessionFormModalProps {
   opened: boolean;
@@ -77,25 +78,25 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       // Convert date to proper Date object if it's not already
       const sessionDate = values.date instanceof Date ? values.date : new Date(values.date || new Date());
 
-      // Extract date components using UTC methods to avoid timezone shifts
-      const year = sessionDate.getUTCFullYear();
-      const month = sessionDate.getUTCMonth();
-      const day = sessionDate.getUTCDate();
+      // Extract date components for the calendar date (no timezone conversion here)
+      const year = sessionDate.getFullYear();
+      const month = sessionDate.getMonth();
+      const day = sessionDate.getDate();
 
-      // Parse time strings
-      const [startHour, startMinute] = values.startTime.split(':').map(Number);
-      const [endHour, endMinute] = values.endTime.split(':').map(Number);
+      // Create a clean date object for the calendar date
+      const calendarDate = new Date(year, month, day);
 
-      // Create datetime objects using Date.UTC() to ensure UTC timezone
-      const startDateTime = new Date(Date.UTC(year, month, day, startHour, startMinute, 0, 0));
-      const endDateTime = new Date(Date.UTC(year, month, day, endHour, endMinute, 0, 0));
+      // Convert local times to TRUE UTC using the event timezone
+      // This correctly handles EST/EDT offset (e.g., 6 PM EST → 11 PM UTC)
+      const startDateTime = localTimeStringToUtc(calendarDate, values.startTime, DEFAULT_EVENT_TIMEZONE);
+      const endDateTime = localTimeStringToUtc(calendarDate, values.endTime, DEFAULT_EVENT_TIMEZONE);
 
       const sessionData: Omit<EventSession, 'id'> = {
         sessionIdentifier: values.sessionIdentifier,
         name: values.name,
-        date: new Date(Date.UTC(year, month, day, 0, 0, 0, 0)).toISOString(),
-        startTime: startDateTime.toISOString(), // Full ISO datetime string
-        endTime: endDateTime.toISOString(),     // Full ISO datetime string
+        date: new Date(year, month, day, 0, 0, 0, 0).toISOString(), // Calendar date at midnight local
+        startTime: startDateTime, // True UTC ISO string
+        endTime: endDateTime,     // True UTC ISO string
         capacity: values.capacity,
         registrationCount: values.registrationCount,
       };
@@ -125,11 +126,13 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
     if (opened) {
       if (session) {
         // Populate form with existing session data for editing
-        // Extract time portion from UTC ISO datetime strings using UTC methods
-        const startDate = new Date(session.startTime);
-        const endDate = new Date(session.endTime);
-        const startTimeString = `${startDate.getUTCHours().toString().padStart(2, '0')}:${startDate.getUTCMinutes().toString().padStart(2, '0')}`;
-        const endTimeString = `${endDate.getUTCHours().toString().padStart(2, '0')}:${endDate.getUTCMinutes().toString().padStart(2, '0')}`;
+        // Convert stored UTC times back to local time for display in form fields
+        const startLocal = utcToLocal(session.startTime, DEFAULT_EVENT_TIMEZONE);
+        const endLocal = utcToLocal(session.endTime, DEFAULT_EVENT_TIMEZONE);
+
+        // Use the 24-hour format time string for the TimeInput component
+        const startTimeString = startLocal.time24;
+        const endTimeString = endLocal.time24;
 
         // Parse date from UTC ISO string as local date to prevent timezone shift
         const dateValue = session.date ? (() => {

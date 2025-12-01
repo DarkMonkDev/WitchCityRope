@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import type { VolunteerPosition } from '../types/volunteer.types';
-import { signupForVolunteerPosition } from '../api/volunteerApi';
+import { signupForVolunteerPosition, cancelVolunteerSignup } from '../api/volunteerApi';
 import { useCurrentUser } from '@/lib/api/hooks/useAuth';
 
 interface VolunteerPositionCardProps {
@@ -72,6 +72,43 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
       notifications.show({
         title: 'Signup Failed',
         message: error.response?.data?.error || error.message || 'Failed to sign up for volunteer position',
+        color: 'red',
+        icon: <IconAlertCircle size={16} />
+      });
+    }
+  });
+
+  const cancelMutation = useMutation<void, any, void>({
+    mutationFn: async () => {
+      if (!position.userSignupId) {
+        throw new Error('No signup ID found');
+      }
+      await cancelVolunteerSignup(position.userSignupId);
+    },
+    onSuccess: () => {
+      notifications.show({
+        title: 'Signup Cancelled',
+        message: 'Your volunteer signup has been cancelled.',
+        color: 'blue',
+        icon: <IconCheck size={16} />
+      });
+
+      // Invalidate queries to refresh the volunteer positions list
+      queryClient.invalidateQueries({ queryKey: ['volunteerPositions', position.eventId] });
+
+      // Invalidate user volunteer shifts to update dashboard
+      queryClient.invalidateQueries({ queryKey: ['userVolunteerShifts'] });
+
+      // Invalidate user events for dashboard
+      queryClient.invalidateQueries({ queryKey: ['user-events'] });
+
+      // Invalidate participation status for event detail page
+      queryClient.invalidateQueries({ queryKey: ['participation', 'event', position.eventId] });
+    },
+    onError: (error: any) => {
+      notifications.show({
+        title: 'Cancel Failed',
+        message: error.response?.data?.error || error.message || 'Failed to cancel volunteer signup',
         color: 'red',
         icon: <IconAlertCircle size={16} />
       });
@@ -175,7 +212,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
             </Text>
 
             {/* Show Sign Up button only if user hasn't signed up, position isn't full, AND signup window is open */}
-            {!position.hasUserSignedUp && !position.isFullyStaffed && isAuthenticated && position.canSignUp !== false && (
+            {!position.hasUserSignedUp && !position.isFullyStaffed && isAuthenticated && position.canSignUp && (
               <Button
                 variant="outline"
                 color="burgundy"
@@ -199,7 +236,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               </Button>
             )}
 
-            {!position.hasUserSignedUp && !position.isFullyStaffed && !isAuthenticated && position.canSignUp !== false && (
+            {!position.hasUserSignedUp && !position.isFullyStaffed && !isAuthenticated && position.canSignUp && (
               <Button
                 component="a"
                 href="/login"
@@ -223,9 +260,9 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
             )}
 
             {/* Show signup closed message if signup window has closed */}
-            {!position.hasUserSignedUp && !position.isFullyStaffed && position.canSignUp === false && (
-              <Text size="xs" c="dimmed" style={{ fontSize: '12px', textAlign: 'right', flexShrink: 0 }}>
-                Volunteer signup has closed
+            {!position.hasUserSignedUp && !position.isFullyStaffed && !position.canSignUp && (
+              <Text size="sm" c="dimmed" style={{ textAlign: 'right', flexShrink: 0 }}>
+                Signup closed
               </Text>
             )}
           </Group>
@@ -340,7 +377,32 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         {/* Already Signed Up State */}
         {position.hasUserSignedUp && (
           <Alert color="green" variant="light" icon={<IconCheck size={16} />}>
-            You're already signed up for this position
+            <Group justify="space-between" align="center">
+              <Text size="sm">You're already signed up for this position</Text>
+              {position.canCancel ? (
+                <Button
+                  size="xs"
+                  variant="subtle"
+                  color="red"
+                  onClick={() => cancelMutation.mutate()}
+                  loading={cancelMutation.isPending}
+                  styles={{
+                    root: {
+                      fontWeight: 600,
+                      height: '32px',
+                      paddingTop: '6px',
+                      paddingBottom: '6px',
+                      fontSize: '12px',
+                      lineHeight: '1.2'
+                    }
+                  }}
+                >
+                  Cancel Signup
+                </Button>
+              ) : (
+                <Text size="xs" c="dimmed">Cannot cancel</Text>
+              )}
+            </Group>
           </Alert>
         )}
 

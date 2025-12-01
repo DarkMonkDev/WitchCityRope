@@ -110,6 +110,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
           {ticketTypes.map((ticketType) => (
             <Table.Tr
               key={ticketType.id}
+              data-testid="tickettype-row"
             >
               <Table.Td
                 onClick={() => onEditTicketType(ticketType.id)}

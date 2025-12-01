@@ -1,9 +1,152 @@
 # WitchCityRope Test Catalog - Navigation Index
 <!-- Last Updated: 2025-11-30 -->
-<!-- Version: 11.30.10 - SESSION AND TICKET TYPE DELETION TESTS RE-EXECUTED -->
+<!-- Version: 11.30.12 - SESSION-BASED TIMING E2E TESTS ADDED -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
+
+## ✅ NEW TEST: SESSION-BASED TIMING E2E TESTS - November 30, 2025
+
+**CREATION DATE**: 2025-11-30T02:30:00Z
+**STATUS**: ✅ **SESSION-BASED TIMING E2E TESTS CREATED**
+**IMPACT**: 2 new E2E test files created (14 comprehensive tests) for session-based timing UI
+
+### New E2E Test Files Created
+
+#### 1. Session-Based Ticket Timing E2E Tests ✅
+- **File**: `tests/e2e/session-based-ticket-timing.spec.ts`
+- **Tests**: 7 comprehensive E2E tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Multi-session ticket visibility, availability messages, timing windows
+- **Focus**: Verifies UI correctly displays session-based ticket timing from user perspective
+
+**Test Coverage**:
+1. **Multi-session tickets for future sessions** - Only future sessions show tickets
+2. **All sessions passed** - Shows "no tickets available" message
+3. **Reference session name display** - Tickets show which session they're for
+4. **Availability messages** - Shows "Sales open on [date]" or "Sales closed"
+5. **Registration timing settings** - Respects RegistrationOpenHours/CloseHours
+6. **Multi-session ticket session list** - Shows all included sessions
+7. **Cancellation timing** - Uses session-based timing for cancellation window
+
+**Key Patterns Used**:
+- Relative URLs for container compatibility
+- Defensive skip conditions for TDD tests
+- Database-first approach (when needed)
+- Uses AuthHelpers for authentication
+- Tests public view (no auth) and authenticated view
+
+#### 2. Session-Based Volunteer Timing E2E Tests ✅
+- **File**: `tests/e2e/session-based-volunteer-timing.spec.ts`
+- **Tests**: 7 comprehensive E2E tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Session-specific positions, event-wide positions, timing windows
+- **Focus**: Verifies volunteer positions use correct session-based timing
+
+**Test Coverage**:
+1. **Session-specific position visibility** - Shows for future sessions only
+2. **Past session positions hidden** - Backend filters past sessions
+3. **Session name display** - Shows which session position is for
+4. **Event-wide position timing** - Uses earliest future session after first session passes
+5. **Volunteer cancellation timing** - Respects VolunteerCancellationCloseHours
+6. **Session-independent timing** - Session 2 position unaffected by Session 1 passing
+7. **VolunteerRegistrationCloseHours** - Signup window respects timing setting
+
+**Key Patterns Used**:
+- Vetted member authentication (required for volunteer features)
+- Flexible element detection with .first() and .count()
+- Session badge detection for session-specific positions
+- Admin panel checks for timing configuration
+- Dashboard volunteer shifts verification
+
+**Architecture Alignment**:
+- ✅ Matches specification at `/docs/functional-areas/events/session-timing-refactor/SPECIFICATION.md`
+- ✅ Tests TicketTypeDto session-based fields (CanPurchase, ReferenceSessionId, AvailabilityMessage)
+- ✅ Tests VolunteerPositionDto session-based fields (SessionName, SessionStartTime, CanSignUp)
+- ✅ Verifies EventDetailPage.tsx uses session-based display logic (lines 154-164 for tickets)
+- ✅ Complements backend integration tests with UI/UX verification
+
+**Related Documentation**:
+- Specification: `/docs/functional-areas/events/session-timing-refactor/SPECIFICATION.md`
+- EventDetailPage: `/apps/web/src/pages/events/EventDetailPage.tsx`
+- TicketTypeDto: `/apps/api/Features/Events/Models/TicketTypeDto.cs`
+- VolunteerPositionDto: `/apps/api/Features/Volunteers/Models/VolunteerModels.cs`
+
+---
+
+## ✅ NEW TEST: SESSION-BASED TIMING BACKEND TESTS - November 30, 2025
+
+**CREATION DATE**: 2025-11-30T01:00:00Z
+**STATUS**: ✅ **SESSION-BASED TIMING TESTS CREATED**
+**IMPACT**: 3 new test files created (19 comprehensive tests) for session-based timing
+
+### New Test Files Created
+
+#### 1. Session-Based Ticket Timing Tests ✅
+- **File**: `tests/WitchCityRope.Api.Tests/Integration/SessionBasedTicketTimingTests.cs`
+- **Tests**: 5 integration tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Multi-session ticket purchase/cancellation timing
+- **Focus**: Verifies ticket timing uses FIRST FUTURE SESSION, not Event.StartDate
+
+**Test Coverage**:
+1. **Multi-Session Ticket Purchase** - Uses first future session for timing
+2. **All Sessions Passed** - Returns error when no future sessions exist
+3. **Within Close Window** - Fails when session < RegistrationCloseHours
+4. **Session-Based Cancellation** - Uses session timing for cancellation
+5. **After Close Window** - Fails when session < CancellationCloseHours
+
+#### 2. Session-Based Volunteer Timing Tests ✅
+- **File**: `tests/WitchCityRope.Api.Tests/Integration/SessionBasedVolunteerTimingTests.cs`
+- **Tests**: 4 integration tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Session-specific and event-wide volunteer positions
+- **Focus**: Verifies volunteer timing uses session-specific or earliest future session
+
+**Test Coverage**:
+1. **Session-Specific Position** - Uses assigned session's timing
+2. **Past Session Not Returned** - Filters out past session positions
+3. **Event-Wide Position** - Uses earliest future session timing
+4. **Volunteer Cancellation** - Uses session timing for cancellation
+
+#### 3. TimeZoneService Session Timing Unit Tests ✅
+- **File**: `tests/WitchCityRope.Api.Tests/Unit/TimeZoneServiceSessionTimingTests.cs`
+- **Tests**: 10 unit tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Core session timing logic (GetReferenceSessionForTicketType, IsActionAllowedForSession)
+- **Focus**: Pure business logic testing for session selection and timing validation
+
+**Test Coverage**:
+1. **GetReferenceSessionForTicketType**:
+   - Multi-session ticket returns first future session
+   - All sessions passed returns null
+   - Single-session ticket returns that session
+   - Single session passed returns null
+2. **GetEarliestFutureSession**:
+   - Returns earliest future session
+   - All past returns null
+   - No sessions returns null
+3. **IsActionAllowedForSession**:
+   - Null session returns false
+   - Within window returns true
+   - Before open returns false
+   - After close returns false
+   - Null open/close hours = no restriction
+   - Boundary conditions (EPSILON tolerance)
+
+**Architecture Alignment**:
+- ✅ Matches specification at `/docs/functional-areas/events/session-timing-refactor/SPECIFICATION.md`
+- ✅ Tests new TimeZoneService methods already implemented
+- ✅ Integration tests use WebApplicationFactory pattern
+- ✅ Unit tests mock dependencies with Moq
+
+**Related Documentation**:
+- Specification: `/docs/functional-areas/events/session-timing-refactor/SPECIFICATION.md`
+- TimeZoneService: `/apps/api/Features/Events/Services/TimeZoneService.cs`
+- Session Model: `/apps/api/Models/Session.cs`
+- TicketType Model: `/apps/api/Models/TicketType.cs`
+
+---
 
 ## ✅ NEW TEST: SESSION-AWARE CHECK-IN FUNCTIONALITY - November 30, 2025
 
@@ -31,10 +174,12 @@
    - Validation error displayed when no session selected
    - Error message mentions session requirement
 
-3. **Single-Session Auto-Selection** (1 test)
-   - Single-session events auto-select the session
-   - Session selector hidden OR pre-selected
-   - Generate button enabled for single-session events
+3. **Single-Session Auto-Selection** (1 test) ✅ FIXED 2025-11-30
+   - ✅ Test now CREATES its own single-session event through UI (no seed data dependency)
+   - ✅ Creates event → Adds exactly ONE session → Tests check-in modal
+   - ✅ Verifies session selector is hidden (not rendered)
+   - ✅ Verifies session alert shows auto-selected session name
+   - ✅ Generate Link button is NOT disabled (session auto-selected)
 
 4. **Token Session Scoping** (1 test)
    - Generated tokens display session name in active tokens list

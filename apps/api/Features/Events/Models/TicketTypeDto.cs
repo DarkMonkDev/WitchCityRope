@@ -59,6 +59,35 @@ public class TicketTypeDto
     public int QuantitySold { get; set; }
 
     /// <summary>
+    /// True if ticket can be purchased right now.
+    /// Based on: at least one future session exists AND within sales window for first future session.
+    /// </summary>
+    public bool CanPurchase { get; set; }
+
+    /// <summary>
+    /// The session ID used for timing calculations (first future session).
+    /// Null if all sessions have passed.
+    /// </summary>
+    public string? ReferenceSessionId { get; set; }
+
+    /// <summary>
+    /// Session name for the reference session (for display).
+    /// </summary>
+    public string? ReferenceSessionName { get; set; }
+
+    /// <summary>
+    /// Message explaining availability status.
+    /// Examples: "Available", "Sales open Dec 1", "Sales closed", "All sessions passed"
+    /// </summary>
+    public string AvailabilityMessage { get; set; } = "Available";
+
+    /// <summary>
+    /// True if ticket can be cancelled right now (for users who purchased).
+    /// Based on cancellation window for reference session.
+    /// </summary>
+    public bool CanCancel { get; set; }
+
+    /// <summary>
     /// Constructor to map from TicketType entity
     /// </summary>
     /// <param name="ticketType">The ticket type to map from</param>

@@ -37,6 +37,10 @@ interface EventTicketType {
   allowMultiplePurchase: boolean;
   isEarlyBird: boolean;
   earlyBirdDiscount?: number;
+  canPurchase?: boolean;
+  referenceSessionId?: string | null;
+  referenceSessionName?: string | null;
+  availabilityMessage?: string;
 }
 
 interface EventInfo {
@@ -143,6 +147,8 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
           {ticketTypes.map((ticket) => {
             const ticketAvailable = ticket.quantityAvailable - ticket.quantitySold;
             const isTicketSoldOut = ticketAvailable <= 0;
+            const isNotPurchasable = ticket.canPurchase === false;
+            const isDisabled = isTicketSoldOut || isNotPurchasable;
             const ticketEffectivePrice = ticket.isEarlyBird && ticket.earlyBirdDiscount
               ? ticket.price * (1 - ticket.earlyBirdDiscount / 100)
               : ticket.price;
@@ -152,47 +158,66 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                 key={ticket.id}
                 p="md"
                 style={{
-                  cursor: isTicketSoldOut ? 'not-allowed' : 'pointer',
-                  border: selectedTicketTypeId === ticket.id 
-                    ? '2px solid #880124' 
+                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                  border: selectedTicketTypeId === ticket.id
+                    ? '2px solid #880124'
                     : '1px solid rgba(136, 1, 36, 0.1)',
-                  background: isTicketSoldOut 
-                    ? 'rgba(0,0,0,0.05)' 
-                    : selectedTicketTypeId === ticket.id 
-                      ? 'rgba(136, 1, 36, 0.05)' 
+                  background: isDisabled
+                    ? 'rgba(0,0,0,0.05)'
+                    : selectedTicketTypeId === ticket.id
+                      ? 'rgba(136, 1, 36, 0.05)'
                       : 'white',
-                  opacity: isTicketSoldOut ? 0.6 : 1,
+                  opacity: isDisabled ? 0.6 : 1,
                 }}
-                onClick={() => !isTicketSoldOut && setSelectedTicketTypeId(ticket.id)}
+                onClick={() => !isDisabled && setSelectedTicketTypeId(ticket.id)}
               >
                 <Group justify="space-between" align="flex-start">
                   <Stack gap="xs" style={{ flex: 1 }}>
                     <Group gap="sm">
                       <Radio
                         checked={selectedTicketTypeId === ticket.id}
-                        onChange={() => !isTicketSoldOut && setSelectedTicketTypeId(ticket.id)}
-                        disabled={isTicketSoldOut}
+                        onChange={() => !isDisabled && setSelectedTicketTypeId(ticket.id)}
+                        disabled={isDisabled}
                       />
                       <Text fw={600} size="lg">{ticket.name}</Text>
-                      {ticket.isEarlyBird && (
+                      {ticket.isEarlyBird && !isNotPurchasable && (
                         <Badge color="green" size="sm" variant="light">Early Bird</Badge>
                       )}
                       {isTicketSoldOut && (
                         <Badge color="red" size="sm" variant="light">Sold Out</Badge>
                       )}
+                      {isNotPurchasable && !isTicketSoldOut && (
+                        <Badge color="gray" size="sm" variant="light">Not Available</Badge>
+                      )}
                     </Group>
-                    
+
                     <Text size="sm" c="dimmed" ml="30px">
                       {ticket.description}
                     </Text>
-                    
+
+                    {/* Show availability message for non-purchasable tickets */}
+                    {isNotPurchasable && ticket.availabilityMessage && (
+                      <Text size="sm" c="orange" ml="30px" fw={500}>
+                        {ticket.availabilityMessage}
+                      </Text>
+                    )}
+
+                    {/* Show reference session info if available */}
+                    {ticket.referenceSessionName && (
+                      <Text size="xs" c="dimmed" ml="30px">
+                        For: {ticket.referenceSessionName}
+                      </Text>
+                    )}
+
                     <Group gap="sm" ml="30px">
                       <Text size="xs" c="dimmed">
                         Sessions: {ticket.sessionsIncluded.join(', ')}
                       </Text>
-                      <Text size="xs" c="dimmed">
-                        {ticketAvailable} available
-                      </Text>
+                      {!isNotPurchasable && (
+                        <Text size="xs" c="dimmed">
+                          {ticketAvailable} available
+                        </Text>
+                      )}
                     </Group>
                   </Stack>
                   

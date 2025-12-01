@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Events.Services;
@@ -13,13 +14,16 @@ public class EventService : IEventService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<EventService> _logger;
+    private readonly ITimeZoneService _timeZoneService;
 
     public EventService(
         ApplicationDbContext context,
-        ILogger<EventService> logger)
+        ILogger<EventService> logger,
+        ITimeZoneService timeZoneService)
     {
         _context = context;
         _logger = logger;
+        _timeZoneService = timeZoneService;
     }
 
     /// <summary>
@@ -92,33 +96,41 @@ public class EventService : IEventService
 
             // Map to DTO after database query (using DTO constructors for complex nested objects)
             // Note: Could optimize further with Select projection, but DTOs have constructors for this
-            var eventDtos = events.Select(e => new EventDto
+            var eventDtos = events.Select(e =>
             {
-                Id = e.Id.ToString(),
-                Title = e.Title,
-                ShortDescription = e.ShortDescription,
-                Description = e.Description,
-                Policies = e.Policies,
-                StartDate = e.StartDate,
-                EndDate = e.EndDate,
-                VenueId = e.VenueId,
-                VenueLocation = e.Venue?.Location,
-                EventType = e.EventType.ToString(),
-                Capacity = e.Capacity,
-                IsPublished = e.IsPublished,
-                RegistrationCount = e.GetCurrentAttendeeCount(),
-                CurrentRSVPs = e.GetCurrentRSVPCount(),
-                CurrentTickets = e.GetCurrentTicketCount(),
-                Sessions = e.Sessions.Select(s => new SessionDto(s)).ToList(),
-                TicketTypes = e.TicketTypes.Select(tt => new TicketTypeDto(tt, e.EventAttendances)).ToList(),
-                VolunteerPositions = e.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
-                TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList(),
-                // Granular timing controls
-                RegistrationOpenHours = e.RegistrationOpenHours,
-                RegistrationCloseHours = e.RegistrationCloseHours,
-                CancellationCloseHours = e.CancellationCloseHours,
-                VolunteerRegistrationCloseHours = e.VolunteerRegistrationCloseHours,
-                VolunteerCancellationCloseHours = e.VolunteerCancellationCloseHours
+                var ticketTypeDtos = e.TicketTypes.Select(tt => new TicketTypeDto(tt, e.EventAttendances)).ToList();
+
+                // Populate session-based timing fields for ticket types
+                PopulateTicketTypeTimingFields(ticketTypeDtos, e);
+
+                return new EventDto
+                {
+                    Id = e.Id.ToString(),
+                    Title = e.Title,
+                    ShortDescription = e.ShortDescription,
+                    Description = e.Description,
+                    Policies = e.Policies,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                    VenueId = e.VenueId,
+                    VenueLocation = e.Venue?.Location,
+                    EventType = e.EventType.ToString(),
+                    Capacity = e.Capacity,
+                    IsPublished = e.IsPublished,
+                    RegistrationCount = e.GetCurrentAttendeeCount(),
+                    CurrentRSVPs = e.GetCurrentRSVPCount(),
+                    CurrentTickets = e.GetCurrentTicketCount(),
+                    Sessions = e.Sessions.Select(s => new SessionDto(s)).ToList(),
+                    TicketTypes = ticketTypeDtos,
+                    VolunteerPositions = e.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
+                    TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList(),
+                    // Granular timing controls
+                    RegistrationOpenHours = e.RegistrationOpenHours,
+                    RegistrationCloseHours = e.RegistrationCloseHours,
+                    CancellationCloseHours = e.CancellationCloseHours,
+                    VolunteerRegistrationCloseHours = e.VolunteerRegistrationCloseHours,
+                    VolunteerCancellationCloseHours = e.VolunteerCancellationCloseHours
+                };
             }).ToList();
 
             _logger.LogInformation("Retrieved {EventCount} {EventTypeFilter} from database", eventDtos.Count, eventTypeFilter);
@@ -198,6 +210,11 @@ public class EventService : IEventService
                 // session.CurrentAttendees = ticketsSold;
             }
 
+            var ticketTypeDtos = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventAttendances)).ToList();
+
+            // Populate session-based timing fields for ticket types
+            PopulateTicketTypeTimingFields(ticketTypeDtos, eventEntity);
+
             var eventDto = new EventDto
             {
                 Id = eventEntity.Id.ToString(),
@@ -216,7 +233,7 @@ public class EventService : IEventService
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
-                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventAttendances)).ToList(),
+                TicketTypes = ticketTypeDtos,
                 VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList(),
                 // Granular timing controls
@@ -505,6 +522,11 @@ public class EventService : IEventService
             await _context.SaveChangesAsync(cancellationToken);
 
             // Return updated event as DTO
+            var updatedTicketTypeDtos = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventAttendances)).ToList();
+
+            // Populate session-based timing fields for ticket types
+            PopulateTicketTypeTimingFields(updatedTicketTypeDtos, eventEntity);
+
             var updatedEventDto = new EventDto
             {
                 Id = eventEntity.Id.ToString(),
@@ -523,7 +545,7 @@ public class EventService : IEventService
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
-                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventAttendances)).ToList(),
+                TicketTypes = updatedTicketTypeDtos,
                 VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList(),
                 // Granular timing controls
@@ -543,6 +565,87 @@ public class EventService : IEventService
             _logger.LogError(ex, "Failed to update event: {EventId}", eventId);
             return (false, null, "Failed to update event");
         }
+    }
+
+    /// <summary>
+    /// Populate computed session-based timing fields for ticket type DTOs
+    /// </summary>
+    private void PopulateTicketTypeTimingFields(
+        List<TicketTypeDto> ticketTypeDtos,
+        WitchCityRope.Api.Models.Event eventEntity)
+    {
+        foreach (var ticketTypeDto in ticketTypeDtos)
+        {
+            // Find the entity for this DTO
+            var ticketTypeEntity = eventEntity.TicketTypes
+                .FirstOrDefault(t => t.Id.ToString() == ticketTypeDto.Id);
+
+            if (ticketTypeEntity != null)
+            {
+                var referenceSession = _timeZoneService.GetReferenceSessionForTicketType(
+                    ticketTypeEntity, eventEntity.Sessions);
+
+                ticketTypeDto.ReferenceSessionId = referenceSession?.Id.ToString();
+                ticketTypeDto.ReferenceSessionName = referenceSession?.Name;
+
+                if (referenceSession == null)
+                {
+                    ticketTypeDto.CanPurchase = false;
+                    ticketTypeDto.CanCancel = false;
+                    ticketTypeDto.AvailabilityMessage = "All sessions have passed";
+                }
+                else
+                {
+                    ticketTypeDto.CanPurchase = _timeZoneService.IsActionAllowedForSession(
+                        referenceSession,
+                        eventEntity.RegistrationOpenHours,
+                        eventEntity.RegistrationCloseHours);
+
+                    ticketTypeDto.CanCancel = _timeZoneService.IsActionAllowedForSession(
+                        referenceSession,
+                        null,
+                        eventEntity.CancellationCloseHours);
+
+                    ticketTypeDto.AvailabilityMessage = GetTicketAvailabilityMessage(
+                        referenceSession,
+                        ticketTypeDto.CanPurchase,
+                        eventEntity);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Get availability message for a ticket type based on reference session and current timing
+    /// </summary>
+    private string GetTicketAvailabilityMessage(
+        WitchCityRope.Api.Models.Session? referenceSession,
+        bool canPurchase,
+        WitchCityRope.Api.Models.Event eventEntity)
+    {
+        if (referenceSession == null)
+        {
+            return "All sessions have passed";
+        }
+
+        if (canPurchase)
+        {
+            return "Available";
+        }
+
+        var now = DateTime.UtcNow;
+        var hoursUntilSession = (referenceSession.StartTime - now).TotalHours;
+
+        // Check if we're before the registration open window
+        if (eventEntity.RegistrationOpenHours.HasValue &&
+            hoursUntilSession > (double)eventEntity.RegistrationOpenHours.Value)
+        {
+            var opensAt = referenceSession.StartTime.AddHours(-(double)eventEntity.RegistrationOpenHours.Value);
+            return $"Sales open {opensAt:MMM d}";
+        }
+
+        // Otherwise, we're past the registration close window
+        return "Sales closed";
     }
 
     /// <summary>
@@ -1161,6 +1264,11 @@ public class EventService : IEventService
                     return (false, null, "Failed to retrieve copied event");
                 }
 
+                var copiedTicketTypeDtos = copiedEventWithNav.TicketTypes.Select(tt => new TicketTypeDto(tt, copiedEventWithNav.EventAttendances)).ToList();
+
+                // Populate session-based timing fields for ticket types
+                PopulateTicketTypeTimingFields(copiedTicketTypeDtos, copiedEventWithNav);
+
                 var eventDto = new EventDto
                 {
                     Id = copiedEventWithNav.Id.ToString(),
@@ -1179,7 +1287,7 @@ public class EventService : IEventService
                     CurrentRSVPs = copiedEventWithNav.GetCurrentRSVPCount(),
                     CurrentTickets = copiedEventWithNav.GetCurrentTicketCount(),
                     Sessions = copiedEventWithNav.Sessions.Select(s => new SessionDto(s)).ToList(),
-                    TicketTypes = copiedEventWithNav.TicketTypes.Select(tt => new TicketTypeDto(tt, copiedEventWithNav.EventAttendances)).ToList(),
+                    TicketTypes = copiedTicketTypeDtos,
                     VolunteerPositions = copiedEventWithNav.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                     TeacherIds = copiedEventWithNav.Organizers.Select(o => o.Id.ToString()).ToList(),
                     RegistrationOpenHours = copiedEventWithNav.RegistrationOpenHours,
@@ -1443,6 +1551,11 @@ public class EventService : IEventService
                 }
 
                 // 10. Map to DTO and return
+                var createdTicketTypeDtos = createdEventWithNav.TicketTypes.Select(tt => new TicketTypeDto(tt, createdEventWithNav.EventAttendances)).ToList();
+
+                // Populate session-based timing fields for ticket types
+                PopulateTicketTypeTimingFields(createdTicketTypeDtos, createdEventWithNav);
+
                 var eventDto = new EventDto
                 {
                     Id = createdEventWithNav.Id.ToString(),
@@ -1461,7 +1574,7 @@ public class EventService : IEventService
                     CurrentRSVPs = createdEventWithNav.GetCurrentRSVPCount(),
                     CurrentTickets = createdEventWithNav.GetCurrentTicketCount(),
                     Sessions = createdEventWithNav.Sessions.Select(s => new SessionDto(s)).ToList(),
-                    TicketTypes = createdEventWithNav.TicketTypes.Select(tt => new TicketTypeDto(tt, createdEventWithNav.EventAttendances)).ToList(),
+                    TicketTypes = createdTicketTypeDtos,
                     VolunteerPositions = createdEventWithNav.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                     TeacherIds = createdEventWithNav.Organizers.Select(o => o.Id.ToString()).ToList(),
                     RegistrationOpenHours = createdEventWithNav.RegistrationOpenHours,

@@ -3,13 +3,13 @@ import { useParams, Link } from 'react-router-dom';
 import {
   Container, Stack, Title, Text, Breadcrumbs,
   Anchor, Alert, Button, Box, Group, Paper,
-  ActionIcon, List, Avatar, Skeleton, Center, Grid
+  ActionIcon, List, Avatar, Skeleton, Center, Grid, Badge
 } from '@mantine/core';
 import {
   IconCalendar, IconClock, IconMapPin, IconUsers,
   IconShare, IconMail, IconBrandX, IconLink, IconCheck
 } from '@tabler/icons-react';
-import { formatEventDate, formatEventTime } from '../../utils/eventUtils';
+import { formatUtcToLocalDate, formatUtcTimeRange } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
 import { useParticipation, useCreateRSVP, useCancelRSVP, useCancelTicket } from '../../hooks/useParticipation';
 import { ParticipationCard } from '../../components/events/ParticipationCard';
@@ -150,6 +150,18 @@ export const EventDetailPage: React.FC = () => {
 
     return { min: minPrice, max: maxPrice, isSinglePrice };
   };
+
+  // Filter and categorize ticket types based on new session-based timing fields
+  const ticketTypes = (event as any)?.ticketTypes || [];
+
+  // Only show ticket types that have future sessions (canPurchase or referenceSessionId exists)
+  const displayableTickets = ticketTypes.filter((tt: any) =>
+    tt.canPurchase || tt.referenceSessionId
+  );
+
+  // Separate into purchasable and unavailable tickets
+  const purchasableTickets = displayableTickets.filter((tt: any) => tt.canPurchase);
+  const unavailableTickets = displayableTickets.filter((tt: any) => !tt.canPurchase);
 
   // Determine volunteer box visibility
   const hasVolunteerPositions = Array.isArray(volunteerPositions) && volunteerPositions.length > 0;
@@ -357,7 +369,7 @@ export const EventDetailPage: React.FC = () => {
                 fontSize: '20px'
               }}>
                 <IconCalendar size={20} />
-                <Text size="lg">{formatEventDate((event as any)?.startDate)}</Text>
+                <Text size="lg">{formatUtcToLocalDate((event as any)?.startDate, eventTimeZone)}</Text>
               </Group>
               <Group gap="xs" style={{
                 color: 'var(--color-dusty-rose)',
@@ -365,8 +377,7 @@ export const EventDetailPage: React.FC = () => {
               }}>
                 <IconClock size={20} />
                 <Text size="lg">
-                  {formatEventTime((event as any)?.startDate)}
-                  {(event as any)?.endDate && ` - ${formatEventTime((event as any)?.endDate)}`}
+                  {formatUtcTimeRange((event as any)?.startDate, (event as any)?.endDate, eventTimeZone)}
                 </Text>
               </Group>
               <Group gap="xs" style={{
@@ -418,6 +429,107 @@ export const EventDetailPage: React.FC = () => {
               dangerouslySetInnerHTML={{ __html: (event as any)?.description || '' }}
             />
           </ContentSection>
+
+          {/* Ticket Options Section - Session-based timing */}
+          {displayableTickets.length > 0 && (
+            <ContentSection title="Ticket Options">
+              <Stack gap="md">
+                {/* Purchasable Tickets */}
+                {purchasableTickets.length > 0 && (
+                  <Stack gap="sm">
+                    {purchasableTickets.map((ticket: any) => (
+                      <Paper
+                        key={ticket.id}
+                        p="md"
+                        style={{
+                          background: 'var(--color-cream)',
+                          border: '1px solid var(--color-plum)',
+                          borderRadius: '8px'
+                        }}
+                      >
+                        <Group justify="space-between" align="flex-start" wrap="nowrap">
+                          <Box style={{ flex: 1 }}>
+                            <Text fw={600} size="md" mb="xs">{ticket.name}</Text>
+                            {ticket.pricingType === 'SlidingScale' ? (
+                              <Text size="sm" c="dimmed">
+                                ${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)
+                              </Text>
+                            ) : (
+                              <Text size="sm" c="dimmed">
+                                ${ticket.price}
+                              </Text>
+                            )}
+                            {ticket.referenceSessionName && (
+                              <Text size="xs" c="dimmed" mt="xs">
+                                For: {ticket.referenceSessionName}
+                              </Text>
+                            )}
+                            <Text size="xs" c="dimmed" mt="xs">
+                              {ticket.quantityAvailable - ticket.quantitySold} / {ticket.quantityAvailable} available
+                            </Text>
+                          </Box>
+                          <Badge color="green" variant="light">
+                            Available Now
+                          </Badge>
+                        </Group>
+                      </Paper>
+                    ))}
+                  </Stack>
+                )}
+
+                {/* Unavailable Tickets (not yet open or closed) */}
+                {unavailableTickets.length > 0 && (
+                  <>
+                    {purchasableTickets.length > 0 && (
+                      <Text size="sm" c="dimmed" mt="md">Other ticket options:</Text>
+                    )}
+                    <Stack gap="sm">
+                      {unavailableTickets.map((ticket: any) => (
+                        <Paper
+                          key={ticket.id}
+                          p="md"
+                          style={{
+                            background: 'rgba(136, 1, 36, 0.05)',
+                            border: '1px solid rgba(136, 1, 36, 0.1)',
+                            borderRadius: '8px',
+                            opacity: 0.7
+                          }}
+                        >
+                          <Group justify="space-between" align="flex-start" wrap="nowrap">
+                            <Box style={{ flex: 1 }}>
+                              <Text fw={500} size="md" mb="xs">{ticket.name}</Text>
+                              {ticket.availabilityMessage && (
+                                <Text size="sm" c="dimmed" mb="xs">
+                                  {ticket.availabilityMessage}
+                                </Text>
+                              )}
+                              {ticket.referenceSessionName && (
+                                <Text size="xs" c="dimmed">
+                                  For: {ticket.referenceSessionName}
+                                </Text>
+                              )}
+                            </Box>
+                            <Badge color="gray" variant="light">
+                              Not Available
+                            </Badge>
+                          </Group>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  </>
+                )}
+
+                {/* All ticket sales ended */}
+                {displayableTickets.length === 0 && ticketTypes.length > 0 && (
+                  <Alert color="gray" variant="light">
+                    <Text size="sm">
+                      All ticket sales have ended for this event.
+                    </Text>
+                  </Alert>
+                )}
+              </Stack>
+            </ContentSection>
+          )}
 
           {/* Venue Details - Conditional based on access */}
           {venue && (() => {
@@ -538,6 +650,16 @@ export const EventDetailPage: React.FC = () => {
                       hasExistingParticipation={participation?.hasRSVP || participation?.hasTicket || false}
                     />
                   ))}
+
+                  {/* Show message if all positions are filled or signup closed */}
+                  {volunteerPositions.every((p) => p.isFullyStaffed || !p.canSignUp) &&
+                   !volunteerPositions.some((p) => p.hasUserSignedUp) && (
+                    <Alert color="gray" variant="light">
+                      <Text size="sm">
+                        All volunteer positions are either full or signup has closed.
+                      </Text>
+                    </Alert>
+                  )}
                 </Stack>
               </ContentSection>
             </div>

@@ -29,4 +29,36 @@ public interface ITimeZoneService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if action is allowed, false if outside timing window</returns>
     Task<bool> IsActionAllowedAsync(WitchCityRope.Api.Models.Event eventEntity, EventActionType actionType, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get the reference session for a ticket type (first future session from ticket's sessions)
+    /// Used for session-based timing calculations for multi-session tickets
+    /// </summary>
+    /// <param name="ticketType">The ticket type to get reference session for</param>
+    /// <param name="allSessions">All sessions from the event</param>
+    /// <returns>The first future session from ticket's sessions, or null if all passed</returns>
+    WitchCityRope.Api.Models.Session? GetReferenceSessionForTicketType(
+        WitchCityRope.Api.Models.TicketType ticketType,
+        IEnumerable<WitchCityRope.Api.Models.Session> allSessions);
+
+    /// <summary>
+    /// Get the earliest future session from a list of sessions
+    /// </summary>
+    /// <param name="sessions">Sessions to check</param>
+    /// <returns>The earliest session where StartTime > UtcNow, or null if none</returns>
+    WitchCityRope.Api.Models.Session? GetEarliestFutureSession(
+        IEnumerable<WitchCityRope.Api.Models.Session> sessions);
+
+    /// <summary>
+    /// Check if an action is allowed for a specific session based on timing windows
+    /// Session-based timing calculation (replaces event-based timing)
+    /// </summary>
+    /// <param name="session">The session to check timing against (null = not allowed)</param>
+    /// <param name="openHours">Hours before session when action opens (null = no restriction)</param>
+    /// <param name="closeHours">Hours before session when action closes (null = no restriction)</param>
+    /// <returns>True if action is allowed, false otherwise</returns>
+    bool IsActionAllowedForSession(
+        WitchCityRope.Api.Models.Session? session,
+        decimal? openHours,
+        decimal? closeHours);
 }

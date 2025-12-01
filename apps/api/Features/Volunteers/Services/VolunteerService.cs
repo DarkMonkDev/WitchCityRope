@@ -78,40 +78,57 @@ public class VolunteerService : IVolunteerService
                     .ToListAsync(cancellationToken);
             }
 
-            // Map to DTOs with async cancellation permission checks
+            // Map to DTOs with session-based timing checks
             var positionDtos = new List<VolunteerPositionDto>();
             foreach (var vp in positions)
             {
+                Session? referenceSession;
+
+                if (vp.SessionId.HasValue)
+                {
+                    // Session-specific position - use that session's timing
+                    referenceSession = eventSessions
+                        .FirstOrDefault(s => s.Id == vp.SessionId);
+
+                    // If session is in the past, skip this position entirely (don't return it)
+                    if (referenceSession == null || referenceSession.StartTime <= DateTime.UtcNow)
+                    {
+                        continue; // Don't include positions for past sessions
+                    }
+                }
+                else
+                {
+                    // Event-wide position - use earliest future session
+                    referenceSession = _timeZoneService.GetEarliestFutureSession(eventSessions);
+
+                    if (referenceSession == null)
+                    {
+                        continue; // All sessions passed, don't show event-wide positions
+                    }
+                }
+
                 var userSignup = userSignups?.FirstOrDefault(us => us.VolunteerPositionId == vp.Id);
 
-                // For event-wide positions (no SessionId), use the event's session if only one exists
-                Session? sessionToUse = vp.Session;
-                if (sessionToUse == null && eventSessions.Count == 1)
-                {
-                    sessionToUse = eventSessions[0];
-                }
-
-                // Calculate cancellation permission based on event timing rules
-                var canCancel = false;
-                if (userSignup != null)
-                {
-                    canCancel = await _timeZoneService.IsActionAllowedAsync(
-                        eventEntity,
-                        EventActionType.CancelVolunteer,
-                        cancellationToken);
-                }
-
-                // Calculate signup permission based on event timing rules and position availability
-                // Users cannot sign up if: timing window closed, position full, or already signed up
-                var canSignUp = await _timeZoneService.IsActionAllowedAsync(
-                    eventEntity,
-                    EventActionType.GetVolunteer,
-                    cancellationToken);
+                // Check if within signup window using session-based timing
+                var canSignUp = _timeZoneService.IsActionAllowedForSession(
+                    referenceSession,
+                    null, // No open restriction for volunteer signup
+                    eventEntity.VolunteerRegistrationCloseHours);
 
                 // Additional constraints: position must have available slots and user not already signed up
                 if (canSignUp)
                 {
                     canSignUp = vp.SlotsRemaining > 0 && userSignup == null;
+                }
+
+                // Check if can cancel (for existing signups) using session-based timing
+                var canCancel = false;
+                if (userSignup != null)
+                {
+                    canCancel = _timeZoneService.IsActionAllowedForSession(
+                        referenceSession,
+                        null,
+                        eventEntity.VolunteerCancellationCloseHours);
                 }
 
                 positionDtos.Add(new VolunteerPositionDto
@@ -127,9 +144,9 @@ public class VolunteerService : IVolunteerService
                     IsPublicFacing = vp.IsPublicFacing,
                     IsFullyStaffed = vp.IsFullyStaffed,
                     // Don't show session name if event has only one session (redundant)
-                    SessionName = eventSessions.Count > 1 ? sessionToUse?.Name : null,
-                    SessionStartTime = sessionToUse?.StartTime,
-                    SessionEndTime = sessionToUse?.EndTime,
+                    SessionName = eventSessions.Count > 1 ? referenceSession?.Name : null,
+                    SessionStartTime = referenceSession?.StartTime,
+                    SessionEndTime = referenceSession?.EndTime,
                     HasUserSignedUp = userSignup != null,
                     UserSignupId = userSignup?.Id,
                     CanCancel = canCancel,
@@ -167,9 +184,10 @@ public class VolunteerService : IVolunteerService
                 return (false, null, "Invalid user ID format");
             }
 
-            // Get the volunteer position with event details FIRST (need event for timing check)
+            // Get the volunteer position with event and session details FIRST (need for timing check)
             var position = await _context.VolunteerPositions
                 .Include(vp => vp.Event)
+                .Include(vp => vp.Session)
                 .FirstOrDefaultAsync(vp => vp.Id == positionGuid, cancellationToken);
 
             if (position == null)
@@ -187,15 +205,43 @@ public class VolunteerService : IVolunteerService
             // This ensures users get timing errors BEFORE other validation errors
             if (position.Event != null)
             {
-                var isAllowed = await _timeZoneService.IsActionAllowedAsync(
-                    position.Event,
-                    EventActionType.GetVolunteer,
-                    cancellationToken);
+                Session? referenceSession;
+
+                if (position.SessionId.HasValue)
+                {
+                    // Session-specific position
+                    referenceSession = position.Session;
+                    if (referenceSession == null || referenceSession.StartTime <= DateTime.UtcNow)
+                    {
+                        _logger.LogWarning("Volunteer signup attempt for past session {SessionId}", position.SessionId);
+                        return (false, null, "This session has already passed");
+                    }
+                }
+                else
+                {
+                    // Event-wide position - use earliest future session
+                    var eventSessions = await _context.Sessions
+                        .AsNoTracking()
+                        .Where(s => s.EventId == position.EventId)
+                        .ToListAsync(cancellationToken);
+
+                    referenceSession = _timeZoneService.GetEarliestFutureSession(eventSessions);
+                    if (referenceSession == null)
+                    {
+                        _logger.LogWarning("Volunteer signup attempt for event {EventId} with all sessions passed", position.EventId);
+                        return (false, null, "All sessions for this event have passed");
+                    }
+                }
+
+                var isAllowed = _timeZoneService.IsActionAllowedForSession(
+                    referenceSession,
+                    null, // No open restriction for volunteer signup
+                    position.Event.VolunteerRegistrationCloseHours);
 
                 if (!isAllowed)
                 {
                     _logger.LogWarning("Volunteer signup attempt for event {EventId} outside allowed timing window", position.EventId);
-                    return (false, null, "Volunteer registration window has closed for this event");
+                    return (false, null, "Volunteer signup window has closed for this session");
                 }
             }
 
@@ -336,7 +382,7 @@ public class VolunteerService : IVolunteerService
                 .OrderBy(vs => vs.VolunteerPosition!.Event!.StartDate)
                 .ToListAsync(cancellationToken);
 
-            // Map to DTOs with async cancellation permission checks
+            // Map to DTOs with session-based cancellation permission checks
             var shiftDtos = new List<UserVolunteerShiftDto>();
             foreach (var vs in shifts)
             {
@@ -344,13 +390,31 @@ public class VolunteerService : IVolunteerService
                 var eventEntity = position.Event!;
                 var session = position.Session;
 
-                // Calculate cancellation permission based on event timing rules
+                // Calculate cancellation permission based on session-based timing rules
                 // User cannot cancel if already checked in (checked in service method CancelVolunteerSignupAsync)
                 // Here we only check if timing allows cancellation
-                var canCancel = await _timeZoneService.IsActionAllowedAsync(
-                    eventEntity,
-                    EventActionType.CancelVolunteer,
-                    cancellationToken);
+                Session? referenceSession;
+
+                if (position.SessionId.HasValue)
+                {
+                    // Session-specific position
+                    referenceSession = session;
+                }
+                else
+                {
+                    // Event-wide position - use earliest future session
+                    var eventSessions = await _context.Sessions
+                        .AsNoTracking()
+                        .Where(s => s.EventId == position.EventId)
+                        .ToListAsync(cancellationToken);
+
+                    referenceSession = _timeZoneService.GetEarliestFutureSession(eventSessions);
+                }
+
+                var canCancel = _timeZoneService.IsActionAllowedForSession(
+                    referenceSession,
+                    null, // No open restriction for cancellation
+                    eventEntity.VolunteerCancellationCloseHours);
 
                 shiftDtos.Add(new UserVolunteerShiftDto
                 {
@@ -400,10 +464,12 @@ public class VolunteerService : IVolunteerService
                 return (false, "Invalid user ID format");
             }
 
-            // Get the signup with position and event details
+            // Get the signup with position, event, and session details
             var signup = await _context.VolunteerSignups
                 .Include(vs => vs.VolunteerPosition)
                     .ThenInclude(vp => vp!.Event)
+                .Include(vs => vs.VolunteerPosition)
+                    .ThenInclude(vp => vp!.Session)
                 .FirstOrDefaultAsync(vs => vs.Id == signupGuid, cancellationToken);
 
             if (signup == null)
@@ -432,18 +498,47 @@ public class VolunteerService : IVolunteerService
                 return (false, "Cannot cancel volunteer signup after checking in");
             }
 
-            // Check if cancellation is allowed based on granular timing controls
+            // Check if cancellation is allowed based on session-based timing
             if (signup.VolunteerPosition?.Event != null)
             {
-                var isAllowed = await _timeZoneService.IsActionAllowedAsync(
-                    signup.VolunteerPosition.Event,
-                    EventActionType.CancelVolunteer,
-                    cancellationToken);
+                Session? referenceSession;
+                var position = signup.VolunteerPosition;
+
+                if (position.SessionId.HasValue)
+                {
+                    // Session-specific position
+                    referenceSession = position.Session;
+                    if (referenceSession == null || referenceSession.StartTime <= DateTime.UtcNow)
+                    {
+                        _logger.LogWarning("Volunteer cancellation attempt for past session {SessionId}", position.SessionId);
+                        return (false, "Cannot cancel - this session has already passed");
+                    }
+                }
+                else
+                {
+                    // Event-wide position - use earliest future session
+                    var eventSessions = await _context.Sessions
+                        .AsNoTracking()
+                        .Where(s => s.EventId == position.EventId)
+                        .ToListAsync(cancellationToken);
+
+                    referenceSession = _timeZoneService.GetEarliestFutureSession(eventSessions);
+                    if (referenceSession == null)
+                    {
+                        _logger.LogWarning("Volunteer cancellation attempt for event {EventId} with all sessions passed", position.EventId);
+                        return (false, "Cannot cancel - all sessions for this event have passed");
+                    }
+                }
+
+                var isAllowed = _timeZoneService.IsActionAllowedForSession(
+                    referenceSession,
+                    null, // No open restriction for cancellation
+                    position.Event.VolunteerCancellationCloseHours);
 
                 if (!isAllowed)
                 {
                     _logger.LogWarning("Volunteer cancellation attempt for signup {SignupId} outside allowed timing window", signupId);
-                    return (false, "Volunteer cancellation window has closed for this event");
+                    return (false, "Volunteer cancellation window has closed for this session");
                 }
             }
 

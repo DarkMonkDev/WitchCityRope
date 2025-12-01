@@ -5,6 +5,7 @@ import { DashboardCard } from './DashboardCard';
 import { useEvents } from '../../features/events/api/queries';
 import type { EventDto } from '@witchcityrope/shared-types';
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
+import { formatUtcToLocalTime } from '../../utils/eventUtils';
 
 // Helper function to format event for display
 const formatEventForWidget = (event: EventDto, timeZone: string) => {
@@ -20,15 +21,10 @@ const formatEventForWidget = (event: EventDto, timeZone: string) => {
   const isStartDateValid = startDate && !isNaN(startDate.getTime());
   const isEndDateValid = endDate && !isNaN(endDate.getTime());
 
-  const formatTime = (date: Date) => {
+  const formatTime = (dateString: string) => {
     try {
-      // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-      const hours = date.getUTCHours();
-      const minutes = date.getUTCMinutes();
-      const period = hours >= 12 ? 'PM' : 'AM';
-      const hour12 = hours % 12 || 12;
-      const minuteStr = minutes.toString().padStart(2, '0');
-      return `${hour12}:${minuteStr} ${period}`;
+      // NEW: Use true UTC to local time conversion
+      return formatUtcToLocalTime(dateString, timeZone);
     } catch (error) {
       return 'TBD';
     }
@@ -43,9 +39,9 @@ const formatEventForWidget = (event: EventDto, timeZone: string) => {
     title: event.title || 'Untitled Event',
     date: isStartDateValid ? startDate!.toISOString().split('T')[0] : fallbackDate,
     time: isStartDateValid && isEndDateValid
-      ? `${formatTime(startDate!)} - ${formatTime(endDate!)}`
+      ? `${formatTime(startDateString!)} - ${formatTime(endDateString!)}`
       : isStartDateValid
-        ? `${formatTime(startDate!)} - ${fallbackTime}`
+        ? `${formatTime(startDateString!)} - ${fallbackTime}`
         : fallbackTime,
     // Since EventDto doesn't have status, determine from availability and timing
     status: (isStartDateValid && startDate! > new Date()) ? 'Open' : 'Closed',

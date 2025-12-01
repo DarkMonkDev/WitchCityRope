@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.TestHelpers.Models;
@@ -164,11 +165,12 @@ public class TestHelperService : ITestHelperService
             _logger.LogInformation("Creating test ticket purchase: Amount={Amount}, Method={Method}",
                 request.TotalPrice, request.PaymentMethod);
 
-            // Get user ID (default to admin if not specified)
-            var userId = request.UserId ?? await GetAdminUserIdAsync(cancellationToken);
+            // Create unique test user for each purchase to avoid unique constraint violations
+            // (One active attendance per user per event per type)
+            var userId = request.UserId ?? await CreateUniqueTestUserAsync(cancellationToken);
             if (userId == Guid.Empty)
             {
-                return (false, null, "Could not find user for ticket purchase");
+                return (false, null, "Could not create test user for ticket purchase");
             }
 
             // Get ticket type with event info (use first available if not specified)
@@ -226,8 +228,26 @@ public class TestHelperService : ITestHelperService
             _context.Set<TicketPurchase>().Add(ticketPurchase);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("✅ Successfully created test ticket purchase: {Id} - {Reference}",
-                ticketPurchase.Id, paymentReference);
+            // CRITICAL: Also create EventAttendance record to link the purchase to the event
+            // This is required for the deletion check to detect sales
+            var eventId = ticketType.EventId;
+            var attendance = new EventAttendance
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                EventId = eventId,
+                AttendanceType = AttendanceType.Ticket,
+                Status = AttendanceStatus.Active,
+                TicketPurchaseId = ticketPurchase.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Set<EventAttendance>().Add(attendance);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("✅ Successfully created test ticket purchase: {Id} - {Reference} with EventAttendance: {AttendanceId}",
+                ticketPurchase.Id, paymentReference, attendance.Id);
 
             // Return response for test assertions
             var response = new TestTicketPurchaseResponse
@@ -285,6 +305,37 @@ public class TestHelperService : ITestHelperService
             _logger.LogError(ex, "Exception deleting test ticket purchase: {Id}", ticketPurchaseId);
             return (false, $"Internal error: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Creates a unique test user for each ticket purchase
+    /// This avoids unique constraint violations (one active attendance per user per event per type)
+    /// </summary>
+    private async Task<Guid> CreateUniqueTestUserAsync(CancellationToken cancellationToken)
+    {
+        var uniqueId = Guid.NewGuid().ToString()[..8];
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = $"testpurchase-{uniqueId}@e2etest.local",
+            UserName = $"testpurchase-{uniqueId}@e2etest.local",
+            EmailConfirmed = true,
+            IsActive = true,
+            SceneName = $"E2E Test User {uniqueId}",
+            Role = "Member",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userManager.CreateAsync(testUser, "TestPass123!");
+        if (result.Succeeded)
+        {
+            _logger.LogDebug("Created test user: {Email} for ticket purchase", testUser.Email);
+            return testUser.Id;
+        }
+
+        _logger.LogWarning("Failed to create test user: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+        return Guid.Empty;
     }
 
     /// <summary>

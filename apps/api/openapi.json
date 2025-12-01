@@ -11524,11 +11524,16 @@
       "CreateTicketPurchaseRequest": {
         "required": [
           "eventId",
+          "ticketTypeId",
           "eventWaiverAccepted"
         ],
         "type": "object",
         "properties": {
           "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ticketTypeId": {
             "type": "string",
             "format": "uuid"
           },
@@ -14632,6 +14637,23 @@
           "quantitySold": {
             "type": "integer",
             "format": "int32"
+          },
+          "canPurchase": {
+            "type": "boolean"
+          },
+          "referenceSessionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "referenceSessionName": {
+            "type": "string",
+            "nullable": true
+          },
+          "availabilityMessage": {
+            "type": "string"
+          },
+          "canCancel": {
+            "type": "boolean"
           }
         }
       },

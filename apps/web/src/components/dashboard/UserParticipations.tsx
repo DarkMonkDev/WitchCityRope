@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { useUserParticipations } from '../../hooks/useParticipation';
 import { UserParticipationDto, AttendanceType, AttendanceStatus } from '../../types/participation.types';
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
+import { formatUtcToLocalTime, formatUtcToLocalDate } from '../../utils/eventUtils';
 
 interface UserParticipationsProps {
   limit?: number;
@@ -46,25 +47,17 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
   };
 
   const formatEventDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return formatUtcToLocalDate(dateString, eventTimeZone, {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-      timeZone: eventTimeZone
     });
   };
 
   const formatEventTime = (dateString: string) => {
-    // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-    const date = new Date(dateString);
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const hour12 = hours % 12 || 12;
-    const minuteStr = minutes.toString().padStart(2, '0');
-    return `${hour12}:${minuteStr} ${period}`;
+    // NEW: Use true UTC to local time conversion
+    return formatUtcToLocalTime(dateString, eventTimeZone);
   };
 
   // Filter participations

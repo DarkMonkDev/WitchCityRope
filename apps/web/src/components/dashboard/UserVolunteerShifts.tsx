@@ -8,6 +8,7 @@ import {
 } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
+import { formatUtcToLocalTime, formatUtcToLocalDate } from '../../utils/eventUtils';
 
 // Type for volunteer shift with event details
 export interface VolunteerShiftWithEvent {
@@ -41,38 +42,24 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
   const eventTimeZone = useEventTimeZone();
 
   const formatEventDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return formatUtcToLocalDate(dateString, eventTimeZone, {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-      timeZone: eventTimeZone
     });
   };
 
   const formatEventTime = (dateString: string) => {
-    // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-    const date = new Date(dateString);
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const hour12 = hours % 12 || 12;
-    const minuteStr = minutes.toString().padStart(2, '0');
-    return `${hour12}:${minuteStr} ${period}`;
+    // NEW: Use true UTC to local time conversion
+    return formatUtcToLocalTime(dateString, eventTimeZone);
   };
 
   const formatShiftTime = (timeString?: string) => {
     if (!timeString) return '';
     try {
-      // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-      const date = new Date(timeString);
-      const hours = date.getUTCHours();
-      const minutes = date.getUTCMinutes();
-      const period = hours >= 12 ? 'pm' : 'am';
-      const hour12 = hours % 12 || 12;
-      const minuteStr = minutes.toString().padStart(2, '0');
-      return `${hour12}:${minuteStr} ${period}`;
+      // NEW: Use true UTC to local time conversion
+      return formatUtcToLocalTime(timeString, eventTimeZone).toLowerCase();
     } catch {
       return timeString;
     }

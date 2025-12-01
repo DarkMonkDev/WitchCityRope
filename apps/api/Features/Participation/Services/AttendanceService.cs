@@ -455,6 +455,7 @@ public class AttendanceService : IAttendanceService
 
             // Check if event exists FIRST (need event for timing check)
             var eventEntity = await _context.Events
+                .Include(e => e.Sessions)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
 
@@ -467,13 +468,39 @@ public class AttendanceService : IAttendanceService
             // Class events require ticket purchases
             // Both event types can have tickets
 
+            // Get the ticket type to find its session for session-based timing
+            var ticketType = await _context.TicketTypes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == request.TicketTypeId, cancellationToken);
+
+            if (ticketType == null)
+            {
+                return Result<ParticipationStatusDto>.Failure("Ticket type not found");
+            }
+
             // TIMING VALIDATION FIRST - Check before all other business rules
             // This ensures users get timing errors BEFORE other validation errors
-            var isAllowed = await _timeZoneService.IsActionAllowedAsync(eventEntity, EventActionType.GetTicket, cancellationToken);
+            // Use session-based timing instead of event-based timing
+            var referenceSession = _timeZoneService.GetReferenceSessionForTicketType(
+                ticketType, eventEntity.Sessions);
+
+            if (referenceSession == null)
+            {
+                _logger.LogWarning("Ticket purchase attempt for event {EventId} ticket type {TicketTypeId} - all sessions have passed",
+                    request.EventId, request.TicketTypeId);
+                return Result<ParticipationStatusDto>.Failure("All sessions for this ticket have passed");
+            }
+
+            var isAllowed = _timeZoneService.IsActionAllowedForSession(
+                referenceSession,
+                eventEntity.RegistrationOpenHours,
+                eventEntity.RegistrationCloseHours);
+
             if (!isAllowed)
             {
-                _logger.LogWarning("Ticket purchase attempt for event {EventId} outside allowed timing window", request.EventId);
-                return Result<ParticipationStatusDto>.Failure("Ticket purchase window is not currently open for this event");
+                _logger.LogWarning("Ticket purchase attempt for event {EventId} outside allowed timing window for session {SessionId}",
+                    request.EventId, referenceSession.Id);
+                return Result<ParticipationStatusDto>.Failure("Ticket purchase window is not currently open for this session");
             }
 
             // CRITICAL: Validate Event Waiver acceptance
@@ -719,6 +746,7 @@ public class AttendanceService : IAttendanceService
 
             // Check if cancellation is still allowed based on event start time and buffer
             var eventEntity = await _context.Events
+                .Include(e => e.Sessions)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
 
@@ -727,16 +755,52 @@ public class AttendanceService : IAttendanceService
                 return Result.Failure("Event not found");
             }
 
-            // Determine action type based on attendance type (RSVP or Ticket)
-            var actionType = attendance.AttendanceType == AttendanceType.Ticket
-                ? EventActionType.CancelTicket
-                : EventActionType.CancelRsvp;
-
-            var isAllowed = await _timeZoneService.IsActionAllowedAsync(eventEntity, actionType, cancellationToken);
-            if (!isAllowed)
+            // For tickets, use session-based timing; for RSVPs, use event-based timing
+            if (attendance.AttendanceType == AttendanceType.Ticket)
             {
-                _logger.LogWarning("Cancellation attempt for event {EventId} outside allowed timing window (action: {ActionType})", eventId, actionType);
-                return Result.Failure("Cancellation window is not currently open for this event");
+                // Get the ticket type for this attendance to determine reference session
+                var ticketPurchase = await _context.TicketPurchases
+                    .Include(tp => tp.TicketType)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(tp => tp.Id == attendance.TicketPurchaseId, cancellationToken);
+
+                if (ticketPurchase?.TicketType != null)
+                {
+                    var referenceSession = _timeZoneService.GetReferenceSessionForTicketType(
+                        ticketPurchase.TicketType, eventEntity.Sessions);
+
+                    if (referenceSession == null)
+                    {
+                        _logger.LogWarning("Ticket cancellation attempt for event {EventId} - all sessions for this ticket have passed",
+                            eventId);
+                        return Result.Failure("Cannot cancel - all sessions for this ticket have passed");
+                    }
+
+                    var canCancel = _timeZoneService.IsActionAllowedForSession(
+                        referenceSession,
+                        null, // No open restriction for cancellation
+                        eventEntity.CancellationCloseHours);
+
+                    if (!canCancel)
+                    {
+                        _logger.LogWarning("Ticket cancellation attempt for event {EventId} outside allowed timing window for session {SessionId}",
+                            eventId, referenceSession.Id);
+                        return Result.Failure("Cancellation window has closed for this session");
+                    }
+                }
+                // If no ticket purchase found, fall through to allow cancellation (legacy data support)
+            }
+            else
+            {
+                // RSVP cancellation uses event-based timing (per specification - out of scope for session-based refactor)
+                var isAllowed = await _timeZoneService.IsActionAllowedAsync(
+                    eventEntity, EventActionType.CancelRsvp, cancellationToken);
+
+                if (!isAllowed)
+                {
+                    _logger.LogWarning("RSVP cancellation attempt for event {EventId} outside allowed timing window", eventId);
+                    return Result.Failure("Cancellation window is not currently open for this event");
+                }
             }
 
             // ============================================================================

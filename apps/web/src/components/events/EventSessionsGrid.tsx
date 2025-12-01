@@ -3,6 +3,7 @@ import { Table, Text, Group, ActionIcon } from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
 import { WCRButton } from '../ui';
 import type { components } from '@witchcityrope/shared-types';
+import { formatUtcToLocalTime, formatUtcToLocalDate } from '../../utils/eventUtils';
 
 // Use auto-generated SessionDto from backend instead of manual interface
 export type EventSession = components['schemas']['SessionDto'];
@@ -43,18 +44,9 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
   };
 
   const formatTime = (timeString: string) => {
-    // Do NOT apply timezone conversion - display the stored UTC time as-is
-    // This matches what the user entered in the modal (which uses getUTCHours/getUTCMinutes)
-    const date = new Date(timeString);
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
-
-    // Format in 12-hour format
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const hour12 = hours % 12 || 12;
-    const minuteStr = minutes.toString().padStart(2, '0');
-
-    return `${hour12}:${minuteStr} ${period}`;
+    // NEW: Use true UTC to local time conversion
+    // This converts from actual UTC (stored in database) to local time (America/New_York)
+    return formatUtcToLocalTime(timeString);
   };
 
   const getSoldDisplay = (sold?: number, capacity?: number) => {

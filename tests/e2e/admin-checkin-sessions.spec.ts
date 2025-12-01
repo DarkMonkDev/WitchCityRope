@@ -67,10 +67,6 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
     // Wait for page to load
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
 
-    // Debug: Log current URL and take screenshot before tab interaction
-    console.log(`DEBUG: Current URL: ${page.url()}`);
-    console.log(`DEBUG: Event ID: ${testEventId}, Session Count: ${sessionCount}`);
-
     // Wait for tabs to render (React hydration)
     await page.waitForTimeout(500);
 
@@ -78,20 +74,7 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
     // Use role-based selector since data-testid is on both tab and panel
     const attendeesTab = page.getByRole('tab', { name: 'Attendees' });
 
-    // Check if tab exists before clicking (defensive pattern for missing features)
-    const tabCount = await attendeesTab.count();
-    console.log(`DEBUG: Attendees tab count: ${tabCount}`);
-
-    // Debug: List all visible tabs
-    const allTabs = await page.getByRole('tab').all();
-    console.log(`DEBUG: Total tabs found: ${allTabs.length}`);
-    for (let i = 0; i < allTabs.length; i++) {
-      const tabText = await allTabs[i].textContent();
-      console.log(`DEBUG: Tab ${i}: "${tabText}"`);
-    }
-
-    if (tabCount === 0) {
-      console.log('⚠️ Attendees tab not found - feature may not be implemented yet. Skipping test.');
+    if (await attendeesTab.count() === 0) {
       test.skip();
       return;
     }
@@ -211,60 +194,112 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
   });
 
   test('should auto-select session for single-session events', async ({ page }) => {
-    // Skip if event has multiple sessions
-    if (sessionCount !== 1) {
-      test.skip();
-      console.log('⚠️ Event has multiple sessions - skipping single-session test');
-      return;
-    }
+    // CREATE OWN TEST DATA: Create a single-session event through the UI
+    const uniqueTitle = `Single Session Test ${Date.now()}`;
 
-    // Navigate to event details page
-    await page.goto(`/admin/events/${testEventId}`);
+    // Navigate to event creation page
+    await page.goto('/admin/events/new');
     await page.waitForLoadState('domcontentloaded');
 
-    await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
+    const eventForm = page.locator('[data-testid="event-form"]');
+    await expect(eventForm).toBeVisible({ timeout: 5000 });
 
-    // Wait for tabs to render (React hydration)
+    // Fill required event fields
+    await page.getByLabel('Event Title').fill(uniqueTitle);
+    await page.getByLabel(/Short Description/i).first().fill('Test event for single-session auto-select');
+
+    // Full Description (required)
+    const fullDescEditor = page.locator('.tiptap.ProseMirror').first();
+    await fullDescEditor.click();
+    await fullDescEditor.fill('Full description for single-session event test.');
+
+    // Select venue
+    const venueSelect = page.getByLabel('Venue').first();
+    await venueSelect.click();
+    await page.getByRole('option').first().click();
+
+    // Select event type (class)
+    const eventTypeRadio = page.locator('[data-testid="event-type-class"]');
+    if (await eventTypeRadio.count() > 0) {
+      await eventTypeRadio.click();
+    }
+
+    // Save event to get an event ID
+    await page.waitForTimeout(500);
+    const saveButton = page.getByRole('button', { name: 'Save' });
+    await expect(saveButton).toBeVisible();
+    await expect(saveButton).not.toBeDisabled({ timeout: 5000 });
+    await saveButton.click();
+
+    // Wait for redirect to event detail page
+    await page.waitForTimeout(2000);
+    await expect(page).toHaveURL(/\/admin\/events\/[a-f0-9-]+$/);
+
+    // Navigate to Sessions tab and verify EXACTLY ONE session exists
+    const sessionsTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
+    await expect(sessionsTab).toBeVisible({ timeout: 5000 });
+    await sessionsTab.click();
     await page.waitForTimeout(500);
 
-    const attendeesTab = page.getByRole('tab', { name: 'Attendees' });
-    if (await attendeesTab.count() === 0) {
-      console.log('⚠️ Attendees tab not found - skipping.');
+    // Check if a default session was created (events may auto-create one)
+    const sessionsGrid = page.getByTestId('grid-sessions');
+    await expect(sessionsGrid).toBeVisible({ timeout: 5000 });
+
+    // Count existing session rows
+    const sessionRows = sessionsGrid.locator('tbody tr');
+    const rowCount = await sessionRows.count();
+
+    // Verify there's exactly one session (either auto-created or we need to add one)
+    if (rowCount === 0) {
+      // No sessions - add one
+      const addSessionButton = page.getByRole('button', { name: 'Add Session' });
+      await addSessionButton.click();
+
+      const sessionModal = page.locator('[role="dialog"]');
+      await expect(sessionModal).toBeVisible({ timeout: 5000 });
+
+      // Fill minimal required fields
+      await sessionModal.getByTestId('input-session-name').fill('Test Session');
+      await sessionModal.getByTestId('input-session-capacity').fill('50');
+
+      // Save session
+      await sessionModal.getByTestId('button-save-session').click();
+      await page.waitForTimeout(1000);
+    } else if (rowCount > 1) {
+      // More than one session - this isn't a single-session event, skip test
+      console.log(`⚠️ Event has ${rowCount} sessions, expected 1. Skipping.`);
       test.skip();
       return;
     }
+    // rowCount === 1: Perfect, we have exactly one session
 
+    // NOW TEST THE CHECK-IN TOKEN MODAL WITH SINGLE SESSION
+    // Navigate to Attendees tab
+    const attendeesTab = page.getByRole('tab', { name: 'Attendees' });
+    await expect(attendeesTab).toBeVisible({ timeout: 5000 });
     await attendeesTab.click();
+    await page.waitForTimeout(500);
 
     // Open token generation modal
     const generateButton = page.locator('button').filter({ hasText: /Checkin Link/i });
-
-    if (await generateButton.count() === 0) {
-      console.log('⚠️ Checkin Link button not found - skipping.');
-      test.skip();
-      return;
-    }
-
+    await expect(generateButton.first()).toBeVisible({ timeout: 5000 });
     await generateButton.first().click();
 
     const modal = page.locator('[role="dialog"]');
     await expect(modal).toBeVisible({ timeout: 5000 });
 
-    // For single-session events, session selector should NOT be shown
-    // Instead, there should be an alert showing the session name
+    // VERIFY: For single-session events, session selector should NOT be shown
     const sessionSelect = modal.locator('[data-testid="session-select"]');
+    await expect(sessionSelect).toHaveCount(0);
 
-    if (await sessionSelect.count() === 0) {
-      // Session selector is hidden (auto-selected) - verify session indicator instead
-      const sessionIndicator = modal.locator('[role="alert"]').filter({ hasText: /Session/i });
-      await expect(sessionIndicator.first()).toBeVisible({ timeout: 3000 });
-    }
+    // VERIFY: Instead, there should be an alert showing the auto-selected session
+    // Session name could be "Default" (auto-created) or "Test Session" (manually added)
+    const sessionAlert = modal.locator('[role="alert"]').filter({ hasText: /Session/i });
+    await expect(sessionAlert.first()).toBeVisible({ timeout: 3000 });
 
-    // Verify Generate Link button is enabled (since session is auto-selected)
+    // VERIFY: Generate Link button is NOT disabled (session is auto-selected)
     const generateLinkButton = modal.locator('button').filter({ hasText: /Generate Link/i }).first();
-
     await expect(generateLinkButton).toBeVisible();
-    // Button should NOT be disabled for single-session events
     await expect(generateLinkButton).not.toBeDisabled();
   });
 

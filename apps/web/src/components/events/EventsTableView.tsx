@@ -1,12 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Table, ActionIcon, Button, Text, Group, Skeleton, Badge } from '@mantine/core'
 import { IconCaretUp, IconCaretDown, IconSelector } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import type { EventDto } from '@witchcityrope/shared-types'
 import { CapacityDisplay } from './CapacityDisplay'
 import type { AdminEventFiltersState } from '../../hooks/useAdminEventFilters'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone'
+import { formatUtcToLocalTime, formatUtcTimeRange } from '../../utils/eventUtils'
+import { GenerateCheckInLinkModal } from '../../features/checkin/components/GenerateCheckInLinkModal'
 
 interface EventsTableViewProps {
   events: EventDto[]
@@ -62,22 +64,8 @@ const formatEventDate = (event: EventDto, timeZone: string): string => {
   });
 }
 
-// Helper function to format time from Date object WITHOUT timezone conversion
-// User-entered times are stored as "naive UTC" - the UTC value IS the local time
-const formatStoredTimeFromDate = (date: Date): string => {
-  const hours = date.getUTCHours();
-  const minutes = date.getUTCMinutes();
-
-  // Format in 12-hour format
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const hour12 = hours % 12 || 12;
-  const minuteStr = minutes.toString().padStart(2, '0');
-
-  return `${hour12}:${minuteStr} ${period}`;
-}
-
 // Helper function to format time range with robust field handling
-const formatTimeRange = (event: EventDto, _timeZone: string): string => {
+const formatTimeRange = (event: EventDto, timeZone: string): string => {
   // Use next upcoming session's time instead of event.startDate/endDate
   const displaySession = getDisplaySession(event);
 
@@ -95,7 +83,7 @@ const formatTimeRange = (event: EventDto, _timeZone: string): string => {
 
   // If no end time, show start time only
   if (!displaySession.endTime) {
-    return formatStoredTimeFromDate(start);
+    return formatUtcToLocalTime(displaySession.startTime, timeZone);
   }
 
   const end = new Date(displaySession.endTime);
@@ -106,10 +94,10 @@ const formatTimeRange = (event: EventDto, _timeZone: string): string => {
       eventId: event.id,
       sessionEndTime: displaySession.endTime,
     })
-    return formatStoredTimeFromDate(start);
+    return formatUtcToLocalTime(displaySession.startTime, timeZone);
   }
 
-  return `${formatStoredTimeFromDate(start)} - ${formatStoredTimeFromDate(end)}`
+  return formatUtcTimeRange(displaySession.startTime, displaySession.endTime, timeZone);
 }
 
 // Helper function to get the correct current count based on event type
@@ -248,6 +236,13 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
   const navigate = useNavigate()
   const eventTimeZone = useEventTimeZone();
 
+  // State for check-in modal
+  const [checkInModalOpen, setCheckInModalOpen] = useState(false)
+  const [selectedEventForCheckIn, setSelectedEventForCheckIn] = useState<{
+    id: string
+    title: string
+  } | null>(null)
+
   /**
    * handleRowClick - Primary interaction for viewing/editing events
    * Clicking any row navigates to the event detail/edit page
@@ -315,6 +310,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
   }
 
   return (
+    <>
     <Table striped highlightOnHover data-testid="events-table">
       {/* Table Header */}
       <Table.Thead bg="wcr.7">
@@ -397,12 +393,14 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
                 </Text>
                 {hasSessionToday(event) && (
                   <Button
-                    component={Link}
-                    to={`/events/${event.id}/checkin`}
                     variant="filled"
                     color="blue"
                     size="compact-sm"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedEventForCheckIn({ id: event.id || '', title: event.title || '' })
+                      setCheckInModalOpen(true)
+                    }}
                     styles={{
                       root: {
                         fontWeight: 600,
@@ -464,5 +462,17 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
         ))}
       </Table.Tbody>
     </Table>
+
+    {/* Check-In Modal */}
+    <GenerateCheckInLinkModal
+      opened={checkInModalOpen}
+      onClose={() => {
+        setCheckInModalOpen(false)
+        setSelectedEventForCheckIn(null)
+      }}
+      eventId={selectedEventForCheckIn?.id || ''}
+      eventTitle={selectedEventForCheckIn?.title || ''}
+    />
+  </>
   )
 }

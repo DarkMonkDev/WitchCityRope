@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Text, Group } from '@mantine/core'
 import { EventDto } from '@witchcityrope/shared-types'
-import { calculateEventPriceRange } from '../../utils/eventUtils'
+import { calculateEventPriceRange, formatUtcToLocalTime, formatUtcToLocalDate } from '../../utils/eventUtils'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone'
 
 interface EventCardProps {
@@ -82,37 +82,24 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   const formatDateTime = (startDate?: string, endDate?: string) => {
     if (!startDate) return 'TBD'
-    const start = new Date(startDate)
 
     // Format date with abbreviated month, no year
-    const datePart = start.toLocaleDateString('en-US', {
+    const datePart = formatUtcToLocalDate(startDate, eventTimeZone, {
       weekday: 'long',
       month: 'short',
       day: 'numeric',
-      timeZone: eventTimeZone
     })
 
-    // Format start time using getUTCHours/getUTCMinutes (user-entered times stored as naive UTC)
-    const startHours = start.getUTCHours();
-    const startMinutes = start.getUTCMinutes();
-    const startPeriod = startHours >= 12 ? 'pm' : 'am';
-    const startHour12 = startHours % 12 || 12;
-    const startMinuteStr = startMinutes.toString().padStart(2, '0');
-    const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
+    // NEW: Use true UTC to local time conversion
+    const startTime = formatUtcToLocalTime(startDate, eventTimeZone).toLowerCase();
 
     // If no end date, just return date + start time
     if (!endDate) {
       return `${datePart} - ${startTime}`
     }
 
-    // Format end time using getUTCHours/getUTCMinutes
-    const end = new Date(endDate)
-    const endHours = end.getUTCHours();
-    const endMinutes = end.getUTCMinutes();
-    const endPeriod = endHours >= 12 ? 'pm' : 'am';
-    const endHour12 = endHours % 12 || 12;
-    const endMinuteStr = endMinutes.toString().padStart(2, '0');
-    const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
+    // Format end time
+    const endTime = formatUtcToLocalTime(endDate, eventTimeZone).toLowerCase();
 
     return `${datePart} - ${startTime} - ${endTime}`
   }
@@ -223,16 +210,11 @@ export const EventCard: React.FC<EventCardProps> = ({
               letterSpacing: '0.5px',
             }}
           >
-            {(() => {
-              if (!event.startDate) return 'TBD'
-              const start = new Date(event.startDate)
-              return start.toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'short',
-                day: 'numeric',
-                timeZone: eventTimeZone
-              })
-            })()}
+            {event.startDate ? formatUtcToLocalDate(event.startDate, eventTimeZone, {
+              weekday: 'long',
+              month: 'short',
+              day: 'numeric',
+            }) : 'TBD'}
           </Text>
           <Text
             style={{
@@ -246,25 +228,11 @@ export const EventCard: React.FC<EventCardProps> = ({
           >
             {(() => {
               if (!event.startDate) return ''
-              const start = new Date(event.startDate)
-              // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-              const startHours = start.getUTCHours();
-              const startMinutes = start.getUTCMinutes();
-              const startPeriod = startHours >= 12 ? 'pm' : 'am';
-              const startHour12 = startHours % 12 || 12;
-              const startMinuteStr = startMinutes.toString().padStart(2, '0');
-              const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
 
+              const startTime = formatUtcToLocalTime(event.startDate, eventTimeZone).toLowerCase();
               if (!event.endDate) return startTime
 
-              const end = new Date(event.endDate)
-              const endHours = end.getUTCHours();
-              const endMinutes = end.getUTCMinutes();
-              const endPeriod = endHours >= 12 ? 'pm' : 'am';
-              const endHour12 = endHours % 12 || 12;
-              const endMinuteStr = endMinutes.toString().padStart(2, '0');
-              const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
-
+              const endTime = formatUtcToLocalTime(event.endDate, eventTimeZone).toLowerCase();
               return `${startTime} - ${endTime}`
             })()}
           </Text>

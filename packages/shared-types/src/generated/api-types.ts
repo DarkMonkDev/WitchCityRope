@@ -452,6 +452,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{eventId}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all sessions for an event
+         * @description Returns a list of sessions for the specified event, ordered by start time
+         */
+        get: operations["GetEventSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/{eventId}/sessions/{sessionId}/can-delete": {
         parameters: {
             query?: never;
@@ -4056,6 +4076,8 @@ export interface components {
         CreateTicketPurchaseRequest: {
             /** Format: uuid */
             eventId: string;
+            /** Format: uuid */
+            ticketTypeId: string;
             notes?: string | null;
             paymentMethodId?: string | null;
             eventWaiverAccepted: boolean;
@@ -5148,6 +5170,11 @@ export interface components {
             quantityAvailable?: number;
             /** Format: int32 */
             quantitySold?: number;
+            canPurchase?: boolean;
+            referenceSessionId?: string | null;
+            referenceSessionName?: string | null;
+            availabilityMessage?: string;
+            canCancel?: boolean;
         };
         TokenClaims: {
             userId?: string;
@@ -6532,6 +6559,46 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetEventSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionDto"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

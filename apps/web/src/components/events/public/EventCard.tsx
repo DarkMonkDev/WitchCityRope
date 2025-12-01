@@ -4,7 +4,7 @@ import {
   Button, Anchor, Alert
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { formatPrice, getCapacityColor, formatEventDateTime, calculateEventPriceRange } from '../../../utils/eventUtils';
+import { formatPrice, getCapacityColor, calculateEventPriceRange, formatUtcToLocalTime } from '../../../utils/eventUtils';
 
 interface EventCardProps {
   event: {
@@ -242,25 +242,11 @@ export const EventCard = memo<EventCardProps>(({
           <Text size="sm" c="dimmed">
             {(() => {
               if (!event.startDate) return ''
-              const start = new Date(event.startDate)
-              // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-              const startHours = start.getUTCHours();
-              const startMinutes = start.getUTCMinutes();
-              const startPeriod = startHours >= 12 ? 'pm' : 'am';
-              const startHour12 = startHours % 12 || 12;
-              const startMinuteStr = startMinutes.toString().padStart(2, '0');
-              const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
 
+              const startTime = formatUtcToLocalTime(event.startDate).toLowerCase();
               if (!event.endDate) return startTime
 
-              const end = new Date(event.endDate)
-              const endHours = end.getUTCHours();
-              const endMinutes = end.getUTCMinutes();
-              const endPeriod = endHours >= 12 ? 'pm' : 'am';
-              const endHour12 = endHours % 12 || 12;
-              const endMinuteStr = endMinutes.toString().padStart(2, '0');
-              const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
-
+              const endTime = formatUtcToLocalTime(event.endDate).toLowerCase();
               return `${startTime} - ${endTime}`
             })()}
           </Text>

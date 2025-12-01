@@ -14,6 +14,12 @@ public class CreateTicketPurchaseRequest
     public Guid EventId { get; set; }
 
     /// <summary>
+    /// Ticket type ID to purchase
+    /// </summary>
+    [Required]
+    public Guid TicketTypeId { get; set; }
+
+    /// <summary>
     /// Optional notes from the participant
     /// </summary>
     [MaxLength(2000)]

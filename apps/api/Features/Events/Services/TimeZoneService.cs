@@ -191,4 +191,108 @@ public class TimeZoneService : ITimeZoneService
             return false; // Deny access on error (fail-safe)
         }
     }
+
+    /// <summary>
+    /// Get the reference session for a ticket type
+    /// Used for session-based timing calculations
+    /// Current architecture: TicketType.SessionId is nullable
+    ///   - null = ticket applies to all sessions (use earliest future session)
+    ///   - value = ticket applies to specific session (use that session if future)
+    /// </summary>
+    /// <param name="ticketType">The ticket type to get reference session for</param>
+    /// <param name="allSessions">All sessions from the event</param>
+    /// <returns>The reference session for timing, or null if all sessions passed</returns>
+    public WitchCityRope.Api.Models.Session? GetReferenceSessionForTicketType(
+        WitchCityRope.Api.Models.TicketType ticketType,
+        IEnumerable<WitchCityRope.Api.Models.Session> allSessions)
+    {
+        if (!ticketType.SessionId.HasValue)
+        {
+            // Ticket applies to all sessions - use earliest future
+            return GetEarliestFutureSession(allSessions);
+        }
+
+        // Ticket applies to specific session - check if it's in the future
+        var specificSession = allSessions
+            .FirstOrDefault(s => s.Id == ticketType.SessionId.Value);
+
+        if (specificSession != null && specificSession.StartTime > DateTime.UtcNow)
+        {
+            return specificSession; // Session is still in future
+        }
+
+        return null; // Session has passed or not found
+    }
+
+    /// <summary>
+    /// Get the earliest future session from a list of sessions
+    /// </summary>
+    /// <param name="sessions">Sessions to check</param>
+    /// <returns>The earliest session where StartTime > UtcNow, or null if none</returns>
+    public WitchCityRope.Api.Models.Session? GetEarliestFutureSession(
+        IEnumerable<WitchCityRope.Api.Models.Session> sessions)
+    {
+        return sessions
+            .Where(s => s.StartTime > DateTime.UtcNow)
+            .OrderBy(s => s.StartTime)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Check if an action is allowed for a specific session based on timing windows
+    /// Session-based timing calculation (replaces event-based timing)
+    /// </summary>
+    /// <param name="session">The session to check timing against (null = not allowed)</param>
+    /// <param name="openHours">Hours before session when action opens (null = no restriction)</param>
+    /// <param name="closeHours">Hours before session when action closes (null = no restriction)</param>
+    /// <returns>True if action is allowed, false otherwise</returns>
+    public bool IsActionAllowedForSession(
+        WitchCityRope.Api.Models.Session? session,
+        decimal? openHours,
+        decimal? closeHours)
+    {
+        if (session == null)
+        {
+            return false; // No valid session = not allowed
+        }
+
+        var now = DateTime.UtcNow;
+        var hoursUntilSession = (session.StartTime - now).TotalHours;
+
+        // Check open window (if configured)
+        // NULL openHours means "always open" (no early restriction)
+        if (openHours.HasValue)
+        {
+            // If hoursUntilSession > openHours, action hasn't opened yet
+            if (hoursUntilSession > (double)openHours.Value)
+            {
+                _logger.LogDebug(
+                    "Action not allowed for session {SessionId} - too early. Hours until session: {HoursUntilSession}, Opens at: {OpenHours}",
+                    session.Id, hoursUntilSession, openHours.Value);
+                return false; // Too early
+            }
+        }
+
+        // Check close window (if configured)
+        // NULL closeHours means "never closes" (no late restriction)
+        if (closeHours.HasValue)
+        {
+            // Use small epsilon (0.01 hours = 36 seconds) for floating-point comparison tolerance
+            const double EPSILON = 0.01;
+            if (hoursUntilSession < (double)closeHours.Value - EPSILON)
+            {
+                _logger.LogDebug(
+                    "Action not allowed for session {SessionId} - too late. Hours until session: {HoursUntilSession}, Closes at: {CloseHours}",
+                    session.Id, hoursUntilSession, closeHours.Value);
+                return false; // Too late
+            }
+        }
+
+        // If we made it here, action is allowed
+        _logger.LogDebug(
+            "Action allowed for session {SessionId}. Hours until session: {HoursUntilSession}, Open: {OpenHours}, Close: {CloseHours}",
+            session.Id, hoursUntilSession, openHours, closeHours);
+
+        return true;
+    }
 }
