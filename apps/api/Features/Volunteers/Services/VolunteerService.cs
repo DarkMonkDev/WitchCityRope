@@ -101,6 +101,19 @@ public class VolunteerService : IVolunteerService
                         cancellationToken);
                 }
 
+                // Calculate signup permission based on event timing rules and position availability
+                // Users cannot sign up if: timing window closed, position full, or already signed up
+                var canSignUp = await _timeZoneService.IsActionAllowedAsync(
+                    eventEntity,
+                    EventActionType.GetVolunteer,
+                    cancellationToken);
+
+                // Additional constraints: position must have available slots and user not already signed up
+                if (canSignUp)
+                {
+                    canSignUp = vp.SlotsRemaining > 0 && userSignup == null;
+                }
+
                 positionDtos.Add(new VolunteerPositionDto
                 {
                     Id = vp.Id,
@@ -119,7 +132,8 @@ public class VolunteerService : IVolunteerService
                     SessionEndTime = sessionToUse?.EndTime,
                     HasUserSignedUp = userSignup != null,
                     UserSignupId = userSignup?.Id,
-                    CanCancel = canCancel
+                    CanCancel = canCancel,
+                    CanSignUp = canSignUp
                 });
             }
 

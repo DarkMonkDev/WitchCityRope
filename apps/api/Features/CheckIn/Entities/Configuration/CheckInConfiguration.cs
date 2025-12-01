@@ -16,11 +16,18 @@ public class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
             t.HasCheckConstraint("CHK_CheckIns_ManualEntryData",
                     "(\"IsManualEntry\" = true AND \"ManualEntryData\" IS NOT NULL) OR " +
                     "(\"IsManualEntry\" = false AND \"ManualEntryData\" IS NULL)");
+
+            // NOTE: Removed CHK_CheckIns_SessionBelongsToEvent check constraint
+            // PostgreSQL does NOT support subqueries (SELECT, EXISTS) in check constraints
+            // Data integrity enforced by FK_CheckIns_Sessions_SessionId foreign key instead
         });
 
         builder.HasKey(c => c.Id);
 
         // Property configurations
+        builder.Property(c => c.SessionId)
+               .IsRequired();
+
         builder.Property(c => c.CheckInTime)
                .IsRequired()
                .HasColumnType("timestamptz");
@@ -46,6 +53,11 @@ public class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
                .HasForeignKey(c => c.EventId)
                .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(c => c.Session)
+               .WithMany()
+               .HasForeignKey(c => c.SessionId)
+               .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasOne(c => c.StaffMember)
                .WithMany()
                .HasForeignKey(c => c.StaffMemberId)
@@ -56,14 +68,17 @@ public class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
                .HasForeignKey(c => c.CreatedBy)
                .OnDelete(DeleteBehavior.Restrict);
 
-        // Unique constraint - one check-in per attendee
-        builder.HasIndex(c => c.EventAttendeeId)
+        // Unique constraint - one check-in per attendee per SESSION
+        builder.HasIndex(c => new { c.EventAttendeeId, c.SessionId })
                .IsUnique()
-               .HasDatabaseName("UQ_CheckIns_EventAttendee");
+               .HasDatabaseName("UQ_CheckIns_EventAttendee_Session");
 
         // Indexes
         builder.HasIndex(c => c.EventId)
                .HasDatabaseName("IX_CheckIns_EventId");
+
+        builder.HasIndex(c => c.SessionId)
+               .HasDatabaseName("IX_CheckIns_SessionId");
 
         builder.HasIndex(c => c.StaffMemberId)
                .HasDatabaseName("IX_CheckIns_StaffMemberId");
@@ -73,6 +88,9 @@ public class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
 
         builder.HasIndex(c => new { c.EventId, c.CheckInTime })
                .HasDatabaseName("IX_CheckIns_Event_Time");
+
+        builder.HasIndex(c => new { c.SessionId, c.CheckInTime })
+               .HasDatabaseName("IX_CheckIns_Session_Time");
 
         builder.HasIndex(c => c.IsManualEntry)
                .HasDatabaseName("IX_CheckIns_ManualEntry")

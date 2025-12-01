@@ -32,9 +32,11 @@ public class CheckInService : ICheckInService
 
     /// <summary>
     /// Get attendees with optimized queries for mobile performance
+    /// Filters attendees to only show those eligible for the specific session
     /// </summary>
     public async Task<Result<CheckInAttendeesResponse>> GetEventAttendeesAsync(
         Guid eventId,
+        Guid sessionId,
         string? search = null,
         string? status = null,
         int page = 1,
@@ -48,9 +50,27 @@ public class CheckInService : ICheckInService
             if (page < 1) page = 1;
 
             // SERVER-SIDE PROJECTION: Build query without includes
+            // CRITICAL: Filter to only show attendees eligible for THIS session
+            // Eligibility rules:
+            // - RSVP attendees (via EventAttendance) can check into ANY session (no ticket required)
+            // - Ticket holders: ticket must be for THIS session OR a multi-session ticket (null SessionId)
+            // Since EventAttendee doesn't have direct attendance info, we join with EventAttendance
+            var eligibleUserIds = await _context.EventAttendances
+                .Include(ea => ea.TicketPurchase)
+                    .ThenInclude(tp => tp != null ? tp.TicketType : null)
+                .Where(ea => ea.EventId == eventId &&
+                            ea.Status == AttendanceStatus.Active &&
+                            (ea.AttendanceType == AttendanceType.RSVP ||
+                             ea.TicketPurchase == null ||
+                             ea.TicketPurchase.TicketType!.SessionId == sessionId ||
+                             ea.TicketPurchase.TicketType!.SessionId == null))
+                .Select(ea => ea.UserId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
             var query = _context.EventAttendees
                 .AsNoTracking()
-                .Where(ea => ea.EventId == eventId);
+                .Where(ea => ea.EventId == eventId && eligibleUserIds.Contains(ea.UserId));
 
             // Apply search filter
             if (!string.IsNullOrWhiteSpace(search))
@@ -214,10 +234,51 @@ public class CheckInService : ICheckInService
                 return Result<CheckInResponse>.Failure("Attendee not found");
             }
 
-            // Check if already checked in
-            if (attendee.CheckIns.Any())
+            // Get session info for validation and response
+            var session = await _context.Sessions
+                .FirstOrDefaultAsync(s => s.Id == sessionTokenEntity.SessionId, cancellationToken);
+
+            if (session == null)
             {
-                return Result<CheckInResponse>.Failure("Attendee already checked in");
+                return Result<CheckInResponse>.Failure("Session not found");
+            }
+
+            // CRITICAL: Validate that attendee's ticket is valid for THIS session
+            // Business Rules:
+            // - RSVP attendees (via EventAttendance) can check into ANY session (no ticket required)
+            // - Ticket holders: ticket must be for THIS session OR a multi-session ticket
+            // Check EventAttendance for this user to determine eligibility
+            var eventAttendance = await _context.EventAttendances
+                .Include(ea => ea.TicketPurchase)
+                    .ThenInclude(tp => tp != null ? tp.TicketType : null)
+                .FirstOrDefaultAsync(ea => ea.UserId == attendee.UserId &&
+                                          ea.EventId == attendee.EventId &&
+                                          ea.Status == AttendanceStatus.Active,
+                                     cancellationToken);
+
+            if (eventAttendance == null)
+            {
+                return Result<CheckInResponse>.Failure("No active event attendance found for this attendee");
+            }
+
+            var canCheckIntoSession = eventAttendance.AttendanceType == AttendanceType.RSVP ||
+                                     eventAttendance.TicketPurchase?.TicketType?.SessionId == sessionTokenEntity.SessionId ||
+                                     eventAttendance.TicketPurchase?.TicketType?.SessionId == null;
+
+            if (!canCheckIntoSession)
+            {
+                var ticketSessionInfo = eventAttendance.TicketPurchase?.TicketType?.SessionId.HasValue == true
+                    ? "a different session"
+                    : "unknown session";
+                return Result<CheckInResponse>.Failure(
+                    $"Attendee's ticket is not valid for this session. Their ticket is for {ticketSessionInfo}.");
+            }
+
+            // Check if already checked in to THIS session (attendee can check into different sessions)
+            var alreadyCheckedInToSession = attendee.CheckIns.Any(c => c.SessionId == sessionTokenEntity.SessionId);
+            if (alreadyCheckedInToSession)
+            {
+                return Result<CheckInResponse>.Failure($"Attendee already checked in to {session.Name}");
             }
 
             // Validate waiver completion
@@ -237,6 +298,7 @@ public class CheckInService : ICheckInService
             var checkIn = new Entities.CheckIn(
                 attendee.Id,
                 attendee.EventId,
+                sessionTokenEntity.SessionId,
                 sessionTokenEntity.CreatedByUserId)
             {
                 CheckInTime = DateTime.Parse(request.CheckInTime).ToUniversalTime(),
@@ -290,7 +352,9 @@ public class CheckInService : ICheckInService
                 CheckInTime = checkIn.CheckInTime.ToString("O"),
                 Message = "Check-in successful",
                 CurrentCapacity = updatedCapacity,
-                AuditLogId = auditLog.Id.ToString()
+                AuditLogId = auditLog.Id.ToString(),
+                SessionId = session.Id,
+                SessionName = session.Name
             };
 
             _logger.LogInformation("Successful check-in for attendee {AttendeeId} using session token {TokenPrefix}",
@@ -513,6 +577,7 @@ public class CheckInService : ICheckInService
             var checkIn = new Entities.CheckIn(
                 attendee.Id,
                 eventId,
+                sessionTokenEntity.SessionId,
                 sessionTokenEntity.CreatedByUserId)
             {
                 CheckInTime = DateTime.UtcNow,

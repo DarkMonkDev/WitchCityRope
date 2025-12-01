@@ -98,6 +98,9 @@ export async function testTicketCancellationPersistence(
         eventId,
         1 // 1 = Active
       );
+      if (!participation) {
+        throw new Error('No active participation found for user');
+      }
       console.log(`✅ User has active ${participation.participationType} for event`);
 
       // Navigate to event details
@@ -226,7 +229,7 @@ export async function testTicketCancellationPersistence(
 
       // Optional: Verify audit log entry exists
       const auditLogExists = await DatabaseHelpers.verifyAuditLogExists(
-        'ParticipationHistory',
+        'AttendanceHistory',
         participation.id,
         'Cancelled'
       );
@@ -357,6 +360,9 @@ export async function testTicketLifecycle(
     1 // 1 = Active
   );
 
+  if (!newParticipation) {
+    throw new Error('Failed to find new participation after re-purchase');
+  }
   console.log('✅ Ticket re-purchased successfully');
   console.log(`   New participation ID: ${newParticipation.id}`);
 

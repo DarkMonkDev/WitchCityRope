@@ -200,7 +200,7 @@ test.describe('Vetting Application Form', () => {
     console.log('✅ Testing form submission with authenticated user');
 
     // First login as a member
-    const loginSuccess = await AuthHelpers.loginAs(page, 'member', { timeout: 15000 });
+    const loginSuccess = await AuthHelpers.loginAs(page, 'member');
     expect(loginSuccess).toBe(true);
 
     // Navigate to the join page
@@ -326,7 +326,7 @@ test.describe('Vetting Application Form', () => {
     console.log('✅ Testing existing application status display');
 
     // Login as a user who might have an existing application
-    const loginSuccess = await AuthHelpers.loginAs(page, 'vetted', { timeout: 15000 });
+    const loginSuccess = await AuthHelpers.loginAs(page, 'vetted');
     expect(loginSuccess).toBe(true);
 
     // Navigate to join page

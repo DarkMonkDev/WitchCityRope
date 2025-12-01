@@ -1,5 +1,6 @@
 import React from 'react';
-import { Table, Text, Group, Badge } from '@mantine/core';
+import { Table, Text, Group, Badge, ActionIcon } from '@mantine/core';
+import { IconTrash } from '@tabler/icons-react';
 import { WCRButton } from '../ui';
 import type { components } from '@witchcityrope/shared-types';
 
@@ -62,7 +63,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
   };
 
   return (
-    <div>
+    <div data-testid="ticket-types-section">
       <Text size="sm" c="dimmed" mb="lg">
         Configure different ticket options for your event. Each ticket type can include multiple sessions.
         Click on a row to edit ticket details.
@@ -100,21 +101,28 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>
               Sold
             </Table.Th>
+            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>
+              Actions
+            </Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {ticketTypes.map((ticketType) => (
             <Table.Tr
               key={ticketType.id}
-              onClick={() => onEditTicketType(ticketType.id)}
-              style={{ cursor: 'pointer' }}
             >
-              <Table.Td>
+              <Table.Td
+                onClick={() => onEditTicketType(ticketType.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 <Text size="sm" fw={500}>
                   {ticketType.name}
                 </Text>
               </Table.Td>
-              <Table.Td style={{ textAlign: 'center' }}>
+              <Table.Td
+                onClick={() => onEditTicketType(ticketType.id)}
+                style={{ textAlign: 'center', cursor: 'pointer' }}
+              >
                 <Badge
                   variant="light"
                   color={ticketType.pricingType === 'Fixed' ? 'blue' : 'green'}
@@ -123,31 +131,62 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                   {ticketType.pricingType === 'Fixed' ? 'Fixed Price' : 'Sliding Scale'}
                 </Badge>
               </Table.Td>
-              <Table.Td>
+              <Table.Td
+                onClick={() => onEditTicketType(ticketType.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 <Text size="sm" fw={500}>
                   {formatSessions(ticketType.sessionIdentifiers)}
                 </Text>
               </Table.Td>
-              <Table.Td>
+              <Table.Td
+                onClick={() => onEditTicketType(ticketType.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 <Text size="sm">
                   {formatPriceRange(ticketType)}
                 </Text>
               </Table.Td>
-              <Table.Td style={{ textAlign: 'center' }}>
+              <Table.Td
+                onClick={() => onEditTicketType(ticketType.id)}
+                style={{ textAlign: 'center', cursor: 'pointer' }}
+              >
                 <Text size="sm">
                   {getQuantityDisplay(ticketType.quantityAvailable)}
                 </Text>
               </Table.Td>
-              <Table.Td style={{ textAlign: 'center' }}>
+              <Table.Td
+                onClick={() => onEditTicketType(ticketType.id)}
+                style={{ textAlign: 'center', cursor: 'pointer' }}
+              >
                 <Text size="sm" fw={700}>
                   {ticketType.quantitySold ?? 0}
                 </Text>
+              </Table.Td>
+              <Table.Td style={{ textAlign: 'center' }}>
+                <ActionIcon
+                  data-testid="button-delete-tickettype"
+                  variant="subtle"
+                  color="gray"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteTicketType(ticketType.id);
+                  }}
+                  aria-label={`Delete ${ticketType.name}`}
+                  styles={{
+                    root: {
+                      '&:hover': { color: '#DC143C' }
+                    }
+                  }}
+                >
+                  <IconTrash size={20} />
+                </ActionIcon>
               </Table.Td>
             </Table.Tr>
           ))}
           {ticketTypes.length === 0 && (
             <Table.Tr>
-              <Table.Td colSpan={6}>
+              <Table.Td colSpan={7}>
                 <Text ta="center" c="dimmed" py="xl">
                   No ticket types created yet. Click "Add Ticket Type" to get started.
                 </Text>

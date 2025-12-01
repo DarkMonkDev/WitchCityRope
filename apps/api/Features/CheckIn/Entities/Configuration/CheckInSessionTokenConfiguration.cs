@@ -13,6 +13,11 @@ public class CheckInSessionTokenConfiguration : IEntityTypeConfiguration<CheckIn
     {
         // Table mapping
         builder.ToTable("CheckInSessionTokens", "public");
+
+        // NOTE: Removed CHK_CheckInSessionTokens_SessionBelongsToEvent check constraint
+        // PostgreSQL does NOT support subqueries (SELECT, EXISTS) in check constraints
+        // Data integrity enforced by FK_CheckInSessionTokens_Sessions_SessionId foreign key instead
+
         builder.HasKey(t => t.Id);
 
         // Token: Required, 88 chars (64 bytes base64-encoded), unique
@@ -30,6 +35,13 @@ public class CheckInSessionTokenConfiguration : IEntityTypeConfiguration<CheckIn
 
         builder.HasIndex(t => t.EventId)
             .HasDatabaseName("IX_CheckInSessionTokens_EventId");
+
+        // SessionId: Required, indexed for lookups
+        builder.Property(t => t.SessionId)
+            .IsRequired();
+
+        builder.HasIndex(t => t.SessionId)
+            .HasDatabaseName("IX_CheckInSessionTokens_SessionId");
 
         // CreatedByUserId: Required for audit trail
         builder.Property(t => t.CreatedByUserId)
@@ -59,8 +71,8 @@ public class CheckInSessionTokenConfiguration : IEntityTypeConfiguration<CheckIn
             .HasDefaultValue(false);
 
         // Partial index for active tokens only (performance optimization)
-        builder.HasIndex(t => new { t.EventId, t.ExpiresAt })
-            .HasDatabaseName("IX_CheckInSessionTokens_EventId_ExpiresAt_Active")
+        builder.HasIndex(t => new { t.SessionId, t.ExpiresAt })
+            .HasDatabaseName("IX_CheckInSessionTokens_SessionId_ExpiresAt_Active")
             .HasFilter("\"IsRevoked\" = false");
 
         // Composite index for token validation queries

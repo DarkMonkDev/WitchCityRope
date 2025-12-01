@@ -238,10 +238,12 @@ test.describe('CMS Accessibility Tests', () => {
 
     // Run color contrast check on main content area only (exclude footer/utility bar design issues)
     await checkA11y(page, 'main', {
-      rules: {
-        'color-contrast': { enabled: true },
+      axeOptions: {
+        rules: {
+          'color-contrast': { enabled: true },
+        },
       },
       detailedReport: true,
-    });
+    } as Parameters<typeof checkA11y>[2]);
   });
 });

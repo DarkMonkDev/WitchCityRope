@@ -344,6 +344,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await expect(notification).toBeVisible({ timeout: 10000 });
 
     // Modal should close
+    const modal = page.locator('[role="dialog"]').first();
     await expect(modal).not.toBeVisible({ timeout: 5000 });
 
     console.log('✅ Application put on hold - email notification sent with reason');

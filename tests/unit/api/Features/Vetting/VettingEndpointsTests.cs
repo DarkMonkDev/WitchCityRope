@@ -178,7 +178,6 @@ public class VettingEndpointsTests
             Status = "UnderReview",
             SubmittedAt = DateTime.Parse("2025-09-22T10:00:00Z"),
             LastActivityAt = DateTime.Parse("2025-09-22T10:00:00Z"),
-            FullName = "John Doe",
             SceneName = "TestUser",
             Email = "test@example.com",
             ExperienceDescription = "Basic rope knowledge",

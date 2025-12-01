@@ -53,8 +53,9 @@ public static class CheckInEndpoints
             }
 
             // TOKEN IS VALID - Proceed with check-in operation
+            // Pass sessionId from validated token to filter attendees for this session only
             var result = await checkInService.GetEventAttendeesAsync(
-                eventId, search, status, page, pageSize, cancellationToken);
+                eventId, tokenData.SessionId, search, status, page, pageSize, cancellationToken);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -366,8 +367,9 @@ public static class CheckInEndpoints
 
             var result = await tokenService.GenerateTokenAsync(
                 request.EventId,
+                request.SessionId,
                 adminUserId,
-                request.ExpirationHours ?? 12,
+                request.ExpirationHours ?? 12.0,
                 cancellationToken);
 
             return result.IsSuccess

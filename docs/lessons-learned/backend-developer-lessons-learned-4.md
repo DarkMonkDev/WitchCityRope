@@ -1765,3 +1765,92 @@ SKIP_CONFIRMATION=true bash .claude/skills/test-environment/execute.sh --mode e2
 **Tags**: #critical #testing #docker #containers #vite #hmr #websocket #networking #e2e #playwright #test-containers
 
 ---
+
+## 🚨 CRITICAL: EventAttendee Does NOT Have TicketPurchase Navigation Property (2025-11-30)
+
+**Problem**: Compilation errors when trying to access `EventAttendee.TicketPurchase` - this navigation property does not exist on EventAttendee entity.
+
+**Date Discovered**: November 30, 2025 during CheckInService compilation
+**Error**: `error CS1061: 'EventAttendee' does not contain a definition for 'TicketPurchase'`
+
+**Root Cause**:
+- **EventAttendee** entity does NOT have a `TicketPurchase` navigation property
+- **EventAttendance** entity DOES have a `TicketPurchase` navigation property
+- Code was incorrectly trying to access ticket purchase information through EventAttendee
+- Relationship is: EventAttendance → TicketPurchase (NOT EventAttendee → TicketPurchase)
+
+**Entity Structures**:
+```csharp
+// ❌ EventAttendee - NO TicketPurchase property
+public class EventAttendee
+{
+    public Guid Id { get; set; }
+    public Guid EventId { get; set; }
+    public Guid UserId { get; set; }
+    public string RegistrationStatus { get; set; }
+    // ... NO TicketPurchase navigation property!
+}
+
+// ✅ EventAttendance - HAS TicketPurchase property
+public class EventAttendance
+{
+    public Guid Id { get; set; }
+    public Guid EventId { get; set; }
+    public Guid UserId { get; set; }
+    public AttendanceType AttendanceType { get; set; }
+    public Guid? TicketPurchaseId { get; set; }
+    public TicketPurchase? TicketPurchase { get; set; }  // ✅ Navigation property
+}
+```
+
+**Wrong Implementation**:
+```csharp
+// ❌ WRONG - EventAttendee doesn't have TicketPurchase property
+var eligibleUserIds = _context.EventAttendances
+    .Where(ea => ea.EventId == eventId &&
+                ea.Status == AttendanceStatus.Active &&
+                (ea.AttendanceType == AttendanceType.RSVP ||
+                 ea.TicketPurchase == null ||
+                 ea.TicketPurchase.TicketType.SessionId == sessionId))
+    .Select(ea => ea.UserId)
+    .Distinct();  // ← Missing .ToListAsync(), causes deferred execution issues
+```
+
+**Correct Implementation**:
+```csharp
+// ✅ CORRECT - Use EventAttendance with proper includes and async execution
+var eligibleUserIds = await _context.EventAttendances
+    .Include(ea => ea.TicketPurchase)
+        .ThenInclude(tp => tp != null ? tp.TicketType : null)
+    .Where(ea => ea.EventId == eventId &&
+                ea.Status == AttendanceStatus.Active &&
+                (ea.AttendanceType == AttendanceType.RSVP ||
+                 ea.TicketPurchase == null ||
+                 ea.TicketPurchase.TicketType!.SessionId == sessionId ||
+                 ea.TicketPurchase.TicketType!.SessionId == null))
+    .Select(ea => ea.UserId)
+    .Distinct()
+    .ToListAsync(cancellationToken);  // ← Execute query immediately
+```
+
+**Key Points**:
+1. **EventAttendance** is the entity that links to TicketPurchase (not EventAttendee)
+2. **Include** both TicketPurchase and TicketType navigation properties
+3. **Execute immediately** with `.ToListAsync()` to avoid deferred execution issues
+4. **Use null-forgiving operator** (`!`) when accessing nested properties after includes
+
+**Business Logic**:
+- **EventAttendance** tracks WHO is attending WHAT event (via RSVP or Ticket)
+- **EventAttendee** tracks registration details for check-in kiosk
+- **TicketPurchase** tracks financial transaction for refunds
+- Check-in eligibility is determined by EventAttendance + TicketPurchase relationship
+
+**File Locations**:
+- EventAttendee: `/home/chad/repos/witchcityrope/apps/api/Features/CheckIn/Entities/EventAttendee.cs`
+- EventAttendance: `/home/chad/repos/witchcityrope/apps/api/Features/Participation/Entities/EventAttendance.cs`
+- TicketPurchase: `/home/chad/repos/witchcityrope/apps/api/Models/TicketPurchase.cs`
+- CheckInService: `/home/chad/repos/witchcityrope/apps/api/Features/CheckIn/Services/CheckInService.cs`
+
+**Tags**: #critical #entity-framework #navigation-properties #compilation-error #check-in #attendance #ticket-purchase #relationship-mapping
+
+---

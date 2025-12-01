@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Features.CheckIn.Models;
 using WitchCityRope.Api.Features.CheckIn.Services;
 using WitchCityRope.Api.Features.Events.Services;
@@ -376,5 +377,249 @@ public static class EventEndpoints
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status409Conflict)
         .Produces(StatusCodes.Status500InternalServerError);
+
+        // Get all sessions for an event
+        app.MapGet("/api/events/{eventId}/sessions", async (
+            string eventId,
+            [FromServices] WitchCityRope.Api.Data.ApplicationDbContext context,
+            CancellationToken cancellationToken) =>
+        {
+            if (!Guid.TryParse(eventId, out var eventGuid))
+            {
+                return Results.Problem(
+                    title: "Invalid Event ID",
+                    detail: "The event ID must be a valid GUID",
+                    statusCode: 400);
+            }
+
+            var eventExists = await context.Events.AnyAsync(e => e.Id == eventGuid, cancellationToken);
+            if (!eventExists)
+            {
+                return Results.Problem(
+                    title: "Event Not Found",
+                    detail: $"Event with ID {eventId} was not found",
+                    statusCode: 404);
+            }
+
+            var sessions = await context.Sessions
+                .AsNoTracking()
+                .Where(s => s.EventId == eventGuid)
+                .OrderBy(s => s.StartTime)
+                .Select(s => new SessionDto(s))
+                .ToListAsync(cancellationToken);
+
+            return Results.Ok(sessions);
+        })
+        .WithName("GetEventSessions")
+        .WithSummary("Get all sessions for an event")
+        .WithDescription("Returns a list of sessions for the specified event, ordered by start time")
+        .WithTags("Events", "Sessions")
+        .Produces<List<SessionDto>>(200)
+        .ProducesProblem(400)
+        .ProducesProblem(404);
+
+        // Check if session can be deleted
+        app.MapGet("/api/events/{eventId}/sessions/{sessionId}/can-delete", async (
+            string eventId,
+            string sessionId,
+            [FromServices] IEventService eventService,
+            HttpContext context,
+            CancellationToken cancellationToken) =>
+        {
+            // Require Event Organizer or Admin role
+            if (!context.User.Identity?.IsAuthenticated ?? false)
+            {
+                return Results.Problem(
+                    title: "Authentication Required",
+                    detail: "You must be authenticated to check session deletion",
+                    statusCode: 401);
+            }
+
+            var userRole = context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (userRole != "Administrator" && userRole != "EventOrganizer")
+            {
+                return Results.Problem(
+                    title: "Insufficient Permissions",
+                    detail: "Administrator or Event Organizer role required",
+                    statusCode: 403);
+            }
+
+            var (success, response, error) = await eventService.CheckSessionDeletionAsync(eventId, sessionId, cancellationToken);
+
+            if (!success || response == null)
+            {
+                return Results.Problem(
+                    title: "Failed to check session deletion",
+                    detail: error,
+                    statusCode: error.Contains("not found") ? 404 : 500);
+            }
+
+            return Results.Ok(response);
+        })
+        .RequireAuthorization()
+        .WithName("CheckSessionDeletion")
+        .WithSummary("Check if a session can be deleted")
+        .WithDescription("Returns information about what would be affected if the session is deleted")
+        .WithTags("Events", "Sessions")
+        .Produces<DeleteSessionCheckDto>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(500);
+
+        // Delete session
+        app.MapDelete("/api/events/{eventId}/sessions/{sessionId}", async (
+            string eventId,
+            string sessionId,
+            [FromServices] IEventService eventService,
+            HttpContext context,
+            CancellationToken cancellationToken) =>
+        {
+            // Require Event Organizer or Admin role
+            if (!context.User.Identity?.IsAuthenticated ?? false)
+            {
+                return Results.Problem(
+                    title: "Authentication Required",
+                    detail: "You must be authenticated to delete sessions",
+                    statusCode: 401);
+            }
+
+            var userRole = context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (userRole != "Administrator" && userRole != "EventOrganizer")
+            {
+                return Results.Problem(
+                    title: "Insufficient Permissions",
+                    detail: "Administrator or Event Organizer role required",
+                    statusCode: 403);
+            }
+
+            var (success, response, error) = await eventService.DeleteSessionAsync(eventId, sessionId, cancellationToken);
+
+            if (!success || response == null)
+            {
+                var statusCode = error.Contains("not found") ? 404 :
+                                error.Contains("Cannot delete") ? 400 : 500;
+
+                return Results.Problem(
+                    title: "Failed to delete session",
+                    detail: error,
+                    statusCode: statusCode);
+            }
+
+            return Results.Ok(response);
+        })
+        .RequireAuthorization()
+        .WithName("DeleteSession")
+        .WithSummary("Delete a session")
+        .WithDescription("Deletes a session and cancels associated RSVPs and volunteer signups. Deletes single-session ticket types.")
+        .WithTags("Events", "Sessions")
+        .Produces<DeleteSessionResultDto>(200)
+        .ProducesProblem(400)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(500);
+
+        // Check if ticket type can be deleted
+        app.MapGet("/api/events/{eventId}/ticket-types/{ticketTypeId}/can-delete", async (
+            string eventId,
+            string ticketTypeId,
+            [FromServices] IEventService eventService,
+            HttpContext context,
+            CancellationToken cancellationToken) =>
+        {
+            // Require Event Organizer or Admin role
+            if (!context.User.Identity?.IsAuthenticated ?? false)
+            {
+                return Results.Problem(
+                    title: "Authentication Required",
+                    detail: "You must be authenticated to check ticket type deletion",
+                    statusCode: 401);
+            }
+
+            var userRole = context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (userRole != "Administrator" && userRole != "EventOrganizer")
+            {
+                return Results.Problem(
+                    title: "Insufficient Permissions",
+                    detail: "Administrator or Event Organizer role required",
+                    statusCode: 403);
+            }
+
+            var (success, response, error) = await eventService.CheckTicketTypeDeletionAsync(eventId, ticketTypeId, cancellationToken);
+
+            if (!success || response == null)
+            {
+                return Results.Problem(
+                    title: "Failed to check ticket type deletion",
+                    detail: error,
+                    statusCode: error.Contains("not found") ? 404 : 500);
+            }
+
+            return Results.Ok(response);
+        })
+        .RequireAuthorization()
+        .WithName("CheckTicketTypeDeletion")
+        .WithSummary("Check if a ticket type can be deleted")
+        .WithDescription("Returns information about whether the ticket type has sales")
+        .WithTags("Events", "TicketTypes")
+        .Produces<DeleteTicketTypeCheckDto>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(500);
+
+        // Delete ticket type
+        app.MapDelete("/api/events/{eventId}/ticket-types/{ticketTypeId}", async (
+            string eventId,
+            string ticketTypeId,
+            [FromServices] IEventService eventService,
+            HttpContext context,
+            CancellationToken cancellationToken) =>
+        {
+            // Require Event Organizer or Admin role
+            if (!context.User.Identity?.IsAuthenticated ?? false)
+            {
+                return Results.Problem(
+                    title: "Authentication Required",
+                    detail: "You must be authenticated to delete ticket types",
+                    statusCode: 401);
+            }
+
+            var userRole = context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (userRole != "Administrator" && userRole != "EventOrganizer")
+            {
+                return Results.Problem(
+                    title: "Insufficient Permissions",
+                    detail: "Administrator or Event Organizer role required",
+                    statusCode: 403);
+            }
+
+            var (success, response, error) = await eventService.DeleteTicketTypeAsync(eventId, ticketTypeId, cancellationToken);
+
+            if (!success || response == null)
+            {
+                var statusCode = error.Contains("not found") ? 404 :
+                                error.Contains("Cannot delete") ? 400 : 500;
+
+                return Results.Problem(
+                    title: "Failed to delete ticket type",
+                    detail: error,
+                    statusCode: statusCode);
+            }
+
+            return Results.Ok(response);
+        })
+        .RequireAuthorization()
+        .WithName("DeleteTicketType")
+        .WithSummary("Delete a ticket type")
+        .WithDescription("Deletes a ticket type if no tickets have been sold")
+        .WithTags("Events", "TicketTypes")
+        .Produces<DeleteTicketTypeResultDto>(200)
+        .ProducesProblem(400)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(500);
     }
 }

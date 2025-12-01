@@ -818,9 +818,10 @@ public class TicketPurchaseSeeder
     {
         _logger.LogInformation("Creating historical workshop tickets for event {EventId} ({DaysAgo} days ago)", eventId, daysAgo);
 
-        // 1. Get event details from database
+        // 1. Get event details from database (include Sessions for CheckIn)
         var evt = await _context.Events
             .Include(e => e.TicketTypes)
+            .Include(e => e.Sessions)
             .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
 
         if (evt == null)
@@ -835,6 +836,13 @@ public class TicketPurchaseSeeder
         {
             _logger.LogWarning("No users available for historical workshop tickets");
             return;
+        }
+
+        // Get admin user for check-in staff member
+        var adminUser = await _userManager.FindByEmailAsync("admin@witchcityrope.com");
+        if (adminUser == null)
+        {
+            _logger.LogWarning("Admin user not found - check-ins will use system user");
         }
 
         // Calculate total tickets needed (including canceled ticket)
@@ -965,18 +973,40 @@ public class TicketPurchaseSeeder
                 // Create CheckIn record if they attended
                 if (shouldCheckIn)
                 {
+                    // Determine which session to check in to:
+                    // - If ticket has specific SessionId, use that
+                    // - If ticket is multi-session (SessionId == null), use first session of event
+                    Guid sessionId;
+                    if (ticketType.SessionId.HasValue)
+                    {
+                        sessionId = ticketType.SessionId.Value;
+                    }
+                    else
+                    {
+                        // Multi-session ticket - use first session
+                        var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
+                        if (firstSession == null)
+                        {
+                            _logger.LogWarning("Event {EventId} has no sessions - cannot create CheckIn for user {UserId}", evt.Id, user.Id);
+                            continue; // Skip check-in creation if no sessions exist
+                        }
+                        sessionId = firstSession.Id;
+                    }
+
                     var checkInTime = evt.StartDate.AddMinutes(-15); // 15 min before start
-                    var checkIn = new CheckIn(attendee.Id, evt.Id, user.Id)
+                    var staffMemberId = adminUser?.Id ?? user.Id; // Use admin as staff, fallback to user if admin not found
+                    var checkIn = new CheckIn(attendee.Id, evt.Id, sessionId, staffMemberId)
                     {
                         Id = Guid.NewGuid(),
                         CheckInTime = checkInTime,
                         CreatedAt = checkInTime,
-                        CreatedBy = user.Id,
+                        CreatedBy = staffMemberId,
                         Notes = $"Checked in for {ticketTypeName}"
                     };
                     _context.CheckIns.Add(checkIn);
 
-                    _logger.LogDebug("Created check-in for user {UserId} at event {EventId} ({TicketType})", user.Id, evt.Id, ticketTypeName);
+                    _logger.LogDebug("Created check-in for user {UserId} at event {EventId} session {SessionId} ({TicketType}) by staff {StaffId}",
+                        user.Id, evt.Id, sessionId, ticketTypeName, staffMemberId);
                 }
 
                 globalTicketCounter++; // Increment for every ticket created

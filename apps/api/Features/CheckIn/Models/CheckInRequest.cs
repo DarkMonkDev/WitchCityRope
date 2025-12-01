@@ -56,6 +56,16 @@ public class CheckInResponse
     public string Message { get; set; } = string.Empty;
     public CapacityInfo CurrentCapacity { get; set; } = new();
     public string? AuditLogId { get; set; }
+
+    /// <summary>
+    /// Session ID this check-in is for
+    /// </summary>
+    public Guid SessionId { get; set; }
+
+    /// <summary>
+    /// Session name for display
+    /// </summary>
+    public string SessionName { get; set; } = string.Empty;
 }
 
 /// <summary>

@@ -67,7 +67,7 @@ test.describe('Events System Basic Validation', () => {
       'h1, h2, h3, h4'
     ];
 
-    let contentFound = {};
+    const contentFound: Record<string, number> = {};
     for (const selector of eventContentSelectors) {
       const count = await page.locator(selector).count();
       contentFound[selector] = count;
@@ -154,13 +154,13 @@ test.describe('Events System Basic Validation', () => {
             const adminAccessWorking = adminEventElements > 0;
             console.log(`🛠️ Admin events access working: ${adminAccessWorking}`);
 
-          } catch (error) {
-            console.log(`⚠️ Admin events access error: ${error.message}`);
+          } catch (error: unknown) {
+            console.log(`⚠️ Admin events access error: ${error instanceof Error ? error.message : String(error)}`);
           }
         }
 
-      } catch (error) {
-        console.log(`⚠️ Login test error: ${error.message}`);
+      } catch (error: unknown) {
+        console.log(`⚠️ Login test error: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
@@ -173,7 +173,7 @@ test.describe('Events System Basic Validation', () => {
     console.log('🧪 Testing API connectivity...');
     
     // Monitor network requests
-    const apiRequests = [];
+    const apiRequests: Array<{url: string; status: number; method: string}> = [];
     page.on('response', async (response) => {
       if (response.url().includes('/api/')) {
         apiRequests.push({
@@ -202,8 +202,8 @@ test.describe('Events System Basic Validation', () => {
         const healthData = await apiHealthResponse.json();
         console.log(`📋 API health data:`, healthData);
       }
-    } catch (error) {
-      console.log(`⚠️ API health check failed: ${error.message}`);
+    } catch (error: unknown) {
+      console.log(`⚠️ API health check failed: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     // Check for events-specific API endpoints
@@ -215,8 +215,8 @@ test.describe('Events System Basic Validation', () => {
         const eventsData = await eventsApiResponse.json();
         console.log(`📊 Events data structure:`, typeof eventsData, Array.isArray(eventsData) ? `Array[${eventsData.length}]` : 'Object');
       }
-    } catch (error) {
-      console.log(`⚠️ Events API check failed: ${error.message}`);
+    } catch (error: unknown) {
+      console.log(`⚠️ Events API check failed: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     await page.screenshot({ path: 'test-results/api-connectivity-final.png' });
@@ -274,8 +274,8 @@ test.describe('Events System Basic Validation', () => {
         systemStatus.eventsDataAvailable = false;
       }
 
-    } catch (error) {
-      console.log(`⚠️ Integration check error: ${error.message}`);
+    } catch (error: unknown) {
+      console.log(`⚠️ Integration check error: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     await page.screenshot({ path: 'test-results/complete-system-check.png' });

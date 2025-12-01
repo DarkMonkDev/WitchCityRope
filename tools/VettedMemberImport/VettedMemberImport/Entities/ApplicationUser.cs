@@ -16,6 +16,7 @@ public class ApplicationUser : IdentityUser<Guid>
     public string? Bio { get; set; }
     public string? DiscordName { get; set; }
     public string? FetLifeName { get; set; }
+    public string? OtherNames { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }

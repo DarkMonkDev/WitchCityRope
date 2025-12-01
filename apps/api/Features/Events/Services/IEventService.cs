@@ -74,4 +74,52 @@ public interface IEventService
     Task<(bool Success, EventDto? Response, string Error)> CreateEventAsync(
         CreateEventRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Check if a session can be deleted and return information about what would be affected
+    /// </summary>
+    /// <param name="eventId">Event ID (string representation of Guid)</param>
+    /// <param name="sessionId">Session ID (string representation of Guid)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Tuple with success flag, check result DTO, and error message</returns>
+    Task<(bool Success, DeleteSessionCheckDto? Response, string Error)> CheckSessionDeletionAsync(
+        string eventId,
+        string sessionId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a session and cascade to related entities (RSVPs, volunteer signups, single-session ticket types)
+    /// </summary>
+    /// <param name="eventId">Event ID (string representation of Guid)</param>
+    /// <param name="sessionId">Session ID (string representation of Guid)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Tuple with success flag, deletion result DTO, and error message</returns>
+    Task<(bool Success, DeleteSessionResultDto? Response, string Error)> DeleteSessionAsync(
+        string eventId,
+        string sessionId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Check if a ticket type can be deleted
+    /// </summary>
+    /// <param name="eventId">Event ID (string representation of Guid)</param>
+    /// <param name="ticketTypeId">Ticket type ID (string representation of Guid)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Tuple with success flag, check result DTO, and error message</returns>
+    Task<(bool Success, DeleteTicketTypeCheckDto? Response, string Error)> CheckTicketTypeDeletionAsync(
+        string eventId,
+        string ticketTypeId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a ticket type
+    /// </summary>
+    /// <param name="eventId">Event ID (string representation of Guid)</param>
+    /// <param name="ticketTypeId">Ticket type ID (string representation of Guid)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Tuple with success flag, deletion result DTO, and error message</returns>
+    Task<(bool Success, DeleteTicketTypeResultDto? Response, string Error)> DeleteTicketTypeAsync(
+        string eventId,
+        string ticketTypeId,
+        CancellationToken cancellationToken = default);
 }

@@ -317,7 +317,7 @@ test.describe('Login with Email or Scene Name', () => {
       await page.waitForLoadState('domcontentloaded');
 
       // Clear auth state AFTER navigation
-      await clearAuthState(page);
+      await AuthHelpers.clearAuthState(page);
 
       // Act - Try to login with uppercase scene name
       await fillAndSubmitLogin(page, upperCaseSceneName, testAccount.password);

@@ -65,7 +65,7 @@ export class ConsoleHelpers {
 
         this.errors.push(errorText);
         console.log('❌ Console Error:', errorText);
-      } else if (msg.type() === 'warn' || msg.type() === 'warning') {
+      } else if (msg.type() === 'warning') {
         // Filter out React DOM nesting warnings if they're already fixed
         if (errorText.includes('validateDOMNesting')) {
           if (logFilteredMessages) {

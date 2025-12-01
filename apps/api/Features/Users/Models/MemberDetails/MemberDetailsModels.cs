@@ -49,6 +49,7 @@ public class VettingDetailsResponse
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? FetLifeHandle { get; set; }
+    public string? OtherNames { get; set; }
     public string? Pronouns { get; set; }
     public string? AboutYourself { get; set; }
     public string? ExperienceDescription { get; set; }

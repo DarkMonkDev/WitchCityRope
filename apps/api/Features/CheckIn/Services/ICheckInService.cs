@@ -10,11 +10,13 @@ namespace WitchCityRope.Api.Features.CheckIn.Services;
 public interface ICheckInService
 {
     /// <summary>
-    /// Get attendees for event with optional filtering
+    /// Get attendees for event session with optional filtering
     /// Optimized for mobile display and search
+    /// Filters attendees to only show those eligible for the specific session
     /// </summary>
     Task<Result<CheckInAttendeesResponse>> GetEventAttendeesAsync(
         Guid eventId,
+        Guid sessionId,
         string? search = null,
         string? status = null,
         int page = 1,

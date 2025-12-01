@@ -203,7 +203,7 @@ test.describe('Password Reset Feature', () => {
       // Arrange
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
       const mockToken = 'CfDJ8MockTokenString123';
-      await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
+      await page.goto(`/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
       await page.waitForLoadState('domcontentloaded');
 
       // Act - Enter short password
@@ -220,7 +220,7 @@ test.describe('Password Reset Feature', () => {
       // Arrange
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
       const mockToken = 'CfDJ8MockTokenString123';
-      await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
+      await page.goto(`/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
       await page.waitForLoadState('domcontentloaded');
 
       // Act - Enter non-matching passwords
@@ -237,7 +237,7 @@ test.describe('Password Reset Feature', () => {
       // Arrange - Use invalid token
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
       const invalidToken = 'invalid-token';
-      await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}&token=${encodeURIComponent(invalidToken)}`);
+      await page.goto(`/reset-password?userId=${mockUserId}&token=${encodeURIComponent(invalidToken)}`);
       await page.waitForLoadState('domcontentloaded');
 
       // Act - Submit form with valid passwords
@@ -256,15 +256,15 @@ test.describe('Password Reset Feature', () => {
       // Arrange
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
       const mockToken = 'CfDJ8MockTokenString123';
-      await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
+      await page.goto(`/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
       await page.waitForLoadState('domcontentloaded');
 
       // Act - Click back to login
       await page.locator('[data-testid="link-back-to-login"]').click();
 
       // Assert - Redirected to login
-      await page.waitForURL(`${BASE_URL}/login`);
-      expect(page.url()).toBe(`${BASE_URL}/login`);
+      await page.waitForURL('**/login');
+      expect(page.url()).toContain('/login');
     });
   });
 
@@ -296,21 +296,21 @@ test.describe('Password Reset Feature', () => {
       await page.locator('[data-testid="link-back-to-login"]').first().click();
 
       // Assert - Redirected to login
-      await page.waitForURL(`${BASE_URL}/login`);
-      expect(page.url()).toBe(`${BASE_URL}/login`);
+      await page.waitForURL('**/login');
+      expect(page.url()).toContain('/login');
     });
 
     test('should navigate from invalid reset link to forgot password', async ({ page }) => {
       // Arrange - Navigate without parameters
-      await page.goto(`${BASE_URL}/reset-password`);
+      await page.goto('/reset-password');
       await page.waitForLoadState('domcontentloaded');
 
       // Act - Click request new link
       await page.locator('[data-testid="link-forgot-password"]').click();
 
       // Assert - Redirected to forgot password
-      await page.waitForURL(`${BASE_URL}/forgot-password`);
-      expect(page.url()).toBe(`${BASE_URL}/forgot-password`);
+      await page.waitForURL('**/forgot-password');
+      expect(page.url()).toContain('/forgot-password');
     });
   });
 });

@@ -32,6 +32,13 @@ public class VolunteerPositionDto
     /// Determined by event's VolunteerCancellationCloseHours setting
     /// </summary>
     public bool CanCancel { get; set; }
+
+    /// <summary>
+    /// Whether new signups are currently allowed for this position
+    /// Determined by event's VolunteerRegistrationCloseHours setting
+    /// False when timing window closed, position full, or user already signed up
+    /// </summary>
+    public bool CanSignUp { get; set; }
 }
 
 /// <summary>

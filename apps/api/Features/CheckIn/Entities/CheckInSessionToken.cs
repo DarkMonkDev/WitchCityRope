@@ -31,6 +31,13 @@ public class CheckInSessionToken
     public Guid EventId { get; set; }
 
     /// <summary>
+    /// Specific session this token grants check-in access to (REQUIRED)
+    /// Ensures kiosk can only check in attendees to one session at a time
+    /// For multi-day events, admins generate separate tokens per day
+    /// </summary>
+    public Guid SessionId { get; set; }
+
+    /// <summary>
     /// Admin user who generated this token
     /// Used for audit trail and security investigation
     /// </summary>
@@ -71,6 +78,7 @@ public class CheckInSessionToken
 
     // Navigation properties
     public WitchCityRope.Api.Models.Event? Event { get; set; }
+    public WitchCityRope.Api.Models.Session? Session { get; set; }
 
     /// <summary>
     /// Constructor initializes required fields

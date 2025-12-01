@@ -360,7 +360,7 @@ test.describe('Vetting Application Workflow', () => {
    */
   test('form pre-fills email for logged-in user', async ({ page }) => {
     // Arrange: Login as member
-    const credentials = await AuthHelpers.loginAs(page, 'member');
+    await AuthHelpers.loginAs(page, 'member');
 
     // Act: Navigate to vetting application form
     await page.goto('/join');
@@ -382,7 +382,7 @@ test.describe('Vetting Application Workflow', () => {
     if (await emailInput.count() > 0) {
       // Email should be pre-filled with logged-in user's email
       const emailValue = await emailInput.inputValue();
-      expect(emailValue).toBe(credentials.email);
+      expect(emailValue).toBe(AuthHelpers.accounts.member.email);
 
       // Email should be readonly
       const isReadonly = await emailInput.getAttribute('readonly');

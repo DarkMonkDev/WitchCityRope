@@ -149,7 +149,8 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     );
 
     // Verify participation type is RSVP (not Ticket)
-    expect(participation.participationType).toBe('RSVP');
+    expect(participation).not.toBeNull();
+    expect(participation!.participationType).toBe('RSVP');
     console.log('✅ Participation type correctly set to RSVP');
   });
 
@@ -184,9 +185,10 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
       1  // 1 = Active
     );
 
+    expect(participation).not.toBeNull();
     const auditLogExists = await DatabaseHelpers.verifyAuditLogExists(
       'AttendanceHistory',
-      participation.id,
+      participation!.id,
       'Registered'
     );
 
@@ -224,9 +226,10 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
       2  // 2 = Cancelled
     );
 
+    expect(participation).not.toBeNull();
     const auditLogExists = await DatabaseHelpers.verifyAuditLogExists(
       'AttendanceHistory',
-      participation.id,
+      participation!.id,
       'Cancelled'
     );
 
@@ -340,7 +343,9 @@ test.describe.serial('RSVP Persistence Edge Cases', () => {
       1  // 1 = Active
     );
 
-    expect(rsvp1.id).not.toBe(rsvp2.id);
+    expect(rsvp1).not.toBeNull();
+    expect(rsvp2).not.toBeNull();
+    expect(rsvp1!.id).not.toBe(rsvp2!.id);
     console.log('✅ Users have separate RSVP records');
   });
 });

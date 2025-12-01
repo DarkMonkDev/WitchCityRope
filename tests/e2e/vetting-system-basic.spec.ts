@@ -55,7 +55,7 @@ test.describe('Vetting System - Basic Functionality', () => {
     console.log('📍 STEP 3: Test guest authentication');
 
     // Use AuthHelper for reliable login (handles form selectors properly)
-    const loginSuccess = await AuthHelpers.loginAs(page, 'guest', { timeout: 15000 });
+    const loginSuccess = await AuthHelpers.loginAs(page, 'guest');
     expect(loginSuccess).toBe(true);
     console.log('✅ Successfully logged in as guest user');
 

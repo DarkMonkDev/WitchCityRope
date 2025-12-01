@@ -126,8 +126,23 @@ public class UserImporter
             return;
         }
 
+        // Combine Instagram and Other handles into OtherNames
+        // Filter out "N/A" values - treat as empty
+        var otherNames = new List<string>();
+        if (!string.IsNullOrWhiteSpace(row.InstagramHandle) &&
+            !row.InstagramHandle.Trim().Equals("N/A", StringComparison.OrdinalIgnoreCase))
+        {
+            otherNames.Add($"IG: {row.InstagramHandle.Trim()}");
+        }
+        if (!string.IsNullOrWhiteSpace(row.OtherHandles) &&
+            !row.OtherHandles.Trim().Equals("N/A", StringComparison.OrdinalIgnoreCase))
+        {
+            otherNames.Add(row.OtherHandles.Trim());
+        }
+        var combinedOtherNames = otherNames.Count > 0 ? string.Join("\n", otherNames) : null;
+
         // Create user - truncate fields to fit database column constraints
-        // SceneName: max 50 chars, Pronouns: max 50 chars, FetLifeName: max 100 chars
+        // SceneName: max 50 chars, Pronouns: max 50 chars, FetLifeName: max 100 chars, OtherNames: max 500 chars
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
@@ -138,6 +153,7 @@ public class UserImporter
             SceneName = Truncate(row.SceneName, 50) ?? "",
             Pronouns = Truncate(row.Pronouns, 50) ?? "",
             FetLifeName = Truncate(row.FetLifeHandle, 100),
+            OtherNames = Truncate(combinedOtherNames, 500),
 
             // Security - Generate random secure password hash (user must reset via email)
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(GenerateRandomPassword()),
@@ -169,21 +185,6 @@ public class UserImporter
         };
 
         _context.Users.Add(user);
-
-        // Combine Instagram and Other handles into OtherNames
-        // Filter out "N/A" values - treat as empty
-        var otherNames = new List<string>();
-        if (!string.IsNullOrWhiteSpace(row.InstagramHandle) &&
-            !row.InstagramHandle.Trim().Equals("N/A", StringComparison.OrdinalIgnoreCase))
-        {
-            otherNames.Add($"IG: {row.InstagramHandle.Trim()}");
-        }
-        if (!string.IsNullOrWhiteSpace(row.OtherHandles) &&
-            !row.OtherHandles.Trim().Equals("N/A", StringComparison.OrdinalIgnoreCase))
-        {
-            otherNames.Add(row.OtherHandles.Trim());
-        }
-        var combinedOtherNames = otherNames.Count > 0 ? string.Join("\n", otherNames) : null;
 
         // Create vetting application - truncate fields to fit database column constraints
         // SceneName: max 100 chars, Pronouns: max 50 chars, FetLifeHandle: max 100 chars, OtherNames: max 1000 chars

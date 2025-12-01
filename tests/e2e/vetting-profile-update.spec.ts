@@ -150,7 +150,7 @@ test.describe('Vetting Application Profile Updates', () => {
     // This test will be SKIPPED if user doesn't have existing data
     // Consider creating a test account with pre-populated data
 
-    test(true, 'Requires user account with pre-populated optional fields');
+    test.skip(true, 'Requires user account with pre-populated optional fields');
 
     // Arrange: Login as a test user with existing profile data
     await AuthHelpers.loginAs(page, 'member');
@@ -273,7 +273,7 @@ test.describe('Vetting Application Profile Updates', () => {
     // 2. Database seeding of test application
     // 3. API calls to create application, then admin UI verification
 
-    test(true, 'Requires multi-user workflow or API setup');
+    test.skip(true, 'Requires multi-user workflow or API setup');
 
     // This would require:
     // 1. User creates vetting application (either via UI or API)

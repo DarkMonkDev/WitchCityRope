@@ -184,17 +184,24 @@ export const EventDetailPage: React.FC = () => {
     ? isVetted
     : (isVetted && participation?.hasTicket);
 
+  // Check if ANY volunteer position has signup window open
+  // If ALL positions have canSignUp === false, don't show encouragement box
+  const hasOpenSignupPositions = Array.isArray(volunteerPositions) &&
+    volunteerPositions.some(p => p.canSignUp !== false);
+
   // Show volunteer encouragement if:
   // - User is logged in
   // - User can volunteer based on event type (social: vetted, class: has ticket)
   // - User has NOT already volunteered
   // - Event has volunteer positions available
+  // - At least ONE position has signup window open (canSignUp !== false)
   // - NOT (event is full AND user doesn't have RSVP/ticket)
   const showVolunteerEncouragement =
     isAuthenticated &&
     canVolunteerBasedOnEventType &&
     !hasUserVolunteered &&
     hasVolunteerPositions &&
+    hasOpenSignupPositions &&
     !(isEventFull && !hasParticipation);
 
   // Scroll to volunteer section

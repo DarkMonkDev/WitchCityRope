@@ -22,6 +22,16 @@ public class SessionTokenResponse
     public string EventTitle { get; set; } = string.Empty;
 
     /// <summary>
+    /// Session this token grants check-in access to
+    /// </summary>
+    public Guid SessionId { get; set; }
+
+    /// <summary>
+    /// Session name for display
+    /// </summary>
+    public string SessionName { get; set; } = string.Empty;
+
+    /// <summary>
     /// When the token was created (UTC)
     /// </summary>
     public DateTime CreatedAt { get; set; }
@@ -33,7 +43,7 @@ public class SessionTokenResponse
 
     /// <summary>
     /// Full check-in URL with token parameter
-    /// Example: /checkin?token={token}&event={eventId}
+    /// Example: /checkin?token={token}&event={eventId}&session={sessionId}
     /// Admin can share this URL or QR code with volunteers
     /// </summary>
     public string CheckInUrl { get; set; } = string.Empty;

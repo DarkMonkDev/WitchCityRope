@@ -1486,4 +1486,424 @@ public class EventService : IEventService
             return (false, null, "Failed to create event. Please try again.");
         }
     }
+
+    /// <summary>
+    /// Check if a session can be deleted and return information about what would be affected
+    /// </summary>
+    public async Task<(bool Success, DeleteSessionCheckDto? Response, string Error)> CheckSessionDeletionAsync(
+        string eventId,
+        string sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!Guid.TryParse(eventId, out var parsedEventId))
+            {
+                _logger.LogWarning("Invalid event ID format: {EventId}", eventId);
+                return (false, null, "Invalid event ID format");
+            }
+
+            if (!Guid.TryParse(sessionId, out var parsedSessionId))
+            {
+                _logger.LogWarning("Invalid session ID format: {SessionId}", sessionId);
+                return (false, null, "Invalid session ID format");
+            }
+
+            var session = await _context.Sessions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == parsedSessionId && s.EventId == parsedEventId, cancellationToken);
+
+            if (session == null)
+            {
+                return (false, null, "Session not found");
+            }
+
+            // Check if this is the only session in the event
+            var sessionCount = await _context.Sessions
+                .Where(s => s.EventId == parsedEventId)
+                .CountAsync(cancellationToken);
+
+            if (sessionCount == 1)
+            {
+                return (true, new DeleteSessionCheckDto
+                {
+                    CanDelete = false,
+                    BlockReason = "onlySession",
+                    RsvpCount = 0,
+                    TicketsSoldCount = 0,
+                    VolunteerShifts = new List<string>(),
+                    AffectedTicketTypes = new List<AffectedTicketTypeDto>()
+                }, string.Empty);
+            }
+
+            // Count tickets sold for this session (EventAttendances with AttendanceType = Ticket, Status = Active)
+            var ticketsSold = await _context.Set<WitchCityRope.Api.Features.Participation.Entities.EventAttendance>()
+                .Where(ea => ea.EventId == parsedEventId
+                          && ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
+                          && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.Ticket
+                          && ea.TicketPurchase != null
+                          && ea.TicketPurchase.TicketType.SessionId == parsedSessionId)
+                .CountAsync(cancellationToken);
+
+            if (ticketsSold > 0)
+            {
+                return (true, new DeleteSessionCheckDto
+                {
+                    CanDelete = false,
+                    BlockReason = "ticketsSold",
+                    RsvpCount = 0,
+                    TicketsSoldCount = ticketsSold,
+                    VolunteerShifts = new List<string>(),
+                    AffectedTicketTypes = new List<AffectedTicketTypeDto>()
+                }, string.Empty);
+            }
+
+            // Check for multi-session ticket types (SessionId = null) with sales
+            // If any multi-session ticket has sales, block deletion of any session
+            var multiSessionTicketTypes = await _context.TicketTypes
+                .AsNoTracking()
+                .Include(tt => tt.Event)
+                    .ThenInclude(e => e.EventAttendances)
+                        .ThenInclude(ea => ea.TicketPurchase)
+                .Where(tt => tt.EventId == parsedEventId && tt.SessionId == null)
+                .ToListAsync(cancellationToken);
+
+            var affectedTicketTypeDtos = new List<AffectedTicketTypeDto>();
+            foreach (var ticketType in multiSessionTicketTypes)
+            {
+                var sold = ticketType.Event?.EventAttendances
+                    .Count(ea => ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
+                              && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.Ticket
+                              && ea.TicketPurchase != null
+                              && ea.TicketPurchase.TicketTypeId == ticketType.Id) ?? 0;
+
+                if (sold > 0)
+                {
+                    affectedTicketTypeDtos.Add(new AffectedTicketTypeDto
+                    {
+                        Id = ticketType.Id,
+                        Name = ticketType.Name,
+                        TicketsSold = sold,
+                        WillBeDeleted = false // Multi-session ticket types won't be deleted
+                    });
+
+                    return (true, new DeleteSessionCheckDto
+                    {
+                        CanDelete = false,
+                        BlockReason = "cascadeBlocking",
+                        RsvpCount = 0,
+                        TicketsSoldCount = 0,
+                        VolunteerShifts = new List<string>(),
+                        AffectedTicketTypes = affectedTicketTypeDtos
+                    }, string.Empty);
+                }
+            }
+
+            // Find single-session ticket types that reference this session
+            var singleSessionTicketTypes = await _context.TicketTypes
+                .AsNoTracking()
+                .Include(tt => tt.Event)
+                    .ThenInclude(e => e.EventAttendances)
+                        .ThenInclude(ea => ea.TicketPurchase)
+                .Where(tt => tt.SessionId == parsedSessionId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var ticketType in singleSessionTicketTypes)
+            {
+                var sold = ticketType.Event?.EventAttendances
+                    .Count(ea => ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
+                              && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.Ticket
+                              && ea.TicketPurchase != null
+                              && ea.TicketPurchase.TicketTypeId == ticketType.Id) ?? 0;
+
+                affectedTicketTypeDtos.Add(new AffectedTicketTypeDto
+                {
+                    Id = ticketType.Id,
+                    Name = ticketType.Name,
+                    TicketsSold = sold,
+                    WillBeDeleted = true // Single-session ticket types will be deleted
+                });
+
+                // If any ticket type has sales, block deletion
+                if (sold > 0)
+                {
+                    return (true, new DeleteSessionCheckDto
+                    {
+                        CanDelete = false,
+                        BlockReason = "cascadeBlocking",
+                        RsvpCount = 0,
+                        TicketsSoldCount = 0,
+                        VolunteerShifts = new List<string>(),
+                        AffectedTicketTypes = affectedTicketTypeDtos
+                    }, string.Empty);
+                }
+            }
+
+            // Count RSVPs (EventAttendances with AttendanceType = RSVP, Status = Active or Waitlisted)
+            var rsvpCount = await _context.Set<WitchCityRope.Api.Features.Participation.Entities.EventAttendance>()
+                .Where(ea => ea.EventId == parsedEventId
+                          && (ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
+                           || ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Waitlisted)
+                          && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.RSVP)
+                .CountAsync(cancellationToken);
+
+            // Get volunteer shifts for this session (if VolunteerPosition entity has SessionId)
+            // For now, return empty list - volunteer signups tracked separately
+            var volunteerShifts = new List<string>();
+
+            return (true, new DeleteSessionCheckDto
+            {
+                CanDelete = true,
+                BlockReason = null,
+                RsvpCount = rsvpCount,
+                TicketsSoldCount = 0,
+                VolunteerShifts = volunteerShifts,
+                AffectedTicketTypes = affectedTicketTypeDtos
+            }, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to check session deletion for session {SessionId}", sessionId);
+            return (false, null, "Failed to check session deletion");
+        }
+    }
+
+    /// <summary>
+    /// Delete a session and cascade to related entities
+    /// </summary>
+    public async Task<(bool Success, DeleteSessionResultDto? Response, string Error)> DeleteSessionAsync(
+        string eventId,
+        string sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            if (!Guid.TryParse(eventId, out var parsedEventId))
+            {
+                _logger.LogWarning("Invalid event ID format: {EventId}", eventId);
+                return (false, null, "Invalid event ID format");
+            }
+
+            if (!Guid.TryParse(sessionId, out var parsedSessionId))
+            {
+                _logger.LogWarning("Invalid session ID format: {SessionId}", sessionId);
+                return (false, null, "Invalid session ID format");
+            }
+
+            // Re-validate deletion eligibility (prevent race condition)
+            var checkResult = await CheckSessionDeletionAsync(eventId, sessionId, cancellationToken);
+            if (!checkResult.Success || checkResult.Response == null)
+            {
+                return (false, null, checkResult.Error);
+            }
+
+            if (!checkResult.Response.CanDelete)
+            {
+                var reason = checkResult.Response.BlockReason switch
+                {
+                    "ticketsSold" => "Cannot delete session with sold tickets",
+                    "onlySession" => "Cannot delete the only session in an event",
+                    "cascadeBlocking" => "Cannot delete session - associated ticket types have sales",
+                    _ => "Cannot delete session"
+                };
+                return (false, null, reason);
+            }
+
+            // Cancel all RSVPs for this session
+            var rsvps = await _context.Set<WitchCityRope.Api.Features.Participation.Entities.EventAttendance>()
+                .Where(ea => ea.EventId == parsedEventId
+                          && (ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
+                           || ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Waitlisted)
+                          && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.RSVP)
+                .ToListAsync(cancellationToken);
+
+            foreach (var rsvp in rsvps)
+            {
+                rsvp.Status = WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Cancelled;
+                rsvp.CancelledAt = DateTime.UtcNow;
+                rsvp.CancellationReason = "Session was canceled by administrator";
+                rsvp.UpdatedAt = DateTime.UtcNow;
+                _context.Update(rsvp);
+            }
+
+            var rsvpsCancelled = rsvps.Count;
+
+            // TODO: Cancel volunteer signups for this session when volunteer system is implemented
+            var volunteerSignupsCancelled = 0;
+
+            // Delete single-session ticket types that reference only this session
+            var ticketTypesToDelete = await _context.TicketTypes
+                .Where(tt => tt.SessionId == parsedSessionId)
+                .ToListAsync(cancellationToken);
+
+            var deletedTicketTypeNames = ticketTypesToDelete.Select(tt => tt.Name).ToList();
+            _context.TicketTypes.RemoveRange(ticketTypesToDelete);
+
+            // Delete the session
+            var session = await _context.Sessions
+                .FirstOrDefaultAsync(s => s.Id == parsedSessionId, cancellationToken);
+
+            if (session == null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return (false, null, "Session not found");
+            }
+
+            _context.Sessions.Remove(session);
+
+            // Save all changes
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Deleted session {SessionId}: cancelled {RsvpCount} RSVPs, {VolunteerCount} volunteer signups, deleted {TicketTypeCount} ticket types",
+                sessionId, rsvpsCancelled, volunteerSignupsCancelled, deletedTicketTypeNames.Count);
+
+            return (true, new DeleteSessionResultDto
+            {
+                Success = true,
+                RsvpsCancelled = rsvpsCancelled,
+                VolunteerSignupsCancelled = volunteerSignupsCancelled,
+                DeletedTicketTypes = deletedTicketTypeNames
+            }, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _logger.LogError(ex, "Failed to delete session {SessionId}", sessionId);
+            return (false, null, "Failed to delete session");
+        }
+    }
+
+    /// <summary>
+    /// Check if a ticket type can be deleted
+    /// </summary>
+    public async Task<(bool Success, DeleteTicketTypeCheckDto? Response, string Error)> CheckTicketTypeDeletionAsync(
+        string eventId,
+        string ticketTypeId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!Guid.TryParse(eventId, out var parsedEventId))
+            {
+                _logger.LogWarning("Invalid event ID format: {EventId}", eventId);
+                return (false, null, "Invalid event ID format");
+            }
+
+            if (!Guid.TryParse(ticketTypeId, out var parsedTicketTypeId))
+            {
+                _logger.LogWarning("Invalid ticket type ID format: {TicketTypeId}", ticketTypeId);
+                return (false, null, "Invalid ticket type ID format");
+            }
+
+            var ticketType = await _context.TicketTypes
+                .AsNoTracking()
+                .Include(tt => tt.Event)
+                    .ThenInclude(e => e.EventAttendances)
+                        .ThenInclude(ea => ea.TicketPurchase)
+                .FirstOrDefaultAsync(tt => tt.Id == parsedTicketTypeId && tt.EventId == parsedEventId, cancellationToken);
+
+            if (ticketType == null)
+            {
+                return (false, null, "Ticket type not found");
+            }
+
+            // Count tickets sold for this ticket type (via EventAttendance)
+            var ticketsSold = ticketType.Event?.EventAttendances
+                .Count(ea => ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
+                          && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.Ticket
+                          && ea.TicketPurchase != null
+                          && ea.TicketPurchase.TicketTypeId == ticketType.Id) ?? 0;
+
+            if (ticketsSold > 0)
+            {
+                return (true, new DeleteTicketTypeCheckDto
+                {
+                    CanDelete = false,
+                    BlockReason = "ticketsSold",
+                    TicketsSoldCount = ticketsSold
+                }, string.Empty);
+            }
+
+            return (true, new DeleteTicketTypeCheckDto
+            {
+                CanDelete = true,
+                BlockReason = null,
+                TicketsSoldCount = 0
+            }, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to check ticket type deletion for ticket type {TicketTypeId}", ticketTypeId);
+            return (false, null, "Failed to check ticket type deletion");
+        }
+    }
+
+    /// <summary>
+    /// Delete a ticket type
+    /// </summary>
+    public async Task<(bool Success, DeleteTicketTypeResultDto? Response, string Error)> DeleteTicketTypeAsync(
+        string eventId,
+        string ticketTypeId,
+        CancellationToken cancellationToken = default)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            if (!Guid.TryParse(eventId, out var parsedEventId))
+            {
+                _logger.LogWarning("Invalid event ID format: {EventId}", eventId);
+                return (false, null, "Invalid event ID format");
+            }
+
+            if (!Guid.TryParse(ticketTypeId, out var parsedTicketTypeId))
+            {
+                _logger.LogWarning("Invalid ticket type ID format: {TicketTypeId}", ticketTypeId);
+                return (false, null, "Invalid ticket type ID format");
+            }
+
+            // Re-validate deletion eligibility (prevent race condition)
+            var checkResult = await CheckTicketTypeDeletionAsync(eventId, ticketTypeId, cancellationToken);
+            if (!checkResult.Success || checkResult.Response == null)
+            {
+                return (false, null, checkResult.Error);
+            }
+
+            if (!checkResult.Response.CanDelete)
+            {
+                return (false, null, "Cannot delete ticket type with sold tickets");
+            }
+
+            // Delete the ticket type
+            var ticketType = await _context.TicketTypes
+                .FirstOrDefaultAsync(tt => tt.Id == parsedTicketTypeId && tt.EventId == parsedEventId, cancellationToken);
+
+            if (ticketType == null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return (false, null, "Ticket type not found");
+            }
+
+            _context.TicketTypes.Remove(ticketType);
+
+            // Save changes
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            _logger.LogInformation("Deleted ticket type {TicketTypeId} from event {EventId}", ticketTypeId, eventId);
+
+            return (true, new DeleteTicketTypeResultDto
+            {
+                Success = true
+            }, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _logger.LogError(ex, "Failed to delete ticket type {TicketTypeId}", ticketTypeId);
+            return (false, null, "Failed to delete ticket type");
+        }
+    }
 }

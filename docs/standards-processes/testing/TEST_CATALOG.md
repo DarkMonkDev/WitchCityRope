@@ -1,9 +1,224 @@
 # WitchCityRope Test Catalog - Navigation Index
 <!-- Last Updated: 2025-11-30 -->
-<!-- Version: 11.30.6 - FOOTER REGRESSION TEST COMPLETED -->
+<!-- Version: 11.30.10 - SESSION AND TICKET TYPE DELETION TESTS RE-EXECUTED -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
+
+## ✅ NEW TEST: SESSION-AWARE CHECK-IN FUNCTIONALITY - November 30, 2025
+
+**CREATION DATE**: 2025-11-30T23:30:00Z
+**STATUS**: ✅ **SESSION-AWARE CHECK-IN E2E TESTS CREATED**
+**IMPACT**: 1 new E2E test file created (7 comprehensive tests) for session-aware check-in
+
+### New Test Files Created
+
+#### 1. Session-Aware Check-In Tests ✅
+- **File**: `tests/e2e/admin-checkin-sessions.spec.ts` (650+ lines)
+- **Tests**: 7 comprehensive E2E tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Token generation, session scoping, and attendees display
+- **Focus**: Session-aware check-in functionality with multi-session event support
+
+**Test Coverage**:
+1. **Token Generation Modal** (2 tests)
+   - Session selector visible for multi-session events
+   - Session selector shows sessions from event
+   - Modal UI elements present and functional
+
+2. **Session Selection Validation** (1 test)
+   - Token generation requires session selection for multi-session events
+   - Validation error displayed when no session selected
+   - Error message mentions session requirement
+
+3. **Single-Session Auto-Selection** (1 test)
+   - Single-session events auto-select the session
+   - Session selector hidden OR pre-selected
+   - Generate button enabled for single-session events
+
+4. **Token Session Scoping** (1 test)
+   - Generated tokens display session name in active tokens list
+   - Token table shows session information
+   - Tokens are properly scoped to selected session
+
+5. **Attendees Tab - Sessions Attended Column** (2 tests)
+   - "Sessions Attended" column header visible
+   - Column displays session badges for checked-in attendees
+   - "None" text shown for attendees without check-ins
+
+**Key Design Decisions**:
+- ✅ Tests are INDEPENDENT of seed data (query events via API)
+- ✅ Uses relative URLs for container compatibility
+- ✅ Defensive testing with `.skip()` for missing features
+- ✅ Follows AuthHelpers pattern (MANDATORY from lessons learned)
+- ✅ Uses `domcontentloaded` instead of `networkidle` (CRITICAL)
+- ✅ Uses `.first()` for React Strict Mode duplicates
+- ✅ Verifies actual UI elements, not hardcoded expectations
+
+**Feature Implementation Status**:
+- ✅ Modal session selector: IMPLEMENTED (line 236-249 in GenerateCheckInLinkModal.tsx)
+- ✅ Session validation: IMPLEMENTED (lines 97-106 in GenerateCheckInLinkModal.tsx)
+- ✅ Auto-selection: IMPLEMENTED (lines 90-94 in GenerateCheckInLinkModal.tsx)
+- ✅ Sessions Attended column: IMPLEMENTED (line 307 in EventForm.tsx)
+- ✅ Session badges: IMPLEMENTED (lines 352-362 in EventForm.tsx)
+
+**Source Code Verified**:
+- `GenerateCheckInLinkModal.tsx` - Session selector, validation, auto-selection
+- `EventForm.tsx` - Attendees tab with Sessions Attended column
+- All data-testid attributes verified in source code
+
+**Related Tests**:
+- `tests/e2e/admin-events-sessions.spec.ts` - Session management (create/edit)
+- Future: Check-in kiosk mode tests (when kiosk UI is built)
+
+---
+
+## ✅ TEST EXECUTION: SESSION AND TICKET TYPE DELETION (RE-RUN) - November 30, 2025
+
+**EXECUTION DATE**: 2025-11-30T23:55:00Z
+**STATUS**: ❌ **TESTS FAILED - BLOCKED BY COMPILATION AND AUTH ISSUES**
+**IMPACT**: 4 test files (24 tests total) - 0 passed, 9 failed, 15 blocked/skipped
+
+### Execution Summary
+
+| Test Category | Total | Passed | Failed | Skipped/Blocked | Status |
+|--------------|-------|--------|--------|-----------------|--------|
+| **Backend Integration** | 15 | 0 | 0 | 15 | ❌ COMPILATION BLOCKED |
+| **E2E Tests** | 9 | 0 | 9 | 0 | ❌ LOGIN AUTH FAILURE |
+| **TOTAL** | **24** | **0** | **9** | **15** | **0% Pass Rate** |
+
+### Critical Blockers
+
+#### 1. Backend Integration Tests - COMPILATION ERRORS (15 tests blocked)
+
+**Status**: ❌ **CANNOT RUN - 52 COMPILATION ERRORS IN TEST PROJECT**
+
+**Blocker**: `/tests/unit/api/WitchCityRope.Api.Tests.csproj` fails to build
+
+**Error Categories**:
+1. **EventServiceCopyTests.cs** - Nullable/operator issues
+   - `error CS0023: Operator '?' cannot be applied to operand of type 'int'`
+
+2. **DTO Property Mismatches** - DTOs don't match current schema
+   - `error CS1061: 'SessionDto' does not contain a definition for 'SessionCode'`
+   - `error CS1061: 'TicketTypeDto' does not contain a definition for 'SessionId'`
+   - `error CS1061: 'ApplicationDetailResponse' does not contain a definition for 'FullName'`
+
+3. **Method Signature Mismatches** - 48 errors in test files
+   - CheckInEndpointsTests.cs (30+ errors)
+   - EventEndpointsTests.cs (7 errors)
+   - VettingServiceTests.cs, VettingEndpointsTests.cs (2 errors)
+
+**Fix Required**: backend-developer to update test files to match current DTOs
+**Estimated Effort**: 2-4 hours
+
+#### 2. E2E Tests - LOGIN AUTHENTICATION FAILURE (9 tests failed)
+
+**Status**: ❌ **ALL 9 E2E TESTS FAILED AT LOGIN**
+
+**Error**: `TimeoutError: locator.click: Timeout 30000ms exceeded` on login button
+**Root Cause**: Login button remains disabled - form fields not being filled properly
+
+**Failure Pattern**:
+```
+TimeoutError: locator.click: Timeout 30000ms exceeded.
+  - waiting for locator('[data-testid="login-button"]')
+    - locator resolved to <button disabled type="submit"...>Sign In</button>
+  - attempting click action
+    - element is not enabled (login button stays disabled)
+```
+
+**Test Files Affected**:
+- `/tests/e2e/admin-session-deletion.spec.ts` (5 tests failed)
+- `/tests/e2e/admin-tickettype-deletion.spec.ts` (4 tests failed)
+
+**Diagnosis**:
+- Auth helper fills `[data-testid="email-or-scenename-input"]` field
+- Login button stays disabled (form validation not passing)
+- No explicit wait for input fields to be ready before filling
+
+**Fix Required**: test-developer to investigate auth.helpers.ts login flow
+**Estimated Effort**: 1-2 hours
+
+### Environment Health
+
+**Docker Containers**: ✅ ALL HEALTHY
+```
+witchcity-test-server   Up 3 hours (healthy)
+witchcity-web           Up 3 hours (healthy)   0.0.0.0:5173->5173/tcp
+witchcity-postgres      Up 3 hours (healthy)   0.0.0.0:5434->5432/tcp
+```
+
+**Web Service**: ✅ RESPONDING (http://localhost:5173)
+**Database**: ✅ AVAILABLE (port 5434)
+
+### Next Steps
+
+**Immediate Actions**:
+1. 🔴 Fix backend test compilation errors (backend-developer)
+2. 🔴 Fix auth helper login failure (test-developer)
+3. ⏳ Re-run backend integration tests after compilation fixed
+4. ⏳ Re-run E2E tests after auth helper fixed
+
+**Expected Results After Fixes**:
+- Backend tests: Should pass (API logic implemented)
+- E2E tests: May skip due to missing UI components (delete buttons not implemented yet)
+
+### Test Artifacts
+
+**Full Report**: `/test-results/session-tickettype-deletion-test-report.md`
+**Logs**:
+- Session deletion E2E: `/test-results/session-deletion-e2e.log`
+- Ticket type deletion E2E: `/test-results/tickettype-deletion-e2e.log`
+
+**Screenshots**:
+- Session deletion failures: `test-results/admin-session-deletion-*/test-failed-1.png`
+- Ticket type deletion failures: `test-results/admin-tickettype-deletion-*/test-failed-1.png`
+
+---
+
+## ✅ NEW TEST: REGISTRATION DUPLICATE SCENE NAME - November 30, 2025
+
+**EXECUTION DATE**: 2025-11-30T22:00:00Z
+**STATUS**: ✅ **REGISTRATION DUPLICATE SCENE NAME TEST CREATED**
+**IMPACT**: 1 new E2E test file created (2 tests total) for duplicate scene name registration
+
+### New Test Files Created
+
+#### 1. Registration Duplicate Scene Name Tests ✅
+- **File**: `tests/e2e/registration-duplicate-scene-name.spec.ts` (200+ lines)
+- **Tests**: 2 E2E tests
+- **Status**: ⏳ NOT YET EXECUTED (waiting for first run)
+- **Coverage**: Duplicate scene name registration with unique email addresses
+- **Focus**: Verifies system allows duplicate scene names (business rule change January 2025)
+
+**Test Coverage**:
+1. **Positive Path** (1 test)
+   - Multiple users can register with identical scene names
+   - Registration succeeds when scene name is duplicate but email is unique
+   - Success screen displays for both registrations
+
+2. **Error Messaging** (1 test)
+   - Error messages do NOT incorrectly mention scene name uniqueness
+   - Validates that UI doesn't show "scene name already taken" messages
+
+**Business Rule Change**:
+- **OLD**: Scene names had to be unique across all users
+- **NEW**: Scene names can be duplicated, only email must be unique
+
+**Key Design Decisions**:
+- ✅ Does NOT test login (newly registered accounts require email verification)
+- ✅ Uses unique timestamps to avoid test conflicts
+- ✅ Tests registration API response for both users
+- ✅ Verifies success screen displays for both users
+- ✅ Documents business rule change in comments
+- ✅ All outputs to `./test-results/`
+
+**Related Tests**:
+- `tests/e2e/registration-tos.spec.ts` - Registration with Terms of Service
+- `tests/e2e/login-with-scene-name.spec.ts` - Login using scene name (after verification)
+
+---
 
 ## ✅ TEST MODERNIZATION: PHASE 3.1 COMPLETED - November 30, 2025
 
@@ -658,19 +873,19 @@ Per `/docs/functional-areas/e2e-testing/test-modernization-handoff-2025-11-30.md
 1. **Vetting System Tests** - 21 failures across 2 files
    - Most likely authentication/state management issues
    - Email templates failing consistently
-   
+
 2. **Payment Integration** - 15 failures across 2 files
    - PayPal integration tests may need mock services or test keys
    - Variable pricing/sliding scale tests failing
-   
+
 3. **Admin Event Management** - 22 failures across 4 files
    - Complex workflows (copying, volunteers, dependencies)
    - UI consistency checks
-   
+
 4. **Waiver Compliance** - 13 failures across 3 files
    - Event waivers, ticket waivers, RSVP waivers
    - Likely form validation or checkbox state issues
-   
+
 5. **Authentication** - 6 failures
    - Password reset flows
    - Staff authentication for check-in
@@ -977,6 +1192,10 @@ This is **Part 1** of the Test Catalog - the lightweight navigation and current 
 
 ### Recent Changes
 
+**November 30, 2025**:
+- ❌ Session & Ticket Type Deletion Tests: 0 passed, 9 failed, 15 blocked (compilation errors, auth helper issues)
+- ✅ Phase 3.7: E2E suite baseline updated (878 → 848 tests, 36.1% → 69.2% pass rate)
+
 **November 29, 2025**:
 - ✅ Phase 3.6: Full E2E suite baseline established (878 tests, 36.1% pass rate)
 - ✅ Phase 3.5: Login selector fixes verified (15 files, 2/2 tests passing)
@@ -1014,11 +1233,12 @@ This is **Part 1** of the Test Catalog - the lightweight navigation and current 
 
 **Location**: `/test-results/test-execution-report.md`
 
-**Latest Report**: 2025-11-29T23:41:29Z
-- Status: ❌ FAIL (36.1% pass rate)
-- Tests: 878 total (317 passed, 561 failed)
-- Focus: Full E2E suite baseline after login selector fixes
-- Duration: 13.1 minutes
+**Latest Report**: 2025-11-30T23:55:00Z
+- Status: ❌ FAIL (Backend blocked, E2E 0% pass rate)
+- Tests: 24 total (0 passed, 9 failed, 15 blocked)
+- Focus: Session and ticket type deletion tests
+- Backend: Compilation errors blocking all 15 integration tests
+- E2E: Auth helper login failure blocking all 9 E2E tests
 
 **Previous Reports**: See `/docs/functional-areas/testing/reports/`
 
@@ -1026,30 +1246,16 @@ This is **Part 1** of the Test Catalog - the lightweight navigation and current 
 
 ## 🚀 Quick Commands
 
-### Run All E2E Tests
-```bash
-npx playwright test
-```
+For running E2E tests, use the **test-executor** agent or run Playwright directly:
 
-### Run Specific Test File
-```bash
-npx playwright test tests/e2e/check-admin-events-visual.spec.ts
-```
+- **Run all tests**: Use test-executor agent with `--mode e2e`
+- **Run specific file**: Pass the file path to the test runner
+- **Run with UI**: Add `--ui` flag to Playwright
+- **Debug mode**: Add `--debug` flag to Playwright
+- **View report**: Use `npx playwright show-report` after test run
 
-### Run Tests with UI
-```bash
-npx playwright test --ui
-```
-
-### Run Tests in Debug Mode
-```bash
-npx playwright test --debug
-```
-
-### Generate HTML Report
-```bash
-npx playwright show-report
-```
+> **Note**: For automated test execution with proper container setup,
+> use the `container-restart` skill followed by Playwright commands.
 
 ---
 

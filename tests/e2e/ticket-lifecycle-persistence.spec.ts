@@ -133,9 +133,10 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
       2 // 2 = Cancelled
     );
 
+    expect(participation).not.toBeNull();
     const historyExists = await DatabaseHelpers.verifyAuditLogExists(
       'AttendanceHistory',
-      participation.id,
+      participation!.id,
       'Cancelled'
     );
 

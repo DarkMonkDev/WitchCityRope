@@ -41,6 +41,7 @@ public class SessionTokenService : ISessionTokenService
     /// <inheritdoc/>
     public async Task<Result<SessionTokenResponse>> GenerateTokenAsync(
         Guid eventId,
+        Guid sessionId,
         Guid adminUserId,
         double expirationHours = 12.0,
         CancellationToken cancellationToken = default)
@@ -55,6 +56,16 @@ public class SessionTokenService : ISessionTokenService
             if (eventEntity == null)
             {
                 return Result<SessionTokenResponse>.Failure("Event not found");
+            }
+
+            // Validate session exists and belongs to this event
+            var sessionEntity = await _context.Sessions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.EventId == eventId, cancellationToken);
+
+            if (sessionEntity == null)
+            {
+                return Result<SessionTokenResponse>.Failure("Session not found or does not belong to this event");
             }
 
             // Generate cryptographically secure token (512 bits, URL-safe base64)
@@ -82,6 +93,7 @@ public class SessionTokenService : ISessionTokenService
             {
                 Token = token,
                 EventId = eventId,
+                SessionId = sessionId,
                 CreatedByUserId = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 ExpiresAt = expiresAt,
@@ -92,23 +104,26 @@ public class SessionTokenService : ISessionTokenService
             await _context.SaveChangesAsync(cancellationToken);
 
             // Cache token for fast validation (TTL matches expiration)
-            var cacheKey = $"{TOKEN_CACHE_PREFIX}{token}";
+            // CRITICAL: Include SessionId in cache key for session-level scope
+            var cacheKey = $"{TOKEN_CACHE_PREFIX}{token}_{sessionId}";
             var cacheDuration = TimeSpan.FromHours(expirationHours);
             _cache.Set(cacheKey, sessionToken, cacheDuration);
 
             _logger.LogInformation(
-                "Generated check-in session token {TokenId} for event {EventId} by admin {AdminId}, expires {ExpiresAt}",
-                sessionToken.Id, eventId, adminUserId, expiresAt);
+                "Generated check-in session token {TokenId} for event {EventId} session {SessionId} by admin {AdminId}, expires {ExpiresAt}",
+                sessionToken.Id, eventId, sessionId, adminUserId, expiresAt);
 
             // Generate check-in URL for frontend (uses dynamically discovered frontend URL)
             var frontendUrl = GetFrontendUrl();
-            var checkInUrl = $"{frontendUrl}/events/{eventId}/checkin?token={token}&event={eventId}";
+            var checkInUrl = $"{frontendUrl}/events/{eventId}/checkin?token={token}&session={sessionId}";
 
             return Result<SessionTokenResponse>.Success(new SessionTokenResponse
             {
                 Token = token,
                 EventId = eventId,
                 EventTitle = eventEntity.Title,
+                SessionId = sessionId,
+                SessionName = sessionEntity.Name,
                 CheckInUrl = checkInUrl,
                 ExpiresAt = expiresAt,
                 CreatedAt = DateTime.UtcNow
@@ -128,7 +143,8 @@ public class SessionTokenService : ISessionTokenService
     {
         try
         {
-            // Check cache first for performance (fast path)
+            // NOTE: Cache key is now token-only (SessionId comes from DB query)
+            // We can't include SessionId in cache key because we don't have it yet
             var cacheKey = $"{TOKEN_CACHE_PREFIX}{token}";
             if (_cache.TryGetValue<CheckInSessionToken>(cacheKey, out var cachedToken))
             {
@@ -146,10 +162,11 @@ public class SessionTokenService : ISessionTokenService
                 // Validate other rules (revoked, etc.)
                 if (IsTokenValid(cachedToken))
                 {
-                    _logger.LogDebug("Token {Token} validated from cache", token.Substring(0, 10));
+                    _logger.LogDebug("Token {Token} validated from cache for session {SessionId}", token.Substring(0, 10), cachedToken.SessionId);
                     return Result<TokenValidationResult>.Success(new TokenValidationResult
                     {
                         EventId = cachedToken.EventId,
+                        SessionId = cachedToken.SessionId,
                         CreatedByStaffId = cachedToken.CreatedByUserId
                     });
                 }
@@ -207,10 +224,11 @@ public class SessionTokenService : ISessionTokenService
                 _cache.Set(cacheKey, sessionToken, remainingTime);
             }
 
-            _logger.LogDebug("Token {Token} validated from database", token.Substring(0, 10));
+            _logger.LogDebug("Token {Token} validated from database for session {SessionId}", token.Substring(0, 10), sessionToken.SessionId);
             return Result<TokenValidationResult>.Success(new TokenValidationResult
             {
                 EventId = sessionToken.EventId,
+                SessionId = sessionToken.SessionId,
                 CreatedByStaffId = sessionToken.CreatedByUserId
             });
         }
@@ -283,6 +301,7 @@ public class SessionTokenService : ISessionTokenService
             var tokens = await _context.CheckInSessionTokens
                 .AsNoTracking()
                 .Include(t => t.Event)
+                .Include(t => t.Session)
                 .Where(t => t.EventId == eventId
                          && !t.IsRevoked
                          && t.ExpiresAt > DateTime.UtcNow)
@@ -297,7 +316,9 @@ public class SessionTokenService : ISessionTokenService
                 Token = t.Token,
                 EventId = t.EventId,
                 EventTitle = t.Event?.Title ?? "Unknown Event",
-                CheckInUrl = $"{frontendUrl}/events/{t.EventId}/checkin?token={t.Token}&event={t.EventId}",
+                SessionId = t.SessionId,
+                SessionName = t.Session?.Name ?? "Unknown Session",
+                CheckInUrl = $"{frontendUrl}/events/{t.EventId}/checkin?token={t.Token}&session={t.SessionId}",
                 CreatedAt = t.CreatedAt,
                 ExpiresAt = t.ExpiresAt
             }).ToList();

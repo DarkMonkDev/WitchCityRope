@@ -347,8 +347,8 @@ export class SelectorHelpers {
       if (typeof expectedText === 'string') {
         await element.waitFor({ state: 'visible', timeout: timeout / 2 });
         await page.waitForFunction(
-          ({ sel, text }) => {
-            const el = document.querySelector(sel);
+          ({ selector, text }) => {
+            const el = document.querySelector(selector);
             return el?.textContent?.includes(text) || false;
           },
           { selector, text: expectedText },
@@ -357,8 +357,8 @@ export class SelectorHelpers {
       } else {
         await element.waitFor({ state: 'visible', timeout: timeout / 2 });
         await page.waitForFunction(
-          ({ sel, pattern }) => {
-            const el = document.querySelector(sel);
+          ({ selector, pattern }) => {
+            const el = document.querySelector(selector);
             return new RegExp(pattern).test(el?.textContent || '');
           },
           { selector, pattern: expectedText.source },

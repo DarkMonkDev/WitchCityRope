@@ -978,6 +978,406 @@
         }
       }
     },
+    "/api/events/{eventId}/sessions": {
+      "get": {
+        "tags": [
+          "Events",
+          "Sessions"
+        ],
+        "summary": "Get all sessions for an event",
+        "description": "Returns a list of sessions for the specified event, ordered by start time",
+        "operationId": "GetEventSessions",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/sessions/{sessionId}/can-delete": {
+      "get": {
+        "tags": [
+          "Events",
+          "Sessions"
+        ],
+        "summary": "Check if a session can be deleted",
+        "description": "Returns information about what would be affected if the session is deleted",
+        "operationId": "CheckSessionDeletion",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteSessionCheckDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/sessions/{sessionId}": {
+      "delete": {
+        "tags": [
+          "Events",
+          "Sessions"
+        ],
+        "summary": "Delete a session",
+        "description": "Deletes a session and cancels associated RSVPs and volunteer signups. Deletes single-session ticket types.",
+        "operationId": "DeleteSession",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteSessionResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/ticket-types/{ticketTypeId}/can-delete": {
+      "get": {
+        "tags": [
+          "Events",
+          "TicketTypes"
+        ],
+        "summary": "Check if a ticket type can be deleted",
+        "description": "Returns information about whether the ticket type has sales",
+        "operationId": "CheckTicketTypeDeletion",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketTypeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteTicketTypeCheckDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/ticket-types/{ticketTypeId}": {
+      "delete": {
+        "tags": [
+          "Events",
+          "TicketTypes"
+        ],
+        "summary": "Delete a ticket type",
+        "description": "Deletes a ticket type if no tickets have been sold",
+        "operationId": "DeleteTicketType",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketTypeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteTicketTypeResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users/profile": {
       "get": {
         "tags": [
@@ -9659,6 +10059,25 @@
           }
         }
       },
+      "AffectedTicketTypeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ticketsSold": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "willBeDeleted": {
+            "type": "boolean"
+          }
+        }
+      },
       "ApplicationDetailResponse": {
         "type": "object",
         "properties": {
@@ -10650,6 +11069,13 @@
           "auditLogId": {
             "type": "string",
             "nullable": true
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sessionName": {
+            "type": "string"
           }
         }
       },
@@ -11204,6 +11630,87 @@
           }
         }
       },
+      "DeleteSessionCheckDto": {
+        "type": "object",
+        "properties": {
+          "canDelete": {
+            "type": "boolean"
+          },
+          "blockReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "rsvpCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ticketsSoldCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "volunteerShifts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "affectedTicketTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AffectedTicketTypeDto"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "DeleteSessionResultDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "rsvpsCancelled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "volunteerSignupsCancelled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deletedTicketTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "DeleteTicketTypeCheckDto": {
+        "type": "object",
+        "properties": {
+          "canDelete": {
+            "type": "boolean"
+          },
+          "blockReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "ticketsSoldCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DeleteTicketTypeResultDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
       "DetailedHealthResponse": {
         "type": "object",
         "properties": {
@@ -11593,6 +12100,10 @@
         "type": "object",
         "properties": {
           "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sessionId": {
             "type": "string",
             "format": "uuid"
           },
@@ -13702,6 +14213,13 @@
           "eventTitle": {
             "type": "string"
           },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sessionName": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -15194,6 +15712,10 @@
             "type": "string",
             "nullable": true
           },
+          "otherNames": {
+            "type": "string",
+            "nullable": true
+          },
           "pronouns": {
             "type": "string",
             "nullable": true
@@ -15447,6 +15969,9 @@
           },
           "canCancel": {
             "type": "boolean"
+          },
+          "canSignUp": {
+            "type": "boolean"
           }
         }
       },
@@ -15571,6 +16096,12 @@
     },
     {
       "name": "CheckIn"
+    },
+    {
+      "name": "Sessions"
+    },
+    {
+      "name": "TicketTypes"
     },
     {
       "name": "Users"

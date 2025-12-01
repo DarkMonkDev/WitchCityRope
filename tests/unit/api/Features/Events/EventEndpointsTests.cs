@@ -59,7 +59,7 @@ public class EventEndpointsTests
             new EventDto { Id = Guid.NewGuid().ToString(), Title = "Event 2", IsPublished = true }
         };
 
-        _mockEventService.GetEventsAsync(false, Arg.Any<CancellationToken>())
+        _mockEventService.GetEventsAsync(false, false, Arg.Any<CancellationToken>())
             .Returns((true, expectedEvents, string.Empty));
 
         var httpContext = new DefaultHttpContext();
@@ -85,7 +85,7 @@ public class EventEndpointsTests
             new EventDto { Id = Guid.NewGuid().ToString(), Title = "Event 1", IsPublished = true }
         };
 
-        _mockEventService.GetEventsAsync(false, Arg.Any<CancellationToken>())
+        _mockEventService.GetEventsAsync(false, false, Arg.Any<CancellationToken>())
             .Returns((true, expectedEvents, string.Empty));
 
         var httpContext = new DefaultHttpContext();
@@ -162,7 +162,7 @@ public class EventEndpointsTests
             new EventDto { Id = Guid.NewGuid().ToString(), Title = "Draft Event", IsPublished = false }
         };
 
-        _mockEventService.GetEventsAsync(true, Arg.Any<CancellationToken>())
+        _mockEventService.GetEventsAsync(true, false, Arg.Any<CancellationToken>())
             .Returns((true, expectedEvents, string.Empty));
 
         var claims = new List<Claim>
@@ -194,7 +194,7 @@ public class EventEndpointsTests
     public async Task GetEvents_WhenServiceFails_Returns500InternalServerError()
     {
         // Arrange
-        _mockEventService.GetEventsAsync(false, Arg.Any<CancellationToken>())
+        _mockEventService.GetEventsAsync(false, false, Arg.Any<CancellationToken>())
             .Returns((false, new List<EventDto>(), "Database connection failed"));
 
         var httpContext = new DefaultHttpContext();
@@ -934,7 +934,7 @@ public class EventEndpointsTests
             }
         }
 
-        var (success, response, error) = await _mockEventService.GetEventsAsync(shouldIncludeUnpublished, CancellationToken.None);
+        var (success, response, error) = await _mockEventService.GetEventsAsync(shouldIncludeUnpublished, false, CancellationToken.None);
 
         if (success)
         {

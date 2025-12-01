@@ -54,7 +54,7 @@ export async function testRsvpPersistence(
     // Setup: Login and navigate to event
     setup: async (page: Page) => {
       // Map email to role for AuthHelpers.loginAs()
-      const roleMap: Record<string, keyof typeof import('../helpers/auth.helpers').AuthHelpers.accounts> = {
+      const roleMap: Record<string, keyof typeof import('../test-utils/helpers/auth.helpers').AuthHelpers.accounts> = {
         'admin@witchcityrope.com': 'admin',
         'teacher@witchcityrope.com': 'teacher',
         'vetted@witchcityrope.com': 'vetted',
@@ -68,7 +68,7 @@ export async function testRsvpPersistence(
       }
 
       // Use AuthHelpers for robust login (clears auth state, handles waits properly)
-      const { AuthHelpers } = await import('../helpers/auth.helpers');
+      const { AuthHelpers } = await import('../test-utils/helpers/auth.helpers');
       await AuthHelpers.loginAs(page, role);
 
       userId = await DatabaseHelpers.getUserIdFromEmail(userEmail);
@@ -217,6 +217,9 @@ export async function testRsvpPersistence(
 
       // Verify participation type is RSVP
       // Database stores AttendanceType as integer: 1=RSVP, 2=Ticket
+      if (!participation) {
+        throw new Error('No participation record found in database');
+      }
       const typeName = getParticipationTypeName(participation.participationType);
       if (typeName !== 'RSVP') {
         throw new Error(
@@ -275,7 +278,7 @@ export async function testCancelRsvpPersistence(
     // Setup: Login, verify RSVP exists, navigate to event
     setup: async (page: Page) => {
       // Map email to role for AuthHelpers.loginAs()
-      const roleMap: Record<string, keyof typeof import('../helpers/auth.helpers').AuthHelpers.accounts> = {
+      const roleMap: Record<string, keyof typeof import('../test-utils/helpers/auth.helpers').AuthHelpers.accounts> = {
         'admin@witchcityrope.com': 'admin',
         'teacher@witchcityrope.com': 'teacher',
         'vetted@witchcityrope.com': 'vetted',
@@ -289,7 +292,7 @@ export async function testCancelRsvpPersistence(
       }
 
       // Use AuthHelpers for robust login (clears auth state, handles waits properly)
-      const { AuthHelpers } = await import('../helpers/auth.helpers');
+      const { AuthHelpers } = await import('../test-utils/helpers/auth.helpers');
       await AuthHelpers.loginAs(page, role);
 
       userId = await DatabaseHelpers.getUserIdFromEmail(userEmail);
@@ -303,6 +306,9 @@ export async function testCancelRsvpPersistence(
           eventId,
           1  // 1 = Active (ParticipationStatus enum)
         );
+        if (!participation) {
+          throw new Error('No participation found');
+        }
         const typeName = getParticipationTypeName(participation.participationType);
         console.log(`✅ User has active ${typeName} - ready to cancel`);
       } catch (error) {

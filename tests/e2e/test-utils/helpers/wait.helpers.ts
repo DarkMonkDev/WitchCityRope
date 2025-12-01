@@ -344,14 +344,20 @@ export class WaitHelpers {
       await expect(image).toHaveAttribute('src');
 
       // Wait for image to load
-      await page.waitForFunction(
-        (img) => img.complete && img.naturalHeight !== 0,
-        await image.elementHandle(),
-        { timeout: 2000 }
-      ).catch(() => {
-        // Continue if individual image fails to load
-        console.warn(`Image ${i} failed to load within timeout`);
-      });
+      const elementHandle = await image.elementHandle();
+      if (elementHandle) {
+        await page.waitForFunction(
+          (el) => {
+            const img = el as HTMLImageElement;
+            return img.complete && img.naturalHeight !== 0;
+          },
+          elementHandle,
+          { timeout: 2000 }
+        ).catch(() => {
+          // Continue if individual image fails to load
+          console.warn(`Image ${i} failed to load within timeout`);
+        });
+      }
     }
   }
 }

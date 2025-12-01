@@ -25,10 +25,9 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
     // Login as admin user using established pattern from lessons learned
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Fetch a real event ID from the API (use pattern matching for container compatibility)
-    const eventsResponse = await page.request.get('/api/events', {
-      baseURL: process.env.API_BASE_URL || 'http://localhost:5655'
-    });
+    // Fetch a real event ID from the API
+    const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:5655';
+    const eventsResponse = await page.request.get(`${apiBaseUrl}/api/events`);
     const events = await eventsResponse.json();
 
     if (!events || events.length === 0) {

@@ -174,7 +174,8 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               {position.description}
             </Text>
 
-            {!position.hasUserSignedUp && !position.isFullyStaffed && isAuthenticated && (
+            {/* Show Sign Up button only if user hasn't signed up, position isn't full, AND signup window is open */}
+            {!position.hasUserSignedUp && !position.isFullyStaffed && isAuthenticated && position.canSignUp !== false && (
               <Button
                 variant="outline"
                 color="burgundy"
@@ -198,7 +199,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               </Button>
             )}
 
-            {!position.hasUserSignedUp && !position.isFullyStaffed && !isAuthenticated && (
+            {!position.hasUserSignedUp && !position.isFullyStaffed && !isAuthenticated && position.canSignUp !== false && (
               <Button
                 component="a"
                 href="/login"
@@ -219,6 +220,13 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               >
                 Login to Volunteer
               </Button>
+            )}
+
+            {/* Show signup closed message if signup window has closed */}
+            {!position.hasUserSignedUp && !position.isFullyStaffed && position.canSignUp === false && (
+              <Text size="xs" c="dimmed" style={{ fontSize: '12px', textAlign: 'right', flexShrink: 0 }}>
+                Volunteer signup has closed
+              </Text>
             )}
           </Group>
 

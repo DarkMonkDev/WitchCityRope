@@ -13,6 +13,7 @@ import {
   Box,
   Badge,
   Tooltip,
+  Select,
 } from '@mantine/core';
 import {
   IconLink,
@@ -21,6 +22,7 @@ import {
   IconTrash,
   IconAlertCircle,
   IconClock,
+  IconCalendar,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import {
@@ -30,6 +32,8 @@ import {
 } from '../hooks/useSessionTokens';
 import type { SessionTokenResponse } from '../api/sessionTokenApi';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
+import { useEventSessions } from '../../../lib/api/hooks/useEventSessions';
+import type { SessionDto } from '../../../lib/api/services/eventSessions';
 
 interface GenerateCheckInLinkModalProps {
   opened: boolean;
@@ -58,23 +62,63 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   const [generatedToken, setGeneratedToken] = useState<SessionTokenResponse | null>(null);
   const [expiresInHours, setExpiresInHours] = useState<number>(12);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
   const generateMutation = useGenerateSessionToken();
   const revokeMutation = useRevokeSessionToken();
   const { data: activeTokens, isLoading: isLoadingTokens } = useActiveSessionTokens(eventId, opened);
+  const { data: sessionsData, isLoading: isLoadingSessions } = useEventSessions(eventId, opened);
   const eventTimeZone = useEventTimeZone();
+
+  // Type-safe sessions (API returns SessionDto[] | undefined)
+  const sessions = (sessionsData as SessionDto[] | undefined) || [];
 
   // Type-safe active tokens (API returns SessionTokenResponse[] | undefined)
   const tokens = (activeTokens as SessionTokenResponse[] | undefined) || [];
 
+  // Type-safe sessions for Select dropdown
+  const sessionOptions = React.useMemo(() => {
+    if (sessions.length === 0) return [];
+
+    return sessions.map((session) => ({
+      value: session.id,
+      label: session.name || 'Unnamed Session',
+    }));
+  }, [sessions]);
+
+  // Auto-select the only session if there's exactly one
+  React.useEffect(() => {
+    if (opened && sessions.length === 1 && !selectedSessionId) {
+      setSelectedSessionId(sessions[0].id);
+    }
+  }, [opened, sessions, selectedSessionId]);
+
   const handleGenerate = async () => {
+    // Validate session selection for multi-session events
+    if (sessionOptions.length > 1 && !selectedSessionId) {
+      notifications.show({
+        title: 'Session Required',
+        message: 'Please select a session for this check-in token.',
+        color: 'orange',
+        icon: <IconAlertCircle />,
+      });
+      return;
+    }
+
     try {
-      const result = await generateMutation.mutateAsync({ eventId, expirationHours: expiresInHours });
+      const result = await generateMutation.mutateAsync({
+        eventId,
+        sessionId: selectedSessionId || undefined,
+        expirationHours: expiresInHours
+      });
       setGeneratedToken(result);
+
+      // Get session name for success message
+      const sessionName = sessionOptions.find(s => s.value === selectedSessionId)?.label || 'All Sessions';
 
       notifications.show({
         title: 'Check-In Link Generated',
-        message: 'Session token created successfully. Copy the link below.',
+        message: `Session token created successfully for ${sessionName}. Copy the link below.`,
         color: 'green',
         icon: <IconCheck />,
       });
@@ -156,6 +200,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   const handleClose = () => {
     setGeneratedToken(null);
     setCopiedToken(null);
+    setSelectedSessionId(null);
     onClose();
   };
 
@@ -187,38 +232,75 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
           <Text fw={600} mb="md">
             Generate New Token
           </Text>
-          <Group align="flex-end">
-            <NumberInput
-              label="Expires in (hours)"
-              description="Token will automatically expire after this time"
-              value={expiresInHours}
-              onChange={(value) => setExpiresInHours(Number(value) || 12)}
-              min={1}
-              max={168} // 7 days max
-              step={1}
-              style={{ flex: 1 }}
-              leftSection={<IconClock size={16} />}
-            />
-            <Button
-              onClick={handleGenerate}
-              loading={generateMutation.isPending}
-              leftSection={<IconLink size={16} />}
-              variant="filled"
-              color="blue"
-              styles={{
-                root: {
-                  fontWeight: 600,
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2',
-                },
-              }}
-            >
-              Generate Link
-            </Button>
-          </Group>
+          <Stack gap="md">
+            {/* Session Selector - Show only if multiple sessions */}
+            {sessionOptions.length > 1 && (
+              <Select
+                label="Session"
+                description="Select which session this token is for"
+                placeholder="Choose a session"
+                data={sessionOptions}
+                value={selectedSessionId}
+                onChange={setSelectedSessionId}
+                leftSection={<IconCalendar size={16} />}
+                required
+                disabled={isLoadingSessions}
+                data-testid="session-select"
+              />
+            )}
+
+            {/* Auto-selected session indicator for single-session events */}
+            {sessionOptions.length === 1 && (
+              <Alert variant="light" color="blue">
+                <Text size="sm">
+                  <strong>Session:</strong> {sessionOptions[0].label}
+                </Text>
+              </Alert>
+            )}
+
+            {/* No sessions warning */}
+            {!isLoadingSessions && sessionOptions.length === 0 && (
+              <Alert variant="light" color="yellow" icon={<IconAlertCircle />}>
+                <Text size="sm">
+                  This event has no sessions configured. Tokens will apply to the entire event.
+                </Text>
+              </Alert>
+            )}
+
+            <Group align="flex-end">
+              <NumberInput
+                label="Expires in (hours)"
+                description="Token will automatically expire after this time"
+                value={expiresInHours}
+                onChange={(value) => setExpiresInHours(Number(value) || 12)}
+                min={1}
+                max={168} // 7 days max
+                step={1}
+                style={{ flex: 1 }}
+                leftSection={<IconClock size={16} />}
+              />
+              <Button
+                onClick={handleGenerate}
+                loading={generateMutation.isPending}
+                leftSection={<IconLink size={16} />}
+                variant="filled"
+                color="blue"
+                styles={{
+                  root: {
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                  },
+                }}
+                disabled={sessionOptions.length > 1 && !selectedSessionId}
+              >
+                Generate Link
+              </Button>
+            </Group>
+          </Stack>
         </Box>
 
         {/* Generated Token Display */}
@@ -228,6 +310,14 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
               <Text size="sm" fw={600}>
                 Link Generated Successfully
               </Text>
+              {/* Show session name if available */}
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {(generatedToken as any)?.sessionName && (
+                <Text size="sm" c="dimmed">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  <strong>Session:</strong> {(generatedToken as any).sessionName}
+                </Text>
+              )}
               <TextInput
                 label="Check-In URL"
                 value={generatedToken.checkInUrl}
@@ -275,6 +365,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Token</Table.Th>
+                  <Table.Th>Session</Table.Th>
                   <Table.Th>Created</Table.Th>
                   <Table.Th>Expires</Table.Th>
                   <Table.Th>Actions</Table.Th>
@@ -287,6 +378,17 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                       <Text size="sm" ff="monospace">
                         {formatTokenPrefix(token.token)}
                       </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {(token as any)?.sessionName ? (
+                        <Badge variant="light" color="blue">
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {(token as any).sessionName}
+                        </Badge>
+                      ) : (
+                        <Text size="sm" c="dimmed">All Sessions</Text>
+                      )}
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm" c="dimmed">

@@ -207,7 +207,8 @@ test.describe('Dashboard - Profile Management', () => {
         
         // Should show validation error
         await page.waitForTimeout(500);
-        await FormHelpers.validateFieldError(page, 'email', 'Invalid email format');
+        // Check for validation error - FormHelpers.verifyFormValidation checks for error presence
+        await FormHelpers.verifyFormValidation(page, 'email-or-scenename', false);
         console.log('✅ Email validation works');
       }
     }

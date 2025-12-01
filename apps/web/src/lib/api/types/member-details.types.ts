@@ -102,16 +102,15 @@ export interface EventHistoryRecord extends EventHistoryRecordGenerated {
  * COMPATIBILITY: Some components expect fields not in the generated DTO
  *
  * Field mapping issues:
- * - otherNames: Not in backend DTO (should be removed from frontend)
  * - whyJoin: Maps to whyJoinCommunity in backend DTO
  * - experienceWithRope: Maps to experienceDescription in backend DTO
+ *
+ * NOTE: otherNames is now in the generated VettingDetailsResponse DTO (fixed 2025-11-30)
  *
  * TODO: Update components (MemberVettingTab, MemberOverviewTab) to use correct field names
  * from generated VettingDetailsResponse and remove this extension type.
  */
 export type VettingDetailsResponseExtended = VettingDetailsResponse & {
-  /** Not in backend DTO - frontend-only field that should be removed */
-  otherNames?: string
   /** Maps to whyJoinCommunity in backend DTO */
   whyJoin?: string
   /** Maps to experienceDescription in backend DTO */

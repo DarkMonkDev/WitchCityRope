@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
-import { AuthHelper, quickLogin } from './test-utils/helpers/auth.helpers'
+import { AuthHelpers } from './test-utils/helpers/auth.helpers'
 
 /**
  * COMPREHENSIVE RSVP VERIFICATION TEST

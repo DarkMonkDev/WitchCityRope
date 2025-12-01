@@ -16,7 +16,7 @@ test.describe('ProfilePage - E2E Tests', () => {
   test('should handle user loading error', async ({ page }) => {
     // Set up route mock BEFORE login to intercept all user requests
     let requestCount = 0;
-    const routeHandler = async (route) => {
+    const routeHandler = async (route: import('@playwright/test').Route) => {
       requestCount++;
 
       // Let the first request through (for login)

@@ -212,7 +212,6 @@ public class VettingServiceTests : IAsyncLifetime
         result.Value.Id.Should().Be(application.Id);
         result.Value.Email.Should().Be("test@example.com");
         result.Value.Status.Should().Be("UnderReview");
-        result.Value.FullName.Should().Be(application.RealName);
         result.Value.SceneName.Should().Be(application.SceneName);
     }
 

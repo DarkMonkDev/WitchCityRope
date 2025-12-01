@@ -1170,6 +1170,7 @@ public class VettingService : IVettingService
                 // Update profile information from application
                 user.FirstName = request.FirstName;
                 user.LastName = request.LastName;
+                user.OtherNames = request.OtherNames;
 
                 // Only update optional fields if they have values (keep null if not provided)
                 if (!string.IsNullOrWhiteSpace(request.Pronouns))
@@ -1198,8 +1199,9 @@ public class VettingService : IVettingService
                 _context.UserNotes.Add(submissionNote);
 
                 _logger.LogInformation(
-                    "Updated user profile during vetting application submission: UserId={UserId}, Email={Email}, FirstName={FirstName}, LastName={LastName}, Pronouns={Pronouns}, FetLifeHandle={FetLifeHandle}",
+                    "Updated user profile during vetting application submission: UserId={UserId}, Email={Email}, FirstName={FirstName}, LastName={LastName}, OtherNames={OtherNames}, Pronouns={Pronouns}, FetLifeHandle={FetLifeHandle}",
                     user.Id, user.Email, request.FirstName, request.LastName,
+                    request.OtherNames ?? "(not provided)",
                     request.Pronouns ?? "(not provided)", request.FetLifeHandle ?? "(not provided)");
 
                 _logger.LogInformation("Created automatic submission note for user {UserId} application {ApplicationId}", user.Id, application.Id);

@@ -44,6 +44,7 @@ import { VolunteerPositionsGrid } from './VolunteerPositionsGrid'
 import { VolunteerPosition } from './VolunteerPositionFormModal'
 import { RemoveRsvpModal } from './RemoveRsvpModal'
 import { RefundConfirmationModal } from '../payments/RefundConfirmationModal'
+import { DeleteConfirmationModal, DeletionState } from './DeleteConfirmationModal'
 import { WCRButton } from '../ui'
 import { useTeachers, formatTeachersForMultiSelect } from '../../lib/api/hooks/useTeachers'
 import {
@@ -95,7 +96,7 @@ interface AttendeesTabPanelProps {
 }
 
 const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
-  const [sortColumn, setSortColumn] = useState<'name' | 'paid' | 'attended'>('name')
+  const [sortColumn, setSortColumn] = useState<'name' | 'paid' | 'attended' | 'sessions'>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   // Fetch participations (RSVPs and tickets)
@@ -106,7 +107,7 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
 
   // Group participations by user, combining RSVP + Ticket into single row
   const groupedParticipations = React.useMemo(() => {
-    const grouped = new Map<string, EventParticipationDto & { ticketAmount?: number }>()
+    const grouped = new Map<string, EventParticipationDto & { ticketAmount?: number; checkedInSessions?: string[] }>()
 
     participations.forEach((p) => {
       const existing = grouped.get(p.userId)
@@ -116,6 +117,8 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
         grouped.set(p.userId, {
           ...p,
           ticketAmount: p.participationType === 'Ticket' ? (p.amountPaid ?? 0) : undefined,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          checkedInSessions: (p as any)?.checkedInSessions || [],
         })
       } else {
         // User already exists - merge ticket amount if this is a ticket purchase
@@ -131,6 +134,12 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
         // Keep check-in status if ticket was checked in
         if (p.hasCheckedIn) {
           existing.hasCheckedIn = true
+        }
+        // Merge checked-in sessions
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const pSessions = (p as any)?.checkedInSessions || []
+        if (pSessions.length > 0) {
+          existing.checkedInSessions = [...(existing.checkedInSessions || []), ...pSessions]
         }
       }
     })
@@ -157,6 +166,11 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
         const aCheckedIn = a.hasCheckedIn ?? false
         const bCheckedIn = b.hasCheckedIn ?? false
         compareValue = Number(aCheckedIn) - Number(bCheckedIn)
+      } else if (sortColumn === 'sessions') {
+        // Sort by number of sessions attended
+        const aSessionCount = a.checkedInSessions?.length ?? 0
+        const bSessionCount = b.checkedInSessions?.length ?? 0
+        compareValue = aSessionCount - bSessionCount
       }
 
       return sortDirection === 'asc' ? compareValue : -compareValue
@@ -165,7 +179,7 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
     return sorted
   }, [groupedParticipations, sortColumn, sortDirection])
 
-  const handleSort = (column: 'name' | 'paid' | 'attended') => {
+  const handleSort = (column: 'name' | 'paid' | 'attended' | 'sessions') => {
     if (sortColumn === column) {
       // Toggle direction if clicking same column
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
@@ -176,7 +190,7 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
     }
   }
 
-  const getSortIcon = (column: 'name' | 'paid' | 'attended') => {
+  const getSortIcon = (column: 'name' | 'paid' | 'attended' | 'sessions') => {
     if (sortColumn !== column) return null
     return sortDirection === 'asc' ? ' ↑' : ' ↓'
   }
@@ -280,6 +294,19 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
                   Attended{getSortIcon('attended')}
                 </Table.Th>
                 <Table.Th
+                  onClick={() => handleSort('sessions')}
+                  style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  Sessions Attended{getSortIcon('sessions')}
+                </Table.Th>
+                <Table.Th
                   style={{
                     color: 'white',
                     fontWeight: 600,
@@ -296,6 +323,7 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
                 const paidAmount = participation.ticketAmount ?? 0
                 // Use check-in status from backend (generated DTO property)
                 const hasCheckedIn = participation.hasCheckedIn ?? false
+                const checkedInSessions = participation.checkedInSessions || []
 
                 return (
                   <Table.Tr key={participation.id}>
@@ -319,6 +347,19 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
                       >
                         {hasCheckedIn ? 'Yes' : 'No'}
                       </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      {checkedInSessions.length > 0 ? (
+                        <Group gap="xs">
+                          {checkedInSessions.map((sessionName, idx) => (
+                            <Badge key={idx} variant="light" color="green" size="sm">
+                              {sessionName}
+                            </Badge>
+                          ))}
+                        </Group>
+                      ) : (
+                        <Text size="sm" c="dimmed">None</Text>
+                      )}
                     </Table.Td>
                     <Table.Td>
                       {participation.status === 'Cancelled' ? (
@@ -468,6 +509,15 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [ticketModalOpen, setTicketModalOpen] = useState(false)
   const [editingSession, setEditingSession] = useState<EventSession | null>(null)
   const [editingTicketType, setEditingTicketType] = useState<EventTicketType | null>(null)
+
+  // Delete confirmation modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deleteItemType, setDeleteItemType] = useState<'session' | 'ticketType'>('session')
+  const [deleteItemId, setDeleteItemId] = useState<string>('')
+  const [deleteItemName, setDeleteItemName] = useState<string>('')
+  const [deletionCheckResponse, setDeletionCheckResponse] = useState<any>(null)
+  const [isCheckingDeletion, setIsCheckingDeletion] = useState(false)
+  const [isDeletingItem, setIsDeletingItem] = useState(false)
 
   // RSVP/Ticket removal modal state
   const [removeRsvpModalOpen, setRemoveRsvpModalOpen] = useState(false)
@@ -735,9 +785,36 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }
 
-  const handleDeleteSession = (sessionId: string) => {
-    const updatedSessions = form.values.sessions.filter((session) => session.id !== sessionId)
-    form.setFieldValue('sessions', updatedSessions)
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!eventId) return
+
+    const session = form.values.sessions.find((s) => s.id === sessionId)
+    if (!session) return
+
+    setDeleteItemType('session')
+    setDeleteItemId(sessionId)
+    setDeleteItemName(session.name || 'Unnamed Session')
+    setIsCheckingDeletion(true)
+    setDeleteModalOpen(true)
+
+    try {
+      // Call API to check if session can be deleted
+      const response = await api.get(
+        `/api/events/${eventId}/sessions/${sessionId}/can-delete`
+      )
+      setDeletionCheckResponse(response.data)
+    } catch (error: any) {
+      console.error('Failed to check session deletion eligibility:', error)
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to check if session can be deleted',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      })
+      setDeleteModalOpen(false)
+    } finally {
+      setIsCheckingDeletion(false)
+    }
   }
 
   const handleAddSession = () => {
@@ -803,16 +880,90 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }
 
-  const handleDeleteTicketType = (ticketTypeId: string) => {
-    const updatedTicketTypes = form.values.ticketTypes.filter(
-      (ticket) => ticket.id !== ticketTypeId
-    )
-    form.setFieldValue('ticketTypes', updatedTicketTypes)
+  const handleDeleteTicketType = async (ticketTypeId: string) => {
+    if (!eventId) return
+
+    const ticketType = form.values.ticketTypes.find((t) => t.id === ticketTypeId)
+    if (!ticketType) return
+
+    setDeleteItemType('ticketType')
+    setDeleteItemId(ticketTypeId)
+    setDeleteItemName(ticketType.name || 'Unnamed Ticket Type')
+    setIsCheckingDeletion(true)
+    setDeleteModalOpen(true)
+
+    try {
+      // Call API to check if ticket type can be deleted
+      const response = await api.get(
+        `/api/events/${eventId}/ticket-types/${ticketTypeId}/can-delete`
+      )
+      setDeletionCheckResponse(response.data)
+    } catch (error: any) {
+      console.error('Failed to check ticket type deletion eligibility:', error)
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to check if ticket type can be deleted',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      })
+      setDeleteModalOpen(false)
+    } finally {
+      setIsCheckingDeletion(false)
+    }
   }
 
   const handleAddTicketType = () => {
     setEditingTicketType(null)
     setTicketModalOpen(true)
+  }
+
+  // Handle confirmed deletion from modal
+  const handleConfirmDeletion = async () => {
+    if (!eventId || !deleteItemId) return
+
+    setIsDeletingItem(true)
+
+    try {
+      if (deleteItemType === 'session') {
+        await api.delete(`/api/events/${eventId}/sessions/${deleteItemId}`)
+
+        notifications.show({
+          title: 'Session Deleted',
+          message: `Session "${deleteItemName}" has been deleted successfully.`,
+          color: 'green',
+          icon: <IconCheck size={16} />,
+        })
+      } else {
+        await api.delete(`/api/events/${eventId}/ticket-types/${deleteItemId}`)
+
+        notifications.show({
+          title: 'Ticket Type Deleted',
+          message: `Ticket type "${deleteItemName}" has been deleted successfully.`,
+          color: 'green',
+          icon: <IconCheck size={16} />,
+        })
+      }
+
+      // Refresh the event data
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) })
+
+      // Close modal
+      setDeleteModalOpen(false)
+      setDeletionCheckResponse(null)
+    } catch (error: any) {
+      console.error('Failed to delete item:', error)
+      notifications.show({
+        title: 'Delete Failed',
+        message:
+          error.response?.data?.detail ||
+          error.message ||
+          `Failed to delete ${deleteItemType}. Please try again.`,
+        color: 'red',
+        icon: <IconAlertCircle size={16} />,
+      })
+    } finally {
+      setIsDeletingItem(false)
+    }
   }
 
   const handleTicketTypeSubmit = async (ticketTypeData: Omit<ModalTicketType, 'id'>) => {
@@ -1966,7 +2117,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     paddingBottom: '8px',
                   }}
                 >
-                  Registration & Cancellation Timing
+                  Sales and Cancellation Timing
                 </Title>
 
                 <Box>
@@ -1988,13 +2139,13 @@ export const EventForm: React.FC<EventFormProps> = ({
                         restrictions (always open).
                       </Text>
 
-                      {/* Row 1: Two-column layout with inline labels */}
+                      {/* Three-column layout: all timing fields on same line */}
                       <Group grow align="flex-start">
-                        {/* Column 1: Registration Starts */}
+                        {/* Column 1: RSVP/Sales Starts */}
                         <Stack gap="xs">
                           <Group gap="xs" align="center" wrap="nowrap">
                             <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
-                              Registration / Tickets Starts:
+                              RSVP/Sales Starts:
                             </Text>
                             <NumberInput
                               placeholder="Not Set = Always Open"
@@ -2009,18 +2160,18 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 )
                               }
                               error={form.errors.registrationOpenHours}
-                              aria-label="Registration / Tickets Starts"
+                              aria-label="RSVP/Sales Starts"
                               aria-describedby="registration-open-help"
                               style={{ flex: 1 }}
                             />
                           </Group>
                         </Stack>
 
-                        {/* Column 2: Registration Ends */}
+                        {/* Column 2: RSVP/Sales Ends */}
                         <Stack gap="xs">
                           <Group gap="xs" align="center" wrap="nowrap">
                             <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
-                              Registration / Ticket Sales Ends:
+                              RSVP/Sales Ends:
                             </Text>
                             <NumberInput
                               placeholder="Not Set = Never Ends"
@@ -2037,41 +2188,41 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 )
                               }
                               error={form.errors.registrationCloseHours}
-                              aria-label="Registration / Ticket Sales Ends"
+                              aria-label="RSVP/Sales Ends"
                               aria-describedby="registration-close-help"
                               style={{ flex: 1 }}
                             />
                           </Group>
                         </Stack>
-                      </Group>
 
-                      {/* Row 2: Cancellation Closes */}
-                      <Stack gap="xs">
-                        <Group gap="xs" align="center" wrap="nowrap">
-                          <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
-                            Cancellation Closes:
-                          </Text>
-                          <NumberInput
-                            placeholder="Not Set = Never Closes"
-                            min={-24}
-                            max={8760}
-                            step={0.5}
-                            decimalScale={1}
-                            allowNegative={true}
-                            value={form.values.cancellationCloseHours ?? undefined}
-                            onChange={(value) =>
-                              form.setFieldValue(
-                                'cancellationCloseHours',
-                                typeof value === 'number' ? value : null
-                              )
-                            }
-                            error={form.errors.cancellationCloseHours}
-                            aria-label="Cancellation Closes"
-                            aria-describedby="cancellation-close-help"
-                            style={{ flex: 1 }}
-                          />
-                        </Group>
-                      </Stack>
+                        {/* Column 3: Cancellation Closes */}
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center" wrap="nowrap">
+                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                              Cancellation Closes:
+                            </Text>
+                            <NumberInput
+                              placeholder="Not Set = Never Closes"
+                              min={-24}
+                              max={8760}
+                              step={0.5}
+                              decimalScale={1}
+                              allowNegative={true}
+                              value={form.values.cancellationCloseHours ?? undefined}
+                              onChange={(value) =>
+                                form.setFieldValue(
+                                  'cancellationCloseHours',
+                                  typeof value === 'number' ? value : null
+                                )
+                              }
+                              error={form.errors.cancellationCloseHours}
+                              aria-label="Cancellation Closes"
+                              aria-describedby="cancellation-close-help"
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+                        </Stack>
+                      </Group>
 
                       {/* Save Timing Button */}
                       <Group justify="flex-start" mt="md">
@@ -2636,6 +2787,38 @@ export const EventForm: React.FC<EventFormProps> = ({
             remainingRefundableAmount: Number(selectedParticipant.amountPaid ?? 0),
           }}
           onConfirm={handleRefundTicketConfirm}
+        />
+      )}
+
+      {/* Delete Confirmation Modal (Session or Ticket Type) */}
+      {deletionCheckResponse && (
+        <DeleteConfirmationModal
+          opened={deleteModalOpen}
+          onClose={() => {
+            setDeleteModalOpen(false)
+            setDeletionCheckResponse(null)
+          }}
+          onConfirm={handleConfirmDeletion}
+          itemType={deleteItemType}
+          itemName={deleteItemName}
+          deletionState={
+            (() => {
+              if (deletionCheckResponse.blockReason === 'ticketsSold') return 'ticketsSold' as DeletionState
+              if (deletionCheckResponse.blockReason === 'onlySession') return 'onlySession' as DeletionState
+              if (deletionCheckResponse.blockReason === 'cascadeBlocking') return 'cascadeBlocking' as DeletionState
+              return 'canDelete' as DeletionState
+            })()
+          }
+          rsvpCount={deletionCheckResponse.rsvpCount || 0}
+          ticketsSoldCount={deletionCheckResponse.ticketsSoldCount || 0}
+          volunteerShifts={deletionCheckResponse.volunteerShifts || []}
+          affectedTicketTypes={
+            deletionCheckResponse.affectedTicketTypes?.map((tt: any) => ({
+              name: tt.name,
+              ticketsSold: tt.ticketsSold,
+            })) || []
+          }
+          isLoading={isDeletingItem}
         />
       )}
     </Card>

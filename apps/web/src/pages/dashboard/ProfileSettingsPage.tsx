@@ -357,9 +357,8 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
           />
           <Textarea
             label="Other Names"
-            placeholder="Aliases, former scene names, etc."
+            placeholder="Other names you go by in the community (aliases, former scene names, etc.)"
             {...form.getInputProps('otherNames')}
-            description="Other names you go by in the community"
             minRows={2}
             maxRows={4}
             autosize

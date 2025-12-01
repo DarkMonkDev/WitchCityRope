@@ -234,7 +234,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         // Create first check-in
-        var firstCheckIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, staffMember.Id)
+        var firstCheckIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, Guid.NewGuid(), staffMember.Id)
         {
             CheckInTime = DateTime.UtcNow
         };
@@ -417,8 +417,9 @@ public class CheckInServiceTests : IAsyncLifetime
         var attendee3 = await CreateEventAttendee(testEvent.Id, user3.Id, status: "waitlist");
 
         // Check in first two attendees (fill capacity)
-        var checkIn1 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee1.Id, testEvent.Id, staffMember.Id);
-        var checkIn2 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee2.Id, testEvent.Id, staffMember.Id);
+        var sessionId = Guid.NewGuid();
+        var checkIn1 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee1.Id, testEvent.Id, sessionId, staffMember.Id);
+        var checkIn2 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee2.Id, testEvent.Id, sessionId, staffMember.Id);
         _context.CheckIns.AddRange(checkIn1, checkIn2);
         await _context.SaveChangesAsync();
 
@@ -454,7 +455,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var attendee2 = await CreateEventAttendee(testEvent.Id, user2.Id, status: "waitlist");
 
         // Check in first attendee (fill capacity)
-        var checkIn1 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee1.Id, testEvent.Id, staffMember.Id);
+        var checkIn1 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee1.Id, testEvent.Id, Guid.NewGuid(), staffMember.Id);
         _context.CheckIns.Add(checkIn1);
         await _context.SaveChangesAsync();
 
@@ -493,7 +494,7 @@ public class CheckInServiceTests : IAsyncLifetime
         {
             var user = await CreateTestUser($"user{i}@example.com", $"User{i}");
             var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
-            var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, staffMember.Id);
+            var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, Guid.NewGuid(), staffMember.Id);
             _context.CheckIns.Add(checkIn);
         }
         await _context.SaveChangesAsync();
@@ -530,18 +531,19 @@ public class CheckInServiceTests : IAsyncLifetime
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
 
         // Create and check in 3 attendees
+        var sessionId = Guid.NewGuid();
         for (int i = 0; i < 3; i++)
         {
             var user = await CreateTestUser($"user{i}@example.com", $"User{i}");
             var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
-            var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, staffMember.Id);
+            var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, sessionId, staffMember.Id);
             _context.CheckIns.Add(checkIn);
             attendee.RegistrationStatus = "checked-in";
         }
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _service.GetEventAttendeesAsync(testEvent.Id, status: "checked-in");
+        var result = await _service.GetEventAttendeesAsync(testEvent.Id, sessionId, status: "checked-in");
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -557,6 +559,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
 
         // Create 5 attendees, check in 3
+        var sessionId = Guid.NewGuid();
         for (int i = 0; i < 5; i++)
         {
             var user = await CreateTestUser($"user{i}@example.com", $"User{i}");
@@ -564,7 +567,7 @@ public class CheckInServiceTests : IAsyncLifetime
 
             if (i < 3)
             {
-                var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, staffMember.Id);
+                var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, sessionId, staffMember.Id);
                 _context.CheckIns.Add(checkIn);
                 attendee.RegistrationStatus = "checked-in";
             }
@@ -591,7 +594,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
         var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
 
-        var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, staffMember.Id);
+        var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, Guid.NewGuid(), staffMember.Id);
         _context.CheckIns.Add(checkIn);
         attendee.RegistrationStatus = "checked-in";
         await _context.SaveChangesAsync();
@@ -675,6 +678,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
 
         // Create 3 attendees, check in 2
+        var sessionId = Guid.NewGuid();
         for (int i = 0; i < 3; i++)
         {
             var user = await CreateTestUser($"user{i}@example.com", $"User{i}");
@@ -682,7 +686,7 @@ public class CheckInServiceTests : IAsyncLifetime
 
             if (i < 2)
             {
-                var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, staffMember.Id);
+                var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, sessionId, staffMember.Id);
                 _context.CheckIns.Add(checkIn);
                 attendee.RegistrationStatus = "checked-in";
             }
@@ -714,7 +718,8 @@ public class CheckInServiceTests : IAsyncLifetime
         await CreateEventAttendee(testEvent.Id, user2.Id);
 
         // Act
-        var result = await _service.GetEventAttendeesAsync(testEvent.Id, search: "Alice");
+        var sessionId = Guid.NewGuid();
+        var result = await _service.GetEventAttendeesAsync(testEvent.Id, sessionId, search: "Alice");
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -736,7 +741,8 @@ public class CheckInServiceTests : IAsyncLifetime
         }
 
         // Act - Get first page (10 per page)
-        var result = await _service.GetEventAttendeesAsync(testEvent.Id, page: 1, pageSize: 10);
+        var sessionId = Guid.NewGuid();
+        var result = await _service.GetEventAttendeesAsync(testEvent.Id, sessionId, page: 1, pageSize: 10);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -755,9 +761,10 @@ public class CheckInServiceTests : IAsyncLifetime
     {
         // Arrange
         var nonExistentEventId = Guid.NewGuid();
+        var sessionId = Guid.NewGuid();
 
         // Act
-        var result = await _service.GetEventAttendeesAsync(nonExistentEventId);
+        var result = await _service.GetEventAttendeesAsync(nonExistentEventId, sessionId);
 
         // Assert
         result.IsSuccess.Should().BeFalse();

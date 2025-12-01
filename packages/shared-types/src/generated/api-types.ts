@@ -452,6 +452,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{eventId}/sessions/{sessionId}/can-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check if a session can be deleted
+         * @description Returns information about what would be affected if the session is deleted
+         */
+        get: operations["CheckSessionDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a session
+         * @description Deletes a session and cancels associated RSVPs and volunteer signups. Deletes single-session ticket types.
+         */
+        delete: operations["DeleteSession"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/ticket-types/{ticketTypeId}/can-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check if a ticket type can be deleted
+         * @description Returns information about whether the ticket type has sales
+         */
+        get: operations["CheckTicketTypeDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/ticket-types/{ticketTypeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a ticket type
+         * @description Deletes a ticket type if no tickets have been sold
+         */
+        delete: operations["DeleteTicketType"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users/profile": {
         parameters: {
             query?: never;
@@ -3469,6 +3549,14 @@ export interface components {
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
         };
+        AffectedTicketTypeDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            /** Format: int32 */
+            ticketsSold?: number;
+            willBeDeleted?: boolean;
+        };
         ApplicationDetailResponse: {
             /** Format: uuid */
             id?: string;
@@ -3823,6 +3911,9 @@ export interface components {
             message?: string;
             currentCapacity?: components["schemas"]["CapacityInfo"];
             auditLogId?: string | null;
+            /** Format: uuid */
+            sessionId?: string;
+            sessionName?: string;
         };
         CmsPageSummaryDto: {
             /** Format: int32 */
@@ -3995,6 +4086,33 @@ export interface components {
             hasOldUnassigned?: boolean;
             recentIncidents?: components["schemas"]["IncidentSummaryDto"][];
         };
+        DeleteSessionCheckDto: {
+            canDelete?: boolean;
+            blockReason?: string | null;
+            /** Format: int32 */
+            rsvpCount?: number;
+            /** Format: int32 */
+            ticketsSoldCount?: number;
+            volunteerShifts?: string[] | null;
+            affectedTicketTypes?: components["schemas"]["AffectedTicketTypeDto"][] | null;
+        };
+        DeleteSessionResultDto: {
+            success?: boolean;
+            /** Format: int32 */
+            rsvpsCancelled?: number;
+            /** Format: int32 */
+            volunteerSignupsCancelled?: number;
+            deletedTicketTypes?: string[] | null;
+        };
+        DeleteTicketTypeCheckDto: {
+            canDelete?: boolean;
+            blockReason?: string | null;
+            /** Format: int32 */
+            ticketsSoldCount?: number;
+        };
+        DeleteTicketTypeResultDto: {
+            success?: boolean;
+        };
         DetailedHealthResponse: {
             databaseVersion?: string;
             /** Format: int32 */
@@ -4140,6 +4258,8 @@ export interface components {
         GenerateTokenRequest: {
             /** Format: uuid */
             eventId?: string;
+            /** Format: uuid */
+            sessionId?: string;
             /** Format: double */
             expirationHours?: number | null;
         };
@@ -4891,6 +5011,9 @@ export interface components {
             /** Format: uuid */
             eventId?: string;
             eventTitle?: string;
+            /** Format: uuid */
+            sessionId?: string;
+            sessionName?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -5375,6 +5498,7 @@ export interface components {
             email?: string | null;
             phone?: string | null;
             fetLifeHandle?: string | null;
+            otherNames?: string | null;
             pronouns?: string | null;
             aboutYourself?: string | null;
             experienceDescription?: string | null;
@@ -5463,6 +5587,7 @@ export interface components {
             /** Format: uuid */
             userSignupId?: string | null;
             canCancel?: boolean;
+            canSignUp?: boolean;
         };
         VolunteerSignupDto: {
             /** Format: uuid */
@@ -6407,6 +6532,260 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    CheckSessionDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteSessionCheckDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteSessionResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CheckTicketTypeDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketTypeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteTicketTypeCheckDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteTicketType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketTypeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteTicketTypeResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

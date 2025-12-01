@@ -25,6 +25,12 @@ public class CheckIn
     public Guid EventId { get; set; }
 
     /// <summary>
+    /// Reference to the specific session being checked into (REQUIRED)
+    /// Enables multi-session events with separate check-ins per session
+    /// </summary>
+    public Guid SessionId { get; set; }
+
+    /// <summary>
     /// Exact timestamp when check-in occurred (in event local time)
     /// </summary>
     public DateTime CheckInTime { get; set; }
@@ -68,6 +74,7 @@ public class CheckIn
     // Navigation properties
     public EventAttendee EventAttendee { get; set; } = null!;
     public Event Event { get; set; } = null!;
+    public Session Session { get; set; } = null!;
     public ApplicationUser StaffMember { get; set; } = null!;
     public ApplicationUser CreatedByUser { get; set; } = null!;
 
@@ -84,10 +91,11 @@ public class CheckIn
     /// <summary>
     /// Constructor for new check-in
     /// </summary>
-    public CheckIn(Guid eventAttendeeId, Guid eventId, Guid staffMemberId) : this()
+    public CheckIn(Guid eventAttendeeId, Guid eventId, Guid sessionId, Guid staffMemberId) : this()
     {
         EventAttendeeId = eventAttendeeId;
         EventId = eventId;
+        SessionId = sessionId;
         StaffMemberId = staffMemberId;
         CreatedBy = staffMemberId;
     }

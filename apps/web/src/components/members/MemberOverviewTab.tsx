@@ -134,27 +134,25 @@ export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }
             <Grid.Col span={{ base: 6, md: 4 }}>
               <Group gap="xs" wrap="nowrap">
                 <Text size="sm" c="dimmed">Real Name:</Text>
-                <Text fw={500}>{vettingDetails?.realName || 'N/A'}</Text>
+                <Text fw={500}>{vettingDetails?.realName || '-'}</Text>
               </Group>
             </Grid.Col>
-            {vettingDetails?.otherNames && (
-              <Grid.Col span={{ base: 6, md: 4 }}>
-                <Group gap="xs" wrap="nowrap">
-                  <Text size="sm" c="dimmed">Other Names:</Text>
-                  <Text fw={500}>{vettingDetails.otherNames}</Text>
-                </Group>
-              </Grid.Col>
-            )}
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Other Names:</Text>
+                <Text fw={500}>{vettingDetails?.otherNames || '-'}</Text>
+              </Group>
+            </Grid.Col>
             <Grid.Col span={{ base: 6, md: 4 }}>
               <Group gap="xs" wrap="nowrap">
                 <Text size="sm" c="dimmed">Email:</Text>
-                <Text fw={500}>{memberDetails.email || 'N/A'}</Text>
+                <Text fw={500}>{memberDetails.email || '-'}</Text>
               </Group>
             </Grid.Col>
             <Grid.Col span={{ base: 6, md: 4 }}>
               <Group gap="xs" wrap="nowrap">
                 <Text size="sm" c="dimmed">Phone:</Text>
-                <Text fw={500}>{vettingDetails?.phone || 'N/A'}</Text>
+                <Text fw={500}>{vettingDetails?.phone || '-'}</Text>
               </Group>
             </Grid.Col>
             <Grid.Col span={{ base: 6, md: 4 }}>
@@ -183,7 +181,7 @@ export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }
             <Grid.Col span={{ base: 6, md: 4 }}>
               <Group gap="xs" wrap="nowrap">
                 <Text size="sm" c="dimmed">Pronouns:</Text>
-                <Text fw={500}>{vettingDetails?.pronouns || 'N/A'}</Text>
+                <Text fw={500}>{vettingDetails?.pronouns || '-'}</Text>
               </Group>
             </Grid.Col>
             <Grid.Col span={{ base: 6, md: 4 }}>
@@ -260,9 +258,9 @@ export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }
               <Group gap="xs" wrap="nowrap">
                 <Text size="sm" c="dimmed">Last Event Attended:</Text>
                 <Text fw={500}>
-                  {memberDetails.lastEventAttended
+                  {memberDetails.lastEventAttended && new Date(memberDetails.lastEventAttended).getFullYear() > 1900
                     ? new Date(memberDetails.lastEventAttended).toLocaleDateString()
-                    : 'Never'}
+                    : '-'}
                 </Text>
               </Group>
             </Grid.Col>

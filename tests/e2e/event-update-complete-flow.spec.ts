@@ -208,11 +208,10 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     }
     
     if (!editButton) {
-      // Fallback: Use fallback event ID and navigate directly
-      eventId = '550e8400-e29b-41d4-a716-446655440000'
-      console.log('⚠️  No edit button found, navigating directly to fallback event')
-      await page.goto(`/admin/events/${eventId}/edit`)
-      await page.waitForLoadState('domcontentloaded')
+      // No edit button found - skip test rather than use fake event ID
+      console.log('⚠️  No edit button found in admin events page - skipping test')
+      test.skip(true, 'No events available in admin events page to test with')
+      return
     } else {
       await editButton.click()
       await page.waitForLoadState('domcontentloaded')
@@ -481,15 +480,27 @@ test.describe('Event Update Authentication Flow - E2E', () => {
       console.log(`  - ${cookie.name}: ${cookie.value.substring(0, 20)}...`)
     })
     
-    // Navigate to event edit and make update
-    await page.goto('/admin/events/550e8400-e29b-41d4-a716-446655440000/edit')
+    // Navigate to admin events page to find a real event
+    await page.goto('/admin/events')
     await page.waitForLoadState('domcontentloaded')
-    
+    await page.waitForTimeout(2000)
+
+    // Find an edit link/button
+    const editLink = page.locator('a[href*="/edit"]').first()
+    if (await editLink.count() === 0) {
+      console.log('⚠️  No events found to test cookie persistence - skipping')
+      test.skip(true, 'No events available to test with')
+      return
+    }
+
+    await editLink.click()
+    await page.waitForLoadState('domcontentloaded')
+
     // Make a change and save
     const titleInput = page.locator('input[name="title"], [data-testid="event-title-input"]').first()
     if (await titleInput.count() > 0) {
       await titleInput.fill('Cookie Test Update')
-      
+
       const saveButton = page.locator('button:has-text("Save"), [data-testid="save-button"]').first()
       if (await saveButton.count() > 0) {
         await saveButton.click()
@@ -532,10 +543,22 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
     
-    // Navigate to event edit
-    await page.goto('/admin/events/550e8400-e29b-41d4-a716-446655440000/edit')
+    // Navigate to admin events page to find a real event
+    await page.goto('/admin/events')
     await page.waitForLoadState('domcontentloaded')
-    
+    await page.waitForTimeout(2000)
+
+    // Find an edit link/button
+    const editLink = page.locator('a[href*="/edit"]').first()
+    if (await editLink.count() === 0) {
+      console.log('⚠️  No events found to test error handling - skipping')
+      test.skip(true, 'No events available to test with')
+      return
+    }
+
+    await editLink.click()
+    await page.waitForLoadState('domcontentloaded')
+
     // Intercept API calls and simulate errors
     await page.route('**/api/events/**', route => {
       if (route.request().method() === 'PUT') {

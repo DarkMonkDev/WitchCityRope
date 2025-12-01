@@ -287,6 +287,9 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<bool>("OverrideCapacity")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("StaffMemberId")
                         .HasColumnType("uuid");
 
@@ -296,10 +299,6 @@ namespace WitchCityRope.Api.Migrations
                         .HasDatabaseName("IX_CheckIns_CheckInTime");
 
                     b.HasIndex("CreatedBy");
-
-                    b.HasIndex("EventAttendeeId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_CheckIns_EventAttendee");
 
                     b.HasIndex("EventId")
                         .HasDatabaseName("IX_CheckIns_EventId");
@@ -318,11 +317,21 @@ namespace WitchCityRope.Api.Migrations
                         .HasDatabaseName("IX_CheckIns_CapacityOverride")
                         .HasFilter("\"OverrideCapacity\" = true");
 
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("IX_CheckIns_SessionId");
+
                     b.HasIndex("StaffMemberId")
                         .HasDatabaseName("IX_CheckIns_StaffMemberId");
 
+                    b.HasIndex("EventAttendeeId", "SessionId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CheckIns_EventAttendee_Session");
+
                     b.HasIndex("EventId", "CheckInTime")
                         .HasDatabaseName("IX_CheckIns_Event_Time");
+
+                    b.HasIndex("SessionId", "CheckInTime")
+                        .HasDatabaseName("IX_CheckIns_Session_Time");
 
                     b.ToTable("CheckIns", "public", t =>
                         {
@@ -441,6 +450,9 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<Guid?>("RevokedByUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(88)
@@ -454,12 +466,15 @@ namespace WitchCityRope.Api.Migrations
                     b.HasIndex("EventId")
                         .HasDatabaseName("IX_CheckInSessionTokens_EventId");
 
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("IX_CheckInSessionTokens_SessionId");
+
                     b.HasIndex("Token")
                         .IsUnique()
                         .HasDatabaseName("IX_CheckInSessionTokens_Token");
 
-                    b.HasIndex("EventId", "ExpiresAt")
-                        .HasDatabaseName("IX_CheckInSessionTokens_EventId_ExpiresAt_Active")
+                    b.HasIndex("SessionId", "ExpiresAt")
+                        .HasDatabaseName("IX_CheckInSessionTokens_SessionId_ExpiresAt_Active")
                         .HasFilter("\"IsRevoked\" = false");
 
                     b.HasIndex("Token", "ExpiresAt", "IsRevoked")
@@ -3155,6 +3170,12 @@ namespace WitchCityRope.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("WitchCityRope.Api.Models.Session", "Session")
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "StaffMember")
                         .WithMany()
                         .HasForeignKey("StaffMemberId")
@@ -3166,6 +3187,8 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("EventAttendee");
+
+                    b.Navigation("Session");
 
                     b.Navigation("StaffMember");
                 });
@@ -3204,7 +3227,15 @@ namespace WitchCityRope.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("WitchCityRope.Api.Models.Session", "Session")
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Event");
+
+                    b.Navigation("Session");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.CheckIn.Entities.EventAttendee", b =>

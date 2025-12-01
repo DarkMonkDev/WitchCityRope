@@ -157,6 +157,11 @@ public class MemberDetailsService : IMemberDetailsService
                 .AsNoTracking()
                 .FirstOrDefaultAsync(va => va.UserId == userId, cancellationToken);
 
+            // Load user to get current profile OtherNames
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
             if (application == null)
             {
                 // No application exists - return empty response
@@ -197,8 +202,9 @@ public class MemberDetailsService : IMemberDetailsService
                 Email = application.Email,
                 Phone = null, // Field removed from entity
                 FetLifeHandle = application.FetLifeHandle,
+                OtherNames = user?.OtherNames,  // Use current profile value, not vetting application
                 Pronouns = application.Pronouns,
-                AboutYourself = application.OtherNames, // Migrated to OtherNames
+                AboutYourself = null, // Field removed from entity
                 ExperienceDescription = application.ExperienceDescription,
                 SafetyKnowledge = null, // Field removed from entity
                 ConsentUnderstanding = null, // Field removed from entity

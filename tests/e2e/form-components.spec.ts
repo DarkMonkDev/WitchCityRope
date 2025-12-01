@@ -370,12 +370,11 @@ test.describe('Form Components Test Page', () => {
 
 });
 
-// Add custom types for page object to store error arrays
-declare global {
-  namespace PlaywrightTest {
-    interface Page {
-      consoleErrors?: string[];
-      networkErrors?: string[];
-    }
+// Custom type extension for page object to store error arrays
+// Note: TypeScript requires explicit type assertions when accessing these properties
+declare module '@playwright/test' {
+  interface Page {
+    consoleErrors?: string[];
+    networkErrors?: string[];
   }
 }

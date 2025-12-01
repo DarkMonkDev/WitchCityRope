@@ -75,7 +75,7 @@ public class CheckInEndpointsTests
         _mockSessionTokenService.ValidateTokenAsync(ValidToken, Arg.Any<CancellationToken>())
             .Returns(Result<TokenValidationResult>.Success(tokenData));
 
-        _mockCheckInService.GetEventAttendeesAsync(_testEventId, null, null, 1, 50, Arg.Any<CancellationToken>())
+        _mockCheckInService.GetEventAttendeesAsync(_testEventId, Arg.Any<Guid>(), null, null, 1, 50, Arg.Any<CancellationToken>())
             .Returns(Result<CheckInAttendeesResponse>.Success(expectedResponse));
 
         // Act
@@ -157,7 +157,7 @@ public class CheckInEndpointsTests
         _mockSessionTokenService.ValidateTokenAsync(ValidToken, Arg.Any<CancellationToken>())
             .Returns(Result<TokenValidationResult>.Success(tokenData));
 
-        _mockCheckInService.GetEventAttendeesAsync(_testEventId, null, null, 1, 50, Arg.Any<CancellationToken>())
+        _mockCheckInService.GetEventAttendeesAsync(_testEventId, Arg.Any<Guid>(), null, null, 1, 50, Arg.Any<CancellationToken>())
             .Returns(Result<CheckInAttendeesResponse>.Failure("Database connection failed"));
 
         // Act
@@ -767,7 +767,7 @@ public class CheckInEndpointsTests
 
         var user = CreateAdminClaimsPrincipal(_adminUserId);
 
-        _mockSessionTokenService.GenerateTokenAsync(_testEventId, _adminUserId, 12, Arg.Any<CancellationToken>())
+        _mockSessionTokenService.GenerateTokenAsync(_testEventId, Arg.Any<Guid>(), _adminUserId, 12, Arg.Any<CancellationToken>())
             .Returns(Result<SessionTokenResponse>.Success(expectedResponse));
 
         // Act
@@ -827,7 +827,7 @@ public class CheckInEndpointsTests
             ExpiresAt = DateTime.UtcNow.AddHours(12)
         };
 
-        _mockSessionTokenService.GenerateTokenAsync(_testEventId, _adminUserId, 12, Arg.Any<CancellationToken>())
+        _mockSessionTokenService.GenerateTokenAsync(_testEventId, Arg.Any<Guid>(), _adminUserId, 12, Arg.Any<CancellationToken>())
             .Returns(Result<SessionTokenResponse>.Success(expectedResponse));
 
         // Act
@@ -835,7 +835,7 @@ public class CheckInEndpointsTests
 
         // Assert
         result.Should().BeAssignableTo<IResult>();
-        await _mockSessionTokenService.Received(1).GenerateTokenAsync(_testEventId, _adminUserId, 12, Arg.Any<CancellationToken>());
+        await _mockSessionTokenService.Received(1).GenerateTokenAsync(_testEventId, Arg.Any<Guid>(), _adminUserId, 12, Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -983,8 +983,8 @@ public class CheckInEndpointsTests
             return Results.Forbid();
         }
 
-        // Call service
-        var result = await _mockCheckInService.GetEventAttendeesAsync(eventId, search, status, page, pageSize, CancellationToken.None);
+        // Call service - use sessionId from token validation
+        var result = await _mockCheckInService.GetEventAttendeesAsync(eventId, tokenData.SessionId, search, status, page, pageSize, CancellationToken.None);
 
         return result.IsSuccess
             ? Results.Ok(result.Value)
@@ -1214,6 +1214,7 @@ public class CheckInEndpointsTests
 
         var result = await _mockSessionTokenService.GenerateTokenAsync(
             request.EventId,
+            request.SessionId,
             adminUserId,
             request.ExpirationHours ?? 12,
             CancellationToken.None);
