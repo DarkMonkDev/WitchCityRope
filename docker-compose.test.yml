@@ -31,6 +31,8 @@ services:
   postgres:
     # Override container name to avoid conflict with dev environment
     container_name: witchcity-postgres-test
+    networks:
+      - witchcity-net
     environment:
       # Separate test database
       POSTGRES_DB: witchcityrope_test
@@ -66,6 +68,8 @@ services:
   api:
     # Override container name to avoid conflict with dev environment
     container_name: witchcity-api-test
+    networks:
+      - witchcity-net
     build:
       context: ./apps/api
       dockerfile: Dockerfile
@@ -124,6 +128,8 @@ services:
   web:
     # Override container name to avoid conflict with dev environment
     container_name: witchcity-web-test
+    networks:
+      - witchcity-net
     build:
       # Use default context (.) from base docker-compose.yml (monorepo root)
       # context: . is inherited from base compose file
@@ -149,8 +155,10 @@ services:
       # HMR WebSocket tries ws://localhost:5173 which fails in containers
       VITE_HMR_ENABLED: "false"
 
-      # API connection (internal container communication)
-      VITE_API_BASE_URL: http://api:8080
+      # API connection - MUST use empty string for same-origin requests via Vite proxy
+      # Using "http://api:8080" causes cross-origin issues (browser at web:5173 → api:8080)
+      # Empty string means React uses /api/* paths, Vite proxy routes to api:8080
+      VITE_API_BASE_URL: ""
 
       # Test features
       VITE_ENABLE_DEBUG: "false"
@@ -190,10 +198,10 @@ services:
     container_name: witchcity-test-runner
     networks:
       - witchcity-net
-    
+
     # NO EXTERNAL PORTS - Test isolation
     # ports: []
-    
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -208,8 +216,11 @@ services:
       CI: "true"
       
       # Service URLs (internal container communication)
+      # CRITICAL: Tests use different env var names - provide all aliases
       API_BASE_URL: http://api:8080
+      API_URL: http://api:8080
       WEB_BASE_URL: http://web:5173
+      PLAYWRIGHT_BASE_URL: http://web:5173
       DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=witchcityrope_test;Username=postgres;Password=testpass123"
       
       # Playwright configuration
@@ -344,10 +355,10 @@ services:
 # ============================================================================
 # TEST NETWORK CONFIGURATION
 # ============================================================================
-# Override network with different subnet to avoid IP conflicts with dev
+# Override base network with different subnet - allows dev and test to run simultaneously
 networks:
   witchcity-net:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16  # Different from dev (172.19.0.0/16)
+        - subnet: 172.20.0.0/16  # Different from dev (172.25.0.0/16)

@@ -18,6 +18,11 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 test.describe('Navigation Workflow - Role-Based Visibility', () => {
   test.beforeEach(async ({ page }) => {
     // Clear auth state before each test
@@ -414,7 +419,7 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
 
     // Verify we're on homepage
     const url = page.url();
-    expect(url === 'http://localhost:5173/' || url.endsWith('/')).toBeTruthy();
+    expect(url === `${WEB_BASE_URL}/` || url.endsWith('/')).toBeTruthy();
 
     // Verify hamburger button aria-expanded is false (menu closed after logout)
     await expect(hamburgerButton).toHaveAttribute('aria-expanded', 'false');

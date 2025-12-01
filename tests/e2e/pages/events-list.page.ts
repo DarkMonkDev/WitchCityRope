@@ -2,6 +2,11 @@ import { Page, Locator } from '@playwright/test';
 import { SelectorHelpers } from '../helpers/selector.helpers';
 import { WaitHelpers, TIMEOUTS } from '../helpers/wait.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * Page Object Model for Events List Page
  *
@@ -20,7 +25,7 @@ export class EventsListPage {
    */
   async goto(): Promise<void> {
     console.log('📍 Navigating to events list page...');
-    await this.page.goto('http://localhost:5173/events');
+    await this.page.goto(`${WEB_BASE_URL}/events`);
     await this.waitForPageLoad();
   }
 

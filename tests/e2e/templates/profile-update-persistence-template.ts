@@ -21,6 +21,11 @@ import {
 } from './persistence-test-template';
 import { DatabaseHelpers, ProfileFields } from '../utils/database-helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 // ============================================================================
 // PROFILE UPDATE TEST CONFIG
 // ============================================================================
@@ -66,7 +71,7 @@ export async function testProfileUpdatePersistence(
     // STEP 1: Setup - Login and navigate to profile settings
     setup: async (page: Page) => {
       // Login
-      await page.goto('http://localhost:5173/login');
+      await page.goto(`${WEB_BASE_URL}/login`);
       await page.waitForLoadState('networkidle');
 
       await page.locator('[data-testid="email-or-scenename-input"]').fill(userEmail);
@@ -92,7 +97,7 @@ export async function testProfileUpdatePersistence(
         await page.waitForLoadState('networkidle');
       } else {
         // Fallback: Navigate directly
-        await page.goto('http://localhost:5173/dashboard/profile-settings');
+        await page.goto(`${WEB_BASE_URL}/dashboard/profile-settings`);
         await page.waitForLoadState('networkidle');
       }
 

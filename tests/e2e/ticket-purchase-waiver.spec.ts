@@ -1,6 +1,11 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * E2E TESTS: Ticket Purchase Liability Waiver Compliance
  *
@@ -115,7 +120,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
   test('Positive: Database shows EventWaiverAccepted=true and timestamp after ticket purchase', async ({ page, request }) => {
     // Get event ID from API (same pattern as working tests)
-    const eventsResponse = await request.get('http://localhost:5655/api/events');
+    const eventsResponse = await request.get(`${API_BASE_URL}/api/events`);
     const eventsData = await eventsResponse.json();
 
     // Handle wrapped API response structure
@@ -172,7 +177,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     // Query API for participation status
     const participationResponse = await request.get(
-      `http://localhost:5655/api/participation/event/${eventSlug}/status`,
+      `${API_BASE_URL}/api/participation/event/${eventSlug}/status`,
       { failOnStatusCode: false }
     );
 
@@ -312,7 +317,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
     // This test directly calls the ticket purchase API without waiver acceptance
 
     // Get a valid event with tickets
-    const eventsResponse = await request.get('http://localhost:5655/api/events', {
+    const eventsResponse = await request.get(`${API_BASE_URL}/api/events`, {
       failOnStatusCode: false
     });
 
@@ -331,7 +336,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     // Attempt ticket purchase without Liability Waiver acceptance
     const purchaseResponse = await request.post(
-      `http://localhost:5655/api/tickets/purchase`,
+      `${API_BASE_URL}/api/tickets/purchase`,
       {
         data: {
           eventId: eventWithTickets.id,

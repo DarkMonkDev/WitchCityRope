@@ -1,5 +1,10 @@
 import { ServiceHelper, checkDockerServices } from './helpers/service.helper'
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * Global setup for Playwright E2E tests
  * 

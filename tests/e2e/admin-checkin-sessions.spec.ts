@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
 /**
  * E2E Tests for Session-Aware Check-In Functionality
  *
@@ -30,9 +34,8 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Fetch an event with multiple sessions for testing
-    // Use template string URL pattern for container compatibility
-    const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:5655';
-    const eventsResponse = await page.request.get(`${apiBaseUrl}/api/events`);
+    // Use module-level constant for container compatibility
+    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`);
     const events = await eventsResponse.json();
 
     if (!events || events.length === 0) {
@@ -393,8 +396,7 @@ test.describe('Session-Aware Check-In - Attendees Tab', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Get an event with attendees (preferably with check-ins)
-    const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:5655';
-    const eventsResponse = await page.request.get(`${apiBaseUrl}/api/events`);
+    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`);
     const events = await eventsResponse.json();
 
     if (!events || events.length === 0) {

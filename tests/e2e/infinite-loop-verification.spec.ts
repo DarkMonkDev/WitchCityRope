@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || WEB_BASE_URL;
 
 test.describe('Infinite Loop Verification', () => {
   test('should load page without infinite loop errors', async ({ page }) => {

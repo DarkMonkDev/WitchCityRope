@@ -20,6 +20,36 @@ public class EventSeeder
     private Guid _ropeFundamentalsEventId;
     private Guid _practiceNightEventId;
     private Guid _welcomeMixerEventId;
+    private Guid _sessionTimingTestEventId;
+
+    // Comprehensive timing test events (for E2E testing different timing scenarios)
+    // ====================================================================================
+    // BUSINESS RULES FOR SESSION-BASED TIMING (documented for future developers):
+    // ====================================================================================
+    // 1. SINGLE-SESSION TICKETS: Use that specific session's StartTime for timing calculations
+    //    - Registration window: Session.StartTime - RegistrationCloseHours
+    //    - If current time is past the window close, ticket is NOT available
+    //
+    // 2. MULTI-SESSION TICKETS (SessionId = null): Use EARLIEST session's StartTime
+    //    - Registration window calculated from EARLIEST session, regardless of past/future
+    //    - Once EARLIEST session's registration window closes, ticket is NOT available
+    //    - Example: S1=24hrs future, S2=120hrs future, CloseHours=48
+    //              → Uses S1 (earliest), 24 < 48, so ticket is CLOSED
+    //
+    // 3. VOLUNTEER POSITIONS:
+    //    - Session-specific positions: Use that session's StartTime
+    //    - Event-wide positions (no SessionId): Use EARLIEST session's StartTime
+    //
+    // 4. TIMING WINDOW CALCULATION:
+    //    - hoursUntilSession = (Session.StartTime - DateTime.UtcNow).TotalHours
+    //    - Window is OPEN if: hoursUntilSession >= closeHours
+    //    - Window is CLOSED if: hoursUntilSession < closeHours
+    //
+    // These test events verify all combinations of timing scenarios.
+    // ====================================================================================
+    private Guid _timingTest6hrCloseEventId;
+    private Guid _timingTest48hrCloseEventId;
+    private Guid _timingTest300hrCloseEventId;
 
     public EventSeeder(
         ApplicationDbContext context,
@@ -34,6 +64,16 @@ public class EventSeeder
     public Guid RopeFundamentalsEventId => _ropeFundamentalsEventId;
     public Guid PracticeNightEventId => _practiceNightEventId;
     public Guid WelcomeMixerEventId => _welcomeMixerEventId;
+    public Guid SessionTimingTestEventId => _sessionTimingTestEventId;
+
+    // Comprehensive timing test event IDs
+    public Guid TimingTest6hrCloseEventId => _timingTest6hrCloseEventId;
+    public Guid TimingTest48hrCloseEventId => _timingTest48hrCloseEventId;
+    public Guid TimingTest300hrCloseEventId => _timingTest300hrCloseEventId;
+
+    // Edge case timing test (1 hour until close)
+    private Guid _timingTestEdgeCaseEventId;
+    public Guid TimingTestEdgeCaseEventId => _timingTestEdgeCaseEventId;
 
     /// <summary>
     /// Seeds 8 sample events for testing event management functionality.
@@ -1139,6 +1179,249 @@ public class EventSeeder
                 cancellationCloseHours: -12m,     // 12 hours AFTER start
                 volunteerRegistrationCloseHours: 24m,   // 24 hours before
                 volunteerCancellationCloseHours: 48m    // 48 hours before
+            ),
+
+            // E2E TEST EVENT: Session Timing Test
+            // Used by session-ticket-availability.spec.ts to test session-based ticket timing
+            // S1 is in the PAST (-7 days), S2 is in the FUTURE (+5 days)
+            // Ticket types: S1 Only, S2 Only, Both Sessions
+            // RegistrationCloseHours: 12 (closes 12 hours before session)
+            CreateHistoricalEvent(
+                id: out _sessionTimingTestEventId,
+                title: "Session Timing Test Event",
+                daysFromNow: -7,  // Event started 7 days ago (S1 is past)
+                startHour: 18,
+                duration: 3,
+                capacity: 20,
+                eventType: EventType.Class,
+                venue: mainStudio,
+                shortDescription: "E2E test event for session-based timing. S1 past, S2 future.",
+                longDescription: @"<p>This is a dedicated test event for E2E testing of session-based ticket timing.</p>
+
+<h3>Test Scenario</h3>
+<ul>
+<li>Session 1 (S1): 7 days in the past</li>
+<li>Session 2 (S2): 5 days in the future</li>
+<li>RegistrationCloseHours: 12</li>
+<li>Ticket types: S1 Only, S2 Only, Both Sessions</li>
+</ul>
+
+<h3>Expected Behavior</h3>
+<ul>
+<li>S1 Only ticket: NOT available (session passed)</li>
+<li>S2 Only ticket: Available (120 hours until session > 12 hour close window)</li>
+<li>Both Sessions ticket: Per spec, uses S2 timing as reference session</li>
+</ul>
+
+<p>This event validates that session-based timing calculations work correctly.</p>",
+                policies: @"<h2>Test Event Policies</h2>
+<ul>
+<li>This is a test event for E2E testing</li>
+<li>Standard event policies apply</li>
+</ul>",
+                // TIMING: Test event - 12 hours registration close
+                registrationOpenHours: 336m,      // 14 days before
+                registrationCloseHours: 12m,      // 12 hours before session (standard)
+                cancellationCloseHours: 24m,      // 24 hours before
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 48m
+            ),
+
+            // ====================================================================================
+            // COMPREHENSIVE TIMING TEST EVENTS
+            // ====================================================================================
+            // These 3 events test all timing scenarios with:
+            // - S1: 24 hours (1 day) in the future
+            // - S2: 120 hours (5 days) in the future
+            // - Different RegistrationCloseHours values: 6, 48, 300
+            //
+            // EXPECTED RESULTS (based on business rules documented above):
+            // ====================================================================================
+            // 6hr Close Event (CloseHours=6):
+            //   - S1 Only: OPEN (24 > 6)
+            //   - S2 Only: OPEN (120 > 6)
+            //   - Both Sessions: OPEN (uses S1 @ 24hrs, 24 > 6)
+            //
+            // 48hr Close Event (CloseHours=48):
+            //   - S1 Only: CLOSED (24 < 48)
+            //   - S2 Only: OPEN (120 > 48)
+            //   - Both Sessions: CLOSED (uses S1 @ 24hrs, 24 < 48)
+            //
+            // 300hr Close Event (CloseHours=300):
+            //   - S1 Only: CLOSED (24 < 300)
+            //   - S2 Only: CLOSED (120 < 300)
+            //   - Both Sessions: CLOSED (uses S1 @ 24hrs, 24 < 300)
+            // ====================================================================================
+
+            // TIMING TEST EVENT 1: 6-hour close window (most permissive)
+            // All tickets should be available: S1 @ 24hrs > 6, S2 @ 120hrs > 6
+            CreateHistoricalEvent(
+                id: out _timingTest6hrCloseEventId,
+                title: "Timing Test - 6hr Close",
+                daysFromNow: 0,  // Event "starts" today (but real timing is per-session)
+                startHour: 18,
+                duration: 3,
+                capacity: 30,
+                eventType: EventType.Class,
+                venue: mainStudio,
+                shortDescription: "Timing test: 6hr close. S1=24hrs, S2=120hrs. All tickets OPEN.",
+                longDescription: @"<p>Comprehensive timing test event with 6-hour registration close window.</p>
+
+<h3>Session Configuration</h3>
+<ul>
+<li>Session 1 (S1): 24 hours (1 day) in the future</li>
+<li>Session 2 (S2): 120 hours (5 days) in the future</li>
+<li>RegistrationCloseHours: 6</li>
+</ul>
+
+<h3>Expected Ticket Availability</h3>
+<ul>
+<li><strong>S1 Only Ticket</strong>: AVAILABLE (24 > 6)</li>
+<li><strong>S2 Only Ticket</strong>: AVAILABLE (120 > 6)</li>
+<li><strong>Both Sessions Ticket</strong>: AVAILABLE (uses S1 @ 24hrs, 24 > 6)</li>
+</ul>
+
+<h3>Business Rule Tested</h3>
+<p>With a 6-hour close window, both sessions are well within the registration window, so all tickets should be purchasable.</p>",
+                policies: @"<h2>Test Event</h2><p>Standard policies apply.</p>",
+                registrationOpenHours: 500m,      // Opens 500 hours before (plenty early)
+                registrationCloseHours: 6m,       // KEY: 6 hours before session
+                cancellationCloseHours: 4m,       // 4 hours before (less than registration)
+                volunteerRegistrationCloseHours: 6m,
+                volunteerCancellationCloseHours: 4m
+            ),
+
+            // TIMING TEST EVENT 2: 48-hour close window (medium restrictive)
+            // S1 Only: CLOSED (24 < 48), S2 Only: OPEN (120 > 48), Both: CLOSED (uses S1)
+            CreateHistoricalEvent(
+                id: out _timingTest48hrCloseEventId,
+                title: "Timing Test - 48hr Close",
+                daysFromNow: 0,
+                startHour: 18,
+                duration: 3,
+                capacity: 30,
+                eventType: EventType.Class,
+                venue: mainStudio,
+                shortDescription: "Timing test: 48hr close. S1 CLOSED, S2 OPEN, Both CLOSED.",
+                longDescription: @"<p>Comprehensive timing test event with 48-hour registration close window.</p>
+
+<h3>Session Configuration</h3>
+<ul>
+<li>Session 1 (S1): 24 hours (1 day) in the future</li>
+<li>Session 2 (S2): 120 hours (5 days) in the future</li>
+<li>RegistrationCloseHours: 48</li>
+</ul>
+
+<h3>Expected Ticket Availability</h3>
+<ul>
+<li><strong>S1 Only Ticket</strong>: NOT AVAILABLE (24 < 48, window closed)</li>
+<li><strong>S2 Only Ticket</strong>: AVAILABLE (120 > 48)</li>
+<li><strong>Both Sessions Ticket</strong>: NOT AVAILABLE (uses EARLIEST session S1 @ 24hrs, 24 < 48)</li>
+</ul>
+
+<h3>Business Rules Tested</h3>
+<ul>
+<li>Single-session tickets use their specific session's timing</li>
+<li>Multi-session tickets use EARLIEST session's timing (S1), not first-future</li>
+<li>This demonstrates that multi-session tickets close earlier than single-session S2 tickets</li>
+</ul>",
+                policies: @"<h2>Test Event</h2><p>Standard policies apply.</p>",
+                registrationOpenHours: 500m,
+                registrationCloseHours: 48m,      // KEY: 48 hours before session
+                cancellationCloseHours: 24m,
+                volunteerRegistrationCloseHours: 48m,
+                volunteerCancellationCloseHours: 24m
+            ),
+
+            // TIMING TEST EVENT 3: 300-hour close window (very restrictive)
+            // All tickets should be CLOSED: S1 @ 24hrs < 300, S2 @ 120hrs < 300
+            CreateHistoricalEvent(
+                id: out _timingTest300hrCloseEventId,
+                title: "Timing Test - 300hr Close",
+                daysFromNow: 0,
+                startHour: 18,
+                duration: 3,
+                capacity: 30,
+                eventType: EventType.Class,
+                venue: mainStudio,
+                shortDescription: "Timing test: 300hr close. All tickets CLOSED.",
+                longDescription: @"<p>Comprehensive timing test event with 300-hour registration close window.</p>
+
+<h3>Session Configuration</h3>
+<ul>
+<li>Session 1 (S1): 24 hours (1 day) in the future</li>
+<li>Session 2 (S2): 120 hours (5 days) in the future</li>
+<li>RegistrationCloseHours: 300 (12.5 days before session)</li>
+</ul>
+
+<h3>Expected Ticket Availability</h3>
+<ul>
+<li><strong>S1 Only Ticket</strong>: NOT AVAILABLE (24 < 300)</li>
+<li><strong>S2 Only Ticket</strong>: NOT AVAILABLE (120 < 300)</li>
+<li><strong>Both Sessions Ticket</strong>: NOT AVAILABLE (uses S1 @ 24hrs, 24 < 300)</li>
+</ul>
+
+<h3>Business Rule Tested</h3>
+<p>With a very early close window (300 hours = 12.5 days), no tickets are available because we're within the close window for all sessions.</p>",
+                policies: @"<h2>Test Event</h2><p>Standard policies apply.</p>",
+                registrationOpenHours: 500m,
+                registrationCloseHours: 300m,     // KEY: 300 hours before session (12.5 days)
+                cancellationCloseHours: 200m,
+                volunteerRegistrationCloseHours: 300m,
+                volunteerCancellationCloseHours: 200m
+            ),
+
+            // ====================================================================================
+            // EDGE CASE TIMING TEST EVENT
+            // ====================================================================================
+            // Tests UTC storage vs local time display when window closes in ~1 hour.
+            //
+            // CONFIGURATION:
+            // - Session at 25 hours from now
+            // - RegistrationCloseHours = 24
+            // - Window closes in: 25 - 24 = 1 hour
+            //
+            // PURPOSE:
+            // Verifies that timezone conversions work correctly at the edge case where
+            // the registration window is about to close. This tests:
+            // 1. UTC times are stored correctly in the database
+            // 2. The frontend displays correct local times
+            // 3. The timing calculation is accurate within an hour boundary
+            // ====================================================================================
+            CreateHistoricalEvent(
+                id: out _timingTestEdgeCaseEventId,
+                title: "Timing Test - Tight Margin",
+                daysFromNow: 1,  // ~24 hours from now
+                startHour: 18,
+                duration: 3,
+                capacity: 20,
+                eventType: EventType.Class,
+                venue: mainStudio,
+                shortDescription: "Tight margin test: 12hr close window. Tests UTC timezone bugs.",
+                longDescription: @"<p>Tight margin UTC bug detection test event.</p>
+
+<h3>Configuration</h3>
+<ul>
+<li>Session: 24 hours from seed time (drifts over time)</li>
+<li>RegistrationCloseHours: 12</li>
+<li>At seed time: ~12 hour margin</li>
+<li>After 10+ hours: margin shrinks to 2-4 hours</li>
+</ul>
+
+<h3>Purpose</h3>
+<p>This event tests for UTC timezone bugs with a TIGHT margin.
+A 3+ hour timezone offset would cause the calculation to cross the threshold incorrectly.</p>
+
+<h3>Expected Behavior</h3>
+<p>Should be OPEN as long as hoursUntilSession > 12</p>
+<p>Should be CLOSED when hoursUntilSession < 12</p>
+<p>If server has UTC bug, client and server calculations will differ.</p>",
+                policies: @"<h2>Test Event</h2><p>Standard policies apply.</p>",
+                registrationOpenHours: 500m,
+                registrationCloseHours: 12m,      // KEY: 12 hours before session - tight margin
+                cancellationCloseHours: 10m,      // 10 hours - even tighter for cancel
+                volunteerRegistrationCloseHours: 12m,
+                volunteerCancellationCloseHours: 10m
             )
         };
 

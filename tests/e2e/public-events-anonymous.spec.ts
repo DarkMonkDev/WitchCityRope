@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * Public Events Anonymous Access E2E Tests
  *
@@ -23,7 +28,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('Anonymous user can GET /api/events without authentication', async ({ page }) => {
       // Make direct API call to events endpoint (no authentication)
-      const response = await page.request.get('http://localhost:5655/api/events');
+      const response = await page.request.get(`${API_BASE_URL}/api/events`);
 
       // Should return 200 OK status
       expect(response.status()).toBe(200);
@@ -42,7 +47,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('API response matches EventDto structure', async ({ page }) => {
       // Make API call
-      const response = await page.request.get('http://localhost:5655/api/events');
+      const response = await page.request.get(`${API_BASE_URL}/api/events`);
       const responseData = await response.json();
 
       // Verify wrapper structure
@@ -80,7 +85,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('Unpublished events are NOT returned to anonymous users', async ({ page }) => {
       // Make API call without includeUnpublished parameter
-      const response = await page.request.get('http://localhost:5655/api/events');
+      const response = await page.request.get(`${API_BASE_URL}/api/events`);
       const responseData = await response.json();
 
       const events = responseData.data;
@@ -98,7 +103,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('includeUnpublished parameter requires authentication (returns 401)', async ({ page }) => {
       // Attempt to access unpublished events without authentication
-      const response = await page.request.get('http://localhost:5655/api/events?includeUnpublished=true');
+      const response = await page.request.get(`${API_BASE_URL}/api/events?includeUnpublished=true`);
 
       // Should return 401 Unauthorized
       expect(response.status()).toBe(401);

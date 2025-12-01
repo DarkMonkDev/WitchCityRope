@@ -7,7 +7,7 @@
  * - RefundStatus is set correctly (Processing initially)
  * - ProcessedByUserId matches admin user
  * - ProcessedAt timestamp is set
- * - OriginalPaymentId references correct payment
+ * - PaymentId references correct payment
  * - Refund amount matches payment amount
  * - Audit log entries created
  *
@@ -17,44 +17,13 @@
 
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
-import pkg from 'pg';
-const { Pool } = pkg;
+import { DatabaseHelpers, closeDatabaseConnections } from './utils/database-helpers';
 
-// Database connection configuration (matches Docker setup)
-const DB_CONFIG = {
-  host: 'localhost',
-  port: 5434,  // Matches Docker PostgreSQL port
-  database: 'witchcityrope_dev',
-  user: 'postgres',
-  password: 'devpass123',
-};
-
-// Create database pool for tests
-let pool: typeof Pool.prototype | null = null;
-
-function getPool() {
-  if (!pool) {
-    pool = new Pool(DB_CONFIG);
-  }
-  return pool;
-}
-
-async function query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-  const client = await getPool().connect();
-  try {
-    const result = await client.query(sql, params);
-    return result.rows as T[];
-  } finally {
-    client.release();
-  }
-}
-
-async function closeDatabaseConnections() {
-  if (pool) {
-    await pool.end();
-    pool = null;
-  }
-}
+// Use the centralized database helpers with environment-aware configuration
+// This ensures the same database connection pattern works in both:
+// - Dev containers (localhost:5434)
+// - Test containers (postgres:5432 via DB_CONNECTION_STRING)
+const query = DatabaseHelpers.query;
 
 test.afterAll(async () => {
   console.log('🧹 Closing database connections...');
@@ -103,7 +72,7 @@ test.describe('Refund Database Persistence Tests', () => {
     const columnNames = columns.map((col: any) => col.column_name);
     const requiredColumns = [
       'Id',
-      'OriginalPaymentId',
+      'PaymentId',
       'RefundAmountValue',
       'RefundCurrency',
       'RefundReason',
@@ -183,7 +152,7 @@ test.describe('Refund Database Persistence Tests', () => {
       WHERE p."PaymentStatus" = 'Completed'
       AND NOT EXISTS (
         SELECT 1 FROM "PaymentRefunds" pr
-        WHERE pr."OriginalPaymentId" = p."Id"
+        WHERE pr."PaymentId" = p."Id"
       )
       LIMIT 1
     `);
@@ -203,7 +172,7 @@ test.describe('Refund Database Persistence Tests', () => {
     console.log('📝 Step 5: After refund, verify PaymentRefund record');
     console.log('   ⏭️  UI refund trigger pending - would verify:');
     console.log('      - PaymentRefund.Id is a valid GUID');
-    console.log('      - PaymentRefund.OriginalPaymentId = test payment ID');
+    console.log('      - PaymentRefund.PaymentId = test payment ID');
     console.log('      - PaymentRefund.RefundAmountValue = payment amount');
     console.log('      - PaymentRefund.RefundCurrency = payment currency');
     console.log('      - PaymentRefund.RefundReason = text from modal');
@@ -449,8 +418,8 @@ test.describe('Refund Database Persistence Tests', () => {
     console.log('\n✅ TEST PASSED: ProcessedAt timestamp verification complete');
   });
 
-  test('OriginalPaymentId references valid payment', async ({ page }) => {
-    console.log('\n🎯 TEST: Verify OriginalPaymentId integrity');
+  test('PaymentId references valid payment', async ({ page }) => {
+    console.log('\n🎯 TEST: Verify PaymentId integrity');
     console.log('─'.repeat(60));
 
     const tableExists = await query(`
@@ -470,14 +439,14 @@ test.describe('Refund Database Persistence Tests', () => {
     const refundsWithPayments = await query(`
       SELECT
         pr."Id" as "refundId",
-        pr."OriginalPaymentId" as "paymentId",
+        pr."PaymentId" as "paymentId",
         pr."RefundAmountValue" as "refundAmount",
         pr."RefundCurrency" as "refundCurrency",
         p."AmountValue" as "paymentAmount",
         p."Currency" as "paymentCurrency",
         p."Status" as "paymentStatus"
       FROM "PaymentRefunds" pr
-      LEFT JOIN "Payments" p ON pr."OriginalPaymentId" = p."Id"
+      LEFT JOIN "Payments" p ON pr."PaymentId" = p."Id"
       ORDER BY pr."CreatedAt" DESC
       LIMIT 5
     `);
@@ -489,7 +458,7 @@ test.describe('Refund Database Persistence Tests', () => {
 
     console.log(`   ✅ Found ${refundsWithPayments.length} refund(s) with payment data`);
 
-    console.log('\n📝 Step 2: Verify OriginalPaymentId references valid payments');
+    console.log('\n📝 Step 2: Verify PaymentId references valid payments');
     refundsWithPayments.forEach((refund: any, index: number) => {
       console.log(`\n   Refund ${index + 1}:`);
       console.log(`   - Refund ID: ${refund.refundId}`);
@@ -499,7 +468,7 @@ test.describe('Refund Database Persistence Tests', () => {
         console.log(`   - Payment Status: ${refund.paymentStatus}`);
         console.log(`   - Payment Amount: ${refund.paymentCurrency} ${refund.paymentAmount}`);
         console.log(`   - Refund Amount: ${refund.refundCurrency} ${refund.refundAmount}`);
-        console.log(`   ✅ OriginalPaymentId references valid payment`);
+        console.log(`   ✅ PaymentId references valid payment`);
 
         // Verify refund amount matches payment amount
         if (refund.refundAmount === refund.paymentAmount &&
@@ -509,11 +478,11 @@ test.describe('Refund Database Persistence Tests', () => {
           console.log(`   ⚠️  Refund amount does NOT match payment amount`);
         }
       } else {
-        console.log(`   ⚠️  OriginalPaymentId does not reference a valid payment`);
+        console.log(`   ⚠️  PaymentId does not reference a valid payment`);
       }
     });
 
-    console.log('\n✅ TEST PASSED: OriginalPaymentId verification complete');
+    console.log('\n✅ TEST PASSED: PaymentId verification complete');
   });
 
   test('Audit log entry created for refund', async ({ page }) => {

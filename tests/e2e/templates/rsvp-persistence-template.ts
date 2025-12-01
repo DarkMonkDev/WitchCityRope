@@ -21,6 +21,11 @@ import {
 import { DatabaseHelpers } from '../utils/database-helpers';
 import { getParticipationTypeName } from '../utils/database-helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 // ============================================================================
 // RSVP TEST CONFIG
 // ============================================================================
@@ -87,7 +92,7 @@ export async function testRsvpPersistence(
           console.log(`⚠️  Database shows ACTIVE ${getParticipationTypeName(existingActive.participationType)} - cancelling via UI`);
 
           // Navigate and cancel through UI
-          await page.goto(`http://localhost:5173/events/${eventId}`);
+          await page.goto(`${WEB_BASE_URL}/events/${eventId}`);
           await page.waitForLoadState('networkidle');
           await page.waitForTimeout(2000);
 
@@ -127,7 +132,7 @@ export async function testRsvpPersistence(
       }
 
       // ALWAYS navigate to ensure fresh page state
-      await page.goto(`http://localhost:5173/events/${eventId}`);
+      await page.goto(`${WEB_BASE_URL}/events/${eventId}`);
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(3000); // Increased from 2000ms to allow UI to fully settle
       console.log('✅ Navigated to event details page');
@@ -315,7 +320,7 @@ export async function testCancelRsvpPersistence(
         console.log('⚠️  No active RSVP found - creating one first');
 
         // Navigate and create RSVP via UI
-        await page.goto(`http://localhost:5173/events/${eventId}`);
+        await page.goto(`${WEB_BASE_URL}/events/${eventId}`);
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(2000);
 
@@ -344,7 +349,7 @@ export async function testCancelRsvpPersistence(
       }
 
       // Navigate to event
-      await page.goto(`http://localhost:5173/events/${eventId}`);
+      await page.goto(`${WEB_BASE_URL}/events/${eventId}`);
       await page.waitForLoadState('networkidle');
     },
 

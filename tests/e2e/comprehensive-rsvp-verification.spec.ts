@@ -1,6 +1,11 @@
 import { test, expect, Page } from '@playwright/test'
 import { AuthHelpers } from './test-utils/helpers/auth.helpers'
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * COMPREHENSIVE RSVP VERIFICATION TEST
  *
@@ -99,7 +104,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
 
   test.beforeAll(async ({ request }) => {
     // API health pre-check prevents wasted test time - CRITICAL per lessons learned
-    const response = await request.get('http://localhost:5655/health')
+    const response = await request.get(`${API_BASE_URL}/health`)
     expect(response.ok()).toBeTruthy()
     const health = await response.json()
     expect(health.status).toBe('Healthy')
@@ -231,7 +236,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     await AuthHelpers.loginAs(page, 'admin')
 
     // First get the event ID for Rope Social by calling the API directly
-    const eventsResponse = await page.request.get('http://localhost:5655/api/events')
+    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`)
     const eventsData = await eventsResponse.json()
 
     // Handle wrapped API response structure
@@ -291,7 +296,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     })
 
     // Get participation data directly from API
-    const participationResponse = await page.request.get(`http://localhost:5655/api/admin/events/${ropeSocial.id}/participations`)
+    const participationResponse = await page.request.get(`${API_BASE_URL}/api/admin/events/${ropeSocial.id}/participations`)
     const participationData = await participationResponse.json()
     console.log(`📊 API participation data for Rope Social: ${JSON.stringify(participationData, null, 2)}`)
 
@@ -320,7 +325,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     await AuthHelpers.loginAs(page, 'admin')
 
     // Get Rope Social event ID
-    const eventsResponse = await page.request.get('http://localhost:5655/api/events')
+    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`)
     const eventsData = await eventsResponse.json()
 
     // Handle wrapped API response structure
@@ -366,7 +371,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     }
 
     // Check user's RSVP status via API
-    const rsvpStatusResponse = await page.request.get(`http://localhost:5655/api/participation/${ropeSocial.id}`)
+    const rsvpStatusResponse = await page.request.get(`${API_BASE_URL}/api/participation/${ropeSocial.id}`)
     if (rsvpStatusResponse.ok()) {
       const rsvpStatus = await rsvpStatusResponse.json()
       console.log(`📊 User's RSVP status via API: ${JSON.stringify(rsvpStatus, null, 2)}`)
@@ -452,7 +457,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     console.log(`📊 Found ${numberCount} elements with numbers`)
 
     // Get user's actual RSVPs via API for comparison
-    const userRsvpsResponse = await page.request.get('http://localhost:5655/api/user/rsvps')
+    const userRsvpsResponse = await page.request.get(`${API_BASE_URL}/api/user/rsvps`)
     if (userRsvpsResponse.ok()) {
       const userRsvps = await userRsvpsResponse.json()
       console.log(`📊 User's actual RSVPs via API: ${JSON.stringify(userRsvps, null, 2)}`)
@@ -463,7 +468,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     console.log('📡 Testing API responses directly...')
 
     // Test /api/events endpoint
-    const eventsResponse = await page.request.get('http://localhost:5655/api/events')
+    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`)
     expect(eventsResponse.ok()).toBeTruthy()
     const eventsResponseData = await eventsResponse.json()
 
@@ -482,7 +487,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     // Find Rope Social event and test its participation endpoint
     const ropeSocial = Array.isArray(events) ? events.find((e: any) => e.title?.includes('Rope Social')) : null
     if (ropeSocial) {
-      const participationResponse = await page.request.get(`http://localhost:5655/api/admin/events/${ropeSocial.id}/participations`)
+      const participationResponse = await page.request.get(`${API_BASE_URL}/api/admin/events/${ropeSocial.id}/participations`)
 
       if (participationResponse.ok()) {
         const participations = await participationResponse.json()
@@ -493,7 +498,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
       }
 
       // Test user's participation status
-      const userParticipationResponse = await page.request.get(`http://localhost:5655/api/participation/${ropeSocial.id}`)
+      const userParticipationResponse = await page.request.get(`${API_BASE_URL}/api/participation/${ropeSocial.id}`)
       if (userParticipationResponse.ok()) {
         const userParticipation = await userParticipationResponse.json()
         console.log(`📊 /api/participation/${ropeSocial.id} response:`)
@@ -507,8 +512,8 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     const apiSummary = {
       timestamp: new Date().toISOString(),
       events: events,
-      ropeSocialParticipation: ropeSocial ? await page.request.get(`http://localhost:5655/api/admin/events/${ropeSocial.id}/participations`).then(r => r.json()).catch(() => null) : null,
-      userParticipation: ropeSocial ? await page.request.get(`http://localhost:5655/api/participation/${ropeSocial.id}`).then(r => r.json()).catch(() => null) : null
+      ropeSocialParticipation: ropeSocial ? await page.request.get(`${API_BASE_URL}/api/admin/events/${ropeSocial.id}/participations`).then(r => r.json()).catch(() => null) : null,
+      userParticipation: ropeSocial ? await page.request.get(`${API_BASE_URL}/api/participation/${ropeSocial.id}`).then(r => r.json()).catch(() => null) : null
     }
 
     // Write API summary to file (can be manually saved for debugging)

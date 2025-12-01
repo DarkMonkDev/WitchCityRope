@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
 /**
  * TDD E2E Tests for Admin Events Edit Screen - Session Management
  *
@@ -26,8 +30,7 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Fetch a real event ID from the API
-    const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:5655';
-    const eventsResponse = await page.request.get(`${apiBaseUrl}/api/events`);
+    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`);
     const events = await eventsResponse.json();
 
     if (!events || events.length === 0) {

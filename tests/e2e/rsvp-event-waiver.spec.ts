@@ -1,6 +1,11 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * E2E TESTS: RSVP Event Waiver Compliance
  *
@@ -97,7 +102,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
   test('Positive: Database shows EventWaiverAccepted=true and timestamp after RSVP', async ({ page, request }) => {
     // Get event ID from API (same pattern as working tests)
-    const eventsResponse = await request.get('http://localhost:5655/api/events');
+    const eventsResponse = await request.get(`${API_BASE_URL}/api/events`);
     const eventsData = await eventsResponse.json();
 
     // Handle wrapped API response structure
@@ -141,7 +146,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     // Query API for participation status
     const participationResponse = await request.get(
-      `http://localhost:5655/api/participation/event/${eventSlug}/status`,
+      `${API_BASE_URL}/api/participation/event/${eventSlug}/status`,
       { failOnStatusCode: false }
     );
 
@@ -265,7 +270,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
     // to verify backend validation
 
     // First, get a valid event to RSVP to
-    const eventsResponse = await request.get('http://localhost:5655/api/events', {
+    const eventsResponse = await request.get(`${API_BASE_URL}/api/events`, {
       failOnStatusCode: false
     });
 
@@ -284,7 +289,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     // Attempt RSVP without Event Waiver acceptance
     const rsvpResponse = await request.post(
-      `http://localhost:5655/api/participation/rsvp`,
+      `${API_BASE_URL}/api/participation/rsvp`,
       {
         data: {
           eventId: socialEvent.id,

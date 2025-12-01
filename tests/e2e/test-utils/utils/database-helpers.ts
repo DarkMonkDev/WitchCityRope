@@ -10,16 +10,55 @@
  */
 
 import pkg from 'pg';
+
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
 const { Pool } = pkg;
 
-// Database connection configuration (matches Docker setup)
-const DB_CONFIG = {
-  host: 'localhost',
-  port: 5434,  // Matches Docker PostgreSQL port from docker-compose.dev.yml
-  database: 'witchcityrope_dev',
-  user: 'postgres',
-  password: 'devpass123',
-};
+/**
+ * Parse .NET-style connection string into pg Pool config
+ * Format: "Host=x;Port=y;Database=z;Username=a;Password=b"
+ */
+function parseConnectionString(connStr: string): { host: string; port: number; database: string; user: string; password: string } {
+  const parts: Record<string, string> = {};
+  connStr.split(';').forEach(part => {
+    const [key, value] = part.split('=');
+    if (key && value) {
+      parts[key.trim().toLowerCase()] = value.trim();
+    }
+  });
+  return {
+    host: parts.host || 'localhost',
+    port: parseInt(parts.port || '5432', 10),
+    database: parts.database || 'witchcityrope_dev',
+    user: parts.username || parts.user || 'postgres',
+    password: parts.password || 'devpass123',
+  };
+}
+
+/**
+ * Database connection configuration
+ * - In test containers: Uses DB_CONNECTION_STRING env var (set to postgres:5432)
+ * - In dev environment: Uses localhost:5434 (Docker port mapping)
+ */
+function getDbConfig() {
+  const connectionString = process.env.DB_CONNECTION_STRING;
+  if (connectionString) {
+    return parseConnectionString(connectionString);
+  }
+  // Dev environment defaults (from docker-compose.dev.yml)
+  return {
+    host: 'localhost',
+    port: 5434,  // Docker port mapping for dev
+    database: 'witchcityrope_dev',
+    user: 'postgres',
+    password: 'devpass123',
+  };
+}
+
+const DB_CONFIG = getDbConfig();
 
 // Singleton pool instance for connection reuse
 let pool: typeof Pool.prototype | null = null;
@@ -601,7 +640,7 @@ export async function createTestUser(options: TestUserOptions): Promise<TestUser
   try {
     // Use TestHelpers API to create user (Development/Test environment only)
     // Note: This uses global fetch with environment-based URL configuration
-    const apiBaseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5655';
+    const apiBaseUrl = process.env.PLAYWRIGHT_BASE_URL || API_BASE_URL;
     const response = await fetch(`${apiBaseUrl}/api/test-helpers/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

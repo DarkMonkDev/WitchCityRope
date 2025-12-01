@@ -9,6 +9,10 @@
  * bugs would have been caught by these database verification helpers.
  */
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
 import pkg from 'pg';
 const { Pool } = pkg;
 
@@ -635,8 +639,7 @@ export async function createTestUser(options: TestUserOptions): Promise<TestUser
   try {
     // Use TestHelpers API to create user (Development/Test environment only)
     // API_BASE_URL: test containers use http://api:8080, dev uses localhost:5655
-    const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:5655';
-    const response = await fetch(`${apiBaseUrl}/api/test-helpers/users`, {
+    const response = await fetch(`${API_BASE_URL}/api/test-helpers/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

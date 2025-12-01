@@ -1,5 +1,10 @@
 import { Page } from '@playwright/test'
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * SERVICE HEALTH CHECK HELPER FOR DOCKER ENVIRONMENT
  *
@@ -33,9 +38,9 @@ export class ServiceHelper {
   // These URLs use environment variables or default to localhost for health checks
   // Tests themselves should use relative URLs (e.g., '/events') to work with baseURL
   private static readonly DEFAULT_ENDPOINTS: ServiceEndpoints = {
-    web: process.env.PLAYWRIGHT_WEB_URL || 'http://localhost:5173',
-    api: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5655',
-    apiHealth: `${process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5655'}/health`
+    web: process.env.PLAYWRIGHT_WEB_URL || WEB_BASE_URL,
+    api: process.env.PLAYWRIGHT_BASE_URL || API_BASE_URL,
+    apiHealth: `${process.env.PLAYWRIGHT_BASE_URL || API_BASE_URL}/health`
   }
 
   private static readonly DEFAULT_OPTIONS: Required<ServiceCheckOptions> = {

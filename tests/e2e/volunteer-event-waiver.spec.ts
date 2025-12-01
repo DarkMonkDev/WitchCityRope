@@ -1,6 +1,11 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * E2E TESTS: Volunteer Signup Event Waiver Compliance
  *
@@ -115,7 +120,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
   test('Positive: Database shows auto-created RSVP has EventWaiverAccepted=true after volunteer signup', async ({ page, request }) => {
     // Get event ID from API (same pattern as working tests)
-    const eventsResponse = await request.get('http://localhost:5655/api/events');
+    const eventsResponse = await request.get(`${API_BASE_URL}/api/events`);
     const eventsData = await eventsResponse.json();
 
     // Handle wrapped API response structure
@@ -167,7 +172,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     // Query API for participation status
     const participationResponse = await request.get(
-      `http://localhost:5655/api/participation/event/${eventSlug}/status`,
+      `${API_BASE_URL}/api/participation/event/${eventSlug}/status`,
       { failOnStatusCode: false }
     );
 
@@ -296,7 +301,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     // This test directly calls the volunteer API without waiver acceptance
 
     // First, get a valid event with volunteer positions
-    const eventsResponse = await request.get('http://localhost:5655/api/events', {
+    const eventsResponse = await request.get(`${API_BASE_URL}/api/events`, {
       failOnStatusCode: false
     });
 
@@ -315,7 +320,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     // Get volunteer positions for this event
     const volunteersResponse = await request.get(
-      `http://localhost:5655/api/volunteer/event/${eventWithVolunteers.id}/positions`,
+      `${API_BASE_URL}/api/volunteer/event/${eventWithVolunteers.id}/positions`,
       { failOnStatusCode: false }
     );
 
@@ -334,7 +339,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     // Attempt volunteer signup without Event Waiver acceptance
     const signupResponse = await request.post(
-      `http://localhost:5655/api/volunteer/signup`,
+      `${API_BASE_URL}/api/volunteer/signup`,
       {
         data: {
           positionId: firstPosition.id,

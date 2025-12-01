@@ -1535,3 +1535,103 @@ strict mode violation: getByLabel('X') resolved to 2 elements:
 - [ ] Run test once to catch strict mode violations early
 
 ---
+
+## 🚨 CRITICAL: NEVER Hardcode API URLs in E2E Tests (2025-12-01)
+
+**Problem**: Using `const API_BASE_URL = 'http://localhost:5655'` with Node.js `fetch()` breaks in Docker test containers because localhost doesn't resolve to the API container.
+
+**Root Cause**: Node.js `fetch()` runs in the test runner container context, where `localhost:5655` doesn't reach the API service (which is in a different Docker container).
+
+**Wrong Pattern (NEVER DO THIS):**
+```typescript
+// ❌ BROKEN - Node.js fetch in test runner context
+const API_BASE_URL = 'http://localhost:5655';
+
+async function fetchEventByTitle(title: string) {
+  const response = await fetch(`${API_BASE_URL}/api/events`);  // ECONNREFUSED
+  return response.json();
+}
+
+test('my test', async ({ page }) => {
+  const event = await fetchEventByTitle('Test Event');  // FAILS IN DOCKER
+});
+```
+
+**Why This Fails**:
+- Test runner executes in `witchcity-test-runner` container
+- API service runs in `witchcity-api` container
+- `localhost:5655` in test runner context = test runner's localhost, NOT API container
+- Result: `ECONNREFUSED 127.0.0.1:5655`
+
+**Correct Pattern (ALWAYS DO THIS):**
+```typescript
+// ✅ CORRECT - Browser context fetch via page.evaluate()
+async function apiRequest(page: Page, url: string): Promise<any> {
+  return await page.evaluate(async (url) => {
+    const res = await fetch(url, { credentials: 'include' });
+    const text = await res.text();
+    try {
+      return { status: res.status, data: JSON.parse(text) };
+    } catch {
+      return { status: res.status, data: text };
+    }
+  }, url);
+}
+
+async function fetchEventByTitle(page: Page, title: string) {
+  const response = await apiRequest(page, '/api/events');  // Relative URL
+  return response.data.find((e: any) => e.title === title);
+}
+
+test('my test', async ({ page }) => {
+  const event = await fetchEventByTitle(page, 'Test Event');  // WORKS IN DOCKER
+});
+```
+
+**Why This Works**:
+- `page.evaluate()` runs fetch **inside the browser context**
+- Browser knows how to resolve `/api/events` via the web app's origin
+- Web app correctly proxies to API service via Docker networking
+- No hardcoded URLs needed - uses relative paths
+
+**Key Differences**:
+| Pattern | Context | URL Resolution | Docker Compatible |
+|---------|---------|----------------|-------------------|
+| `fetch()` directly | Node.js test runner | Test runner's localhost | ❌ NO |
+| `page.evaluate(fetch)` | Browser | Web app's origin + proxy | ✅ YES |
+
+**Working Example**: `/tests/e2e/session-ticket-availability.spec.ts` (lines 31-47)
+**Fixed Example**: `/tests/e2e/comprehensive-timing-tests.spec.ts` (December 1, 2025)
+
+### Detection
+Error message in test output:
+```
+Error: connect ECONNREFUSED 127.0.0.1:5655
+```
+
+Or:
+```
+Failed to fetch events: 500
+```
+
+When you see this with `localhost:5655` in test code → IMMEDIATE RED FLAG
+
+### Prevention Strategy
+1. **NEVER hardcode API URLs** in E2E tests (`http://localhost:5655`, etc.)
+2. **ALWAYS use `page.evaluate()`** for API calls from test code
+3. **Use relative URLs** (`/api/events`) instead of absolute URLs
+4. **Add `page: Page` parameter** to helper functions that need API access
+5. **Reference working examples** before writing new API helper functions
+
+### Prevention Checklist
+Before writing E2E test helper functions that call APIs:
+- [ ] Does this use `fetch()` directly? → WRONG, use `page.evaluate()`
+- [ ] Does this hardcode `localhost:5655`? → WRONG, use relative URLs
+- [ ] Does helper accept `page: Page` parameter? → REQUIRED
+- [ ] Have I checked working examples (session-ticket-availability.spec.ts)?
+- [ ] Will this work in Docker test containers?
+
+### Tags
+#critical #e2e-testing #docker #api-urls #prevention-pattern #playwright #fetch #docker-networking
+
+---

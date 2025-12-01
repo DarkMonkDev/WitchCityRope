@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * Basic Events System Validation Test
  *
@@ -195,7 +200,7 @@ test.describe('Events System Basic Validation', () => {
 
     // Direct API health check
     try {
-      const apiHealthResponse = await page.request.get('http://localhost:5655/health');
+      const apiHealthResponse = await page.request.get(`${API_BASE_URL}/health`);
       console.log(`🏥 API health check: ${apiHealthResponse.status()}`);
       
       if (apiHealthResponse.ok()) {
@@ -208,7 +213,7 @@ test.describe('Events System Basic Validation', () => {
 
     // Check for events-specific API endpoints
     try {
-      const eventsApiResponse = await page.request.get('http://localhost:5655/api/events');
+      const eventsApiResponse = await page.request.get(`${API_BASE_URL}/api/events`);
       console.log(`📅 Events API response: ${eventsApiResponse.status()}`);
       
       if (eventsApiResponse.ok()) {
@@ -248,7 +253,7 @@ test.describe('Events System Basic Validation', () => {
 
       // 3. API responds
       try {
-        const apiResponse = await page.request.get('http://localhost:5655/health');
+        const apiResponse = await page.request.get(`${API_BASE_URL}/health`);
         systemStatus.apiResponds = apiResponse.ok();
       } catch (error) {
         systemStatus.apiResponds = false;
@@ -268,7 +273,7 @@ test.describe('Events System Basic Validation', () => {
 
       // 5. Events data available
       try {
-        const eventsApiResponse = await page.request.get('http://localhost:5655/api/events');
+        const eventsApiResponse = await page.request.get(`${API_BASE_URL}/api/events`);
         systemStatus.eventsDataAvailable = eventsApiResponse.ok();
       } catch (error) {
         systemStatus.eventsDataAvailable = false;

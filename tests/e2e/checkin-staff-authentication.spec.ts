@@ -36,6 +36,10 @@ import {
   getAttendees
 } from './checkin/helpers/tokenHelpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
 // CHECK-IN KIOSK MODE TESTS
 // Routes: /events/:eventId/checkin and /events/:eventId/checkin/dashboard
 // Uses session tokens for access control - NO user login required
@@ -90,7 +94,7 @@ test.describe('Check-In Token Validation', () => {
 
     // Navigate with fake/invalid token
     const fakeToken = 'invalid-token-12345';
-    await page.goto(`http://localhost:5173/events/${testEventId}/checkin?token=${fakeToken}&event=${testEventId}`);
+    await page.goto(`${WEB_BASE_URL}/events/${testEventId}/checkin?token=${fakeToken}&event=${testEventId}`);
     await page.waitForLoadState('networkidle');
 
     // The page loads but API calls with invalid token will fail
@@ -107,7 +111,7 @@ test.describe('Check-In Token Validation', () => {
 
     // Verify API call with invalid token fails
     const response = await page.request.get(
-      `http://localhost:5655/api/checkin/events/${testEventId}/attendees`,
+      `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
       {
         headers: {
           'X-CheckIn-Token': fakeToken
@@ -154,7 +158,7 @@ test.describe('Check-In Token Validation', () => {
 
     // Try to get attendees for wrong event using token for different event
     const attendeesData = await page.request.get(
-      `http://localhost:5655/api/checkin/events/${fakeEventId}/attendees`,
+      `${API_BASE_URL}/api/checkin/events/${fakeEventId}/attendees`,
       {
         headers: {
           'X-CheckIn-Token': sessionToken
@@ -198,7 +202,7 @@ test.describe('Check-In Token Validation', () => {
 
     // Verify API calls with revoked token fail
     const attendeesResponse = await page.request.get(
-      `http://localhost:5655/api/checkin/events/${testEventId}/attendees`,
+      `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
       {
         headers: {
           'X-CheckIn-Token': sessionToken
@@ -264,7 +268,7 @@ test.describe('Check-In Token Validation', () => {
 
     // Verify API calls with expired token fail
     const attendeesResponse = await page.request.get(
-      `http://localhost:5655/api/checkin/events/${testEventId}/attendees`,
+      `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
       {
         headers: {
           'X-CheckIn-Token': sessionToken

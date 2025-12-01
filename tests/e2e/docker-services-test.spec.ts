@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { ServiceHelper } from './test-utils/helpers/service.helper';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * Docker Services Configuration Test
  *
@@ -8,7 +13,7 @@ import { ServiceHelper } from './test-utils/helpers/service.helper';
  * existing Docker services without trying to start new ones.
  */
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || WEB_BASE_URL;
 
 test.describe('Docker Services Configuration', () => {
   
@@ -36,7 +41,7 @@ test.describe('Docker Services Configuration', () => {
     // Try to make an API request from the browser context
     const apiCheck = await page.evaluate(async () => {
       try {
-        const response = await fetch('http://localhost:5655/health', {
+        const response = await fetch(`${API_BASE_URL}/health`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',

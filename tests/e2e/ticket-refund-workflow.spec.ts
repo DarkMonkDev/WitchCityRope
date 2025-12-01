@@ -22,6 +22,11 @@ import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 import { DatabaseHelpers } from './test-utils/utils/database-helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 // Test data
 let PAID_TICKET_EVENT_ID: string;
 let TEST_PAYMENT_ID: string;

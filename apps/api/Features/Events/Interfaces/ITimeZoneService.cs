@@ -50,6 +50,15 @@ public interface ITimeZoneService
         IEnumerable<WitchCityRope.Api.Models.Session> sessions);
 
     /// <summary>
+    /// Get the earliest session from a list of sessions (regardless of past/future)
+    /// Used for multi-session ticket timing - timing is based on the EARLIEST session
+    /// </summary>
+    /// <param name="sessions">Sessions to check</param>
+    /// <returns>The earliest session by StartTime, or null if none</returns>
+    WitchCityRope.Api.Models.Session? GetEarliestSession(
+        IEnumerable<WitchCityRope.Api.Models.Session> sessions);
+
+    /// <summary>
     /// Check if an action is allowed for a specific session based on timing windows
     /// Session-based timing calculation (replaces event-based timing)
     /// </summary>

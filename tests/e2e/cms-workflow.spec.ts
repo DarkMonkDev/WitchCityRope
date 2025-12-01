@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * CMS Workflow E2E Test Suite
  *
@@ -17,7 +22,7 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * Phase: 3.8 - Test Modernization
  */
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || WEB_BASE_URL;
 
 test.describe('CMS Workflow - Public Access', () => {
   test.beforeEach(async ({ page }) => {

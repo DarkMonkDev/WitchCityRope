@@ -17,10 +17,15 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 // Venue Management is implemented in AdminSettingsPage (right column card)
 // Route: /admin/settings (NOT /admin/venues)
 // Component: VenueManagementCard uses Select dropdown with "Add New" option
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || WEB_BASE_URL;
 
 test.describe('Admin Venue Creation', () => {
   test.beforeEach(async ({ page }) => {

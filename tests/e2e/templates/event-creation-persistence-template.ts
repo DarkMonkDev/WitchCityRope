@@ -16,6 +16,11 @@ import {
 } from './persistence-test-template';
 import { DatabaseHelpers, EventRecord } from '../utils/database-helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 // ============================================================================
 // EVENT CREATION TEST CONFIG
 // ============================================================================
@@ -58,7 +63,7 @@ export async function testEventCreationPersistence(
 
     // Setup: Login as admin and navigate to create event page
     setup: async (page: Page) => {
-      await page.goto('http://localhost:5173/login');
+      await page.goto(`${WEB_BASE_URL}/login`);
       await page.waitForLoadState('networkidle');
 
       await page.locator('[data-testid="email-or-scenename-input"]').fill(adminEmail);
@@ -82,7 +87,7 @@ export async function testEventCreationPersistence(
         await page.waitForLoadState('networkidle');
       } else {
         // Fallback: Navigate directly
-        await page.goto('http://localhost:5173/admin/events/create');
+        await page.goto(`${WEB_BASE_URL}/admin/events/create`);
         await page.waitForLoadState('networkidle');
       }
 
@@ -236,7 +241,7 @@ export async function testEventCreationPersistence(
       }
 
       // Navigate to event details page
-      await page.goto(`http://localhost:5173/events/${createdEventId}`);
+      await page.goto(`${WEB_BASE_URL}/events/${createdEventId}`);
       await page.waitForLoadState('networkidle');
 
       // Verify event title is displayed
@@ -298,7 +303,7 @@ export async function testEventUpdatePersistence(
 
     // Setup: Login and navigate to event edit page
     setup: async (page: Page) => {
-      await page.goto('http://localhost:5173/login');
+      await page.goto(`${WEB_BASE_URL}/login`);
       await page.waitForLoadState('networkidle');
 
       await page.locator('[data-testid="email-or-scenename-input"]').fill(adminEmail);
@@ -311,7 +316,7 @@ export async function testEventUpdatePersistence(
       userId = await DatabaseHelpers.getUserIdFromEmail(adminEmail);
 
       // Navigate to event edit page
-      await page.goto(`http://localhost:5173/admin/events/${eventId}/edit`);
+      await page.goto(`${WEB_BASE_URL}/admin/events/${eventId}/edit`);
       await page.waitForLoadState('networkidle');
       console.log('✅ Navigated to event edit page');
     },
@@ -380,7 +385,7 @@ export async function testEventUpdatePersistence(
 
     // Verify persistence
     verifyPersistence: async (page: Page) => {
-      await page.goto(`http://localhost:5173/events/${eventId}`);
+      await page.goto(`${WEB_BASE_URL}/events/${eventId}`);
       await page.waitForLoadState('networkidle');
 
       if (updatedFields.title) {

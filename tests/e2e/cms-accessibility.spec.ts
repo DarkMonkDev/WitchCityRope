@@ -2,6 +2,11 @@ import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 import { injectAxe, checkA11y } from 'axe-playwright';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * CMS Accessibility Tests
  *
@@ -15,7 +20,7 @@ import { injectAxe, checkA11y } from 'axe-playwright';
  * Uses axe-core for automated accessibility testing
  */
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || WEB_BASE_URL;
 
 test.describe('CMS Accessibility Tests', () => {
   test('CMS page has no accessibility violations in view mode', async ({ page }) => {

@@ -35,6 +35,11 @@ export class AuthHelpers {
     await page.goto('/login');
     await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded instead of networkidle
 
+    // CRITICAL: Wait for CSRF to be ready before attempting login
+    // LoginPage disables button until csrfStore.isReady is true
+    // This prevents 401 errors from missing CSRF token
+    await this.waitForLoginReady(page);
+
     // Fill form using data-testid selectors (updated for email-or-scenename field)
     await page.locator('[data-testid="email-or-scenename-input"]').fill(credentials.email);
     await page.locator('[data-testid="password-input"]').fill(credentials.password);

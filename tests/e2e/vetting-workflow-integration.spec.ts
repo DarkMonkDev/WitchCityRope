@@ -1,6 +1,11 @@
 import { test, expect, Page, APIRequestContext } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 /**
  * E2E Tests for Complete Vetting Workflow Integration
  *
@@ -17,7 +22,7 @@ test.describe('Vetting Workflow Integration', () => {
   test.beforeAll(async ({ playwright }) => {
     // Create API context for test data setup
     apiContext = await playwright.request.newContext({
-      baseURL: 'http://localhost:5655',
+      baseURL: API_BASE_URL,
     });
   });
 

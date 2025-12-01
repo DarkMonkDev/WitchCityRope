@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test.describe('Event Checkout - Pricing Step Verification', () => {
-  const baseUrl = 'http://localhost:5173';
+  const baseUrl = WEB_BASE_URL;
   const eventId = '4f65d190-ec4d-4b28-aef0-64fabd3151cd';
   const freeRsvpTicketId = '019a1ed8-0b59-73f7-b6bf-08c1c20b6d00';
   const supportDonationTicketId = '019a1ed8-0b59-7d39-977e-4828b31b5fda';

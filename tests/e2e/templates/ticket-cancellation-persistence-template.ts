@@ -22,6 +22,11 @@ import {
 } from './persistence-test-template';
 import { DatabaseHelpers } from '../utils/database-helpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 // ============================================================================
 // TICKET CANCELLATION TEST CONFIG
 // ============================================================================
@@ -77,7 +82,7 @@ export async function testTicketCancellationPersistence(
     // STEP 1: Setup - Login, verify ticket exists, navigate to event
     setup: async (page: Page) => {
       // Login
-      await page.goto('http://localhost:5173/login');
+      await page.goto(`${WEB_BASE_URL}/login`);
       await page.waitForLoadState('networkidle');
 
       await page.locator('[data-testid="email-or-scenename-input"]').fill(userEmail);
@@ -104,7 +109,7 @@ export async function testTicketCancellationPersistence(
       console.log(`✅ User has active ${participation.participationType} for event`);
 
       // Navigate to event details
-      await page.goto(`http://localhost:5173/events/${eventId}`);
+      await page.goto(`${WEB_BASE_URL}/events/${eventId}`);
       await page.waitForLoadState('networkidle');
       console.log('✅ Navigated to event details');
 
@@ -299,7 +304,7 @@ export async function testTicketLifecycle(
 
   // Step 1: Login
   console.log('Step 1: Login...');
-  await page.goto('http://localhost:5173/login');
+  await page.goto(`${WEB_BASE_URL}/login`);
   await page.waitForLoadState('networkidle');
 
   await page.locator('[data-testid="email-or-scenename-input"]').fill(userEmail);
@@ -313,7 +318,7 @@ export async function testTicketLifecycle(
 
   // Step 2: Purchase ticket
   console.log('Step 2: Purchase ticket...');
-  await page.goto(`http://localhost:5173/events/${eventId}`);
+  await page.goto(`${WEB_BASE_URL}/events/${eventId}`);
   await page.waitForLoadState('networkidle');
 
   const purchaseButton = page.locator(
@@ -342,7 +347,7 @@ export async function testTicketLifecycle(
 
   // Step 4: Re-purchase ticket
   console.log('Step 4: Re-purchase ticket...');
-  await page.goto(`http://localhost:5173/events/${eventId}`);
+  await page.goto(`${WEB_BASE_URL}/events/${eventId}`);
   await page.waitForLoadState('networkidle');
 
   const repurchaseButton = page.locator(

@@ -33,6 +33,11 @@ import {
   getAttendees
 } from './checkin/helpers/tokenHelpers';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
+
 // CHECK-IN KIOSK MODE TESTS - ATTENDEE WORKFLOW
 // Routes: /events/:eventId/checkin
 // Uses session tokens for access control - NO user login required
@@ -220,7 +225,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     // Try to get attendees with expired token
     const response = await kioskPage.request.get(
-      `http://localhost:5655/api/checkin/events/${testEventId}/attendees`,
+      `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
       {
         headers: {
           'X-CheckIn-Token': shortLivedToken

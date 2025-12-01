@@ -75,6 +75,12 @@ public class VolunteerSeeder
                     volunteerPositionsToAdd.AddRange(sessionPositions);
                 }
             }
+            // Special handling for comprehensive timing test events: Create S1-specific, S2-specific, and event-wide positions
+            else if (eventItem.Title.StartsWith("Timing Test - "))
+            {
+                var timingPositions = CreateTimingTestVolunteerPositions(eventItem);
+                volunteerPositionsToAdd.AddRange(timingPositions);
+            }
             else
             {
                 // Add event-wide volunteer positions for other events
@@ -439,6 +445,92 @@ public class VolunteerSeeder
                 IsPublicFacing = true
             });
         }
+
+        return positions;
+    }
+
+    // ====================================================================================
+    // COMPREHENSIVE TIMING TEST VOLUNTEER POSITIONS
+    // ====================================================================================
+    // Creates volunteer positions for testing session-based volunteer timing.
+    // For each timing test event (6hr, 48hr, 300hr close), creates:
+    // - S1-specific position: Uses S1's timing (24hr future)
+    // - S2-specific position: Uses S2's timing (120hr future)
+    // - Event-wide position (no SessionId): Uses EARLIEST session timing (S1 @ 24hr)
+    //
+    // BUSINESS RULES TESTED:
+    // - Session-specific positions use their session's StartTime
+    // - Event-wide positions use EARLIEST session's StartTime
+    // - Window is OPEN if: hoursUntilSession >= volunteerRegistrationCloseHours
+    // ====================================================================================
+
+    /// <summary>
+    /// Creates volunteer positions for comprehensive timing test events.
+    /// Creates exactly 3 positions per event to test all volunteer timing scenarios:
+    /// - S1-specific: Uses S1's StartTime (24hr future)
+    /// - S2-specific: Uses S2's StartTime (120hr future)
+    /// - Event-wide (no SessionId): Uses EARLIEST session's StartTime (S1 @ 24hr)
+    /// </summary>
+    private List<VolunteerPosition> CreateTimingTestVolunteerPositions(Event eventItem)
+    {
+        var positions = new List<VolunteerPosition>();
+
+        var s1Session = eventItem.Sessions.FirstOrDefault(s => s.SessionCode == "S1");
+        var s2Session = eventItem.Sessions.FirstOrDefault(s => s.SessionCode == "S2");
+
+        if (s1Session == null || s2Session == null)
+        {
+            _logger.LogWarning("Timing test event {Title} missing sessions, cannot create volunteer positions", eventItem.Title);
+            return positions;
+        }
+
+        var closeHours = eventItem.VolunteerRegistrationCloseHours ?? 0;
+
+        // Position 1: S1-specific (uses S1 @ 24hr for timing)
+        // Available if: 24 >= volunteerRegistrationCloseHours
+        positions.Add(new VolunteerPosition
+        {
+            EventId = eventItem.Id,
+            SessionId = s1Session.Id,
+            Title = "S1 Setup Helper",
+            Description = $"Help with Session 1 setup (24hr future). Close window: {closeHours}hr. Expected: {(24 >= (double)closeHours ? "OPEN" : "CLOSED")}",
+            SlotsNeeded = 2,
+            SlotsFilled = 0,
+            IsPublicFacing = true
+        });
+
+        // Position 2: S2-specific (uses S2 @ 120hr for timing)
+        // Available if: 120 >= volunteerRegistrationCloseHours
+        positions.Add(new VolunteerPosition
+        {
+            EventId = eventItem.Id,
+            SessionId = s2Session.Id,
+            Title = "S2 Safety Monitor",
+            Description = $"Monitor safety during Session 2 (120hr future). Close window: {closeHours}hr. Expected: {(120 >= (double)closeHours ? "OPEN" : "CLOSED")}",
+            SlotsNeeded = 2,
+            SlotsFilled = 0,
+            IsPublicFacing = true
+        });
+
+        // Position 3: Event-wide (no SessionId, uses EARLIEST session = S1 @ 24hr)
+        // Available if: 24 >= volunteerRegistrationCloseHours (uses S1's timing)
+        positions.Add(new VolunteerPosition
+        {
+            EventId = eventItem.Id,
+            SessionId = null, // Event-wide = uses EARLIEST session for timing
+            Title = "Event Coordinator",
+            Description = $"Coordinate across both sessions. Uses EARLIEST session (S1 @ 24hr) for timing. Close window: {closeHours}hr. Expected: {(24 >= (double)closeHours ? "OPEN" : "CLOSED")}",
+            SlotsNeeded = 1,
+            SlotsFilled = 0,
+            IsPublicFacing = true
+        });
+
+        _logger.LogInformation(
+            "Created volunteer positions for {Title}: S1 Helper ({S1Status}), S2 Monitor ({S2Status}), Event Coordinator ({EventStatus})",
+            eventItem.Title,
+            24 >= (double)closeHours ? "OPEN" : "CLOSED",
+            120 >= (double)closeHours ? "OPEN" : "CLOSED",
+            24 >= (double)closeHours ? "OPEN" : "CLOSED");
 
         return positions;
     }

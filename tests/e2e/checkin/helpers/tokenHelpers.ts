@@ -14,12 +14,16 @@
 
 import { Page } from '@playwright/test';
 
+// Environment-aware URLs for container/host compatibility
+const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
 /**
  * Login as Administrator to generate tokens
  * Admin authentication is required to access token generation endpoints
  */
 export async function loginAsAdmin(page: Page) {
-  await page.goto('http://localhost:5173/login');
+  await page.goto(`${WEB_BASE_URL}/login`);
   await page.waitForLoadState('networkidle');
 
   await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com');
@@ -47,7 +51,7 @@ export async function generateSessionToken(
   expiresInHours: number = 12
 ): Promise<string> {
   const response = await page.request.post(
-    'http://localhost:5655/api/checkin/session-tokens/generate',
+    `${API_BASE_URL}/api/checkin/session-tokens/generate`,
     {
       data: { eventId, expirationHours: expiresInHours }
     }
@@ -72,7 +76,7 @@ export async function generateSessionToken(
  */
 export async function revokeSessionToken(page: Page, token: string): Promise<void> {
   const response = await page.request.post(
-    'http://localhost:5655/api/checkin/session-tokens/revoke',
+    `${API_BASE_URL}/api/checkin/session-tokens/revoke`,
     {
       data: { token }
     }
@@ -91,7 +95,7 @@ export async function revokeSessionToken(page: Page, token: string): Promise<voi
  * @returns Event ID string
  */
 export async function getTestEventId(page: Page): Promise<string> {
-  const response = await page.request.get('http://localhost:5655/api/events');
+  const response = await page.request.get(`${API_BASE_URL}/api/events`);
 
   if (!response.ok()) {
     throw new Error(`Failed to fetch events: ${response.status()} ${await response.text()}`);
@@ -118,7 +122,7 @@ export async function getTestEventId(page: Page): Promise<string> {
  * @param token - Session token
  */
 export async function navigateToCheckIn(page: Page, eventId: string, token: string) {
-  await page.goto(`http://localhost:5173/events/${eventId}/checkin?token=${token}&event=${eventId}`);
+  await page.goto(`${WEB_BASE_URL}/events/${eventId}/checkin?token=${token}&event=${eventId}`);
   await page.waitForLoadState('networkidle');
 }
 
@@ -133,7 +137,7 @@ export async function navigateToCheckIn(page: Page, eventId: string, token: stri
  * @param token - Session token
  */
 export async function navigateToCheckInDashboard(page: Page, eventId: string, token: string) {
-  await page.goto(`http://localhost:5173/events/${eventId}/checkin/dashboard?token=${token}&event=${eventId}`);
+  await page.goto(`${WEB_BASE_URL}/events/${eventId}/checkin/dashboard?token=${token}&event=${eventId}`);
   await page.waitForLoadState('networkidle');
 }
 
@@ -147,7 +151,7 @@ export async function navigateToCheckInDashboard(page: Page, eventId: string, to
  */
 export async function getAttendees(page: Page, eventId: string, sessionToken: string) {
   const response = await page.request.get(
-    `http://localhost:5655/api/checkin/events/${eventId}/attendees`,
+    `${API_BASE_URL}/api/checkin/events/${eventId}/attendees`,
     {
       headers: {
         'X-CheckIn-Token': sessionToken
@@ -169,7 +173,7 @@ export async function getAttendees(page: Page, eventId: string, sessionToken: st
  */
 export async function getDashboardData(page: Page, eventId: string, sessionToken: string) {
   const response = await page.request.get(
-    `http://localhost:5655/api/checkin/events/${eventId}/dashboard`,
+    `${API_BASE_URL}/api/checkin/events/${eventId}/dashboard`,
     {
       headers: {
         'X-CheckIn-Token': sessionToken

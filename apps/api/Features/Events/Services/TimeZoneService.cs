@@ -208,20 +208,17 @@ public class TimeZoneService : ITimeZoneService
     {
         if (!ticketType.SessionId.HasValue)
         {
-            // Ticket applies to all sessions - use earliest future
-            return GetEarliestFutureSession(allSessions);
+            // Multi-session ticket (applies to all sessions) - use EARLIEST session overall
+            // Timing is based on the earliest session, regardless of whether it's past or future
+            // Once the earliest session's registration/cancellation window closes, the action is not allowed
+            return GetEarliestSession(allSessions);
         }
 
-        // Ticket applies to specific session - check if it's in the future
+        // Ticket applies to specific session - return that session (timing check happens later)
         var specificSession = allSessions
             .FirstOrDefault(s => s.Id == ticketType.SessionId.Value);
 
-        if (specificSession != null && specificSession.StartTime > DateTime.UtcNow)
-        {
-            return specificSession; // Session is still in future
-        }
-
-        return null; // Session has passed or not found
+        return specificSession; // Let IsActionAllowedForSession determine if timing window is still open
     }
 
     /// <summary>
@@ -234,6 +231,20 @@ public class TimeZoneService : ITimeZoneService
     {
         return sessions
             .Where(s => s.StartTime > DateTime.UtcNow)
+            .OrderBy(s => s.StartTime)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Get the earliest session from a list of sessions (regardless of past/future)
+    /// Used for multi-session ticket timing - timing is based on the EARLIEST session
+    /// </summary>
+    /// <param name="sessions">Sessions to check</param>
+    /// <returns>The earliest session by StartTime, or null if none</returns>
+    public WitchCityRope.Api.Models.Session? GetEarliestSession(
+        IEnumerable<WitchCityRope.Api.Models.Session> sessions)
+    {
+        return sessions
             .OrderBy(s => s.StartTime)
             .FirstOrDefault();
     }
