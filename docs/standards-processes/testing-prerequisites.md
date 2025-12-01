@@ -100,7 +100,7 @@ PGPASSWORD=WitchCity2024! psql -h localhost -p 5433 -U postgres -d witchcityrope
 
 #### Standard Fix: Full Restart
 ```bash
-# Use container-restart skill for correct restart procedure with health checks and compilation validation
+# Use restart-dev-containers skill for correct restart procedure with health checks and compilation validation
 ```
 
 #### Nuclear Option: Complete Reset

@@ -83,12 +83,12 @@ Is this content:
 
 **Pattern 1: Direct skill invocation**
 ```markdown
-Use container-restart skill before running E2E tests.
+Use restart-dev-containers skill before running E2E tests.
 ```
 
 **Pattern 2: Skill reference in context**
 ```markdown
-Before testing, ensure Docker environment is healthy using container-restart skill.
+Before testing, ensure Docker environment is healthy using restart-dev-containers skill.
 ```
 
 **Pattern 3: Registry reference for discovery**
@@ -290,7 +290,7 @@ Skills are markdown files with embedded bash scripts that can be executed direct
 ```markdown
 ## How to Restart Containers
 
-Use container-restart skill for correct restart procedure with health checks and compilation validation.
+Use restart-dev-containers skill for correct restart procedure with health checks and compilation validation.
 ```
 
 ### Mistake 2: Creating Skill When Documentation Suffices
@@ -309,14 +309,14 @@ Use container-restart skill for correct restart procedure with health checks and
 ### Mistake 3: Hardcoding File Paths
 
 **❌ WRONG**: `See: /.claude/skills/container-restart.md`
-**✅ CORRECT**: `Use container-restart skill`
+**✅ CORRECT**: `Use restart-dev-containers skill`
 
 File paths break when files move. Skill names are stable.
 
 ### Mistake 4: Partial References
 
-**❌ WRONG**: "Run docker-compose (see container-restart skill for flags)"
-**✅ CORRECT**: "Use container-restart skill"
+**❌ WRONG**: "Run docker-compose (see restart-dev-containers skill for flags)"
+**✅ CORRECT**: "Use restart-dev-containers skill"
 
 Don't partially duplicate and then reference. Just reference the skill completely.
 
@@ -350,7 +350,7 @@ Don't partially duplicate and then reference. Just reference the skill completel
 - Zero maintenance burden
 
 **Example of success**:
-- container-restart skill = single source
+- restart-dev-containers skill = single source
 - All 171 references updated to point to skill
 - Change skill once = changes everywhere
 - Zero duplication
@@ -410,7 +410,7 @@ Don't partially duplicate and then reference. Just reference the skill completel
 - ❌ Requirements docs
 
 **Reference skills by**:
-- ✅ Skill name: "Use container-restart skill"
+- ✅ Skill name: "Use restart-dev-containers skill"
 - ❌ File path: "See /.claude/skills/..."
 
 **Invoke skills with**:

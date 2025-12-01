@@ -143,7 +143,7 @@ Run these steps:
 4. Check health: `curl http://localhost:5173`
 ```
 
-**Why wrong**: Duplicates bash commands from container-restart skill
+**Why wrong**: Duplicates bash commands from restart-dev-containers skill
 
 ### ✅ CORRECT - Reference
 
@@ -151,7 +151,7 @@ Run these steps:
 ```markdown
 ## Before E2E Tests
 
-**MANDATORY**: Use container-restart skill to ensure environment is healthy.
+**MANDATORY**: Use restart-dev-containers skill to ensure environment is healthy.
 
 **See**: `/.claude/skills/container-restart.md`
 
@@ -191,7 +191,7 @@ The skill automatically:
 
 **Root Cause**: Container shows "Up" but code has compilation errors inside.
 
-**Solution**: Use `container-restart` skill before E2E tests.
+**Solution**: Use `restart-dev-containers` skill before E2E tests.
 
 The skill automatically checks for compilation errors and verifies health.
 
@@ -340,7 +340,7 @@ vim /.claude/agents/test-executor.md
 
 # 3. Replace with reference
 # Before E2E Tests
-# Use container-restart skill: /.claude/skills/container-restart.md
+# Use restart-dev-containers skill: /.claude/skills/container-restart.md
 
 # 4. Validate
 bash /.claude/skills/single-source-validator.md container-restart
@@ -365,7 +365,7 @@ vim /docs/lessons-learned/test-executor-lessons-learned.md
 # 3. Replace with Problem→Solution→Example format
 ## Problem: Containers start but tests fail
 **Root Cause**: Compilation errors inside container
-**Solution**: Use container-restart skill (checks compilation)
+**Solution**: Use restart-dev-containers skill (checks compilation)
 **See**: /.claude/skills/container-restart.md
 
 # 4. Validate

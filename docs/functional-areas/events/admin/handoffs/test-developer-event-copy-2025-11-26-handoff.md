@@ -187,7 +187,7 @@ npx playwright test tests/admin/event-copy.spec.ts
 ```
 
 ### Docker Requirements for E2E Tests
-- ✅ Use `container-restart` skill to verify Docker environment
+- ✅ Use `restart-dev-containers` skill to verify Docker environment
 - ✅ Verify web service on port 5173
 - ✅ Verify API service on port 5655
 - ✅ Verify PostgreSQL on port 5434
@@ -315,7 +315,7 @@ All success criteria met:
 ## 🎯 TEST EXECUTION CHECKLIST FOR TEST-EXECUTOR
 
 Before executing tests:
-- [ ] Verify Docker containers running (use container-restart skill)
+- [ ] Verify Docker containers running (use restart-dev-containers skill)
 - [ ] Check all test files compile/parse correctly
 - [ ] Ensure database seeded with test data
 

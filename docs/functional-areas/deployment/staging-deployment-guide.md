@@ -95,7 +95,7 @@ The skill is located at `/.claude/skills/staging-deploy.md` and fully automates:
 
 **If deployment skill fails:**
 1. Check error message from skill for specific issue
-2. Use `container-restart` skill to inspect container logs
+2. Use `restart-dev-containers` skill to inspect container logs
 3. Verify health endpoints are accessible
 4. If database issues, see database management guide below
 
@@ -160,7 +160,7 @@ The `staging-deploy` skill handles authentication automatically via local Docker
 
 ### Container Logs and Restart
 
-**Use the `container-restart` skill** (located at `/.claude/skills/container-restart.md`) to:
+**Use the `restart-dev-containers` skill** (located at `/.claude/skills/restart-dev-containers/SKILL.md`) to:
 - View container status
 - Inspect error logs
 - Restart containers if needed
@@ -184,11 +184,11 @@ curl https://staging.notfai.com/api/health | jq .
 **Issue: Deployment appears successful but containers not restarted**
 - **Cause**: This was a historical issue, now fixed in skill
 - **Solution**: Skill now verifies container age (< 120 seconds)
-- **Manual check**: Use `container-restart` skill to verify container creation time
+- **Manual check**: Use `restart-dev-containers` skill to verify container creation time
 
 **Issue: Health checks fail after deployment**
 - **Cause**: Services need more time to start
-- **Solution**: Wait longer (skill waits 30 seconds), use `container-restart` skill to check logs
+- **Solution**: Wait longer (skill waits 30 seconds), use `restart-dev-containers` skill to check logs
 
 **Issue: API shows database connection errors**
 - **Cause**: Database credentials or network issue
@@ -226,7 +226,7 @@ curl https://staging.notfai.com/api/health | jq .
    - Verify new features work as expected
 
 5. **Monitor for issues**
-   - Use `container-restart` skill if needed
+   - Use `restart-dev-containers` skill if needed
    - Check API logs for errors
    - Verify database operations
 
@@ -235,7 +235,7 @@ curl https://staging.notfai.com/api/health | jq .
 **Primary deployment automation:**
 - `staging-deploy` - Full deployment automation
 - `database-reset-staging` - Full database schema reset
-- `container-restart` - Container management and log inspection
+- `restart-dev-containers` - Container management and log inspection
 
 **Location**: All skills in `/.claude/skills/` directory
 

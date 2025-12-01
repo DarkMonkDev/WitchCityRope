@@ -55,7 +55,7 @@ The database is automatically set up when you start the development environment:
 ./dev.sh
 ```
 
-**For container management**: Use `container-restart` skill for starting, stopping, and inspecting containers.
+**For container management**: Use `restart-dev-containers` skill for starting, stopping, and inspecting containers.
 
 ### 2. Verify Database Connection
 
@@ -179,7 +179,7 @@ sudo systemctl stop postgresql
 
 ### Container Won't Start
 
-Use `container-restart` skill to:
+Use `restart-dev-containers` skill to:
 - Check container logs
 - Restart containers
 - Rebuild if needed
@@ -310,14 +310,14 @@ SELECT COUNT(*) FROM "Events";  -- Should return 0
 
 3. **Restart API to trigger reseeding:**
 ```bash
-# Use container-restart skill or manually:
+# Use restart-dev-containers skill or manually:
 ssh -i /home/chad/.ssh/id_ed25519_witchcityrope witchcity@104.131.165.14
 cd /opt/witchcityrope/staging
 docker-compose -f docker-compose.staging.yml restart api
 ```
 
 4. **Monitor seed population:**
-Use `container-restart` skill to watch logs and verify seed data population.
+Use `restart-dev-containers` skill to watch logs and verify seed data population.
 
 ## Decision Tree
 
@@ -371,7 +371,7 @@ curl https://staging.notfai.com/api/health | jq .
 **Solution**:
 1. Verify API has `SeedData: true` in staging configuration
 2. Check API logs for seed execution
-3. Use `container-restart` skill to view detailed logs
+3. Use `restart-dev-containers` skill to view detailed logs
 
 ### Issue: Cannot connect to database
 
@@ -395,7 +395,7 @@ curl https://staging.notfai.com/api/health | jq .
 
 - **staging-deploy** - Deploy latest code to staging
 - **database-reset-staging** - Full schema reset automation
-- **container-restart** - Inspect logs and restart containers
+- **restart-dev-containers** - Inspect logs and restart containers
 
 ## Security Notes
 

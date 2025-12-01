@@ -17,7 +17,7 @@ description: Resets local development database by deleting all data and restarti
 **When NOT to Use**:
 - Staging database (use `database-reset-staging` skill instead)
 - Production database (NEVER - this is dev only)
-- Just need to restart containers without data reset (use `container-restart` skill)
+- Just need to restart containers without data reset (use `restart-dev-containers` skill)
 
 **Background**: API container automatically seeds database on startup through `DatabaseInitializationService` when database is empty.
 
@@ -114,7 +114,7 @@ PGPASSWORD=devpass123 psql -h localhost -p 5434 -U postgres -d witchcityrope_dev
 
 **Step 2: Restart containers**
 ```bash
-bash .claude/skills/container-restart/execute.sh
+bash .claude/skills/restart-dev-containers/execute.sh
 ```
 
 **Step 3: Verify seed data**
@@ -145,7 +145,7 @@ brew install postgresql
 
 **Solution**:
 1. Check Docker status for witchcity containers
-2. If no containers: Use container-restart skill to restart containers
+2. If no containers: Use restart-dev-containers skill to restart containers
 
 ### Issue: Database not found
 
@@ -166,7 +166,7 @@ PGPASSWORD=devpass123 psql -h localhost -p 5434 -U postgres -c "CREATE DATABASE 
 1. Check API logs for seed-related messages
 2. Verify `DatabaseInitializationService` ran
 3. Check for errors in initialization
-4. Manual restart: Use container-restart skill to restart containers
+4. Manual restart: Use restart-dev-containers skill to restart containers
 
 ### Issue: Health check fails with "API service unhealthy"
 
@@ -220,12 +220,12 @@ Modified seed data logic in API:
 ## Integration with Other Skills
 
 **Related skills:**
-- `container-restart`: Use this if you just need container restart WITHOUT database reset
+- `restart-dev-containers`: Use this if you just need container restart WITHOUT database reset
 - `database-reset-staging`: Staging environment equivalent (different database, different procedure)
 
 **When to use which:**
 - Need fresh seed data? → Use THIS skill (database-reset-dev)
-- Just container issues? → Use `container-restart`
+- Just container issues? → Use `restart-dev-containers`
 - Staging database? → Use `database-reset-staging`
 
 ---
@@ -272,11 +272,11 @@ Error: [specific error message]
   - Added health endpoint verification with 3-attempt retry logic
   - Added database health check
   - Prevents premature container restart attempts
-  - Matches health check rigor of `container-restart` skill
+  - Matches health check rigor of `restart-dev-containers` skill
 - **2025-11-18**: Created as single source of truth for dev database reset
-- Complements: `container-restart` skill (container management)
+- Complements: `restart-dev-containers` skill (container management)
 - Complements: `database-reset-staging` skill (staging equivalent)
 
 ---
 
-**Remember**: This skill is for development only. Never use on staging or production. Use `container-restart` skill if you don't need database reset.
+**Remember**: This skill is for development only. Never use on staging or production. Use `restart-dev-containers` skill if you don't need database reset.

@@ -6,150 +6,49 @@
 
 ### 🚨 ULTRA CRITICAL TESTING DOCUMENTS (MUST READ): 🚨
 
-## Testing - MANDATORY READING
+1. **Test Creation Guide** - **HOW TO WRITE TESTS (PRIMARY GUIDE)**
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST-CREATION-GUIDE.md`
 
-**Single Source of Truth**: [TESTING_GUIDE.md](/docs/standards-processes/testing/TESTING_GUIDE.md)
+2. **Test Execution Guide** - **HOW TO RUN TESTS**
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST-EXECUTION-GUIDE.md`
 
-### Critical Rules
-- ALL tests go in `/tests/` directory
-- React tests: `/tests/unit/web/[feature]/`
-- E2E tests: `/tests/e2e/[feature]/`
-- .NET unit tests: `/tests/unit/api/[domain]/`
-- DO NOT create tests co-located with source code
+3. **Playwright Guide** - **E2E TESTING PATTERNS**
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing/browser-automation/playwright-guide.md`
 
-**See TESTING_GUIDE.md for complete testing standards.**
+4. **Test Catalog** - **ALL EXISTING TESTS**
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md`
 
----
-
-1. **Docker-Only Testing Standard** - **ALL TESTS RUN IN DOCKER**
+5. **Docker-Only Testing Standard** - **ENVIRONMENT REQUIREMENTS**
 `/home/chad/repos/witchcityrope/docs/standards-processes/testing/docker-only-testing-standard.md`
-
-2. **Playwright Standards** - **E2E TESTING FRAMEWORK**
-`/home/chad/repos/witchcityrope/docs/standards-processes/testing/playwright-standards.md`
-
-3. **Test Catalog** - **ALL EXISTING TESTS** (SPLIT FOR ACCESSIBILITY)
-⭕ **START HERE**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Current Tests)
-📚 **If needed**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG_PART_2.md` (Part 2 - Historical)
-📜 **Archives**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG_PART_3.md` (Part 3 - Archived)
-
-4. **Testing Prerequisites** - **BEFORE YOU START**
-`/home/chad/repos/witchcityrope/docs/standards-processes/testing-prerequisites.md`
-
-5. **Project Architecture** - **TECH STACK**
-`/ARCHITECTURE.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
 - **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
 - **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
 - **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
-- **Current Test Status** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/CURRENT_TEST_STATUS.md` - Test state
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
 - **Skills Usage Guide** - `/.claude/skills/HOW-TO-USE-SKILLS.md` - Complete guide on when/how to use skills
-- **Testing Guide** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md`
 - **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
 - **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 
 ### Validation Gates (MUST COMPLETE):
-- [ ] **Read Docker-Only Testing Standard FIRST** - All tests run in Docker containers
-- [ ] Review Playwright Standards for E2E patterns
-- [ ] Check Test Catalog to avoid duplicating tests
-- [ ] Review Testing Prerequisites before starting
-- [ ] Verify Docker containers are running (use container-restart skill if needed)
+- [ ] **Read Test Creation Guide FIRST** - How to write tests
+- [ ] Review Test Catalog to avoid duplicating tests
+- [ ] Check Playwright Guide for E2E patterns
+- [ ] Verify Docker containers running (use container-restart skill)
+- [ ] Review Docker-Only Testing Standard for environment
 
-## 🚨🚨🚨 ULTRA CRITICAL: E2E TESTS MUST USE LOGIN HELPER - ZERO TOLERANCE 🚨🚨🚨
+## 🚨 IMPORTANT: This File Documents PROBLEMS ONLY
 
-**THIS IS NON-NEGOTIABLE. VIOLATIONS WILL BE REJECTED IMMEDIATELY.**
+**ALL testing patterns, procedures, and solutions are in the guides above.**
 
-### ❌ ABSOLUTELY FORBIDDEN - Manual Login Implementation
+This lessons learned file contains ONLY:
+- ✅ **Problem discovery context** (when/what/symptoms)
+- ✅ **References to guides** for solutions
+- ❌ **NOT pattern details** (they're in Test Creation Guide)
+- ❌ **NOT execution procedures** (they're in Test Execution Guide)
 
-```typescript
-// ❌ WRONG - NEVER DO THIS - AUTOMATIC REJECTION
-test.beforeEach(async ({ page }) => {
-  await page.goto('http://localhost:5173/login');
-  await page.fill('input[name="email"]', 'admin@witchcityrope.com');
-  await page.fill('input[name="password"]', 'Test123!');
-  await page.click('button[type="submit"]');
-  await page.waitForURL('http://localhost:5173/');
-});
-```
-
-**Why this is FORBIDDEN**:
-- Duplicates existing helper code
-- Breaks when login UI changes
-- Not battle-tested like helper
-- Violates DRY principle
-- User gets extremely frustrated
-
-### ✅ MANDATORY PATTERN - Use AuthHelpers.loginAs()
-
-```typescript
-// ✅ CORRECT - ALWAYS USE THIS
-import { AuthHelpers } from '../../../../tests/e2e/test-utils/helpers/auth.helpers';
-
-test.beforeEach(async ({ page }) => {
-  await AuthHelpers.loginAs(page, 'admin');
-  await page.goto('http://localhost:5173/admin/events');
-});
-```
-
-**Login Helper Location**: `/tests/e2e/test-utils/helpers/auth.helpers.ts`
-
-**Available Roles**: 'admin', 'teacher', 'member', 'vetted', 'guest'
-
-**Why This is MANDATORY**:
-- ✅ Single source of truth for login logic
-- ✅ Handles Mantine form interactions correctly
-- ✅ Includes error recovery strategies
-- ✅ Monitors console errors
-- ✅ Battle-tested across 100+ tests
-
-### 🛑 PRE-FLIGHT CHECKLIST FOR E2E TESTS
-
-**BEFORE writing ANY E2E test with authentication**:
-- [ ] Import AuthHelpers from correct path
-- [ ] Use `AuthHelpers.loginAs(page, role)` - NOTHING ELSE
-- [ ] NEVER manually implement login flow
-- [ ] NEVER use page.goto to login page in tests
-- [ ] NEVER use page.fill for email/password in tests
-
-**If you find yourself typing "page.goto('/login')" → STOP and use AuthHelpers instead.**
-
-**This lesson learned exists because this mistake happened. Do not repeat it.**
-
-## 🛠️ AVAILABLE TESTING TOOLS
-
-### Chrome DevTools MCP (NEW - 2025-10-03)
-**Purpose**: Enhanced test development and debugging for E2E tests
-
-**Key Capabilities for Test Developers**:
-- **Test Debugging**: Inspect page state during test execution, view console errors
-- **Selector Validation**: Verify selectors work correctly before adding to tests
-- **Network Monitoring**: Validate API calls during test scenarios, inspect request/response data
-- **Performance Testing**: Measure page load times and component render performance
-- **Screenshot Capture**: Take visual snapshots for test documentation and debugging
-
-**Use Cases for Test Development**:
-- Test creation - Validate selectors and page interactions before writing tests
-- Test debugging - Inspect page state when tests fail to identify root causes
-- Visual regression - Capture baseline screenshots for comparison testing
-- Performance validation - Add performance assertions based on measured metrics
-- Integration testing - Monitor API calls to ensure proper data flow
-
-**Configuration**: Automatically available via MCP - see `/home/chad/repos/witchcityrope/docs/standards-processes/MCP/MCP_SERVERS.md`
-
-**Integration with Playwright**:
-- Use alongside Playwright for enhanced debugging capabilities
-- Capture screenshots on test failures for easier debugging
-- Monitor network traffic to validate API integration in E2E tests
-- Profile page performance to set appropriate timeout values
-
-**Best Practices**:
-- Use to validate selectors before adding them to Playwright tests
-- Capture screenshots for visual regression test baselines
-- Monitor console for errors that might cause test flakiness
-- Measure performance metrics to set realistic test timeouts
-- Inspect API responses to validate data flow in integration tests
+**When you discover a new pattern, ADD IT TO THE GUIDES, not here.**
 
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
@@ -168,104 +67,193 @@ If you cannot read ANY part of these lessons learned:
 4. **ONLY PROCEED** when all files read successfully
 5. These files contain critical knowledge - **NO EXCEPTIONS**
 
-## ⛔ CRITICAL: FILE READ ENFORCEMENT
-If you cannot read ANY part of these lessons learned:
-1. STOP all work immediately
-2. Fix the issue using lessons-learned-validator skill
-3. DO NOT proceed until all files are readable
-4. This is NON-NEGOTIABLE - these files contain critical knowledge
+---
 
+## Prevention Pattern: E2E Tests Must Use Login Helper
+
+**Problem Discovered**: Tests kept implementing custom login code, causing maintenance nightmare and breaking when authentication changed.
+
+**When**: Multiple test creation sessions (2025-08-22 to 2025-11-10)
+
+**Symptoms**: Tests failing after authentication updates, duplicated login logic across 20+ test files
+
+**Solution**: See Test Creation Guide, section "Authentication Patterns (MANDATORY)"
+
+**Reference**: `loginAsAdmin`, `loginAsMember`, `loginAsVetted` helpers in `/tests/test-utils/auth-helpers`
+
+---
+
+## Prevention Pattern: Password Escaping Breaks Authentication
+
+**Problem Discovered**: Test creation frequently introduced password escaping (`Test123\!`) breaking authentication.
+
+**When**: 2025-09-22 (and multiple previous sessions)
+
+**Symptoms**: "Invalid credentials" errors, tests failing with correct-looking password
+
+**Root Cause**: JSON doesn't require exclamation mark escaping - backslash becomes part of password
+
+**Solution**: See Test Creation Guide, section "Test Data Management" → "Seeded Test Users"
+
+**Correct**: `"password": "Test123!"`
+**Wrong**: `"password": "Test123\!"` (backslash breaks auth)
+
+---
+
+## Prevention Pattern: Docker-Only Testing Environment
+
+**Problem Discovered**: Tests failed when running against local dev servers (ports 5174, 5175) instead of Docker (port 5173).
+
+**When**: Multiple sessions (2025-08-18 to 2025-11-24)
+
+**Symptoms**: Connection refused, 404 errors, flaky tests, port conflicts
+
+**Solution**: See Test Execution Guide, section "Docker-Only Testing Environment"
+
+**Critical Rules**:
+- NEVER start local dev servers
+- ALWAYS verify Docker running (use container-restart skill)
+- ONLY use port 5173 (Docker)
+- Kill rogue processes: `./scripts/kill-local-dev-servers.sh`
+
+---
+
+## Prevention Pattern: Container-Compatible URL Patterns
+
+**Problem Discovered**: Tests hardcoded `http://localhost:5173` breaking in test containers.
+
+**When**: 2025-10-07 (E2E stabilization)
+
+**Symptoms**: Tests work in dev, fail in test-environment skill containers
+
+**Solution**: See Test Creation Guide, section "E2E Test Creation" → "Container-Compatible URL Patterns"
+
+**Correct**: `await page.goto('/events')` (relative URL)
+**Wrong**: `await page.goto('http://localhost:5173/events')` (hardcoded)
+
+---
+
+## Prevention Pattern: Mantine v7 CSS Classes as Selectors
+
+**Problem Discovered**: Tests using Mantine CSS classes broke when Mantine updated class names.
+
+**When**: Mantine v7 migration (2025-10-08)
+
+**Symptoms**: `Selector not found` errors, tests failing after Mantine updates
+
+**Solution**: See Test Creation Guide, section "Selector Patterns (Mantine v7 + React Strict Mode)"
+
+**Correct**: `[data-testid="submit-btn"]`
+**Wrong**: `.mantine-Button-root` (class names change)
+
+---
+
+## Prevention Pattern: Fixed Timeouts Cause Flaky Tests
+
+**Problem Discovered**: `await page.waitForTimeout(2000)` caused intermittent test failures.
+
+**When**: Multiple E2E test creation sessions
+
+**Symptoms**: Tests pass locally, fail in CI/CD, random timeouts
+
+**Solution**: See Test Creation Guide, section "Wait Strategies (CRITICAL)"
+
+**Correct**: `await expect(page.locator('[data-testid="loaded"]')).toBeVisible()`
+**Wrong**: `await page.waitForTimeout(2000)` (flaky)
+
+---
+
+## Prevention Pattern: React Strict Mode Double-Mount
+
+**Problem Discovered**: Components mount twice in development causing test state issues.
+
+**When**: React 18 upgrade, Strict Mode enabled
+
+**Symptoms**: Tests interact with component before it stabilizes, stale element errors
+
+**Solution**: See Test Creation Guide, section "Selector Patterns" → "React Strict Mode Double-Mount Handling"
+
+**Pattern**: Wait for component visibility, brief stabilization, then interact
+
+---
+
+## Prevention Pattern: CSRF Token Handling in E2E Tests
+
+**Problem Discovered**: E2E tests needed CSRF tokens for POST/PUT/DELETE requests.
+
+**When**: CSRF protection implementation (2025-11-23)
+
+**Symptoms**: 400 Bad Request, "Invalid CSRF token" errors
+
+**Solution**: See Test Creation Guide, section "CSRF Token Handling"
+
+**Critical Knowledge**: Frontend Axios interceptor handles tokens automatically. E2E tests don't need manual token management.
+
+---
+
+## Prevention Pattern: Running Playwright from Wrong Directory
+
+**Problem Discovered**: Running `npx playwright test` from `/tests/` subdirectory only executed 8 of 855 tests.
+
+**When**: 2025-11-24 (test structure simplification)
+
+**Symptoms**: "All tests pass" but 99% of tests silently skipped
+
+**Solution**: See Test Execution Guide, section "E2E Tests (Playwright)" → "Working directory (CRITICAL)"
+
+**Correct**: Run from `/home/chad/repos/witchcityrope/apps/web`
+**Wrong**: Run from `/home/chad/repos/witchcityrope/apps/web/tests` (misses tests)
+
+---
+
+## Prevention Pattern: Test Data Uniqueness
+
+**Problem Discovered**: Tests using hardcoded emails/usernames caused database constraint violations.
+
+**When**: Integration test creation sessions
+
+**Symptoms**: "Duplicate key value violates unique constraint", tests fail when run together
+
+**Solution**: See Test Creation Guide, section "Test Data Management" → "Unique Test Data (CRITICAL)"
+
+**Correct**: `var email = $"test-{Guid.NewGuid():N}@example.com"`
+**Wrong**: `var email = "test@example.com"` (collisions)
+
+---
+
+## Prevention Pattern: TestHelperService for Complex Test Data
+
+**Problem Discovered**: Tests created incomplete entities missing required relationships.
+
+**When**: Integration test creation
+
+**Symptoms**: Foreign key violations, null reference exceptions
+
+**Solution**: See Test Creation Guide, section "Test Data Management" → "TestHelperService Pattern (RECOMMENDED)"
+
+**Pattern**: Use TestHelperService for automatic relationship management and cleanup
+
+---
+
+## Prevention Pattern: Chrome DevTools MCP Available
+
+**Problem Discovered**: Agents unaware of Chrome DevTools MCP capabilities for test debugging.
+
+**When**: MCP setup (2025-10-03)
+
+**Knowledge**: MCP provides performance tracing, browser automation, runtime inspection, visual debugging
+
+**Solution**: See Test Creation Guide, section "Additional Resources" and Test Execution Guide, section "Chrome DevTools MCP"
+
+**Use for**: Selector validation, test debugging, performance testing, screenshot capture
+
+---
 
 ## Optional Reading
 
 **When writing tests for CMS features**, consult:
-- `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md` - CMS architecture, testing patterns, dynamic routing behavior
+- `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md` - CMS architecture, testing patterns
 
-## 🚨 ULTRA CRITICAL: Password Escaping in JSON - NO ESCAPING REQUIRED (2025-09-22) 🚨
+---
 
-**Problem**: Test creation frequently introduces password escaping that breaks authentication, causing hours of debugging "Invalid credentials" errors.
-**Solution**: Never escape exclamation marks in JSON - use "Test123!" not "Test123\!" in all test data.
-
-### ❌ WRONG - These patterns break authentication:
-```bash
-# WRONG - Escaped exclamation causes login failure
-echo '{"email": "admin@witchcityrope.com", "password": "Test123\!"}' > login.json
-
-# WRONG - In test files
-const loginData = {
-  password: 'Test123\!' // This will fail authentication
-}
-```
-
-### ✅ CORRECT - Proper password handling:
-```bash
-# CORRECT - No escaping needed
-echo '{"email": "admin@witchcityrope.com", "password": "Test123!"}' > login.json
-
-# CORRECT - In test files
-const loginData = {
-  password: 'Test123!' // Correct - no backslash
-}
-```
-
-## 🚨 ULTRA CRITICAL: Docker-Only Testing Environment - MANDATORY 🚨
-
-**Problem**: Tests fail when running against wrong ports or local dev servers instead of Docker containers.
-**Solution**: ALWAYS verify Docker containers are running on port 5173 before creating any tests.
-
-### 🛑 CRITICAL RULES FOR TEST DEVELOPERS:
-1. **NEVER start local dev servers** - Use Docker only
-2. **ALWAYS verify Docker is running** before creating ANY tests - Use **container-restart skill** to verify and start containers
-3. **ONLY use port 5173** (Docker) - NEVER 5174, 5175, or any other port
-4. **KILL rogue processes**: `./scripts/kill-local-dev-servers.sh` if needed
-
-### ✅ MANDATORY PRE-TEST VERIFICATION:
-Use **container-restart skill** to verify Docker containers are running properly and on correct ports. The skill handles:
-- Checking if Docker daemon is running
-- Verifying containers are up and healthy
-- Displaying container status with ports
-- Starting containers if needed
-
-Alternative manual checks (if skill unavailable):
-```bash
-# Kill any rogue local dev servers
-./scripts/kill-local-dev-servers.sh
-
-# Verify correct port (after using container-restart skill)
-curl -f http://localhost:5173/ || echo "ERROR: Docker not on port 5173"
-```
-
-## Prevention Pattern: Unit Test Infrastructure Dependencies
-
-**Problem**: Unit tests contained infrastructure dependencies causing failures when Docker containers misconfigured.
-**Solution**: Use in-memory database helpers for pure business logic testing; move infrastructure tests to separate project.
-
-## Prevention Pattern: E2E JavaScript Error Detection
-
-**Problem**: E2E tests passed despite JavaScript errors breaking functionality.
-**Solution**: Add error monitoring to EVERY E2E test beforeEach to catch JavaScript errors before validating content.
-
-## Prevention Pattern: Authentication Test Blazor Patterns
-
-**Problem**: Post-migration authentication tests used wrong selectors and expected non-existent modal patterns.
-**Solution**: Update all authentication tests to use React implementation patterns and current UI selectors.
-
-## Prevention Pattern: MSW API Endpoint Mismatch
-
-**Problem**: Tests failing because MSW handlers didn't match actual API endpoints.
-**Solution**: Always check actual hook/API client code when creating MSW handlers.
-
-## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 2, NOT HERE! 🚨
-
-**PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
-**ADD ALL NEW LESSONS TO PART 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned-2.md`
-
-## NEVER ADD NEW LESSONS TO THIS FILE (PART 1)
-
-**This file (Part 1) contains ONLY**:
-- Mandatory startup procedures
-- Critical navigation information
-- Essential prevention patterns for immediate safety
-- File structure and reading instructions
-
-**All other lessons go to Part 2** - DO NOT add them here!
+**REMEMBER**: This file documents PROBLEMS. For solutions and patterns, see Test Creation Guide and Test Execution Guide.

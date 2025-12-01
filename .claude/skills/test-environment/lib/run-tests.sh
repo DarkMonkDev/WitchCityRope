@@ -52,34 +52,36 @@ run_tests() {
             echo "  Using web service: http://web:5173"
             echo "  Using API service: http://api:8080"
 
-            # Build playwright command
-            local playwright_cmd="npx playwright test"
+            # Build playwright command arguments
+            local playwright_args=""
+            local filter_args=""
 
-            # Add filter if specified
+            # Add filter if specified - use --grep for regex patterns
             if [ -n "$filter" ]; then
                 echo "  Filtering tests: $filter"
-                playwright_cmd="$playwright_cmd $filter"
+                # Quote the filter to prevent shell interpretation of pipe characters
+                filter_args="--grep '$filter'"
             fi
 
             # Add coverage if requested
             if [ "$coverage" = "true" ]; then
-                playwright_cmd="$playwright_cmd --reporter=list,json,html"
+                playwright_args="--reporter=list,json,html"
             else
-                playwright_cmd="$playwright_cmd --reporter=list"
+                playwright_args="--reporter=list"
+            fi
+
+            # Add workers if specified
+            if [ -n "$PW_WORKERS" ]; then
+                playwright_args="$playwright_args --workers=$PW_WORKERS"
+                echo "  Using $PW_WORKERS parallel workers"
             fi
 
             # Execute in test-runner container
             # The baseURL will use WEB_BASE_URL env var from docker-compose.test.yml
-            # Pass through PW_WORKERS from host environment for parallel test execution
-            local workers_env=""
-            if [ -n "$PW_WORKERS" ]; then
-                workers_env="export PW_WORKERS=$PW_WORKERS && "
-                echo "  Using $PW_WORKERS parallel workers"
-            fi
-
             docker exec witchcity-test-runner sh -c "
+                cd /app && \
                 export PLAYWRIGHT_BASE_URL=http://web:5173 && \
-                ${workers_env}$playwright_cmd
+                npx playwright test $filter_args $playwright_args
             " || exit_code=$?
             ;;
 

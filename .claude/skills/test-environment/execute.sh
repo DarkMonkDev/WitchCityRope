@@ -1,17 +1,19 @@
 #!/bin/bash
 # test-environment - Isolated Test Container Management
 # Runs all tests in dedicated containers separate from dev environment
+#
+# This skill:
+# 1. Calls restart-test-containers skill for container setup
+# 2. Runs the specified tests
+# 3. Cleans up (unless --keep-containers is used)
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
-# Load helper scripts
+# Load helper scripts (only run-tests and cleanup needed now)
 source "$SCRIPT_DIR/lib/cleanup.sh"
-source "$SCRIPT_DIR/lib/build-containers.sh"
-source "$SCRIPT_DIR/lib/start-containers.sh"
-source "$SCRIPT_DIR/lib/health-checks.sh"
 source "$SCRIPT_DIR/lib/run-tests.sh"
 
 # Colors
@@ -28,6 +30,7 @@ FILTER=""
 COVERAGE=false
 KEEP_IMAGES=false
 KEEP_CONTAINERS=false
+SKIP_REBUILD=false
 SKIP_CONFIRMATION="${SKIP_CONFIRMATION:-false}"
 
 show_usage() {
@@ -44,11 +47,15 @@ ${YELLOW}OPTIONS:${NC}
     --coverage          Generate coverage reports
     --keep-images       Keep built images after cleanup
     --keep-containers   Keep containers running for debugging
+    --skip-rebuild      Skip container rebuild (faster when code hasn't changed)
     --skip-confirm      Skip confirmation prompts
 
 ${YELLOW}EXAMPLES:${NC}
     # Run all E2E tests (default)
     bash .claude/skills/test-environment/execute.sh
+
+    # Run with skip rebuild (faster if containers already exist)
+    bash .claude/skills/test-environment/execute.sh --skip-rebuild
 
     # Run specific E2E tests
     bash .claude/skills/test-environment/execute.sh --mode e2e --filter "admin-events"
@@ -63,12 +70,16 @@ ${YELLOW}EXAMPLES:${NC}
     bash .claude/skills/test-environment/execute.sh --mode e2e --keep-containers
 
 ${YELLOW}FEATURES:${NC}
-    ✓ Complete isolation from dev containers
-    ✓ Fresh database each run
-    ✓ Builds from current codebase
+    ✓ Complete isolation from dev containers (-p witchcityrope-test)
+    ✓ Fresh database each run (unless --skip-rebuild)
+    ✓ Builds from current codebase (unless --skip-rebuild)
     ✓ Automatic cleanup (prevents orphaned images)
     ✓ Health checks before running tests
     ✓ Supports all test types (unit, integration, E2E)
+
+${YELLOW}RELATED SKILLS:${NC}
+    • restart-test-containers - Container setup only (called internally)
+    • restart-dev-containers - For development containers
 
 EOF
 }
@@ -85,23 +96,36 @@ ${YELLOW}Purpose:${NC}
   Prevents interference with development work
 
 ${YELLOW}What this will do:${NC}
-  1. Build fresh test images from current codebase
-  2. Start isolated test containers (separate database)
-  3. Run health checks (compilation, database, services)
-  4. Execute tests: ${BLUE}${MODE}${NC}${FILTER:+ (filter: ${FILTER})}
-  5. Save results to /test-results/
-  6. Clean up containers and images
+  1. Call restart-test-containers skill to setup test environment
+EOF
+    if [ "$SKIP_REBUILD" = "true" ]; then
+        echo "     (using --skip-rebuild mode - faster, no container rebuild)"
+    else
+        echo "     (full rebuild with --no-cache for clean test environment)"
+    fi
+    cat << EOF
+  2. Run health checks (compilation, database, services)
+  3. Execute tests: ${BLUE}${MODE}${NC}${FILTER:+ (filter: ${FILTER})}
+  4. Save results to /test-results/
+EOF
+    if [ "$KEEP_CONTAINERS" = "false" ]; then
+        echo "  5. Clean up containers and images"
+    else
+        echo "  5. Keep containers for debugging (--keep-containers)"
+    fi
+    cat << EOF
 
 ${YELLOW}Test Mode:${NC} ${MODE}
 ${YELLOW}Filter:${NC} ${FILTER:-none}
 ${YELLOW}Coverage:${NC} ${COVERAGE}
+${YELLOW}Skip Rebuild:${NC} ${SKIP_REBUILD}
 ${YELLOW}Keep Images:${NC} ${KEEP_IMAGES}
 ${YELLOW}Keep Containers:${NC} ${KEEP_CONTAINERS}
 
 ${YELLOW}⚠️  NOTE:${NC}
-  - Dev containers will NOT be touched
+  - Dev containers will NOT be touched (isolated by -p witchcityrope-test)
   - Test containers use separate database (witchcityrope_test)
-  - Fresh environment each run (unless --keep-* flags used)
+  - Fresh environment each run (unless --skip-rebuild flag used)
 
 ${CYAN}═══════════════════════════════════════════════════════════════${NC}
 
@@ -129,6 +153,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --keep-containers)
             KEEP_CONTAINERS=true
+            shift
+            ;;
+        --skip-rebuild)
+            SKIP_REBUILD=true
             shift
             ;;
         --skip-confirm)
@@ -181,28 +209,23 @@ trap cleanup_on_exit EXIT INT TERM
 echo -e "${CYAN}Starting test environment...${NC}"
 echo ""
 
-# Step 1: Build test images
-if ! build_test_images; then
-    echo -e "${RED}❌ Failed to build test images${NC}"
+# Step 1: Call restart-test-containers skill for container setup
+echo -e "${BLUE}📦 Setting up test containers via restart-test-containers skill...${NC}"
+echo ""
+
+RESTART_CMD="SKIP_CONFIRMATION=true bash $PROJECT_ROOT/.claude/skills/restart-test-containers/execute.sh"
+if [ "$SKIP_REBUILD" = "true" ]; then
+    RESTART_CMD="$RESTART_CMD --skip-rebuild"
+fi
+
+if ! eval "$RESTART_CMD"; then
+    echo -e "${RED}❌ Failed to setup test containers${NC}"
     exit 1
 fi
 echo ""
 
-# Step 2: Start test containers
-if ! start_test_containers; then
-    echo -e "${RED}❌ Failed to start test containers${NC}"
-    exit 1
-fi
-echo ""
-
-# Step 3: Health checks
-if ! verify_test_environment; then
-    echo -e "${RED}❌ Test environment not healthy${NC}"
-    exit 1
-fi
-echo ""
-
-# Step 4: Run tests
+# Step 2: Run tests
+echo -e "${BLUE}🧪 Running tests...${NC}"
 if ! run_tests "$MODE" "$FILTER" "$COVERAGE"; then
     echo -e "${RED}❌ Tests failed${NC}"
     exit 1

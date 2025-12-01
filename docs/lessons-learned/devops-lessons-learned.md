@@ -35,7 +35,7 @@
 - [ ] Create DevOps handoff document when complete
 
 ### DevOps Specific Rules:
-- **ALWAYS use Docker for development** - Use container-restart skill (see SKILLS-REGISTRY.md)
+- **ALWAYS use Docker for development** - Use restart-dev-containers skill (see SKILLS-REGISTRY.md)
 - **NEVER commit build artifacts (bin/, obj/, test-results/)**
 - **USE HEREDOC for complex commit messages**
 - **CHECK container health before deployments**

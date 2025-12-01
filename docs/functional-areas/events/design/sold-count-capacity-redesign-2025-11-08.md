@@ -1102,7 +1102,7 @@ cd /home/chad/repos/witchcityrope
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
 
 # Start containers (migrations apply automatically via DatabaseInitializationService)
-# Use container-restart skill for correct startup with health checks
+# Use restart-dev-containers skill for correct startup with health checks
 
 # Check migration logs
 docker logs witchcity-api --tail 100 | grep -i migration

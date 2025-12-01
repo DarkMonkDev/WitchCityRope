@@ -458,7 +458,7 @@ Run `docker-compose up -d`
 
 **Solution**: Use development compose file overlay:
 - Run: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
-- Or use container-restart skill
+- Or use restart-dev-containers skill
 
 **Example**:
 ```bash

@@ -815,11 +815,11 @@ Testing after each implementation prevents accumulation of technical debt, ensur
 
 ## 🚨 ULTRA CRITICAL: Test Environment Skill Confusion (2025-11-29) 🚨
 
-**CRISIS CONTEXT**: Orchestrator used `container-restart` skill (dev containers) instead of `test-environment` skill (test containers), wasting hours trying to run tests against non-existent `witchcity-test-runner` container.
+**CRISIS CONTEXT**: Orchestrator used `restart-dev-containers` skill (dev containers) instead of `test-environment` skill (test containers), wasting hours trying to run tests against non-existent `witchcity-test-runner` container.
 
 ### 🔥 CRITICAL FAILURE PATTERN: Wrong Skill for Test Execution
 
-**Problem**: Used `container-restart` skill then tried to `docker exec witchcity-test-runner`
+**Problem**: Used `restart-dev-containers` skill then tried to `docker exec witchcity-test-runner`
 **Reality**: `witchcity-test-runner` container ONLY exists when `test-environment` skill creates it
 **Root Cause**: Failed to read SKILLS-REGISTRY.md before taking action
 **Impact**: 3+ days of frustration, wasted time/money, user fury
@@ -828,7 +828,7 @@ Testing after each implementation prevents accumulation of technical debt, ensur
 
 | Skill | Containers Created | Purpose |
 |-------|-------------------|---------|
-| `container-restart` | `witchcity-web`, `witchcity-api`, `witchcity-postgres` | DEV environment |
+| `restart-dev-containers` | `witchcity-web`, `witchcity-api`, `witchcity-postgres` | DEV environment |
 | `test-environment` | `witchcity-web-test`, `witchcity-api-test`, `witchcity-postgres-test`, `witchcity-test-runner` | TEST environment |
 
 ### 🔥 THE FIX: Read SKILLS-REGISTRY.md Pattern 2
@@ -837,7 +837,7 @@ Testing after each implementation prevents accumulation of technical debt, ensur
 1. Read SKILLS-REGISTRY.md (lines 212-229)
 2. Use `test-environment` skill (RECOMMENDED for isolation)
 3. NEVER run tests directly from host
-4. NEVER use `container-restart` then expect test-runner to exist
+4. NEVER use `restart-dev-containers` then expect test-runner to exist
 
 ### Checklist
 - [ ] READ SKILLS-REGISTRY.md before any automation work

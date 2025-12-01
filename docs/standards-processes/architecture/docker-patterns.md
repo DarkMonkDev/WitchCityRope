@@ -17,7 +17,7 @@ This document provides quick patterns. For detailed architecture and workflows, 
 
 ### Starting Development Environment
 ```bash
-# ✅ CORRECT: Use container-restart skill
+# ✅ CORRECT: Use restart-dev-containers skill
 # The skill handles proper startup with dev overrides
 
 # OR manually:
@@ -212,7 +212,7 @@ docker system prune -a --volumes
 For detailed Docker patterns:
 - Read [Docker Architecture](/docs/architecture/docker-architecture.md)
 - Read [Docker Development Guide](/docs/standards-processes/development-standards/docker-development.md)
-- Use `container-restart` skill for automated restart workflows
+- Use `restart-dev-containers` skill for automated restart workflows
 
 ---
 

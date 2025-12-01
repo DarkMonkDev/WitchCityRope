@@ -1,8 +1,8 @@
 #!/bin/bash
-# WitchCityRope Container Restart - Correct Procedure
+# WitchCityRope Dev Container Restart - Correct Procedure
 # SINGLE SOURCE OF TRUTH - DO NOT DUPLICATE
 #
-# This script restarts Docker containers the RIGHT way with:
+# This script restarts Docker DEVELOPMENT containers the RIGHT way with:
 # - Development overlay (docker-compose.dev.yml)
 # - Compilation error checking
 # - Health verification
@@ -14,10 +14,10 @@ set -e  # Exit on error
 # PRE-FLIGHT INFORMATION
 # ============================================
 
-echo "🔄 WitchCityRope Container Restart"
-echo "=================================="
+echo "🔄 WitchCityRope Dev Container Restart"
+echo "======================================="
 echo ""
-echo "📋 Purpose: Restart Docker containers with proper configuration"
+echo "📋 Purpose: Restart Docker DEVELOPMENT containers with proper configuration"
 echo ""
 echo "✅ Use when:"
 echo "   • Before running E2E tests (MANDATORY)"
@@ -49,7 +49,7 @@ else
         echo "❌ Aborted by user"
         echo ""
         echo "📖 For more details, see:"
-        echo "   .claude/skills/container-restart/SKILL.md"
+        echo "   .claude/skills/restart-dev-containers/SKILL.md"
         exit 0
     fi
     echo ""
@@ -98,14 +98,19 @@ echo ""
 
 # Step 1: Stop existing containers
 echo "1️⃣  Stopping containers..."
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+# CRITICAL: Use -p witchcityrope-dev to isolate from test containers
+# Without this flag, restarting dev containers will DELETE test containers!
+# See: docs/test-baselines/test-parity-investigation-2025-12-01.md (Session 10)
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml down
 echo "   ✅ Containers stopped"
 echo ""
 
 # Step 2: Start with development overlay (CRITICAL)
 echo "2️⃣  Starting containers with dev overlay..."
 echo "   Using: docker-compose.yml + docker-compose.dev.yml"
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+echo "   Project: witchcityrope-dev (isolated from test containers)"
+# CRITICAL: Use -p witchcityrope-dev to isolate from test containers
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
 echo "   ✅ Containers starting..."
 echo ""
@@ -130,10 +135,10 @@ if [ "$RUNNING_COUNT" -ne "$EXPECTED_COUNT" ]; then
     echo "💡 Troubleshooting:"
     echo "   • Check logs: docker logs witchcity-web"
     echo "   • Check logs: docker logs witchcity-api"
-    echo "   • See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo "   • See: .claude/skills/restart-dev-containers/SKILL.md (Common Issues)"
     echo ""
     echo "=== SKILL_RESULT ==="
-    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"Container count mismatch\",\"details\":\"Expected $EXPECTED_COUNT containers, found $RUNNING_COUNT\",\"action\":\"Check container logs and restart\"}"
+    echo "{\"skill\":\"restart-dev-containers\",\"status\":\"failure\",\"error\":\"Container count mismatch\",\"details\":\"Expected $EXPECTED_COUNT containers, found $RUNNING_COUNT\",\"action\":\"Check container logs and restart\"}"
     echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
@@ -152,10 +157,10 @@ if [ -n "$WEB_ERRORS" ]; then
     echo "$WEB_ERRORS"
     echo ""
     echo "💡 FIX SOURCE CODE AND RESTART"
-    echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo "   See: .claude/skills/restart-dev-containers/SKILL.md (Common Issues)"
     echo ""
     echo "=== SKILL_RESULT ==="
-    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"Web compilation errors\",\"details\":\"$(echo "$WEB_ERRORS" | head -n 1 | sed 's/"/\\"/g')\",\"action\":\"Fix source code and restart\"}"
+    echo "{\"skill\":\"restart-dev-containers\",\"status\":\"failure\",\"error\":\"Web compilation errors\",\"details\":\"$(echo "$WEB_ERRORS" | head -n 1 | sed 's/"/\\"/g')\",\"action\":\"Fix source code and restart\"}"
     echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
@@ -170,10 +175,10 @@ if [ -n "$API_ERRORS" ]; then
     echo "$API_ERRORS"
     echo ""
     echo "💡 FIX SOURCE CODE AND RESTART"
-    echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo "   See: .claude/skills/restart-dev-containers/SKILL.md (Common Issues)"
     echo ""
     echo "=== SKILL_RESULT ==="
-    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"API compilation errors\",\"details\":\"$(echo "$API_ERRORS" | head -n 1 | sed 's/"/\\"/g')\",\"action\":\"Fix source code and restart\"}"
+    echo "{\"skill\":\"restart-dev-containers\",\"status\":\"failure\",\"error\":\"API compilation errors\",\"details\":\"$(echo "$API_ERRORS" | head -n 1 | sed 's/"/\\"/g')\",\"action\":\"Fix source code and restart\"}"
     echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
@@ -217,10 +222,10 @@ check_health() {
 if ! check_health "http://localhost:5173" "Web service"; then
     echo ""
     echo "💡 Check logs: docker logs witchcity-web"
-    echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo "   See: .claude/skills/restart-dev-containers/SKILL.md (Common Issues)"
     echo ""
     echo "=== SKILL_RESULT ==="
-    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"Web service health check failed\",\"details\":\"Web service did not respond after 60 seconds\",\"action\":\"Check container logs: docker logs witchcity-web\"}"
+    echo "{\"skill\":\"restart-dev-containers\",\"status\":\"failure\",\"error\":\"Web service health check failed\",\"details\":\"Web service did not respond after 60 seconds\",\"action\":\"Check container logs: docker logs witchcity-web\"}"
     echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
@@ -229,10 +234,10 @@ fi
 if ! check_health "http://localhost:5655/health" "API service"; then
     echo ""
     echo "💡 Check logs: docker logs witchcity-api"
-    echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo "   See: .claude/skills/restart-dev-containers/SKILL.md (Common Issues)"
     echo ""
     echo "=== SKILL_RESULT ==="
-    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"API service health check failed\",\"details\":\"API service did not respond after 60 seconds\",\"action\":\"Check container logs: docker logs witchcity-api\"}"
+    echo "{\"skill\":\"restart-dev-containers\",\"status\":\"failure\",\"error\":\"API service health check failed\",\"details\":\"API service did not respond after 60 seconds\",\"action\":\"Check container logs: docker logs witchcity-api\"}"
     echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
@@ -242,10 +247,10 @@ if ! check_health "http://localhost:5655/api/health/detailed" "Database (detaile
     echo ""
     echo "💡 Check logs: docker logs witchcity-db"
     echo "💡 Check logs: docker logs witchcity-api"
-    echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo "   See: .claude/skills/restart-dev-containers/SKILL.md (Common Issues)"
     echo ""
     echo "=== SKILL_RESULT ==="
-    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"Database health check failed\",\"details\":\"Database connection check did not respond after 60 seconds\",\"action\":\"Check container logs: docker logs witchcity-db and docker logs witchcity-api\"}"
+    echo "{\"skill\":\"restart-dev-containers\",\"status\":\"failure\",\"error\":\"Database health check failed\",\"details\":\"Database connection check did not respond after 60 seconds\",\"action\":\"Check container logs: docker logs witchcity-db and docker logs witchcity-api\"}"
     echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
@@ -285,7 +290,7 @@ echo ""
 echo "=== SKILL_RESULT ==="
 cat <<EOF
 {
-  "skill": "container-restart",
+  "skill": "restart-dev-containers",
   "status": "success",
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "containers": {

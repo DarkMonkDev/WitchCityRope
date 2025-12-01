@@ -16,7 +16,7 @@
 
 **Root Cause**: API was not running when tested. The endpoints were properly implemented and registered, but the Docker containers were stopped.
 
-**Resolution**: Restarted Docker containers using `container-restart` skill. All endpoints now responding correctly with HTTP 401 (Unauthorized), which is expected behavior.
+**Resolution**: Restarted Docker containers using `restart-dev-containers` skill. All endpoints now responding correctly with HTTP 401 (Unauthorized), which is expected behavior.
 
 ---
 
@@ -97,7 +97,7 @@ Status: 401  ✅
 The backend implementation was **100% correct**. The issue was environmental:
 
 1. **Problem**: Docker containers were stopped
-2. **Solution**: Restarted containers using `container-restart` skill
+2. **Solution**: Restarted containers using `restart-dev-containers` skill
 3. **Verification**: All endpoints now accessible and returning correct authorization responses
 
 ### Endpoints Now Working:
@@ -126,9 +126,9 @@ The backend implementation was **100% correct**. The issue was environmental:
 
 ### 1. Verify Containers Running
 
-Before testing frontend, use the **container-restart skill** to ensure all containers are running with the correct development configuration.
+Before testing frontend, use the **restart-dev-containers skill** to ensure all containers are running with the correct development configuration.
 
-If containers need to be restarted or aren't running, use: **container-restart skill**
+If containers need to be restarted or aren't running, use: **restart-dev-containers skill**
 
 ### 2. Test API Endpoint Availability
 
@@ -203,7 +203,7 @@ const templates = await emailTemplatesApi.getGlobalTemplatesByCategory('Vetting'
 
 2. ✅ **Check Docker container status**
 
-   Use the **container-restart skill** to verify container status and health.
+   Use the **restart-dev-containers skill** to verify container status and health.
 
 3. ✅ **Verify endpoint registration code** (if API is running)
    - Extension method signature
@@ -228,11 +228,11 @@ const templates = await emailTemplatesApi.getGlobalTemplatesByCategory('Vetting'
 
 1. ✅ **Verify Docker containers running**
 
-   Use **container-restart skill** to check container status.
+   Use **restart-dev-containers skill** to check container status.
 
 2. ✅ **Restart containers if needed**
 
-   Use **container-restart skill** to restart with correct dev configuration.
+   Use **restart-dev-containers skill** to restart with correct dev configuration.
 
 3. ✅ **Test health endpoint**
    ```bash

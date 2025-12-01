@@ -6,7 +6,7 @@ WitchCityRope uses Docker containers for all development work to ensure consiste
 
 **IMPORTANT**: Local development servers (npm run dev without Docker) are DISABLED to prevent confusion and environment inconsistencies.
 
-> **📚 Single Source of Truth**: The `container-restart` skill (`.claude/skills/container-restart/SKILL.md`) is the authoritative source for Docker container operations. The commands shown in this guide are for quick reference only. For automated operations, always use the skill.
+> **📚 Single Source of Truth**: The `restart-dev-containers` skill (`.claude/skills/restart-dev-containers/SKILL.md`) is the authoritative source for Docker container operations. The commands shown in this guide are for quick reference only. For automated operations, always use the skill.
 
 ## Quick Start
 
@@ -16,8 +16,58 @@ WitchCityRope uses Docker containers for all development work to ensure consiste
 ```
 
 **For other Docker operations** (viewing logs, stopping services, clean slate):
-- Use the `container-restart` skill for automated Docker container management
+- Use the `restart-dev-containers` skill for automated Docker container management
 - The skill handles: restart, rebuild, health checks, and cleanup operations
+
+## Container Environment Isolation
+
+### 🚨 CRITICAL: Project Isolation Prevents Container Conflicts
+
+WitchCityRope uses **separate Docker Compose projects** for development and testing environments to prevent operations on one environment from affecting the other.
+
+**Project Names:**
+- **Dev containers**: `-p witchcityrope-dev`
+- **Test containers**: `-p witchcityrope-test`
+
+**Why This Matters:**
+
+Without the `-p` project flag, Docker Compose treats containers with the same project name as one unified project. This causes:
+- Starting test containers **DELETES dev containers** (seen as "orphans")
+- Restarting dev containers **DELETES test containers**
+- Database containers getting removed when the other environment starts
+- 500 errors and connection failures due to missing database containers
+
+### Common Mistake: Forgetting the Project Flag
+
+```bash
+# ❌ WRONG - No project flag (will interfere with other environment)
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# ✅ CORRECT - Always use project flag
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up -d
+```
+
+**NEVER run `docker-compose` commands without the `-p` flag for dev or test containers.**
+
+### Skills Are the Single Source of Truth
+
+**Always use the Skills for container management:**
+
+| Operation | Skill to Use | Project Flag |
+|-----------|--------------|--------------|
+| Restart dev containers | `restart-dev-containers` | Uses `-p witchcityrope-dev` |
+| Restart test containers | `restart-test-containers` | Uses `-p witchcityrope-test` |
+| Run E2E tests | `test-environment` | Uses `-p witchcityrope-test` |
+| Reset dev database | `database-reset-dev` | Uses `-p witchcityrope-dev` |
+
+**Why Skills Matter:**
+- Skills contain the correct procedures with proper isolation
+- Manual commands risk forgetting the project flag
+- Skills handle health checks and verification automatically
+- Skills are maintained as the single source of truth
+
+**Reference:**
+- Investigation findings: `/home/chad/repos/witchcityrope/docs/test-baselines/test-parity-investigation-2025-12-01.md` (Session 10)
 
 ## Service Access
 
@@ -59,7 +109,7 @@ WitchCityRope uses Entity Framework Core migrations to manage database schema. A
 
 #### Verify Automatic Migrations
 
-**Use container-restart skill** to restart containers and verify migrations are applied automatically.
+**Use restart-dev-containers skill** to restart containers and verify migrations are applied automatically.
 
 Expected behavior:
 - API logs show "Starting database initialization for environment: Development"
@@ -104,10 +154,10 @@ cat Migrations/*_DescriptiveNameForYourChanges.cs
 # Verify Up() method contains your expected schema changes
 
 # 6. Test migration with fresh database
-# Use container-restart skill or database-reset-dev skill for clean slate testing
+# Use restart-dev-containers skill or database-reset-dev skill for clean slate testing
 
 # 7. Verify migration applied
-# Check API logs via Docker Desktop or use container-restart skill
+# Check API logs via Docker Desktop or use restart-dev-containers skill
 docker exec -it witchcity-postgres psql -U postgres -d witchcityrope_dev -c "SELECT * FROM \"__EFMigrationsHistory\";"
 ```
 
@@ -137,7 +187,7 @@ Alternative manual approach:
 docker exec -it witchcity-postgres psql -U postgres -c "DROP DATABASE IF EXISTS witchcityrope_dev;"
 docker exec -it witchcity-postgres psql -U postgres -c "CREATE DATABASE witchcityrope_dev;"
 
-# Then use container-restart skill to restart API and apply migrations
+# Then use restart-dev-containers skill to restart API and apply migrations
 ```
 
 ### Troubleshooting Migrations
@@ -206,7 +256,7 @@ dotnet ef migrations add SyncSchemaChanges
 # Fresh start with latest code
 git pull origin main
 
-# Use container-restart skill for full restart with volume cleanup
+# Use restart-dev-containers skill for full restart with volume cleanup
 # Or use ./dev.sh for quick start without cleanup
 ./dev.sh
 ```
@@ -231,15 +281,15 @@ git pull origin main
    ```
 2. Stop all containers:
    ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+   docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml down
    ```
 3. Rebuild web service without cache:
    ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache web
+   docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml build --no-cache web
    ```
 4. Start containers:
    ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+   docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up -d
    ```
 5. Verify package installed in container:
    ```bash
@@ -251,14 +301,14 @@ git pull origin main
 **Database Schema Changes**:
 1. Edit entity models in `/apps/api/Models/` or `/apps/api/Features/`
 2. Create migration: `cd apps/api && dotnet ef migrations add YourChange`
-3. Restart API to apply: `docker-compose restart api`
+3. Restart API to apply: `docker-compose -p witchcityrope-dev restart api`
 4. Verify: `docker logs witchcity-api | grep migration`
 
 ### 3. Viewing Logs
 
 ```bash
 # All services
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml logs -f
 
 # Specific service
 docker logs witchcity-api -f
@@ -345,19 +395,19 @@ This isolation ensures development backups never appear in staging/production ad
 
 ```bash
 # Start all services
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 # Start specific service
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up -d api
 
 # Stop all services
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml down
 
 # Restart specific service
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart api
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml restart api
 
 # View service status
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml ps
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml ps
 
 # View resource usage
 docker stats
@@ -367,29 +417,29 @@ docker stats
 
 ```bash
 # Rebuild all services
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml build
 
 # Rebuild specific service
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml build api
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml build api
 
 # Rebuild without cache (clean build)
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
 
 # Build and start
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
 
 ### Cleanup
 
 ```bash
 # Remove stopped containers
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml rm
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml rm
 
 # Remove volumes (destroys data!)
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml down -v
 
 # Remove images
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down --rmi all
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml down --rmi all
 
 # Full cleanup (nuclear option)
 docker system prune -a --volumes
@@ -463,10 +513,10 @@ docker exec -it witchcity-postgres psql -U postgres -l
 # Should see connection to ws://localhost:24678
 
 # Check CHOKIDAR_USEPOLLING is set to "true"
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | grep CHOKIDAR
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml config | grep CHOKIDAR
 
 # Restart web service
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart web
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml restart web
 ```
 
 ### API Changes Not Reflecting
@@ -481,8 +531,26 @@ docker logs witchcity-api --tail 50 | grep watch
 docker inspect witchcity-api | grep Mounts
 
 # Force restart
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart api
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml restart api
 ```
+
+### Dev Containers Deleted When Starting Test Containers
+
+**Symptom**: After running E2E tests or test-environment skill, dev containers (especially database) are gone
+**Cause**: Test containers started without `-p witchcityrope-test` flag, causing Docker Compose to see dev containers as "orphans"
+**Solution**:
+```bash
+# Always use the restart-test-containers or test-environment skills
+# These skills use the correct -p witchcityrope-test flag
+
+# If you must run manually, ALWAYS include project flag:
+docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml up -d
+
+# Restart dev containers with:
+# Use restart-dev-containers skill or ./dev.sh
+```
+
+**Prevention**: Never run docker-compose commands for dev or test environments without the `-p` project flag.
 
 ## Performance Tips
 

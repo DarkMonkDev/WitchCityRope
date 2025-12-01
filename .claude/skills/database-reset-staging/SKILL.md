@@ -81,7 +81,7 @@ CREATE SCHEMA public;
 DROP SCHEMA IF EXISTS cms CASCADE;
 ```
 
-**Then**: Use `container-restart` skill to restart staging containers
+**Then**: Use `restart-dev-containers` skill to restart staging containers
 
 ---
 
@@ -106,7 +106,7 @@ brew install postgresql
 
 **Solution**:
 1. Verify server is accessible: `ssh witchcity@104.131.165.14`
-2. Check staging containers: Use `container-restart` skill
+2. Check staging containers: Use `restart-dev-containers` skill
 3. Verify database port is open (25060)
 
 ### Issue: Migrations fail after reset
@@ -114,7 +114,7 @@ brew install postgresql
 **Cause**: Old migration state or code/DB mismatch
 
 **Solution**:
-1. Check API logs: `container-restart` skill
+1. Check API logs: `restart-dev-containers` skill
 2. Ensure latest code deployed: `staging-deploy` skill
 3. Verify no lingering tables: Run query to list all tables
 
@@ -125,7 +125,7 @@ brew install postgresql
 **Solution**:
 - API only seeds if `appsettings.Staging.json` has `SeedData: true`
 - Check environment configuration on server
-- Manual trigger: Restart API container with `container-restart` skill
+- Manual trigger: Restart API container with `restart-dev-containers` skill
 
 ---
 
@@ -136,7 +136,7 @@ brew install postgresql
 2. Test migrations locally
 3. Deploy code: Use `staging-deploy` skill
 4. Reset database: Use THIS skill
-5. Verify: Use `container-restart` skill to check logs
+5. Verify: Use `restart-dev-containers` skill to check logs
 
 ---
 

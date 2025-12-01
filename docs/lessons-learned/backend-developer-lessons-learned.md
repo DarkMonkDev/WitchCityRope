@@ -258,7 +258,7 @@ return Results.Ok(new ApiResponse<EventDto>
 
 **MANDATORY PRE-TESTING CHECKLIST**:
 ```bash
-# 1. Use container-restart skill to verify and restart Docker containers
+# 1. Use restart-dev-containers skill to verify and restart Docker containers
 # The skill handles container verification and startup automatically
 
 # 2. Verify API health (REQUIRED)

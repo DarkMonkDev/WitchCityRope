@@ -32,7 +32,7 @@ services:
     # Override container name to avoid conflict with dev environment
     container_name: witchcity-postgres-test
     networks:
-      - witchcity-net
+      - witchcity-test-net
     environment:
       # Separate test database
       POSTGRES_DB: witchcityrope_test
@@ -69,7 +69,7 @@ services:
     # Override container name to avoid conflict with dev environment
     container_name: witchcity-api-test
     networks:
-      - witchcity-net
+      - witchcity-test-net
     build:
       context: ./apps/api
       dockerfile: Dockerfile
@@ -129,7 +129,7 @@ services:
     # Override container name to avoid conflict with dev environment
     container_name: witchcity-web-test
     networks:
-      - witchcity-net
+      - witchcity-test-net
     build:
       # Use default context (.) from base docker-compose.yml (monorepo root)
       # context: . is inherited from base compose file
@@ -197,7 +197,7 @@ services:
     # Explicit container name for consistency
     container_name: witchcity-test-runner
     networks:
-      - witchcity-net
+      - witchcity-test-net
 
     # NO EXTERNAL PORTS - Test isolation
     # ports: []
@@ -269,7 +269,7 @@ services:
     # Explicit container name for consistency
     container_name: witchcity-db-test-helper
     networks:
-      - witchcity-net
+      - witchcity-test-net
     
     depends_on:
       postgres:
@@ -355,10 +355,22 @@ services:
 # ============================================================================
 # TEST NETWORK CONFIGURATION
 # ============================================================================
-# Override base network with different subnet - allows dev and test to run simultaneously
+# SEPARATE network from dev - allows dev and test to run simultaneously
+# Uses different network NAME (not just different subnet) to avoid conflicts
+#
+# CRITICAL: Override base witchcity-net to prevent subnet conflicts when using
+# different project names (-p). Without this override, the merged compose
+# creates witchcityrope-test_witchcity-net with same subnet as dev.
 networks:
+  # Override base network with different subnet to prevent conflict
   witchcity-net:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16  # Different from dev (172.25.0.0/16)
+        - subnet: 172.27.0.0/16  # Override base (172.25.0.0/16) to prevent conflict
+  # Primary test network
+  witchcity-test-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/16  # Different from dev (172.25.0.0/16)

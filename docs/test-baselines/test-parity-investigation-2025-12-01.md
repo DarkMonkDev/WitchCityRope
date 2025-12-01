@@ -1102,3 +1102,98 @@ The investigation is complete. Implementation of fixes for the 14 remaining test
 3. Create task: "Apply standard TIMEOUTS patterns to refund-*.spec.ts"
 
 **Estimated effort:** 2-4 hours to update all 14 failing tests with proper wait patterns.
+
+---
+
+## Session 10: December 1, 2025 (CRITICAL - Docker Project Isolation)
+
+### 🚨 CRITICAL FINDING: Dev and Test Containers Share Project Name
+
+**Problem Discovered**: Restarting dev containers was **DELETING test containers** and vice versa. When attempting to start test postgres, the dev postgres container was removed!
+
+**User Impact**: "I'm getting a status code 500 when I try to look at the public events and classes page" - caused by postgres container being deleted when test environment was started.
+
+### Root Cause
+
+Both docker-compose stacks use the **same project name** (`witchcityrope`) by default:
+
+```bash
+# These share the same project name by default:
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up   # witchcityrope
+docker-compose -f docker-compose.yml -f docker-compose.test.yml up  # witchcityrope
+```
+
+Docker Compose treats containers with the same project name as **one project**. When you restart one environment, it removes containers from the other environment because they're seen as "orphans" of the same project.
+
+### Evidence
+
+```
+# Attempting to start test postgres:
+docker-compose -f docker-compose.yml -f docker-compose.test.yml up -d --build postgres
+
+# Result: Dev postgres container DELETED
+# Error: KeyError: 'ContainerConfig' (docker-compose v1.29.2 bug)
+```
+
+API logs showed: `"Resource temporarily unavailable"` - database connection failures because postgres was gone.
+
+### Solution: Use Different Project Names
+
+**CRITICAL**: Always use the `-p` flag with different project names:
+
+```bash
+# Dev environment - use project name "witchcityrope-dev"
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# Test environment - use project name "witchcityrope-test"
+docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml up -d
+```
+
+### Files That Need Updates
+
+| File | Required Change |
+|------|-----------------|
+| `.claude/skills/restart-dev-containers/execute.sh` | Add `-p witchcityrope-dev` to all docker-compose commands |
+| `.claude/skills/test-environment/execute.sh` | Add `-p witchcityrope-test` to all docker-compose commands |
+| `dev.sh` | Add `-p witchcityrope-dev` to all docker-compose commands |
+| `docker-compose.test.yml` | Already has separate network (172.26.0.0/16) - good |
+
+### Network Separation (Already Implemented)
+
+Networks are already separated:
+- **Dev Network**: `witchcity-net` (172.25.0.0/16)
+- **Test Network**: `witchcity-test-net` (172.26.0.0/16)
+
+But network separation alone is NOT enough - project isolation (`-p` flag) is also required.
+
+### Why This Keeps Getting Lost
+
+1. Context compaction removes detailed session history
+2. Docker-compose behavior is counterintuitive
+3. The problem only appears when BOTH environments are used in same session
+4. Error messages (KeyError, 500 errors) don't directly indicate project conflicts
+
+### User's Critical Feedback
+
+> "it is extremely important that if we restart the dev or test containers, it DOES NOT take down the other environment. So restarting the Dev containers, CAN NOT take down the database container for the Test containers."
+
+> "We keep going around in circles and you keep forgetting what we have done so far and why."
+
+### Implementation Priority
+
+**HIGH PRIORITY** - This must be fixed before any further test container work:
+
+1. [x] Update `restart-dev-containers` skill with `-p witchcityrope-dev` ✅ COMPLETED 2025-12-01
+2. [x] Update `test-environment` skill with `-p witchcityrope-test` ✅ ALREADY HAD IT
+3. [x] Update `dev.sh` script with `-p witchcityrope-dev` ✅ COMPLETED 2025-12-01
+4. [ ] Test: Start dev, then start test, verify both run simultaneously
+5. [ ] Test: Restart dev, verify test containers unaffected
+6. [ ] Test: Restart test, verify dev containers unaffected
+
+### Docker-Compose v1.29.2 Bug Note
+
+The `KeyError: 'ContainerConfig'` error is a known bug in docker-compose v1.29.2 when recreating containers. Workarounds:
+- Upgrade to docker-compose v2 (`docker compose` instead of `docker-compose`)
+- Remove containers before recreating them
+
+---

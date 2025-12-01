@@ -62,7 +62,7 @@ Agent tries to restart containers:
 
 With Skill:
 1. Agent says "restart containers"
-2. Claude Code invokes container-restart skill
+2. Claude Code invokes restart-dev-containers skill
 3. Skill runs correct process (./dev.sh, health checks, etc.)
 4. Returns success/failure
 ```
@@ -166,17 +166,17 @@ echo "  - If all healthy: Proceed with development/testing"
 
 ### From test-executor
 ```
-Before running E2E tests, I'll use the container-restart skill to ensure environment is healthy.
+Before running E2E tests, I'll use the restart-dev-containers skill to ensure environment is healthy.
 ```
 
 ### From react-developer
 ```
-After making code changes, I'll use the container-restart skill to rebuild containers.
+After making code changes, I'll use the restart-dev-containers skill to rebuild containers.
 ```
 
 ### From backend-developer
 ```
-I'll use the container-restart skill to apply the new API changes.
+I'll use the restart-dev-containers skill to apply the new API changes.
 ```
 
 ## Integration with Lessons Learned
@@ -186,7 +186,7 @@ I'll use the container-restart skill to apply the new API changes.
 ```markdown
 ## Problem: E2E Tests Fail with "Element Not Found"
 
-**Solution**: Container has compilation errors. Use `container-restart` skill.
+**Solution**: Container has compilation errors. Use `restart-dev-containers` skill.
 
 The skill checks for compilation errors automatically.
 ```
@@ -589,7 +589,7 @@ See: `.claude/skills/staging-deploy.md` for automation details
 ```
 Agent: "Before running E2E tests, I need to ensure containers are healthy. I'll restart the containers."
 
-Claude Code: *Invokes container-restart skill*
+Claude Code: *Invokes restart-dev-containers skill*
 
 Skill Output: All containers healthy, no compilation errors
 
@@ -612,7 +612,7 @@ tools: Bash, Read, Write, Glob
 **You have access to these Skills** (auto-invoked by Claude Code when you mention the task):
 
 ### Container & Environment
-- **container-restart** - When containers need restarting (before E2E tests, after compilation errors)
+- **restart-dev-containers** - When containers need restarting (before E2E tests, after compilation errors)
 - **environment-health-check** - Before running any tests
 
 ### Testing
@@ -643,7 +643,7 @@ See: `/.claude/skills/SKILLS-REGISTRY.md` for complete list
 
 Result: Wrong ports, environment issues, E2E tests failed.
 
-**Solution**: Use the `container-restart` skill instead of manual restart.
+**Solution**: Use the `restart-dev-containers` skill instead of manual restart.
 
 The skill handles:
 - Correct compose file overlay (docker-compose.dev.yml)
@@ -734,7 +734,7 @@ Root cause: Container built successfully but code has compilation errors.
 
 **Solution**: Always restart containers with compilation check before E2E tests.
 
-Use the `container-restart` skill - it automatically checks for compilation errors.
+Use the `restart-dev-containers` skill - it automatically checks for compilation errors.
 
 **Example**:
 ```bash
@@ -744,7 +744,7 @@ npm test
 
 # ✅ Right - Use skill (mention task, skill invoked automatically)
 "I'll restart containers to ensure compilation succeeded"
-# container-restart skill runs, checks errors
+# restart-dev-containers skill runs, checks errors
 npm test
 ```
 
@@ -773,7 +773,7 @@ tools: Bash, Read, Write, Glob
 ---
 
 ## Available Skills
-- **container-restart** - Use before E2E tests
+- **restart-dev-containers** - Use before E2E tests
 - **test-catalog-updater** - Use after ALL test runs
 
 ## YOUR CORE RESPONSIBILITY
@@ -810,7 +810,7 @@ See: Skills for automation details
 1. test-executor checks environment health
    - Uses `environment-health-check` skill
 2. test-executor restarts containers if needed
-   - Uses `container-restart` skill
+   - Uses `restart-dev-containers` skill
 3. test-executor runs all test suites
 4. test-executor updates TEST_CATALOG
    - Uses `test-catalog-updater` skill
@@ -922,7 +922,7 @@ Deployment process found in:
    ```markdown
    ## Problem: Container Restart Done Wrong
 
-   **Solution**: Use `container-restart` skill.
+   **Solution**: Use `restart-dev-containers` skill.
 
    See: `/.claude/skills/container-restart.md`
    ```
@@ -930,12 +930,12 @@ Deployment process found in:
 2. **Agent Definitions**: Add to Skills list
    ```yaml
    ## Available Skills
-   - **container-restart** - Before E2E tests
+   - **restart-dev-containers** - Before E2E tests
    ```
 
 3. **Process Docs**: Update to reference
    ```markdown
-   Before testing: Restart containers (see `container-restart` skill)
+   Before testing: Restart containers (see `restart-dev-containers` skill)
    ```
 
 #### Phase 4: Remove Duplication (Week 2)
@@ -976,7 +976,7 @@ echo "✅ No duplicate processes found"
 
 ### Immediate (This Week)
 
-1. **Create container-restart skill** (2 hours)
+1. **Create restart-dev-containers skill** (2 hours)
    - Most frequently needed
    - Currently causing E2E test failures
    - Clear automation opportunity
@@ -1053,7 +1053,7 @@ echo "✅ No duplicate processes found"
 
 Example:
 - `container-restart.md` (Skill): Just the script
-- `test-executor-lessons-learned.md`: "Problem X happened. Use container-restart skill. Here's why that works."
+- `test-executor-lessons-learned.md`: "Problem X happened. Use restart-dev-containers skill. Here's why that works."
 
 ### Q3: How do we prevent Skills from becoming duplicative?
 
@@ -1110,6 +1110,6 @@ Recommend: **Option 1** for similar processes, **Option 2** for significantly di
    - Process Docs = Strategy (workflow + references)
    - Each process exists in EXACTLY ONE place
 
-**Implementation**: Start with container-restart skill this week, it will prove the pattern.
+**Implementation**: Start with restart-dev-containers skill this week, it will prove the pattern.
 
 **Success**: When agents naturally use Skills instead of manually performing processes, and you can update a process once instead of four times.

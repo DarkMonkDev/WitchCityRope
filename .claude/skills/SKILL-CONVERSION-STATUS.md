@@ -220,7 +220,7 @@ Use these as templates for the pattern:
 **Best Examples**:
 - `/home/chad/repos/witchcityrope/.claude/skills/phase-1-validator/execute.sh` (lines 1-290)
 - `/home/chad/repos/witchcityrope/.claude/skills/phase-1-validator/SKILL.md` (lines 12-44)
-- `/home/chad/repos/witchcityrope/.claude/skills/container-restart/execute.sh` (lines 1-243)
+- `/home/chad/repos/witchcityrope/.claude/skills/restart-dev-containers/execute.sh` (lines 1-243)
 - `/home/chad/repos/witchcityrope/.claude/skills/phase-2-validator/execute.sh` (just created)
 
 **Structure Pattern**:

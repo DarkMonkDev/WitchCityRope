@@ -390,7 +390,7 @@ Enable via Figma Desktop app: Settings → MCP Server → Enable desktop MCP ser
 - **Mitigation**:
   - Use Playwright Docker images with Chromium pre-installed
   - Test MCP servers on host machine, not inside containers
-  - Document container-restart skill integration with Chrome setup
+  - Document restart-dev-containers skill integration with Chrome setup
   - Fallback to Playwright MCP for CI/CD if Chrome DevTools incompatible
 
 ### Medium Risk
@@ -488,7 +488,7 @@ Enable via Figma Desktop app: Settings → MCP Server → Enable desktop MCP ser
 - [ ] Clone and configure ScreenshotMCP with WitchCityRope device presets
 - [ ] Test Claude Vision screenshot analysis accuracy with sample layout changes
 - [ ] Create responsive validation workflow documentation
-- [ ] Update container-restart skill to include Chrome setup if needed
+- [ ] Update restart-dev-containers skill to include Chrome setup if needed
 
 ### Prototype/POC Recommended (Week 3)
 - [ ] **POC Goal**: Agent successfully debugs overflow on EventCard mobile view

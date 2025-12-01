@@ -88,7 +88,7 @@ Implement a **three-tier just-in-time learning architecture**:
 **Advantage**: Zero context usage - skills contain both docs AND automation
 
 **Examples**:
-- **Docker restart**: Use `container-restart` skill (don't read docs)
+- **Docker restart**: Use `restart-dev-containers` skill (don't read docs)
 - **Deployment**: Use `staging-deploy` skill (don't read docs)
 - **Test validation**: Use test execution skills
 

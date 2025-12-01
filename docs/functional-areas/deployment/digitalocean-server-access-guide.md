@@ -220,7 +220,7 @@ sudo certbot renew
 **Manual Deployment** (if needed):
 - Use `staging-deploy` skill for staging deployments
 - Use `production-deploy` skill for production deployments
-- Use `container-restart` skill for container management
+- Use `restart-dev-containers` skill for container management
 - See deployment guides for manual procedures if skills fail
 
 ---
@@ -299,9 +299,9 @@ sudo -u witchcity sudo -n nginx -t
 **Problem**: Containers not starting or behaving unexpectedly
 
 **Debugging Steps**:
-- Use `container-restart` skill for container management and troubleshooting
+- Use `restart-dev-containers` skill for container management and troubleshooting
 - Skill handles: status checks, log viewing, container restarts
-- See container-restart skill documentation for specific commands
+- See restart-dev-containers skill documentation for specific commands
 
 ### Database Connection Issues
 
@@ -310,7 +310,7 @@ sudo -u witchcity sudo -n nginx -t
 **Debugging**:
 - SSH to server and check .env file for DB_CONNECTION configuration
 - Test API health endpoint: `curl https://staging.notfai.com/api/health/database`
-- Use `container-restart` skill to check API logs for connection errors
+- Use `restart-dev-containers` skill to check API logs for connection errors
 - Verify connection string format (keyword-value format, not URI format - see above)
 
 ---
@@ -376,7 +376,7 @@ sudo certbot --nginx -d example.com
 
 ### Container Management
 ```bash
-# Use container-restart skill for all container operations
+# Use restart-dev-containers skill for all container operations
 ```
 
 ---

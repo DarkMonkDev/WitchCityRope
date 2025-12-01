@@ -60,7 +60,7 @@ If you create duplication, you will be corrected. This correction is expensive (
 **ZERO FILES ALLOWED IN /docs/ ROOT**
 
 All navigation now uses:
-- **Functional Areas**: `/docs/architecture/functional-area-master-index.md` 
+- **Functional Areas**: `/docs/architecture/functional-area-master-index.md`
 - **Agent Guides**: `/.claude/agents/` and `/docs/lessons-learned/`
 - **Standards**: `/docs/standards-processes/`
 
@@ -171,7 +171,7 @@ Failure to create/read handoffs = implementation failures.
 
 
 > 📚 **DOCUMENTATION STRUCTURE** 📚
-> 
+>
 > **Essential Documentation:**
 > - **Navigation Guide**: [/docs/architecture/functional-area-master-index.md](./docs/architecture/functional-area-master-index.md)
 > - **Project Status**: [PROGRESS.md](./PROGRESS.md)
@@ -270,7 +270,7 @@ export type EventSession = components['schemas']['SessionDto']  // Has registrat
 # ❌ WRONG - Will fail:
 docker-compose up
 
-# ✅ CORRECT - Use container-restart skill
+# ✅ CORRECT - Use restart-dev-containers skill
 # The skill handles proper startup with dev overrides
 # OR manually:
 ./dev.sh
@@ -329,7 +329,8 @@ docker-compose up
 - [Error Handling](/docs/standards-processes/backend/error-handling-patterns.md) - Error responses, logging
 
 ### Infrastructure & Operations
-- **Docker Issues**: Use `container-restart` skill (automation first - don't read docs)
+- **Docker Issues (Dev)**: Use `restart-dev-containers` skill (automation first - don't read docs)
+- **Docker Issues (Test)**: Use `restart-test-containers` skill (automation first - don't read docs)
 - **Dev Database Reset**: Use `database-reset-dev` skill (automation first - don't read docs)
 - **Staging Database Reset**: Use `database-reset-staging` skill (automation first - don't read docs)
 - **Deployment**: Use `staging-deploy` skill (automation first - don't read docs)

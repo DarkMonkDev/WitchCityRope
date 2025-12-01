@@ -4,7 +4,7 @@
 
 This document defines mandatory Docker development practices for the WitchCityRope project. Following these standards prevents common build failures and ensures consistent development environments.
 
-> **📚 Single Source of Truth**: The `container-restart` skill (`.claude/skills/container-restart/SKILL.md`) is the authoritative source for Docker container operations. The commands shown in this guide are for quick reference only. For automated operations, always use the skill.
+> **📚 Single Source of Truth**: The `restart-dev-containers` skill (`.claude/skills/restart-dev-containers/SKILL.md`) is the authoritative source for Docker container operations. The commands shown in this guide are for quick reference only. For automated operations, always use the skill.
 
 ## 🚨 CRITICAL: Development vs Production Builds
 
@@ -18,7 +18,7 @@ The default `docker-compose.yml` uses `target: ${BUILD_TARGET:-final}` which bui
 
 **ALWAYS use development build commands:**
 
-Use **container-restart skill** for correct startup procedure with health checks and compilation validation.
+Use **restart-dev-containers skill** for correct startup procedure with health checks and compilation validation.
 
 ### ❌ WRONG Commands
 
@@ -59,7 +59,7 @@ The `./dev.sh` script provides an interactive menu:
 
 ### Manual Commands
 
-**For container startup/restart**: Use **container-restart skill** for correct procedure with health checks and compilation validation.
+**For container startup/restart**: Use **restart-dev-containers skill** for correct procedure with health checks and compilation validation.
 
 **For other operations**, always include both compose files:
 
@@ -97,12 +97,12 @@ docker-compose exec postgres psql -U postgres -d witchcityrope_db
 #### Quick Restart
 When changes aren't being picked up:
 
-Use **container-restart skill** for correct restart procedure with health checks and compilation validation.
+Use **restart-dev-containers skill** for correct restart procedure with health checks and compilation validation.
 
 #### Full Rebuild
 For major changes:
 
-Use **container-restart skill** for correct rebuild and restart procedure with health checks and compilation validation.
+Use **restart-dev-containers skill** for correct rebuild and restart procedure with health checks and compilation validation.
 
 ## Container Architecture
 
@@ -179,7 +179,7 @@ docker exec witchcity-postgres psql -U postgres -d witchcityrope_db -c "SELECT t
 
 **FIRST ACTION: Always restart containers before assuming code issues**
 
-Use **container-restart skill** for correct restart procedure with health checks and compilation validation.
+Use **restart-dev-containers skill** for correct restart procedure with health checks and compilation validation.
 
 ### Build Failures
 
@@ -189,7 +189,7 @@ Use **container-restart skill** for correct restart procedure with health checks
    ```
 
 2. **Clear Docker cache and rebuild:**
-   Use **container-restart skill** for correct rebuild procedure with health checks and compilation validation.
+   Use **restart-dev-containers skill** for correct rebuild procedure with health checks and compilation validation.
 
 ## Container Health Monitoring
 

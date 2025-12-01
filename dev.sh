@@ -36,7 +36,10 @@ fi
 
 echo "✅ Building and starting services with development configuration..."
 echo "   $BUILD_MSG"
-$DOCKER_COMPOSE -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+# CRITICAL: Use -p witchcityrope-dev to isolate from test containers
+# Without this, operations on dev containers will DELETE test containers!
+# See: docs/test-baselines/test-parity-investigation-2025-12-01.md (Session 10)
+$DOCKER_COMPOSE -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 
 echo ""
 echo "⏳ Waiting for services to be ready..."
@@ -52,8 +55,8 @@ echo "  - API Swagger:  http://localhost:5655/swagger"
 echo "  - PostgreSQL:   localhost:5433 (user: postgres, pass: devpass123)"
 echo ""
 echo "📝 Useful commands:"
-echo "  - View logs:    $DOCKER_COMPOSE -f docker-compose.yml -f docker-compose.dev.yml logs -f [service]"
-echo "  - Stop all:     $DOCKER_COMPOSE -f docker-compose.yml -f docker-compose.dev.yml down"
-echo "  - Restart:      $DOCKER_COMPOSE -f docker-compose.yml -f docker-compose.dev.yml restart [service]"
-echo "  - Shell:        $DOCKER_COMPOSE -f docker-compose.yml -f docker-compose.dev.yml exec [service] sh"
+echo "  - View logs:    $DOCKER_COMPOSE -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml logs -f [service]"
+echo "  - Stop all:     $DOCKER_COMPOSE -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml down"
+echo "  - Restart:      $DOCKER_COMPOSE -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml restart [service]"
+echo "  - Shell:        $DOCKER_COMPOSE -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml exec [service] sh"
 echo ""

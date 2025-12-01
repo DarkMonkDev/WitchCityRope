@@ -933,7 +933,7 @@ curl -X PUT 'http://localhost:5173/api/dashboard/profile' \
   -b cookies.txt \
   -d '{"bio": "Updated bio text", "pronouns": "they/them"}'
 
-# Check logs for change detection (use container-restart skill for log viewing)
+# Check logs for change detection (use restart-dev-containers skill for log viewing)
 # Expected output: "Change detection complete: 2 changes found"
 
 # Verify database has UserNote entries

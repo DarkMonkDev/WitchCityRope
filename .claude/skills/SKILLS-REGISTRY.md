@@ -56,20 +56,20 @@ Automate documentation, tracking, and handoff tasks.
 
 ---
 
-### 🐳 Infrastructure Automation (6 Skills)
+### 🐳 Infrastructure Automation (7 Skills)
 
 Automate development environment and deployment tasks.
 
 | Skill | When to Use | Primary Users | Purpose |
 |-------|-------------|---------------|---------|
-| **container-restart** | BEFORE E2E tests (MANDATORY), after code changes, when containers unhealthy | test-executor, react-developer, backend-developer, orchestrator | Restart Docker dev containers correctly with compilation checks |
+| **restart-dev-containers** | BEFORE E2E tests (MANDATORY), after code changes, when containers unhealthy | test-executor, react-developer, backend-developer, orchestrator | Restart Docker dev containers correctly with compilation checks |
 | **test-environment** | Running isolated test suite (E2E, unit, integration), prevent test interference with dev work | test-executor, test-developer, orchestrator | Run all tests in isolated containers separate from dev environment with automatic cleanup |
 | **database-reset-dev** | Need fresh seed data, database corrupted, testing with clean slate (dev only) | test-developer, test-executor, react-developer, backend-developer | Delete all dev database data and restart API to trigger auto-seeding |
 | **database-reset-staging** | Schema changes requiring clean slate, migration conflicts (staging only) | git-manager, orchestrator | Full schema drop and rebuild for staging database |
 | **staging-deploy** | After Phase 5 validation passes, when deploying features for testing | git-manager, orchestrator | Deploy to DigitalOcean staging environment |
 | **registry-cleanup** | Weekly maintenance, high storage usage, after major deployment cycles | git-manager, orchestrator | Clean up old container images from DigitalOcean registries (staging: 10 tags, production: 30 tags) |
 
-**Integration**: test-executor can use either container-restart (dev containers) or test-environment (isolated test containers) before tests. test-environment preferred for complete isolation. Use database-reset-dev for clean test data. Orchestrator may auto-deploy after Phase 5. registry-cleanup recommended weekly.
+**Integration**: test-executor can use either restart-dev-containers (dev containers) or test-environment (isolated test containers) before tests. test-environment preferred for complete isolation. Use database-reset-dev for clean test data. Orchestrator may auto-deploy after Phase 5. registry-cleanup recommended weekly.
 
 ---
 
@@ -133,14 +133,14 @@ Detect and prevent violations of architecture rules.
 
 #### react-developer Agent
 - ✅ **phase-3-validator** - Validate implementation
-- ✅ **container-restart** - Restart containers after code changes
+- ✅ **restart-dev-containers** - Restart containers after code changes
 - ✅ **database-reset-dev** - Reset dev database for clean testing
 - ✅ **handoff-document-generator** - Create Implementation→Testing handoff
 - ✅ **lessons-learned-validator** - Validate lesson updates
 
 #### backend-developer Agent
 - ✅ **phase-3-validator** - Validate implementation
-- ✅ **container-restart** - Restart containers after code changes
+- ✅ **restart-dev-containers** - Restart containers after code changes
 - ✅ **database-reset-dev** - Reset dev database for clean testing
 - ✅ **handoff-document-generator** - Create Implementation→Testing handoff
 - ✅ **lessons-learned-validator** - Validate lesson updates
@@ -152,7 +152,7 @@ Detect and prevent violations of architecture rules.
 - ✅ **lessons-learned-validator** - Validate lesson updates
 
 #### test-executor Agent
-- ✅ **container-restart** - Before E2E tests (dev containers)
+- ✅ **restart-dev-containers** - Before E2E tests (dev containers)
 - ✅ **test-environment** - Run tests in isolated containers (preferred for complete isolation)
 - ✅ **database-reset-dev** - Reset dev database for clean test data
 - ✅ **test-catalog-updater** - After EVERY test execution
@@ -185,7 +185,7 @@ Detect and prevent violations of architecture rules.
 - ✅ **phase-5-validator** - Enforce Finalization phase gate
 - ✅ **handoff-document-generator** - Enforce handoffs at transitions
 - ✅ **single-source-validator** - Enforce single source of truth
-- ✅ **container-restart** - Ensure environment healthy before tests
+- ✅ **restart-dev-containers** - Ensure environment healthy before tests
 - ✅ **staging-deploy** - Deploy after successful Phase 5
 - ✅ **registry-cleanup** - Schedule weekly maintenance
 
@@ -220,7 +220,7 @@ test-executor (Option A - Isolated Environment):
    - Runs tests and returns results
 
 test-executor (Option B - Dev Containers):
-1. Use container-restart skill
+1. Use restart-dev-containers skill
    - Restarts dev containers with dev overlay
    - Checks compilation errors
    - Verifies health endpoints
@@ -298,7 +298,7 @@ Skills are automatically invoked based on context:
 
 ```
 Claude: "I'll use the phase-1-validator skill to check if requirements are complete"
-Claude: "Before running E2E tests, I'll use the container-restart skill"
+Claude: "Before running E2E tests, I'll use the restart-dev-containers skill"
 Claude: "I'll use the handoff-document-generator skill to create the handoff"
 Claude: "I'll use the registry-cleanup skill to manage storage costs"
 ```
@@ -314,7 +314,7 @@ For testing or direct execution:
 Use phase-1-validator skill to validate requirements document
 
 # Container restart
-Use container-restart skill to restart Docker containers
+Use restart-dev-containers skill to restart Docker containers
 
 # Staging deployment
 Use staging-deploy skill to deploy to staging
@@ -393,12 +393,12 @@ Is this content:
 
 **Pattern 1: Direct skill invocation**
 ```markdown
-Use container-restart skill before running E2E tests.
+Use restart-dev-containers skill before running E2E tests.
 ```
 
 **Pattern 2: Skill reference in context**
 ```markdown
-Before testing, ensure Docker environment is healthy using container-restart skill.
+Before testing, ensure Docker environment is healthy using restart-dev-containers skill.
 ```
 
 **Pattern 3: Registry reference for discovery**
@@ -408,7 +408,7 @@ See SKILLS-REGISTRY.md for available validation skills.
 
 **Pattern 4: Procedure delegation**
 ```markdown
-For container restart procedure, use container-restart skill.
+For container restart procedure, use restart-dev-containers skill.
 ```
 
 **Pattern 5: Lessons learned format**
@@ -417,7 +417,7 @@ For container restart procedure, use container-restart skill.
 
 **Root Cause**: Container shows "Up" but code has compilation errors inside.
 
-**Solution**: Use container-restart skill before E2E tests.
+**Solution**: Use restart-dev-containers skill before E2E tests.
 
 The skill automatically checks for compilation errors and verifies health.
 ```
@@ -426,8 +426,8 @@ The skill automatically checks for compilation errors and verifies health.
 
 **NEVER hardcode file paths:**
 ```markdown
-❌ WRONG: See: /.claude/skills/container-restart.md
-❌ WRONG: Run /.claude/skills/container-restart.md
+❌ WRONG: See: /.claude/skills/restart-dev-containers/SKILL.md
+❌ WRONG: Run /.claude/skills/restart-dev-containers/SKILL.md
 ```
 
 **NEVER duplicate procedure steps:**
@@ -489,7 +489,7 @@ Make sure to stop containers first, then start with the dev overlay...
 
 Phase validators call other skills:
 
-- **phase-3-validator** may invoke **container-restart** before checking compilation
+- **phase-3-validator** may invoke **restart-dev-containers** before checking compilation
 - **phase-4-validator** requires **test-catalog-updater** metrics
 - **phase-5-validator** MUST invoke **single-source-validator** for all skills
 
@@ -499,7 +499,7 @@ Orchestrator coordinates skill invocation:
 
 - Sets workflow type → **quality-gate-calculator** → Get thresholds
 - Phase transition → **handoff-document-generator** → Create handoff
-- Before tests → **container-restart** → Ensure environment healthy
+- Before tests → **restart-dev-containers** → Ensure environment healthy
 - After Phase 5 → **staging-deploy** → Deploy to staging
 - Weekly maintenance → **registry-cleanup** → Manage storage costs
 
@@ -509,7 +509,7 @@ Skills and lessons complement each other:
 
 - Lesson documents problem → Solution references Skill
 - Skill automates solution → Prevents problem recurrence
-- Example: "Container restart lesson" → References **container-restart** skill
+- Example: "Container restart lesson" → References **restart-dev-containers** skill
 
 ---
 
@@ -646,7 +646,7 @@ This registry is **Tier 1** of the discovery system:
   - Supports 6 repositories (WitchCityRope + Accounting)
 
 - **2025-11-04**: Created registry with 13 skills (10 original + 3 new)
-  - Added: container-restart, staging-deploy, single-source-validator
+  - Added: restart-dev-containers, staging-deploy, single-source-validator
   - Established three-tier discovery system
   - Integrated enforcement mechanism
 

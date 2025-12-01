@@ -60,7 +60,7 @@ The build produced 46 warnings, primarily:
 
 If containers need restart, use:
 ```bash
-# Use container-restart skill for proper Docker restart
+# Use restart-dev-containers skill for proper Docker restart
 ```
 
 ## Conclusion

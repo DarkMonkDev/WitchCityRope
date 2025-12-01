@@ -299,7 +299,7 @@ ORDER BY "Category";
 
 **Problem**: Database had old seeder values despite code being updated
 
-**Solution**: Used `container-restart` skill to rebuild containers with new code
+**Solution**: Used `restart-dev-containers` skill to rebuild containers with new code
 
 ### 4. Manual Testing Catches Migration Issues
 

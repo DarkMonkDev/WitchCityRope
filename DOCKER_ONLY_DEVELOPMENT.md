@@ -4,7 +4,7 @@
 
 This project has been configured to **ONLY** use Docker containers for development. Local dev servers are **DISABLED** to prevent confusion and ensure consistent development environments.
 
-> **📚 Single Source of Truth**: The `container-restart` skill (`.claude/skills/container-restart/SKILL.md`) is the authoritative source for Docker container operations. The commands shown in this guide are for quick reference only. For automated operations, always use the skill.
+> **📚 Single Source of Truth**: The `restart-dev-containers` skill (`.claude/skills/restart-dev-containers/SKILL.md`) is the authoritative source for Docker container operations. The commands shown in this guide are for quick reference only. For automated operations, always use the skill.
 
 ## Why Docker-Only?
 
