@@ -23,6 +23,7 @@ import {
   IconAlertCircle,
   IconClock,
   IconCalendar,
+  IconExternalLink,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import {
@@ -76,22 +77,39 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   // Type-safe active tokens (API returns SessionTokenResponse[] | undefined)
   const tokens = (activeTokens as SessionTokenResponse[] | undefined) || [];
 
-  // Type-safe sessions for Select dropdown
-  const sessionOptions = React.useMemo(() => {
+  // Filter sessions to ±12 hours from current local datetime
+  const filteredSessions = React.useMemo(() => {
     if (sessions.length === 0) return [];
 
-    return sessions.map((session) => ({
+    const now = new Date();
+    const twelveHoursInMs = 12 * 60 * 60 * 1000;
+
+    return sessions.filter((session) => {
+      if (!session.startTime) return false;
+
+      const sessionStart = new Date(session.startTime);
+      const timeDiff = Math.abs(sessionStart.getTime() - now.getTime());
+
+      return timeDiff <= twelveHoursInMs;
+    });
+  }, [sessions]);
+
+  // Type-safe sessions for Select dropdown
+  const sessionOptions = React.useMemo(() => {
+    if (filteredSessions.length === 0) return [];
+
+    return filteredSessions.map((session) => ({
       value: session.id,
       label: session.name || 'Unnamed Session',
     }));
-  }, [sessions]);
+  }, [filteredSessions]);
 
-  // Auto-select the only session if there's exactly one
+  // Auto-select the first filtered session as default
   React.useEffect(() => {
-    if (opened && sessions.length === 1 && !selectedSessionId) {
-      setSelectedSessionId(sessions[0].id);
+    if (opened && filteredSessions.length > 0 && !selectedSessionId) {
+      setSelectedSessionId(filteredSessions[0].id);
     }
-  }, [opened, sessions, selectedSessionId]);
+  }, [opened, filteredSessions, selectedSessionId]);
 
   const handleGenerate = async () => {
     // Validate session selection for multi-session events
@@ -332,6 +350,24 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                   </ActionIcon>
                 }
               />
+              <Button
+                variant="outline"
+                leftSection={<IconExternalLink size={16} />}
+                onClick={() => window.open(generatedToken.checkInUrl, '_blank')}
+                data-testid="open-checkin-link"
+                styles={{
+                  root: {
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                  },
+                }}
+              >
+                Open
+              </Button>
               <Group gap="md">
                 <Text size="xs" c="dimmed">
                   Expires: {formatDate(generatedToken.expiresAt)}

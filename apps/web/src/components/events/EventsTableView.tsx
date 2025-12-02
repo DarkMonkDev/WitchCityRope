@@ -40,27 +40,31 @@ const getDisplaySession = (event: EventDto) => {
 }
 
 // Helper function to format event dates with robust field handling
-const formatEventDate = (event: EventDto, timeZone: string): string => {
-  // Use next upcoming session's start date instead of event.startDate
+const formatEventDate = (event: EventDto): string => {
+  // Use next upcoming session's date instead of event.startDate
   const displaySession = getDisplaySession(event);
 
-  if (!displaySession || !displaySession.startTime) {
+  if (!displaySession || !displaySession.date) {
     return 'Date TBD';
   }
 
-  const date = new Date(displaySession.startTime);
+  // session.date is a date-only field (extracted from StartTime.Date on backend)
+  // Do NOT apply timezone conversion - just extract YYYY-MM-DD
+  const datePart = displaySession.date.split('T')[0]; // Extract YYYY-MM-DD
+  const [year, month, day] = datePart.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
 
   // Check if date is valid
   if (isNaN(date.getTime())) {
-    console.error('Invalid date for event:', { eventId: event.id, sessionStartTime: displaySession.startTime })
+    console.error('Invalid date for event:', { eventId: event.id, sessionDate: displaySession.date })
     return 'Invalid Date'
   }
 
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
-    timeZone
+    year: 'numeric'
+    // NO timeZone parameter - we don't want conversion
   });
 }
 
@@ -122,26 +126,25 @@ const getEventTypeBadgeColor = (eventType?: string | null): string => {
   }
 }
 
-// Helper function to check if event has any sessions starting today
-const hasSessionToday = (event: EventDto): boolean => {
+// Helper function to check if event has any sessions within ±12 hours of current time
+const isWithinCheckInWindow = (event: EventDto): boolean => {
   if (!event.sessions || event.sessions.length === 0) {
     return false
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // Reset time to start of day
-
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
+  const now = new Date()
+  const twelveHoursMs = 12 * 60 * 60 * 1000 // 12 hours in milliseconds
+  const windowStart = new Date(now.getTime() - twelveHoursMs)
+  const windowEnd = new Date(now.getTime() + twelveHoursMs)
 
   return event.sessions.some((session) => {
-    if (!session.date) return false
+    // Use startTime (full timestamp) not date (date-only field)
+    if (!session.startTime) return false
 
-    const sessionDate = new Date(session.date)
-    sessionDate.setHours(0, 0, 0, 0) // Reset time to start of day
+    const sessionStart = new Date(session.startTime)
 
-    // Check if session date is today
-    return sessionDate >= today && sessionDate < tomorrow
+    // Check if session start time is within ±12 hours of now
+    return sessionStart >= windowStart && sessionStart <= windowEnd
   })
 }
 
@@ -373,7 +376,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             {/* Date Column */}
             <Table.Td style={{ width: '160px' }}>
               <Text fw={500} size="md">
-                {formatEventDate(event, eventTimeZone)}
+                {formatEventDate(event)}
               </Text>
             </Table.Td>
 
@@ -391,7 +394,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
                   {event.title}
                   {!event.isPublished ? ' - DRAFT' : ''}
                 </Text>
-                {hasSessionToday(event) && (
+                {isWithinCheckInWindow(event) && (
                   <Button
                     variant="filled"
                     color="blue"

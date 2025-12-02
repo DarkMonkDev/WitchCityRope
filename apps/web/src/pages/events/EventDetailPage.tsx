@@ -376,13 +376,28 @@ export const EventDetailPage: React.FC = () => {
                       // No sessions - show full event date
                       return formatUtcToLocalDate((event as any)?.startDate, eventTimeZone);
                     } else if (sessions.length === 1) {
-                      // Single session - show abbreviated date
-                      return formatAbbreviatedDate(sessions[0].date, eventTimeZone);
+                      // Single session - show date or date range if multi-day
+                      const session = sessions[0];
+                      if (session.endDate && session.date !== session.endDate) {
+                        // Multi-day session: show date range
+                        const startDate = formatAbbreviatedDate(session.date, eventTimeZone);
+                        const endDate = formatAbbreviatedDate(session.endDate, eventTimeZone);
+                        return `${startDate} - ${endDate}`;
+                      }
+                      return formatAbbreviatedDate(session.date, eventTimeZone);
                     } else {
                       // Multiple sessions - show all dates abbreviated with bullet separator
                       return sessions
                         .filter((s: any) => s.date)
-                        .map((s: any) => formatAbbreviatedDate(s.date, eventTimeZone))
+                        .map((s: any) => {
+                          // Check if session spans multiple days
+                          if (s.endDate && s.date !== s.endDate) {
+                            const startDate = formatAbbreviatedDate(s.date, eventTimeZone);
+                            const endDate = formatAbbreviatedDate(s.endDate, eventTimeZone);
+                            return `${startDate} - ${endDate}`;
+                          }
+                          return formatAbbreviatedDate(s.date, eventTimeZone);
+                        })
                         .join(' • ');
                     }
                   })()}

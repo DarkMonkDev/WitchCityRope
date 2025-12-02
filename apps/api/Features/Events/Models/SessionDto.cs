@@ -27,6 +27,12 @@ public class SessionDto
     public DateTime Date { get; set; }
 
     /// <summary>
+    /// Session end date (date portion only for display purposes)
+    /// Used when session spans multiple days (e.g., Friday night to Saturday morning)
+    /// </summary>
+    public DateTime EndDate { get; set; }
+
+    /// <summary>
     /// Session start time in UTC
     /// </summary>
     public DateTime StartTime { get; set; }
@@ -56,6 +62,7 @@ public class SessionDto
         SessionIdentifier = session.SessionCode;
         Name = session.Name;
         Date = session.StartTime.Date;
+        EndDate = session.EndTime.Date;
         StartTime = session.StartTime;
         EndTime = session.EndTime;
         Capacity = session.Capacity;

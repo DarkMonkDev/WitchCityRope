@@ -5164,6 +5164,8 @@ export interface components {
             /** Format: date-time */
             date?: string;
             /** Format: date-time */
+            endDate?: string;
+            /** Format: date-time */
             startTime?: string;
             /** Format: date-time */
             endTime?: string;

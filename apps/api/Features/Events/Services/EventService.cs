@@ -700,6 +700,17 @@ public class EventService : IEventService
 
         foreach (var sessionDto in newSessions)
         {
+            // Validate session time range
+            var sessionStartTime = sessionDto.StartTime.ToUniversalTime();
+            var sessionEndTime = sessionDto.EndTime.ToUniversalTime();
+
+            if (sessionEndTime <= sessionStartTime)
+            {
+                throw new InvalidOperationException(
+                    $"Session '{sessionDto.Name}' end time must be after start time. " +
+                    $"StartTime: {sessionStartTime}, EndTime: {sessionEndTime}");
+            }
+
             // Only treat as existing if ID is valid AND exists in current sessions
             if (!string.IsNullOrEmpty(sessionDto.Id) &&
                 Guid.TryParse(sessionDto.Id, out var sessionId) &&
@@ -709,8 +720,8 @@ public class EventService : IEventService
                 // Update existing session
                 existingSession.SessionCode = sessionDto.SessionIdentifier;
                 existingSession.Name = sessionDto.Name;
-                existingSession.StartTime = sessionDto.StartTime.ToUniversalTime();
-                existingSession.EndTime = sessionDto.EndTime.ToUniversalTime();
+                existingSession.StartTime = sessionStartTime;
+                existingSession.EndTime = sessionEndTime;
                 existingSession.Capacity = sessionDto.Capacity;
                 // CurrentAttendees is calculated from actual ticket purchases/participations, not user input
 
@@ -726,8 +737,8 @@ public class EventService : IEventService
                     EventId = eventEntity.Id,
                     SessionCode = sessionDto.SessionIdentifier,
                     Name = sessionDto.Name,
-                    StartTime = sessionDto.StartTime.ToUniversalTime(),
-                    EndTime = sessionDto.EndTime.ToUniversalTime(),
+                    StartTime = sessionStartTime,
+                    EndTime = sessionEndTime,
                     Capacity = sessionDto.Capacity
                     // CurrentAttendees is now a calculated property, no need to set it
                 };
@@ -1396,14 +1407,27 @@ public class EventService : IEventService
                 {
                     foreach (var sessionDto in request.Sessions)
                     {
+                        // Validate session time range
+                        var sessionStartTime = sessionDto.StartTime.ToUniversalTime();
+                        var sessionEndTime = sessionDto.EndTime.ToUniversalTime();
+
+                        if (sessionEndTime <= sessionStartTime)
+                        {
+                            _logger.LogWarning("Invalid session time range for session {SessionName}: " +
+                                "StartTime: {StartTime}, EndTime: {EndTime}",
+                                sessionDto.Name, sessionStartTime, sessionEndTime);
+                            await transaction.RollbackAsync(cancellationToken);
+                            return (false, null, $"Session '{sessionDto.Name}' end time must be after start time");
+                        }
+
                         var newSession = new WitchCityRope.Api.Models.Session
                         {
                             // DO NOT set Id - let EF generate it
                             EventId = newEvent.Id,
                             SessionCode = sessionDto.SessionIdentifier,
                             Name = sessionDto.Name,
-                            StartTime = sessionDto.StartTime.ToUniversalTime(),
-                            EndTime = sessionDto.EndTime.ToUniversalTime(),
+                            StartTime = sessionStartTime,
+                            EndTime = sessionEndTime,
                             Capacity = sessionDto.Capacity,
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow

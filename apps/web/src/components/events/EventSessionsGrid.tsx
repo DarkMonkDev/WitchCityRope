@@ -43,6 +43,48 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
     });
   };
 
+  const formatDateRange = (startDateString: string, endDateString?: string | null) => {
+    // If no end date or end date equals start date, show single date
+    if (!endDateString) {
+      return formatDate(startDateString);
+    }
+
+    const startDatePart = startDateString.split('T')[0];
+    const endDatePart = endDateString.split('T')[0];
+
+    // If dates are the same, show single date
+    if (startDatePart === endDatePart) {
+      return formatDate(startDateString);
+    }
+
+    // Multi-day session: show date range
+    const [startYear, startMonth, startDay] = startDatePart.split('-').map(Number);
+    const [endYear, endMonth, endDay] = endDatePart.split('-').map(Number);
+
+    const startDate = new Date(startYear, startMonth - 1, startDay);
+    const endDate = new Date(endYear, endMonth - 1, endDay);
+
+    // Check if same year
+    if (startYear === endYear) {
+      // Same year: "Dec 3 - 4, 2025" or "Nov 30 - Dec 1, 2025"
+      const startFormatted = startDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      });
+      const endFormatted = endDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      return `${startFormatted} - ${endFormatted}`;
+    } else {
+      // Different years: "Dec 31, 2025 - Jan 1, 2026"
+      const startFormatted = formatDate(startDateString);
+      const endFormatted = formatDate(endDateString);
+      return `${startFormatted} - ${endFormatted}`;
+    }
+  };
+
   const formatTime = (timeString: string) => {
     // NEW: Use true UTC to local time conversion
     // This converts from actual UTC (stored in database) to local time (America/New_York)
@@ -133,7 +175,7 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
                 onClick={() => session.id && onEditSession(session.id)}
                 style={{ cursor: 'pointer' }}
               >
-                <Text size="sm">{session.date ? formatDate(session.date) : 'N/A'}</Text>
+                <Text size="sm">{session.date ? formatDateRange(session.date, session.endDate) : 'N/A'}</Text>
               </Table.Td>
               <Table.Td
                 onClick={() => session.id && onEditSession(session.id)}

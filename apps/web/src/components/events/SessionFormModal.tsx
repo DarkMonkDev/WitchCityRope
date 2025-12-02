@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, TextInput, NumberInput, Group, Button, Stack, Select } from '@mantine/core';
+import { Modal, TextInput, NumberInput, Group, Button, Stack, Select, Checkbox } from '@mantine/core';
 import { TimeInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import type { EventSession } from './EventSessionsGrid';
@@ -31,6 +31,18 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
         const [year, month, day] = datePart.split('-').map(Number);
         return new Date(year, month - 1, day); // Create local date
       })() : new Date(),
+      // Check if session spans multiple days (endDate exists and is different from date)
+      spansMultipleDays: session?.endDate ? (() => {
+        const startDatePart = session.date?.split('T')[0];
+        const endDatePart = session.endDate?.split('T')[0];
+        return startDatePart !== endDatePart;
+      })() : false,
+      // Parse end date from UTC ISO string as local date
+      endDate: session?.endDate ? (() => {
+        const datePart = session.endDate.split('T')[0]; // Extract YYYY-MM-DD
+        const [year, month, day] = datePart.split('-').map(Number);
+        return new Date(year, month - 1, day); // Create local date
+      })() : new Date(),
       startTime: session?.startTime || '18:00',
       endTime: session?.endTime || '21:00',
       capacity: session?.capacity || 50,
@@ -51,6 +63,20 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       capacity: (value) => {
         if (!value || value < 1) return 'Capacity must be at least 1';
         if (value > 1000) return 'Capacity cannot exceed 1000';
+        return null;
+      },
+      endDate: (value, values) => {
+        // Only validate if session spans multiple days
+        if (!values.spansMultipleDays) return null;
+        if (!value) return 'End date is required for multi-day sessions';
+
+        // Ensure end date is >= start date
+        const startDate = values.date instanceof Date ? values.date : new Date(values.date);
+        const endDate = value instanceof Date ? value : new Date(value);
+
+        if (endDate < startDate) {
+          return 'End date must be on or after start date';
+        }
         return null;
       },
       startTime: (value, values) => {
@@ -91,10 +117,24 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       const startDateTime = localTimeStringToUtc(calendarDate, values.startTime, DEFAULT_EVENT_TIMEZONE);
       const endDateTime = localTimeStringToUtc(calendarDate, values.endTime, DEFAULT_EVENT_TIMEZONE);
 
+      // Handle end date for multi-day sessions
+      let endDateValue: string;
+      if (values.spansMultipleDays && values.endDate) {
+        const sessionEndDate = values.endDate instanceof Date ? values.endDate : new Date(values.endDate);
+        const endYear = sessionEndDate.getFullYear();
+        const endMonth = sessionEndDate.getMonth();
+        const endDay = sessionEndDate.getDate();
+        endDateValue = new Date(endYear, endMonth, endDay, 0, 0, 0, 0).toISOString();
+      } else {
+        // If not spanning multiple days, endDate equals startDate
+        endDateValue = new Date(year, month, day, 0, 0, 0, 0).toISOString();
+      }
+
       const sessionData: Omit<EventSession, 'id'> = {
         sessionIdentifier: values.sessionIdentifier,
         name: values.name,
         date: new Date(year, month, day, 0, 0, 0, 0).toISOString(), // Calendar date at midnight local
+        endDate: endDateValue, // End date at midnight local
         startTime: startDateTime, // True UTC ISO string
         endTime: endDateTime,     // True UTC ISO string
         capacity: values.capacity,
@@ -141,10 +181,23 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
           return new Date(year, month - 1, day); // Create local date
         })() : new Date();
 
+        // Parse end date and check if session spans multiple days
+        const endDateValue = session.endDate ? (() => {
+          const datePart = session.endDate.split('T')[0]; // Extract YYYY-MM-DD
+          const [year, month, day] = datePart.split('-').map(Number);
+          return new Date(year, month - 1, day); // Create local date
+        })() : dateValue;
+
+        const startDatePart = session.date?.split('T')[0];
+        const endDatePart = session.endDate?.split('T')[0];
+        const spansMultipleDays = session.endDate ? startDatePart !== endDatePart : false;
+
         form.setValues({
           sessionIdentifier: session.sessionIdentifier,
           name: session.name,
           date: dateValue,
+          endDate: endDateValue,
+          spansMultipleDays,
           startTime: startTimeString,
           endTime: endTimeString,
           capacity: session.capacity,
@@ -196,8 +249,8 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
 
           <Group grow>
             <StyledDatePicker
-              label="Date"
-              placeholder="Select date"
+              label="Start Date"
+              placeholder="Select start date"
               required
               minDate={new Date()}
               data-testid="input-session-date"
@@ -213,6 +266,23 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               {...form.getInputProps('capacity')}
             />
           </Group>
+
+          <Checkbox
+            label="Session spans multiple days"
+            data-testid="checkbox-spans-multiple-days"
+            {...form.getInputProps('spansMultipleDays', { type: 'checkbox' })}
+          />
+
+          {form.values.spansMultipleDays && (
+            <StyledDatePicker
+              label="End Date"
+              placeholder="Select end date"
+              required
+              minDate={form.values.date}
+              data-testid="input-session-end-date"
+              {...form.getInputProps('endDate')}
+            />
+          )}
 
           <Group grow>
             <TimeInput
