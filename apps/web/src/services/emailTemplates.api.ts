@@ -59,6 +59,66 @@ export type UserPreviewDto = components['schemas']['UserPreviewDto'];
  */
 export type UserSegment = components['schemas']['UserSegment'];
 
+/**
+ * Trigger Configuration DTO
+ * TODO: Replace with auto-generated type when backend DTOs are added
+ * Source: C# TriggerConfigDto via NSwag generation
+ */
+export type TriggerConfigDto = {
+  triggerType: 'FixedEvent' | 'TimeBased' | 'Manual';
+  triggerEnabled: boolean;
+  timingOffsetDays?: number;
+  recipientGroup?: string;
+};
+
+/**
+ * Update Trigger Config Request
+ * TODO: Replace with auto-generated type when backend DTOs are added
+ * Source: C# UpdateTriggerConfigRequest via NSwag generation
+ */
+export type UpdateTriggerConfigRequest = {
+  triggerType: 'FixedEvent' | 'TimeBased' | 'Manual';
+  triggerEnabled: boolean;
+  timingOffsetDays?: number;
+  recipientGroup?: string;
+};
+
+/**
+ * Ad Hoc Email Template DTO
+ * TODO: Replace with auto-generated type when backend DTOs are added
+ * Source: C# AdHocEmailTemplateDto via NSwag generation
+ */
+export type AdHocEmailTemplateDto = {
+  id: string;
+  templateName: string;
+  subject: string;
+  htmlBody: string;
+  plainTextBody: string;
+  createdAt: string;
+  createdBy: string;
+};
+
+/**
+ * Save As Template Request
+ * TODO: Replace with auto-generated type when backend DTOs are added
+ * Source: C# SaveAsTemplateRequest via NSwag generation
+ */
+export type SaveAsTemplateRequest = {
+  templateName: string;
+  subject: string;
+  htmlBody: string;
+  plainTextBody: string;
+};
+
+/**
+ * Schedule Ad Hoc Email Request
+ * TODO: Replace with auto-generated type when backend DTOs are added
+ * Source: C# ScheduleAdHocEmailRequest via NSwag generation
+ */
+export type ScheduleAdHocEmailRequest = SendAdHocEmailRequest & {
+  scheduledSendAt?: string;
+};
+
 // =================================================================
 // EMAIL TEMPLATES API SERVICE
 // =================================================================
@@ -378,6 +438,145 @@ class EmailTemplatesApiService {
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error fetching ad-hoc email:', {
         id,
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  // ===================================================================
+  // TRIGGER ENHANCEMENTS (Events tab - time-based triggers)
+  // ===================================================================
+
+  /**
+   * Update trigger configuration for an event template
+   */
+  async updateTriggerConfig(
+    id: string,
+    request: UpdateTriggerConfigRequest
+  ): Promise<GlobalEmailTemplateDto> {
+    console.log('EmailTemplatesAPI: Updating trigger config:', { id, request });
+
+    try {
+      const response = await apiClient.put<GlobalEmailTemplateDto>(
+        `/api/email-templates/${id}/trigger-config`,
+        request
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error updating trigger config:', {
+        id,
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get all time-based templates for Events category
+   */
+  async getTimeBasedTemplates(): Promise<GlobalEmailTemplateDto[]> {
+    console.log('EmailTemplatesAPI: Fetching time-based templates');
+
+    try {
+      const response = await apiClient.get<GlobalEmailTemplateDto[]>(
+        '/api/email-templates/time-based'
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error fetching time-based templates:', {
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  // ===================================================================
+  // AD HOC TEMPLATE ENHANCEMENTS (Save/Delete templates, Scheduled send)
+  // ===================================================================
+
+  /**
+   * Get all saved ad hoc templates
+   */
+  async getAdHocTemplates(): Promise<AdHocEmailTemplateDto[]> {
+    console.log('EmailTemplatesAPI: Fetching ad hoc templates');
+
+    try {
+      const response = await apiClient.get<AdHocEmailTemplateDto[]>(
+        '/api/email-templates/ad-hoc/templates'
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error fetching ad hoc templates:', {
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Save an ad hoc email as a reusable template
+   */
+  async saveAsTemplate(request: SaveAsTemplateRequest): Promise<AdHocEmailTemplateDto> {
+    console.log('EmailTemplatesAPI: Saving ad hoc template:', request);
+
+    try {
+      const response = await apiClient.post<AdHocEmailTemplateDto>(
+        '/api/email-templates/ad-hoc/templates',
+        request
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error saving ad hoc template:', {
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a saved ad hoc template
+   */
+  async deleteAdHocTemplate(id: string): Promise<void> {
+    console.log('EmailTemplatesAPI: Deleting ad hoc template:', id);
+
+    try {
+      await apiClient.delete(`/api/email-templates/ad-hoc/templates/${id}`);
+      console.log('EmailTemplatesAPI: Ad hoc template deleted successfully');
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error deleting ad hoc template:', {
+        id,
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Schedule an ad hoc email for future delivery
+   */
+  async scheduleAdHocEmail(request: ScheduleAdHocEmailRequest): Promise<SentAdHocEmailDto> {
+    console.log('EmailTemplatesAPI: Scheduling ad hoc email:', request);
+
+    try {
+      const response = await apiClient.post<SentAdHocEmailDto>(
+        '/api/email-templates/ad-hoc/schedule',
+        request
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error scheduling ad hoc email:', {
         error: error.message || error,
         status: error.response?.status,
       });

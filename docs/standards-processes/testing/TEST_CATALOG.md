@@ -440,6 +440,171 @@ witchcity-postgres-test    Up 26 seconds (healthy)
 
 ---
 
+## ✅ NEW TESTS: EMAIL TEMPLATE TRIGGER ENHANCEMENTS - December 1, 2025
+
+**CREATION DATE**: 2025-12-01T22:00:00Z
+**STATUS**: ✅ **TEST SUITE CREATED (NOT YET EXECUTED)**
+**IMPACT**: 3 new test files covering trigger configuration, ad-hoc templates, and scheduled sends
+**FEATURE**: Email Template Trigger Enhancements (Events tab time-based triggers + Ad Hoc tab improvements)
+
+### New Test Files Created
+
+#### 1. EmailTemplateServiceTriggerTests (Unit Tests) ✅
+- **File**: `tests/WitchCityRope.Api.Tests/Services/EmailTemplateServiceTriggerTests.cs`
+- **Tests**: 13 unit tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Service layer methods for trigger configuration and ad-hoc templates
+- **Focus**: Business logic validation, error handling, database operations
+
+**Test Coverage**:
+1. **Trigger Configuration** (6 tests):
+   - Valid data updates template trigger config
+   - Invalid template ID returns error
+   - Events category only (non-Events category rejected)
+   - RecipientGroup set correctly for Events category
+   - TimeBased trigger requires TimingOffsetDays
+   - Non-Manual triggers require RecipientGroup
+2. **Time-Based Templates** (1 test):
+   - GetTimeBasedTemplatesAsync returns only enabled time-based triggers
+3. **Ad Hoc Templates** (3 tests):
+   - SaveAsTemplateAsync creates new template
+   - DeleteAdHocTemplateAsync removes template
+   - Delete with invalid ID returns error
+4. **Scheduled Ad Hoc** (3 tests):
+   - ScheduleAdHocEmailAsync with future date creates scheduled email
+   - Scheduled send with past date returns error
+   - Manual email list scheduling works
+
+**Test Patterns**:
+- In-memory database for isolation
+- Moq for logger mocking
+- FluentAssertions for readable assertions
+- Arrange-Act-Assert pattern
+- IDisposable for cleanup
+
+#### 2. TriggerConfigurationEndpointsTests (Integration Tests) ✅
+- **File**: `tests/integration/Features/EmailTemplates/TriggerConfigurationEndpointsTests.cs`
+- **Tests**: 8 integration tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: API endpoints for trigger configuration, ad-hoc templates, scheduled sends
+- **Focus**: End-to-end HTTP request/response with real database
+
+**Test Coverage**:
+1. **Trigger Configuration Endpoints** (4 tests):
+   - PUT /api/email-templates/{id}/trigger-config with valid data returns 200
+   - Unauthorized request returns 401
+   - Non-admin request returns 403
+   - GET /api/email-templates/time-based returns filtered list
+2. **Ad Hoc Template Endpoints** (3 tests):
+   - POST /api/email-templates/ad-hoc/templates creates new template
+   - DELETE /api/email-templates/ad-hoc/templates/{id} removes template
+   - GET /api/email-templates/ad-hoc/templates returns all saved templates
+3. **Scheduled Ad Hoc Endpoints** (1 test):
+   - POST /api/email-templates/ad-hoc/schedule queues email for future delivery
+
+**Test Patterns**:
+- WebApplicationFactory for test server
+- TestContainers for PostgreSQL
+- JWT token authentication
+- DatabaseTestFixture for connection management
+- IntegrationTestBase for common setup
+
+#### 3. admin-email-templates-triggers (E2E Tests) ✅
+- **File**: `tests/e2e/admin-email-templates-triggers.spec.ts`
+- **Tests**: 11 E2E tests (5 Events tab + 6 Ad Hoc tab)
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Admin UI for trigger configuration and ad-hoc template management
+- **Focus**: User-facing functionality, UI interactions, form validation
+
+**Test Coverage**:
+
+**Events Tab Tests** (5 tests):
+1. Enhanced template cards display trigger badges
+2. Template cards show trigger type and timing display
+3. Edit Trigger button opens trigger config modal
+4. Trigger config modal has all required fields (trigger type, timing offset, recipient group)
+5. Trigger configuration update workflow
+
+**Ad Hoc Tab Tests** (6 tests):
+6. Saved templates section displays
+7. Save as Template button exists
+8. Saving email as template workflow
+9. Deleting saved template workflow
+10. Scheduled send option exists
+11. Scheduling email for future delivery workflow
+
+**Test Patterns**:
+- Playwright for browser automation
+- AuthHelpers for admin login
+- Defensive skip conditions for unimplemented features
+- Screenshot capture for visual verification
+- Console logging for test intent clarity
+
+### Feature Requirements
+
+**Requirements Document**: `/docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/requirements.md`
+
+**Key Features Tested**:
+1. **Events Tab - Time-Based Triggers**:
+   - Templates fire X days before/after session start
+   - Positive numbers = days BEFORE session
+   - Negative numbers = days AFTER session (e.g., -2 for post-event surveys)
+   - EventRecipientGroup: SessionAttendees, RSVPTicketHolders, SessionVolunteers, Teachers
+
+2. **Events Tab - Trigger Configuration**:
+   - TriggerType: Manual, FixedEvent, TimeBased
+   - TriggerEnabled: true/false toggle
+   - TimingOffsetDays: -365 to 365 days offset
+   - RecipientGroup: EventRecipientGroup enum for Events category
+
+3. **Ad Hoc Tab - Enhancements**:
+   - Save as Template: Store ad-hoc emails for reuse
+   - Delete Template: Remove saved templates
+   - Scheduled Send: Queue emails for future delivery
+
+**Backend Implementation**: Complete (see handoff document)
+**Frontend Implementation**: Pending (tests ready for verification)
+
+### Architecture Alignment
+
+**Backend Entities**:
+- TemplateTriggerType enum (Manual, FixedEvent, TimeBased)
+- EventRecipientGroup enum (SessionAttendees, RSVPTicketHolders, SessionVolunteers, Teachers)
+- GlobalEmailTemplate: Added trigger fields
+- AdHocEmailTemplate: New entity for saved templates
+- EmailTriggerLog: Audit trail for automated triggers
+- SentAdHocEmail: Added ScheduledSendAt field
+
+**Service Layer**:
+- EmailTemplateService: New methods for trigger config, ad-hoc templates, scheduled sends
+- Result<T> pattern for error handling
+- Direct service injection (no MediatR)
+
+**API Endpoints**:
+- PUT /api/email-templates/{id}/trigger-config
+- GET /api/email-templates/time-based
+- GET /api/email-templates/ad-hoc/templates
+- POST /api/email-templates/ad-hoc/templates
+- DELETE /api/email-templates/ad-hoc/templates/{id}
+- POST /api/email-templates/ad-hoc/schedule
+
+### Related Documentation
+
+- **Requirements**: `/docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/requirements.md`
+- **Progress**: `/docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/progress.md`
+- **Backend Handoff**: `/docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/handoffs/backend-implementation.md`
+
+### Next Steps
+
+1. ⏳ **Migration Application**: Apply database migration (20251202024901_AddEmailTriggerEnhancements)
+2. ⏳ **Unit Test Execution**: Run EmailTemplateServiceTriggerTests (13 tests)
+3. ⏳ **Integration Test Execution**: Run TriggerConfigurationEndpointsTests (8 tests)
+4. ⏳ **Frontend Implementation**: Implement React UI components for trigger configuration
+5. ⏳ **E2E Test Execution**: Run admin-email-templates-triggers.spec.ts (11 tests)
+6. ⏳ **Test Coverage Analysis**: Verify 85%+ coverage target for Implementation Phase
+
+---
+
 ## Navigation
 
 **Full Test Details**: See `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md` for:

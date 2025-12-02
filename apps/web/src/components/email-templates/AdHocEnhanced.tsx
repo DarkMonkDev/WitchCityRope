@@ -17,20 +17,10 @@ import { DateTimePicker } from '@mantine/dates';
 import { IconCalendar, IconTrash, IconDeviceFloppy } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-
-/**
- * Ad Hoc Template DTO
- * TODO: Import from auto-generated types when backend adds this entity
- */
-export interface AdHocEmailTemplateDto {
-  id: string;
-  templateName: string;
-  subject: string;
-  htmlBody: string;
-  plainTextBody: string;
-  createdAt: string;
-  createdBy: string;
-}
+import {
+  emailTemplatesApi,
+  type AdHocEmailTemplateDto,
+} from '../../services/emailTemplates.api';
 
 interface SaveTemplateModalProps {
   opened: boolean;
@@ -249,25 +239,17 @@ export const SavedAdHocTemplates: React.FC<SavedAdHocTemplatesProps> = ({
   const [templateToDelete, setTemplateToDelete] = useState<AdHocEmailTemplateDto | null>(null);
 
   // Fetch saved templates
-  // TODO: Replace with actual API call when backend endpoint is implemented
   const {
     data: savedTemplates,
     isLoading,
   } = useQuery<AdHocEmailTemplateDto[]>({
     queryKey: ['adhoc-templates'],
-    queryFn: async () => {
-      // Placeholder - will use emailTemplatesApi.getAdHocTemplates() when available
-      return [];
-    },
+    queryFn: () => emailTemplatesApi.getAdHocTemplates(),
   });
 
   // Delete template mutation
   const deleteMutation = useMutation({
-    mutationFn: async (templateId: string) => {
-      // TODO: Replace with actual API call when backend endpoint is implemented
-      // await emailTemplatesApi.deleteAdHocTemplate(templateId);
-      throw new Error('API endpoint not yet implemented');
-    },
+    mutationFn: (templateId: string) => emailTemplatesApi.deleteAdHocTemplate(templateId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adhoc-templates'] });
       notifications.show({

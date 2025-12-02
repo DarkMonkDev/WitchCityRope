@@ -1,0 +1,537 @@
+using Xunit;
+using FluentAssertions;
+using Moq;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.EmailTemplates.Services;
+using WitchCityRope.Api.Features.EmailTemplates.Entities;
+using WitchCityRope.Api.Features.EmailTemplates.Models;
+using WitchCityRope.Api.Models;
+
+namespace WitchCityRope.Api.Tests.Services;
+
+/// <summary>
+/// Unit tests for EmailTemplateService trigger enhancements
+/// Tests trigger configuration, time-based templates, ad-hoc templates, and scheduled sends
+/// </summary>
+public class EmailTemplateServiceTriggerTests : IDisposable
+{
+    private readonly Mock<ILogger<EmailTemplateService>> _mockLogger;
+    private readonly ApplicationDbContext _context;
+    private readonly EmailTemplateService _sut; // System Under Test
+    private readonly Guid _testUserId = Guid.NewGuid();
+
+    public EmailTemplateServiceTriggerTests()
+    {
+        // Setup in-memory database for testing
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        _context = new ApplicationDbContext(options);
+        _mockLogger = new Mock<ILogger<EmailTemplateService>>();
+
+        _sut = new EmailTemplateService(_context, _mockLogger.Object);
+
+        // Seed test user
+        var testUser = new ApplicationUser
+        {
+            Id = _testUserId,
+            Email = "test@example.com",
+            SceneName = "TestUser"
+        };
+        _context.Users.Add(testUser);
+        _context.SaveChanges();
+    }
+
+    public void Dispose()
+    {
+        _context.Database.EnsureDeleted();
+        _context.Dispose();
+    }
+
+    #region Trigger Configuration Tests
+
+    /// <summary>
+    /// Test 1: Verify successful trigger configuration update with valid data
+    /// </summary>
+    [Fact]
+    public async Task UpdateTriggerConfigAsync_WithValidData_UpdatesTemplate()
+    {
+        // Arrange
+        var template = new GlobalEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            Category = EmailCategory.Events,
+            TemplateType = "EventReminder",
+            Subject = "Event Reminder",
+            HtmlBody = "<p>Reminder about {{event_name}}</p>",
+            PlainTextBody = "Reminder about {{event_name}}",
+            Variables = "[\"event_name\"]",
+            TriggerType = TemplateTriggerType.FixedEvent,
+            TriggerEnabled = true,
+            Version = 1
+        };
+        _context.GlobalEmailTemplates.Add(template);
+        await _context.SaveChangesAsync();
+
+        var request = new UpdateTriggerConfigRequest
+        {
+            TriggerType = TemplateTriggerType.TimeBased,
+            TriggerEnabled = true,
+            TimingOffsetDays = 3, // 3 days before session
+            RecipientGroup = EventRecipientGroup.RSVPTicketHolders
+        };
+
+        // Act
+        var result = await _sut.UpdateTriggerConfigAsync(template.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.TriggerType.Should().Be(TemplateTriggerType.TimeBased);
+        result.Data.TriggerEnabled.Should().BeTrue();
+        result.Data.TimingOffsetDays.Should().Be(3);
+        result.Data.RecipientGroup.Should().Be(EventRecipientGroup.RSVPTicketHolders);
+        result.Data.Version.Should().Be(2); // Version incremented
+    }
+
+    /// <summary>
+    /// Test 2: Verify trigger config update fails for invalid template ID
+    /// </summary>
+    [Fact]
+    public async Task UpdateTriggerConfigAsync_WithInvalidTemplateId_ReturnsError()
+    {
+        // Arrange
+        var nonExistentId = Guid.NewGuid();
+        var request = new UpdateTriggerConfigRequest
+        {
+            TriggerType = TemplateTriggerType.TimeBased,
+            TriggerEnabled = true,
+            TimingOffsetDays = 3,
+            RecipientGroup = EventRecipientGroup.SessionAttendees
+        };
+
+        // Act
+        var result = await _sut.UpdateTriggerConfigAsync(nonExistentId, request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("not found");
+    }
+
+    /// <summary>
+    /// Test 3: Verify trigger config for Events category sets recipient group correctly
+    /// </summary>
+    [Fact]
+    public async Task UpdateTriggerConfigAsync_ForEventsCategory_SetsRecipientGroup()
+    {
+        // Arrange
+        var template = new GlobalEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            Category = EmailCategory.Events,
+            TemplateType = "SessionReminder",
+            Subject = "Session Reminder",
+            HtmlBody = "<p>Session reminder</p>",
+            PlainTextBody = "Session reminder",
+            Variables = "[]",
+            TriggerType = TemplateTriggerType.Manual
+        };
+        _context.GlobalEmailTemplates.Add(template);
+        await _context.SaveChangesAsync();
+
+        var request = new UpdateTriggerConfigRequest
+        {
+            TriggerType = TemplateTriggerType.TimeBased,
+            TriggerEnabled = true,
+            TimingOffsetDays = 1,
+            RecipientGroup = EventRecipientGroup.Teachers
+        };
+
+        // Act
+        var result = await _sut.UpdateTriggerConfigAsync(template.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.RecipientGroup.Should().Be(EventRecipientGroup.Teachers);
+    }
+
+    /// <summary>
+    /// Test 4: Verify trigger config fails for non-Events category
+    /// </summary>
+    [Fact]
+    public async Task UpdateTriggerConfigAsync_ForNonEventsCategory_ReturnsError()
+    {
+        // Arrange
+        var template = new GlobalEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            Category = EmailCategory.Vetting,
+            TemplateType = "ApplicationReceived",
+            Subject = "Application Received",
+            HtmlBody = "<p>Application received</p>",
+            PlainTextBody = "Application received",
+            Variables = "[]"
+        };
+        _context.GlobalEmailTemplates.Add(template);
+        await _context.SaveChangesAsync();
+
+        var request = new UpdateTriggerConfigRequest
+        {
+            TriggerType = TemplateTriggerType.TimeBased,
+            TriggerEnabled = true,
+            TimingOffsetDays = 3,
+            RecipientGroup = EventRecipientGroup.SessionAttendees
+        };
+
+        // Act
+        var result = await _sut.UpdateTriggerConfigAsync(template.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("only supported for Events category");
+    }
+
+    /// <summary>
+    /// Test 5: Verify TimeBased trigger requires TimingOffsetDays
+    /// </summary>
+    [Fact]
+    public async Task UpdateTriggerConfigAsync_TimeBasedWithoutOffset_ReturnsError()
+    {
+        // Arrange
+        var template = new GlobalEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            Category = EmailCategory.Events,
+            TemplateType = "EventReminder",
+            Subject = "Event Reminder",
+            HtmlBody = "<p>Reminder</p>",
+            PlainTextBody = "Reminder",
+            Variables = "[]"
+        };
+        _context.GlobalEmailTemplates.Add(template);
+        await _context.SaveChangesAsync();
+
+        var request = new UpdateTriggerConfigRequest
+        {
+            TriggerType = TemplateTriggerType.TimeBased,
+            TriggerEnabled = true,
+            TimingOffsetDays = null, // Missing required field
+            RecipientGroup = EventRecipientGroup.SessionAttendees
+        };
+
+        // Act
+        var result = await _sut.UpdateTriggerConfigAsync(template.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("TimingOffsetDays is required");
+    }
+
+    /// <summary>
+    /// Test 6: Verify non-Manual triggers require RecipientGroup
+    /// </summary>
+    [Fact]
+    public async Task UpdateTriggerConfigAsync_WithoutRecipientGroup_ReturnsError()
+    {
+        // Arrange
+        var template = new GlobalEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            Category = EmailCategory.Events,
+            TemplateType = "EventReminder",
+            Subject = "Event Reminder",
+            HtmlBody = "<p>Reminder</p>",
+            PlainTextBody = "Reminder",
+            Variables = "[]"
+        };
+        _context.GlobalEmailTemplates.Add(template);
+        await _context.SaveChangesAsync();
+
+        var request = new UpdateTriggerConfigRequest
+        {
+            TriggerType = TemplateTriggerType.TimeBased,
+            TriggerEnabled = true,
+            TimingOffsetDays = 3,
+            RecipientGroup = null // Missing required field
+        };
+
+        // Act
+        var result = await _sut.UpdateTriggerConfigAsync(template.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("RecipientGroup is required");
+    }
+
+    #endregion
+
+    #region Get Time-Based Templates Tests
+
+    /// <summary>
+    /// Test 7: Verify GetTimeBasedTemplatesAsync returns only time-based triggers
+    /// </summary>
+    [Fact]
+    public async Task GetTimeBasedTemplatesAsync_ReturnsOnlyTimeBasedTriggers()
+    {
+        // Arrange
+        var timeBasedTemplate = new GlobalEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            Category = EmailCategory.Events,
+            TemplateType = "Reminder3Days",
+            Subject = "Event in 3 Days",
+            HtmlBody = "<p>Event reminder</p>",
+            PlainTextBody = "Event reminder",
+            Variables = "[]",
+            TriggerType = TemplateTriggerType.TimeBased,
+            TriggerEnabled = true,
+            TimingOffsetDays = 3,
+            RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
+            IsActive = true
+        };
+
+        var fixedEventTemplate = new GlobalEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            Category = EmailCategory.Events,
+            TemplateType = "Confirmation",
+            Subject = "Registration Confirmed",
+            HtmlBody = "<p>Confirmation</p>",
+            PlainTextBody = "Confirmation",
+            Variables = "[]",
+            TriggerType = TemplateTriggerType.FixedEvent,
+            TriggerEnabled = true,
+            IsActive = true
+        };
+
+        var disabledTemplate = new GlobalEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            Category = EmailCategory.Events,
+            TemplateType = "DisabledReminder",
+            Subject = "Disabled",
+            HtmlBody = "<p>Disabled</p>",
+            PlainTextBody = "Disabled",
+            Variables = "[]",
+            TriggerType = TemplateTriggerType.TimeBased,
+            TriggerEnabled = false, // Disabled
+            TimingOffsetDays = 1,
+            IsActive = true
+        };
+
+        _context.GlobalEmailTemplates.AddRange(timeBasedTemplate, fixedEventTemplate, disabledTemplate);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetTimeBasedTemplatesAsync();
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.Count.Should().Be(1);
+        result.Data[0].Id.Should().Be(timeBasedTemplate.Id);
+        result.Data[0].TriggerType.Should().Be(TemplateTriggerType.TimeBased);
+    }
+
+    #endregion
+
+    #region Ad Hoc Template Tests
+
+    /// <summary>
+    /// Test 8: Verify SaveAsTemplateAsync creates new ad-hoc template
+    /// </summary>
+    [Fact]
+    public async Task SaveAsTemplateAsync_CreatesNewAdHocTemplate()
+    {
+        // Arrange
+        var request = new SaveAsTemplateRequest
+        {
+            TemplateName = "Monthly Newsletter",
+            Subject = "Newsletter - {{month}}",
+            HtmlBody = "<h1>Newsletter</h1><p>Content for {{month}}</p>",
+            PlainTextBody = "Newsletter\n\nContent for {{month}}"
+        };
+
+        // Act
+        var result = await _sut.SaveAsTemplateAsync(request, _testUserId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.TemplateName.Should().Be("Monthly Newsletter");
+        result.Data.Subject.Should().Be("Newsletter - {{month}}");
+        result.Data.CreatedBy.Should().Be(_testUserId);
+        result.Data.CreatedByEmail.Should().Be("test@example.com");
+
+        // Verify saved in database
+        var saved = await _context.AdHocEmailTemplates.FindAsync(result.Data.Id);
+        saved.Should().NotBeNull();
+        saved!.TemplateName.Should().Be("Monthly Newsletter");
+    }
+
+    /// <summary>
+    /// Test 9: Verify DeleteAdHocTemplateAsync removes template
+    /// </summary>
+    [Fact]
+    public async Task DeleteAdHocTemplateAsync_RemovesTemplate()
+    {
+        // Arrange
+        var template = new AdHocEmailTemplate
+        {
+            Id = Guid.NewGuid(),
+            TemplateName = "Test Template",
+            Subject = "Test Subject",
+            HtmlBody = "<p>Test</p>",
+            PlainTextBody = "Test",
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = _testUserId
+        };
+        _context.AdHocEmailTemplates.Add(template);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.DeleteAdHocTemplateAsync(template.Id);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        // Verify deleted from database
+        var deleted = await _context.AdHocEmailTemplates.FindAsync(template.Id);
+        deleted.Should().BeNull();
+    }
+
+    /// <summary>
+    /// Test 10: Verify DeleteAdHocTemplateAsync with invalid ID returns error
+    /// </summary>
+    [Fact]
+    public async Task DeleteAdHocTemplateAsync_WithInvalidId_ReturnsError()
+    {
+        // Arrange
+        var nonExistentId = Guid.NewGuid();
+
+        // Act
+        var result = await _sut.DeleteAdHocTemplateAsync(nonExistentId);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("not found");
+    }
+
+    #endregion
+
+    #region Scheduled Ad Hoc Email Tests
+
+    /// <summary>
+    /// Test 11: Verify ScheduleAdHocEmailAsync with future date creates scheduled email
+    /// </summary>
+    [Fact]
+    public async Task ScheduleAdHocEmailAsync_WithFutureDate_CreatesScheduledEmail()
+    {
+        // Arrange
+        var futureDate = DateTime.UtcNow.AddDays(7);
+        var request = new ScheduleAdHocEmailRequest
+        {
+            Subject = "Scheduled Newsletter",
+            HtmlBody = "<h1>Newsletter</h1>",
+            PlainTextBody = "Newsletter",
+            RecipientGroup = "AllVettedMembers",
+            Segment = UserSegment.AllVettedMembers,
+            ScheduledSendAt = futureDate
+        };
+
+        // Seed some users for the segment
+        var user1 = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "vetted1@example.com",
+            SceneName = "VettedUser1",
+            VettingStatus = (int)VettingStatus.Approved,
+            IsActive = true
+        };
+        var user2 = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "vetted2@example.com",
+            SceneName = "VettedUser2",
+            VettingStatus = (int)VettingStatus.Approved,
+            IsActive = true
+        };
+        _context.Users.AddRange(user1, user2);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.ScheduleAdHocEmailAsync(request, _testUserId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.Subject.Should().Be("Scheduled Newsletter");
+        result.Data.DeliveryStatus.Should().Be("Scheduled");
+        result.Data.ScheduledSendAt.Should().BeCloseTo(futureDate, TimeSpan.FromSeconds(1));
+        result.Data.RecipientCount.Should().Be(2); // Two vetted users
+
+        // Verify saved in database
+        var saved = await _context.SentAdHocEmails.FindAsync(result.Data.Id);
+        saved.Should().NotBeNull();
+        saved!.DeliveryStatus.Should().Be("Scheduled");
+    }
+
+    /// <summary>
+    /// Test 12: Verify ScheduleAdHocEmailAsync with past date returns error
+    /// </summary>
+    [Fact]
+    public async Task ScheduleAdHocEmailAsync_WithPastDate_ReturnsError()
+    {
+        // Arrange
+        var pastDate = DateTime.UtcNow.AddDays(-1);
+        var request = new ScheduleAdHocEmailRequest
+        {
+            Subject = "Past Newsletter",
+            HtmlBody = "<h1>Newsletter</h1>",
+            PlainTextBody = "Newsletter",
+            RecipientGroup = "AllVettedMembers",
+            Segment = UserSegment.AllVettedMembers,
+            ScheduledSendAt = pastDate
+        };
+
+        // Act
+        var result = await _sut.ScheduleAdHocEmailAsync(request, _testUserId);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("must be in the future");
+    }
+
+    /// <summary>
+    /// Test 13: Verify ScheduleAdHocEmailAsync with manual emails works
+    /// </summary>
+    [Fact]
+    public async Task ScheduleAdHocEmailAsync_WithManualEmails_CreatesScheduledEmail()
+    {
+        // Arrange
+        var futureDate = DateTime.UtcNow.AddHours(2);
+        var request = new ScheduleAdHocEmailRequest
+        {
+            Subject = "Manual Email List",
+            HtmlBody = "<p>Test</p>",
+            PlainTextBody = "Test",
+            RecipientGroup = "ManualList",
+            RecipientEmails = new List<string> { "user1@example.com", "user2@example.com", "user3@example.com" },
+            ScheduledSendAt = futureDate
+        };
+
+        // Act
+        var result = await _sut.ScheduleAdHocEmailAsync(request, _testUserId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.RecipientCount.Should().Be(3);
+        result.Data.DeliveryStatus.Should().Be("Scheduled");
+    }
+
+    #endregion
+}

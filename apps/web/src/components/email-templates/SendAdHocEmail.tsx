@@ -22,7 +22,13 @@ import {
   type UserSegmentDto,
   type UserPreviewDto,
   type UserSegment,
+  type AdHocEmailTemplateDto,
 } from '../../services/emailTemplates.api';
+import {
+  SavedAdHocTemplates,
+  ScheduledSendSection,
+  SaveAsTemplateButton,
+} from './AdHocEnhanced';
 
 /**
  * Available variables for ad-hoc emails
@@ -64,6 +70,10 @@ export const SendAdHocEmail: React.FC = () => {
   // Modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  // Scheduled send state
+  const [sendTiming, setSendTiming] = useState<'immediate' | 'scheduled'>('immediate');
+  const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
+
   // Fetch user segments with counts
   const {
     data: segments,
@@ -90,7 +100,12 @@ export const SendAdHocEmail: React.FC = () => {
 
   // Send email mutation
   const sendMutation = useMutation({
-    mutationFn: (data: { subject: string; htmlBody: string; segment: UserSegment }) => {
+    mutationFn: (data: {
+      subject: string;
+      htmlBody: string;
+      segment: UserSegment;
+      scheduledSendAt?: Date;
+    }) => {
       // Generate plain text from HTML
       const plainTextBody = data.htmlBody
         .replace(/<br\s*\/?>/gi, '\n')
@@ -99,6 +114,20 @@ export const SendAdHocEmail: React.FC = () => {
         .replace(/&nbsp;/g, ' ')
         .trim();
 
+      // If scheduled, use scheduleAdHocEmail endpoint
+      if (data.scheduledSendAt) {
+        return emailTemplatesApi.scheduleAdHocEmail({
+          subject: data.subject,
+          htmlBody: data.htmlBody,
+          plainTextBody,
+          segment: data.segment,
+          recipientEmails: null,
+          recipientGroup: data.segment,
+          scheduledSendAt: data.scheduledSendAt.toISOString(),
+        });
+      }
+
+      // Otherwise use immediate send
       return emailTemplatesApi.sendAdHocEmail({
         subject: data.subject,
         htmlBody: data.htmlBody,
@@ -110,8 +139,12 @@ export const SendAdHocEmail: React.FC = () => {
     },
     onSuccess: (response) => {
       const currentSegment = segments?.find((s) => s.segment === selectedSegment);
+      const message = sendTiming === 'scheduled'
+        ? `Email scheduled for ${currentSegment?.count || 0} recipients`
+        : `Email sent to ${currentSegment?.count || 0} recipients successfully`;
+
       notifications.show({
-        message: `Email sent to ${currentSegment?.count || 0} recipients successfully`,
+        message,
         color: 'green',
         icon: <IconCheck size={16} />,
       });
@@ -122,6 +155,38 @@ export const SendAdHocEmail: React.FC = () => {
         message: error.message || 'Failed to send email',
         color: 'red',
         icon: <IconAlertCircle size={16} />,
+      });
+    },
+  });
+
+  // Save template mutation
+  const saveTemplateMutation = useMutation({
+    mutationFn: (templateName: string) => {
+      const plainTextBody = htmlBody
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .trim();
+
+      return emailTemplatesApi.saveAsTemplate({
+        templateName,
+        subject,
+        htmlBody,
+        plainTextBody,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adhoc-templates'] });
+      notifications.show({
+        message: 'Template saved successfully',
+        color: 'green',
+      });
+    },
+    onError: (error: any) => {
+      notifications.show({
+        message: error.message || 'Failed to save template',
+        color: 'red',
       });
     },
   });
@@ -164,8 +229,19 @@ export const SendAdHocEmail: React.FC = () => {
       subject,
       htmlBody,
       segment: selectedSegment,
+      scheduledSendAt: sendTiming === 'scheduled' ? scheduledDate || undefined : undefined,
     });
     setShowConfirmModal(false);
+  };
+
+  // Handler for using a saved template
+  const handleUseTemplate = (template: AdHocEmailTemplateDto) => {
+    setSubject(template.subject);
+    setHtmlBody(template.htmlBody);
+    notifications.show({
+      message: 'Template loaded',
+      color: 'blue',
+    });
   };
 
   const handleCancel = () => {
@@ -183,6 +259,8 @@ export const SendAdHocEmail: React.FC = () => {
     setSubject('');
     setHtmlBody('');
     setInvalidVariables([]);
+    setSendTiming('immediate');
+    setScheduledDate(null);
   };
 
   // Computed validation
@@ -190,7 +268,8 @@ export const SendAdHocEmail: React.FC = () => {
     selectedSegment !== null &&
     subject.trim().length > 0 &&
     htmlBody.trim().length > 0 &&
-    invalidVariables.length === 0;
+    invalidVariables.length === 0 &&
+    (sendTiming === 'immediate' || (sendTiming === 'scheduled' && scheduledDate !== null));
 
   // Get current segment data
   const currentSegment = segments?.find((s) => s.segment === selectedSegment);
@@ -224,6 +303,9 @@ export const SendAdHocEmail: React.FC = () => {
           Send custom emails to specific user groups
         </Text>
       </Box>
+
+      {/* Saved Templates Section */}
+      <SavedAdHocTemplates onUseTemplate={handleUseTemplate} />
 
       {/* Error Loading Segments */}
       {segmentsError && (
@@ -389,11 +471,27 @@ export const SendAdHocEmail: React.FC = () => {
         </Paper>
       )}
 
+      {/* Scheduled Send Section */}
+      <ScheduledSendSection
+        sendTiming={sendTiming}
+        scheduledDate={scheduledDate}
+        onSendTimingChange={setSendTiming}
+        onScheduledDateChange={setScheduledDate}
+      />
+
       {/* Action Buttons - Desktop */}
       <Group justify="flex-end" gap="sm" visibleFrom="sm">
         <Button variant="light" onClick={handleCancel} disabled={sendMutation.isPending}>
           Cancel
         </Button>
+
+        <SaveAsTemplateButton
+          subject={subject}
+          htmlBody={htmlBody}
+          onSave={async (name) => {
+            await saveTemplateMutation.mutateAsync(name);
+          }}
+        />
 
         <Button
           onClick={handleSendClick}
@@ -408,7 +506,7 @@ export const SendAdHocEmail: React.FC = () => {
             },
           }}
         >
-          Send Email
+          {sendTiming === 'immediate' ? 'Send Now' : 'Schedule Send'}
         </Button>
       </Group>
 
@@ -428,8 +526,16 @@ export const SendAdHocEmail: React.FC = () => {
             },
           }}
         >
-          Send Email
+          {sendTiming === 'immediate' ? 'Send Now' : 'Schedule Send'}
         </Button>
+
+        <SaveAsTemplateButton
+          subject={subject}
+          htmlBody={htmlBody}
+          onSave={async (name) => {
+            await saveTemplateMutation.mutateAsync(name);
+          }}
+        />
 
         <Button
           variant="light"

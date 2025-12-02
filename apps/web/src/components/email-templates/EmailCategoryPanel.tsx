@@ -17,6 +17,8 @@ import { MantineTiptapEditor } from '../forms/MantineTiptapEditor';
 import { emailTemplatesApi, type GlobalEmailTemplateDto } from '../../services/emailTemplates.api';
 import { notifications } from '@mantine/notifications';
 import { SendAdHocEmail } from './SendAdHocEmail';
+import { EnhancedTemplateCard } from './EnhancedTemplateCard';
+import { TriggerConfigModal, type TriggerConfig } from './TriggerConfigModal';
 
 interface EmailCategoryPanelProps {
   category: 'Vetting' | 'Events' | 'Admin' | 'Incident' | 'AdHoc';
@@ -45,6 +47,10 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   const [htmlBody, setHtmlBody] = useState('');
   const [plainTextBody, setPlainTextBody] = useState('');
   const [invalidVariables, setInvalidVariables] = useState<string[]>([]);
+
+  // State for trigger config modal (Events tab only)
+  const [triggerModalOpened, setTriggerModalOpened] = useState(false);
+  const [selectedTemplateForTrigger, setSelectedTemplateForTrigger] = useState<GlobalEmailTemplateDto | null>(null);
 
   // Fetch global templates for this category
   const {
@@ -78,6 +84,26 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     onError: (error: any) => {
       notifications.show({
         message: error.message || 'Failed to save template',
+        color: 'red',
+      });
+    },
+  });
+
+  // Save trigger config mutation (Events tab only)
+  const saveTriggerMutation = useMutation({
+    mutationFn: (data: { id: string; config: TriggerConfig }) =>
+      emailTemplatesApi.updateTriggerConfig(data.id, data.config),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['email-templates', 'global', category] });
+      notifications.show({
+        message: 'Trigger configuration saved successfully',
+        color: 'green',
+      });
+      setTriggerModalOpened(false);
+    },
+    onError: (error: any) => {
+      notifications.show({
+        message: error.message || 'Failed to save trigger configuration',
         color: 'red',
       });
     },
@@ -192,42 +218,54 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       <div>
         <Group gap="md" style={{ flexWrap: 'wrap' }}>
           {templates.map((template) => (
-            <Card
-              key={template.id}
-              withBorder
-              p="md"
-              style={{
-                cursor: 'pointer',
-                borderColor:
-                  selectedTemplate?.id === template.id
-                    ? 'var(--mantine-color-burgundy-6)'
-                    : 'rgba(136, 1, 36, 0.1)',
-                backgroundColor:
-                  selectedTemplate?.id === template.id ? 'rgba(136, 1, 36, 0.05)' : 'white',
-                minWidth: '220px',
-                maxWidth: '300px',
-                flex: 1,
-                position: 'relative',
-                transition: 'all 0.3s ease',
-                borderRadius: '12px',
-              }}
-              onClick={() => setSelectedTemplate(template)}
-            >
-              <Text fw={600} c="burgundy" mb={4}>
-                {template.templateTypeName}
-              </Text>
+            category === 'Events' ? (
+              <EnhancedTemplateCard
+                key={template.id}
+                template={template}
+                onEditTrigger={(id) => {
+                  setSelectedTemplateForTrigger(template);
+                  setTriggerModalOpened(true);
+                }}
+                onEditContent={(id) => setSelectedTemplate(template)}
+              />
+            ) : (
+              <Card
+                key={template.id}
+                withBorder
+                p="md"
+                style={{
+                  cursor: 'pointer',
+                  borderColor:
+                    selectedTemplate?.id === template.id
+                      ? 'var(--mantine-color-burgundy-6)'
+                      : 'rgba(136, 1, 36, 0.1)',
+                  backgroundColor:
+                    selectedTemplate?.id === template.id ? 'rgba(136, 1, 36, 0.05)' : 'white',
+                  minWidth: '220px',
+                  maxWidth: '300px',
+                  flex: 1,
+                  position: 'relative',
+                  transition: 'all 0.3s ease',
+                  borderRadius: '12px',
+                }}
+                onClick={() => setSelectedTemplate(template)}
+              >
+                <Text fw={600} c="burgundy" mb={4}>
+                  {template.templateTypeName}
+                </Text>
 
-              <Text size="sm" c="stone" mb="xs">
-                {cleanVariablePlaceholders(template.subject)}
-              </Text>
+                <Text size="sm" c="stone" mb="xs">
+                  {cleanVariablePlaceholders(template.subject)}
+                </Text>
 
-              <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                Version {template.version} • Updated{' '}
-                {template.updatedAt
-                  ? new Date(template.updatedAt).toLocaleDateString()
-                  : 'Never'}
-              </Text>
-            </Card>
+                <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                  Version {template.version} • Updated{' '}
+                  {template.updatedAt
+                    ? new Date(template.updatedAt).toLocaleDateString()
+                    : 'Never'}
+                </Text>
+              </Card>
+            )
           ))}
         </Group>
       </div>
@@ -334,6 +372,18 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
 
       {/* Send Ad-Hoc Email Section - Only for Ad Hoc category */}
       {category === 'AdHoc' && <SendAdHocEmail />}
+
+      {/* Trigger Config Modal - Only for Events category */}
+      {category === 'Events' && selectedTemplateForTrigger && (
+        <TriggerConfigModal
+          opened={triggerModalOpened}
+          onClose={() => setTriggerModalOpened(false)}
+          template={selectedTemplateForTrigger}
+          onSave={async (config) => {
+            await saveTriggerMutation.mutateAsync({ id: selectedTemplateForTrigger.id, config });
+          }}
+        />
+      )}
     </Stack>
   );
 };
