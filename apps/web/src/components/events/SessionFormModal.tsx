@@ -81,15 +81,18 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       },
       startTime: (value, values) => {
         if (!value) return 'Start time is required';
-        // Check that end time is after start time
-        if (values.endTime && value >= values.endTime) {
+        // For multi-day sessions, time comparison needs to consider the full datetime
+        // For same-day, simple string comparison works (e.g., "18:00" < "21:00")
+        if (!values.spansMultipleDays && values.endTime && value >= values.endTime) {
           return 'Start time must be before end time';
         }
         return null;
       },
       endTime: (value, values) => {
         if (!value) return 'End time is required';
-        if (values.startTime && value <= values.startTime) {
+        // For multi-day sessions, time comparison needs to consider the full datetime
+        // For same-day, simple string comparison works
+        if (!values.spansMultipleDays && values.startTime && value <= values.startTime) {
           return 'End time must be after start time';
         }
         return null;
@@ -112,23 +115,29 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       // Create a clean date object for the calendar date
       const calendarDate = new Date(year, month, day);
 
-      // Convert local times to TRUE UTC using the event timezone
-      // This correctly handles EST/EDT offset (e.g., 6 PM EST → 11 PM UTC)
-      const startDateTime = localTimeStringToUtc(calendarDate, values.startTime, DEFAULT_EVENT_TIMEZONE);
-      const endDateTime = localTimeStringToUtc(calendarDate, values.endTime, DEFAULT_EVENT_TIMEZONE);
-
-      // Handle end date for multi-day sessions
+      // Determine the end date for time calculation
+      let endCalendarDate: Date;
       let endDateValue: string;
+
       if (values.spansMultipleDays && values.endDate) {
+        // Multi-day session: use the specified end date
         const sessionEndDate = values.endDate instanceof Date ? values.endDate : new Date(values.endDate);
         const endYear = sessionEndDate.getFullYear();
         const endMonth = sessionEndDate.getMonth();
         const endDay = sessionEndDate.getDate();
+        endCalendarDate = new Date(endYear, endMonth, endDay);
         endDateValue = new Date(endYear, endMonth, endDay, 0, 0, 0, 0).toISOString();
       } else {
-        // If not spanning multiple days, endDate equals startDate
+        // Single day session: end date equals start date
+        endCalendarDate = calendarDate;
         endDateValue = new Date(year, month, day, 0, 0, 0, 0).toISOString();
       }
+
+      // Convert local times to TRUE UTC using the event timezone
+      // This correctly handles EST/EDT offset (e.g., 6 PM EST → 11 PM UTC)
+      // IMPORTANT: endDateTime uses endCalendarDate to handle multi-day sessions correctly
+      const startDateTime = localTimeStringToUtc(calendarDate, values.startTime, DEFAULT_EVENT_TIMEZONE);
+      const endDateTime = localTimeStringToUtc(endCalendarDate, values.endTime, DEFAULT_EVENT_TIMEZONE);
 
       const sessionData: Omit<EventSession, 'id'> = {
         sessionIdentifier: values.sessionIdentifier,

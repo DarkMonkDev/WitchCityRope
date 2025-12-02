@@ -686,6 +686,35 @@ public class EventService : IEventService
     }
 
     /// <summary>
+    /// Recalculates the event's EndDate based on its sessions.
+    /// EndDate = latest session end time across all sessions.
+    /// </summary>
+    private void RecalculateEventEndDate(WitchCityRope.Api.Models.Event eventEntity)
+    {
+        if (eventEntity.Sessions == null || !eventEntity.Sessions.Any())
+        {
+            // No sessions - keep existing EndDate
+            return;
+        }
+
+        // Get latest session end time
+        var latestSessionEndTime = eventEntity.Sessions
+            .Max(s => s.EndTime);
+
+        eventEntity.EndDate = latestSessionEndTime;
+    }
+
+    /// <summary>
+    /// Recalculates both StartDate and EndDate based on sessions.
+    /// Call this after any session changes.
+    /// </summary>
+    private void RecalculateEventDates(WitchCityRope.Api.Models.Event eventEntity)
+    {
+        RecalculateEventStartDate(eventEntity);
+        RecalculateEventEndDate(eventEntity);
+    }
+
+    /// <summary>
     /// Updates the sessions for an event with proper EF Core change tracking
     /// Handles updates, additions, and deletions correctly
     /// </summary>
@@ -762,8 +791,8 @@ public class EventService : IEventService
             eventEntity.Sessions.Remove(sessionToRemove);
         }
 
-        // Recalculate event's StartDate based on updated sessions
-        RecalculateEventStartDate(eventEntity);
+        // Recalculate event's StartDate and EndDate based on updated sessions
+        RecalculateEventDates(eventEntity);
 
         return Task.CompletedTask;
     }
@@ -1149,8 +1178,8 @@ public class EventService : IEventService
                 _logger.LogInformation("Copied {SessionCount} sessions for event {NewEventId}",
                     sourceEvent.Sessions.Count, copiedEvent.Id);
 
-                // Recalculate StartDate based on copied session times
-                RecalculateEventStartDate(copiedEvent);
+                // Recalculate StartDate and EndDate based on copied session times
+                RecalculateEventDates(copiedEvent);
 
                 // 7. Deep copy TicketTypes with Sessions remapping (many-to-many)
                 foreach (var sourceTicket in sourceEvent.TicketTypes)
@@ -1438,8 +1467,8 @@ public class EventService : IEventService
 
                     _logger.LogInformation("Added {SessionCount} sessions to new event", request.Sessions.Count);
 
-                    // Recalculate StartDate based on actual session times
-                    RecalculateEventStartDate(newEvent);
+                    // Recalculate StartDate and EndDate based on actual session times
+                    RecalculateEventDates(newEvent);
                 }
 
                 // 5. Add ticket types if provided
@@ -2050,4 +2079,4 @@ public class EventService : IEventService
             return (false, null, "Failed to delete ticket type");
         }
     }
-}
+}// Trigger recompile $(date)
