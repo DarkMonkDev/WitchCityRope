@@ -127,8 +127,11 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep witchcity
 
 # Expected containers: postgres, api, web (from docker-compose.yml)
 #                    + test-server (from docker-compose.dev.yml)
+# NOTE: Only count DEV containers, not test containers
+# Dev containers: witchcity-postgres, witchcity-api, witchcity-web, witchcity-test-server
+# Test containers have "-test" suffix (e.g., witchcity-api-test) or "test-runner" pattern
 EXPECTED_COUNT=4
-RUNNING_COUNT=$(docker ps --format "{{.Names}}" | grep -c witchcity || true)
+RUNNING_COUNT=$(docker ps --format "{{.Names}}" | grep -E "^witchcity-(postgres|api|web|test-server)$" | wc -l)
 if [ "$RUNNING_COUNT" -ne "$EXPECTED_COUNT" ]; then
     echo "   ❌ ERROR: Expected $EXPECTED_COUNT containers, found $RUNNING_COUNT"
     echo ""
