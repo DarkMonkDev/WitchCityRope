@@ -1093,7 +1093,7 @@ public class AttendanceService : IAttendanceService
                 .Include(ea => ea.User)
                 .Include(ea => ea.TicketPurchase)
                     .ThenInclude(tp => tp.TicketType)
-                        .ThenInclude(tt => tt.Session)
+                        .ThenInclude(tt => tt.Sessions)
                 .Where(ea => ea.EventId == eventId)
                 .GroupJoin(
                     _context.EventAttendees.Where(ea => ea.EventId == eventId),
@@ -1127,10 +1127,10 @@ public class AttendanceService : IAttendanceService
                     TicketTypeName = x.Attendance.TicketPurchase != null
                                      ? x.Attendance.TicketPurchase.TicketType.Name
                                      : null,
-                    // Session name from TicketType.Session if available, otherwise "All Sessions"
-                    SessionNames = x.Attendance.TicketPurchase != null && x.Attendance.TicketPurchase.TicketType.Session != null
-                                   ? x.Attendance.TicketPurchase.TicketType.Session.Name
-                                   : "All Sessions",
+                    // Session names from TicketType.Sessions (many-to-many)
+                    SessionNames = x.Attendance.TicketPurchase != null && x.Attendance.TicketPurchase.TicketType.Sessions.Any()
+                                   ? string.Join(", ", x.Attendance.TicketPurchase.TicketType.Sessions.OrderBy(s => s.StartTime).Select(s => s.Name))
+                                   : "No Sessions",
                     // Amount paid from TicketPurchase.TotalPrice (null for free RSVPs without TicketPurchase)
                     AmountPaid = x.Attendance.TicketPurchase != null
                                  ? x.Attendance.TicketPurchase.TotalPrice

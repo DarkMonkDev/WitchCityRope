@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Enums;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
@@ -24,6 +25,7 @@ public class EventServiceTests : IAsyncLifetime
     private readonly DatabaseTestFixture _fixture;
     private ApplicationDbContext _context = null!;
     private Mock<ILogger<EventService>> _mockLogger = null!;
+    private Mock<ITimeZoneService> _mockTimeZoneService = null!;
     private EventService _service = null!;
 
     public EventServiceTests(DatabaseTestFixture fixture)
@@ -37,7 +39,10 @@ public class EventServiceTests : IAsyncLifetime
         await _fixture.ResetDatabaseAsync();
 
         _mockLogger = new Mock<ILogger<EventService>>();
-        _service = new EventService(_context, _mockLogger.Object);
+        _mockTimeZoneService = new Mock<ITimeZoneService>();
+        _mockTimeZoneService.Setup(x => x.GetEventTimeZoneAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TimeZoneInfo.FindSystemTimeZoneById("America/New_York"));
+        _service = new EventService(_context, _mockLogger.Object, _mockTimeZoneService.Object);
     }
 
     public async Task DisposeAsync()

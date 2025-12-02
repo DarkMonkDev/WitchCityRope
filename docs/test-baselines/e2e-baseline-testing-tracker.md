@@ -1,7 +1,9 @@
-# Test Container Parity Investigation - December 1, 2025
+# E2E Baseline Testing Tracker
 
-## Problem Statement
-E2E tests have been failing in test containers (~47% pass rate) while passing in dev containers (~88% pass rate). This investigation documents the root causes, fixes attempted, and progress made.
+## Purpose
+Track E2E test suite health over time, documenting baseline results, improvements, and remaining issues. Originally started as a parity investigation between dev/test containers (Nov 2025), now serves as ongoing test health tracker.
+
+## Current Status: 84.9% Pass Rate (Dec 2, 2025)
 
 ---
 
@@ -20,6 +22,23 @@ E2E tests have been failing in test containers (~47% pass rate) while passing in
 | Dev Container | 621 | 74 | ~97 | 7 | **~86%** |
 | Test Container | **597** | 74 | 121 | 11 | **~83%** |
 | **Parity Gap** | **24** | 0 | - | - | **~3%** |
+
+### December 2, 2025 - Post TicketType-Session Migration
+| Environment | Passed | Skipped | Failed | Pass Rate |
+|-------------|--------|---------|--------|-----------|
+| Test Container | **622** | 74 | 111 | **84.9%** |
+
+**Changes Since Dec 1:**
+- TicketType-Session many-to-many relationship migration applied
+- +25 more tests passing (597 → 622)
+- -10 fewer failures (121 → 111)
+- +1.8% improvement in pass rate
+
+**Key Validation:** Session-based ticket availability tests (625-630) ALL PASSED:
+- ✅ S1 Only ticket NOT available (timing window closed)
+- ✅ S2 Only ticket available (future session)
+- ✅ Both Sessions ticket uses earliest session
+- ✅ API returns correct ticket availability status
 
 ### Comparison to Nov 28 Baseline
 | Metric | Nov 28 | Dec 1 (Final) | Change |

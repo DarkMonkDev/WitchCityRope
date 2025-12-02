@@ -53,17 +53,17 @@ public class CheckInService : ICheckInService
             // CRITICAL: Filter to only show attendees eligible for THIS session
             // Eligibility rules:
             // - RSVP attendees (via EventAttendance) can check into ANY session (no ticket required)
-            // - Ticket holders: ticket must be for THIS session OR a multi-session ticket (null SessionId)
+            // - Ticket holders: ticket must include THIS session (via Sessions collection)
             // Since EventAttendee doesn't have direct attendance info, we join with EventAttendance
             var eligibleUserIds = await _context.EventAttendances
                 .Include(ea => ea.TicketPurchase)
                     .ThenInclude(tp => tp != null ? tp.TicketType : null)
+                        .ThenInclude(tt => tt != null ? tt.Sessions : null!)
                 .Where(ea => ea.EventId == eventId &&
                             ea.Status == AttendanceStatus.Active &&
                             (ea.AttendanceType == AttendanceType.RSVP ||
                              ea.TicketPurchase == null ||
-                             ea.TicketPurchase.TicketType!.SessionId == sessionId ||
-                             ea.TicketPurchase.TicketType!.SessionId == null))
+                             ea.TicketPurchase.TicketType!.Sessions.Any(s => s.Id == sessionId)))
                 .Select(ea => ea.UserId)
                 .Distinct()
                 .ToListAsync(cancellationToken);
@@ -262,12 +262,11 @@ public class CheckInService : ICheckInService
             }
 
             var canCheckIntoSession = eventAttendance.AttendanceType == AttendanceType.RSVP ||
-                                     eventAttendance.TicketPurchase?.TicketType?.SessionId == sessionTokenEntity.SessionId ||
-                                     eventAttendance.TicketPurchase?.TicketType?.SessionId == null;
+                                     eventAttendance.TicketPurchase?.TicketType?.Sessions.Any(s => s.Id == sessionTokenEntity.SessionId) == true;
 
             if (!canCheckIntoSession)
             {
-                var ticketSessionInfo = eventAttendance.TicketPurchase?.TicketType?.SessionId.HasValue == true
+                var ticketSessionInfo = eventAttendance.TicketPurchase?.TicketType?.Sessions.Any() == true
                     ? "a different session"
                     : "unknown session";
                 return Result<CheckInResponse>.Failure(

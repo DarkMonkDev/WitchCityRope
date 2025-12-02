@@ -9,7 +9,7 @@ import {
   IconCalendar, IconClock, IconMapPin, IconUsers,
   IconShare, IconMail, IconBrandX, IconLink, IconCheck
 } from '@tabler/icons-react';
-import { formatUtcToLocalDate, formatUtcTimeRange } from '../../utils/eventUtils';
+import { formatUtcToLocalDate, formatUtcTimeRange, formatAbbreviatedDate } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
 import { useParticipation, useCreateRSVP, useCancelRSVP, useCancelTicket } from '../../hooks/useParticipation';
 import { ParticipationCard } from '../../components/events/ParticipationCard';
@@ -369,7 +369,24 @@ export const EventDetailPage: React.FC = () => {
                 fontSize: '20px'
               }}>
                 <IconCalendar size={20} />
-                <Text size="lg">{formatUtcToLocalDate((event as any)?.startDate, eventTimeZone)}</Text>
+                <Text size="lg">
+                  {(() => {
+                    const sessions = (event as any)?.sessions || [];
+                    if (sessions.length === 0) {
+                      // No sessions - show full event date
+                      return formatUtcToLocalDate((event as any)?.startDate, eventTimeZone);
+                    } else if (sessions.length === 1) {
+                      // Single session - show abbreviated date
+                      return formatAbbreviatedDate(sessions[0].date, eventTimeZone);
+                    } else {
+                      // Multiple sessions - show all dates abbreviated with bullet separator
+                      return sessions
+                        .filter((s: any) => s.date)
+                        .map((s: any) => formatAbbreviatedDate(s.date, eventTimeZone))
+                        .join(' • ');
+                    }
+                  })()}
+                </Text>
               </Group>
               <Group gap="xs" style={{
                 color: 'var(--color-dusty-rose)',

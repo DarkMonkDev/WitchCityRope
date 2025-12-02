@@ -9,8 +9,8 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Tests.Common.Fixtures;
-using Hangfire.MemoryStorage;
 
 namespace WitchCityRope.IntegrationTests.Features.EmailTemplates;
 
@@ -47,12 +47,6 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
                     {
                         options.UseNpgsql(ConnectionString);
                     });
-
-                    // Use in-memory Hangfire storage for tests
-                    services.AddHangfire(config =>
-                    {
-                        config.UseMemoryStorage();
-                    });
                 });
             });
     }
@@ -73,7 +67,8 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Arrange
         await SeedTestUsers();
         var template = await CreateEventsTemplate("EventReminder", "Event Reminder");
-        var client = CreateAuthenticatedClient(_adminUserId, _adminEmail, "Administrator");
+        var bearerToken = GenerateJwtToken(_adminUserId, _adminEmail, "Administrator");
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, bearerToken);
 
         var request = new UpdateTriggerConfigRequest
         {
@@ -90,7 +85,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<GlobalEmailTemplateDto>();
+        var result = await response.Content.ReadFromJsonAsync<GlobalEmailTemplateDto>(JsonOptions);
         result.Should().NotBeNull();
         result!.TriggerType.Should().Be(TemplateTriggerType.TimeBased);
         result.TriggerEnabled.Should().BeTrue();
@@ -134,7 +129,8 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Arrange
         await SeedTestUsers();
         var template = await CreateEventsTemplate("EventReminder", "Event Reminder");
-        var client = CreateAuthenticatedClient(_memberUserId, _memberEmail, "Member"); // Not admin
+        var bearerToken = GenerateJwtToken(_memberUserId, _memberEmail, "Member"); // Not admin
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, bearerToken);
 
         var request = new UpdateTriggerConfigRequest
         {
@@ -168,7 +164,8 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Create fixed event template (should not be returned)
         var fixedTemplate = await CreateEventsTemplate("Confirmation", "Registration Confirmed");
 
-        var client = CreateAuthenticatedClient(_adminUserId, _adminEmail, "Administrator");
+        var bearerToken = GenerateJwtToken(_adminUserId, _adminEmail, "Administrator");
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, bearerToken);
 
         // Act
         var response = await client.GetAsync("/api/email-templates/time-based");
@@ -176,7 +173,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<List<GlobalEmailTemplateDto>>();
+        var result = await response.Content.ReadFromJsonAsync<List<GlobalEmailTemplateDto>>(JsonOptions);
         result.Should().NotBeNull();
         result!.Should().ContainSingle();
         result[0].Id.Should().Be(timeBasedTemplate.Id);
@@ -195,7 +192,8 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
     {
         // Arrange
         await SeedTestUsers();
-        var client = CreateAuthenticatedClient(_adminUserId, _adminEmail, "Administrator");
+        var bearerToken = GenerateJwtToken(_adminUserId, _adminEmail, "Administrator");
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, bearerToken);
 
         var request = new SaveAsTemplateRequest
         {
@@ -211,7 +209,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<AdHocEmailTemplateDto>();
+        var result = await response.Content.ReadFromJsonAsync<AdHocEmailTemplateDto>(JsonOptions);
         result.Should().NotBeNull();
         result!.TemplateName.Should().Be("Monthly Newsletter");
         result.Subject.Should().Be("Newsletter - {{month}}");
@@ -233,7 +231,8 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Arrange
         await SeedTestUsers();
         var template = await CreateAdHocTemplate("Test Template", "Test Subject");
-        var client = CreateAuthenticatedClient(_adminUserId, _adminEmail, "Administrator");
+        var bearerToken = GenerateJwtToken(_adminUserId, _adminEmail, "Administrator");
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, bearerToken);
 
         // Act
         var response = await client.DeleteAsync($"/api/email-templates/ad-hoc/templates/{template.Id}");
@@ -257,7 +256,8 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         await SeedTestUsers();
         var template1 = await CreateAdHocTemplate("Newsletter 1", "Subject 1");
         var template2 = await CreateAdHocTemplate("Newsletter 2", "Subject 2");
-        var client = CreateAuthenticatedClient(_adminUserId, _adminEmail, "Administrator");
+        var bearerToken = GenerateJwtToken(_adminUserId, _adminEmail, "Administrator");
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, bearerToken);
 
         // Act
         var response = await client.GetAsync("/api/email-templates/ad-hoc/templates");
@@ -265,7 +265,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<List<AdHocEmailTemplateDto>>();
+        var result = await response.Content.ReadFromJsonAsync<List<AdHocEmailTemplateDto>>(JsonOptions);
         result.Should().NotBeNull();
         result!.Count.Should().BeGreaterThanOrEqualTo(2);
         result.Should().Contain(t => t.Id == template1.Id);
@@ -288,7 +288,8 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Seed vetted users for segment targeting
         await SeedVettedUsers();
 
-        var client = CreateAuthenticatedClient(_adminUserId, _adminEmail, "Administrator");
+        var bearerToken = GenerateJwtToken(_adminUserId, _adminEmail, "Administrator");
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, bearerToken);
         var futureDate = DateTime.UtcNow.AddDays(7);
 
         var request = new ScheduleAdHocEmailRequest
@@ -307,7 +308,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<SentAdHocEmailDto>();
+        var result = await response.Content.ReadFromJsonAsync<SentAdHocEmailDto>(JsonOptions);
         result.Should().NotBeNull();
         result!.Subject.Should().Be("Scheduled Newsletter");
         result.DeliveryStatus.Should().Be("Scheduled");
@@ -396,7 +397,8 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
             IsActive = true,
             Version = 1,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            UpdatedBy = _adminUserId // Required foreign key
         };
 
         context.GlobalEmailTemplates.Add(template);
@@ -436,7 +438,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
             HtmlBody = $"<p>{subject}</p>",
             PlainTextBody = subject,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _adminUserId
+            CreatedBy = _adminUserId // Required foreign key
         };
 
         context.AdHocEmailTemplates.Add(template);
@@ -445,42 +447,5 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         return template;
     }
 
-    private HttpClient CreateAuthenticatedClient(Guid userId, string email, string role)
-    {
-        var client = _factory.CreateClient();
-        var token = GenerateJwtToken(userId, email, role);
-        client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        return client;
-    }
-
-    private string GenerateJwtToken(Guid userId, string email, string role)
-    {
-        var claims = new[]
-        {
-            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()),
-            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email),
-            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, role)
-        };
-
-        var key = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-            System.Text.Encoding.UTF8.GetBytes(JwtSecretKey));
-        var creds = new Microsoft.IdentityModel.Tokens.SigningCredentials(
-            key, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256);
-
-        var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(
-            issuer: JwtIssuer,
-            audience: JwtAudience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(JwtExpirationMinutes),
-            signingCredentials: creds);
-
-        return new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(token);
-    }
-
     #endregion
-
-    // Implement IAsyncLifetime
-    public Task InitializeAsync() => Task.CompletedTask;
-    public Task DisposeAsync() => Task.CompletedTask;
 }

@@ -29,12 +29,14 @@ import { usePayment } from '../hooks/usePayment';
 import { useSlidingScale } from '../hooks/useSlidingScale';
 import { usePurchaseTicket } from '../../../lib/api/hooks/usePayments';
 import { eventsManagementService } from '../../../api/services/eventsManagement.service';
+import { formatAbbreviatedDate } from '../../../utils/eventUtils';
 
 import type { PaymentEventInfo } from '../types/payment.types';
 
 // Use generated types from OpenAPI spec
 type EventDto = components["schemas"]["EventDto"];
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
+type SessionDto = components["schemas"]["SessionDto"];
 
 /**
  * Main event payment page with complete payment flow
@@ -59,6 +61,7 @@ export const EventPaymentPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [completedPayment, setCompletedPayment] = useState<any | null>(null);
   const [ticketTypes, setTicketTypes] = useState<TicketTypeDto[]>([]);
+  const [sessions, setSessions] = useState<SessionDto[]>([]);
   const [selectedTicketTypeIds, setSelectedTicketTypeIds] = useState<string[]>([]);
   // Track the price for each selected ticket (ticketId -> price)
   const [ticketPrices, setTicketPrices] = useState<Record<string, number>>({});
@@ -104,9 +107,11 @@ export const EventPaymentPage: React.FC = () => {
 
         debugLog('EventPaymentPage: Received event details:', eventDetails);
 
-        // Extract ticket types
+        // Extract ticket types and sessions
         const eventTicketTypes = eventDetails?.ticketTypes || [];
+        const eventSessions = eventDetails?.sessions || [];
         setTicketTypes(eventTicketTypes);
+        setSessions(eventSessions);
 
         // Auto-select ticket(s): if only one ticket, select it automatically; otherwise use URL param or empty
         let initialSelectedIds: string[] = [];
@@ -376,6 +381,33 @@ export const EventPaymentPage: React.FC = () => {
     }
   };
 
+  /**
+   * Get formatted session dates for a ticket
+   * Returns abbreviated date string like "Sun, Dec 1" or "Sun, Dec 1 • Sat, Dec 7"
+   */
+  const getTicketSessionDates = (ticket: TicketTypeDto): string => {
+    if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
+      return '';
+    }
+
+    // Find sessions matching the ticket's session identifiers
+    const matchingSessions = sessions.filter(session =>
+      ticket.sessionIdentifiers?.includes(session.sessionIdentifier || '')
+    );
+
+    if (matchingSessions.length === 0) {
+      return '';
+    }
+
+    // Format each session date and join with bullet separator
+    const formattedDates = matchingSessions
+      .filter(session => session.date) // Only include sessions with dates
+      .map(session => formatAbbreviatedDate(session.date!))
+      .join(' • ');
+
+    return formattedDates;
+  };
+
   // Show loading state
   if (isLoading) {
     return (
@@ -537,11 +569,17 @@ export const EventPaymentPage: React.FC = () => {
                                   )}
                                   <Box style={{ flex: 1 }}>
                                     <Text fw={600} size="md">{tt.name}</Text>
-                                    {tt.sessionIdentifiers && tt.sessionIdentifiers.length > 0 && (
-                                      <Text size="xs" c="dimmed" mt={4}>
-                                        Includes sessions: {tt.sessionIdentifiers.join(', ')}
-                                      </Text>
-                                    )}
+                                    {(() => {
+                                      const sessionDates = getTicketSessionDates(tt);
+                                      if (sessionDates) {
+                                        return (
+                                          <Text size="sm" c="dimmed" mt={4}>
+                                            {sessionDates}
+                                          </Text>
+                                        );
+                                      }
+                                      return null;
+                                    })()}
                                   </Box>
                                 </Group>
                                 <Text fw={700} size="lg" c="#880124" style={{ whiteSpace: 'nowrap' }}>
@@ -656,6 +694,7 @@ export const EventPaymentPage: React.FC = () => {
                   calculation={calculation}
                   selectedTickets={selectedTickets}
                   ticketPrices={ticketPrices}
+                  sessions={sessions}
                   detailed={true}
                 />
               </Box>

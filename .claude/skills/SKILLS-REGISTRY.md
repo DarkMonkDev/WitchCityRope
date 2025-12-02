@@ -2,7 +2,7 @@
 
 **Purpose**: Single source of truth for ALL available Skills and when to use them
 **Audience**: Agents, Orchestrator, Human Developers
-**Status**: 19 Skills Active (as of 2025-11-22)
+**Status**: 23 Skills Active (as of 2025-12-01)
 **Structure**: Each skill is now in `skill-name/SKILL.md` format (Claude Code compatible)
 
 ---
@@ -56,20 +56,30 @@ Automate documentation, tracking, and handoff tasks.
 
 ---
 
-### 🐳 Infrastructure Automation (7 Skills)
+### 🐳 Infrastructure Automation (9 Skills)
 
 Automate development environment and deployment tasks.
 
 | Skill | When to Use | Primary Users | Purpose |
 |-------|-------------|---------------|---------|
-| **restart-dev-containers** | BEFORE E2E tests (MANDATORY), after code changes, when containers unhealthy | test-executor, react-developer, backend-developer, orchestrator | Restart Docker dev containers correctly with compilation checks |
-| **test-environment** | Running isolated test suite (E2E, unit, integration), prevent test interference with dev work | test-executor, test-developer, orchestrator | Run all tests in isolated containers separate from dev environment with automatic cleanup |
+| **test-environment** | Running tests (E2E, unit, integration) - PREFERRED for all testing | test-executor, test-developer, orchestrator | Run all tests in isolated containers separate from dev environment with automatic cleanup |
+| **restart-test-containers** | Test containers unhealthy, need restart without running tests | test-executor, test-developer | Restart test containers only (no test execution) |
+| **restart-dev-containers** | Dev containers unhealthy, after code changes, NOT for testing | react-developer, backend-developer, orchestrator | Restart Docker dev containers with compilation checks |
 | **database-reset-dev** | Need fresh seed data, database corrupted, testing with clean slate (dev only) | test-developer, test-executor, react-developer, backend-developer | Delete all dev database data and restart API to trigger auto-seeding |
 | **database-reset-staging** | Schema changes requiring clean slate, migration conflicts (staging only) | git-manager, orchestrator | Full schema drop and rebuild for staging database |
+| **database-reset-production** | EXTREME CAUTION - deletes all production data, full schema drop | git-manager, orchestrator (requires explicit confirmation) | Full schema drop and rebuild for production database |
 | **staging-deploy** | After Phase 5 validation passes, when deploying features for testing | git-manager, orchestrator | Deploy to DigitalOcean staging environment |
+| **production-deploy** | After staging validation passes, when deploying to production | git-manager, orchestrator | Deploy to DigitalOcean production environment |
 | **registry-cleanup** | Weekly maintenance, high storage usage, after major deployment cycles | git-manager, orchestrator | Clean up old container images from DigitalOcean registries (staging: 10 tags, production: 30 tags) |
 
-**Integration**: test-executor can use either restart-dev-containers (dev containers) or test-environment (isolated test containers) before tests. test-environment preferred for complete isolation. Use database-reset-dev for clean test data. Orchestrator may auto-deploy after Phase 5. registry-cleanup recommended weekly.
+**Container Skill Decision Guide**:
+| Situation | Use This Skill |
+|-----------|----------------|
+| Running any tests (E2E, unit, integration) | `test-environment` (PREFERRED) |
+| Test containers unhealthy but don't need to run tests | `restart-test-containers` |
+| Dev containers unhealthy (NOT for testing) | `restart-dev-containers` |
+
+**Integration**: test-executor should use `test-environment` for all test execution (isolated containers). Use `restart-test-containers` only if test containers need restart without running tests. Use `restart-dev-containers` for development work only, NOT for testing. Orchestrator may auto-deploy after Phase 5. registry-cleanup recommended weekly.
 
 ---
 
@@ -633,7 +643,20 @@ This registry is **Tier 1** of the discovery system:
 
 ## Version History
 
-- **2025-11-27**: Added test-environment skill (20 skills total)
+- **2025-12-01**: Complete skill registry audit and correction
+  - Fixed total skill count from 20 to 23
+  - Added missing skills to Infrastructure Automation table:
+    - `database-reset-production` - Production database reset (EXTREME CAUTION)
+    - `production-deploy` - Production deployment to DigitalOcean
+  - Updated Infrastructure Automation section from 8 to 9 skills
+  - Fixed test-environment skill registration (SKILL.md with proper YAML frontmatter)
+  - Updated all agent definitions and lessons learned with all three container skills:
+    - `test-environment` (PREFERRED for running tests)
+    - `restart-test-containers` (restart test containers only)
+    - `restart-dev-containers` (restart dev containers, NOT for testing)
+  - Added Container Skill Decision Guide to help agents choose correct skill
+
+- **2025-11-27**: Added test-environment skill
   - Runs all tests (E2E, unit, integration) in isolated containers
   - Complete isolation from dev environment
   - Automatic cleanup of containers and images

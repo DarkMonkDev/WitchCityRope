@@ -161,7 +161,7 @@ public class SessionDeletionTests : IDisposable
             Name = "Multi-Session Pass",
             Price = 50.00m,
             Available = 20,
-            SessionId = null, // Multi-session ticket type
+            // Multi-session ticket type - Sessions collection covers multiple sessions
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -386,7 +386,7 @@ public class SessionDeletionTests : IDisposable
         {
             Id = Guid.NewGuid(),
             EventId = _testEventId,
-            SessionId = sessionId,
+            // Single-session ticket - Sessions collection will link to specific session
             Name = "Session Ticket",
             Price = 25.00m,
             Available = 20,

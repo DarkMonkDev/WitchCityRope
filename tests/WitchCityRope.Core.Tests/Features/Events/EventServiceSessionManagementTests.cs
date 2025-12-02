@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Enums;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
@@ -24,6 +25,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     private readonly DatabaseTestFixture _fixture;
     private ApplicationDbContext _context = null!;
     private Mock<ILogger<EventService>> _mockLogger = null!;
+    private Mock<ITimeZoneService> _mockTimeZoneService = null!;
     private EventService _service = null!;
 
     public EventServiceSessionManagementTests(DatabaseTestFixture fixture)
@@ -37,7 +39,10 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
         await _fixture.ResetDatabaseAsync();
 
         _mockLogger = new Mock<ILogger<EventService>>();
-        _service = new EventService(_context, _mockLogger.Object);
+        _mockTimeZoneService = new Mock<ITimeZoneService>();
+        _mockTimeZoneService.Setup(x => x.GetEventTimeZoneAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TimeZoneInfo.FindSystemTimeZoneById("America/New_York"));
+        _service = new EventService(_context, _mockLogger.Object, _mockTimeZoneService.Object);
     }
 
     public async Task DisposeAsync()
@@ -480,12 +485,11 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
         // Verify in database
         var updatedEvent = await _context.Events
             .Include(e => e.TicketTypes)
-                .ThenInclude(tt => tt.Session)
+                .ThenInclude(tt => tt.Sessions)
             .FirstOrDefaultAsync(e => e.Id == testEvent.Id);
         var ticketType = updatedEvent!.TicketTypes.First();
-        ticketType.SessionId.Should().Be(session.Id);
-        ticketType.Session.Should().NotBeNull();
-        ticketType.Session!.SessionCode.Should().Be("S001");
+        ticketType.Sessions.Should().ContainSingle(s => s.Id == session.Id);
+        ticketType.Sessions.First().SessionCode.Should().Be("S001");
     }
 
     [Fact]

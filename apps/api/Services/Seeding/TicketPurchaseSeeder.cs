@@ -974,12 +974,12 @@ public class TicketPurchaseSeeder
                 if (shouldCheckIn)
                 {
                     // Determine which session to check in to:
-                    // - If ticket has specific SessionId, use that
-                    // - If ticket is multi-session (SessionId == null), use first session of event
+                    // - If ticket has specific session(s), use the first one
+                    // - If ticket is multi-session (no Sessions), use first session of event
                     Guid sessionId;
-                    if (ticketType.SessionId.HasValue)
+                    if (ticketType.Sessions.Any())
                     {
-                        sessionId = ticketType.SessionId.Value;
+                        sessionId = ticketType.Sessions.OrderBy(s => s.StartTime).First().Id;
                     }
                     else
                     {

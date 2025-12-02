@@ -36,7 +36,10 @@
 - [ ] **Read Test Creation Guide FIRST** - How to write tests
 - [ ] Review Test Catalog to avoid duplicating tests
 - [ ] Check Playwright Guide for E2E patterns
-- [ ] Verify Docker containers running (use container-restart skill)
+- [ ] Verify Docker containers running:
+  - For running tests: use `test-environment` skill (PREFERRED - isolated containers)
+  - For test container issues only: use `restart-test-containers` skill
+  - For dev container issues (when developing tests): use `restart-dev-containers` skill
 - [ ] Review Docker-Only Testing Standard for environment
 
 ## 🚨 IMPORTANT: This File Documents PROBLEMS ONLY
@@ -113,7 +116,9 @@ If you cannot read ANY part of these lessons learned:
 
 **Critical Rules**:
 - NEVER start local dev servers
-- ALWAYS verify Docker running (use container-restart skill)
+- ALWAYS verify Docker running:
+  - For test environment: Use `restart-test-containers` skill
+  - For dev environment: Use `restart-dev-containers` skill
 - ONLY use port 5173 (Docker)
 - Kill rogue processes: `./scripts/kill-local-dev-servers.sh`
 

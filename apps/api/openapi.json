@@ -8095,6 +8095,134 @@
         }
       }
     },
+    "/api/email-templates/{id}/trigger-config": {
+      "put": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Update trigger configuration for a global template",
+        "description": "Updates trigger configuration (type, enabled, timing, recipient group). Events category only. Admin access required.",
+        "operationId": "UpdateTriggerConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTriggerConfigRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalEmailTemplateDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/email-templates/time-based": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get all time-based templates",
+        "description": "Returns all enabled time-based templates for EmailSchedulerJob. Admin access required.",
+        "operationId": "GetTimeBasedTemplates",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GlobalEmailTemplateDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/email-templates/events/{eventId}": {
       "get": {
         "tags": [
@@ -8626,6 +8754,229 @@
                   "items": {
                     "$ref": "#/components/schemas/UserPreviewDto"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/email-templates/ad-hoc/templates": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get all saved ad-hoc templates",
+        "description": "Returns all saved ad-hoc email templates for reuse. Admin access required.",
+        "operationId": "GetAdHocTemplates",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdHocEmailTemplateDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Save an ad-hoc email as a template",
+        "description": "Saves an ad-hoc email as a reusable template. Admin access required.",
+        "operationId": "SaveAsTemplate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAsTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdHocEmailTemplateDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/email-templates/ad-hoc/templates/{id}": {
+      "delete": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Delete a saved ad-hoc template",
+        "description": "Deletes a saved ad-hoc email template. Admin access required.",
+        "operationId": "DeleteAdHocTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/email-templates/ad-hoc/schedule": {
+      "post": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Schedule an ad-hoc email for future delivery",
+        "description": "Schedules an ad-hoc email for future delivery via EmailSchedulerJob. Admin access required.",
+        "operationId": "ScheduleAdHocEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleAdHocEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SentAdHocEmailDto"
                 }
               }
             }
@@ -9976,6 +10327,38 @@
           "tags": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "AdHocEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateName": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByEmail": {
+            "type": "string"
           }
         }
       },
@@ -14092,6 +14475,74 @@
           }
         }
       },
+      "SaveAsTemplateRequest": {
+        "required": [
+          "templateName",
+          "subject",
+          "htmlBody",
+          "plainTextBody"
+        ],
+        "type": "object",
+        "properties": {
+          "templateName": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "subject": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          }
+        }
+      },
+      "ScheduleAdHocEmailRequest": {
+        "required": [
+          "subject",
+          "htmlBody",
+          "plainTextBody",
+          "scheduledSendAt"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "segment": {
+            "$ref": "#/components/schemas/NullableOfUserSegment"
+          },
+          "recipientEmails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "recipientGroup": {
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "scheduledSendAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "SendAdHocEmailRequest": {
         "required": [
           "subject",
@@ -15059,6 +15510,31 @@
           "metadata": {
             "type": "object",
             "nullable": true
+          }
+        }
+      },
+      "UpdateTriggerConfigRequest": {
+        "required": [
+          "triggerType",
+          "triggerEnabled"
+        ],
+        "type": "object",
+        "properties": {
+          "triggerType": {
+            "$ref": "#/components/schemas/TemplateTriggerType"
+          },
+          "triggerEnabled": {
+            "type": "boolean"
+          },
+          "timingOffsetDays": {
+            "maximum": 365,
+            "minimum": -365,
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "recipientGroup": {
+            "$ref": "#/components/schemas/NullableOfEventRecipientGroup"
           }
         }
       },

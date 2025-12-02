@@ -153,15 +153,18 @@ public class TicketTypeDto
                 .Count();
         }
 
-        // Determine session identifiers based on the session relationship
-        if (ticketType.Session != null)
+        // Determine session identifiers based on the session relationship (many-to-many)
+        if (ticketType.Sessions != null && ticketType.Sessions.Any())
         {
-            // Single-session ticket
-            SessionIdentifiers = new List<string> { ticketType.Session.SessionCode };
+            // Ticket includes specific session(s)
+            SessionIdentifiers = ticketType.Sessions
+                .OrderBy(s => s.StartTime)
+                .Select(s => s.SessionCode)
+                .ToList();
         }
         else if (ticketType.Event?.Sessions != null && ticketType.Event.Sessions.Any())
         {
-            // Multi-session ticket - includes all sessions from the event
+            // Ticket has no specific sessions - includes all sessions from the event
             SessionIdentifiers = ticketType.Event.Sessions
                 .OrderBy(s => s.StartTime)
                 .Select(s => s.SessionCode)

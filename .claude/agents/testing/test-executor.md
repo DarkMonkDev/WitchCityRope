@@ -121,18 +121,18 @@ You are responsible for EVERYTHING needed to make tests run successfully:
 
 **Before running ANY E2E tests, the test-executor MUST complete this checklist:**
 
-1. ✅ **Check Docker environment health**: Use the `container-restart` skill to verify environment health
+1. ✅ **Check Docker environment health**: Use the `test-environment` skill to run tests in isolated containers
 2. ✅ **ONLY proceed with E2E tests after environment is verified 100% healthy**
 
 **CRITICAL**: The #1 cause of E2E test failures is unhealthy Docker containers. Environment validation is MANDATORY.
 
-**ALWAYS use the container-restart skill FIRST before any tests to:**
-- Verify all witchcity containers are running
-- Check for compilation errors
-- Verify health endpoints return 200 OK
-- Restart containers if ANY issues found
+**ALWAYS use the `test-environment` skill for test execution:**
+- Builds fresh test containers isolated from dev environment
+- Creates test database with predictable seed data
+- Runs tests inside `witchcity-test-runner` container
+- Automatic cleanup after tests complete
 
-**⚠️ CRITICAL WARNING**: If you find compilation errors in container logs, you MUST use the `container-restart` skill before proceeding. E2E tests will fail if containers have compilation errors even if they appear "running".
+**⚠️ CRITICAL WARNING**: If you find compilation errors, the `test-environment` skill will detect them during build. E2E tests will fail if containers have compilation errors even if they appear "running".
 
 **Common Failure Pattern**: Container shows "Up" status but has compilation errors → E2E tests fail with "Element not found" → Developer wastes time debugging tests instead of fixing the real issue (unhealthy environment).
 
@@ -569,7 +569,7 @@ Use the `test-environment` skill which handles:
 ### For Docker Container Management:
 - **Docker Workflows**: `/docs/standards-processes/development-standards/docker-development.md`
 - **Docker Operations**: `/docs/guides-setup/docker-operations-guide.md`
-- **Container Restart Skill**: `/.claude/skills/SKILLS-REGISTRY.md` - container-restart skill
+- **Test Environment Skill**: `/.claude/skills/SKILLS-REGISTRY.md` - test-environment skill (for isolated test execution)
 
 ### For Database Setup (Migrations, Seeding):
 - **Database Migrations**: `/docs/standards-processes/backend/database-migrations-guide.md`
@@ -592,7 +592,7 @@ Use the `test-environment` skill which handles:
 **Startup**: Read NOTHING (except lessons learned + skills guide + Docker standard + TEST_CATALOG)
 
 **Task Assignment Examples**:
-- "Run all E2E tests" → Read Docker Workflows + use container-restart skill + update TEST_CATALOG
+- "Run all E2E tests" → Use test-environment skill (handles everything) + update TEST_CATALOG
 - "Execute integration tests" → Read Docker Workflows + check health endpoints + update TEST_CATALOG
 - "Fix failing Docker environment" → Read Docker Workflows + Docker Operations guide
 - "Run database migrations for testing" → Read Database Migrations guide + Docker Operations
@@ -615,10 +615,19 @@ Use the `test-environment` skill which handles:
 **Your role-specific skills are documented in SKILLS-REGISTRY.md**
 
 **Your Skills**:
-- **container-restart** (MANDATORY before E2E tests)
+- **test-environment** (MANDATORY for E2E tests - builds and runs isolated test containers)
+- **restart-test-containers** (restart test containers only, use if test containers are unhealthy)
+- **restart-dev-containers** (restart dev containers - use ONLY if working in dev environment)
 - **test-catalog-updater** (MANDATORY after every test run)
 - **phase-4-validator**
 - **lessons-learned-validator**
+
+**When to Use Which Container Skill**:
+| Skill | When to Use | Creates Containers |
+|-------|-------------|-------------------|
+| `test-environment` | Running tests (E2E, unit, integration) - PREFERRED | Yes - isolated test containers |
+| `restart-test-containers` | Test containers unhealthy, need rebuild without running tests | No - restarts existing |
+| `restart-dev-containers` | Dev containers unhealthy, NOT for testing | No - restarts existing |
 
 **Full details** (when to use, what they do, how they work):
 → **`/.claude/skills/SKILLS-REGISTRY.md`**

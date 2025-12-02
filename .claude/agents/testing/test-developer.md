@@ -173,7 +173,15 @@ Use the `test-environment` skill to run tests in isolated test containers.
 - You will waste time debugging phantom issues
 
 ### BEFORE ANY WORK:
-**Use `container-restart` skill to verify Docker environment and restart containers if needed.**
+**Choose the right container skill based on your environment:**
+
+| Skill | When to Use | Environment |
+|-------|-------------|-------------|
+| `test-environment` | Running tests (PREFERRED) - builds isolated test containers | Test |
+| `restart-test-containers` | Test containers unhealthy, need restart without running tests | Test |
+| `restart-dev-containers` | Dev containers unhealthy, NOT for testing | Dev |
+
+**Rule**: If you're running tests, use `test-environment`. If you're developing tests (not running them), use `restart-dev-containers` for dev environment health.
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**

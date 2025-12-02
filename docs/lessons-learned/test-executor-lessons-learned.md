@@ -36,7 +36,10 @@
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Test Execution Guide FIRST** - How to run tests
-- [ ] Verify Docker containers running (use container-restart skill)
+- [ ] Verify Docker containers running:
+  - For running tests: use `test-environment` skill (PREFERRED - isolated containers)
+  - For test container issues only: use `restart-test-containers` skill
+  - For dev container issues only: use `restart-dev-containers` skill
 - [ ] Check correct ports: API=5655, Web=5173, DB=5433
 - [ ] Review Current Test Status for known failures
 - [ ] Check Test Catalog for test locations
@@ -121,7 +124,9 @@ This lessons learned file contains ONLY:
 
 **Emergency Procedure**:
 1. Kill rogue processes: `./scripts/kill-local-dev-servers.sh`
-2. Verify Docker: Use `container-restart` skill
+2. Verify Docker containers:
+   - For test environment: Use `restart-test-containers` skill
+   - For dev environment: Use `restart-dev-containers` skill
 3. Confirm ports: `docker ps --format "table {{.Names}}\t{{.Ports}}"`
 
 ---
@@ -193,7 +198,9 @@ This lessons learned file contains ONLY:
 2. Check disk space: `df -h`
 3. Check logs: `docker logs [container]`
 4. Nuclear option: `docker system prune -a --volumes`
-5. Use `container-restart` skill
+5. Restart containers:
+   - For test environment: Use `restart-test-containers` skill
+   - For dev environment: Use `restart-dev-containers` skill
 
 ---
 

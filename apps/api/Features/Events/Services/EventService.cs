@@ -57,7 +57,7 @@ public class EventService : IEventService
                 .AsNoTracking() // Read-only for better performance
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
-                    .ThenInclude(tt => tt.Session)
+                    .ThenInclude(tt => tt.Sessions)
                 .Include(e => e.TicketTypes)
                     .ThenInclude(tt => tt.Purchases) // Include purchases for dynamic QuantitySold calculation
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
@@ -66,7 +66,8 @@ public class EventService : IEventService
                 .Include(e => e.Venue) // Load venue for location name
                 .Include(e => e.EventAttendances) // Load all attendances for the event
                     .ThenInclude(ea => ea.TicketPurchase) // CRITICAL: Load TicketPurchase for sold count calculation
-                        .ThenInclude(tp => tp.TicketType); // CRITICAL: Load TicketType for session matching
+                        .ThenInclude(tp => tp.TicketType) // CRITICAL: Load TicketType for session matching
+                            .ThenInclude(tt => tt.Sessions); // CRITICAL: Load Sessions collection for Session.CurrentAttendees calculation (Session.cs lines 73-86)
 
             // Apply filters based on admin vs public access
             if (includeUnpublished)
@@ -166,7 +167,7 @@ public class EventService : IEventService
                 .AsNoTracking()
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
-                    .ThenInclude(tt => tt.Session)
+                    .ThenInclude(tt => tt.Sessions)
                 .Include(e => e.TicketTypes)
                     .ThenInclude(tt => tt.Purchases)
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
@@ -176,6 +177,7 @@ public class EventService : IEventService
                 .Include(e => e.EventAttendances) // Load all attendances for the event
                     .ThenInclude(ea => ea.TicketPurchase) // CRITICAL: Load TicketPurchase for sold count calculation
                         .ThenInclude(tp => tp.TicketType) // CRITICAL: Load TicketType for session matching
+                            .ThenInclude(tt => tt.Sessions) // CRITICAL: Load Sessions collection for Session.CurrentAttendees calculation (Session.cs lines 73-86)
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
             if (eventEntity == null)
@@ -194,12 +196,11 @@ public class EventService : IEventService
             foreach (var session in eventEntity.Sessions)
             {
                 // Count completed ticket purchases for this session
-                // For single-session tickets: TicketType.SessionId == session.Id
-                // For multi-session tickets: Would need additional logic (not implemented yet)
+                // For tickets that include this session (via Sessions collection)
                 // CRITICAL: Exclude cancelled/refunded tickets by checking EventAttendance.Status
                 // Only count Active attendances (status = 1), exclude Cancelled (2), Refunded (3), Waitlisted (4)
                 var ticketsSold = eventEntity.TicketTypes
-                    .Where(tt => tt.SessionId == session.Id)
+                    .Where(tt => tt.Sessions.Any(s => s.Id == session.Id))
                     .SelectMany(tt => tt.Purchases)
                     .Where(p =>
                         p.IsPaymentCompleted &&
@@ -306,12 +307,12 @@ public class EventService : IEventService
                 return (false, null, "Event not found");
             }
 
-            // Business rule: Cannot update past events
-            if (eventEntity.StartDate <= DateTime.UtcNow)
+            // Business rule: Cannot update events that started more than 48 hours ago (grace period for corrections)
+            if (eventEntity.StartDate <= DateTime.UtcNow.AddHours(-48))
             {
-                _logger.LogWarning("Attempted to update past event: {EventId} (StartDate: {StartDate})",
+                _logger.LogWarning("Attempted to update past event outside grace period: {EventId} (StartDate: {StartDate}, Grace Period: 48 hours)",
                     eventId, eventEntity.StartDate);
-                return (false, null, "Cannot update past events");
+                return (false, null, "Cannot update events that started more than 48 hours ago");
             }
 
             // Validate capacity changes
@@ -795,16 +796,17 @@ public class EventService : IEventService
                     existingTicketType.DefaultPrice = ticketTypeDto.DefaultPrice;
                 }
 
-                // Update session linkage
-                if (ticketTypeDto.SessionIdentifiers.Count == 1)
+                // Update session linkage (many-to-many relationship)
+                existingTicketType.Sessions.Clear();
+                if (ticketTypeDto.SessionIdentifiers.Any())
                 {
-                    var sessionCode = ticketTypeDto.SessionIdentifiers.First();
-                    var linkedSession = eventEntity.Sessions.FirstOrDefault(s => s.SessionCode == sessionCode);
-                    existingTicketType.SessionId = linkedSession?.Id;
-                }
-                else
-                {
-                    existingTicketType.SessionId = null;
+                    var linkedSessions = eventEntity.Sessions
+                        .Where(s => ticketTypeDto.SessionIdentifiers.Contains(s.SessionCode))
+                        .ToList();
+                    foreach (var session in linkedSessions)
+                    {
+                        existingTicketType.Sessions.Add(session);
+                    }
                 }
 
                 processedTicketTypeIds.Add(ticketTypeId);
@@ -842,14 +844,16 @@ public class EventService : IEventService
                 // Let Entity Framework generate the ID for new ticket types
                 // The ID from frontend is just a temporary client-side ID
 
-                // If this ticket type is for a specific session, find and link it
-                if (ticketTypeDto.SessionIdentifiers.Count == 1)
+                // Link sessions (many-to-many relationship)
+                newTicketType.Sessions = new List<WitchCityRope.Api.Models.Session>();
+                if (ticketTypeDto.SessionIdentifiers.Any())
                 {
-                    var sessionCode = ticketTypeDto.SessionIdentifiers.First();
-                    var linkedSession = eventEntity.Sessions.FirstOrDefault(s => s.SessionCode == sessionCode);
-                    if (linkedSession != null)
+                    var linkedSessions = eventEntity.Sessions
+                        .Where(s => ticketTypeDto.SessionIdentifiers.Contains(s.SessionCode))
+                        .ToList();
+                    foreach (var session in linkedSessions)
                     {
-                        newTicketType.SessionId = linkedSession.Id;
+                        newTicketType.Sessions.Add(session);
                     }
                 }
 
@@ -1137,7 +1141,7 @@ public class EventService : IEventService
                 // Recalculate StartDate based on copied session times
                 RecalculateEventStartDate(copiedEvent);
 
-                // 7. Deep copy TicketTypes with SessionId remapping
+                // 7. Deep copy TicketTypes with Sessions remapping (many-to-many)
                 foreach (var sourceTicket in sourceEvent.TicketTypes)
                 {
                     var copiedTicket = new TicketType
@@ -1145,10 +1149,10 @@ public class EventService : IEventService
                         Id = Guid.NewGuid(),
                         EventId = copiedEvent.Id,
 
-                        // REMAP SessionId to new session (if session-specific)
-                        SessionId = sourceTicket.SessionId.HasValue
-                            ? sessionIdMap[sourceTicket.SessionId.Value]
-                            : null,
+                        // REMAP Sessions to new sessions (many-to-many relationship)
+                        Sessions = sourceTicket.Sessions
+                            .Select(s => copiedEvent.Sessions.First(cs => cs.SessionCode == s.SessionCode))
+                            .ToList(),
 
                         // COPY properties
                         Name = sourceTicket.Name,
@@ -1445,13 +1449,13 @@ public class EventService : IEventService
                         }
 
                         // Link to session if specified
-                        if (ticketTypeDto.SessionIdentifiers.Count == 1)
+                        // Link sessions to ticket type (many-to-many)
+                        foreach (var sessionCode in ticketTypeDto.SessionIdentifiers)
                         {
-                            var sessionCode = ticketTypeDto.SessionIdentifiers.First();
                             var linkedSession = newEvent.Sessions.FirstOrDefault(s => s.SessionCode == sessionCode);
                             if (linkedSession != null)
                             {
-                                newTicketType.SessionId = linkedSession.Id;
+                                newTicketType.Sessions.Add(linkedSession);
                             }
                         }
 
@@ -1536,7 +1540,7 @@ public class EventService : IEventService
                 var createdEventWithNav = await _context.Events
                     .Include(e => e.Sessions)
                     .Include(e => e.TicketTypes)
-                        .ThenInclude(tt => tt.Session)
+                        .ThenInclude(tt => tt.Sessions)
                     .Include(e => e.VolunteerPositions)
                     .Include(e => e.Organizers)
                     .Include(e => e.Venue)
@@ -1655,7 +1659,7 @@ public class EventService : IEventService
                           && ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
                           && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.Ticket
                           && ea.TicketPurchase != null
-                          && ea.TicketPurchase.TicketType.SessionId == parsedSessionId)
+                          && ea.TicketPurchase.TicketType.Sessions.Any(s => s.Id == parsedSessionId))
                 .CountAsync(cancellationToken);
 
             if (ticketsSold > 0)
@@ -1671,14 +1675,15 @@ public class EventService : IEventService
                 }, string.Empty);
             }
 
-            // Check for multi-session ticket types (SessionId = null) with sales
-            // If any multi-session ticket has sales, block deletion of any session
+            // Check for multi-session ticket types that include this session with sales
+            // If any ticket type includes this session and has sales, block deletion
             var multiSessionTicketTypes = await _context.TicketTypes
                 .AsNoTracking()
+                .Include(tt => tt.Sessions)
                 .Include(tt => tt.Event)
                     .ThenInclude(e => e.EventAttendances)
                         .ThenInclude(ea => ea.TicketPurchase)
-                .Where(tt => tt.EventId == parsedEventId && tt.SessionId == null)
+                .Where(tt => tt.EventId == parsedEventId && tt.Sessions.Count > 1 && tt.Sessions.Any(s => s.Id == parsedSessionId))
                 .ToListAsync(cancellationToken);
 
             var affectedTicketTypeDtos = new List<AffectedTicketTypeDto>();
@@ -1715,10 +1720,11 @@ public class EventService : IEventService
             // Find single-session ticket types that reference this session
             var singleSessionTicketTypes = await _context.TicketTypes
                 .AsNoTracking()
+                .Include(tt => tt.Sessions)
                 .Include(tt => tt.Event)
                     .ThenInclude(e => e.EventAttendances)
                         .ThenInclude(ea => ea.TicketPurchase)
-                .Where(tt => tt.SessionId == parsedSessionId)
+                .Where(tt => tt.Sessions.Count == 1 && tt.Sessions.Any(s => s.Id == parsedSessionId))
                 .ToListAsync(cancellationToken);
 
             foreach (var ticketType in singleSessionTicketTypes)
@@ -1847,7 +1853,8 @@ public class EventService : IEventService
 
             // Delete single-session ticket types that reference only this session
             var ticketTypesToDelete = await _context.TicketTypes
-                .Where(tt => tt.SessionId == parsedSessionId)
+                .Include(tt => tt.Sessions)
+                .Where(tt => tt.Sessions.Count == 1 && tt.Sessions.Any(s => s.Id == parsedSessionId))
                 .ToListAsync(cancellationToken);
 
             var deletedTicketTypeNames = ticketTypesToDelete.Select(tt => tt.Name).ToList();

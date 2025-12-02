@@ -433,3 +433,20 @@ export const calculateEventPriceRange = (ticketTypes: any[]): string => {
   // Show price range
   return `$${minPrice.toFixed(0)} - $${maxPrice.toFixed(0)}`;
 };
+
+/**
+ * Format abbreviated date for compact display
+ * Example: "Sun, Dec 1" or "Sat, Dec 7"
+ * @param isoDate - ISO date string
+ * @param timezone - IANA timezone (defaults to America/New_York)
+ * @returns Abbreviated date string (e.g., "Sun, Dec 1")
+ */
+export const formatAbbreviatedDate = (isoDate: string, timezone: string = 'America/New_York'): string => {
+  const date = new Date(isoDate);
+  return date.toLocaleDateString('en-US', {
+    timeZone: timezone,
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
+};

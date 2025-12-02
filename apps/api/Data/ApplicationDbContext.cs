@@ -605,17 +605,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .HasForeignKey(t => t.EventId)
                   .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(t => t.Session)
+            // Many-to-many relationship with Sessions
+            entity.HasMany(t => t.Sessions)
                   .WithMany(s => s.TicketTypes)
-                  .HasForeignKey(t => t.SessionId)
-                  .OnDelete(DeleteBehavior.SetNull);
+                  .UsingEntity<Dictionary<string, object>>(
+                      "TicketTypeSessions",
+                      j => j.HasOne<Session>().WithMany().HasForeignKey("SessionId").OnDelete(DeleteBehavior.Cascade),
+                      j => j.HasOne<TicketType>().WithMany().HasForeignKey("TicketTypeId").OnDelete(DeleteBehavior.Cascade),
+                      j =>
+                      {
+                          j.HasKey("TicketTypeId", "SessionId");
+                          j.ToTable("TicketTypeSessions");
+                      });
 
             // Indexes
             entity.HasIndex(t => t.EventId)
                   .HasDatabaseName("IX_TicketTypes_EventId");
-
-            entity.HasIndex(t => t.SessionId)
-                  .HasDatabaseName("IX_TicketTypes_SessionId");
         });
 
         // TicketPurchase entity configuration

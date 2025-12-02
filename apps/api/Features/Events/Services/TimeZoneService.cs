@@ -195,9 +195,10 @@ public class TimeZoneService : ITimeZoneService
     /// <summary>
     /// Get the reference session for a ticket type
     /// Used for session-based timing calculations
-    /// Current architecture: TicketType.SessionId is nullable
-    ///   - null = ticket applies to all sessions (use earliest future session)
-    ///   - value = ticket applies to specific session (use that session if future)
+    /// Current architecture: TicketType.Sessions is a many-to-many collection
+    ///   - empty = ticket applies to all event sessions (use earliest session)
+    ///   - one session = ticket applies to that specific session
+    ///   - multiple sessions = ticket applies to those sessions (use earliest)
     /// </summary>
     /// <param name="ticketType">The ticket type to get reference session for</param>
     /// <param name="allSessions">All sessions from the event</param>
@@ -206,7 +207,7 @@ public class TimeZoneService : ITimeZoneService
         WitchCityRope.Api.Models.TicketType ticketType,
         IEnumerable<WitchCityRope.Api.Models.Session> allSessions)
     {
-        if (!ticketType.SessionId.HasValue)
+        if (!ticketType.Sessions.Any())
         {
             // Multi-session ticket (applies to all sessions) - use EARLIEST session overall
             // Timing is based on the earliest session, regardless of whether it's past or future
@@ -214,11 +215,12 @@ public class TimeZoneService : ITimeZoneService
             return GetEarliestSession(allSessions);
         }
 
-        // Ticket applies to specific session - return that session (timing check happens later)
-        var specificSession = allSessions
-            .FirstOrDefault(s => s.Id == ticketType.SessionId.Value);
+        // Ticket applies to specific session(s) - use earliest session from ticket's sessions
+        var earliestTicketSession = ticketType.Sessions
+            .OrderBy(s => s.StartTime)
+            .FirstOrDefault();
 
-        return specificSession; // Let IsActionAllowedForSession determine if timing window is still open
+        return earliestTicketSession; // Let IsActionAllowedForSession determine if timing window is still open
     }
 
     /// <summary>

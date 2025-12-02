@@ -106,7 +106,7 @@ dotnet user-secrets list | grep DigitalOcean
 
 | Pool | Port | Size | Mode | Database | User |
 |------|------|------|------|----------|------|
-| pgbouncer-staging | 25061 | 10 | transaction | witchcityrope_staging | doadmin |
+| pgbouncer-staging | 25061 | 10 | transaction | witchcityrope_staging | witchcity_staging |
 | pgbouncer-production | 25061 | 12 | transaction | witchcityrope_production | witchcity_production |
 
 **Port Reference**:

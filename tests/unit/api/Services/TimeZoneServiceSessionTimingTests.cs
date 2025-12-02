@@ -40,12 +40,12 @@ public class TimeZoneServiceSessionTimingTests
     [Fact]
     public void GetReferenceSessionForTicketType_MultiSessionTicket_ReturnsFirstFutureSession()
     {
-        // Arrange: Ticket with SessionId = null (applies to all sessions)
+        // Arrange: Ticket that covers multiple sessions (via Sessions collection)
         var ticketType = new TicketType
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
-            SessionId = null, // Multi-session ticket
+            // Multi-session ticket - Sessions collection will be populated below
             Name = "All Access Pass",
             Available = 10
         };
@@ -91,7 +91,7 @@ public class TimeZoneServiceSessionTimingTests
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
-            SessionId = null,
+            // Multi-session ticket - Sessions collection will be populated below
             Name = "Past Event Pass",
             Available = 10
         };
@@ -130,7 +130,7 @@ public class TimeZoneServiceSessionTimingTests
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
-            SessionId = sessionId, // Single-session ticket
+            // Single-session ticket - Sessions collection will contain one session
             Name = "Session 2 Ticket",
             Available = 10
         };
@@ -171,7 +171,7 @@ public class TimeZoneServiceSessionTimingTests
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
-            SessionId = sessionId,
+            // Single-session ticket - Sessions collection will contain one session
             Name = "Past Session Ticket",
             Available = 10
         };

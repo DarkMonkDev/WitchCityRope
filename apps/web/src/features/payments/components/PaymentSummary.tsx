@@ -16,8 +16,10 @@ import { IconCalendar, IconMapPin, IconUser, IconClock } from '@tabler/icons-rea
 import type { PaymentEventInfo, SlidingScaleCalculation } from '../types/payment.types';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
+import { formatAbbreviatedDate } from '../../../utils/eventUtils';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
+type SessionDto = components["schemas"]["SessionDto"];
 
 interface PaymentSummaryProps {
   /** Event information */
@@ -28,6 +30,8 @@ interface PaymentSummaryProps {
   selectedTickets?: TicketTypeDto[];
   /** Prices for each selected ticket (ticketId -> price) */
   ticketPrices?: Record<string, number>;
+  /** Event sessions for showing dates */
+  sessions?: SessionDto[];
   /** Processing fees (if any) */
   processingFee?: number;
   /** Whether to show detailed breakdown */
@@ -44,6 +48,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
   calculation,
   selectedTickets = [],
   ticketPrices = {},
+  sessions = [],
   processingFee = 0,
   detailed = true,
   title = "Order Summary"
@@ -84,12 +89,36 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     }).format(amount);
   };
 
+  /**
+   * Get formatted session dates for a ticket
+   */
+  const getTicketSessionDates = (ticket: TicketTypeDto): string => {
+    if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
+      return '';
+    }
+
+    const matchingSessions = sessions.filter(session =>
+      ticket.sessionIdentifiers?.includes(session.sessionIdentifier || '')
+    );
+
+    if (matchingSessions.length === 0) {
+      return '';
+    }
+
+    const formattedDates = matchingSessions
+      .filter(session => session.date)
+      .map(session => formatAbbreviatedDate(session.date!, eventTimeZone))
+      .join(', ');
+
+    return formattedDates;
+  };
+
   return (
-    <Paper 
-      radius="md" 
-      p="lg" 
+    <Paper
+      radius="md"
+      p="lg"
       withBorder
-      style={{ 
+      style={{
         backgroundColor: '#FAF6F2',
         border: '1px solid #D4A5A5'
       }}
@@ -151,13 +180,23 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             {/* Individual Ticket Line Items */}
             {selectedTickets.map((ticket) => {
               const price = ticketPrices[ticket.id || ''] || 0;
+              const sessionDates = getTicketSessionDates(ticket);
               return (
-                <Group key={ticket.id} justify="space-between" align="center">
-                  <Text size="sm">{ticket.name}:</Text>
-                  <Text size="sm">
-                    {formatCurrency(price)}
-                  </Text>
-                </Group>
+                <Box key={ticket.id}>
+                  <Group justify="space-between" align="flex-start">
+                    <Box style={{ flex: 1 }}>
+                      <Text size="sm">{ticket.name}</Text>
+                      {sessionDates && (
+                        <Text size="xs" c="dimmed" mt={2}>
+                          {sessionDates}
+                        </Text>
+                      )}
+                    </Box>
+                    <Text size="sm" style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>
+                      {formatCurrency(price)}
+                    </Text>
+                  </Group>
+                </Box>
               );
             })}
 

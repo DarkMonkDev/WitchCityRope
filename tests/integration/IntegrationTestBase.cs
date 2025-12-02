@@ -5,6 +5,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,6 +43,17 @@ namespace WitchCityRope.IntegrationTests
         protected const string JwtIssuer = "WitchCityRope-API";
         protected const string JwtAudience = "WitchCityRope-Services";
         protected const int JwtExpirationMinutes = 60;
+
+        /// <summary>
+        /// JSON serializer options matching API configuration.
+        /// CRITICAL: API uses JsonStringEnumConverter, tests must use same options for deserialization.
+        /// </summary>
+        protected static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() }
+        };
 
         protected IntegrationTestBase(DatabaseTestFixture fixture)
         {

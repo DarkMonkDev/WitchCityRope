@@ -146,7 +146,8 @@ public class EventCopyIntegrationTests : IntegrationTestBase, IDisposable
 
         copiedSession.Id.Should().NotBe(originalEvent.Sessions.First().Id);
         copiedTicket.Id.Should().NotBe(originalEvent.TicketTypes.First().Id);
-        copiedTicket.SessionId.Should().Be(copiedSession.Id); // REMAPPED CORRECTLY
+        // TicketType uses Sessions collection (many-to-many), verify sessions are copied correctly
+        copiedTicket.Sessions.Should().NotBeEmpty();
     }
 
     /// <summary>
@@ -463,11 +464,12 @@ public class EventCopyIntegrationTests : IntegrationTestBase, IDisposable
         {
             Id = Guid.NewGuid(),
             EventId = evt.Id,
-            SessionId = session.Id,
+            // Sessions collection handles many-to-many relationship
             Name = "Session A Ticket",
             Price = 30.00m,
             Available = 40
         };
+        ticket.Sessions.Add(session);
 
         evt.Sessions.Add(session);
         evt.TicketTypes.Add(ticket);

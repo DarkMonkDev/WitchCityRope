@@ -112,7 +112,7 @@ public class SentAdHocEmailConfiguration : IEntityTypeConfiguration<SentAdHocEma
 
         builder.HasCheckConstraint(
             "CHK_SentAdHocEmails_DeliveryStatus",
-            "\"DeliveryStatus\" IN ('Pending', 'Sent', 'Delivered', 'Failed', 'Bounced')"
+            "\"DeliveryStatus\" IN ('Pending', 'Scheduled', 'Sent', 'Delivered', 'Failed', 'Bounced')"
         );
     }
 }

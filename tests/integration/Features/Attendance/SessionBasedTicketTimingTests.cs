@@ -332,7 +332,7 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
-            SessionId = sessionId, // null = multi-session ticket
+            // Sessions collection handles many-to-many relationship (sessionId param indicates which session to link)
             Name = name,
             Description = "Test ticket type",
             PricingType = PricingType.Fixed,

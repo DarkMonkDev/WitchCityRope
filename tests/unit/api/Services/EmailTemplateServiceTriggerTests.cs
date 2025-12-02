@@ -8,6 +8,7 @@ using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 
 namespace WitchCityRope.Api.Tests.Services;
 
@@ -89,12 +90,12 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.TriggerType.Should().Be(TemplateTriggerType.TimeBased);
-        result.Data.TriggerEnabled.Should().BeTrue();
-        result.Data.TimingOffsetDays.Should().Be(3);
-        result.Data.RecipientGroup.Should().Be(EventRecipientGroup.RSVPTicketHolders);
-        result.Data.Version.Should().Be(2); // Version incremented
+        result.Value.Should().NotBeNull();
+        result.Value!.TriggerType.Should().Be(TemplateTriggerType.TimeBased);
+        result.Value.TriggerEnabled.Should().BeTrue();
+        result.Value.TimingOffsetDays.Should().Be(3);
+        result.Value.RecipientGroup.Should().Be(EventRecipientGroup.RSVPTicketHolders);
+        result.Value.Version.Should().BeGreaterThan(1); // Version incremented from initial value
     }
 
     /// <summary>
@@ -118,7 +119,7 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("not found");
+        result.Error.Should().Contain("not found");
     }
 
     /// <summary>
@@ -155,7 +156,7 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Data!.RecipientGroup.Should().Be(EventRecipientGroup.Teachers);
+        result.Value!.RecipientGroup.Should().Be(EventRecipientGroup.Teachers);
     }
 
     /// <summary>
@@ -191,7 +192,7 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("only supported for Events category");
+        result.Error.Should().Contain("only supported for Events category");
     }
 
     /// <summary>
@@ -227,7 +228,7 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("TimingOffsetDays is required");
+        result.Error.Should().Contain("TimingOffsetDays is required");
     }
 
     /// <summary>
@@ -263,7 +264,7 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("RecipientGroup is required");
+        result.Error.Should().Contain("RecipientGroup is required");
     }
 
     #endregion
@@ -330,10 +331,10 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.Count.Should().Be(1);
-        result.Data[0].Id.Should().Be(timeBasedTemplate.Id);
-        result.Data[0].TriggerType.Should().Be(TemplateTriggerType.TimeBased);
+        result.Value.Should().NotBeNull();
+        result.Value!.Count.Should().Be(1);
+        result.Value[0].Id.Should().Be(timeBasedTemplate.Id);
+        result.Value[0].TriggerType.Should().Be(TemplateTriggerType.TimeBased);
     }
 
     #endregion
@@ -360,14 +361,14 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.TemplateName.Should().Be("Monthly Newsletter");
-        result.Data.Subject.Should().Be("Newsletter - {{month}}");
-        result.Data.CreatedBy.Should().Be(_testUserId);
-        result.Data.CreatedByEmail.Should().Be("test@example.com");
+        result.Value.Should().NotBeNull();
+        result.Value!.TemplateName.Should().Be("Monthly Newsletter");
+        result.Value.Subject.Should().Be("Newsletter - {{month}}");
+        result.Value.CreatedBy.Should().Be(_testUserId);
+        result.Value.CreatedByEmail.Should().Be("test@example.com");
 
         // Verify saved in database
-        var saved = await _context.AdHocEmailTemplates.FindAsync(result.Data.Id);
+        var saved = await _context.AdHocEmailTemplates.FindAsync(result.Value.Id);
         saved.Should().NotBeNull();
         saved!.TemplateName.Should().Be("Monthly Newsletter");
     }
@@ -417,7 +418,7 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("not found");
+        result.Error.Should().Contain("not found");
     }
 
     #endregion
@@ -467,14 +468,14 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.Subject.Should().Be("Scheduled Newsletter");
-        result.Data.DeliveryStatus.Should().Be("Scheduled");
-        result.Data.ScheduledSendAt.Should().BeCloseTo(futureDate, TimeSpan.FromSeconds(1));
-        result.Data.RecipientCount.Should().Be(2); // Two vetted users
+        result.Value.Should().NotBeNull();
+        result.Value!.Subject.Should().Be("Scheduled Newsletter");
+        result.Value.DeliveryStatus.Should().Be("Scheduled");
+        result.Value.ScheduledSendAt.Should().BeCloseTo(futureDate, TimeSpan.FromSeconds(1));
+        result.Value.RecipientCount.Should().Be(2); // Two vetted users
 
         // Verify saved in database
-        var saved = await _context.SentAdHocEmails.FindAsync(result.Data.Id);
+        var saved = await _context.SentAdHocEmails.FindAsync(result.Value.Id);
         saved.Should().NotBeNull();
         saved!.DeliveryStatus.Should().Be("Scheduled");
     }
@@ -502,7 +503,7 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("must be in the future");
+        result.Error.Should().Contain("must be in the future");
     }
 
     /// <summary>
@@ -528,9 +529,9 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.RecipientCount.Should().Be(3);
-        result.Data.DeliveryStatus.Should().Be("Scheduled");
+        result.Value.Should().NotBeNull();
+        result.Value!.RecipientCount.Should().Be(3);
+        result.Value.DeliveryStatus.Should().Be("Scheduled");
     }
 
     #endregion

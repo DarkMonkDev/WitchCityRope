@@ -23,11 +23,6 @@ public class TicketType
     public Guid EventId { get; set; }
 
     /// <summary>
-    /// Reference to specific session (null for multi-session tickets)
-    /// </summary>
-    public Guid? SessionId { get; set; }
-
-    /// <summary>
     /// Ticket type name (e.g., "Early Bird", "Regular", "Day 1", "Full Event")
     /// </summary>
     [Required]
@@ -107,9 +102,9 @@ public class TicketType
     public Event? Event { get; set; }
 
     /// <summary>
-    /// Navigation property to specific session (if single-session ticket)
+    /// Sessions this ticket type covers (many-to-many relationship)
     /// </summary>
-    public Session? Session { get; set; }
+    public ICollection<Session> Sessions { get; set; } = new List<Session>();
 
     /// <summary>
     /// Navigation property to ticket purchases

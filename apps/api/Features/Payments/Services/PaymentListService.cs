@@ -52,7 +52,7 @@ public class PaymentListService : IPaymentListService
                 .Include(tp => tp.TicketType)
                     .ThenInclude(tt => tt.Event)
                 .Include(tp => tp.TicketType)
-                    .ThenInclude(tt => tt.Session);
+                    .ThenInclude(tt => tt.Sessions);
 
             // Get refund data for all ticket purchases (for populating RefundId, RefundDate, RemainingRefundableAmount)
             // Query PaymentRefunds table to join with TicketPurchases
@@ -81,7 +81,7 @@ public class PaymentListService : IPaymentListService
                         (tp.User.Email != null && tp.User.Email.ToLower().Contains(searchTerm))
                     )) ||
                     (tp.TicketType != null && tp.TicketType.Event != null && tp.TicketType.Event.Title.ToLower().Contains(searchTerm)) ||
-                    (tp.TicketType != null && tp.TicketType.Session != null && tp.TicketType.Session.Name.ToLower().Contains(searchTerm)) ||
+                    (tp.TicketType != null && tp.TicketType.Sessions.Any() && tp.TicketType.Sessions.Any(s => s.Name.ToLower().Contains(searchTerm))) ||
                     tp.Id.ToString().ToLower().Contains(searchTerm)
                 );
             }
@@ -185,7 +185,9 @@ public class PaymentListService : IPaymentListService
 
                         // Event info
                         EventName = tp.TicketType!.Event!.Title,
-                        SessionName = tp.TicketType.Session != null ? tp.TicketType.Session.Name : null,
+                        SessionName = tp.TicketType.Sessions.Any()
+                            ? string.Join(", ", tp.TicketType.Sessions.OrderBy(s => s.StartTime).Select(s => s.Name))
+                            : null,
 
                         // Payment details from TicketPurchase
                         PaymentMethod = tp.PaymentMethod,

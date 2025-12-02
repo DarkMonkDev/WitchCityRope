@@ -2496,6 +2496,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email-templates/{id}/trigger-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update trigger configuration for a global template
+         * @description Updates trigger configuration (type, enabled, timing, recipient group). Events category only. Admin access required.
+         */
+        put: operations["UpdateTriggerConfig"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/time-based": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all time-based templates
+         * @description Returns all enabled time-based templates for EmailSchedulerJob. Admin access required.
+         */
+        get: operations["GetTimeBasedTemplates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/email-templates/events/{eventId}": {
         parameters: {
             query?: never;
@@ -2638,6 +2678,70 @@ export interface paths {
         get: operations["GetSegmentPreview"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/ad-hoc/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all saved ad-hoc templates
+         * @description Returns all saved ad-hoc email templates for reuse. Admin access required.
+         */
+        get: operations["GetAdHocTemplates"];
+        put?: never;
+        /**
+         * Save an ad-hoc email as a template
+         * @description Saves an ad-hoc email as a reusable template. Admin access required.
+         */
+        post: operations["SaveAsTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/ad-hoc/templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a saved ad-hoc template
+         * @description Deletes a saved ad-hoc email template. Admin access required.
+         */
+        delete: operations["DeleteAdHocTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/ad-hoc/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Schedule an ad-hoc email for future delivery
+         * @description Schedules an ad-hoc email for future delivery via EmailSchedulerJob. Admin access required.
+         */
+        post: operations["ScheduleAdHocEmail"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3543,6 +3647,19 @@ export interface components {
         AddNoteRequest: {
             content?: string;
             tags?: string | null;
+        };
+        AdHocEmailTemplateDto: {
+            /** Format: uuid */
+            id?: string;
+            templateName?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: uuid */
+            createdBy?: string;
+            createdByEmail?: string;
         };
         AdminDashboardResponse: {
             statistics?: components["schemas"]["SafetyStatistics"];
@@ -4986,6 +5103,24 @@ export interface components {
             /** Format: int32 */
             thisMonth?: number;
         };
+        SaveAsTemplateRequest: {
+            templateName: string;
+            subject: string;
+            htmlBody: string;
+            plainTextBody: string;
+        };
+        ScheduleAdHocEmailRequest: {
+            subject: string;
+            htmlBody: string;
+            plainTextBody: string;
+            segment?: components["schemas"]["NullableOfUserSegment"];
+            recipientEmails?: string[] | null;
+            recipientGroup?: string;
+            /** Format: uuid */
+            eventId?: string | null;
+            /** Format: date-time */
+            scheduledSendAt: string;
+        };
         SendAdHocEmailRequest: {
             subject: string;
             htmlBody: string;
@@ -5290,6 +5425,13 @@ export interface components {
             newStatus?: components["schemas"]["IncidentStatus"];
             reason?: string | null;
             metadata?: Record<string, never> | null;
+        };
+        UpdateTriggerConfigRequest: {
+            triggerType: components["schemas"]["TemplateTriggerType"];
+            triggerEnabled: boolean;
+            /** Format: int32 */
+            timingOffsetDays?: number | null;
+            recipientGroup?: components["schemas"]["NullableOfEventRecipientGroup"];
         };
         UpdateUserRequest: {
             sceneName?: string | null;
@@ -12512,6 +12654,106 @@ export interface operations {
             };
         };
     };
+    UpdateTriggerConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTriggerConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlobalEmailTemplateDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetTimeBasedTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlobalEmailTemplateDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetEventTemplates: {
         parameters: {
             query?: never;
@@ -12909,6 +13151,193 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserPreviewDto"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetAdHocTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdHocEmailTemplateDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SaveAsTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveAsTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdHocEmailTemplateDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteAdHocTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ScheduleAdHocEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduleAdHocEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SentAdHocEmailDto"];
                 };
             };
             /** @description Bad Request */

@@ -58,8 +58,8 @@ public class Session
     ///
     /// BUSINESS LOGIC:
     /// - Counts active ticket attendances for this session
-    /// - Handles single-session tickets (SessionId = this session)
-    /// - Handles multi-session tickets (IsMultiSession flag)
+    /// - Handles single-session tickets (Sessions contains this session)
+    /// - Handles multi-session tickets (Sessions contains this session)
     ///
     /// DESIGN DECISION:
     /// Calculated property to ensure accuracy. Previous approach calculated
@@ -80,11 +80,8 @@ public class Session
                 ea.Status == AttendanceStatus.Active &&
                 ea.AttendanceType == AttendanceType.Ticket &&
                 ea.TicketPurchase != null &&
-                // Ticket is for this session
-                (ea.TicketPurchase.TicketType.SessionId == Id ||
-                 // OR it's a multi-session ticket for this event
-                 (ea.TicketPurchase.TicketType.SessionId == null &&
-                  ea.TicketPurchase.TicketType.EventId == EventId)));
+                // Ticket includes this session (many-to-many relationship)
+                ea.TicketPurchase.TicketType.Sessions.Any(s => s.Id == Id));
         }
     }
 

@@ -60,6 +60,24 @@ import {
   type UpdateEventTemplateRequest,
 } from '../../services/emailTemplates.api'
 
+/**
+ * Extract user-friendly error message from API errors
+ * Handles RFC 7807 Problem Details format from ASP.NET Core
+ */
+const getApiErrorMessage = (error: unknown, fallbackMessage: string): string => {
+  // Check for axios error with response data
+  if (error && typeof error === 'object' && 'response' in error) {
+    const axiosError = error as { response?: { data?: { detail?: string; title?: string; message?: string } } };
+    const data = axiosError.response?.data;
+    if (data?.detail) return data.detail;
+    if (data?.title) return data.title;
+    if (data?.message) return data.message;
+  }
+  // Fall back to Error.message or default
+  if (error instanceof Error) return error.message;
+  return fallbackMessage;
+}
+
 // Helper function to extract purchase amount from metadata JSON
 const extractAmountFromMetadata = (metadata?: string): number => {
   if (!metadata) return 0
@@ -429,7 +447,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   tabsRightSection,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info')
-  const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation')
+  const [activeEmailTemplate, setActiveEmailTemplate] = useState<string | null>(null)
   const [rsvpTimingOpen, setRsvpTimingOpen] = useState(false)
   const [volunteerTimingOpen, setVolunteerTimingOpen] = useState(false)
 
@@ -862,8 +880,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       } catch (error) {
         notifications.show({
           title: 'Save Failed',
-          message:
-            error instanceof Error ? error.message : 'Failed to save session. Please try again.',
+          message: getApiErrorMessage(error, 'Failed to save session. Please try again.'),
           color: 'red',
           icon: <IconAlertCircle size={16} />,
         })
@@ -1051,10 +1068,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       } catch (error) {
         notifications.show({
           title: 'Save Failed',
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Failed to save ticket type. Please try again.',
+          message: getApiErrorMessage(error, 'Failed to save ticket type. Please try again.'),
           color: 'red',
           icon: <IconAlertCircle size={16} />,
         })
@@ -1075,7 +1089,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       defaultPrice: ticketType.defaultPrice,
       sessionsIncluded: ticketType.sessionIdentifiers,
       quantityAvailable: ticketType.quantityAvailable || 100,
-      quantitySold: 0, // Not tracked in current grid format
+      quantitySold: ticketType.quantitySold ?? 0,
       allowMultiplePurchase: false, // Match modal's default for new tickets
       // ✅ REMOVED: salesEndDate field removed from backend DTO
       // saleEndDate: ticketType.salesEndDate ? new Date(ticketType.salesEndDate) : undefined,
@@ -1338,7 +1352,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     } catch (error) {
       notifications.show({
         title: 'Save Failed',
-        message: error instanceof Error ? error.message : 'Failed to save timing settings.',
+        message: getApiErrorMessage(error, 'Failed to save timing settings.'),
         color: 'red',
       })
     }
@@ -1382,7 +1396,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     } catch (error) {
       notifications.show({
         title: 'Save Failed',
-        message: error instanceof Error ? error.message : 'Failed to save timing settings.',
+        message: getApiErrorMessage(error, 'Failed to save timing settings.'),
         color: 'red',
       })
     }
@@ -1810,13 +1824,14 @@ export const EventForm: React.FC<EventFormProps> = ({
                 </Group>
               )}
 
-              {/* Unified Editor Section */}
-              <div style={{ marginTop: 'var(--mantine-spacing-xl)' }}>
-                <div style={{ marginBottom: 'var(--mantine-spacing-md)' }}>
-                  <Text fw={600} c="burgundy">
-                    Currently Editing: {getActiveTemplateTitle()}
-                  </Text>
-                </div>
+              {/* Unified Editor Section - Only show when a template is selected */}
+              {activeEmailTemplate && (
+                <div style={{ marginTop: 'var(--mantine-spacing-xl)' }}>
+                  <div style={{ marginBottom: 'var(--mantine-spacing-md)' }}>
+                    <Text fw={600} c="burgundy">
+                      Currently Editing: {getActiveTemplateTitle()}
+                    </Text>
+                  </div>
 
                 {/* Recipient Group (shown for ad-hoc) */}
                 {activeEmailTemplate === 'ad-hoc' && (
@@ -1920,6 +1935,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </div>
                 </Group>
               </div>
+              )}
             </Stack>
           </Tabs.Panel>
 

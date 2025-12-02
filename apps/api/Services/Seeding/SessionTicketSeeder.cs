@@ -254,7 +254,7 @@ public class SessionTicketSeeder
             var rsvpTicket = new TicketType
             {
                 EventId = eventItem.Id,
-                SessionId = session.Id,
+                Sessions = new List<Session> { session },
                 Name = "Free RSVP",
                 Description = "Free attendance - RSVP required",
                 Price = 0,
@@ -265,7 +265,7 @@ public class SessionTicketSeeder
             var donationTicket = new TicketType
             {
                 EventId = eventItem.Id,
-                SessionId = session.Id,
+                Sessions = new List<Session> { session },
                 Name = "Support Donation",
                 Description = "Optional sliding scale donation to support the community - pay what you can!",
                 Price = null, // Not used for sliding scale
@@ -285,7 +285,7 @@ public class SessionTicketSeeder
             var regularTicket = new TicketType
             {
                 EventId = eventItem.Id,
-                SessionId = session.Id,
+                Sessions = new List<Session> { session },
                 Name = "Regular",
                 Description = "Full access to the workshop",
                 Price = price,
@@ -313,7 +313,7 @@ public class SessionTicketSeeder
                 var rsvpTicket = new TicketType
                 {
                     EventId = eventItem.Id,
-                    SessionId = session.Id,
+                    Sessions = new List<Session> { session },
                     Name = $"Day {i + 1} RSVP",
                     Description = $"Free RSVP for Day {i + 1} only",
                     Price = 0,
@@ -324,11 +324,11 @@ public class SessionTicketSeeder
                 ticketTypesToAdd.Add(rsvpTicket);
             }
 
-            // Full event sliding scale donation
+            // Full event sliding scale donation (includes all sessions)
             var fullEventTicket = new TicketType
             {
                 EventId = eventItem.Id,
-                SessionId = null, // Multi-session ticket
+                Sessions = sessions.ToList(), // Multi-session ticket includes all sessions
                 Name = $"All {sessions.Count} Days Support",
                 Description = $"Optional sliding scale donation for all {sessions.Count} days - pay what you can!",
                 Price = null, // Not used for sliding scale
@@ -352,7 +352,7 @@ public class SessionTicketSeeder
                 var dayTicket = new TicketType
                 {
                     EventId = eventItem.Id,
-                    SessionId = session.Id,
+                    Sessions = new List<Session> { session },
                     Name = $"Day {i + 1} Only",
                     Description = $"Access to Day {i + 1} activities only",
                     Price = dailyPrice,
@@ -363,11 +363,11 @@ public class SessionTicketSeeder
                 ticketTypesToAdd.Add(dayTicket);
             }
 
-            // Create full event ticket with discount
+            // Create full event ticket with discount (includes all sessions)
             var fullEventTicket = new TicketType
             {
                 EventId = eventItem.Id,
-                SessionId = null, // Multi-session ticket
+                Sessions = sessions.ToList(), // Multi-session ticket includes all sessions
                 Name = $"All {sessions.Count} Days",
                 Description = $"Full access to all {sessions.Count} days - SAVE ${(dailyPrice * sessions.Count - basePrice):F0}!",
                 Price = basePrice,
@@ -465,7 +465,7 @@ public class SessionTicketSeeder
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = null, // Multi-session ticket
+            Sessions = sessions.ToList(), // Multi-session ticket includes all sessions
             Name = "Full Workshop Pass",
             Description = "Access to both morning and afternoon sessions",
             Price = 80.00m,
@@ -473,11 +473,11 @@ public class SessionTicketSeeder
             PricingType = PricingType.Fixed
         });
 
-        // Single Session Ticket - $45
+        // Single Session Ticket - $45 (can be used for either session)
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = null, // Can be used for either session
+            Sessions = sessions.ToList(), // Can be used for either session
             Name = "Single Session Ticket",
             Description = "Access to one session (morning or afternoon)",
             Price = 45.00m,
@@ -489,7 +489,7 @@ public class SessionTicketSeeder
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = null,
+            Sessions = sessions.ToList(), // Multi-session ticket includes all sessions
             Name = "Early Bird Full Pass",
             Description = "Discounted full workshop access",
             Price = 65.00m,
@@ -504,11 +504,11 @@ public class SessionTicketSeeder
     /// </summary>
     private void CreateRopeFundamentalsIntensiveTicketTypes(Event eventItem, List<Session> sessions, List<TicketType> ticketTypesToAdd)
     {
-        // Full Day Pass - $100
+        // Full Day Pass - $100 (all sessions)
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = null, // Multi-session ticket
+            Sessions = sessions.ToList(), // Multi-session ticket includes all sessions
             Name = "Full Day Pass",
             Description = "Access to all three sessions",
             Price = 100.00m,
@@ -520,7 +520,7 @@ public class SessionTicketSeeder
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = null,
+            Sessions = sessions.ToList(), // Flexible ticket, includes all sessions
             Name = "Half Day Pass",
             Description = "Access to any two sessions",
             Price = 60.00m,
@@ -532,7 +532,7 @@ public class SessionTicketSeeder
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = null,
+            Sessions = sessions.ToList(), // Flexible ticket, includes all sessions
             Name = "Single Session",
             Description = "Access to one session",
             Price = 35.00m,
@@ -553,7 +553,7 @@ public class SessionTicketSeeder
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = session.Id,
+            Sessions = new List<Session> { session },
             Name = "Suggested Donation",
             Description = eventItem.Title.Contains("Practice Night")
                 ? "Optional donation to support the space"
@@ -628,36 +628,42 @@ public class SessionTicketSeeder
 
         // S1 Only Ticket - Links to past session only
         // Expected: NOT available (all sessions for this ticket have passed)
-        ticketTypesToAdd.Add(new TicketType
+        if (s1Session != null)
         {
-            EventId = eventItem.Id,
-            SessionId = s1Session?.Id, // Single session = S1 only
-            Name = "S1 Only Ticket",
-            Description = "Access to Session 1 only (past session - for testing)",
-            Price = 25.00m,
-            Available = 10,
-            PricingType = PricingType.Fixed
-        });
+            ticketTypesToAdd.Add(new TicketType
+            {
+                EventId = eventItem.Id,
+                Sessions = new List<Session> { s1Session }, // Single session = S1 only
+                Name = "S1 Only Ticket",
+                Description = "Access to Session 1 only (past session - for testing)",
+                Price = 25.00m,
+                Available = 10,
+                PricingType = PricingType.Fixed
+            });
+        }
 
         // S2 Only Ticket - Links to future session only
         // Expected: Available (session is 5 days away, > 12 hour close window)
-        ticketTypesToAdd.Add(new TicketType
+        if (s2Session != null)
         {
-            EventId = eventItem.Id,
-            SessionId = s2Session?.Id, // Single session = S2 only
-            Name = "S2 Only Ticket",
-            Description = "Access to Session 2 only (future session - for testing)",
-            Price = 25.00m,
-            Available = 10,
-            PricingType = PricingType.Fixed
-        });
+            ticketTypesToAdd.Add(new TicketType
+            {
+                EventId = eventItem.Id,
+                Sessions = new List<Session> { s2Session }, // Single session = S2 only
+                Name = "S2 Only Ticket",
+                Description = "Access to Session 2 only (future session - for testing)",
+                Price = 25.00m,
+                Available = 10,
+                PricingType = PricingType.Fixed
+            });
+        }
 
         // Both Sessions Ticket - Multi-session ticket
         // Expected: Uses S2 as reference session (first future session per spec)
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = null, // Multi-session ticket (no single session link)
+            Sessions = sessions.ToList(), // Multi-session ticket includes all sessions
             Name = "Both Sessions Ticket",
             Description = "Access to both Session 1 and Session 2 (for testing multi-session timing)",
             Price = 40.00m,
@@ -776,7 +782,7 @@ public class SessionTicketSeeder
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = s1Session.Id,
+            Sessions = new List<Session> { s1Session },
             Name = "S1 Only Ticket",
             Description = $"Access to Session 1 only (24hr future). Close window: {closeHours}hr. Expected: {(24 >= (double)closeHours ? "OPEN" : "CLOSED")}",
             Price = 25.00m,
@@ -789,7 +795,7 @@ public class SessionTicketSeeder
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = s2Session.Id,
+            Sessions = new List<Session> { s2Session },
             Name = "S2 Only Ticket",
             Description = $"Access to Session 2 only (120hr future). Close window: {closeHours}hr. Expected: {(120 >= (double)closeHours ? "OPEN" : "CLOSED")}",
             Price = 25.00m,
@@ -802,7 +808,7 @@ public class SessionTicketSeeder
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = null, // Multi-session = uses EARLIEST session for timing
+            Sessions = new List<Session> { s1Session, s2Session }, // Multi-session includes both
             Name = "Both Sessions Ticket",
             Description = $"Access to both sessions. Uses EARLIEST session (S1 @ 24hr) for timing. Close window: {closeHours}hr. Expected: {(24 >= (double)closeHours ? "OPEN" : "CLOSED")}",
             Price = 40.00m,
@@ -884,7 +890,7 @@ public class SessionTicketSeeder
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            SessionId = session.Id,
+            Sessions = new List<Session> { session },
             Name = "Edge Case Ticket",
             Description = $"Tests 1-hour-until-close edge case. Session: 25hr, Close: {closeHours}hr, Remaining: {hoursUntilClose}hr. Expected: {(hoursUntilClose > 0 ? "OPEN" : "CLOSED")}",
             Price = 25.00m,
