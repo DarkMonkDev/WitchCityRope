@@ -12171,6 +12171,20 @@
           },
           "updatedByEmail": {
             "type": "string"
+          },
+          "triggerType": {
+            "$ref": "#/components/schemas/TemplateTriggerType"
+          },
+          "triggerEnabled": {
+            "type": "boolean"
+          },
+          "timingOffsetDays": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "recipientGroup": {
+            "$ref": "#/components/schemas/NullableOfEventRecipientGroup"
           }
         }
       },
@@ -12969,6 +12983,16 @@
             }
           }
         }
+      },
+      "NullableOfEventRecipientGroup": {
+        "enum": [
+          "SessionAttendees",
+          "RSVPTicketHolders",
+          "SessionVolunteers",
+          "Teachers",
+          null
+        ],
+        "nullable": true
       },
       "NullableOfSpokenToPersonStatus": {
         "enum": [
@@ -14157,6 +14181,11 @@
           },
           "sentByEmail": {
             "type": "string"
+          },
+          "scheduledSendAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -14552,6 +14581,13 @@
             "format": "int32"
           }
         }
+      },
+      "TemplateTriggerType": {
+        "enum": [
+          "Manual",
+          "FixedEvent",
+          "TimeBased"
+        ]
       },
       "TicketDetailsDto": {
         "type": "object",

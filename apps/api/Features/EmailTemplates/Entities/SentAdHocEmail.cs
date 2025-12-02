@@ -63,6 +63,13 @@ public class SentAdHocEmail
     public string? SendGridMessageId { get; set; }
 
     /// <summary>
+    /// Scheduled send time for future delivery
+    /// Null: send immediately (existing behavior)
+    /// Set: send at specified UTC time
+    /// </summary>
+    public DateTime? ScheduledSendAt { get; set; }
+
+    /// <summary>
     /// Delivery status: Pending, Sent, Delivered, Failed, Bounced
     /// </summary>
     [Required]

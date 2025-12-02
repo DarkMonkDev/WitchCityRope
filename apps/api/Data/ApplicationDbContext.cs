@@ -278,6 +278,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// </summary>
     public DbSet<SentAdHocEmail> SentAdHocEmails { get; set; }
 
+    /// <summary>
+    /// AdHocEmailTemplates table for saved ad-hoc templates
+    /// </summary>
+    public DbSet<AdHocEmailTemplate> AdHocEmailTemplates { get; set; }
+
+    /// <summary>
+    /// EmailTriggerLogs table for automated email audit trail
+    /// </summary>
+    public DbSet<EmailTriggerLog> EmailTriggerLogs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Call base to configure Identity tables
@@ -1103,6 +1113,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new GlobalEmailTemplateConfiguration());
         modelBuilder.ApplyConfiguration(new EventEmailTemplateConfiguration());
         modelBuilder.ApplyConfiguration(new SentAdHocEmailConfiguration());
+        modelBuilder.ApplyConfiguration(new AdHocEmailTemplateConfiguration());
+        modelBuilder.ApplyConfiguration(new EmailTriggerLogConfiguration());
 
         // Settings entity configuration
         modelBuilder.Entity<WitchCityRope.Api.Core.Entities.Setting>(entity =>
@@ -1746,6 +1758,37 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.SentAt = DateTime.UtcNow;
+
+                // Ensure ScheduledSendAt is UTC if set
+                if (entry.Entity.ScheduledSendAt.HasValue && entry.Entity.ScheduledSendAt.Value.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.ScheduledSendAt = DateTime.SpecifyKind(entry.Entity.ScheduledSendAt.Value, DateTimeKind.Utc);
+                }
+            }
+        }
+
+        // Handle AdHocEmailTemplate entities
+        var adHocTemplateEntries = ChangeTracker.Entries<AdHocEmailTemplate>();
+        foreach (var entry in adHocTemplateEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle EmailTriggerLog entities
+        var triggerLogEntries = ChangeTracker.Entries<EmailTriggerLog>();
+        foreach (var entry in triggerLogEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.TriggeredAt = DateTime.UtcNow;
+
+                if (entry.Entity.SentAt.HasValue && entry.Entity.SentAt.Value.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.SentAt = DateTime.SpecifyKind(entry.Entity.SentAt.Value, DateTimeKind.Utc);
+                }
             }
         }
     }

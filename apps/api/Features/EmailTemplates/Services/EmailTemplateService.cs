@@ -52,7 +52,11 @@ public class EmailTemplateService : IEmailTemplateService
                 IsActive = t.IsActive,
                 Version = t.Version,
                 CreatedAt = t.CreatedAt,
-                UpdatedAt = t.UpdatedAt
+                UpdatedAt = t.UpdatedAt,
+                TriggerType = t.TriggerType,
+                TriggerEnabled = t.TriggerEnabled,
+                TimingOffsetDays = t.TimingOffsetDays,
+                RecipientGroup = t.RecipientGroup
             }).ToList();
 
             _logger.LogInformation("Retrieved {Count} global templates for category {Category}", dtos.Count, category);
@@ -92,7 +96,11 @@ public class EmailTemplateService : IEmailTemplateService
                 IsActive = template.IsActive,
                 Version = template.Version,
                 CreatedAt = template.CreatedAt,
-                UpdatedAt = template.UpdatedAt
+                UpdatedAt = template.UpdatedAt,
+                TriggerType = template.TriggerType,
+                TriggerEnabled = template.TriggerEnabled,
+                TimingOffsetDays = template.TimingOffsetDays,
+                RecipientGroup = template.RecipientGroup
             };
 
             return Result<GlobalEmailTemplateDto>.Success(dto);
@@ -145,7 +153,11 @@ public class EmailTemplateService : IEmailTemplateService
                 IsActive = template.IsActive,
                 Version = template.Version,
                 CreatedAt = template.CreatedAt,
-                UpdatedAt = template.UpdatedAt
+                UpdatedAt = template.UpdatedAt,
+                TriggerType = template.TriggerType,
+                TriggerEnabled = template.TriggerEnabled,
+                TimingOffsetDays = template.TimingOffsetDays,
+                RecipientGroup = template.RecipientGroup
             };
 
             return Result<GlobalEmailTemplateDto>.Success(dto);
@@ -154,6 +166,131 @@ public class EmailTemplateService : IEmailTemplateService
         {
             _logger.LogError(ex, "Error updating global template {TemplateId}", id);
             return Result<GlobalEmailTemplateDto>.Failure("Failed to update template");
+        }
+    }
+
+    /// <summary>
+    /// Update trigger configuration for a global template (Events category only)
+    /// </summary>
+    public async Task<Result<GlobalEmailTemplateDto>> UpdateTriggerConfigAsync(
+        Guid templateId,
+        UpdateTriggerConfigRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var template = await _context.GlobalEmailTemplates
+                .FirstOrDefaultAsync(t => t.Id == templateId, cancellationToken);
+
+            if (template == null)
+            {
+                return Result<GlobalEmailTemplateDto>.Failure("Template not found");
+            }
+
+            // Validate category (only Events category supports trigger configuration)
+            if (template.Category != EmailCategory.Events)
+            {
+                return Result<GlobalEmailTemplateDto>.Failure("Trigger configuration is only supported for Events category templates");
+            }
+
+            // Validate TimeBased trigger has TimingOffsetDays set
+            if (request.TriggerType == TemplateTriggerType.TimeBased && !request.TimingOffsetDays.HasValue)
+            {
+                return Result<GlobalEmailTemplateDto>.Failure("TimingOffsetDays is required for TimeBased triggers");
+            }
+
+            // Validate non-Manual triggers have RecipientGroup set
+            if (request.TriggerType != TemplateTriggerType.Manual && !request.RecipientGroup.HasValue)
+            {
+                return Result<GlobalEmailTemplateDto>.Failure("RecipientGroup is required for FixedEvent and TimeBased triggers");
+            }
+
+            // Update trigger configuration
+            template.TriggerType = request.TriggerType;
+            template.TriggerEnabled = request.TriggerEnabled;
+            template.TimingOffsetDays = request.TimingOffsetDays;
+            template.RecipientGroup = request.RecipientGroup;
+            template.UpdatedAt = DateTime.UtcNow;
+            template.Version++;
+
+            _context.GlobalEmailTemplates.Update(template);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Updated trigger configuration for template {TemplateId}: Type={TriggerType}, Enabled={Enabled}, Offset={Offset}, Group={Group}",
+                templateId, request.TriggerType, request.TriggerEnabled, request.TimingOffsetDays, request.RecipientGroup);
+
+            var dto = new GlobalEmailTemplateDto
+            {
+                Id = template.Id,
+                Category = template.Category.ToString(),
+                TemplateType = template.TemplateType,
+                Subject = template.Subject,
+                HtmlBody = template.HtmlBody,
+                PlainTextBody = template.PlainTextBody,
+                Variables = JsonSerializer.Deserialize<string[]>(template.Variables) ?? Array.Empty<string>(),
+                IsActive = template.IsActive,
+                Version = template.Version,
+                CreatedAt = template.CreatedAt,
+                UpdatedAt = template.UpdatedAt,
+                TriggerType = template.TriggerType,
+                TriggerEnabled = template.TriggerEnabled,
+                TimingOffsetDays = template.TimingOffsetDays,
+                RecipientGroup = template.RecipientGroup
+            };
+
+            return Result<GlobalEmailTemplateDto>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating trigger configuration for template {TemplateId}", templateId);
+            return Result<GlobalEmailTemplateDto>.Failure("Failed to update trigger configuration");
+        }
+    }
+
+    /// <summary>
+    /// Get all time-based templates (TriggerType = TimeBased and TriggerEnabled = true)
+    /// Used by EmailSchedulerJob to find templates that need automatic triggering
+    /// </summary>
+    public async Task<Result<List<GlobalEmailTemplateDto>>> GetTimeBasedTemplatesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var templates = await _context.GlobalEmailTemplates
+                .AsNoTracking()
+                .Where(t => t.TriggerType == TemplateTriggerType.TimeBased
+                    && t.TriggerEnabled
+                    && t.IsActive)
+                .OrderBy(t => t.TimingOffsetDays)
+                .ToListAsync(cancellationToken);
+
+            var dtos = templates.Select(t => new GlobalEmailTemplateDto
+            {
+                Id = t.Id,
+                Category = t.Category.ToString(),
+                TemplateType = t.TemplateType,
+                Subject = t.Subject,
+                HtmlBody = t.HtmlBody,
+                PlainTextBody = t.PlainTextBody,
+                Variables = JsonSerializer.Deserialize<string[]>(t.Variables) ?? Array.Empty<string>(),
+                IsActive = t.IsActive,
+                Version = t.Version,
+                CreatedAt = t.CreatedAt,
+                UpdatedAt = t.UpdatedAt,
+                TriggerType = t.TriggerType,
+                TriggerEnabled = t.TriggerEnabled,
+                TimingOffsetDays = t.TimingOffsetDays,
+                RecipientGroup = t.RecipientGroup
+            }).ToList();
+
+            _logger.LogInformation("Retrieved {Count} time-based templates for scheduler", dtos.Count);
+            return Result<List<GlobalEmailTemplateDto>>.Success(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving time-based templates");
+            return Result<List<GlobalEmailTemplateDto>>.Failure("Failed to retrieve time-based templates");
         }
     }
 
@@ -655,6 +792,228 @@ public class EmailTemplateService : IEmailTemplateService
         {
             _logger.LogError(ex, "Error retrieving segment preview for {Segment}", segment);
             return Result<List<UserPreviewDto>>.Failure("Failed to retrieve segment preview");
+        }
+    }
+
+    // ========================================
+    // Ad Hoc Templates (Save/Delete/Reuse)
+    // ========================================
+
+    public async Task<Result<List<AdHocEmailTemplateDto>>> GetAdHocTemplatesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var templates = await _context.AdHocEmailTemplates
+                .AsNoTracking()
+                .Include(t => t.CreatedByUser)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            var dtos = templates.Select(t => new AdHocEmailTemplateDto
+            {
+                Id = t.Id,
+                TemplateName = t.TemplateName,
+                Subject = t.Subject,
+                HtmlBody = t.HtmlBody,
+                PlainTextBody = t.PlainTextBody,
+                CreatedAt = t.CreatedAt,
+                CreatedBy = t.CreatedBy,
+                CreatedByEmail = t.CreatedByUser?.Email ?? string.Empty
+            }).ToList();
+
+            _logger.LogInformation("Retrieved {Count} saved ad-hoc templates", dtos.Count);
+            return Result<List<AdHocEmailTemplateDto>>.Success(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving ad-hoc templates");
+            return Result<List<AdHocEmailTemplateDto>>.Failure("Failed to retrieve ad-hoc templates");
+        }
+    }
+
+    public async Task<Result<AdHocEmailTemplateDto>> SaveAsTemplateAsync(
+        SaveAsTemplateRequest request,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Sanitize HTML before saving
+            var sanitizedHtml = SanitizeHtml(request.HtmlBody);
+
+            var template = new AdHocEmailTemplate
+            {
+                TemplateName = request.TemplateName.Trim(),
+                Subject = request.Subject.Trim(),
+                HtmlBody = sanitizedHtml,
+                PlainTextBody = request.PlainTextBody.Trim(),
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = userId
+            };
+
+            _context.AdHocEmailTemplates.Add(template);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Reload with user to get email
+            var saved = await _context.AdHocEmailTemplates
+                .AsNoTracking()
+                .Include(t => t.CreatedByUser)
+                .FirstAsync(t => t.Id == template.Id, cancellationToken);
+
+            var dto = new AdHocEmailTemplateDto
+            {
+                Id = saved.Id,
+                TemplateName = saved.TemplateName,
+                Subject = saved.Subject,
+                HtmlBody = saved.HtmlBody,
+                PlainTextBody = saved.PlainTextBody,
+                CreatedAt = saved.CreatedAt,
+                CreatedBy = saved.CreatedBy,
+                CreatedByEmail = saved.CreatedByUser?.Email ?? string.Empty
+            };
+
+            _logger.LogInformation("Saved new ad-hoc template {TemplateId} with name '{TemplateName}'",
+                template.Id, request.TemplateName);
+
+            return Result<AdHocEmailTemplateDto>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving ad-hoc template");
+            return Result<AdHocEmailTemplateDto>.Failure("Failed to save template");
+        }
+    }
+
+    public async Task<Result> DeleteAdHocTemplateAsync(
+        Guid templateId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var template = await _context.AdHocEmailTemplates
+                .FirstOrDefaultAsync(t => t.Id == templateId, cancellationToken);
+
+            if (template == null)
+            {
+                return Result.Failure("Template not found");
+            }
+
+            _context.AdHocEmailTemplates.Remove(template);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Deleted ad-hoc template {TemplateId}", templateId);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting ad-hoc template {TemplateId}", templateId);
+            return Result.Failure("Failed to delete template");
+        }
+    }
+
+    // ========================================
+    // Scheduled Ad Hoc Emails
+    // ========================================
+
+    public async Task<Result<SentAdHocEmailDto>> ScheduleAdHocEmailAsync(
+        ScheduleAdHocEmailRequest request,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Validate mutually exclusive options
+            if (request.Segment.HasValue && request.RecipientEmails != null && request.RecipientEmails.Any())
+            {
+                return Result<SentAdHocEmailDto>.Failure("Cannot specify both Segment and RecipientEmails");
+            }
+
+            if (!request.Segment.HasValue && (request.RecipientEmails == null || !request.RecipientEmails.Any()))
+            {
+                return Result<SentAdHocEmailDto>.Failure("Must specify either Segment or RecipientEmails");
+            }
+
+            // Validate scheduled time is in the future
+            if (request.ScheduledSendAt <= DateTime.UtcNow)
+            {
+                return Result<SentAdHocEmailDto>.Failure("Scheduled send time must be in the future");
+            }
+
+            List<string> recipientEmails;
+            int recipientCount;
+
+            // Build recipient list based on segment or manual list
+            if (request.Segment.HasValue)
+            {
+                var segmentUsers = await GetUsersForSegmentAsync(request.Segment.Value, cancellationToken);
+                recipientEmails = segmentUsers.Select(u => u.Email ?? string.Empty).Where(e => !string.IsNullOrEmpty(e)).ToList();
+                recipientCount = recipientEmails.Count;
+
+                _logger.LogInformation("Built recipient list for segment {Segment}: {Count} users",
+                    request.Segment.Value, recipientCount);
+            }
+            else
+            {
+                recipientEmails = request.RecipientEmails!;
+                recipientCount = recipientEmails.Count;
+
+                _logger.LogInformation("Using manual recipient list: {Count} emails", recipientCount);
+            }
+
+            if (recipientCount == 0)
+            {
+                return Result<SentAdHocEmailDto>.Failure("No valid recipients found");
+            }
+
+            // Sanitize HTML content
+            var sanitizedHtml = SanitizeHtml(request.HtmlBody);
+
+            // Create scheduled email record
+            var sentEmail = new SentAdHocEmail
+            {
+                Subject = request.Subject.Trim(),
+                HtmlBody = sanitizedHtml,
+                PlainTextBody = request.PlainTextBody.Trim(),
+                RecipientGroup = request.RecipientGroup,
+                RecipientEmails = recipientEmails.ToArray(),
+                RecipientCount = recipientCount,
+                EventId = request.EventId,
+                ScheduledSendAt = DateTime.SpecifyKind(request.ScheduledSendAt, DateTimeKind.Utc),
+                SendGridMessageId = string.Empty,
+                DeliveryStatus = "Scheduled", // Will be picked up by EmailSchedulerJob
+                SentAt = DateTime.UtcNow, // Created timestamp
+                SentBy = userId
+            };
+
+            _context.SentAdHocEmails.Add(sentEmail);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var dto = new SentAdHocEmailDto
+            {
+                Id = sentEmail.Id,
+                Subject = sentEmail.Subject,
+                HtmlBody = sentEmail.HtmlBody,
+                PlainTextBody = sentEmail.PlainTextBody,
+                RecipientGroup = sentEmail.RecipientGroup,
+                RecipientCount = sentEmail.RecipientCount,
+                EventId = sentEmail.EventId,
+                SendGridMessageId = sentEmail.SendGridMessageId,
+                DeliveryStatus = sentEmail.DeliveryStatus,
+                SentAt = sentEmail.SentAt,
+                ScheduledSendAt = sentEmail.ScheduledSendAt
+            };
+
+            _logger.LogInformation(
+                "Scheduled ad-hoc email {EmailId} for {RecipientCount} recipients at {ScheduledTime}",
+                sentEmail.Id, recipientCount, request.ScheduledSendAt);
+
+            return Result<SentAdHocEmailDto>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error scheduling ad-hoc email");
+            return Result<SentAdHocEmailDto>.Failure("Failed to schedule email");
         }
     }
 

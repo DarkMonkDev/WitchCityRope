@@ -4305,6 +4305,11 @@ export interface components {
             /** Format: uuid */
             updatedBy?: string;
             updatedByEmail?: string;
+            triggerType?: components["schemas"]["TemplateTriggerType"];
+            triggerEnabled?: boolean;
+            /** Format: int32 */
+            timingOffsetDays?: number | null;
+            recipientGroup?: components["schemas"]["NullableOfEventRecipientGroup"];
         };
         GoogleDriveUpdateResponse: {
             /** Format: uuid */
@@ -4590,6 +4595,8 @@ export interface components {
         NotesListResponse: {
             notes?: components["schemas"]["IncidentNoteDto"][];
         };
+        /** @enum {unknown|null} */
+        NullableOfEventRecipientGroup: "SessionAttendees" | "RSVPTicketHolders" | "SessionVolunteers" | "Teachers" | null;
         /** @enum {unknown|null} */
         NullableOfSpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
         /** @enum {unknown|null} */
@@ -5008,6 +5015,8 @@ export interface components {
             /** Format: uuid */
             sentBy?: string;
             sentByEmail?: string;
+            /** Format: date-time */
+            scheduledSendAt?: string | null;
         };
         ServiceTokenRequest: {
             userId?: string;
@@ -5139,6 +5148,8 @@ export interface components {
             /** Format: int32 */
             conflictCount?: number;
         };
+        /** @enum {unknown} */
+        TemplateTriggerType: "Manual" | "FixedEvent" | "TimeBased";
         TicketDetailsDto: {
             /** Format: uuid */
             id?: string;

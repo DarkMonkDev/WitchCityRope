@@ -93,10 +93,50 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
             .HasDatabaseName("IX_GlobalEmailTemplates_Variables_Gin")
             .HasMethod("gin");
 
+        // Trigger configuration fields
+        builder.Property(e => e.TriggerType)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(TemplateTriggerType.FixedEvent);
+
+        builder.Property(e => e.TriggerEnabled)
+            .IsRequired()
+            .HasDefaultValue(true);
+
+        builder.Property(e => e.TimingOffsetDays)
+            .IsRequired(false); // Nullable
+
+        builder.Property(e => e.RecipientGroup)
+            .IsRequired(false) // Nullable
+            .HasConversion<int>(); // Stored as int when set
+
+        // Indexes for trigger queries
+        builder.HasIndex(e => new { e.Category, e.TriggerType })
+            .HasDatabaseName("IX_GlobalEmailTemplates_Category_TriggerType");
+
+        builder.HasIndex(e => new { e.TriggerType, e.TriggerEnabled })
+            .HasDatabaseName("IX_GlobalEmailTemplates_TriggerType_Enabled")
+            .HasFilter("\"TriggerEnabled\" = TRUE");
+
         // Check Constraints
         builder.HasCheckConstraint(
             "CHK_GlobalEmailTemplates_Category",
             "\"Category\" IN (0, 1, 2, 3, 4)"
+        );
+
+        builder.HasCheckConstraint(
+            "CHK_GlobalEmailTemplates_TriggerType",
+            "\"TriggerType\" IN (0, 1, 2)"
+        );
+
+        builder.HasCheckConstraint(
+            "CHK_GlobalEmailTemplates_TimingOffsetDays",
+            "\"TimingOffsetDays\" IS NULL OR (\"TimingOffsetDays\" >= -365 AND \"TimingOffsetDays\" <= 365)"
+        );
+
+        builder.HasCheckConstraint(
+            "CHK_GlobalEmailTemplates_RecipientGroup",
+            "\"RecipientGroup\" IS NULL OR \"RecipientGroup\" IN (0, 1, 2, 3)"
         );
 
         builder.HasCheckConstraint(

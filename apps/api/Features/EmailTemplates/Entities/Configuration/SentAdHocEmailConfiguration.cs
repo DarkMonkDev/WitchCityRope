@@ -89,6 +89,16 @@ public class SentAdHocEmailConfiguration : IEntityTypeConfiguration<SentAdHocEma
             .HasDatabaseName("IX_SentAdHocEmails_DeliveryStatus")
             .HasFilter("\"DeliveryStatus\" IN ('Pending', 'Failed')");
 
+        // Scheduled send field
+        builder.Property(e => e.ScheduledSendAt)
+            .IsRequired(false) // Nullable
+            .HasColumnType("timestamptz");
+
+        // Partial index for scheduled sends (optimization)
+        builder.HasIndex(e => new { e.ScheduledSendAt, e.DeliveryStatus })
+            .HasDatabaseName("IX_SentAdHocEmails_Scheduled_Pending")
+            .HasFilter("\"ScheduledSendAt\" IS NOT NULL AND \"DeliveryStatus\" = 'Pending'");
+
         // Check Constraints
         builder.HasCheckConstraint(
             "CHK_SentAdHocEmails_Subject_NotEmpty",

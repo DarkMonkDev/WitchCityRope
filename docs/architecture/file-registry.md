@@ -1,6 +1,6 @@
 # File Registry
 <!-- Last Updated: 2025-12-01 -->
-<!-- Version: 4.525 -->
+<!-- Version: 4.528 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,15 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/handoffs/ui-design.md | CREATED | Complete UI/UX design handoff for Email Template Trigger Enhancements - Enhanced template cards with badges, trigger configuration modal, ad hoc scheduled send UI, save/delete template features, wireframes, component specs, Mantine v7 implementation, state management, API integration, accessibility requirements | UI Designer: Email Template Trigger Enhancement UI Design | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/handoffs/best-practices-research.md | CREATED | Comprehensive email trigger system research - Architecture patterns (Hangfire + MediatR recommended), comparison matrix (9-point weighted scoring), implementation guides, risk assessment, testing strategies, data modeling recommendations, idempotency patterns | Technology Researcher: Email Trigger Systems Best Practices Research | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/ | CREATED | Scope-of-work folder for Email Template Trigger Enhancements feature work | Librarian: Create Email Template Trigger Enhancements work folder | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/requirements/ | CREATED | Requirements phase folder for Email Template Trigger Enhancements research | Librarian: Create Email Template Trigger Enhancements work folder | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/design/ | CREATED | Design phase folder for Email Template Trigger Enhancements work | Librarian: Create Email Template Trigger Enhancements work folder | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/implementation/ | CREATED | Implementation phase folder for Email Template Trigger Enhancements | Librarian: Create Email Template Trigger Enhancements work folder | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/testing/ | CREATED | Testing phase folder for Email Template Trigger Enhancements | Librarian: Create Email Template Trigger Enhancements work folder | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/handoffs/ | CREATED | Handoff documents folder for Email Template Trigger Enhancements | Librarian: Create Email Template Trigger Enhancements work folder | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/progress.md | CREATED | Phase progression and research tracking for Email Template Trigger Enhancements work | Librarian: Create Email Template Trigger Enhancements work folder | ACTIVE | Never |
 | 2025-12-01 | /docs/standards-processes/testing/TESTING.md | DELETED | Duplicate general testing guide - content now in TEST-CREATION-GUIDE.md and TEST-EXECUTION-GUIDE.md | Librarian: Testing documentation cleanup | DELETED | N/A |
 | 2025-12-01 | /docs/standards-processes/testing/TESTING_GUIDE.md | DELETED | Duplicate general testing guide - content now in TEST-CREATION-GUIDE.md and TEST-EXECUTION-GUIDE.md | Librarian: Testing documentation cleanup | DELETED | N/A |
 | 2025-12-01 | /docs/standards-processes/testing/test-standards.md | DELETED | Duplicate test standards - content now in TEST-CREATION-GUIDE.md | Librarian: Testing documentation cleanup | DELETED | N/A |
@@ -30,7 +39,10 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 | 2025-12-01 | /docs/lessons-learned/test-developer-lessons-learned.md | MODIFIED | Updated to reference new Test Creation Guide - removed duplicated patterns, kept only problem discovery context with references to guides | Librarian: Testing documentation reorganization | ACTIVE | Never |
 | 2025-12-01 | /docs/lessons-learned/test-executor-lessons-learned.md | MODIFIED | Updated to reference new Test Execution Guide - removed duplicated procedures, kept only problem discovery context with references to guides | Librarian: Testing documentation reorganization | ACTIVE | Never |
 | 2025-12-01 | /docs/standards-processes/testing/browser-automation/playwright-guide.md | MODIFIED | Enhanced E2E testing guide with comprehensive patterns from test-developer lessons learned (container-compatible URLs, wait strategies, test data management, Mantine v7, React strict mode, TDD patterns, authentication, database persistence) | Librarian: Create comprehensive E2E testing guide | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/handoffs/backend-analysis.md | CREATED | Backend architecture analysis for email template trigger enhancements - Documents current system design, extension points, existing patterns (Hangfire, Result<T>, User Segments), database schema changes, integration points, critical issues (ID initializers), testing considerations, migration strategy | Backend Developer: Email Template Trigger Enhancement Research | ACTIVE | Never |
+| 2025-12-01 | /docs/functional-areas/email-templates/new-work/2025-12-01-trigger-enhancements/RESEARCH_SUMMARY.md | CREATED | Research completion summary for email template triggers - Key findings, recommended entity changes, integration points, database changes, next steps for Design Phase | Backend Developer: Email Template Trigger Enhancement Research | ACTIVE | Never |
 
 ## Historical Records
 
 [Previous entries preserved below this line...]
+

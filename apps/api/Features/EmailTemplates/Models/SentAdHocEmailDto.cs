@@ -23,4 +23,10 @@ public class SentAdHocEmailDto
     public DateTime SentAt { get; set; }
     public Guid SentBy { get; set; }
     public string SentByEmail { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Scheduled send time for future delivery
+    /// Null for immediate sends
+    /// </summary>
+    public DateTime? ScheduledSendAt { get; set; }
 }

@@ -57,6 +57,33 @@ public class GlobalEmailTemplate
     public string Variables { get; set; } = "[]";
 
     /// <summary>
+    /// Trigger type for this template
+    /// Default: FixedEvent (existing behavior)
+    /// Events category can use TimeBased
+    /// </summary>
+    public TemplateTriggerType TriggerType { get; set; } = TemplateTriggerType.FixedEvent;
+
+    /// <summary>
+    /// Whether automatic triggering is enabled
+    /// Default: true (maintains existing behavior)
+    /// </summary>
+    public bool TriggerEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Days offset for time-based triggers (Events category only)
+    /// Positive: days BEFORE session start (e.g., 3 = 3 days before)
+    /// Negative: days AFTER session start (e.g., -2 = 2 days after)
+    /// Null: not applicable (FixedEvent or Manual trigger types)
+    /// </summary>
+    public int? TimingOffsetDays { get; set; }
+
+    /// <summary>
+    /// Target recipient group for Events category templates
+    /// Null for other categories (recipients are hardcoded in service code)
+    /// </summary>
+    public EventRecipientGroup? RecipientGroup { get; set; }
+
+    /// <summary>
     /// Soft delete flag (false = hidden, never hard delete)
     /// </summary>
     public bool IsActive { get; set; } = true;

@@ -98,10 +98,31 @@ public class EventEmailTemplateConfiguration : IEntityTypeConfiguration<EventEma
             .IsDescending()
             .HasDatabaseName("IX_EventEmailTemplates_UpdatedAt");
 
+        // Override fields
+        builder.Property(e => e.OverrideTriggerEnabled)
+            .IsRequired(false); // Nullable
+
+        builder.Property(e => e.OverrideTimingOffsetDays)
+            .IsRequired(false); // Nullable
+
+        builder.Property(e => e.OverrideRecipientGroup)
+            .IsRequired(false) // Nullable
+            .HasConversion<int>(); // Stored as int when set
+
         // Check Constraints
         builder.HasCheckConstraint(
             "CHK_EventEmailTemplates_Subject_NotEmpty",
             "LENGTH(TRIM(\"Subject\")) > 0"
+        );
+
+        builder.HasCheckConstraint(
+            "CHK_EventEmailTemplates_OverrideTimingOffsetDays",
+            "\"OverrideTimingOffsetDays\" IS NULL OR (\"OverrideTimingOffsetDays\" >= -365 AND \"OverrideTimingOffsetDays\" <= 365)"
+        );
+
+        builder.HasCheckConstraint(
+            "CHK_EventEmailTemplates_OverrideRecipientGroup",
+            "\"OverrideRecipientGroup\" IS NULL OR \"OverrideRecipientGroup\" IN (0, 1, 2, 3)"
         );
 
         builder.HasCheckConstraint(

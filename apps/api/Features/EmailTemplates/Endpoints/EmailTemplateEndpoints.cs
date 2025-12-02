@@ -63,6 +63,32 @@ public static class EmailTemplateEndpoints
             .ProducesProblem(403)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
 
+        /// <summary>
+        /// Update trigger configuration for a global template (Events category only)
+        /// </summary>
+        group.MapPut("{id:guid}/trigger-config", UpdateTriggerConfig)
+            .WithName("UpdateTriggerConfig")
+            .WithSummary("Update trigger configuration for a global template")
+            .WithDescription("Updates trigger configuration (type, enabled, timing, recipient group). Events category only. Admin access required.")
+            .Produces<GlobalEmailTemplateDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        /// <summary>
+        /// Get all time-based templates for scheduler
+        /// </summary>
+        group.MapGet("time-based", GetTimeBasedTemplates)
+            .WithName("GetTimeBasedTemplates")
+            .WithSummary("Get all time-based templates")
+            .WithDescription("Returns all enabled time-based templates for EmailSchedulerJob. Admin access required.")
+            .Produces<List<GlobalEmailTemplateDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
         // ========================================
         // Event Templates (Admin or Event Organizer)
         // ========================================
@@ -185,6 +211,65 @@ public static class EmailTemplateEndpoints
             .WithSummary("Get preview of users in a segment")
             .WithDescription("Returns first 10 users in the specified segment for preview. Admin access required.")
             .Produces<List<UserPreviewDto>>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        // ========================================
+        // Ad Hoc Templates (Save/Delete/Reuse)
+        // ========================================
+
+        /// <summary>
+        /// Get all saved ad-hoc templates
+        /// </summary>
+        group.MapGet("/ad-hoc/templates", GetAdHocTemplates)
+            .WithName("GetAdHocTemplates")
+            .WithSummary("Get all saved ad-hoc templates")
+            .WithDescription("Returns all saved ad-hoc email templates for reuse. Admin access required.")
+            .Produces<List<AdHocEmailTemplateDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        /// <summary>
+        /// Save an ad-hoc email as a reusable template
+        /// </summary>
+        group.MapPost("/ad-hoc/templates", SaveAsTemplate)
+            .WithName("SaveAsTemplate")
+            .WithSummary("Save an ad-hoc email as a template")
+            .WithDescription("Saves an ad-hoc email as a reusable template. Admin access required.")
+            .Produces<AdHocEmailTemplateDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        /// <summary>
+        /// Delete a saved ad-hoc template
+        /// </summary>
+        group.MapDelete("/ad-hoc/templates/{id:guid}", DeleteAdHocTemplate)
+            .WithName("DeleteAdHocTemplate")
+            .WithSummary("Delete a saved ad-hoc template")
+            .WithDescription("Deletes a saved ad-hoc email template. Admin access required.")
+            .Produces(204)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        // ========================================
+        // Scheduled Ad Hoc Emails
+        // ========================================
+
+        /// <summary>
+        /// Schedule an ad-hoc email for future delivery
+        /// </summary>
+        group.MapPost("/ad-hoc/schedule", ScheduleAdHocEmail)
+            .WithName("ScheduleAdHocEmail")
+            .WithSummary("Schedule an ad-hoc email for future delivery")
+            .WithDescription("Schedules an ad-hoc email for future delivery via EmailSchedulerJob. Admin access required.")
+            .Produces<SentAdHocEmailDto>(200)
             .ProducesProblem(400)
             .ProducesProblem(401)
             .ProducesProblem(403)
@@ -514,6 +599,189 @@ public static class EmailTemplateEndpoints
         {
             return Results.Problem(
                 title: "Failed to Retrieve Segment Preview",
+                detail: result.Error,
+                statusCode: 400);
+        }
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> UpdateTriggerConfig(
+        HttpContext context,
+        IAntiforgery antiforgery,
+        Guid id,
+        [FromBody] UpdateTriggerConfigRequest request,
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        var result = await service.UpdateTriggerConfigAsync(id, request, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Update Trigger Configuration",
+                detail: result.Error,
+                statusCode: 400);
+        }
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> GetTimeBasedTemplates(
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.GetTimeBasedTemplatesAsync(cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Retrieve Time-Based Templates",
+                detail: result.Error,
+                statusCode: 400);
+        }
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> GetAdHocTemplates(
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.GetAdHocTemplatesAsync(cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Retrieve Ad-Hoc Templates",
+                detail: result.Error,
+                statusCode: 400);
+        }
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> SaveAsTemplate(
+        HttpContext context,
+        IAntiforgery antiforgery,
+        [FromBody] SaveAsTemplateRequest request,
+        ClaimsPrincipal user,
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        // Extract user ID from claims
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await service.SaveAsTemplateAsync(request, userId, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Save Template",
+                detail: result.Error,
+                statusCode: 400);
+        }
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> DeleteAdHocTemplate(
+        HttpContext context,
+        IAntiforgery antiforgery,
+        Guid id,
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        var result = await service.DeleteAdHocTemplateAsync(id, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Delete Template",
+                detail: result.Error,
+                statusCode: 404);
+        }
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> ScheduleAdHocEmail(
+        HttpContext context,
+        IAntiforgery antiforgery,
+        [FromBody] ScheduleAdHocEmailRequest request,
+        ClaimsPrincipal user,
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        // Extract user ID from claims
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await service.ScheduleAdHocEmailAsync(request, userId, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Schedule Email",
                 detail: result.Error,
                 statusCode: 400);
         }

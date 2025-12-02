@@ -35,6 +35,21 @@ public interface IEmailTemplateService
         Guid updatedByUserId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Update trigger configuration for a global template (Events category only)
+    /// </summary>
+    Task<Result<GlobalEmailTemplateDto>> UpdateTriggerConfigAsync(
+        Guid templateId,
+        UpdateTriggerConfigRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get all time-based templates (TriggerType = TimeBased and TriggerEnabled = true)
+    /// Used by EmailSchedulerJob to find templates that need automatic triggering
+    /// </summary>
+    Task<Result<List<GlobalEmailTemplateDto>>> GetTimeBasedTemplatesAsync(
+        CancellationToken cancellationToken = default);
+
     // ========================================
     // Event Templates (Copy-on-Edit Pattern)
     // ========================================
@@ -119,6 +134,43 @@ public interface IEmailTemplateService
     /// </summary>
     Task<Result<List<UserPreviewDto>>> GetSegmentPreviewAsync(
         UserSegment segment,
+        CancellationToken cancellationToken = default);
+
+    // ========================================
+    // Ad Hoc Templates (Save/Delete/Reuse)
+    // ========================================
+
+    /// <summary>
+    /// Get all saved ad-hoc email templates
+    /// </summary>
+    Task<Result<List<AdHocEmailTemplateDto>>> GetAdHocTemplatesAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Save an ad-hoc email as a reusable template
+    /// </summary>
+    Task<Result<AdHocEmailTemplateDto>> SaveAsTemplateAsync(
+        SaveAsTemplateRequest request,
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a saved ad-hoc template
+    /// </summary>
+    Task<Result> DeleteAdHocTemplateAsync(
+        Guid templateId,
+        CancellationToken cancellationToken = default);
+
+    // ========================================
+    // Scheduled Ad Hoc Emails
+    // ========================================
+
+    /// <summary>
+    /// Schedule an ad-hoc email for future delivery
+    /// </summary>
+    Task<Result<SentAdHocEmailDto>> ScheduleAdHocEmailAsync(
+        ScheduleAdHocEmailRequest request,
+        Guid userId,
         CancellationToken cancellationToken = default);
 }
 

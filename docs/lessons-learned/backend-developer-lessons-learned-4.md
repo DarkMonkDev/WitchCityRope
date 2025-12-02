@@ -1854,3 +1854,42 @@ var eligibleUserIds = await _context.EventAttendances
 **Tags**: #critical #entity-framework #navigation-properties #compilation-error #check-in #attendance #ticket-purchase #relationship-mapping
 
 ---
+
+## 🚨 CRITICAL: ID Initializer Issue Found in Multiple Entities - Must Fix Before New Feature Work (2025-12-01)
+
+**Problem**: Event, Session, and TicketPurchase entities have problematic ID initializers that will cause INSERT failures for new trigger feature work.
+
+**Location**:
+- `/home/chad/repos/witchcityrope/apps/api/Models/Event.cs`, line 16: `public Guid Id { get; set; } = Guid.NewGuid();`
+- `/home/chad/repos/witchcityrope/apps/api/Models/Session.cs`, line 16: `public Guid Id { get; set; }` (same pattern)
+- `/home/chad/repos/witchcityrope/apps/api/Models/TicketPurchase.cs`, line 15: `public Guid Id { get; set; } = Guid.NewGuid();`
+
+**Critical Issue**: TicketPurchase ID initializer violates EF Core best practices (documented in backend-developer-lessons-learned.md Part 1, lines 134-158). This initializer causes EF to think new entities are existing ones, leading to UPDATE attempts instead of INSERTs.
+
+**How This Will Affect New Feature Work**:
+When implementing email trigger feature, if new Event/Session/TicketPurchase records are created for testing:
+1. Entity is instantiated with `Id` property populated by `Guid.NewGuid()`
+2. EF Core sees `Id` is not default (Guid.Empty) and thinks entity is existing
+3. Attempt to INSERT fails → UPDATE attempt fails (no existing record) → `DbUpdateConcurrencyException`
+4. Error message: "Database operation expected to affect 1 row(s) but actually affected 0 row(s)"
+
+**Fix Applied**: NONE YET - This requires migration planning
+
+**Recommended Action**:
+1. Create migration to remove these initializers from DB configuration
+2. Update entity models to remove inline initializers:
+```csharp
+// ❌ WRONG - Remove this
+public Guid Id { get; set; } = Guid.NewGuid();
+
+// ✅ CORRECT - Simple property only
+public Guid Id { get; set; }
+```
+3. Ensure EF Core DbContext configuration generates IDs (default behavior)
+4. This fix should be completed BEFORE implementing email trigger feature
+
+**Prevention**: When creating new entities, NEVER add ID initializers. Let EF Core handle ID generation. Always apply: `public Guid Id { get; set; }` (no initializer).
+
+**Tags**: #critical #entity-framework #id-generation #email-triggers #technical-debt
+
+---

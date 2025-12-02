@@ -66,6 +66,27 @@ public class EventEmailTemplate
     public string? RecipientGroup { get; set; }
 
     /// <summary>
+    /// Override for trigger enabled state
+    /// Null: use global template setting
+    /// True/False: override global setting
+    /// </summary>
+    public bool? OverrideTriggerEnabled { get; set; }
+
+    /// <summary>
+    /// Override for timing offset
+    /// Null: use global template setting
+    /// Value: override with event-specific timing
+    /// </summary>
+    public int? OverrideTimingOffsetDays { get; set; }
+
+    /// <summary>
+    /// Override for recipient group
+    /// Null: use global template setting
+    /// Value: override with event-specific recipients
+    /// </summary>
+    public EventRecipientGroup? OverrideRecipientGroup { get; set; }
+
+    /// <summary>
     /// Always true for event-specific templates
     /// </summary>
     public bool IsCustomized { get; set; } = true;
