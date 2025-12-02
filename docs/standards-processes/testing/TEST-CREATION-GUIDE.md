@@ -285,6 +285,18 @@ See [Integration Test Patterns](integration-test-patterns.md) for complete Postg
 
 ## E2E Test Creation (Playwright)
 
+> 🚨 **MANDATORY: READ PLAYWRIGHT GUIDE FOR E2E TESTS** 🚨
+>
+> This section provides an **overview** of E2E patterns. For complete patterns including:
+> - TestHelperService API endpoints with code examples
+> - Container-compatible URL patterns (CRITICAL for Docker)
+> - Wait strategies (why networkidle fails)
+> - Mantine v7 checkbox interactions
+> - React Strict Mode `.last()` patterns
+> - Database persistence verification
+>
+> **You MUST also read**: [Playwright Guide](browser-automation/playwright-guide.md)
+
 ### Basic E2E Test Structure
 
 ```typescript

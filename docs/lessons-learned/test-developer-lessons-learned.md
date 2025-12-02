@@ -9,11 +9,12 @@
 1. **Test Creation Guide** - **HOW TO WRITE TESTS (PRIMARY GUIDE)**
 `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST-CREATION-GUIDE.md`
 
-2. **Test Execution Guide** - **HOW TO RUN TESTS**
-`/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST-EXECUTION-GUIDE.md`
-
-3. **Playwright Guide** - **E2E TESTING PATTERNS**
+2. **Playwright Guide** - **E2E TESTING PATTERNS (MANDATORY FOR E2E)**
 `/home/chad/repos/witchcityrope/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+⚠️ **IF WRITING E2E TESTS**: You MUST read BOTH Test Creation Guide AND Playwright Guide
+
+3. **Test Execution Guide** - **HOW TO RUN TESTS**
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST-EXECUTION-GUIDE.md`
 
 4. **Test Catalog** - **ALL EXISTING TESTS**
 `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md`

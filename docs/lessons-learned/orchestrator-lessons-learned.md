@@ -307,6 +307,11 @@ END IF
 **When coordinating CMS feature work**, consult:
 - `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md` - Complete CMS architecture, dynamic routing, testing patterns, agent coordination guidance
 
+**When coordinating test creation or execution**, consult:
+- `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST-CREATION-GUIDE.md` - How to WRITE tests (unit, integration, E2E)
+- `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST-EXECUTION-GUIDE.md` - How to RUN tests (Docker, skills, debugging)
+- `/home/chad/repos/witchcityrope/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E deep-dive (MANDATORY for E2E test creation)
+
 ---
 
 ## 🚨 IMPORTANT: Main Agent IS the Orchestrator 🚨
