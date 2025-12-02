@@ -42,19 +42,31 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor for auth errors
+// Response interceptor for auth errors and API error message extraction
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Handle 401 authentication errors
     if (error.response?.status === 401) {
       // Clear auth state - no tokens to clear with httpOnly cookies
       const { useAuthStore } = await import('../stores/authStore')
       const store = useAuthStore.getState()
       store.actions.logout()
-      
+
       // Don't try to redirect to login - let components handle navigation
       console.log('401 Unauthorized - Authentication expired, state cleared')
     }
+
+    // Extract API error message from RFC 7807 Problem Details format
+    // This replaces the generic "Request failed with status code 400" with the actual API message
+    const apiData = error.response?.data
+    if (apiData) {
+      const apiMessage = apiData.detail || apiData.title || apiData.message
+      if (apiMessage && typeof apiMessage === 'string') {
+        error.message = apiMessage
+      }
+    }
+
     return Promise.reject(error)
   }
 )
