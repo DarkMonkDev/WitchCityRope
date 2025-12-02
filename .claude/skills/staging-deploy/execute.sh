@@ -354,13 +354,13 @@ else
     exit 1
 fi
 
-# Database health (via API) - Non-blocking check
+# Database health (via API) - Check databaseConnected field in /api/health response
 echo ""
-echo "   Checking database..."
-if curl -f -s https://staging.notfai.com/api/health/database > /dev/null; then
-    echo "   ✅ Database healthy"
+echo "   Checking database connectivity..."
+if curl -s https://staging.notfai.com/api/health | grep -q '"databaseConnected":true'; then
+    echo "   ✅ Database connected"
 else
-    echo "   ⚠️  Database health check failed"
+    echo "   ⚠️  Database connectivity check failed"
     echo "   Note: This is non-critical if API logs show successful DB connectivity"
     echo "   Continuing deployment - verify database connectivity in API logs above"
 fi
