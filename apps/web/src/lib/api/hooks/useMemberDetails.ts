@@ -231,3 +231,32 @@ export function useUpdateMemberRole() {
     },
   })
 }
+
+// Change vetting status mutation
+export function useChangeVettingStatus() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      applicationId,
+      status,
+      reasoning,
+    }: {
+      applicationId: string
+      status: string
+      reasoning: string
+    }): Promise<void> => {
+      await apiClient.put(`/api/vetting/applications/${applicationId}/status`, {
+        status,
+        reasoning,
+      })
+    },
+    onSuccess: () => {
+      // Invalidate all member details and vetting queries
+      queryClient.invalidateQueries({ queryKey: memberDetailsKeys.all })
+    },
+    onError: (error) => {
+      console.error('Failed to change vetting status:', error)
+    },
+  })
+}

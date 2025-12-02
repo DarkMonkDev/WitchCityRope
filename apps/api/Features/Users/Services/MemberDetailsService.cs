@@ -441,6 +441,43 @@ public class MemberDetailsService : IMemberDetailsService
     }
 
     /// <summary>
+    /// Build appropriate content for VettingAuditLog notes based on action type
+    /// </summary>
+    private static string GetNoteContent(string action, string? oldValue, string? newValue, string? notes)
+    {
+        // For note/comment actions, just show the content directly (no prefix, no "Reason:")
+        if (action.Contains("Note Added") || action == "Note Added" ||
+            action.Contains("Reviewer Comment") || action == "Reviewer Comment" ||
+            action.Contains("Comment"))
+        {
+            return notes ?? string.Empty;
+        }
+
+        // For status change actions, show simplified description + optional reason
+        if (action.Contains("Status Changed") || action.Contains("Status"))
+        {
+            var simplifiedDescription = GetSimplifiedActionDescription(action, oldValue, newValue);
+
+            if (string.IsNullOrWhiteSpace(notes))
+            {
+                return simplifiedDescription;
+            }
+
+            return $"{simplifiedDescription}\n\nReason: {notes}";
+        }
+
+        // For other actions (Approval, Denied, etc.), use simplified description + optional reason
+        var description = GetSimplifiedActionDescription(action, oldValue, newValue);
+
+        if (string.IsNullOrWhiteSpace(notes))
+        {
+            return description;
+        }
+
+        return $"{description}\n\nReason: {notes}";
+    }
+
+    /// <summary>
     /// Get all notes for a member (unified notes system)
     /// Endpoint 5: GET /api/users/{id}/notes
     /// Returns ALL note types together including UserNotes AND VettingAuditLogs
@@ -486,9 +523,7 @@ public class MemberDetailsService : IMemberDetailsService
                 {
                     Id = val.Id,
                     NoteSource = "VettingAuditLog",
-                    Content = string.IsNullOrWhiteSpace(val.Notes)
-                        ? GetSimplifiedActionDescription(val.Action, val.OldValue, val.NewValue)
-                        : val.Notes,
+                    Content = GetNoteContent(val.Action, val.OldValue, val.NewValue, val.Notes),
                     Type = val.Action,
                     AuthorSceneName = val.PerformedByUser.SceneName,
                     Timestamp = val.PerformedAt,

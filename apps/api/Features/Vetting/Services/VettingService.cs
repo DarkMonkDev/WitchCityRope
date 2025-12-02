@@ -1332,14 +1332,6 @@ public class VettingService : IVettingService
 
             var oldStatus = application.WorkflowStatus;
 
-            // Check if application is in terminal state FIRST - before any other validation
-            if (oldStatus == VettingStatus.Approved || oldStatus == VettingStatus.Denied || oldStatus == VettingStatus.Withdrawn)
-            {
-                return Result<ApplicationDetailResponse>.Failure(
-                    "Cannot modify terminal state",
-                    "Approved, Denied, and Withdrawn applications cannot be modified.");
-            }
-
             // Enforce strict status changes - reject same-state "updates"
             if (oldStatus == newStatus)
             {
@@ -1393,23 +1385,10 @@ public class VettingService : IVettingService
                     break;
             }
 
-            // Create UserNote for status change with admin notes if provided
-            if (!string.IsNullOrWhiteSpace(adminNotes) && application.UserId.HasValue)
-            {
-                var statusChangeNote = new WitchCityRope.Api.Data.Entities.UserNote
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = application.UserId.Value,
-                    Content = $"Status change to {newStatus}: {adminNotes}",
-                    NoteType = "Vetting",
-                    AuthorId = adminUserId,
-                    CreatedAt = DateTime.UtcNow,
-                    IsArchived = false
-                };
-                _context.UserNotes.Add(statusChangeNote);
-            }
-
             // Create audit log for status change (same-state updates are now rejected)
+            // NOTE: VettingAuditLog is the source of truth for status changes
+            // GetMemberNotesAsync converts these audit logs to properly formatted notes
+            // UserNote creation was removed here to prevent duplicates
             var auditLog = new VettingAuditLog
             {
                 Id = Guid.NewGuid(),
@@ -1745,45 +1724,79 @@ public class VettingService : IVettingService
         // Workflow: UnderReview → InterviewApproved → InterviewCompleted → FinalReview → Approved/Denied/OnHold
         var validTransitions = new Dictionary<VettingStatus, List<VettingStatus>>
         {
-            // UnderReview can move to interview approval, be put on hold, denied, or withdrawn
+            // UnderReview can transition to any other status
             [VettingStatus.UnderReview] = new()
             {
                 VettingStatus.InterviewApproved,
-                VettingStatus.OnHold,
-                VettingStatus.Denied,
-                VettingStatus.Withdrawn
-            },
-
-            // InterviewApproved can mark interview complete (move to FinalReview), go on hold, or be withdrawn
-            [VettingStatus.InterviewApproved] = new()
-            {
                 VettingStatus.FinalReview,
-                VettingStatus.OnHold,
-                VettingStatus.Withdrawn
-            },
-
-            // FinalReview leads to final decision (Approved, Denied, or OnHold)
-            [VettingStatus.FinalReview] = new()
-            {
                 VettingStatus.Approved,
                 VettingStatus.Denied,
                 VettingStatus.OnHold,
                 VettingStatus.Withdrawn
             },
 
-            // OnHold can return to review or interview stages, be denied, or withdrawn
+            // InterviewApproved can transition to any other status
+            [VettingStatus.InterviewApproved] = new()
+            {
+                VettingStatus.UnderReview,
+                VettingStatus.FinalReview,
+                VettingStatus.Approved,
+                VettingStatus.Denied,
+                VettingStatus.OnHold,
+                VettingStatus.Withdrawn
+            },
+
+            // FinalReview can transition to any other status
+            [VettingStatus.FinalReview] = new()
+            {
+                VettingStatus.UnderReview,
+                VettingStatus.InterviewApproved,
+                VettingStatus.Approved,
+                VettingStatus.Denied,
+                VettingStatus.OnHold,
+                VettingStatus.Withdrawn
+            },
+
+            // OnHold can transition to any other status
             [VettingStatus.OnHold] = new()
             {
                 VettingStatus.UnderReview,
                 VettingStatus.InterviewApproved,
+                VettingStatus.FinalReview,
+                VettingStatus.Approved,
                 VettingStatus.Denied,
                 VettingStatus.Withdrawn
             },
 
-            // Terminal states - no transitions allowed
-            [VettingStatus.Approved] = new(),
-            [VettingStatus.Denied] = new(),
+            // Approved, Denied, and Withdrawn can transition to any status
+            // Business requirement: Admins should be able to change a member's vetting status from any state to any other state
+            [VettingStatus.Approved] = new()
+            {
+                VettingStatus.UnderReview,
+                VettingStatus.InterviewApproved,
+                VettingStatus.FinalReview,
+                VettingStatus.OnHold,
+                VettingStatus.Denied,
+                VettingStatus.Withdrawn
+            },
+            [VettingStatus.Denied] = new()
+            {
+                VettingStatus.UnderReview,
+                VettingStatus.InterviewApproved,
+                VettingStatus.FinalReview,
+                VettingStatus.OnHold,
+                VettingStatus.Approved,
+                VettingStatus.Withdrawn
+            },
             [VettingStatus.Withdrawn] = new()
+            {
+                VettingStatus.UnderReview,
+                VettingStatus.InterviewApproved,
+                VettingStatus.FinalReview,
+                VettingStatus.OnHold,
+                VettingStatus.Approved,
+                VettingStatus.Denied
+            }
         };
 
         // Check if current status has valid transitions defined

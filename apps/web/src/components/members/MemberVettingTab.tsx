@@ -2,7 +2,10 @@ import React from 'react'
 import { Stack, Title, Card, Text, Paper, Alert, Grid, Group, Button } from '@mantine/core'
 import { IconAlertCircle, IconExternalLink } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
-import { useMemberVetting } from '../../lib/api/hooks/useMemberDetails'
+import { useDisclosure } from '@mantine/hooks'
+import { notifications } from '@mantine/notifications'
+import { useMemberVetting, useChangeVettingStatus } from '../../lib/api/hooks/useMemberDetails'
+import { ChangeVettingStatusModal } from './ChangeVettingStatusModal'
 
 interface MemberVettingTabProps {
   memberId: string
@@ -12,6 +15,8 @@ interface MemberVettingTabProps {
 export const MemberVettingTab: React.FC<MemberVettingTabProps> = ({ memberId, userVettingStatus }) => {
   const navigate = useNavigate()
   const { data: vettingDetails, isLoading, error } = useMemberVetting(memberId)
+  const [changeStatusOpened, { open: openChangeStatus, close: closeChangeStatus }] = useDisclosure(false)
+  const changeVettingStatusMutation = useChangeVettingStatus()
 
   if (isLoading) {
     return (
@@ -80,6 +85,40 @@ export const MemberVettingTab: React.FC<MemberVettingTabProps> = ({ memberId, us
     return formatDate(vettingDetails.submittedAt)
   }
 
+  // Handle vetting status change
+  const handleChangeStatus = async (newStatus: string, reason: string) => {
+    if (!vettingDetails?.applicationId) {
+      notifications.show({
+        title: 'Error',
+        message: 'No application ID found',
+        color: 'red',
+      })
+      return
+    }
+
+    try {
+      await changeVettingStatusMutation.mutateAsync({
+        applicationId: vettingDetails.applicationId,
+        status: newStatus,
+        reasoning: reason,
+      })
+
+      notifications.show({
+        title: 'Success',
+        message: 'Vetting status changed successfully',
+        color: 'green',
+      })
+
+      closeChangeStatus()
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.message || 'Failed to change vetting status',
+        color: 'red',
+      })
+    }
+  }
+
   return (
     <Stack gap="xl">
       {/* Application Information Section - Always show */}
@@ -95,33 +134,54 @@ export const MemberVettingTab: React.FC<MemberVettingTabProps> = ({ memberId, us
           >
             Application Information
           </Title>
-          {vettingDetails?.applicationId && (
-            <Button
-              size="sm"
-              variant="light"
-              color="grape"
-              rightSection={<IconExternalLink size={16} />}
-              onClick={() => {
-                // Use setTimeout to ensure navigation happens after React finishes current render cycle
-                // This allows Outlet to properly unmount old component and mount new one
-                setTimeout(() => {
-                  navigate(`/admin/vetting/applications/${vettingDetails.applicationId}`)
-                }, 0)
-              }}
-              styles={{
-                root: {
-                  fontWeight: 600,
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2',
-                },
-              }}
-            >
-              View Application
-            </Button>
-          )}
+          <Group gap="xs">
+            {vettingDetails?.applicationId && (
+              <Button
+                variant="light"
+                color="grape"
+                onClick={openChangeStatus}
+                data-testid="change-vetting-status-button"
+                styles={{
+                  root: {
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                  },
+                }}
+              >
+                Change Vetting Status
+              </Button>
+            )}
+            {vettingDetails?.applicationId && (
+              <Button
+                variant="light"
+                color="grape"
+                rightSection={<IconExternalLink size={16} />}
+                onClick={() => {
+                  // Use setTimeout to ensure navigation happens after React finishes current render cycle
+                  // This allows Outlet to properly unmount old component and mount new one
+                  setTimeout(() => {
+                    navigate(`/admin/vetting/applications/${vettingDetails.applicationId}`)
+                  }, 0)
+                }}
+                styles={{
+                  root: {
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                  },
+                }}
+              >
+                View Application
+              </Button>
+            )}
+          </Group>
         </Group>
         <Card withBorder p="md" radius="md">
           <Grid>
@@ -207,6 +267,16 @@ export const MemberVettingTab: React.FC<MemberVettingTabProps> = ({ memberId, us
           </Stack>
         </div>
       )}
+
+      {/* Change Vetting Status Modal */}
+      <ChangeVettingStatusModal
+        opened={changeStatusOpened}
+        onClose={closeChangeStatus}
+        onConfirm={handleChangeStatus}
+        currentStatus={userVettingStatus || 'Unknown'}
+        memberName={vettingDetails?.sceneName || 'Member'}
+        isLoading={changeVettingStatusMutation.isPending}
+      />
     </Stack>
   )
 }

@@ -7,22 +7,29 @@ import { VettingStatusBadge } from '@/features/admin/vetting/components/VettingS
 type MemberNoteHistoryResponse = components['schemas']['MemberNoteHistoryResponse'];
 
 // Helper to detect system-generated notes and extract status
-// EXACT same logic as VettingNoteRenderer
+// Uses startsWith matching to support notes with appended admin reasons
 const isSystemGeneratedNote = (noteText: string): { isSystem: boolean; status?: string } => {
-  // Map system-generated note text to corresponding status values
+  // Map system-generated note prefixes to corresponding status values
   // These match the simplified descriptions from backend GetSimplifiedActionDescription()
-  const systemNotes: Record<string, string> = {
-    'Approved for interview': 'InterviewApproved',
-    'Interview completed': 'FinalReview',
-    'Application approved': 'Approved',
-    'Application denied': 'Denied',
-    'Application placed on hold': 'OnHold',
-    'Returned to review': 'UnderReview',
-    'Application withdrawn': 'Withdrawn',
-  };
+  // Notes may have admin reasons appended after "\n\nReason: ..."
+  const systemNotePrefixes: Array<{ prefix: string; status: string }> = [
+    { prefix: 'Approved for interview', status: 'InterviewApproved' },
+    { prefix: 'Interview completed', status: 'FinalReview' },
+    { prefix: 'Application approved', status: 'Approved' },
+    { prefix: 'Application denied', status: 'Denied' },
+    { prefix: 'Application placed on hold', status: 'OnHold' },
+    { prefix: 'Returned to review', status: 'UnderReview' },
+    { prefix: 'Application withdrawn', status: 'Withdrawn' },
+  ];
 
-  const status = systemNotes[noteText];
-  return { isSystem: !!status, status };
+  // Check if noteText starts with any known prefix
+  for (const { prefix, status } of systemNotePrefixes) {
+    if (noteText.startsWith(prefix)) {
+      return { isSystem: true, status };
+    }
+  }
+
+  return { isSystem: false };
 };
 
 // Format time helper function - EXACT same as VettingNoteRenderer
@@ -63,8 +70,8 @@ export const MemberNoteRenderer = (note: MemberNoteHistoryResponse): React.React
           {formatTime(note.timestamp)}
         </Text>
       </Group>
-      {/* Display content as-is (backend provides simplified descriptions) */}
-      <Text size="sm">{note.content}</Text>
+      {/* Display content with preserved line breaks for admin reasons */}
+      <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{note.content}</Text>
     </Paper>
   );
 };
