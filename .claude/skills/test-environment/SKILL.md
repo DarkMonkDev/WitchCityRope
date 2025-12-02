@@ -1,3 +1,8 @@
+---
+name: test-environment
+description: Run all tests (unit, integration, E2E) in isolated containers separate from dev environment. Handles build, container startup, health checks, test execution, and cleanup. SINGLE SOURCE OF TRUTH for running tests in isolated containers.
+---
+
 # test-environment Skill
 
 **Purpose**: Run all tests in isolated containers separate from dev environment
@@ -109,7 +114,7 @@ When writing/debugging tests:
 
 ```
 .claude/skills/test-environment/
-├── README.md                    # This file
+├── SKILL.md                     # This file
 ├── execute.sh                   # Main entry point
 ├── lib/
 │   ├── build-containers.sh     # Build test images
@@ -141,6 +146,6 @@ When writing/debugging tests:
 
 ---
 
-**Last Updated**: 2025-11-26
+**Last Updated**: 2025-12-02
 **Maintained by**: Test Team
 **Related**: test-executor-lessons-learned.md, test-developer-lessons-learned.md

@@ -47,6 +47,12 @@ run_tests() {
                 exec -T api dotnet test --filter "Category=Integration" || exit_code=$?
             ;;
 
+        "dotnet")
+            echo "Running all .NET tests (unit + integration, no E2E)..."
+            docker-compose -p $project -f docker-compose.yml -f docker-compose.test.yml \
+                exec -T api dotnet test || exit_code=$?
+            ;;
+
         "e2e")
             echo "Running E2E tests in test-runner container..."
             echo "  Using web service: http://web:5173"

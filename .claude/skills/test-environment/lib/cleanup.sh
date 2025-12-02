@@ -13,11 +13,43 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Kill orphaned test processes to prevent inotify exhaustion
+cleanup_orphaned_processes() {
+    echo "  Cleaning up orphaned test processes..."
+
+    # Kill orphaned dotnet test processes (not the dev server)
+    local dotnet_pids=$(pgrep -f "dotnet.*test" 2>/dev/null || true)
+    if [ -n "$dotnet_pids" ]; then
+        echo "    Killing orphaned dotnet test processes..."
+        pkill -f "dotnet.*test" 2>/dev/null || true
+    fi
+
+    # Kill orphaned playwright/chromium processes
+    local playwright_pids=$(pgrep -f "playwright|chromium" 2>/dev/null || true)
+    if [ -n "$playwright_pids" ]; then
+        echo "    Killing orphaned playwright/chromium processes..."
+        pkill -f "playwright" 2>/dev/null || true
+        pkill -f "chromium" 2>/dev/null || true
+    fi
+
+    # Kill orphaned node processes related to tests (but not dev server)
+    local node_test_pids=$(pgrep -f "node.*test" 2>/dev/null || true)
+    if [ -n "$node_test_pids" ]; then
+        echo "    Killing orphaned node test processes..."
+        pkill -f "node.*test" 2>/dev/null || true
+    fi
+
+    echo "    Orphaned process cleanup complete"
+}
+
 cleanup_test_environment() {
     local keep_images="${1:-false}"
     local keep_containers="${2:-false}"
 
     echo -e "${YELLOW}🧹 Cleaning up test environment...${NC}"
+
+    # Always clean up orphaned processes first (prevents inotify exhaustion)
+    cleanup_orphaned_processes
 
     cd "$PROJECT_ROOT"
 

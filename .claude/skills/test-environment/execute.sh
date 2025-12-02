@@ -42,13 +42,40 @@ ${YELLOW}USAGE:${NC}
 
 ${YELLOW}OPTIONS:${NC}
     --mode MODE         Test mode (default: e2e)
-                        Values: all, unit, integration, e2e, failed-only
-    --filter PATTERN    Filter E2E tests by pattern
+    --filter PATTERN    Filter E2E tests by pattern (only works with e2e mode)
     --coverage          Generate coverage reports
     --keep-images       Keep built images after cleanup
     --keep-containers   Keep containers running for debugging
     --skip-rebuild      Skip container rebuild (faster when code hasn't changed)
     --skip-confirm      Skip confirmation prompts
+
+${YELLOW}TEST MODES:${NC}
+    e2e (default)   Playwright browser tests only (tests/e2e/*.spec.ts)
+                    - Runs in witchcity-test-runner container
+                    - Tests full UI workflows via Chromium
+                    - Supports --filter for pattern matching
+                    - Use for: UI regression testing, feature verification
+
+    dotnet          All .NET tests (unit + integration, NO E2E)
+                    - Runs: dotnet test (all .NET test projects)
+                    - Includes: tests/integration/, tests/WitchCityRope.*.Tests/
+                    - Use for: Backend verification without slow E2E tests
+                    - RECOMMENDED for CI and quick backend verification
+
+    all             Everything (.NET tests + E2E tests)
+                    - Runs dotnet test, then Playwright tests
+                    - Use for: Full regression before deployment
+
+    unit            .NET tests with [Trait("Category", "Unit")] only
+                    - Uses: dotnet test --filter "Category=Unit"
+                    - NOTE: Few tests have this trait, prefer 'dotnet' mode
+
+    integration     .NET tests with [Trait("Category", "Integration")] only
+                    - Uses: dotnet test --filter "Category=Integration"
+                    - NOTE: Few tests have this trait, prefer 'dotnet' mode
+
+    failed-only     Re-run previously failed tests (NOT FULLY IMPLEMENTED)
+                    - Falls back to running all E2E tests
 
 ${YELLOW}EXAMPLES:${NC}
     # Run all E2E tests (default)
@@ -63,8 +90,11 @@ ${YELLOW}EXAMPLES:${NC}
     # Run all test types
     bash .claude/skills/test-environment/execute.sh --mode all
 
-    # Run unit tests only
-    bash .claude/skills/test-environment/execute.sh --mode unit
+    # Run all .NET tests (unit + integration, no E2E) - RECOMMENDED for backend
+    bash .claude/skills/test-environment/execute.sh --mode dotnet
+
+    # Run all .NET tests with fast rebuild
+    bash .claude/skills/test-environment/execute.sh --mode dotnet --skip-rebuild
 
     # Keep containers for debugging
     bash .claude/skills/test-environment/execute.sh --mode e2e --keep-containers
@@ -176,7 +206,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate mode
-if [[ ! "$MODE" =~ ^(all|unit|integration|e2e|failed-only)$ ]]; then
+if [[ ! "$MODE" =~ ^(all|unit|integration|e2e|dotnet|failed-only)$ ]]; then
     echo -e "${RED}❌ Invalid mode: $MODE${NC}"
     show_usage
     exit 1
