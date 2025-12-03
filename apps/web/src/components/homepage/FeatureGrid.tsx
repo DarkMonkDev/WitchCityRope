@@ -44,6 +44,7 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
   return (
     <Box
       component="section"
+      className="features-section"
       pt={{ base: 0, sm: 'var(--space-2xl)' }}
       pb={{ base: 0, sm: 'var(--space-2xl)' }}
       px="40px"

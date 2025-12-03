@@ -78,7 +78,7 @@ export const EventsList: React.FC<EventsListProps> = ({
         data-testid="loading-spinner"
         pt={{ base: 0, sm: 'var(--space-2xl)' }}
         pb={{ base: 0, sm: 'var(--space-2xl)' }}
-        px="40px"
+        px={{ base: '16px', xs: '40px' }}
         style={{
           maxWidth: '1200px',
           margin: '0 auto',
@@ -107,7 +107,7 @@ export const EventsList: React.FC<EventsListProps> = ({
         data-testid="error-message"
         pt={{ base: 0, sm: 'var(--space-2xl)' }}
         pb={{ base: 0, sm: 'var(--space-2xl)' }}
-        px="40px"
+        px={{ base: '16px', xs: '40px' }}
         style={{
           maxWidth: '1200px',
           margin: '0 auto',
@@ -136,7 +136,7 @@ export const EventsList: React.FC<EventsListProps> = ({
         data-testid="empty-state"
         pt={{ base: 0, sm: 'var(--space-2xl)' }}
         pb={{ base: 0, sm: 'var(--space-2xl)' }}
-        px="40px"
+        px={{ base: '16px', xs: '40px' }}
         style={{
           maxWidth: '1200px',
           margin: '0 auto',
@@ -161,23 +161,25 @@ export const EventsList: React.FC<EventsListProps> = ({
     <Box
       component="section"
       mt={0}
-      p="var(--space-2xl) 40px"
+      p={{ base: '24px 0', xs: 'var(--space-2xl) 40px' }}
       style={{
         maxWidth: '1200px',
         margin: '0 auto',
         background: 'var(--color-ivory)',
-        borderRadius: '16px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+      }}
+      sx={{
+        borderRadius: { base: 0, xs: '16px' }
       }}
     >
       <Title
         order={2}
+        mb={{ base: 24, xs: 'var(--space-xl)' }}
         style={{
           fontFamily: 'var(--font-heading)',
           fontSize: 'var(--font-size-h2)',
           lineHeight: 'var(--line-height-h2)',
           fontWeight: 800,
-          marginBottom: 'var(--space-xl)',
           textAlign: 'center',
           color: 'var(--color-burgundy)',
           position: 'relative',
@@ -203,9 +205,11 @@ export const EventsList: React.FC<EventsListProps> = ({
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-          gap: 'var(--space-lg)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(350px, 100%), 1fr))',
           marginBottom: 'var(--space-xl)'
+        }}
+        sx={{
+          gap: { base: '4px', xs: 'var(--space-lg)' }
         }}
       >
         {displayEvents.map((event) => (

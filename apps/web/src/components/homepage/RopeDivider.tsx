@@ -20,6 +20,7 @@ export const RopeDivider: React.FC<RopeDividerProps> = ({
 }) => {
   return (
     <Box
+      className="rope-divider"
       style={{
         width: '100%',
         height: `${height}px`,

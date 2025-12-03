@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { Group, Button, Box, Stack } from '@mantine/core'
+import { Group, Button, Box, Stack, Drawer, Burger } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import { useUser, useIsAuthenticated } from '../../stores/authStore'
 import { useLogout } from '../../features/auth/api/mutations'
 import { useMenuVisibility } from '../../features/vetting/hooks/useMenuVisibility'
@@ -22,7 +23,10 @@ export const Navigation: React.FC = () => {
   const logoutMutation = useLogout()
   const { shouldShow: showHowToJoin } = useMenuVisibility()
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  // Use Mantine's useDisclosure hook for mobile menu state
+  // Replaces custom useState + useEffect for scroll locking
+  // Drawer component handles scroll locking automatically via react-remove-scroll
+  const [isMobileMenuOpen, { open: openMobileMenu, close: closeMobileMenu }] = useDisclosure(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,40 +37,11 @@ export const Navigation: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Toggle mobile menu
-  const toggleMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen((prev) => !prev)
-  }, [])
-
-  // Close mobile menu when link is clicked
-  const closeMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(false)
-    // CRITICAL: Immediately reset body overflow to allow scroll restoration
-    // This must happen synchronously, not in useEffect cleanup, to ensure
-    // React Router's ScrollRestoration can scroll to top on navigation
-    document.body.style.overflow = ''
-  }, [])
-
   // Handle logout button click
   const handleLogout = useCallback(() => {
     closeMobileMenu() // Close mobile menu first
     logoutMutation.mutate(undefined)
   }, [logoutMutation, closeMobileMenu])
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-
-    // Cleanup: Reset body overflow when component unmounts or menu state changes
-    // Note: closeMobileMenu() also resets overflow synchronously for navigation
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isMobileMenuOpen])
 
   return (
     <Box
@@ -95,7 +70,7 @@ export const Navigation: React.FC = () => {
         className="logo logo-underline-animation"
         style={{
           fontFamily: 'var(--font-heading)',
-          fontSize: 'clamp(1.5rem, 1.5vw + 1rem, 1.875rem)', // 24px mobile → 30px desktop
+          fontSize: 'clamp(1.5rem, 1.5vw + 1rem, 1.75rem)', // 24px mobile → 28px desktop
           fontWeight: 800,
           color: 'var(--color-burgundy)',
           textDecoration: 'none',
@@ -212,12 +187,12 @@ export const Navigation: React.FC = () => {
         )}
       </Group>
 
-      {/* Mobile Menu Toggle */}
+      {/* Mobile Menu Toggle - Keep existing hamburger button for visual consistency */}
       <Box
         component="button"
         data-testid="button-mobile-menu"
         className={`mobile-menu-toggle ${isMobileMenuOpen ? 'open' : ''}`}
-        onClick={toggleMobileMenu}
+        onClick={openMobileMenu}
         aria-label={isMobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
         aria-expanded={isMobileMenuOpen}
         aria-controls="mobile-menu"
@@ -227,42 +202,29 @@ export const Navigation: React.FC = () => {
         <Box component="span" />
       </Box>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <Box
-          className="mobile-menu-overlay"
-          onClick={closeMobileMenu}
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            background: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 999,
-          }}
-        />
-      )}
-
-      {/* Mobile Menu */}
-      <Box
-        id="mobile-menu"
-        className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}
-        role="navigation"
-        aria-label="Mobile navigation menu"
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: isMobileMenuOpen ? 0 : '-100%',
-          width: '80%',
-          maxWidth: '320px',
-          height: '100vh',
-          background: 'var(--color-ivory)',
-          zIndex: 1000,
-          transition: 'right 0.3s ease',
-          overflowY: 'auto',
-          boxShadow: isMobileMenuOpen ? '-4px 0 20px rgba(0, 0, 0, 0.15)' : 'none',
+      {/* Mobile Menu Drawer - Replaces custom Box with position: fixed
+          Mantine Drawer provides:
+          - Automatic scroll locking via react-remove-scroll (no horizontal overflow bug)
+          - Built-in overlay with proper z-index management
+          - Accessibility attributes (aria-modal, role="dialog", etc.)
+          - Smooth transitions without custom CSS
+          - Proper focus trapping
+      */}
+      <Drawer
+        opened={isMobileMenuOpen}
+        onClose={closeMobileMenu}
+        position="right"
+        size="80%"
+        padding={0}
+        withCloseButton={false}
+        styles={{
+          content: {
+            background: 'var(--color-ivory)',
+            maxWidth: '320px',
+          },
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          },
         }}
       >
         <Stack
@@ -505,7 +467,7 @@ export const Navigation: React.FC = () => {
             </Box>
           )}
         </Stack>
-      </Box>
+      </Drawer>
     </Box>
   )
 }
