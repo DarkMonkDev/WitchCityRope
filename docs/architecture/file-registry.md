@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2025-12-02 -->
-<!-- Version: 4.531 -->
+<!-- Last Updated: 2025-12-03 -->
+<!-- Version: 4.533 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,13 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-12-03 | /docs/standards-processes/testing/browser-automation/playwright-guide.md | MODIFIED | Added Mantine Chip/Collapse/Notification patterns to Section 5, added Section 12 "Refund/Payment Testing Patterns" with .or() syntax, partial refund status, test isolation, PayPal limitations | Fix refund E2E tests - patterns to correct location | ACTIVE | Never |
+| 2025-12-03 | /docs/test-baselines/e2e-baseline-testing-tracker.md | MODIFIED | Added Session 11 documenting refund test fixes, root causes, and patterns | Fix refund E2E tests - session tracking | ACTIVE | Never |
+| 2025-12-03 | /docs/test-baselines/e2e-failing-tests-tracker.md | MODIFIED | Marked 3 refund tests as FIXED (admin-refund-eligibility x2, ticket-refund-workflow x1) | Fix refund E2E tests - status update | ACTIVE | Never |
+| 2025-12-03 | /docs/lessons-learned/mantine-e2e-testing-patterns-2025-11-10.md | DELETED | Stray file - patterns merged into playwright-guide.md, session logs already in e2e-baseline-testing-tracker.md | Cleanup duplicate documentation | DELETED | N/A |
+| 2025-12-03 | /docs/test-baselines/refund-e2e-testing-patterns-2025-12-03.md | DELETED | Wrongly created file - content moved to playwright-guide.md and e2e-baseline-testing-tracker.md | Cleanup incorrect file | DELETED | N/A |
+| 2025-12-03 | /tests/e2e/admin-refund-eligibility.spec.ts | MODIFIED | Fixed 2 failing tests - Added status check for parallel test safety (lines 310-327), fixed notification locator syntax to use .or() method (lines 370-371, 628-629, 667-669), fixed partial refund status expectations (lines 390-404) | Fix refund E2E tests | ACTIVE | Never |
+| 2025-12-03 | /tests/e2e/ticket-refund-workflow.spec.ts | MODIFIED | Fixed 1 failing test - Fixed notification locator syntax to use .or() method (lines 271-272, 390-391) | Fix refund E2E tests | ACTIVE | Never |
 | 2025-12-02 | /docs/standards-processes/testing/VETTING_FORM_FIELD_REFERENCE.md | CREATED | Single source of truth for vetting application form field names and test selectors - Documents current vetting form structure, old deprecated fields, profile page fields, validation rules, Mantine selector patterns, migration checklist, test writing guidelines | Test Developer: Fix vetting E2E tests | ACTIVE | Never |
 | 2025-12-02 | /test-results/vetting-test-fixes-summary-2025-12-02.md | CREATED | Comprehensive summary of vetting and profile E2E test fixes - Documents source code analysis, field structure changes (old→new), 9 tests fixed across 4 files, patterns established, key learnings, recommendations for future test development | Test Developer: Fix 12+ vetting E2E tests | ACTIVE | After test verification |
 | 2025-12-02 | /tests/e2e/profile-page.spec.ts | MODIFIED | Fixed 2 failing tests - Updated error handling selectors to use Mantine Alert patterns, changed account info verification to check for tabs (Personal/Security/Vetting) and profile fields using data-testid attributes | Test Developer: Fix profile page tests | ACTIVE | Never |

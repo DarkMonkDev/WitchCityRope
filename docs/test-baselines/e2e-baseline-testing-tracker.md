@@ -135,16 +135,7 @@ await page.request.get(`${API_BASE_URL}/api/endpoint`);
 # Container file showed: await page.goto('http://localhost:5173/login');
 ```
 
-**Fix**: Rebuilt container with `--no-cache` flag
-```bash
-docker build --no-cache -f tests/Dockerfile.test --target test-runner -t witchcity-test-runner:local .
-docker stop witchcity-test-runner && docker rm witchcity-test-runner
-docker run -d --name witchcity-test-runner \
-  --network witchcityrope-test_witchcity-net \
-  -e API_URL=http://api:8080 \
-  -e PLAYWRIGHT_BASE_URL=http://web:5173 \
-  witchcity-test-runner:local tail -f /dev/null
-```
+**Fix**: Rebuilt container with `--no-cache` flag using `restart-test-containers` skill.
 
 ### Problem 3: Pre-existing Test Failures (SEPARATE ISSUE)
 
@@ -836,22 +827,7 @@ function getDbConfig() {
 
 Ran the 40 parity failure tests **INSIDE the test container** using test-executor agent.
 
-**Command Used**:
-```bash
-docker exec witchcity-test-runner sh -c 'cd /app && npx playwright test \
-  tests/e2e/admin-events-volunteers.spec.ts \
-  tests/e2e/admin-refund-eligibility.spec.ts \
-  tests/e2e/profile-update-full-persistence.spec.ts \
-  tests/e2e/refund-database-persistence.spec.ts \
-  tests/e2e/refund-validations.spec.ts \
-  tests/e2e/refund-workflow.spec.ts \
-  tests/e2e/ticket-refund-workflow.spec.ts \
-  tests/e2e/rsvp-lifecycle-persistence.spec.ts \
-  tests/e2e/ticket-lifecycle-persistence.spec.ts \
-  tests/e2e/vetting-application-detail.spec.ts \
-  tests/e2e/vetting-system-complete-workflows.spec.ts \
-  --reporter=list --workers=4 2>&1'
-```
+**Command Used**: `test-environment` skill with specific test files (admin-events-volunteers, admin-refund-eligibility, profile-update-full-persistence, refund-database-persistence, refund-validations, refund-workflow, ticket-refund-workflow, rsvp-lifecycle-persistence, ticket-lifecycle-persistence, vetting-application-detail, vetting-system-complete-workflows).
 
 ### Results Summary
 
@@ -1134,48 +1110,23 @@ The investigation is complete. Implementation of fixes for the 14 remaining test
 
 ### Root Cause
 
-Both docker-compose stacks use the **same project name** (`witchcityrope`) by default:
+Both docker-compose stacks were using the **same project name** (`witchcityrope`) by default. Docker Compose treats containers with the same project name as **one project**. When you restart one environment, it removes containers from the other environment because they're seen as "orphans" of the same project.
 
-```bash
-# These share the same project name by default:
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up   # witchcityrope
-docker-compose -f docker-compose.yml -f docker-compose.test.yml up  # witchcityrope
-```
-
-Docker Compose treats containers with the same project name as **one project**. When you restart one environment, it removes containers from the other environment because they're seen as "orphans" of the same project.
+**Solution**: Skills now use different `-p` project names (see solution section above).
 
 ### Evidence
 
-```
-# Attempting to start test postgres:
-docker-compose -f docker-compose.yml -f docker-compose.test.yml up -d --build postgres
-
-# Result: Dev postgres container DELETED
-# Error: KeyError: 'ContainerConfig' (docker-compose v1.29.2 bug)
-```
-
-API logs showed: `"Resource temporarily unavailable"` - database connection failures because postgres was gone.
+When starting test postgres without the project name flag, the dev postgres container was deleted, causing `"Resource temporarily unavailable"` API errors.
 
 ### Solution: Use Different Project Names
 
-**CRITICAL**: Always use the `-p` flag with different project names:
+**CRITICAL**: Always use different `-p` project names to isolate dev and test environments.
 
-```bash
-# Dev environment - use project name "witchcityrope-dev"
-docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up -d
+**Skills implement this automatically**:
+- `restart-dev-containers` skill: Uses `-p witchcityrope-dev`
+- `restart-test-containers` / `test-environment` skills: Use `-p witchcityrope-test`
 
-# Test environment - use project name "witchcityrope-test"
-docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml up -d
-```
-
-### Files That Need Updates
-
-| File | Required Change |
-|------|-----------------|
-| `.claude/skills/restart-dev-containers/execute.sh` | Add `-p witchcityrope-dev` to all docker-compose commands |
-| `.claude/skills/test-environment/execute.sh` | Add `-p witchcityrope-test` to all docker-compose commands |
-| `dev.sh` | Add `-p witchcityrope-dev` to all docker-compose commands |
-| `docker-compose.test.yml` | Already has separate network (172.26.0.0/16) - good |
+This isolation prevents one environment from deleting containers from the other.
 
 ### Network Separation (Already Implemented)
 
@@ -1214,5 +1165,75 @@ But network separation alone is NOT enough - project isolation (`-p` flag) is al
 The `KeyError: 'ContainerConfig'` error is a known bug in docker-compose v1.29.2 when recreating containers. Workarounds:
 - Upgrade to docker-compose v2 (`docker compose` instead of `docker-compose`)
 - Remove containers before recreating them
+
+---
+
+## Session 11: December 3, 2025 (Refund Test Fixes)
+
+### Summary
+
+Fixed 3 failing refund E2E tests that were breaking due to incorrect Playwright locator syntax and wrong status expectations.
+
+### Tests Fixed
+
+1. `admin-refund-eligibility.spec.ts: multiple refunds can be processed in sequence`
+2. `admin-refund-eligibility.spec.ts: payment status updates to "Refunded" after successful refund`
+3. `ticket-refund-workflow.spec.ts: Admin can complete refund workflow with all required fields`
+
+### Root Causes Identified
+
+**1. Wrong Playwright Locator Syntax**
+
+Tests used comma-separated text patterns which Playwright treats as invalid CSS selector:
+```typescript
+// WRONG - comma syntax doesn't work
+page.locator('text=/Refund.*processed/i, text=/Refund.*successful/i')
+```
+
+**Fix**: Use `.or()` method:
+```typescript
+// CORRECT
+page.locator('text=/Refund Processed/i').or(page.locator('text=/processed successfully/i'))
+```
+
+**2. Partial Refund Status Expectation**
+
+Tests expected "Refunded" status but partial refunds return "PartiallyRefunded".
+
+**Fix**: Accept both statuses:
+```typescript
+expect(['Refunded', 'PartiallyRefunded']).toContain(statusAfter?.trim());
+```
+
+**3. Race Condition in Parallel Tests**
+
+Tests could select payments being processed by parallel tests.
+
+**Fix**: Added status guard to only select "Completed" payments.
+
+**4. PayPal Test Environment Limitation**
+
+PayPal payments fail refunds due to fake capture IDs in seed data.
+
+**Fix**: Use Cash/Venmo payments for refund testing.
+
+### Files Modified
+
+- `tests/e2e/admin-refund-eligibility.spec.ts` (lines 310-327, 370-371, 390-404, 628-629, 667-669)
+- `tests/e2e/ticket-refund-workflow.spec.ts` (lines 271-272, 390-391)
+
+### Test Results
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Passed | 43 | 46 |
+| Failed | 3 | 0 |
+| Pass Rate | 75.4% | 80.7% (non-skipped) |
+
+### Patterns Added to Playwright Guide
+
+All patterns discovered in this session were added to `/docs/standards-processes/testing/browser-automation/playwright-guide.md`:
+- Section 5: Mantine Notification patterns, Playwright `.or()` syntax
+- Section 12 (new): Refund/Payment Testing Patterns
 
 ---

@@ -176,9 +176,9 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
     await page.goto('/admin/analytics/payments');
     await page.waitForLoadState('domcontentloaded');
 
-    // Find first eligible payment
-    console.log('📝 Step 2: Find payment eligible for refund');
-    const paymentRows = page.locator('table tbody tr, [data-testid="payment-row"]');
+    // Find Cash/Venmo payment eligible for refund (PayPal fails with fake capture IDs)
+    console.log('📝 Step 2: Find Cash/Venmo payment eligible for refund (non-PayPal)');
+    const paymentRows = page.locator('[data-testid="payment-row"]');
     const paymentCount = await paymentRows.count();
 
     if (paymentCount === 0) {
@@ -186,22 +186,45 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
       return;
     }
 
-    const firstPayment = paymentRows.first();
-    const refundButton = firstPayment.locator('button').filter({ hasText: /refund/i }).first();
+    // Find a Cash or Venmo payment with a refund button
+    let targetPayment = null;
+    let targetRefundButton = null;
 
-    if (await refundButton.count() === 0) {
-      console.log('   ⏭️  No refund button found - skipping test');
+    for (let i = 0; i < paymentCount; i++) {
+      const row = paymentRows.nth(i);
+      const refundBtn = row.locator('button').filter({ hasText: /refund/i }).first();
+
+      if (await refundBtn.count() > 0) {
+        // Check payment method - only use Cash or Venmo (PayPal fails with fake capture IDs)
+        const paymentMethodCell = row.locator('td').nth(3);
+        const paymentMethodBadge = paymentMethodCell.locator('[class*="Badge-root"]');
+        const paymentMethod = await paymentMethodBadge.textContent();
+
+        if (paymentMethod?.trim() === 'Cash' || paymentMethod?.trim() === 'Venmo') {
+          targetPayment = row;
+          targetRefundButton = refundBtn;
+          console.log(`   ✅ Found eligible ${paymentMethod?.trim()} payment at row ${i + 1}`);
+          break;
+        } else {
+          console.log(`   ⏭️  Row ${i + 1} is ${paymentMethod?.trim()} - skipping (need Cash or Venmo)`);
+        }
+      }
+    }
+
+    if (!targetPayment || !targetRefundButton) {
+      console.log('   ⏭️  No Cash/Venmo refund button found - skipping test');
+      console.log('   NOTE: PayPal payments fail in test env due to fake capture IDs');
       return;
     }
 
     // Store payment details for database verification
-    const paymentAmountText = await firstPayment.locator('text=/\\$[0-9]+\\.[0-9]{2}/').first().textContent() || '$0.00';
+    const paymentAmountText = await targetPayment.locator('text=/\\$[0-9]+\\.[0-9]{2}/').first().textContent() || '$0.00';
     const paymentAmount = parseFloat(paymentAmountText.replace('$', ''));
     console.log(`   Payment amount: $${paymentAmount.toFixed(2)}`);
 
     // Click refund button
     console.log('📝 Step 3: Open refund confirmation modal');
-    await refundButton.click();
+    await targetRefundButton.click();
     await page.waitForTimeout(500);
 
     const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
@@ -243,10 +266,10 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
     console.log('📝 Step 7: Process refund');
     await confirmButton.click();
 
-    // Wait for success notification
+    // Wait for success notification (Mantine notification with title "Refund Processed")
     console.log('📝 Step 8: Verify success notification');
-    const successNotification = page.locator('text=/Refund.*processed/i, text=/Refund.*successful/i').last();
-    await expect(successNotification).toBeVisible({ timeout: 10000 });
+    const successNotification = page.locator('text=/Refund Processed/i').or(page.locator('text=/processed successfully/i'));
+    await expect(successNotification.first()).toBeVisible({ timeout: 10000 });
     console.log('   ✅ Success notification displayed');
 
     // Verify modal closed
@@ -364,8 +387,8 @@ test.describe('Ticket Refund Workflow - Edge Cases', () => {
     console.log('   ✅ Modal closed without processing refund');
 
     // Verify no success notification
-    const successNotification = page.locator('text=/Refund.*processed/i, text=/Refund.*successful/i');
-    await expect(successNotification).not.toBeVisible({ timeout: 1000 }).catch(() => {
+    const successNotification = page.locator('text=/Refund Processed/i').or(page.locator('text=/processed successfully/i'));
+    await expect(successNotification.first()).not.toBeVisible({ timeout: 1000 }).catch(() => {
       // Expected - no notification should appear
     });
     console.log('   ✅ No success notification (as expected)');

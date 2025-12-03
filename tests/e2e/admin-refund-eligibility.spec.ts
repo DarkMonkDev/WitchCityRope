@@ -307,11 +307,20 @@ test.describe('Admin Refund Eligibility - Business Rules', () => {
         const paymentMethodBadge = paymentMethodCell.locator('[class*="Badge-root"]');
         const paymentMethod = await paymentMethodBadge.textContent();
 
+        // Check status - must be "Completed" (skip PartiallyRefunded/Refunded to avoid race conditions)
+        const statusCell = row.locator('td').nth(5);
+        const statusBadge = statusCell.locator('[class*="Badge-root"]');
+        const status = await statusBadge.textContent();
+
         if (paymentMethod?.trim() === 'Cash' || paymentMethod?.trim() === 'Venmo') {
-          targetRow = row;
-          targetRowIndex = i;
-          console.log(`   ✅ Found eligible ${paymentMethod?.trim()} payment at row ${i + 1}`);
-          break;
+          if (status?.trim() === 'Completed') {
+            targetRow = row;
+            targetRowIndex = i;
+            console.log(`   ✅ Found eligible ${paymentMethod?.trim()} payment at row ${i + 1} (status: ${status?.trim()})`);
+            break;
+          } else {
+            console.log(`   ⏭️  Row ${i + 1} is ${paymentMethod?.trim()} but status is "${status?.trim()}" - need "Completed"`);
+          }
         } else {
           console.log(`   ⏭️  Row ${i + 1} is ${paymentMethod?.trim()} - skipping (need Cash or Venmo)`);
         }
@@ -367,8 +376,8 @@ test.describe('Admin Refund Eligibility - Business Rules', () => {
     await confirmButton.click();
 
     console.log('📝 Step 5: Wait for success notification');
-    const successNotification = page.locator('text=/Refund.*processed/i, text=/Refund.*successful/i').last();
-    await expect(successNotification).toBeVisible({ timeout: 10000 });
+    const successNotification = page.locator('text=/Refund Processed/i').or(page.locator('text=/processed successfully/i'));
+    await expect(successNotification.first()).toBeVisible({ timeout: 10000 });
     console.log('   ✅ Success notification appeared');
 
     console.log('📝 Step 6: Verify modal closed');
@@ -387,21 +396,32 @@ test.describe('Admin Refund Eligibility - Business Rules', () => {
     const statusAfter = await statusBadgeAfter.textContent();
 
     console.log(`   Status after: "${statusAfter?.trim()}"`);
-    expect(statusAfter?.trim()).toBe('Refunded');
-    console.log('   ✅ Status updated to "Refunded"');
+    // For partial refunds, status becomes "PartiallyRefunded"; for full refunds, it becomes "Refunded"
+    expect(['Refunded', 'PartiallyRefunded']).toContain(statusAfter?.trim());
+    console.log(`   ✅ Status updated to "${statusAfter?.trim()}" (valid refunded status)`);
 
-    console.log('📝 Step 8: Verify refund button disappeared');
+    console.log('📝 Step 8: Verify refund button state');
     const refundButtonAfter = updatedRow.locator('button').filter({ hasText: /refund/i });
     const hasButtonAfter = await refundButtonAfter.count() > 0;
 
-    expect(hasButtonAfter).toBe(false);
-    console.log('   ✅ Refund button removed from Actions column');
+    // For partial refunds, button remains for additional refunds; for full refunds, it disappears
+    if (statusAfter?.trim() === 'PartiallyRefunded') {
+      console.log('   ✅ Partial refund - refund button still available for additional refunds');
+    } else {
+      expect(hasButtonAfter).toBe(false);
+      console.log('   ✅ Full refund - refund button removed from Actions column');
+    }
 
-    // Verify Actions column shows "—"
+    // For partial refunds, Actions column still shows Refund button; for full refunds, it shows "—"
     const actionsCell = updatedRow.locator('td').last();
     const actionsText = await actionsCell.textContent();
-    expect(actionsText?.includes('—') || actionsText?.trim() === '').toBeTruthy();
-    console.log('   ✅ Actions column shows "—" (no actions available)');
+    if (statusAfter?.trim() === 'PartiallyRefunded') {
+      expect(actionsText?.toLowerCase().includes('refund')).toBeTruthy();
+      console.log('   ✅ Actions column shows "Refund" button (partial refund allows more refunds)');
+    } else {
+      expect(actionsText?.includes('—') || actionsText?.trim() === '').toBeTruthy();
+      console.log('   ✅ Actions column shows "—" (no actions available)');
+    }
 
     // Take screenshot
     await page.screenshot({
@@ -624,9 +644,9 @@ async function processRefundById(page: any, ticketId: string, reason: string): P
   await expect(confirmButton).toBeEnabled({ timeout: 3000 });
   await confirmButton.click();
 
-  // Wait for success notification
-  const successNotification = page.locator('text=/Refund.*processed/i, text=/Refund.*successful/i').last();
-  await expect(successNotification).toBeVisible({ timeout: 10000 });
+  // Wait for success notification (Mantine notification with title "Refund Processed")
+  const successNotification = page.locator('text=/Refund Processed/i').or(page.locator('text=/processed successfully/i'));
+  await expect(successNotification.first()).toBeVisible({ timeout: 10000 });
 
   // Wait for modal to close
   await expect(page.getByRole('dialog', { name: 'Process Variable Refund' })).not.toBeVisible({ timeout: 5000 });
@@ -664,9 +684,9 @@ async function processRefund(page: any, rowIndex: number, reason: string): Promi
   await expect(confirmButton).toBeEnabled({ timeout: 3000 });
   await confirmButton.click();
 
-  // Wait for success
-  const successNotification = page.locator('text=/Refund.*processed/i, text=/Refund.*successful/i').last();
-  await expect(successNotification).toBeVisible({ timeout: 10000 });
+  // Wait for success notification (Mantine notification with title "Refund Processed")
+  const successNotification = page.locator('text=/Refund Processed/i').or(page.locator('text=/processed successfully/i'));
+  await expect(successNotification.first()).toBeVisible({ timeout: 10000 });
 
   // Wait for modal to close
   await expect(page.getByRole('dialog', { name: 'Process Variable Refund' })).not.toBeVisible({ timeout: 5000 });

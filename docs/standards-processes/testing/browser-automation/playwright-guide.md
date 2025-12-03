@@ -1,6 +1,6 @@
 # Playwright E2E Testing Guide - Comprehensive Patterns
-<!-- Last Updated: 2025-12-01 -->
-<!-- Version: 4.0 - Enhanced with container-compatible patterns -->
+<!-- Last Updated: 2025-12-03 -->
+<!-- Version: 4.1 - Added Mantine Chip/Notification/Collapse patterns, refund testing patterns -->
 <!-- Owner: Test Development Team -->
 <!-- Status: Active - SINGLE SOURCE OF TRUTH for E2E Testing -->
 
@@ -34,6 +34,7 @@
 9. [Database Persistence Verification](#9-database-persistence-verification)
 10. [Debugging Test Failures](#10-debugging-test-failures)
 11. [Common Anti-Patterns to Avoid](#11-common-anti-patterns-to-avoid)
+12. [Refund/Payment Testing Patterns](#12-refundpayment-testing-patterns)
 
 ---
 
@@ -492,6 +493,104 @@ await page.locator('[data-testid="submit-button"]').click();
 await page.locator('.mantine-Button-root').click();
 ```
 
+### 🚨 Mantine Chip Component Pattern (Different from Checkbox!)
+
+**Problem**: Mantine Chip components render `data-testid` directly on the hidden `<input>` element, not a wrapper. The input is not clickable - you must click the associated label.
+
+**DOM Structure**:
+```html
+<input type="checkbox" id="mantine-xxx" data-testid="filter-social" value="Social" />
+<label for="mantine-xxx" class="mantine-Chip-label">Social</label>
+```
+
+**✅ CORRECT Pattern - Click the Label**:
+```typescript
+// Get the input by testid, then find and click associated label
+const chipInput = page.getByTestId('filter-social');
+const chipId = await chipInput.getAttribute('id');
+const chipLabel = page.locator(`label[for="${chipId}"]`);
+await chipLabel.click();
+
+// Verify state
+await expect(chipInput).toBeChecked();
+// OR
+await expect(chipInput).not.toBeChecked();
+```
+
+**❌ WRONG Pattern**:
+```typescript
+// WRONG - Input is hidden, click times out
+await page.getByTestId('filter-social').click();
+
+// WRONG - Looking for nested input (testid IS on input)
+await page.locator('[data-testid="filter-social"] input').click();
+```
+
+### 🚨 Mantine Collapse Component (Inline Forms)
+
+**Problem**: Mantine Collapse keeps elements in DOM with height=0 when closed. Don't use `.not.toBeVisible()` on collapsed form containers.
+
+**✅ CORRECT Pattern**:
+```typescript
+// Open inline form
+await page.getByTestId('button-add-position').click();
+await page.waitForTimeout(300); // Collapse animation
+
+// Fill and save
+await page.getByTestId('input-position-title').fill('Position Name');
+await page.getByTestId('button-save-position').click();
+await page.waitForTimeout(500); // Form close + grid refresh
+
+// Verify in GRID, not form visibility
+const row = page.locator('tr').filter({ hasText: 'Position Name' });
+await expect(row).toBeVisible();
+```
+
+### 🚨 Mantine Notification Patterns
+
+**Problem**: Mantine notifications have title in separate element from message body. Notification title is NOT in the same element as the message.
+
+**Application Code** (useVariableRefund.ts):
+```typescript
+notifications.show({
+  title: 'Refund Processed',  // Separate element
+  message: `Successfully processed refund of $${amount}`,
+  color: 'green',
+});
+```
+
+**✅ CORRECT Pattern - Match Title Text**:
+```typescript
+// Match the notification title
+const notification = page.locator('text=/Refund Processed/i');
+await expect(notification).toBeVisible({ timeout: 10000 });
+```
+
+### 🚨 Playwright `.or()` for Multiple Locator Patterns
+
+**Problem**: Need to match one of several possible notification texts or element states.
+
+**❌ WRONG - Comma syntax doesn't work**:
+```typescript
+// WRONG - Treated as invalid CSS selector
+const notification = page.locator('text=/Pattern A/i, text=/Pattern B/i');
+```
+
+**✅ CORRECT - Use `.or()` method**:
+```typescript
+// Combine multiple locators with .or()
+const successNotification = page.locator('text=/Refund Processed/i')
+  .or(page.locator('text=/processed successfully/i'))
+  .or(page.locator('[data-testid="success-notification"]'));
+
+await expect(successNotification.first()).toBeVisible({ timeout: 10000 });
+```
+
+**When to use `.or()`**:
+- Multiple possible success messages
+- Element might have different states/classes
+- Fallback selectors for robustness
+
 ---
 
 ## 6. React Strict Mode Testing Pattern
@@ -811,16 +910,15 @@ const result = await query(sql, [
 ## 10. Debugging Test Failures
 
 ### Visual Debugging
-```bash
-# Run in headed mode
-npx playwright test --headed
 
-# Use UI mode for step-by-step debugging
-npx playwright test --ui
+**Use the `test-environment` skill** for running E2E tests in isolated containers.
 
-# Debug specific test
-npx playwright test --debug test-name
-```
+For local debugging during development:
+- **Headed mode**: Add `--headed` flag to see browser
+- **UI mode**: Add `--ui` flag for step-by-step debugging
+- **Debug specific test**: Add `--debug test-name`
+
+See `/.claude/skills/test-environment/` for full automation.
 
 ### Taking Screenshots
 ```typescript
@@ -961,33 +1059,92 @@ const eventsLink = breadcrumb.getByRole('link', { name: 'Events' });
 
 ---
 
+## 12. Refund/Payment Testing Patterns
+
+### 🚨 Partial vs Full Refund Status
+
+**Problem**: Tests expect "Refunded" status but partial refunds return "PartiallyRefunded".
+
+**Status Values**:
+- Full refund → Status changes to "Refunded"
+- Partial refund → Status changes to "PartiallyRefunded"
+
+**✅ CORRECT Pattern - Accept Both Statuses**:
+```typescript
+const statusAfter = await statusCell.textContent();
+expect(['Refunded', 'PartiallyRefunded']).toContain(statusAfter?.trim());
+
+// Handle button visibility based on status
+if (statusAfter?.trim() === 'PartiallyRefunded') {
+  // Refund button remains for additional refunds
+  console.log('Partial refund - button still available');
+} else {
+  // Full refund - button should be gone
+  expect(hasButtonAfter).toBe(false);
+}
+```
+
+### 🚨 Test Isolation - Status Guards for Parallel Tests
+
+**Problem**: When tests run in parallel, one test may select a payment that another test is currently refunding, causing race conditions.
+
+**✅ CORRECT Pattern - Check Status Before Selection**:
+```typescript
+// Only select payments with "Completed" status (not being processed)
+for (const row of rows) {
+  const paymentMethod = await row.locator('td').nth(4).textContent();
+  const statusBadge = row.locator('[class*="Badge-root"]');
+  const status = await statusBadge.textContent();
+
+  if (paymentMethod?.trim() === 'Cash' || paymentMethod?.trim() === 'Venmo') {
+    if (status?.trim() === 'Completed') {
+      targetRow = row;  // Safe to use
+      console.log(`Found eligible ${paymentMethod} payment (status: Completed)`);
+      break;
+    } else {
+      console.log(`Skipping ${paymentMethod} - status is "${status}" (need Completed)`);
+    }
+  }
+}
+```
+
+### 🚨 PayPal vs Cash/Venmo for Refund Testing
+
+**Problem**: PayPal payments in test environment fail refunds due to fake capture IDs in seed data.
+
+**Root Cause**: Seed data creates payments with placeholder PayPal capture IDs that PayPal API rejects during refund validation.
+
+**✅ CORRECT Pattern - Use Cash/Venmo for Refund Tests**:
+```typescript
+// Cash and Venmo don't require external API validation
+const testSafeMethods = ['Cash', 'Venmo'];  // NOT PayPal
+
+for (const row of rows) {
+  const method = await row.locator('td').nth(4).textContent();
+  if (testSafeMethods.includes(method?.trim() || '')) {
+    // Safe to use for refund testing
+  }
+}
+```
+
+**When PayPal IS Required**: Only for tests specifically validating PayPal integration with real sandbox credentials.
+
+---
+
 ## Quick Commands Reference
 
-```bash
-# All commands run from project root
-cd /home/chad/repos/witchcityrope
+**Use the `test-environment` skill** for running E2E tests. The skill handles:
+- Container setup and isolation
+- Proper network configuration
+- Test execution with correct environment variables
 
-# Run all E2E tests
-npx playwright test
-
-# Run specific file
-npx playwright test tests/e2e/auth/login.spec.ts
-
-# Debug mode with browser
-npx playwright test --debug
-
-# UI mode (recommended for debugging)
-npx playwright test --ui
-
-# Update screenshots
-npx playwright test --update-snapshots
-
-# List all tests (verify structure)
-npx playwright test --list
-
-# Run specific browser
-npx playwright test --project=chromium
-```
+**Playwright CLI options** (passed through the skill):
+- `--headed` - Show browser during tests
+- `--ui` - Interactive UI mode for debugging
+- `--debug` - Debug mode with inspector
+- `--update-snapshots` - Update baseline screenshots
+- `--list` - List all tests without running
+- `--project=chromium` - Run specific browser only
 
 ---
 

@@ -85,13 +85,13 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 
 ---
 
-## ADMIN REFUND (3 failures)
+## ADMIN REFUND (1 failure - 2 FIXED 2025-12-03)
 
-### admin-refund-eligibility (2 tests)
+### admin-refund-eligibility (0 tests - 2 FIXED)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Updated after successful refund | FAILING | TBD |
-| Can be processed in sequence | FAILING | TBD |
+| ~~Updated after successful refund~~ | ~~FIXED~~ | Fixed: `.or()` locator syntax, partial refund status |
+| ~~Can be processed in sequence~~ | ~~FIXED~~ | Fixed: `.or()` locator syntax, status guards |
 
 ### admin-session-deletion (1 test)
 | Test | Status | Failure Reason |
@@ -211,10 +211,10 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 |------|--------|----------------|
 | Cancellation reason to database | FAILING | TBD |
 
-### ticket-refund-workflow (1 test)
+### ticket-refund-workflow (0 tests - 1 FIXED 2025-12-03)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Details and open refund modal | FAILING | TBD |
+| ~~Admin can complete refund workflow~~ | ~~FIXED~~ | Fixed: `.or()` locator syntax |
 
 ---
 
