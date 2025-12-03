@@ -122,30 +122,16 @@ test.describe('Events - Public Access', () => {
     await page.goto('/events');
     await WaitHelpers.waitForPageLoad(page);
 
-    // Should show empty state
-    const emptyStateSelectors = [
-      '[data-testid="no-events"]',
-      '[data-testid="empty-state"]',
-      'text=No events',
-      'text=No upcoming events'
-    ];
+    // ACTUAL selector from EventsListPage.tsx line 598: data-testid="events-empty-state"
+    const emptyState = page.locator('[data-testid="events-empty-state"]');
 
-    let emptyStateFound = false;
-    for (const selector of emptyStateSelectors) {
-      const element = page.locator(selector);
-      if (await element.count() > 0 && await element.isVisible()) {
-        emptyStateFound = true;
-        console.log(`✅ Empty state displayed: ${selector}`);
-        break;
-      }
-    }
+    // Wait for empty state to be visible (should appear when events array is empty)
+    await expect(emptyState).toBeVisible({ timeout: 10000 });
+    console.log('✅ Empty state displayed with correct data-testid');
 
-    if (!emptyStateFound) {
-      // Check if page shows any indication of no events
-      const pageContent = await page.textContent('body');
-      expect(pageContent?.toLowerCase()).toMatch(/no events|empty|none found/);
-      console.log('✅ Empty state handled gracefully');
-    }
+    // Verify empty state contains expected text
+    await expect(emptyState).toContainText(/No Events Found/i);
+    console.log('✅ Empty state shows correct message');
   });
 
   test('should handle events API error gracefully', async ({ page }) => {
@@ -204,32 +190,33 @@ test.describe('Events - Authenticated Access', () => {
     const eventCards = page.locator('[data-testid="event-card"]');
     const firstEvent = eventCards.first();
 
-    // Click event to view details
+    // Click event to view details - navigates to EventDetailPage
     await firstEvent.click();
-    await page.waitForTimeout(500);
 
-    // Should show RSVP or ticket purchase button for authenticated users
-    const participationButtons = [
-      '[data-testid="button-rsvp"]',
-      '[data-testid="button-purchase-ticket"]',
-      'button:has-text("RSVP")',
-      'button:has-text("Purchase Ticket")'
-    ];
+    // Wait for navigation to event detail page (EventDetailPage.tsx uses data-testid="event-details")
+    await expect(page.locator('[data-testid="event-details"]')).toBeVisible({ timeout: 10000 });
+    console.log('✅ Navigated to event detail page');
 
-    let participationFound = false;
-    for (const selector of participationButtons) {
-      const button = page.locator(selector);
-      if (await button.count() > 0 && await button.isVisible()) {
-        await expect(button).toBeEnabled();
-        participationFound = true;
-        console.log(`✅ Participation option available: ${selector}`);
-        break;
-      }
+    // Wait for page to stabilize after navigation
+    await page.waitForLoadState('domcontentloaded');
+
+    // EventDetailPage shows ParticipationCard which contains RSVP/ticket buttons
+    // The ParticipationCard is CONDITIONAL - only shows certain buttons based on user state
+    // For authenticated users, there should be SOME form of participation option visible
+    const participationCard = page.locator('[data-testid="participation-card"], [class*="participation"]').first();
+
+    // Check if participation card exists (it should for authenticated users)
+    if (await participationCard.count() > 0) {
+      await expect(participationCard).toBeVisible({ timeout: 5000 });
+      console.log('✅ Participation card visible for authenticated user');
+    } else {
+      console.log('ℹ️ No participation card found - checking for other participation UI');
     }
 
-    if (!participationFound) {
-      console.log('ℹ️ Event RSVP/tickets not yet implemented or event full');
-    }
+    // Just verify that we successfully navigated to detail page and page loaded
+    // Actual RSVP/ticket functionality is tested in dedicated workflow tests
+    await expect(page.locator('[data-testid="section-hero"]')).toBeVisible({ timeout: 5000 });
+    console.log('✅ Event detail page loaded successfully');
   });
 
   test('should show different content for different user roles', async ({ page }) => {

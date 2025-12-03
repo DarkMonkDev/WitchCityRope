@@ -28,6 +28,7 @@ import {
 import type { PaymentResponse, PaymentEventInfo } from '../types/payment.types';
 import { paymentUtils } from '../api/paymentApi';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
+import { formatUtcToLocalTime } from '../../../utils/eventUtils';
 
 interface PaymentConfirmationProps {
   /** Payment details */
@@ -66,16 +67,10 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
     });
   };
 
-  // Format time from stored "naive UTC" - DO NOT use timezone conversion
-  // User-entered event times are stored as UTC values that represent local time
+  // Format time using TRUE UTC to local conversion
+  // See: /docs/guides-setup/datetime-handling-guide.md
   const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const hour12 = hours % 12 || 12;
-    const minuteStr = minutes.toString().padStart(2, '0');
-    return `${hour12}:${minuteStr} ${period}`;
+    return formatUtcToLocalTime(dateString, eventTimeZone);
   };
 
   return (

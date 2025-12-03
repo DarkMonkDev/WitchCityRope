@@ -25,7 +25,7 @@ const transformEventSession = (dto: EventSessionDto): EventSession => ({
   id: dto.id,
   sessionIdentifier: dto.sessionIdentifier,
   name: dto.name,
-  date: dto.date,
+  startDate: dto.startDate,
   startTime: dto.startTime,
   endTime: dto.endTime,
   capacity: dto.capacity,

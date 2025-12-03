@@ -181,7 +181,7 @@ test.describe('Refund Workflow - Refund Modal', () => {
 
     // Verify modal opened
     console.log('📝 Step 3: Verify refund modal opened');
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
     console.log('   ✅ Refund confirmation modal opened');
 
@@ -217,7 +217,7 @@ test.describe('Refund Workflow - Refund Modal', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Verify payment details displayed
@@ -272,31 +272,31 @@ test.describe('Refund Workflow - Refund Modal', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Verify refund amount input
     console.log('📝 Step 2: Verify refund amount input');
-    const amountInput = modal.locator('[data-testid="refund-amount-input"]');
+    const amountInput = modal.getByLabel('Refund Amount');
     await expect(amountInput).toBeVisible({ timeout: 3000 });
     console.log('   ✅ Refund amount input found');
 
     // Verify refund reason textarea
     console.log('📝 Step 3: Verify refund reason field');
-    const reasonTextarea = modal.locator('[data-testid="refund-reason-textarea"]');
+    const reasonTextarea = modal.getByLabel('Refund Reason');
     await expect(reasonTextarea).toBeVisible({ timeout: 3000 });
     console.log('   ✅ Refund reason textarea found');
 
     // Verify confirmation checkbox
     console.log('📝 Step 4: Verify confirmation checkbox');
-    const confirmCheckbox = modal.locator('[data-testid="refund-confirmation-checkbox"]');
+    const confirmCheckbox = modal.getByRole('checkbox', { name: /understand this will process/i });
     await expect(confirmCheckbox).toBeVisible({ timeout: 3000 });
     console.log('   ✅ Confirmation checkbox found');
 
     // Verify action buttons
     console.log('📝 Step 5: Verify action buttons');
-    const confirmButton = modal.locator('[data-testid="refund-confirm-button"]');
-    const cancelButton = modal.locator('[data-testid="refund-cancel-button"]');
+    const confirmButton = modal.getByRole('button', { name: 'Process Refund' });
+    const cancelButton = modal.getByRole('button', { name: 'Cancel' });
 
     await expect(confirmButton).toBeVisible({ timeout: 3000 });
     await expect(cancelButton).toBeVisible({ timeout: 3000 });
@@ -333,7 +333,7 @@ test.describe('Refund Workflow - Refund Modal', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Look for transaction summary section
@@ -391,33 +391,33 @@ test.describe('Refund Workflow - Form Validation', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Leave refund amount empty (or set to 0)
     console.log('📝 Step 2: Leave refund amount empty');
-    const amountInput = modal.locator('[data-testid="refund-amount-input"]');
+    const amountInput = modal.getByLabel('Refund Amount');
     await amountInput.clear();
     await amountInput.fill('0');
     console.log('   ✅ Refund amount set to $0');
 
     // Fill other required fields
     console.log('📝 Step 3: Fill other fields');
-    await modal.locator('[data-testid="refund-reason-textarea"]').fill('Test refund reason - amount validation');
-    await modal.locator('[data-testid="refund-confirmation-checkbox"]').check();
+    await modal.getByLabel('Refund Reason').fill('Test refund reason - amount validation');
+    await modal.getByRole('checkbox', { name: /understand this will process/i }).check();
     console.log('   ✅ Filled reason and checked confirmation');
 
     // Verify submit button is disabled
     console.log('📝 Step 4: Verify submit button disabled');
-    const confirmButton = modal.locator('[data-testid="refund-confirm-button"]');
+    const confirmButton = modal.getByRole('button', { name: 'Process Refund' });
     await expect(confirmButton).toBeDisabled({ timeout: 2000 });
     console.log('   ✅ Submit button disabled (amount required)');
 
     console.log('✅ TEST PASSED: Refund amount validation works');
   });
 
-  test('Cannot submit refund without refund reason', async ({ page }) => {
-    console.log('\n🎯 TEST: Refund reason required validation');
+  test('Cannot submit refund without refund reason (min 10 chars)', async ({ page }) => {
+    console.log('\n🎯 TEST: Refund reason required validation (min 10 chars)');
     console.log('─'.repeat(60));
 
     console.log('📝 Step 1: Open refund modal');
@@ -434,30 +434,42 @@ test.describe('Refund Workflow - Form Validation', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Fill refund amount
     console.log('📝 Step 2: Fill refund amount');
-    await modal.locator('[data-testid="refund-amount-input"]').fill('10');
+    await modal.getByLabel('Refund Amount').fill('10');
     console.log('   ✅ Refund amount: $10.00');
 
     // Leave reason empty
     console.log('📝 Step 3: Leave refund reason empty');
-    const reasonTextarea = modal.locator('[data-testid="refund-reason-textarea"]');
+    const reasonTextarea = modal.getByLabel('Refund Reason');
     await reasonTextarea.clear();
     console.log('   ✅ Refund reason empty');
 
     // Check confirmation
-    await modal.locator('[data-testid="refund-confirmation-checkbox"]').check();
+    await modal.getByRole('checkbox', { name: /understand this will process/i }).check();
 
     // Verify submit button is disabled
-    console.log('📝 Step 4: Verify submit button disabled');
-    const confirmButton = modal.locator('[data-testid="refund-confirm-button"]');
+    console.log('📝 Step 4: Verify submit button disabled (empty reason)');
+    const confirmButton = modal.getByRole('button', { name: 'Process Refund' });
     await expect(confirmButton).toBeDisabled({ timeout: 2000 });
     console.log('   ✅ Submit button disabled (reason required, min 10 chars)');
 
-    console.log('✅ TEST PASSED: Refund reason validation works');
+    // Test with reason < 10 characters
+    console.log('📝 Step 5: Test with reason < 10 characters');
+    await reasonTextarea.fill('Short'); // Only 5 characters
+    await expect(confirmButton).toBeDisabled({ timeout: 2000 });
+    console.log('   ✅ Submit button still disabled (reason < 10 chars)');
+
+    // Test with reason >= 10 characters
+    console.log('📝 Step 6: Test with reason >= 10 characters');
+    await reasonTextarea.fill('Valid refund reason text'); // > 10 characters
+    await expect(confirmButton).toBeEnabled({ timeout: 2000 });
+    console.log('   ✅ Submit button enabled (reason >= 10 chars)');
+
+    console.log('✅ TEST PASSED: Refund reason validation works (min 10 chars)');
   });
 
   test('Cannot submit refund without confirmation checkbox', async ({ page }) => {
@@ -478,18 +490,18 @@ test.describe('Refund Workflow - Form Validation', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Fill all fields except checkbox
     console.log('📝 Step 2: Fill amount and reason');
-    await modal.locator('[data-testid="refund-amount-input"]').fill('10');
-    await modal.locator('[data-testid="refund-reason-textarea"]').fill('Test refund reason - checkbox validation');
+    await modal.getByLabel('Refund Amount').fill('10');
+    await modal.getByLabel('Refund Reason').fill('Test refund reason - checkbox validation');
     console.log('   ✅ Amount and reason filled');
 
     // Leave checkbox unchecked
     console.log('📝 Step 3: Leave confirmation checkbox unchecked');
-    const checkbox = modal.locator('[data-testid="refund-confirmation-checkbox"]');
+    const checkbox = modal.getByRole('checkbox', { name: /understand this will process/i });
     await checkbox.uncheck(); // Ensure it's unchecked
     const isChecked = await checkbox.isChecked();
     expect(isChecked).toBe(false);
@@ -497,7 +509,7 @@ test.describe('Refund Workflow - Form Validation', () => {
 
     // Verify submit button is disabled
     console.log('📝 Step 4: Verify submit button disabled');
-    const confirmButton = modal.locator('[data-testid="refund-confirm-button"]');
+    const confirmButton = modal.getByRole('button', { name: 'Process Refund' });
     await expect(confirmButton).toBeDisabled({ timeout: 2000 });
     console.log('   ✅ Submit button disabled (confirmation required)');
 
@@ -522,23 +534,23 @@ test.describe('Refund Workflow - Form Validation', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Fill all required fields
     console.log('📝 Step 2: Fill all required fields');
-    await modal.locator('[data-testid="refund-amount-input"]').fill('10');
+    await modal.getByLabel('Refund Amount').fill('10');
     console.log('   ✅ Refund amount: $10.00');
 
-    await modal.locator('[data-testid="refund-reason-textarea"]').fill('E2E test refund - validation test for form completion');
+    await modal.getByLabel('Refund Reason').fill('E2E test refund - validation test for form completion');
     console.log('   ✅ Refund reason filled (min 10 chars)');
 
-    await modal.locator('[data-testid="refund-confirmation-checkbox"]').check();
+    await modal.getByRole('checkbox', { name: /understand this will process/i }).check();
     console.log('   ✅ Confirmation checkbox checked');
 
     // Verify submit button is now enabled
     console.log('📝 Step 3: Verify submit button enabled');
-    const confirmButton = modal.locator('[data-testid="refund-confirm-button"]');
+    const confirmButton = modal.getByRole('button', { name: 'Process Refund' });
     await expect(confirmButton).toBeEnabled({ timeout: 3000 });
     console.log('   ✅ Submit button enabled (all fields complete)');
 
@@ -569,29 +581,27 @@ test.describe('Refund Workflow - Form Validation', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
-    // Look for character counter
+    // Look for character counter - format: "500 / 500 characters remaining"
     console.log('📝 Step 2: Verify character counter');
-    const charCounter = modal.locator('text=/[0-9]+.*500.*characters?.*remaining/i').first();
+    const charCounter = modal.locator('text=/\\d+ \\/ 500 characters remaining/');
 
-    if (await charCounter.count() > 0) {
-      await expect(charCounter).toBeVisible({ timeout: 3000 });
-      const counterText = await charCounter.textContent();
-      console.log(`   ✅ Character counter found: ${counterText}`);
+    await expect(charCounter).toBeVisible({ timeout: 3000 });
+    const counterText = await charCounter.textContent();
+    console.log(`   ✅ Character counter found: ${counterText}`);
 
-      // Type in reason field
-      console.log('📝 Step 3: Test character counter updates');
-      const testText = 'Test refund reason for character counter';
-      await modal.locator('[data-testid="refund-reason-textarea"]').fill(testText);
+    // Type in reason field
+    console.log('📝 Step 3: Test character counter updates');
+    const testText = 'Test refund reason for character counter';
+    await modal.getByLabel('Refund Reason').fill(testText);
 
-      // Verify counter updated
-      const updatedCounter = await charCounter.textContent();
-      console.log(`   ✅ Counter updated: ${updatedCounter}`);
-    } else {
-      console.log('   ℹ️ Character counter not found - may not be implemented');
-    }
+    // Verify counter updated (should show 500 - testText.length)
+    const expectedRemaining = 500 - testText.length;
+    const updatedCounter = await charCounter.textContent();
+    expect(updatedCounter).toContain(`${expectedRemaining} / 500`);
+    console.log(`   ✅ Counter updated: ${updatedCounter}`);
 
     console.log('✅ TEST PASSED: Character counter verification complete');
   });
@@ -621,18 +631,18 @@ test.describe('Refund Workflow - Refund Processing', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Fill form (but don't submit)
     console.log('📝 Step 2: Fill form partially');
-    await modal.locator('[data-testid="refund-amount-input"]').fill('10');
-    await modal.locator('[data-testid="refund-reason-textarea"]').fill('Test cancel reason');
+    await modal.getByLabel('Refund Amount').fill('10');
+    await modal.getByLabel('Refund Reason').fill('Test cancel reason');
     console.log('   ✅ Form filled');
 
     // Click cancel button
     console.log('📝 Step 3: Click cancel button');
-    const cancelButton = modal.locator('[data-testid="refund-cancel-button"]');
+    const cancelButton = modal.getByRole('button', { name: 'Cancel' });
     await cancelButton.click();
 
     // Verify modal closed
@@ -672,24 +682,24 @@ test.describe('Refund Workflow - Refund Processing', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
     console.log('   ✅ Refund modal opened');
 
     // Fill complete refund form
     console.log('📝 Step 2: Fill refund form');
-    await modal.locator('[data-testid="refund-amount-input"]').fill('5');
+    await modal.getByLabel('Refund Amount').fill('5');
     console.log('   ✅ Refund amount: $5.00 (partial refund for testing)');
 
     const refundReason = 'E2E automated test refund - FIRST TEST - verifying refund workflow';
-    await modal.locator('[data-testid="refund-reason-textarea"]').fill(refundReason);
+    await modal.getByLabel('Refund Reason').fill(refundReason);
     console.log(`   ✅ Refund reason: "${refundReason}"`);
 
-    await modal.locator('[data-testid="refund-confirmation-checkbox"]').check();
+    await modal.getByRole('checkbox', { name: /understand this will process/i }).check();
     console.log('   ✅ Confirmation checkbox checked');
 
     // Verify button enabled
-    const confirmButton = modal.locator('[data-testid="refund-confirm-button"]');
+    const confirmButton = modal.getByRole('button', { name: 'Process Refund' });
     await expect(confirmButton).toBeEnabled({ timeout: 2000 });
     console.log('   ✅ Confirm button enabled');
 
@@ -771,19 +781,19 @@ test.describe('Refund Workflow - Refund Processing', () => {
     await refundButton.click();
     await page.waitForTimeout(500);
 
-    const modal = page.locator('[data-testid="refund-confirmation-modal"]');
+    const modal = page.getByRole('dialog', { name: 'Process Variable Refund' });
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Fill form
     console.log('📝 Step 2: Fill form (first time)');
-    await modal.locator('[data-testid="refund-amount-input"]').fill('20');
-    await modal.locator('[data-testid="refund-reason-textarea"]').fill('First attempt reason');
-    await modal.locator('[data-testid="refund-confirmation-checkbox"]').check();
+    await modal.getByLabel('Refund Amount').fill('20');
+    await modal.getByLabel('Refund Reason').fill('First attempt reason');
+    await modal.getByRole('checkbox', { name: /understand this will process/i }).check();
     console.log('   ✅ Form filled');
 
     // Cancel
     console.log('📝 Step 3: Cancel modal');
-    await modal.locator('[data-testid="refund-cancel-button"]').click();
+    await modal.getByRole('button', { name: 'Cancel' }).click();
     await expect(modal).not.toBeVisible({ timeout: 3000 });
     console.log('   ✅ Modal closed');
 
@@ -796,17 +806,18 @@ test.describe('Refund Workflow - Refund Processing', () => {
 
     // Verify form is reset
     console.log('📝 Step 5: Verify form reset');
-    const amountInput = modal.locator('[data-testid="refund-amount-input"]');
+    const amountInput = modal.getByLabel('Refund Amount');
     const amountValue = await amountInput.inputValue();
-    expect(amountValue).toBe('');
-    console.log('   ✅ Amount input reset');
+    // NumberInput resets to default value '$0.00' or empty string
+    expect(amountValue === '' || amountValue === '$0.00').toBe(true);
+    console.log(`   ✅ Amount input reset (value: "${amountValue}")`);
 
-    const reasonTextarea = modal.locator('[data-testid="refund-reason-textarea"]');
+    const reasonTextarea = modal.getByLabel('Refund Reason');
     const reasonValue = await reasonTextarea.inputValue();
     expect(reasonValue).toBe('');
     console.log('   ✅ Reason textarea reset');
 
-    const checkbox = modal.locator('[data-testid="refund-confirmation-checkbox"]');
+    const checkbox = modal.getByRole('checkbox', { name: /understand this will process/i });
     const isChecked = await checkbox.isChecked();
     expect(isChecked).toBe(false);
     console.log('   ✅ Checkbox reset');

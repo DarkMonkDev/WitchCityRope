@@ -20,10 +20,10 @@ test.describe('Docker Services Configuration', () => {
   test('should connect to existing web service', async ({ page }) => {
     // This should work without starting new services
     await page.goto('/');
-    
-    // Verify the React app loads
-    await expect(page).toHaveTitle(/WitchCityRope/i);
-    
+
+    // Verify the React app loads - actual title is "Witch City Rope - Salem's Rope Bondage Community"
+    await expect(page).toHaveTitle(/Witch City Rope/i);
+
     console.log('✅ Web service accessible via Playwright');
   });
 
@@ -78,10 +78,11 @@ test.describe('Docker Services Configuration', () => {
   test('should have correct baseURL configuration', async ({ page }) => {
     // Verify that the baseURL is properly configured
     await page.goto('/');
-    
+
     const currentUrl = page.url();
-    expect(currentUrl).toMatch(/http:\/\/localhost:5173/);
-    
+    // Check for localhost:5173 (Docker web service port)
+    expect(currentUrl).toContain('localhost:5173');
+
     console.log('✅ Base URL configuration correct:', currentUrl);
   });
 

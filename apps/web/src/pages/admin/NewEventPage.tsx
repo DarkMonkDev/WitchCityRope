@@ -66,7 +66,7 @@ export const NewEventPage: React.FC = () => {
           id: '', // Backend will generate
           sessionIdentifier: 'S1',
           name: 'Default',
-          date: dateOnly.toISOString(),
+          startDate: dateOnly.toISOString(),
           startTime: startDateTime.toISOString(),
           endTime: endDateTime.toISOString(),
           capacity: 20,
@@ -103,7 +103,7 @@ export const NewEventPage: React.FC = () => {
         sessions: sessions.map(s => ({
           sessionIdentifier: s.sessionIdentifier,
           name: s.name,
-          date: s.date,
+          startDate: s.startDate,
           startTime: s.startTime,
           endTime: s.endTime,
           capacity: s.capacity

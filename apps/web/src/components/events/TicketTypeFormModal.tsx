@@ -121,7 +121,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       session?.sessionIdentifier &&
       session?.name &&
       session?.id &&
-      session?.date &&
+      session?.startDate &&
       session?.startTime &&
       !session.id.startsWith('temp-') // Exclude temporary IDs
     )

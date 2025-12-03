@@ -44,19 +44,19 @@ const formatEventDate = (event: EventDto): string => {
   // Use next upcoming session's date instead of event.startDate
   const displaySession = getDisplaySession(event);
 
-  if (!displaySession || !displaySession.date) {
+  if (!displaySession || !displaySession.startDate) {
     return 'Date TBD';
   }
 
-  // session.date is a date-only field (extracted from StartTime.Date on backend)
+  // session.startDate is a date-only field (local date extracted from UTC StartTime on backend)
   // Do NOT apply timezone conversion - just extract YYYY-MM-DD
-  const datePart = displaySession.date.split('T')[0]; // Extract YYYY-MM-DD
+  const datePart = displaySession.startDate.split('T')[0]; // Extract YYYY-MM-DD
   const [year, month, day] = datePart.split('-').map(Number);
   const date = new Date(year, month - 1, day);
 
   // Check if date is valid
   if (isNaN(date.getTime())) {
-    console.error('Invalid date for event:', { eventId: event.id, sessionDate: displaySession.date })
+    console.error('Invalid date for event:', { eventId: event.id, sessionDate: displaySession.startDate })
     return 'Invalid Date'
   }
 

@@ -105,7 +105,12 @@ export interface EventOrganizerDto {
 
 /**
  * Session within an event
- * Maps to EventSessionDto
+ * Maps to EventSessionDto (SessionDto on backend)
+ *
+ * IMPORTANT: This type must match backend SessionDto.
+ * - startDate: LOCAL date (backend converts UTC to local before extracting date)
+ * - startTime/endTime: Full UTC datetime strings
+ * See: /docs/guides-setup/datetime-handling-guide.md
  */
 export interface EventSessionDto {
   /** Unique identifier for this session */
@@ -114,22 +119,24 @@ export interface EventSessionDto {
   sessionIdentifier: string;
   /** Display name for the session */
   name: string;
-  /** Date when this session occurs */
-  date: string; // ISO string
-  /** Start time of the session */
-  startTime: string; // TimeSpan as string (HH:mm:ss)
-  /** End time of the session */
-  endTime: string; // TimeSpan as string (HH:mm:ss)
+  /** Start date when this session occurs (LOCAL date, not UTC) */
+  startDate: string; // ISO string - local date extracted from StartTime
+  /** End date when this session ends (LOCAL date, for multi-day sessions) */
+  endDate?: string; // ISO string - local date extracted from EndTime
+  /** Start time of the session (full UTC datetime) */
+  startTime: string; // Full UTC ISO datetime
+  /** End time of the session (full UTC datetime) */
+  endTime: string; // Full UTC ISO datetime
   /** Maximum number of attendees for this session */
   capacity: number;
   /** Current number of registered attendees */
-  registeredCount: number;
-  /** Number of available spots (Capacity - RegisteredCount) */
-  availableSpots: number;
+  registrationCount: number; // Renamed from registeredCount to match backend
+  /** Number of available spots (Capacity - RegistrationCount) */
+  availableSpots?: number;
   /** Whether this session is required for the event */
-  isRequired: boolean;
+  isRequired?: boolean;
   /** Whether this session has available capacity for registration */
-  hasAvailableCapacity: boolean;
+  hasAvailableCapacity?: boolean;
   /** Full start datetime for the session (computed) */
   startDateTime?: string; // ISO string
   /** Full end datetime for the session (computed) */

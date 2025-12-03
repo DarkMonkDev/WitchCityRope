@@ -75,8 +75,17 @@ test.describe('Registration Terms of Service Compliance', () => {
       throw new Error(`Registration failed with status ${status}. Response: ${responseBody}`);
     }
 
-    // Should navigate to login page after successful registration (NOT dashboard)
-    await page.waitForURL(/\/login/, { timeout: 30000 });
+    // After successful registration, should see success message on same page
+    await expect(page.getByTestId('page-register-success')).toBeVisible({ timeout: 10000 });
+    console.log('✅ Registration success message displayed');
+
+    // Click "Go to Login" button to navigate to login page
+    const goToLoginButton = page.getByRole('link', { name: 'Go to Login' });
+    await expect(goToLoginButton).toBeVisible();
+    await goToLoginButton.click();
+
+    // Should navigate to login page
+    await page.waitForURL(/\/login/, { timeout: 10000 });
     expect(page.url()).toContain('/login');
 
     // Now login with the newly created credentials
@@ -108,8 +117,17 @@ test.describe('Registration Terms of Service Compliance', () => {
     const submitButton = page.locator('[data-testid="register-button"]');
     await submitButton.click();
 
-    // Wait for navigation to login page after successful registration
-    await page.waitForURL(/\/login/, { timeout: 30000 });
+    // After successful registration, should see success message on same page
+    await expect(page.getByTestId('page-register-success')).toBeVisible({ timeout: 10000 });
+    console.log('✅ Registration success message displayed');
+
+    // Click "Go to Login" button to navigate to login page
+    const goToLoginButton = page.getByRole('link', { name: 'Go to Login' });
+    await expect(goToLoginButton).toBeVisible();
+    await goToLoginButton.click();
+
+    // Wait for navigation to login page
+    await page.waitForURL(/\/login/, { timeout: 10000 });
 
     // Login with newly created credentials
     await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
@@ -158,8 +176,17 @@ test.describe('Registration Terms of Service Compliance', () => {
     await page.locator('[data-testid="terms-checkbox"]').check();
     await page.locator('[data-testid="register-button"]').click();
 
-    // Wait for navigation to login page after successful registration
-    await page.waitForURL(/\/login/, { timeout: 30000 });
+    // After successful registration, should see success message on same page
+    await expect(page.getByTestId('page-register-success')).toBeVisible({ timeout: 10000 });
+    console.log('✅ Registration success message displayed');
+
+    // Click "Go to Login" button to navigate to login page
+    const goToLoginButton = page.getByRole('link', { name: 'Go to Login' });
+    await expect(goToLoginButton).toBeVisible();
+    await goToLoginButton.click();
+
+    // Wait for navigation to login page
+    await page.waitForURL(/\/login/, { timeout: 10000 });
 
     // Now log in with the same credentials
     await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);

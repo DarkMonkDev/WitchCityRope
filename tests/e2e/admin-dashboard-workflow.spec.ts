@@ -220,17 +220,17 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await expect(googleDriveSection).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await googleDriveSection.scrollIntoViewIfNeeded();
 
-    // HARD ASSERTION - Input fields must exist
-    const folderUrlInput = page.getByLabel(/Investigation Folder URL/i);
+    // HARD ASSERTION - Input fields must exist (using data-testid from component)
+    const folderUrlInput = page.getByTestId('google-drive-folder-url');
     await expect(folderUrlInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await folderUrlInput.fill('https://drive.google.com/drive/folders/test-incident-folder');
 
-    const reportUrlInput = page.getByLabel(/Final Report URL/i);
+    const reportUrlInput = page.getByTestId('google-drive-report-url');
     await expect(reportUrlInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await reportUrlInput.fill('https://drive.google.com/file/d/test-final-report');
 
-    // HARD ASSERTION - Save button must exist
-    const saveLinkButton = page.locator('button:has-text("SAVE LINKS")').first();
+    // HARD ASSERTION - Save button must exist (CORRECTED: button text is "Save Links" not "SAVE LINKS")
+    const saveLinkButton = page.getByTestId('save-links-button');
     await expect(saveLinkButton).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
 
     // Wait for API response to validate save operation
@@ -275,14 +275,14 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await expect(notesSection).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await notesSection.scrollIntoViewIfNeeded();
 
-    // HARD ASSERTION - Textarea must exist
+    // HARD ASSERTION - Textarea must exist (using data-testid from component)
     const noteContent = 'Administrative note: Initial review completed. Escalating to safety team coordinator.';
-    const noteTextarea = page.locator('textarea[placeholder*="Add investigation note" i], textarea').first();
+    const noteTextarea = page.getByTestId('add-note-content');
     await expect(noteTextarea).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await noteTextarea.fill(noteContent);
 
-    // HARD ASSERTION - Add note button must exist
-    const addNoteButton = page.locator('button:has-text("ADD NOTE")').first();
+    // HARD ASSERTION - Add note button must exist (CORRECTED: button text is "Add Note" not "ADD NOTE")
+    const addNoteButton = page.getByTestId('add-note-submit');
     await expect(addNoteButton).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
 
     // Wait for API response to validate note creation

@@ -19,9 +19,13 @@ export default defineConfig({
   // globalSetup: './tests/e2e/global-setup.ts', // Verify Docker services before tests
   reporter: [
     ['list'],
-    ['json', { outputFile: './playwright-results/test-results.json' }],
-    ['html', { outputFolder: './playwright-results/html-report' }]
+    // JSON reporter with detailed error output
+    ['json', { outputFile: './test-results/test-results.json' }],
+    // HTML report with all failure details
+    ['html', { outputFolder: './test-results/html-report', open: 'never' }]
   ],
+  // Output directory for test artifacts (screenshots, videos, traces)
+  outputDir: './test-results',
   use: {
     // DOCKER-ONLY: Must use Docker web service on port 5173
     // In test containers, use internal service name (http://web:5173) via WEB_BASE_URL
@@ -33,7 +37,8 @@ export default defineConfig({
       'Accept': 'application/json',
     },
 
-    trace: 'on-first-retry',
+    // CRITICAL: Capture traces on failure (not just retry - we have retries: 0)
+    trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     actionTimeout: 30000,

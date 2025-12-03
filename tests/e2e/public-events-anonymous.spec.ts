@@ -33,32 +33,20 @@ test.describe('Public Events Anonymous Access', () => {
       // Should return 200 OK status
       expect(response.status()).toBe(200);
 
-      // Verify response is successful
-      const responseData = await response.json();
-      expect(responseData.success).toBe(true);
-      expect(responseData.error).toBeNull();
+      // API returns array directly (NOT wrapped in success/data structure)
+      const events = await response.json();
+      expect(Array.isArray(events)).toBe(true);
+      expect(events.length).toBeGreaterThan(0);
 
-      // Should return array of events in data property
-      expect(Array.isArray(responseData.data)).toBe(true);
-      expect(responseData.data.length).toBeGreaterThan(0);
-
-      console.log(`✅ API returned ${responseData.data.length} public events`);
+      console.log(`✅ API returned ${events.length} public events`);
     });
 
     test('API response matches EventDto structure', async ({ page }) => {
       // Make API call
       const response = await page.request.get(`${API_BASE_URL}/api/events`);
-      const responseData = await response.json();
 
-      // Verify wrapper structure
-      expect(responseData).toHaveProperty('success');
-      expect(responseData).toHaveProperty('data');
-      expect(responseData).toHaveProperty('error');
-      expect(responseData).toHaveProperty('message');
-      expect(responseData).toHaveProperty('timestamp');
-
-      // Verify event data structure
-      const events = responseData.data;
+      // API returns array directly (NOT wrapped)
+      const events = await response.json();
       expect(events.length).toBeGreaterThan(0);
 
       const firstEvent = events[0];
@@ -69,13 +57,14 @@ test.describe('Public Events Anonymous Access', () => {
       expect(firstEvent).toHaveProperty('description');
       expect(firstEvent).toHaveProperty('startDate'); // API uses startDate, not startTime
       expect(firstEvent).toHaveProperty('endDate');   // API uses endDate, not endTime
-      expect(firstEvent).toHaveProperty('location');
       expect(firstEvent).toHaveProperty('isPublished');
       expect(firstEvent).toHaveProperty('eventType');
 
       // Additional expected fields
       expect(firstEvent).toHaveProperty('capacity');
       expect(firstEvent).toHaveProperty('sessions');
+      expect(firstEvent).toHaveProperty('venueId');
+      expect(firstEvent).toHaveProperty('venueLocation');
 
       // Verify published status (should only return published events)
       expect(firstEvent.isPublished).toBe(true);
@@ -86,9 +75,9 @@ test.describe('Public Events Anonymous Access', () => {
     test('Unpublished events are NOT returned to anonymous users', async ({ page }) => {
       // Make API call without includeUnpublished parameter
       const response = await page.request.get(`${API_BASE_URL}/api/events`);
-      const responseData = await response.json();
 
-      const events = responseData.data;
+      // API returns array directly (NOT wrapped)
+      const events = await response.json();
 
       // ALL events should have isPublished = true
       const allPublished = events.every((event: any) => event.isPublished === true);
@@ -108,11 +97,14 @@ test.describe('Public Events Anonymous Access', () => {
       // Should return 401 Unauthorized
       expect(response.status()).toBe(401);
 
-      const responseData = await response.json();
-      expect(responseData.success).toBe(false);
-      expect(responseData.error).toBeTruthy();
+      // Results.Problem returns RFC 7807 problem details format
+      const problemDetails = await response.json();
+      expect(problemDetails).toHaveProperty('title');
+      expect(problemDetails).toHaveProperty('detail');
+      expect(problemDetails.title).toBe('Authentication Required');
+      expect(problemDetails.detail).toContain('Authentication required to access unpublished events');
 
-      console.log(`✅ Unpublished events access blocked: ${responseData.error}`);
+      console.log(`✅ Unpublished events access blocked: ${problemDetails.detail}`);
     });
   });
 

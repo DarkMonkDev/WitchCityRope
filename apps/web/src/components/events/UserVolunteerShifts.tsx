@@ -5,6 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import type { VolunteerPosition } from '../../features/volunteers/types/volunteer.types';
 import { cancelVolunteerSignup } from '../../features/volunteers/api/volunteerApi';
+import { formatUtcToLocalTime } from '../../utils/eventUtils';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 interface UserVolunteerShiftsProps {
   positions: VolunteerPosition[];
@@ -24,6 +26,7 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<VolunteerPosition | null>(null);
   const queryClient = useQueryClient();
+  const eventTimeZone = useEventTimeZone();
 
   // Cancel volunteer signup mutation
   const cancelMutation = useMutation({
@@ -62,18 +65,12 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
     }
   };
 
-  // Format time from stored "naive UTC" - DO NOT use timezone conversion
-  // User-entered session times are stored as UTC values that represent local time
+  // Format time using TRUE UTC to local conversion
+  // See: /docs/guides-setup/datetime-handling-guide.md
   const formatTime = (timeString?: string) => {
     if (!timeString) return '';
     try {
-      const date = new Date(timeString);
-      const hours = date.getUTCHours();
-      const minutes = date.getUTCMinutes();
-      const period = hours >= 12 ? 'pm' : 'am';
-      const hour12 = hours % 12 || 12;
-      const minuteStr = minutes.toString().padStart(2, '0');
-      return `${hour12}:${minuteStr} ${period}`;
+      return formatUtcToLocalTime(timeString, eventTimeZone);
     } catch {
       return timeString;
     }

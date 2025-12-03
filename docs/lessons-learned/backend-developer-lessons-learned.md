@@ -106,6 +106,33 @@
 
 **See TESTING_GUIDE.md for complete testing standards.**
 
+## 📖 TOPIC-SPECIFIC READING (Optional - Read When Working On These Topics)
+
+### DateTime/Timezone Handling
+**When to read**: Working on event sessions, time storage, DTOs with dates, or timing-based business logic
+
+**Single Source of Truth**: `/home/chad/repos/witchcityrope/docs/guides-setup/datetime-handling-guide.md`
+
+**Key Points**:
+- All times stored as TRUE UTC in database (Session.StartTime, Session.EndTime)
+- Conversion happens at DTO boundary, NOT in business logic
+- Use `TimeZoneInfo.ConvertTimeFromUtc()` to convert UTC to local
+- Use `DateTime.SpecifyKind(dt, DateTimeKind.Utc)` before converting
+- Global timezone is `America/New_York` (Salem, MA events)
+- Extract dates from LOCAL time, not UTC time (prevents day-shift bugs)
+
+**Common Bug**: `Date = session.StartTime.Date` extracts UTC date (Dec 5) instead of local date (Dec 4) when time crosses midnight UTC.
+
+**Correct Pattern**:
+```csharp
+var easternZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+var utcTime = DateTime.SpecifyKind(session.StartTime, DateTimeKind.Utc);
+var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, easternZone);
+StartDate = localTime.Date;  // Correct local date
+```
+
+---
+
 ## 🚨 IF THIS FILE EXCEEDS 1700 LINES, add new lessons learned to PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨
 
 ## 📚 MULTI-FILE LESSONS LEARNED

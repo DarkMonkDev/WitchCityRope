@@ -6,6 +6,7 @@ import type { UserEventDto } from '../../../types/dashboard.types'
 import type { VolunteerShiftWithEvent } from '../../../components/dashboard/UserVolunteerShifts'
 import { useEvent } from '../../../lib/api/hooks/useEvents'
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone'
+import { formatUtcTimeRange, formatUtcToLocalDate, formatUtcToLocalTime } from '../../../utils/eventUtils'
 
 interface EventCardProps {
   event: UserEventDto
@@ -56,52 +57,25 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
   const showPurchaseButton = shouldCheckForPaidTickets && hasPaidTickets
 
   const formatEventDateTime = (startDate: string, endDate?: string) => {
-    const start = new Date(startDate)
-
-    // Format date with abbreviated month, no year
-    const datePart = start.toLocaleDateString('en-US', {
+    // Format date using TRUE UTC to local conversion
+    // See: /docs/guides-setup/datetime-handling-guide.md
+    const datePart = formatUtcToLocalDate(startDate, eventTimeZone, {
       weekday: 'long',
       month: 'short',
       day: 'numeric'
-    ,
-      timeZone: eventTimeZone})
+    })
 
-    // Format start time using getUTCHours/getUTCMinutes (user-entered times stored as naive UTC)
-    const startHours = start.getUTCHours();
-    const startMinutes = start.getUTCMinutes();
-    const startPeriod = startHours >= 12 ? 'pm' : 'am';
-    const startHour12 = startHours % 12 || 12;
-    const startMinuteStr = startMinutes.toString().padStart(2, '0');
-    const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
+    // Format time range
+    const timeRange = formatUtcTimeRange(startDate, endDate || undefined, eventTimeZone)
 
-    // If no end date, just return date + start time
-    if (!endDate) {
-      return `${datePart} - ${startTime}`
-    }
-
-    // Format end time using getUTCHours/getUTCMinutes
-    const end = new Date(endDate)
-    const endHours = end.getUTCHours();
-    const endMinutes = end.getUTCMinutes();
-    const endPeriod = endHours >= 12 ? 'pm' : 'am';
-    const endHour12 = endHours % 12 || 12;
-    const endMinuteStr = endMinutes.toString().padStart(2, '0');
-    const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
-
-    return `${datePart} - ${startTime} - ${endTime}`
+    return `${datePart} - ${timeRange}`
   }
 
   const formatShiftTime = (timeString?: string) => {
     if (!timeString) return ''
     try {
-      // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-      const date = new Date(timeString)
-      const hours = date.getUTCHours();
-      const minutes = date.getUTCMinutes();
-      const period = hours >= 12 ? 'pm' : 'am';
-      const hour12 = hours % 12 || 12;
-      const minuteStr = minutes.toString().padStart(2, '0');
-      return `${hour12}:${minuteStr} ${period}`;
+      // Use TRUE UTC to local time conversion
+      return formatUtcToLocalTime(timeString, eventTimeZone)
     } catch {
       return timeString
     }
@@ -218,29 +192,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
               letterSpacing: '0.5px',
             }}
           >
-            {(() => {
-              if (!event.startDate) return ''
-              const start = new Date(event.startDate)
-              // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-              const startHours = start.getUTCHours();
-              const startMinutes = start.getUTCMinutes();
-              const startPeriod = startHours >= 12 ? 'pm' : 'am';
-              const startHour12 = startHours % 12 || 12;
-              const startMinuteStr = startMinutes.toString().padStart(2, '0');
-              const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
-
-              if (!event.endDate) return startTime
-
-              const end = new Date(event.endDate)
-              const endHours = end.getUTCHours();
-              const endMinutes = end.getUTCMinutes();
-              const endPeriod = endHours >= 12 ? 'pm' : 'am';
-              const endHour12 = endHours % 12 || 12;
-              const endMinuteStr = endMinutes.toString().padStart(2, '0');
-              const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
-
-              return `${startTime} - ${endTime}`
-            })()}
+            {event.startDate ? formatUtcTimeRange(event.startDate, event.endDate || undefined, eventTimeZone) : ''}
           </Text>
         </Group>
 

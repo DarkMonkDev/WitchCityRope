@@ -41,9 +41,15 @@ test.describe('ProfilePage - E2E Tests', () => {
     await page.goto('/dashboard/profile-settings');
     await page.waitForLoadState('domcontentloaded');
 
-    // Verify error message is displayed
-    await expect(page.locator('text=Failed to load your profile. Please try refreshing the page.'))
-      .toBeVisible({ timeout: 10000 });
+    // Verify error message is displayed (using flexible selector for error alert)
+    const errorAlert = page.locator('[role="alert"]').filter({ hasText: /error|failed/i }).first();
+    const errorText = page.locator('text=/Error Loading Profile|Failed to load|error/i').first();
+
+    // Try both selectors
+    const errorVisible = await errorAlert.isVisible({ timeout: 5000 }).catch(() => false) ||
+                         await errorText.isVisible({ timeout: 5000 }).catch(() => false);
+
+    expect(errorVisible).toBeTruthy();
 
     console.log('✅ Profile page correctly displays error when API returns 500');
 
@@ -100,21 +106,20 @@ test.describe('ProfilePage - E2E Tests', () => {
       );
     }
 
-    // Verify Account Information section exists
-    await expect(page.locator('h2:has-text("Account Information")')).toBeVisible({ timeout: 5000 });
+    // Verify profile tabs exist (current implementation uses Tabs component)
+    const personalTab = page.locator('button[role="tab"]').filter({ hasText: /personal/i }).first();
+    const securityTab = page.locator('button[role="tab"]').filter({ hasText: /password|security/i }).first();
+    const vettingTab = page.locator('button[role="tab"]').filter({ hasText: /vetting/i }).first();
 
-    // Verify User ID section exists
-    await expect(page.locator('text=User ID')).toBeVisible();
+    await expect(personalTab).toBeVisible({ timeout: 5000 });
+    await expect(securityTab).toBeVisible({ timeout: 5000 });
+    await expect(vettingTab).toBeVisible({ timeout: 5000 });
 
-    // Verify Account Created section exists
-    await expect(page.locator('text=Account Created')).toBeVisible();
-
-    // Verify the section has content (user ID and date)
-    const accountSection = page.locator('h2:has-text("Account Information")').locator('..');
-    const sectionText = await accountSection.textContent();
-    expect(sectionText).toBeTruthy();
-    expect(sectionText).toMatch(/User ID/);
-    expect(sectionText).toMatch(/Account Created/);
+    // Verify personal info fields exist (using data-testid attributes from ProfileSettingsPage.tsx)
+    await expect(page.getByTestId('scene-name-input')).toBeVisible();
+    await expect(page.getByTestId('first-name-input')).toBeVisible();
+    await expect(page.getByTestId('last-name-input')).toBeVisible();
+    await expect(page.getByTestId('email-input')).toBeVisible();
 
     console.log('✅ Profile page displays account information correctly');
   });

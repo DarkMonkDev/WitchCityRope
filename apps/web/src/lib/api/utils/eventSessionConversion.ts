@@ -6,7 +6,8 @@ import type { EventTicketType } from '../../../components/events/EventTicketType
  * Converts backend SessionDto to frontend EventSession interface
  */
 export function convertEventSessionFromDto(dto: SessionDto): EventSession {
-  // SessionDto already has date, startTime, and endTime as separate fields
+  // SessionDto has startDate (local date), startTime, and endTime as separate fields
+  // Note: startDate is now the local date (already converted from UTC on backend)
   const startDateTime = new Date(dto.startTime || '')
   const endDateTime = new Date(dto.endTime || '')
 
@@ -14,7 +15,7 @@ export function convertEventSessionFromDto(dto: SessionDto): EventSession {
     id: dto.id,
     sessionIdentifier: dto.sessionIdentifier,
     name: dto.name,
-    date: dto.date?.split('T')[0] || '', // Extract date part if datetime format
+    startDate: dto.startDate?.split('T')[0] || '', // Extract date part if datetime format
     startTime: startDateTime.toTimeString().slice(0, 5), // HH:MM format
     endTime: endDateTime.toTimeString().slice(0, 5), // HH:MM format
     capacity: dto.capacity,
@@ -25,16 +26,16 @@ export function convertEventSessionFromDto(dto: SessionDto): EventSession {
 /**
  * Converts frontend EventSession to backend CreateEventSessionDto
  */
-export function convertEventSessionToCreateDto(session: EventSession): { 
+export function convertEventSessionToCreateDto(session: EventSession): {
   sessionIdentifier: string
   name: string
   startDateTime: string
   endDateTime: string
-  capacity: number 
+  capacity: number
 } {
   // Combine date and time strings to create ISO datetime strings
-  const startDateTime = new Date(`${session.date}T${session.startTime}:00`)
-  const endDateTime = new Date(`${session.date}T${session.endTime}:00`)
+  const startDateTime = new Date(`${session.startDate}T${session.startTime}:00`)
+  const endDateTime = new Date(`${session.startDate}T${session.endTime}:00`)
   
   return {
     sessionIdentifier: session.sessionIdentifier,

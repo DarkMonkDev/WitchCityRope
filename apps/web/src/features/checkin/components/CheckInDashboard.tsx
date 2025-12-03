@@ -32,6 +32,7 @@ import type { CheckInDashboard, RecentCheckIn, CapacityInfo } from '../types/che
 import { EVENT_STATUS_CONFIGS, TOUCH_TARGETS } from '../types/checkin.types';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
+import { formatUtcToLocalTime } from '../../../utils/eventUtils';
 
 interface CheckInDashboardProps {
   dashboard: CheckInDashboard | null;
@@ -148,15 +149,7 @@ function EventInfoCard({ dashboard }: { dashboard: CheckInDashboard }) {
             <Group align="center" gap="xs">
               <IconClock size={16} />
               <Text size="sm" c="dimmed">
-                {eventDate.toLocaleDateString('en-US', { timeZone: eventTimeZone })} at {(() => {
-                  // Format time from stored "naive UTC" - DO NOT use timezone conversion
-                  const hours = eventDate.getUTCHours();
-                  const minutes = eventDate.getUTCMinutes();
-                  const period = hours >= 12 ? 'PM' : 'AM';
-                  const hour12 = hours % 12 || 12;
-                  const minuteStr = minutes.toString().padStart(2, '0');
-                  return `${hour12}:${minuteStr} ${period}`;
-                })()}
+                {eventDate.toLocaleDateString('en-US', { timeZone: eventTimeZone })} at {dashboard.eventDate ? formatUtcToLocalTime(dashboard.eventDate, eventTimeZone) : 'TBD'}
               </Text>
             </Group>
           </Stack>

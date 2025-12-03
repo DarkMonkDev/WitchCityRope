@@ -52,8 +52,8 @@ test.describe('CMS Feature - Critical Workflows', () => {
     await page.waitForLoadState('domcontentloaded');
     console.log('✅ Navigated to /resources');
 
-    // 3. Verify edit button is visible (admin-only)
-    const editButton = page.locator('button:has-text("Edit")').first();
+    // 3. Verify edit button is visible (admin-only) - desktop version
+    const editButton = page.getByTestId('cms-edit-button');
     await expect(editButton).toBeVisible({ timeout: 5000 });
     console.log('✅ Edit button visible for admin');
 
@@ -71,8 +71,8 @@ test.describe('CMS Feature - Critical Workflows', () => {
     await editor.fill('This is updated content from E2E test');
     console.log('✅ Content edited in TipTap editor');
 
-    // 7. Save changes
-    const saveButton = page.locator('button:has-text("Save")').first();
+    // 7. Save changes (use bottom Save button)
+    const saveButton = page.getByRole('button', { name: 'Save' }).last();
     await saveButton.click();
     console.log('✅ Clicked Save button');
 
@@ -109,7 +109,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // 3. Click edit button
-    const editButton = page.locator('button:has-text("Edit")').first();
+    const editButton = page.getByTestId('cms-edit-button');
     await editButton.click();
     await page.waitForTimeout(500);
 
@@ -119,8 +119,8 @@ test.describe('CMS Feature - Critical Workflows', () => {
     await editor.fill('This change should be discarded');
     console.log('✅ Made changes in editor');
 
-    // 5. Click Cancel
-    const cancelButton = page.locator('button:has-text("Cancel")').first();
+    // 5. Click Cancel (use bottom Cancel button)
+    const cancelButton = page.getByRole('button', { name: 'Cancel' }).last();
     await cancelButton.click();
     console.log('✅ Clicked Cancel button');
 
@@ -163,7 +163,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // 3. Click edit
-    const editButton = page.locator('button:has-text("Edit")').first();
+    const editButton = page.getByTestId('cms-edit-button');
     await editButton.click();
     await page.waitForTimeout(500);
 
@@ -186,7 +186,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     console.log('✅ Entered malicious HTML');
 
     // 5. Save
-    const saveButton = page.locator('button:has-text("Save")').first();
+    const saveButton = page.getByRole('button', { name: 'Save' }).last();
     await saveButton.click();
 
     // Wait for save to complete
@@ -335,9 +335,11 @@ test.describe('CMS Feature - Additional Coverage', () => {
     await page.goto(`${baseUrl}/resources`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Verify edit button is NOT visible
-    const editButton = page.locator('button:has-text("Edit")');
-    await expect(editButton).not.toBeVisible({ timeout: 2000 });
+    // Verify edit button is NOT visible (check both desktop and mobile versions)
+    const desktopEditButton = page.getByTestId('cms-edit-button');
+    const mobileEditButton = page.getByTestId('cms-edit-fab');
+    await expect(desktopEditButton).not.toBeVisible({ timeout: 2000 });
+    await expect(mobileEditButton).not.toBeVisible({ timeout: 2000 });
     console.log('✅ Edit button hidden for non-admin');
   });
 
@@ -354,9 +356,11 @@ test.describe('CMS Feature - Additional Coverage', () => {
     await expect(heading).toBeVisible({ timeout: 5000 });
     console.log('✅ Public page accessible without login');
 
-    // Verify edit button NOT visible
-    const editButton = page.locator('button:has-text("Edit")');
-    await expect(editButton).not.toBeVisible({ timeout: 1000 });
+    // Verify edit button NOT visible (check both desktop and mobile versions)
+    const desktopEditButton = page.getByTestId('cms-edit-button');
+    const mobileEditButton = page.getByTestId('cms-edit-fab');
+    await expect(desktopEditButton).not.toBeVisible({ timeout: 1000 });
+    await expect(mobileEditButton).not.toBeVisible({ timeout: 1000 });
     console.log('✅ Edit button not shown to public users');
   });
 
@@ -378,8 +382,8 @@ test.describe('CMS Feature - Additional Coverage', () => {
       const content = page.locator('h1, h2, p').first();
       await expect(content).toBeVisible({ timeout: 5000 });
 
-      // Verify edit button visible
-      const editButton = page.locator('button:has-text("Edit")').first();
+      // Verify edit button visible (desktop version)
+      const editButton = page.getByTestId('cms-edit-button');
       await expect(editButton).toBeVisible({ timeout: 2000 });
 
       console.log(`✅ ${cmsPage.url} accessible with edit button`);
@@ -392,7 +396,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Start editing
-    const editButton = page.locator('button:has-text("Edit")').first();
+    const editButton = page.getByTestId('cms-edit-button');
     await editButton.click();
     await page.waitForTimeout(500);
 
@@ -403,7 +407,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
 
     // Measure save time
     const startTime = Date.now();
-    const saveButton = page.locator('button:has-text("Save")').first();
+    const saveButton = page.getByRole('button', { name: 'Save' }).last();
     await saveButton.click();
 
     // Wait for success notification

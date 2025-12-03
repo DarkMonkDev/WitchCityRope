@@ -20,6 +20,14 @@ public class CheckInService : ICheckInService
     private readonly ILogger<CheckInService> _logger;
     private readonly IMemoryCache _cache;
 
+    /// <summary>
+    /// Global timezone for all events (Salem, MA).
+    /// Used to determine "today" for queries in local time.
+    /// See: /docs/guides-setup/datetime-handling-guide.md
+    /// </summary>
+    private static readonly TimeZoneInfo EasternTimeZone =
+        TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+
     public CheckInService(
         ApplicationDbContext context,
         ILogger<CheckInService> logger,
@@ -415,9 +423,14 @@ public class CheckInService : ICheckInService
                              now > eventInfo.EndDate ? "ended" : "active";
 
             // Get staff members who have checked people in today for this event
-            var today = DateTime.UtcNow.Date;
+            // IMPORTANT: Use local "today", not UTC "today"
+            // At 11 PM EST on Dec 4, UTC is 4 AM Dec 5 - using UTC.Date would miss today's check-ins
+            // See: /docs/guides-setup/datetime-handling-guide.md
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, EasternTimeZone);
+            var todayLocalStart = localNow.Date;
+            var todayUtcStart = TimeZoneInfo.ConvertTimeToUtc(todayLocalStart, EasternTimeZone);
             var staffOnDuty = await _context.CheckIns
-                .Where(c => c.EventId == eventId && c.CheckInTime >= today)
+                .Where(c => c.EventId == eventId && c.CheckInTime >= todayUtcStart)
                 .GroupBy(c => new { c.StaffMemberId, c.StaffMember.SceneName, c.StaffMember.Role })
                 .Select(g => new StaffMember
                 {

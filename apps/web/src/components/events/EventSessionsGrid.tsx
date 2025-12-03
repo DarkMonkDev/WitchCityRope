@@ -24,14 +24,14 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
   // Sort sessions by date (oldest first)
   const sortedSessions = useMemo(() => {
     return [...sessions].sort((a, b) => {
-      const dateA = a.date ? new Date(a.date).getTime() : 0;
-      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
       return dateA - dateB;
     });
   }, [sessions]);
 
   const formatDate = (dateString: string) => {
-    // session.date is a date-only field (extracted from StartTime.Date on backend)
+    // session.startDate is a date-only field (local date extracted from UTC StartTime on backend)
     // Do NOT apply timezone conversion - just extract YYYY-MM-DD
     const datePart = dateString.split('T')[0]; // Extract YYYY-MM-DD
     const [year, month, day] = datePart.split('-').map(Number);
@@ -175,7 +175,7 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
                 onClick={() => session.id && onEditSession(session.id)}
                 style={{ cursor: 'pointer' }}
               >
-                <Text size="sm">{session.date ? formatDateRange(session.date, session.endDate) : 'N/A'}</Text>
+                <Text size="sm">{session.startDate ? formatDateRange(session.startDate, session.endDate) : 'N/A'}</Text>
               </Table.Td>
               <Table.Td
                 onClick={() => session.id && onEditSession(session.id)}

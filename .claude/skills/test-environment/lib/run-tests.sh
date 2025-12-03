@@ -1,5 +1,6 @@
 #!/bin/bash
 # run-tests.sh - Execute tests in test environment containers
+# CRITICAL: Extracts and summarizes ALL test results before container cleanup
 
 set -e
 
@@ -8,7 +9,197 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m'
+
+# Get PROJECT_ROOT from parent script or calculate it
+if [ -z "$PROJECT_ROOT" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+fi
+
+# Extract and summarize test results from container BEFORE cleanup
+extract_test_results() {
+    local container_name="witchcity-test-runner"
+    local results_dir="$PROJECT_ROOT/test-results"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+
+    echo -e "${BLUE}📋 Extracting test results from container...${NC}"
+
+    # Ensure results directory exists
+    mkdir -p "$results_dir"
+
+    # Copy ALL test artifacts from container
+    echo "  Copying test-results.json..."
+    docker cp "$container_name:/app/test-results/test-results.json" "$results_dir/test-results.json" 2>/dev/null && \
+        echo -e "  ${GREEN}✓${NC} test-results.json copied" || \
+        echo -e "  ${YELLOW}⚠${NC} test-results.json not found"
+
+    echo "  Copying .last-run.json..."
+    docker cp "$container_name:/app/test-results/.last-run.json" "$results_dir/.last-run.json" 2>/dev/null && \
+        echo -e "  ${GREEN}✓${NC} .last-run.json copied" || \
+        echo -e "  ${YELLOW}⚠${NC} .last-run.json not found"
+
+    echo "  Copying HTML report..."
+    docker cp "$container_name:/app/test-results/html-report" "$results_dir/html-report" 2>/dev/null && \
+        echo -e "  ${GREEN}✓${NC} html-report/ copied" || \
+        echo -e "  ${YELLOW}⚠${NC} html-report/ not found"
+
+    echo "  Copying traces and screenshots..."
+    # Copy any trace files
+    docker exec "$container_name" find /app/test-results -name "*.zip" -type f 2>/dev/null | while read trace; do
+        local basename=$(basename "$trace")
+        docker cp "$container_name:$trace" "$results_dir/$basename" 2>/dev/null && \
+            echo -e "  ${GREEN}✓${NC} $basename copied"
+    done
+
+    # Copy any screenshots
+    docker exec "$container_name" find /app/test-results -name "*.png" -type f 2>/dev/null | while read screenshot; do
+        local basename=$(basename "$screenshot")
+        docker cp "$container_name:$screenshot" "$results_dir/$basename" 2>/dev/null && \
+            echo -e "  ${GREEN}✓${NC} $basename copied"
+    done
+
+    echo ""
+}
+
+# Generate comprehensive test summary from JSON results
+generate_test_summary() {
+    local results_dir="$PROJECT_ROOT/test-results"
+    local json_file="$results_dir/test-results.json"
+    local summary_file="$results_dir/test-summary.txt"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+
+    echo -e "${BLUE}📊 Generating test summary...${NC}"
+
+    if [ ! -f "$json_file" ]; then
+        echo -e "${YELLOW}⚠ No test-results.json found - cannot generate full summary${NC}"
+        echo "Test run at $timestamp" > "$summary_file"
+        echo "ERROR: test-results.json not found" >> "$summary_file"
+        return 1
+    fi
+
+    # Parse JSON and extract stats using jq
+    if command -v jq &> /dev/null; then
+        local stats=$(cat "$json_file" | jq -r '
+            .stats as $stats |
+            .suites as $suites |
+            {
+                total: (.suites | [.. | .specs? | select(.) | .[]] | length),
+                passed: ([.. | .tests? | select(.) | .[] | select(.status == "passed" or .status == "expected")] | length),
+                failed: ([.. | .tests? | select(.) | .[] | select(.status == "failed" or .status == "unexpected")] | length),
+                skipped: ([.. | .tests? | select(.) | .[] | select(.status == "skipped")] | length),
+                flaky: ([.. | .tests? | select(.) | .[] | select(.status == "flaky")] | length)
+            }
+        ' 2>/dev/null)
+
+        if [ -n "$stats" ] && [ "$stats" != "null" ]; then
+            local total=$(echo "$stats" | jq -r '.total')
+            local passed=$(echo "$stats" | jq -r '.passed')
+            local failed=$(echo "$stats" | jq -r '.failed')
+            local skipped=$(echo "$stats" | jq -r '.skipped')
+            local flaky=$(echo "$stats" | jq -r '.flaky')
+
+            # Calculate pass rate
+            local pass_rate=0
+            if [ "$total" -gt 0 ]; then
+                pass_rate=$(echo "scale=1; $passed * 100 / $total" | bc 2>/dev/null || echo "0")
+            fi
+
+            # Write summary file
+            cat > "$summary_file" << EOF
+================================================================================
+                         E2E TEST RESULTS SUMMARY
+================================================================================
+Timestamp: $timestamp
+================================================================================
+
+RESULTS:
+  ✓ Passed:  $passed
+  ✗ Failed:  $failed
+  ○ Skipped: $skipped
+  ⚡ Flaky:   $flaky
+  ─────────────────
+  Total:     $total
+
+PASS RATE: ${pass_rate}%
+
+================================================================================
+EOF
+
+            # Print summary to console
+            echo ""
+            echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
+            echo -e "${CYAN}                    E2E TEST RESULTS SUMMARY${NC}"
+            echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
+            echo ""
+            echo -e "  ${GREEN}✓ Passed:${NC}  $passed"
+            echo -e "  ${RED}✗ Failed:${NC}  $failed"
+            echo -e "  ${YELLOW}○ Skipped:${NC} $skipped"
+            echo -e "  ${BLUE}⚡ Flaky:${NC}   $flaky"
+            echo "  ─────────────────"
+            echo -e "  Total:     $total"
+            echo ""
+            if [ "$failed" -eq 0 ]; then
+                echo -e "  ${GREEN}PASS RATE: ${pass_rate}% ✓${NC}"
+            else
+                echo -e "  ${YELLOW}PASS RATE: ${pass_rate}%${NC}"
+            fi
+            echo ""
+            echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
+            echo ""
+
+            # List failed tests if any
+            if [ "$failed" -gt 0 ]; then
+                echo -e "${RED}FAILED TESTS:${NC}"
+                # Use a proper jq query that navigates the Playwright JSON structure
+                cat "$json_file" | jq -r '
+                    [.suites | .. | objects | select(.file?) |
+                     .specs[]? |
+                     select(.tests[0].results[0].status == "failed" or .tests[0].results[0].status == "unexpected") |
+                     "  ✗ \(.file): \(.title)"
+                    ] | sort | unique | .[:20][]
+                ' 2>/dev/null || echo "  (Could not parse test names)"
+
+                local failed_count=$(cat "$json_file" | jq '
+                    [.suites | .. | objects | select(.file?) |
+                     .specs[]? |
+                     select(.tests[0].results[0].status == "failed" or .tests[0].results[0].status == "unexpected")
+                    ] | length
+                ' 2>/dev/null || echo "0")
+                if [ "$failed_count" -gt 20 ]; then
+                    echo -e "  ${YELLOW}... and $((failed_count - 20)) more${NC}"
+                fi
+                echo ""
+
+                # Append failed tests to summary file
+                echo "" >> "$summary_file"
+                echo "FAILED TESTS:" >> "$summary_file"
+                cat "$json_file" | jq -r '
+                    [.suites | .. | objects | select(.file?) |
+                     .specs[]? |
+                     select(.tests[0].results[0].status == "failed" or .tests[0].results[0].status == "unexpected") |
+                     "  ✗ \(.file): \(.title)"
+                    ] | sort | unique[]
+                ' 2>/dev/null >> "$summary_file" || echo "  (Could not parse test names)" >> "$summary_file"
+            fi
+
+            echo -e "${GREEN}Summary saved to: $summary_file${NC}"
+            echo ""
+            return 0
+        fi
+    fi
+
+    # Fallback: count from .last-run.json if jq parsing failed
+    echo -e "${YELLOW}⚠ Could not parse test-results.json, using .last-run.json${NC}"
+    if [ -f "$results_dir/.last-run.json" ]; then
+        local failed_count=$(cat "$results_dir/.last-run.json" | jq '.failedTests | length' 2>/dev/null || echo "?")
+        echo "  Failed tests: $failed_count"
+        echo "Test run at $timestamp" > "$summary_file"
+        echo "Failed tests: $failed_count" >> "$summary_file"
+        echo "(Full breakdown unavailable - JSON parsing failed)" >> "$summary_file"
+    fi
+}
 
 run_tests() {
     local mode="$1"
@@ -69,12 +260,13 @@ run_tests() {
                 filter_args="--grep '$filter'"
             fi
 
-            # Add coverage if requested
-            if [ "$coverage" = "true" ]; then
-                playwright_args="--reporter=list,json,html"
-            else
-                playwright_args="--reporter=list"
-            fi
+            # IMPORTANT: Don't override reporter settings here!
+            # The playwright.config.ts defines reporters (list, json, html)
+            # and output paths. We use those settings to ensure:
+            # - JSON report captures error messages (critical for debugging)
+            # - HTML report provides detailed failure analysis
+            # - Traces are captured on failure
+            playwright_args=""
 
             # Add workers if specified
             if [ -n "$PW_WORKERS" ]; then
@@ -111,17 +303,15 @@ run_tests() {
             ;;
     esac
 
-    # Copy test results from container to host
+    # CRITICAL: Extract test results BEFORE cleanup can happen
     if [ "$mode" = "e2e" ] || [ "$mode" = "all" ]; then
-        echo -e "${BLUE}📋 Copying test results from container...${NC}"
-        mkdir -p "$PROJECT_ROOT/test-results"
-        docker cp witchcity-test-runner:/app/test-results/. "$PROJECT_ROOT/test-results/" 2>/dev/null || true
-        docker cp witchcity-test-runner:/app/playwright-results/. "$PROJECT_ROOT/test-results/" 2>/dev/null || true
+        extract_test_results
+        generate_test_summary
     fi
 
     # Save run metadata
     mkdir -p "$PROJECT_ROOT/test-results"
-    echo "mode=$mode filter=$filter exit_code=$exit_code timestamp=$(date +%s)" > "$PROJECT_ROOT/test-results/.last-run"
+    echo "mode=$mode filter=$filter exit_code=$exit_code timestamp=$(date +%s)" > "$PROJECT_ROOT/test-results/.last-run-meta"
 
     if [ $exit_code -eq 0 ]; then
         echo -e "${GREEN}✅ Tests passed${NC}"

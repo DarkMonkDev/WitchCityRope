@@ -110,7 +110,7 @@ test.describe('Check-In Token Validation', () => {
     const hasEmptyState = await page.locator('text=/no attendees|loading|error/i').first().isVisible().catch(() => false);
 
     // Verify API call with invalid token fails
-    const response = await page.request.get(
+    const response = await page.context().request.get(
       `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
       {
         headers: {
@@ -157,7 +157,7 @@ test.describe('Check-In Token Validation', () => {
     const fakeEventId = 'fake-event-id-12345';
 
     // Try to get attendees for wrong event using token for different event
-    const attendeesData = await page.request.get(
+    const attendeesData = await page.context().request.get(
       `${API_BASE_URL}/api/checkin/events/${fakeEventId}/attendees`,
       {
         headers: {
@@ -201,7 +201,7 @@ test.describe('Check-In Token Validation', () => {
     await page.context().clearCookies();
 
     // Verify API calls with revoked token fail
-    const attendeesResponse = await page.request.get(
+    const attendeesResponse = await page.context().request.get(
       `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
       {
         headers: {
@@ -267,7 +267,7 @@ test.describe('Check-In Token Validation', () => {
     await page.context().clearCookies();
 
     // Verify API calls with expired token fail
-    const attendeesResponse = await page.request.get(
+    const attendeesResponse = await page.context().request.get(
       `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
       {
         headers: {

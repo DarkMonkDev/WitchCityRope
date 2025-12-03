@@ -5162,7 +5162,7 @@ export interface components {
             sessionIdentifier?: string;
             name?: string;
             /** Format: date-time */
-            date?: string;
+            startDate?: string;
             /** Format: date-time */
             endDate?: string;
             /** Format: date-time */

@@ -35,7 +35,8 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
 
     // Fetch an event with multiple sessions for testing
     // Use module-level constant for container compatibility
-    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`);
+    // Use context().request to share authentication cookies
+    const eventsResponse = await page.context().request.get(`${API_BASE_URL}/api/events`);
     const events = await eventsResponse.json();
 
     if (!events || events.length === 0) {
@@ -396,7 +397,8 @@ test.describe('Session-Aware Check-In - Attendees Tab', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Get an event with attendees (preferably with check-ins)
-    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`);
+    // Use context().request to share authentication cookies
+    const eventsResponse = await page.context().request.get(`${API_BASE_URL}/api/events`);
     const events = await eventsResponse.json();
 
     if (!events || events.length === 0) {

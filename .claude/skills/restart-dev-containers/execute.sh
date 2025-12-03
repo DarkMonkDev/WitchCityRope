@@ -35,7 +35,6 @@ echo "   1. Stops existing containers"
 echo "   2. Rebuilds with dev overlay (docker-compose.yml + docker-compose.dev.yml)"
 echo "   3. Checks for compilation errors"
 echo "   4. Verifies health endpoints"
-echo "   5. Checks database seed data"
 echo ""
 
 # Quick bypass for non-interactive environments
@@ -259,21 +258,6 @@ if ! check_health "http://localhost:5655/api/health/detailed" "Database (detaile
 fi
 
 echo ""
-
-# Step 8: Verify seed data
-echo "8️⃣  Checking database seed data..."
-SEED_COUNT=$(PGPASSWORD=WitchCity2024! psql -h localhost -p 5434 -U postgres -d witchcityrope_dev -t -c "SELECT COUNT(*) FROM auth.\"Users\" WHERE \"Email\" LIKE '%@witchcityrope.com';" 2>/dev/null || echo "0")
-
-if [ "$SEED_COUNT" -lt 5 ]; then
-    echo "   ⚠️  WARNING: Low seed data count ($SEED_COUNT test users)"
-    echo "   Expected at least 5 test accounts"
-    echo ""
-    echo "💡 Run: ./scripts/seed-database.sh"
-else
-    echo "   ✅ Database seeded ($SEED_COUNT test users)"
-fi
-
-echo ""
 echo "✅ Container Restart Complete"
 echo "=============================="
 echo ""
@@ -281,7 +265,6 @@ echo "📊 Status Summary:"
 echo "   • Containers: 4/4 running (postgres, api, web, test-server)"
 echo "   • Compilation: No errors"
 echo "   • Health checks: All passing"
-echo "   • Database: Seeded ($SEED_COUNT test users)"
 echo ""
 echo "🎯 Ready for:"
 echo "   • Development"
@@ -309,10 +292,6 @@ cat <<EOF
     "web": "healthy",
     "api": "healthy",
     "database": "healthy"
-  },
-  "seedData": {
-    "users": $SEED_COUNT,
-    "status": "adequate"
   },
   "readyForTesting": true,
   "message": "Environment ready for development and testing"

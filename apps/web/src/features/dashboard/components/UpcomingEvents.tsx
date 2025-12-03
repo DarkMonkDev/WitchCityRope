@@ -31,6 +31,7 @@ import { useUserEvents, useDashboardError } from '../hooks/useDashboard';
 import { DashboardUtils } from '../types/dashboard.types';
 import type { DashboardEventDto } from '../types/dashboard.types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
+import { formatUtcTimeRange } from '../../../utils/eventUtils';
 
 /**
  * UpcomingEvents Component Props
@@ -56,25 +57,16 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const eventTimeZone = useEventTimeZone();
   const statusDisplay = DashboardUtils.getRegistrationStatusDisplay(event.registrationStatus);
   const startDate = new Date(event.startDate);
-  const endDate = new Date(event.endDate);
 
   // Format date display
   const eventDate = DashboardUtils.formatDate(event.startDate, eventTimeZone);
 
-  // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-  const startHours = startDate.getUTCHours();
-  const startMinutes = startDate.getUTCMinutes();
-  const startPeriod = startHours >= 12 ? 'PM' : 'AM';
-  const startHour12 = startHours % 12 || 12;
-  const startMinuteStr = startMinutes.toString().padStart(2, '0');
-  const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
-
-  const endHours = endDate.getUTCHours();
-  const endMinutes = endDate.getUTCMinutes();
-  const endPeriod = endHours >= 12 ? 'PM' : 'AM';
-  const endHour12 = endHours % 12 || 12;
-  const endMinuteStr = endMinutes.toString().padStart(2, '0');
-  const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
+  // Format time using TRUE UTC to local conversion
+  // See: /docs/guides-setup/datetime-handling-guide.md
+  const timeRange = formatUtcTimeRange(event.startDate, event.endDate, eventTimeZone);
+  const [startTime, endTime] = timeRange.includes(' - ')
+    ? timeRange.split(' - ')
+    : [timeRange, timeRange];
   
   // Check if event is today or soon
   const isToday = startDate.toDateString() === new Date().toDateString();

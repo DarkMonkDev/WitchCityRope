@@ -378,25 +378,25 @@ export const EventDetailPage: React.FC = () => {
                     } else if (sessions.length === 1) {
                       // Single session - show date or date range if multi-day
                       const session = sessions[0];
-                      if (session.endDate && session.date !== session.endDate) {
+                      if (session.endDate && session.startDate !== session.endDate) {
                         // Multi-day session: show date range
-                        const startDate = formatAbbreviatedDate(session.date, eventTimeZone);
+                        const startDateDisplay = formatAbbreviatedDate(session.startDate, eventTimeZone);
                         const endDate = formatAbbreviatedDate(session.endDate, eventTimeZone);
-                        return `${startDate} - ${endDate}`;
+                        return `${startDateDisplay} - ${endDate}`;
                       }
-                      return formatAbbreviatedDate(session.date, eventTimeZone);
+                      return formatAbbreviatedDate(session.startDate, eventTimeZone);
                     } else {
                       // Multiple sessions - show all dates abbreviated with bullet separator
                       return sessions
-                        .filter((s: any) => s.date)
+                        .filter((s: any) => s.startDate)
                         .map((s: any) => {
                           // Check if session spans multiple days
-                          if (s.endDate && s.date !== s.endDate) {
-                            const startDate = formatAbbreviatedDate(s.date, eventTimeZone);
+                          if (s.endDate && s.startDate !== s.endDate) {
+                            const startDateDisplay = formatAbbreviatedDate(s.startDate, eventTimeZone);
                             const endDate = formatAbbreviatedDate(s.endDate, eventTimeZone);
-                            return `${startDate} - ${endDate}`;
+                            return `${startDateDisplay} - ${endDate}`;
                           }
-                          return formatAbbreviatedDate(s.date, eventTimeZone);
+                          return formatAbbreviatedDate(s.startDate, eventTimeZone);
                         })
                         .join(' • ');
                     }

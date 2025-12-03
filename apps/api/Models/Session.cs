@@ -4,9 +4,40 @@ using WitchCityRope.Api.Features.Participation.Entities;
 
 namespace WitchCityRope.Api.Models;
 
+// =============================================================================
+// DATETIME HANDLING DOCUMENTATION
+// =============================================================================
+//
+// This entity stores times as TRUE UTC in the database.
+//
+// STORAGE:
+// - StartTime and EndTime are stored as actual UTC datetimes
+// - Example: User enters 10:25 PM EST → stored as 3:25 AM UTC next day
+//
+// THERE ARE NO SEPARATE DATE COLUMNS:
+// - The calendar date must be derived from StartTime/EndTime
+// - CRITICAL: Convert to local timezone FIRST, then extract date
+//
+// EXTRACTING LOCAL DATE (correct pattern):
+//   var easternZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+//   var utcTime = DateTime.SpecifyKind(session.StartTime, DateTimeKind.Utc);
+//   var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, easternZone);
+//   var localDate = localTime.Date;  // Correct: Dec 4
+//
+// WRONG (do not do):
+//   var localDate = session.StartTime.Date;  // Wrong: Dec 5 (UTC date)
+//
+// BUSINESS LOGIC:
+// - All timing calculations use UTC-to-UTC comparisons
+// - Example: (session.StartTime - DateTime.UtcNow).TotalHours
+// - NO timezone conversion needed for timing logic
+//
+// See: /docs/guides-setup/datetime-handling-guide.md
+// =============================================================================
+
 /// <summary>
-/// Session entity representing individual sessions within an event
-/// Supports both single-session and multi-session events
+/// Session entity representing individual sessions within an event.
+/// Supports both single-session and multi-session events.
 /// </summary>
 public class Session
 {
@@ -36,13 +67,25 @@ public class Session
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Session start time in UTC
+    /// Session start time stored as TRUE UTC.
+    ///
+    /// STORAGE: This is the actual UTC time, not "naive UTC".
+    /// Example: User enters 10:25 PM EST on Dec 4 → stored as 3:25 AM UTC Dec 5.
+    ///
+    /// BUSINESS LOGIC: Compare directly with DateTime.UtcNow for timing calculations.
+    /// Example: var hoursUntil = (StartTime - DateTime.UtcNow).TotalHours;
+    ///
+    /// DISPLAY: Frontend converts to local using utcToLocal() from eventUtils.ts.
+    ///
+    /// EXTRACTING DATE: Do NOT use StartTime.Date (gives UTC date).
+    /// Use TimeZoneInfo.ConvertTimeFromUtc(StartTime, easternZone).Date instead.
     /// </summary>
     [Required]
     public DateTime StartTime { get; set; }
 
     /// <summary>
-    /// Session end time in UTC
+    /// Session end time stored as TRUE UTC.
+    /// Same handling rules as StartTime - see StartTime documentation.
     /// </summary>
     [Required]
     public DateTime EndTime { get; set; }

@@ -41,7 +41,7 @@ export interface CreateEventSessionDto {
   eventId: string;
   sessionIdentifier: string;
   name: string;
-  date: string;
+  startDate: string;  // Renamed from date to match backend SessionDto
   startTime: string;
   endTime: string;
   capacity: number;
@@ -51,7 +51,7 @@ export interface CreateEventSessionDto {
 export interface UpdateEventSessionDto {
   id: string;
   name?: string;
-  date?: string;
+  startDate?: string;  // Renamed from date to match backend SessionDto
   startTime?: string;
   endTime?: string;
   capacity?: number;

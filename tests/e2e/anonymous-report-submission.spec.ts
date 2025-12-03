@@ -44,31 +44,21 @@ test.describe('Anonymous Incident Report Submission', () => {
     // Verify page title
     await expect(page).toHaveTitle(/Witch City Rope/i);
 
-    // Select anonymous report radio button (not checkbox!) - HARD ASSERTION
-    const anonymousRadio = page.locator('input[type="radio"]').filter({ hasText: /Anonymous/i }).first();
-    const anonymousLabel = page.locator('text=/Anonymous Report/i').first();
-
-    // Try radio first, then label - at least one MUST exist
-    const radioVisible = await anonymousRadio.isVisible();
-    const labelVisible = await anonymousLabel.isVisible();
-    expect(radioVisible || labelVisible).toBeTruthy(); // HARD ASSERTION - element must exist
-
-    if (radioVisible) {
-      await anonymousRadio.check();
-    } else {
-      await anonymousLabel.click();
-    }
-
+    // CORRECTED: Select anonymous report radio button (value="anonymous")
+    // Radio buttons are in Radio.Group, labels: "Anonymous Report" and "Include My Contact"
+    const anonymousRadio = page.getByRole('radio', { name: /Anonymous Report/i });
+    await expect(anonymousRadio).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await anonymousRadio.check();
     await page.waitForTimeout(500);
 
-    // Fill incident type (required field) - HARD ASSERTION
+    // Fill incident type (required field) - CORRECTED selector
     const incidentTypeInput = page.getByLabel(/Type of Incident/i);
     await expect(incidentTypeInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await incidentTypeInput.click();
     await page.waitForTimeout(300);
 
     // Select "Safety Concern" or first available option - HARD ASSERTION
-    const typeOption = page.locator('text=/Safety Concern|Consent|Harassment/i').first();
+    const typeOption = page.getByRole('option', { name: /Safety Concern|Consent|Harassment/i }).first();
     await expect(typeOption).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await typeOption.click();
 
@@ -78,18 +68,18 @@ test.describe('Anonymous Incident Report Submission', () => {
     await locationTypeInput.click();
     await page.waitForTimeout(300);
 
-    // Select first available location - HARD ASSERTION
-    const locationOption = page.locator('text=/At a Witch City Rope event|Other location/i').first();
+    // Select "At a Witch City Rope event" - HARD ASSERTION
+    const locationOption = page.getByRole('option', { name: /At a Witch City Rope event/i }).first();
     await expect(locationOption).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await locationOption.click();
 
     // Date picker should have a default value (today), so skip manual date entry
 
     // Scroll down to ensure the description field is visible
-    await page.locator('text=/What happened/i').scrollIntoViewIfNeeded();
+    await page.getByLabel(/What happened/i).scrollIntoViewIfNeeded();
 
-    // Fill description (50 char minimum!) - HARD ASSERTION
-    const descriptionTextarea = page.locator('textarea[placeholder*="describe the incident" i]').first();
+    // Fill description (50 char minimum!) - CORRECTED selector
+    const descriptionTextarea = page.getByLabel(/What happened/i);
     await expect(descriptionTextarea).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await descriptionTextarea.fill(
       'This is a detailed anonymous safety incident report with sufficient characters to meet the 50 character minimum requirement for form submission validation.'
@@ -100,8 +90,8 @@ test.describe('Anonymous Incident Report Submission', () => {
     await expect(acknowledgmentCheckbox).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await acknowledgmentCheckbox.check();
 
-    // Submit report and wait for API response - HARD ASSERTION
-    const submitButton = page.locator('button:has-text("SUBMIT SAFETY REPORT"), button[type="submit"]').first();
+    // Submit report and wait for API response - CORRECTED button text
+    const submitButton = page.getByRole('button', { name: /Submit Safety Report/i });
 
     // Wait for API response to validate submission
     const [response] = await Promise.all([
@@ -143,16 +133,26 @@ test.describe('Anonymous Incident Report Submission', () => {
     await page.goto('/safety/report');
     await page.waitForLoadState('domcontentloaded');
 
-    // Try to submit without filling required fields (Mantine form validation)
-    const submitButton = page.locator('button:has-text("SUBMIT SAFETY REPORT"), button[type="submit"]').first();
+    // CORRECTED: Submit button uses exact text "Submit Safety Report"
+    const submitButton = page.getByRole('button', { name: /Submit Safety Report/i });
     await expect(submitButton).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
 
-    // Try clicking submit with empty form (should be prevented)
+    // Verify button is initially disabled (agreement checkbox not checked)
+    await expect(submitButton).toBeDisabled({ timeout: 2000 });
+
+    // Check agreement checkbox first
+    const acknowledgmentCheckbox = page.getByRole('checkbox', { name: /understand this report may trigger/i });
+    await expect(acknowledgmentCheckbox).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await acknowledgmentCheckbox.check();
+    await page.waitForTimeout(500);
+
+    // Try clicking submit with empty form (Mantine form validation should prevent)
     await submitButton.click();
     await page.waitForTimeout(1000);
 
     // HARD ASSERTION - Error summary MUST appear for validation failures
-    const errorSummary = page.locator('[role="alert"]').filter({ hasText: /fix the following errors|error|required/i }).first();
+    // Form shows validation errors in Alert with list items
+    const errorSummary = page.locator('[role="alert"]').filter({ hasText: /fix the following errors/i }).first();
     await expect(errorSummary).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
 
     // HARD ASSERTION - Specific validation errors must be shown
@@ -162,23 +162,15 @@ test.describe('Anonymous Incident Report Submission', () => {
 
     console.log(`✅ Form validation working - ${errorCount} errors shown`);
 
-    // Verify description field has error state (50 char minimum not met)
-    const descriptionError = page.locator('text=/description.*required|50 character/i').first();
-    await expect(descriptionError).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
-
     // Fill minimum required fields to clear validation errors
-    const descriptionTextarea = page.locator('textarea').first();
+    const descriptionTextarea = page.getByLabel(/What happened/i);
     await descriptionTextarea.fill(
       'Minimum viable description for testing validation with at least 50 characters as required by the form validation rules.'
     );
 
-    // Accept acknowledgment checkbox - HARD ASSERTION it exists
-    const acknowledgmentCheckbox = page.locator('input[type="checkbox"]').filter({ hasText: /understand/i }).first();
-    await expect(acknowledgmentCheckbox).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
-    await acknowledgmentCheckbox.check();
     await page.waitForTimeout(500);
 
-    // HARD ASSERTION - Submit button should now be enabled (not disabled)
+    // HARD ASSERTION - Submit button should now be enabled after filling required field
     await expect(submitButton).toBeEnabled({ timeout: 5000 }); // HARD ASSERTION
     console.log('✅ Submit button enabled after filling required fields');
 

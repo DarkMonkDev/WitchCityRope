@@ -16,7 +16,7 @@ import { IconCalendar, IconMapPin, IconUser, IconClock } from '@tabler/icons-rea
 import type { PaymentEventInfo, SlidingScaleCalculation } from '../types/payment.types';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
-import { formatAbbreviatedDate } from '../../../utils/eventUtils';
+import { formatAbbreviatedDate, formatUtcToLocalTime } from '../../../utils/eventUtils';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 type SessionDto = components["schemas"]["SessionDto"];
@@ -70,16 +70,10 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     });
   };
 
-  // Format time from stored "naive UTC" - DO NOT use timezone conversion
-  // User-entered event times are stored as UTC values that represent local time
+  // Format time using TRUE UTC to local conversion
+  // See: /docs/guides-setup/datetime-handling-guide.md
   const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const hour12 = hours % 12 || 12;
-    const minuteStr = minutes.toString().padStart(2, '0');
-    return `${hour12}:${minuteStr} ${period}`;
+    return formatUtcToLocalTime(dateString, eventTimeZone);
   };
 
   const formatCurrency = (amount: number) => {
@@ -106,8 +100,8 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     }
 
     const formattedDates = matchingSessions
-      .filter(session => session.date)
-      .map(session => formatAbbreviatedDate(session.date!, eventTimeZone))
+      .filter(session => session.startDate)
+      .map(session => formatAbbreviatedDate(session.startDate!, eventTimeZone))
       .join(', ');
 
     return formattedDates;

@@ -43,51 +43,33 @@ test.describe('Identified Incident Report Submission', () => {
     await page.goto('/safety/report');
     await page.waitForLoadState('domcontentloaded');
 
-    // Find radio buttons (NOT checkboxes!) - HARD ASSERTION
-    const anonymousRadio = page.locator('input[type="radio"]', { hasText: /Anonymous/i }).first();
-    const identifiedRadio = page.locator('input[type="radio"]', { hasText: /Contact|Include/i }).first();
+    // CORRECTED: Use getByRole for radio buttons with proper labels
+    const anonymousRadio = page.getByRole('radio', { name: /Anonymous Report/i });
+    const identifiedRadio = page.getByRole('radio', { name: /Include My Contact/i });
 
-    // Alternative: find by label text
-    const anonymousLabel = page.locator('text=/Anonymous Report/i').first();
-    const identifiedLabel = page.locator('text=/Include My Contact/i').first();
+    // HARD ASSERTION - Radio buttons exist
+    await expect(anonymousRadio).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await expect(identifiedRadio).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
 
-    // Contact fields
-    const nameInput = page.locator('input[placeholder*="name" i]').first();
-    const emailInput = page.locator('input[type="email"]').first();
+    // Contact fields (look for email input specifically)
+    const emailInput = page.getByLabel(/Contact Email/i);
 
     // HARD ASSERTION - Start in identified mode (default for logged-in users)
-    // Verify contact fields visible
+    // Verify "Include My Contact" is checked and contact fields visible
+    await expect(identifiedRadio).toBeChecked({ timeout: 5000 }); // HARD ASSERTION
     await expect(emailInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     console.log('✅ Contact email field visible in identified mode (default)');
 
-    // Switch to anonymous mode - HARD ASSERTION that element exists
-    const anonymousRadioVisible = await anonymousRadio.isVisible();
-    const anonymousLabelVisible = await anonymousLabel.isVisible();
-    expect(anonymousRadioVisible || anonymousLabelVisible).toBeTruthy(); // HARD ASSERTION
-
-    if (anonymousRadioVisible) {
-      await anonymousRadio.check();
-    } else {
-      await anonymousLabel.click();
-    }
-
+    // Switch to anonymous mode
+    await anonymousRadio.check();
     await page.waitForTimeout(500);
 
     // HARD ASSERTION - Contact fields MUST be hidden in anonymous mode
     await expect(emailInput).not.toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     console.log('✅ Contact email field hidden in anonymous mode');
 
-    // Switch back to identified mode - HARD ASSERTION that element exists
-    const identifiedRadioVisible = await identifiedRadio.isVisible();
-    const identifiedLabelVisible = await identifiedLabel.isVisible();
-    expect(identifiedRadioVisible || identifiedLabelVisible).toBeTruthy(); // HARD ASSERTION
-
-    if (identifiedRadioVisible) {
-      await identifiedRadio.check();
-    } else {
-      await identifiedLabel.click();
-    }
-
+    // Switch back to identified mode
+    await identifiedRadio.check();
     await page.waitForTimeout(500);
 
     // HARD ASSERTION - Contact fields MUST be visible again
@@ -100,7 +82,9 @@ test.describe('Identified Incident Report Submission', () => {
   });
 
   test('should show empty state when user has no reports', async ({ page }) => {
-    // Login as vetted user (who likely has no incident reports)
+    // CORRECTED: This feature likely doesn't exist yet
+    // If it does, the route needs to be verified from actual app
+
     await AuthHelpers.loginAs(page, 'vetted');
     console.log('✅ Logged in as vetted user successfully');
 
@@ -116,10 +100,11 @@ test.describe('Identified Incident Report Submission', () => {
       expect(response?.status()).toBeLessThan(400); // HARD ASSERTION - no 404
 
       // HARD ASSERTION - Empty state message MUST be visible
+      // Look for common empty state patterns
       const emptyStateMessage = page.locator(
-        '[data-testid="no-reports-message"], ' +
-        'div:has-text("no incident reports"), ' +
-        'p:has-text("no reports")'
+        'text=/no incident reports/i, ' +
+        'text=/no reports/i, ' +
+        'text=/you haven.*t submitted any/i'
       ).first();
 
       await expect(emptyStateMessage).toBeVisible({ timeout: 5000 }); // HARD ASSERTION

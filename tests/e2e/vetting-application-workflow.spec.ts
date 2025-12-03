@@ -115,27 +115,33 @@ test.describe('Vetting Application Workflow', () => {
 
     await expect(vettingForm).toBeVisible({ timeout: 10000 });
 
-    // Fill out required fields
-    // Real Name field
-    const realNameInput = page.locator('input[name="realName"], [data-testid="real-name-input"]').first();
-    if (await realNameInput.count() > 0) {
-      await realNameInput.fill('Test User');
+    // Fill out required fields (using current field names and data-testid attributes)
+    // First Name field
+    const firstNameInput = page.getByTestId('first-name-input');
+    if (await firstNameInput.count() > 0) {
+      await firstNameInput.fill('Test');
     }
 
-    // Why join field (20+ characters required)
-    const whyJoinInput = page.locator('textarea[name="whyJoin"], [data-testid="why-join-input"]').first();
+    // Last Name field
+    const lastNameInput = page.getByTestId('last-name-input');
+    if (await lastNameInput.count() > 0) {
+      await lastNameInput.fill('User');
+    }
+
+    // Why join field (required)
+    const whyJoinInput = page.getByTestId('why-join-textarea');
     if (await whyJoinInput.count() > 0) {
       await whyJoinInput.fill('I am very interested in learning rope bondage and joining the community.');
     }
 
-    // Experience field (50+ characters required)
-    const experienceInput = page.locator('textarea[name="experience"], [data-testid="experience-input"]').first();
+    // Experience field (required)
+    const experienceInput = page.getByTestId('experience-with-rope-textarea');
     if (await experienceInput.count() > 0) {
       await experienceInput.fill('I have been practicing rope bondage for 2 years and have attended several workshops.');
     }
 
     // Agreement checkbox
-    const agreementCheckbox = page.locator('input[type="checkbox"][name="agreedToGuidelines"], [data-testid="agree-checkbox"]').first();
+    const agreementCheckbox = page.getByTestId('community-standards-checkbox');
     if (await agreementCheckbox.count() > 0) {
       await agreementCheckbox.check();
     }
@@ -146,13 +152,16 @@ test.describe('Vetting Application Workflow', () => {
       fullPage: true
     });
 
-    // Submit form
-    const submitButton = page.locator('button[type="submit"]:has-text("Submit"), button:has-text("Submit Application")').first();
+    // Submit form (using data-testid from form component)
+    const submitButton = page.getByTestId('submit-application-button').or(
+      page.locator('button[type="submit"]').filter({ hasText: /submit/i })
+    ).first();
     await submitButton.click();
 
     // Assert: Success message or redirect
-    // Option 1: Success toast/alert message
-    const successMessage = page.locator('[data-testid="success-message"], .success, .alert-success, text=/application.*submitted/i').first();
+    // Option 1: Success toast/alert message (Mantine notifications)
+    const successMessage = page.locator('[class*="mantine-Notification"]').filter({ hasText: /success|submitted/i }).first()
+      .or(page.locator('text=/application.*submitted/i')).first();
 
     // Option 2: Redirect to confirmation page or dashboard
     const currentUrl = page.url();
@@ -321,13 +330,16 @@ test.describe('Vetting Application Workflow', () => {
 
     await expect(vettingForm).toBeVisible({ timeout: 10000 });
 
-    // Act: Try to submit empty form
-    const submitButton = page.locator('button[type="submit"]:has-text("Submit"), button:has-text("Submit Application")').first();
+    // Act: Try to submit empty form (using data-testid)
+    const submitButton = page.getByTestId('submit-application-button').or(
+      page.locator('button[type="submit"]').filter({ hasText: /submit/i })
+    ).first();
     await submitButton.click();
 
-    // Assert: Validation errors appear
-    // Common validation error selectors
-    const validationErrors = page.locator('.error, .validation-error, [data-testid*="error"], .text-red, .text-danger, .invalid-feedback');
+    // Assert: Validation errors appear (Mantine form validation)
+    // Mantine displays errors in the input's error prop
+    const validationErrors = page.locator('[class*="mantine-Input-error"], [class*="error"]')
+      .or(page.locator('text=/required|must be/i'));
 
     // Wait for at least one validation error to appear
     await expect(validationErrors.first()).toBeVisible({ timeout: 5000 });
@@ -377,14 +389,14 @@ test.describe('Vetting Application Workflow', () => {
 
     await expect(vettingForm).toBeVisible({ timeout: 10000 });
 
-    // Assert: Email field exists and has value
-    const emailInput = page.locator('[data-testid="email-or-scenename-input"]').first();
+    // Assert: Email field exists and has value (using data-testid from VettingApplicationForm.tsx)
+    const emailInput = page.getByTestId('email-input').first();
     if (await emailInput.count() > 0) {
       // Email should be pre-filled with logged-in user's email
       const emailValue = await emailInput.inputValue();
       expect(emailValue).toBe(AuthHelpers.accounts.member.email);
 
-      // Email should be readonly
+      // Email should be readonly/disabled (component shows readOnly and disabled props)
       const isReadonly = await emailInput.getAttribute('readonly');
       const isDisabled = await emailInput.isDisabled();
       expect(isReadonly !== null || isDisabled).toBeTruthy();

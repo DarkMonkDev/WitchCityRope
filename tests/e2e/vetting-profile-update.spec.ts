@@ -59,44 +59,42 @@ test.describe('Vetting Application Profile Updates', () => {
       fetLifeHandle: `FetLifeHandle${timestamp}`,
     };
 
-    // Fill out form with all fields including optional ones
-    const firstNameInput = page.locator('input[name="firstName"]').first();
+    // Fill out form with all fields including optional ones (using data-testid attributes)
+    const firstNameInput = page.getByTestId('first-name-input');
     if (await firstNameInput.count() > 0) {
       await firstNameInput.fill(testData.firstName);
     }
 
-    const lastNameInput = page.locator('input[name="lastName"]').first();
+    const lastNameInput = page.getByTestId('last-name-input');
     if (await lastNameInput.count() > 0) {
       await lastNameInput.fill(testData.lastName);
     }
 
-    const sceneNameInput = page.locator('input[name="preferredSceneName"]').first();
-    if (await sceneNameInput.count() > 0) {
-      await sceneNameInput.fill(testData.sceneName);
-    }
+    // Note: Scene name is readonly in the vetting form (shown but not editable)
+    // It's only set from the user's existing profile data
 
-    const pronounsInput = page.locator('input[name="pronouns"]').first();
+    const pronounsInput = page.getByTestId('pronouns-input');
     if (await pronounsInput.count() > 0) {
       await pronounsInput.fill(testData.pronouns);
     }
 
-    const fetLifeInput = page.locator('input[name="fetLifeHandle"]').first();
+    const fetLifeInput = page.getByTestId('fetlife-handle-input');
     if (await fetLifeInput.count() > 0) {
       await fetLifeInput.fill(testData.fetLifeHandle);
     }
 
     // Fill required fields
-    const whyJoinInput = page.locator('textarea[name="whyJoin"]').first();
+    const whyJoinInput = page.getByTestId('why-join-textarea');
     if (await whyJoinInput.count() > 0) {
       await whyJoinInput.fill('I am interested in learning rope bondage in a safe community.');
     }
 
-    const experienceInput = page.locator('textarea[name="experienceWithRope"]').first();
+    const experienceInput = page.getByTestId('experience-with-rope-textarea');
     if (await experienceInput.count() > 0) {
       await experienceInput.fill('I have been practicing rope bondage for 2 years.');
     }
 
-    const agreementCheckbox = page.locator('input[type="checkbox"][name="agreeToCommunityStandards"]').first();
+    const agreementCheckbox = page.getByTestId('community-standards-checkbox');
     if (await agreementCheckbox.count() > 0) {
       await agreementCheckbox.check();
     }
@@ -192,39 +190,36 @@ test.describe('Vetting Application Profile Updates', () => {
       pronouns: 'she/her',
     };
 
-    // Fill and submit application
-    const firstNameInput = page.locator('input[name="firstName"]').first();
+    // Fill and submit application (using data-testid attributes)
+    const firstNameInput = page.getByTestId('first-name-input');
     if (await firstNameInput.count() > 0) {
       await firstNameInput.fill(testData.firstName);
     }
 
-    const lastNameInput = page.locator('input[name="lastName"]').first();
+    const lastNameInput = page.getByTestId('last-name-input');
     if (await lastNameInput.count() > 0) {
       await lastNameInput.fill(testData.lastName);
     }
 
-    const pronounsInput = page.locator('input[name="pronouns"]').first();
+    const pronounsInput = page.getByTestId('pronouns-input');
     if (await pronounsInput.count() > 0) {
       await pronounsInput.fill(testData.pronouns);
     }
 
     // Fill required fields
-    const sceneNameInput = page.locator('input[name="preferredSceneName"]').first();
-    if (await sceneNameInput.count() > 0) {
-      await sceneNameInput.fill(`Scene${timestamp}`);
-    }
+    // Note: Scene name is readonly in the vetting form
 
-    const whyJoinInput = page.locator('textarea[name="whyJoin"]').first();
+    const whyJoinInput = page.getByTestId('why-join-textarea');
     if (await whyJoinInput.count() > 0) {
       await whyJoinInput.fill('I am interested in the community.');
     }
 
-    const experienceInput = page.locator('textarea[name="experienceWithRope"]').first();
+    const experienceInput = page.getByTestId('experience-with-rope-textarea');
     if (await experienceInput.count() > 0) {
       await experienceInput.fill('I have some experience with rope.');
     }
 
-    const agreementCheckbox = page.locator('input[type="checkbox"][name="agreeToCommunityStandards"]').first();
+    const agreementCheckbox = page.getByTestId('community-standards-checkbox');
     if (await agreementCheckbox.count() > 0) {
       await agreementCheckbox.check();
     }

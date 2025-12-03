@@ -20,7 +20,7 @@ import {
 import { IconSearch } from '@tabler/icons-react'
 import { useEventFilters } from '../../hooks/useEventFilters'
 import { useEvents } from '../../lib/api/hooks/useEvents'
-import { formatEventDate, formatEventDateTime, formatEventTime, formatShortDate, calculateEventPriceRange } from '../../utils/eventUtils'
+import { formatEventDate, formatEventDateTime, formatEventTime, formatShortDate, calculateEventPriceRange, formatUtcTimeRange } from '../../utils/eventUtils'
 import type { EventDto } from '../../lib/api/types/events.types'
 import { useNavigate } from 'react-router-dom'
 import { useParticipation } from '../../hooks/useParticipation'
@@ -360,6 +360,7 @@ export const EventsListPage: React.FC = () => {
 
       {/* Filter Bar */}
       <Box
+        id="events-filter-bar"
         style={{
           background: 'var(--color-ivory)',
           borderBottom: '1px solid var(--color-taupe)',
@@ -821,26 +822,9 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
           >
             {(() => {
               if (!event.startDate) return ''
-              const start = new Date(event.startDate)
-              // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-              const startHours = start.getUTCHours();
-              const startMinutes = start.getUTCMinutes();
-              const startPeriod = startHours >= 12 ? 'pm' : 'am';
-              const startHour12 = startHours % 12 || 12;
-              const startMinuteStr = startMinutes.toString().padStart(2, '0');
-              const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
-
-              if (!event.endDate) return startTime
-
-              const end = new Date(event.endDate)
-              const endHours = end.getUTCHours();
-              const endMinutes = end.getUTCMinutes();
-              const endPeriod = endHours >= 12 ? 'pm' : 'am';
-              const endHour12 = endHours % 12 || 12;
-              const endMinuteStr = endMinutes.toString().padStart(2, '0');
-              const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
-
-              return `${startTime} - ${endTime}`
+              // Use formatUtcTimeRange for TRUE UTC to local time conversion
+              // See: /docs/guides-setup/datetime-handling-guide.md
+              return formatUtcTimeRange(event.startDate, event.endDate || undefined)
             })()}
           </Text>
         </Group>

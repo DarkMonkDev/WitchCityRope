@@ -115,6 +115,24 @@
 **ALL NEW LESSONS**: Must go to Part 3 - `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-3.md`
 **IF YOU ADD LESSONS HERE OR TO PART 2**: You are violating the split pattern!
 
+## 📖 TOPIC-SPECIFIC READING (Optional - Read When Working On These Topics)
+
+### DateTime/Timezone Handling
+**When to read**: Working on event sessions, time displays, date pickers, or any date/time related features
+
+**Single Source of Truth**: `/home/chad/repos/witchcityrope/docs/guides-setup/datetime-handling-guide.md`
+
+**Key Points**:
+- All times stored as TRUE UTC in database
+- Frontend converts local → UTC on save, UTC → local on display
+- Use `localTimeStringToUtc()` and `utcToLocal()` from `/apps/web/src/utils/eventUtils.ts`
+- Global timezone is `America/New_York` (Salem, MA events)
+- Extract dates from LOCAL time, not UTC time (prevents day-shift bugs)
+
+**Common Bug**: User enters Dec 4 at 10:25 PM → shows Dec 5 because date extracted from UTC (which crosses midnight)
+
+---
+
 ## 🚨 CMS Implementation Reference 🚨
 
 **Architecture Reference**: All CMS routing, components, and implementation details are documented in `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md`. Consult this guide when:

@@ -16,11 +16,11 @@ test.describe('Dashboard - Navigation and Layout', () => {
     await expect(page).toHaveURL('/dashboard');
     await WaitHelpers.waitForPageLoad(page);
 
-    // Verify dashboard title/header
+    // Verify dashboard title/header - MyEventsPage shows "{SceneName}'s Events"
     const dashboardHeaders = [
-      'h1:has-text("Dashboard")',
+      'h1:has-text("Events")', // Title is "{Name}'s Events"
       '[data-testid="dashboard-title"]',
-      'text=Welcome',
+      'text=Edit Profile', // Edit Profile button indicates we're on dashboard
       '.dashboard-header'
     ];
 
@@ -195,38 +195,38 @@ test.describe('Dashboard - Profile Management', () => {
     await page.goto('/dashboard/profile-settings');
     await WaitHelpers.waitForPageLoad(page);
 
-    // Test email validation
-    const emailField = page.locator('[data-testid="email-or-scenename-input"]');
+    // Test email validation - actual field is [data-testid="email-input"]
+    const emailField = page.locator('[data-testid="email-input"]');
     if (await emailField.count() > 0) {
       await emailField.clear();
       await emailField.fill('invalid-email');
-      
-      const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save")').first();
+
+      const saveButton = page.locator('button:has-text("Save Changes")').first();
       if (await saveButton.count() > 0) {
         await saveButton.click();
-        
-        // Should show validation error
+
+        // Should show validation error from HTML5 email validation
         await page.waitForTimeout(500);
-        // Check for validation error - FormHelpers.verifyFormValidation checks for error presence
-        await FormHelpers.verifyFormValidation(page, 'email-or-scenename', false);
+        const isInvalid = await emailField.evaluate((el: HTMLInputElement) => !el.validity.valid);
+        expect(isInvalid).toBe(true);
         console.log('✅ Email validation works');
       }
     }
 
-    // Test scene name validation
-    const sceneNameField = page.locator('[data-testid="scene-name-input"], input[name="sceneName"]');
+    // Test scene name validation - Mantine form validates on submit, not blur
+    const sceneNameField = page.locator('[data-testid="scene-name-input"]');
     if (await sceneNameField.count() > 0) {
+      // Clear scene name (required field)
       await sceneNameField.clear();
-      await sceneNameField.fill('ab'); // Too short
-      
-      const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save")').first();
+
+      const saveButton = page.locator('button:has-text("Save Changes")').first();
       if (await saveButton.count() > 0) {
         await saveButton.click();
         await page.waitForTimeout(500);
-        
-        // Should show validation error
-        const errorText = await page.locator('.error, .mantine-InputWrapper-error').textContent();
-        if (errorText?.includes('3') || errorText?.includes('characters')) {
+
+        // Should show validation error for required field
+        const errorElement = page.locator('.mantine-TextInput-error');
+        if (await errorElement.count() > 0) {
           console.log('✅ Scene name validation works');
         }
       }
@@ -320,13 +320,15 @@ test.describe('Dashboard - Security Settings', () => {
     await page.waitForTimeout(1000);
 
     // Verify password change form is visible
-    // Use data-testid selectors if available, otherwise use type selectors
-    const newPasswordField = page.locator('[data-testid="new-password-input"]').or(page.locator('input[type="password"]').nth(1));
-    const confirmPasswordField = page.locator('[data-testid="confirm-password-input"]').or(page.locator('input[type="password"]').nth(2));
+    // Password fields are labeled: "Current Password", "New Password", "Confirm New Password"
+    const currentPasswordField = page.locator('input[type="password"]').first();
+    const newPasswordField = page.locator('input[type="password"]').nth(1);
+    const confirmPasswordField = page.locator('input[type="password"]').nth(2);
     await expect(newPasswordField).toBeVisible({ timeout: 5000 });
     await expect(confirmPasswordField).toBeVisible();
 
     // Test password confirmation mismatch
+    await currentPasswordField.fill('Test123!'); // Need current password
     await newPasswordField.fill('NewPassword123!');
     await confirmPasswordField.fill('DifferentPassword123!');
 
@@ -335,7 +337,7 @@ test.describe('Dashboard - Security Settings', () => {
     await updateButton.click();
     await page.waitForTimeout(1000);
 
-    // Should show mismatch error
+    // Should show mismatch error - Mantine form validation
     const mismatchError = page.locator('text=Passwords do not match');
     await expect(mismatchError).toBeVisible({ timeout: 5000 });
     console.log('✅ Password confirmation mismatch validation works');
@@ -346,8 +348,8 @@ test.describe('Dashboard - Security Settings', () => {
     await confirmPasswordField.clear();
     await confirmPasswordField.fill('weak');
 
-    // Blur to trigger validation
-    await confirmPasswordField.blur();
+    // Click submit to trigger validation
+    await updateButton.click();
     await page.waitForTimeout(1000);
 
     // Should show complexity error (8 characters minimum)
@@ -475,7 +477,7 @@ test.describe('Dashboard - Responsive Design', () => {
     test(`should display correctly on ${viewport.name}`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await AuthHelpers.loginAs(page, 'admin');
-      
+
       await WaitHelpers.waitForPageLoad(page);
 
       // Verify dashboard is responsive
@@ -483,16 +485,15 @@ test.describe('Dashboard - Responsive Design', () => {
       expect(body?.width).toBeLessThanOrEqual(viewport.width);
       console.log(`✅ Body width (${body?.width}px) fits within viewport (${viewport.width}px)`);
 
-      // Verify page has loaded content (dashboard title and some UI elements)
-      const dashboardTitle = page.locator('h1:has-text("Dashboard")').first();
+      // Verify page has loaded content - Dashboard shows "{SceneName}'s Events"
+      const dashboardTitle = page.locator('h1:has-text("Events")').first();
       await expect(dashboardTitle).toBeVisible({ timeout: 10000 });
       console.log(`✅ Dashboard title visible on ${viewport.name}`);
 
       // Verify essential dashboard elements are present
       const essentialElements = [
-        'Edit Profile',  // Profile link
-        'Dashboard',     // Title
-        'Welcome'        // User welcome
+        'Edit Profile',  // Profile button
+        'Events',        // Title contains "Events"
       ];
 
       let elementsFound = 0;
@@ -512,7 +513,7 @@ test.describe('Dashboard - Responsive Design', () => {
         fullPage: true
       });
 
-      console.log(`✅ Dashboard displays correctly on ${viewport.name} (${elementsFound}/3 elements visible)`);
+      console.log(`✅ Dashboard displays correctly on ${viewport.name} (${elementsFound}/2 elements visible)`);
     });
   });
 });

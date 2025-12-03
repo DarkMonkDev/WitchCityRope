@@ -26,8 +26,9 @@ test.describe('Vetting Menu Visibility Feature', () => {
       // Wait for navigation to render
       await page.waitForSelector('[data-testid="nav-main"]');
 
-      // Check if "How to Join" link is visible
-      const howToJoinLink = page.locator('[data-testid="nav-main"] a').filter({ hasText: 'How to Join' });
+      // Check if "How to Join" link is visible in desktop nav (excluding mobile menu)
+      // Desktop nav uses class="nav-underline-animation", mobile uses data-testid="mobile-link-join"
+      const howToJoinLink = page.locator('[data-testid="nav-main"] .nav a').filter({ hasText: 'How to Join' });
 
       // Should be visible for guest users
       await expect(howToJoinLink).toBeVisible();
@@ -39,7 +40,8 @@ test.describe('Vetting Menu Visibility Feature', () => {
     });
 
     test('should navigate to join page when "How to Join" clicked', async ({ page }) => {
-      const howToJoinLink = page.locator('[data-testid="nav-main"] a').filter({ hasText: 'How to Join' });
+      // Use desktop nav link (class="nav") to avoid mobile menu
+      const howToJoinLink = page.locator('[data-testid="nav-main"] .nav a').filter({ hasText: 'How to Join' });
 
       await howToJoinLink.click();
 
@@ -115,7 +117,8 @@ test.describe('Vetting Menu Visibility Feature', () => {
       await page.waitForSelector('[data-testid="nav-main"]');
 
       // For regular members without application, menu SHOULD be visible
-      const howToJoinLink = page.locator('[data-testid="nav-main"] a').filter({ hasText: 'How to Join' });
+      // Use desktop nav to avoid strict mode violation with mobile menu
+      const howToJoinLink = page.locator('[data-testid="nav-main"] .nav a').filter({ hasText: 'How to Join' });
 
       // Check visibility (may vary based on member's vetting status)
       const isVisible = await howToJoinLink.isVisible();

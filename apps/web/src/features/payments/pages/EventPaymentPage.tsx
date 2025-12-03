@@ -401,8 +401,8 @@ export const EventPaymentPage: React.FC = () => {
 
     // Format each session date and join with bullet separator
     const formattedDates = matchingSessions
-      .filter(session => session.date) // Only include sessions with dates
-      .map(session => formatAbbreviatedDate(session.date!))
+      .filter(session => session.startDate) // Only include sessions with dates
+      .map(session => formatAbbreviatedDate(session.startDate!))
       .join(' • ');
 
     return formattedDates;

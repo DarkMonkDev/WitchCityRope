@@ -40,9 +40,9 @@ export const EventSessionForm: React.FC<EventSessionFormProps> = ({
       {sessions.map((session) => (
         <Box key={session.id} mb="sm">
           <Text size="md" fw={600}>
-            {session.sessionIdentifier} - {session.date === '2025-08-31' ? 'Friday Workshop' : 
-             session.date === '2025-09-01' ? 'Saturday Workshop' : 
-             session.date === '2025-09-02' ? 'Sunday Workshop' : 'New Session'}
+            {session.sessionIdentifier} - {session.startDate === '2025-08-31' ? 'Friday Workshop' :
+             session.startDate === '2025-09-01' ? 'Saturday Workshop' :
+             session.startDate === '2025-09-02' ? 'Sunday Workshop' : 'New Session'}
           </Text>
           <Text size="sm" c="dimmed">
             Capacity: {session.capacity}

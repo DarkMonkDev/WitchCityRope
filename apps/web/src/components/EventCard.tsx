@@ -1,6 +1,6 @@
 import React from 'react'
 import { Event } from '../types/Event'
-import { calculateEventPriceRange } from '../utils/eventUtils'
+import { calculateEventPriceRange, formatUtcTimeRange, formatUtcToLocalDate } from '../utils/eventUtils'
 import { useEventTimeZone } from '../hooks/useEventTimeZone'
 
 interface EventCardProps {
@@ -14,39 +14,18 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
   // Calculate price from ticket types
   const displayPrice = calculateEventPriceRange((event as any).ticketTypes || []);
   const formatDateTime = (startDate: string, endDate?: string) => {
-    const start = new Date(startDate)
-
-    // Format date with abbreviated month, no year
-    const datePart = start.toLocaleDateString('en-US', {
+    // Format date using UTC to local conversion
+    const datePart = formatUtcToLocalDate(startDate, eventTimeZone, {
       weekday: 'long',
       month: 'short',
-      day: 'numeric',
-      timeZone: eventTimeZone
+      day: 'numeric'
     })
 
-    // Format start time using getUTCHours/getUTCMinutes (user-entered times stored as naive UTC)
-    const startHours = start.getUTCHours();
-    const startMinutes = start.getUTCMinutes();
-    const startPeriod = startHours >= 12 ? 'pm' : 'am';
-    const startHour12 = startHours % 12 || 12;
-    const startMinuteStr = startMinutes.toString().padStart(2, '0');
-    const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
+    // Format time range using TRUE UTC to local conversion
+    // See: /docs/guides-setup/datetime-handling-guide.md
+    const timeRange = formatUtcTimeRange(startDate, endDate || undefined, eventTimeZone)
 
-    // If no end date, just return date + start time
-    if (!endDate) {
-      return `${datePart} - ${startTime}`
-    }
-
-    // Format end time using getUTCHours/getUTCMinutes
-    const end = new Date(endDate)
-    const endHours = end.getUTCHours();
-    const endMinutes = end.getUTCMinutes();
-    const endPeriod = endHours >= 12 ? 'pm' : 'am';
-    const endHour12 = endHours % 12 || 12;
-    const endMinuteStr = endMinutes.toString().padStart(2, '0');
-    const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
-
-    return `${datePart} - ${startTime} - ${endTime}`
+    return `${datePart} - ${timeRange}`
   }
 
   return (
@@ -75,29 +54,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
             })()}
           </span>
           <span>
-            {(() => {
-              const start = new Date(event.startDate)
-              // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-              const startHours = start.getUTCHours();
-              const startMinutes = start.getUTCMinutes();
-              const startPeriod = startHours >= 12 ? 'pm' : 'am';
-              const startHour12 = startHours % 12 || 12;
-              const startMinuteStr = startMinutes.toString().padStart(2, '0');
-              const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
-
-              const endDate = (event as any).endDate
-              if (!endDate) return startTime
-
-              const end = new Date(endDate)
-              const endHours = end.getUTCHours();
-              const endMinutes = end.getUTCMinutes();
-              const endPeriod = endHours >= 12 ? 'pm' : 'am';
-              const endHour12 = endHours % 12 || 12;
-              const endMinuteStr = endMinutes.toString().padStart(2, '0');
-              const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
-
-              return `${startTime} - ${endTime}`
-            })()}
+            {formatUtcTimeRange(event.startDate, (event as any).endDate || undefined, eventTimeZone)}
           </span>
         </div>
         <p>📍 {event.location}</p>

@@ -13,7 +13,6 @@ description: Restarts WitchCityRope Docker DEVELOPMENT containers using the CORR
 - After code changes that need container rebuild
 - When dev containers are unhealthy
 - When "Element not found" errors appear in dev testing (usually means compilation errors)
-- When database seed data is missing in dev environment
 
 **When NOT to Use**:
 - For test containers - use `restart-test-containers` instead
@@ -85,8 +84,7 @@ SKIP_CONFIRMATION=true bash .claude/skills/restart-dev-containers/execute.sh
 5. Starts containers with dev overlay (`docker-compose.yml + docker-compose.dev.yml`)
 6. Checks for compilation errors in Web and API containers
 7. Verifies health endpoints (Web, API, Database)
-8. Checks database seed data
-9. Reports status summary
+8. Reports status summary
 
 **Script includes safety checks** - it will not run blindly without showing you what it's about to do.
 
@@ -149,15 +147,6 @@ docker ps -a | grep witchcity | awk '{print $1}' | xargs docker rm -f
 lsof -i :5173
 ```
 
-### Issue: Database not seeded
-
-**Cause**: Fresh database or seed script not run
-
-**Solution**:
-```bash
-./scripts/seed-database.sh
-```
-
 ### Issue: Health checks fail after compilation succeeds
 
 **Cause**: Services need more time to initialize
@@ -209,10 +198,6 @@ When run via Claude Code, skill returns:
     "api": "healthy",
     "database": "healthy"
   },
-  "seedData": {
-    "users": 7,
-    "status": "adequate"
-  },
   "readyForTesting": true,
   "message": "Environment ready for development and testing"
 }
@@ -252,8 +237,10 @@ On failure:
 
 ## Version History
 
-- **2025-12-01**: Renamed from `restart-dev-containers` to `restart-dev-containers`
-  - Added `-p witchcityrope-dev` project isolation
+- **2025-12-02**: Removed seed data check
+  - Was failing silently due to wrong database password
+  - Unnecessary since API auto-seeds on startup and health checks verify connectivity
+- **2025-12-01**: Added `-p witchcityrope-dev` project isolation
   - Updated to 4 containers (includes test-server from dev overlay)
   - Added reference to `restart-test-containers` skill
 - **2025-11-04**: Created as single source of truth for container restart

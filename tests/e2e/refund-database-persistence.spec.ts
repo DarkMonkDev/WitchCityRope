@@ -141,15 +141,17 @@ test.describe('Refund Database Persistence Tests', () => {
     // Find payment ID from UI or database
     // For this test, we'll query database for a test payment
     console.log('📝 Step 4: Query for test payment from database');
+    // Note: Status column is an integer enum, not string
+    // Completed = 2 in typical PaymentStatus enum
     const testPayments = await query(`
       SELECT
         p."Id" as "id",
         p."UserId" as "userId",
         p."AmountValue" as "amount",
         p."Currency" as "currency",
-        p."PaymentStatus" as "status"
+        p."Status" as "status"
       FROM "Payments" p
-      WHERE p."PaymentStatus" = 'Completed'
+      WHERE p."Status" = 2
       AND NOT EXISTS (
         SELECT 1 FROM "PaymentRefunds" pr
         WHERE pr."PaymentId" = p."Id"

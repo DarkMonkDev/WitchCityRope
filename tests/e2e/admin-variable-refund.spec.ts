@@ -54,7 +54,7 @@ class RefundModal {
   }
 
   get confirmCheckbox() {
-    return this.page.getByTestId('refund-confirmation-checkbox');
+    return this.page.getByRole('checkbox', { name: /understand this will process/i });
   }
 
   get processButton() {

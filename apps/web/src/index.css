@@ -692,7 +692,36 @@ h3 {
     padding-top: 24px !important;
   }
 
-  .hero-section h1 {
+  .mantine-SegmentedControl-root {
+    display: none !important;
+  }
+
+  .mantine-Container-root {
+    padding: 0 !important;
+  }
+
+  #events-filter-bar {
+    padding: 12px !important;
+  }
+
+  [data-testid="events-list"] .mantine-Paper-root {
+    border: none !important;
+  }
+
+  [data-testid="events-list"] {
+    gap: 4px !important;
+  }
+
+  h3 {
+    font-size: 22px !important;
+  }
+
+  .event-card > div {
+    padding: 16px !important;
+    height: 75px !important;
+  }
+
+  h1 {
     font-size: 32px !important;
   }
 

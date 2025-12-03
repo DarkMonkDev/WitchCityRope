@@ -7,6 +7,8 @@ import { notifications } from '@mantine/notifications';
 import type { VolunteerPosition } from '../types/volunteer.types';
 import { signupForVolunteerPosition, cancelVolunteerSignup } from '../api/volunteerApi';
 import { useCurrentUser } from '@/lib/api/hooks/useAuth';
+import { formatUtcToLocalTime } from '../../../utils/eventUtils';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface VolunteerPositionCardProps {
   position: VolunteerPosition;
@@ -116,18 +118,14 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
   });
 
   const isAuthenticated = !!currentUser;
+  const eventTimeZone = useEventTimeZone();
 
   const formatTime = (timeString?: string) => {
     if (!timeString) return '';
     try {
-      // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
-      const date = new Date(timeString);
-      const hours = date.getUTCHours();
-      const minutes = date.getUTCMinutes();
-      const period = hours >= 12 ? 'pm' : 'am';
-      const hour12 = hours % 12 || 12;
-      const minuteStr = minutes.toString().padStart(2, '0');
-      return `${hour12}:${minuteStr} ${period}`;
+      // Use TRUE UTC to local time conversion
+      // See: /docs/guides-setup/datetime-handling-guide.md
+      return formatUtcToLocalTime(timeString, eventTimeZone);
     } catch {
       return timeString;
     }

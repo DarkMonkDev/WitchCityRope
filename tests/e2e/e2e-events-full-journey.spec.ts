@@ -1,6 +1,8 @@
 import { test, expect, Page, BrowserContext } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
 const TEST_ACCOUNTS = {
   member: {
     email: 'member@witchcityrope.com',
@@ -349,14 +351,14 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
   test('10. API Integration Verification', async ({ page, request }) => {
     console.log('🔧 Testing API integration...');
-    
+
     // Test API endpoints directly
-    const healthResponse = await request.get('http://api:5655/api/health');
+    const healthResponse = await request.get(`${API_BASE_URL}/api/health`);
     expect(healthResponse.status()).toBe(200);
     console.log('   ✅ API health endpoint working');
 
     // Test events API (returns raw array, not wrapped response)
-    const eventsResponse = await request.get('http://api:5655/api/events');
+    const eventsResponse = await request.get(`${API_BASE_URL}/api/events`);
     expect(eventsResponse.status()).toBe(200);
 
     const eventsApiResponse = await eventsResponse.json();
@@ -419,17 +421,17 @@ test.describe('Test Environment Validation', () => {
     console.log('🏥 Running environment health check...');
 
     // Test React app
-    const reactResponse = await request.get('http://web:5173');
+    const reactResponse = await request.get(process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173');
     expect(reactResponse.status()).toBe(200);
     console.log('   ✅ React app healthy');
 
     // Test API
-    const apiResponse = await request.get('http://api:5655/api/health');
+    const apiResponse = await request.get(`${API_BASE_URL}/api/health`);
     expect(apiResponse.status()).toBe(200);
     console.log('   ✅ API healthy');
 
     // Test database connectivity through API
-    const eventsResponse = await request.get('http://api:5655/api/events');
+    const eventsResponse = await request.get(`${API_BASE_URL}/api/events`);
     expect(eventsResponse.status()).toBe(200);
     console.log('   ✅ Database connectivity verified');
 

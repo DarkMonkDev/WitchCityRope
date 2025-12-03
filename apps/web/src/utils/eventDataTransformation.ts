@@ -43,7 +43,7 @@ export function convertEventFormDataToUpdateDto(
       id: session.id,
       sessionIdentifier: session.sessionIdentifier, // API requires this field
       name: session.name,
-      date: session.date, // API requires this field
+      startDate: session.startDate, // API requires this field (renamed from date)
       startTime: session.startTime,
       endTime: session.endTime,
       capacity: session.capacity,
@@ -217,7 +217,7 @@ export function getChangedEventFields(
       id: session.id,
       sessionIdentifier: session.sessionIdentifier, // API requires this field
       name: session.name,
-      date: session.date, // API requires this field
+      startDate: session.startDate, // API requires this field (renamed from date)
       startTime: session.startTime,
       endTime: session.endTime,
       capacity: session.capacity,

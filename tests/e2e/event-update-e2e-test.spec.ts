@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+
 test.describe('Event Update Flow E2E Testing', () => {
   let eventId: string;
 
@@ -12,7 +14,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     expect(loginSuccess).toBeTruthy();
 
     // Get the first event ID from API for testing
-    const eventsResponse = await page.request.get('http://api:5655/api/events');
+    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`);
     const eventsData = await eventsResponse.json();
     eventId = eventsData.data[0].id;
     console.log(`Using event ID for testing: ${eventId}`);
@@ -369,7 +371,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     console.log('Testing API endpoint responses for event updates...');
 
     // Test GET endpoint first (should work)
-    const getResponse = await page.request.get(`http://api:5655/api/events/${eventId}`);
+    const getResponse = await page.request.get(`${API_BASE_URL}/api/events/${eventId}`);
     console.log(`GET /api/events/${eventId} - Status: ${getResponse.status()}`);
     
     if (getResponse.ok()) {
@@ -380,7 +382,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     }
 
     // Test PUT endpoint (expected to fail with 405 based on earlier testing)
-    const putResponse = await page.request.put(`http://api:5655/api/events/${eventId}`, {
+    const putResponse = await page.request.put(`${API_BASE_URL}/api/events/${eventId}`, {
       data: {
         id: eventId,
         title: 'API Test Update'
@@ -401,7 +403,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     }
 
     // Test PATCH endpoint as well
-    const patchResponse = await page.request.patch(`http://api:5655/api/events/${eventId}`, {
+    const patchResponse = await page.request.patch(`${API_BASE_URL}/api/events/${eventId}`, {
       data: {
         title: 'API Patch Test Update'
       },

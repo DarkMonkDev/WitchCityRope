@@ -44,13 +44,17 @@ export async function loginAsAdmin(page: Page) {
  *
  * API Endpoint: POST /api/checkin/session-tokens/generate
  * Requires: Administrator or EventOrganizer authentication
+ *
+ * CRITICAL: Use page.context().request to share authentication cookies
+ * page.request does NOT include cookies from the browser context
  */
 export async function generateSessionToken(
   page: Page,
   eventId: string,
   expiresInHours: number = 12
 ): Promise<string> {
-  const response = await page.request.post(
+  // Use context().request to share authentication cookies with API calls
+  const response = await page.context().request.post(
     `${API_BASE_URL}/api/checkin/session-tokens/generate`,
     {
       data: { eventId, expirationHours: expiresInHours }
@@ -73,9 +77,12 @@ export async function generateSessionToken(
  *
  * API Endpoint: POST /api/checkin/session-tokens/revoke
  * Requires: Administrator or EventOrganizer authentication
+ *
+ * CRITICAL: Use page.context().request to share authentication cookies
  */
 export async function revokeSessionToken(page: Page, token: string): Promise<void> {
-  const response = await page.request.post(
+  // Use context().request to share authentication cookies with API calls
+  const response = await page.context().request.post(
     `${API_BASE_URL}/api/checkin/session-tokens/revoke`,
     {
       data: { token }
@@ -95,7 +102,8 @@ export async function revokeSessionToken(page: Page, token: string): Promise<voi
  * @returns Event ID string
  */
 export async function getTestEventId(page: Page): Promise<string> {
-  const response = await page.request.get(`${API_BASE_URL}/api/events`);
+  // Use context().request for consistency (public endpoint, no auth needed)
+  const response = await page.context().request.get(`${API_BASE_URL}/api/events`);
 
   if (!response.ok()) {
     throw new Error(`Failed to fetch events: ${response.status()} ${await response.text()}`);
@@ -150,7 +158,8 @@ export async function navigateToCheckInDashboard(page: Page, eventId: string, to
  * @returns Attendees data from API response
  */
 export async function getAttendees(page: Page, eventId: string, sessionToken: string) {
-  const response = await page.request.get(
+  // Use context().request for consistency (uses token, not cookies)
+  const response = await page.context().request.get(
     `${API_BASE_URL}/api/checkin/events/${eventId}/attendees`,
     {
       headers: {
@@ -172,7 +181,8 @@ export async function getAttendees(page: Page, eventId: string, sessionToken: st
  * @returns Dashboard data from API response
  */
 export async function getDashboardData(page: Page, eventId: string, sessionToken: string) {
-  const response = await page.request.get(
+  // Use context().request for consistency (uses token, not cookies)
+  const response = await page.context().request.get(
     `${API_BASE_URL}/api/checkin/events/${eventId}/dashboard`,
     {
       headers: {

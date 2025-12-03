@@ -66,7 +66,7 @@ interface ApiEventSession {
   id: string
   sessionIdentifier: string
   name: string
-  date: string
+  startDate: string  // Renamed from date to match backend SessionDto
   startTime: string
   endTime: string
   capacity: number
@@ -96,7 +96,7 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     id: session.id,
     sessionIdentifier: session.sessionIdentifier,
     name: session.name,
-    date: session.date,
+    startDate: session.startDate, // Renamed from date
     startTime: session.startTime,
     endTime: session.endTime,
     capacity: session.capacity,

@@ -114,12 +114,12 @@ test.describe('Admin Venue Editing', () => {
     await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Scope all selectors to the Venue Management card container
-    // Find the card by filtering for the one that contains both "Venue Management" heading AND "Select a venue" placeholder
-    const venueCard = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
+    // Scope all selectors to the Venue Management card container using data-testid
+    const venueCard = page.getByTestId('venue-management-card');
+    await venueCard.waitFor({ state: 'visible', timeout: 5000 });
 
     // Select first venue
-    const venueDropdown = venueCard.getByPlaceholder('Select a venue');
+    const venueDropdown = venueCard.getByTestId('venue-select');
     await venueDropdown.click();
     await page.waitForTimeout(500);
 
@@ -133,9 +133,9 @@ test.describe('Admin Venue Editing', () => {
     await firstVenueOption.click();
     await page.waitForTimeout(500);
 
-    // Update notes field (scope to card)
+    // Update notes field using data-testid
     const updatedNotes = `Admin notes updated ${Date.now()}`;
-    const notesInput = venueCard.locator('textarea[placeholder="Enter additional notes"]');
+    const notesInput = venueCard.getByTestId('venue-notes-input');
 
     await notesInput.waitFor({ state: 'visible', timeout: 5000 });
     await notesInput.clear();
@@ -154,9 +154,9 @@ test.describe('Admin Venue Editing', () => {
     await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Re-scope to venue card after page reload
-    const venueCard2 = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
-    const venueDropdown2 = venueCard2.getByPlaceholder('Select a venue');
+    // Re-scope to venue card after page reload using data-testid
+    const venueCard2 = page.getByTestId('venue-management-card');
+    const venueDropdown2 = venueCard2.getByTestId('venue-select');
     await venueDropdown2.click();
     await page.waitForTimeout(500);
 
@@ -164,12 +164,14 @@ test.describe('Admin Venue Editing', () => {
     await page.getByRole('option', { name: venueName }).click();
     await page.waitForTimeout(1000);
 
-    // Verify notes were saved (scope to card)
-    const notesValue = await venueCard2.locator('textarea[placeholder="Enter additional notes"]').inputValue();
+    // Verify notes were saved using data-testid
+    const notesValue = await venueCard2.getByTestId('venue-notes-input').inputValue();
     expect(notesValue).toContain(updatedNotes);
   });
 
-  test('should toggle venue active/inactive status', async ({ page }) => {
+  test('should delete venue (soft delete sets inactive)', async ({ page }) => {
+    // CORRECTED: There is NO active/inactive checkbox toggle
+    // The UI uses DELETE button for soft delete (sets IsActive = false)
     // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
@@ -177,12 +179,12 @@ test.describe('Admin Venue Editing', () => {
     await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Scope all selectors to the Venue Management card container
-    // Find the card by filtering for the one that contains both "Venue Management" heading AND "Select a venue" placeholder
-    const venueCard = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
+    // Scope all selectors to the Venue Management card using data-testid
+    const venueCard = page.getByTestId('venue-management-card');
+    await venueCard.waitFor({ state: 'visible', timeout: 5000 });
 
     // Select first venue
-    const venueDropdown = venueCard.getByPlaceholder('Select a venue');
+    const venueDropdown = venueCard.getByTestId('venue-select');
     await venueDropdown.click();
     await page.waitForTimeout(500);
 
@@ -199,63 +201,45 @@ test.describe('Admin Venue Editing', () => {
     // Wait for form to fully load with venue data
     await page.waitForTimeout(1000);
 
-    // Find "Active Venue" checkbox (scope to card)
-    // Only shown when editing (isEditMode = true) - use data-testid for reliable selection
-    const activeToggle = venueCard.getByTestId('venue-active-checkbox');
+    // Find Delete button (only shown in edit mode)
+    const deleteButton = venueCard.getByTestId('venue-delete-button');
+    await expect(deleteButton).toBeVisible({ timeout: 5000 });
 
-    // Wait for checkbox to be visible
-    await activeToggle.waitFor({ state: 'visible', timeout: 5000 });
+    // Setup dialog handler BEFORE clicking delete button
+    page.on('dialog', async dialog => {
+      expect(dialog.type()).toBe('confirm');
+      await dialog.accept();
+    });
 
-    // Get current state
-    const wasChecked = await activeToggle.isChecked();
+    // Click delete button
+    await deleteButton.click();
 
-    // Toggle it
-    await activeToggle.click();
-
-    // Verify it toggled
-    const isNowChecked = await activeToggle.isChecked();
-    expect(isNowChecked).toBe(!wasChecked);
-
-    // Wait for form validation
-    await page.waitForTimeout(500);
-
-    // Save changes - use data-testid for more reliable selection
-    const updateButton = venueCard.getByTestId('venue-submit-button');
-    await updateButton.scrollIntoViewIfNeeded();
-
-    // Wait for button to be enabled
-    await expect(updateButton).toBeEnabled({ timeout: 5000 });
-
-    await updateButton.click();
+    // Wait for deletion to complete
+    await page.waitForTimeout(2000);
 
     // Verify success
-    await expect(page.locator('[role="alert"]:has-text("Venue updated successfully")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[role="alert"]:has-text("Venue deleted successfully")')).toBeVisible({ timeout: 10000 });
 
-    // Verify change persisted by re-selecting venue
+    // Verify venue no longer appears in dropdown (soft deleted = IsActive = false)
     await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Re-scope to venue card after page reload
-    const venueCard2 = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
-    const venueDropdown2 = venueCard2.getByPlaceholder('Select a venue');
+    const venueCard2 = page.getByTestId('venue-management-card');
+    const venueDropdown2 = venueCard2.getByTestId('venue-select');
     await venueDropdown2.click();
     await page.waitForTimeout(500);
 
-    // If we deactivated, venue should appear with "(Inactive)" suffix (line 129)
-    const venueOption = wasChecked
-      ? page.locator(`text="${venueName} (Inactive)"`)
-      : page.locator(`text="${venueName}"`).filter({ hasNot: page.locator('text="(Inactive)"') });
-
-    await venueOption.click();
-    await page.waitForTimeout(500);
-
-    const activeToggle2 = venueCard2.getByTestId('venue-active-checkbox');
-    await activeToggle2.waitFor({ state: 'visible', timeout: 5000 });
-    const finalState = await activeToggle2.isChecked();
-    expect(finalState).toBe(!wasChecked);
+    // Deleted venue should NOT appear in dropdown (component only shows active venues)
+    const deletedVenueOption = page.getByRole('option', { name: venueName });
+    await expect(deletedVenueOption).not.toBeVisible({ timeout: 2000 });
   });
 
-  test('should show inactive venues in admin dropdown', async ({ page }) => {
+  test('should only show active venues in dropdown', async ({ page }) => {
+    // CORRECTED: Component query fetches ONLY active venues
+    // See line 59: queryKey: ['admin', 'venues', 'active']
+    // See line 61: const response = await api.get<VenueDto[]>('/api/admin/venues/active');
+    // Inactive venues DO NOT appear in dropdown - this is by design
+
     // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
@@ -263,66 +247,33 @@ test.describe('Admin Venue Editing', () => {
     await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Scope all selectors to the Venue Management card container
-    // Find the card by filtering for the one that contains both "Venue Management" heading AND "Select a venue" placeholder
-    const venueCard = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
+    // Scope all selectors to the Venue Management card using data-testid
+    const venueCard = page.getByTestId('venue-management-card');
+    await venueCard.waitFor({ state: 'visible', timeout: 5000 });
 
-    // Select first venue and make it inactive
-    const venueDropdown = venueCard.getByPlaceholder('Select a venue');
+    // Open venue dropdown
+    const venueDropdown = venueCard.getByTestId('venue-select');
     await venueDropdown.click();
     await page.waitForTimeout(500);
 
-    // Select first REAL venue from dropdown (not "Add New")
-    await page.getByRole('option', { name: 'Add New' }).waitFor({ state: 'visible', timeout: 5000 });
+    // Verify "Add New" option is visible
+    await expect(page.getByRole('option', { name: 'Add New' })).toBeVisible({ timeout: 5000 });
 
-    // Get all options and click the second one (first is "Add New", second is a real venue)
+    // Get all options
     const allOptions = page.getByRole('option');
-    await allOptions.nth(1).click();  // Index 0 is "Add New", index 1 is first real venue
-    await page.waitForTimeout(500);
+    const optionCount = await allOptions.count();
 
-    // Wait for form to fully load with venue data
-    await page.waitForTimeout(1000);
+    // Verify we have at least 2 options (Add New + at least one active venue)
+    expect(optionCount).toBeGreaterThanOrEqual(2);
 
-    // Get venue name from input (scope to card)
-    const nameInput = venueCard.locator('input[placeholder="Enter venue name"]');
-    await nameInput.waitFor({ state: 'visible', timeout: 5000 });
-    const venueNameValue = await nameInput.inputValue();
-
-    // Set to inactive (scope to card) - use data-testid for reliable selection
-    const activeToggle = venueCard.getByTestId('venue-active-checkbox');
-    await activeToggle.waitFor({ state: 'visible', timeout: 5000 });
-
-    if (await activeToggle.isChecked()) {
-      await activeToggle.click();
+    // Verify all options are either "Add New" or active venues (no "(Inactive)" suffix)
+    for (let i = 0; i < optionCount; i++) {
+      const optionText = await allOptions.nth(i).textContent();
+      // Should NOT contain "(Inactive)" - only active venues shown
+      expect(optionText).not.toContain('(Inactive)');
     }
 
-    // Wait for form validation
-    await page.waitForTimeout(500);
-
-    // Save (scope to card) - use data-testid for more reliable selection
-    const updateButton = venueCard.getByTestId('venue-submit-button');
-    await updateButton.scrollIntoViewIfNeeded();
-
-    // Wait for button to be enabled
-    await expect(updateButton).toBeEnabled({ timeout: 5000 });
-
-    await updateButton.click();
-
-    // Wait for save to complete
-    await expect(page.locator('[role="alert"]:has-text("Venue updated successfully")')).toBeVisible({ timeout: 10000 });
-
-    // Verify inactive venue still appears in admin dropdown with "(Inactive)" label
-    await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('domcontentloaded');
-
-    // Re-scope to venue card after page reload
-    const venueCard2 = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
-    const venueDropdown2 = venueCard2.getByPlaceholder('Select a venue');
-    await venueDropdown2.click();
-    await page.waitForTimeout(500);
-
-    // Inactive venues shown with "(Inactive)" suffix (VenueManagementCard line 125-131)
-    await expect(page.locator(`text="${venueNameValue} (Inactive)"`)).toBeVisible({ timeout: 5000 });
+    console.log(`✅ Verified ${optionCount} options, all are active venues or "Add New"`);
   });
 
   test('should prevent non-admin from accessing admin settings', async ({ page }) => {
