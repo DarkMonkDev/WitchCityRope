@@ -67,8 +67,10 @@ WORKDIR /app
 
 # Install runtime dependencies
 # Install PostgreSQL 16 client to match server version
+# Install tzdata for timezone support (required for America/New_York etc.)
 RUN apk add --no-cache \
     curl \
+    tzdata \
     postgresql16-client \
     --repository=https://dl-cdn.alpinelinux.org/alpine/edge/main \
     && rm -rf /var/cache/apk/*
