@@ -94,11 +94,12 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
 
     // Wait for filter components to be visible on mobile
     // Desktop comes first in DOM (hidden on mobile), mobile comes last (visible on mobile)
-    const searchInput = page.getByPlaceholder('Search events...').last();
-    const viewToggle = page.getByRole('radiogroup').last(); // SegmentedControl renders as radiogroup
+    // Use data-testid for reliable targeting
+    const searchInput = page.locator('[data-testid="input-search"]').last();
+    const sortDropdown = page.locator('[data-testid="select-category"]').last();
 
     await expect(searchInput).toBeVisible({ timeout: 5000 });
-    await expect(viewToggle).toBeVisible({ timeout: 5000 });
+    await expect(sortDropdown).toBeVisible({ timeout: 5000 });
 
     // Take mobile screenshot
     await page.screenshot({

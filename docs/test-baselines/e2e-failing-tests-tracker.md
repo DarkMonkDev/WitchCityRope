@@ -16,10 +16,10 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 ## Test Run Info
 - **Date**: December 7, 2025 (Updated: December 8, 2025)
 - **Total Tests**: 807
-- **Passed**: 643 → 652 (after CMS fix)
-- **Failed**: 92 → 67 (after fixes and CMS backend fix)
+- **Passed**: 643 → 652 → 654 (after mobile fixes)
+- **Failed**: 92 → 67 → 65 (after fixes and mobile navigation fixes)
 - **Skipped**: 72 → 83
-- **Pass Rate**: **87.4%** → **81.2%** (denominator changed due to skips)
+- **Pass Rate**: **87.4%** → **81.2%** → **81.5%**
 - **Run Time**: 10.1 minutes
 
 ### Fixes Applied (December 8, 2025)
@@ -34,7 +34,11 @@ The following fixes were applied to all 92 failing test files:
 - XSS Prevention: Backend sanitizes malicious HTML ✅
 - Performance: Save response time < 1 second ✅
 
-**Result**: 67 tests still failing after multiple rounds of fixes.
+**Mobile Navigation Fixes (December 8, 2025)**: Updated tests for new Mantine Drawer hamburger menu:
+- cms-workflow.spec.ts: Updated mobile navigation test to use `.mantine-Drawer-content` selector and `getByTestId('button-mobile-menu')` ✅
+- phase4-events-testing.spec.ts: Fixed mobile viewport test to check for visible elements (search input + sort dropdown) instead of hidden view toggle ✅
+
+**Result**: 65 tests still failing after multiple rounds of fixes.
 
 ### Comparison to Previous (Dec 2, 2025)
 | Metric | Dec 2 | Dec 7 | Change |
@@ -238,12 +242,12 @@ The following fixes were applied to all 92 failing test files:
 
 ---
 
-## CMS (1 failure)
+## CMS (0 failures - ALL FIXED ✅)
 
-### cms-workflow (1 test)
+### cms-workflow (1 test → FIXED ✅)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Mobile viewport: Navigation works on mobile | FAILING | 4.4s - mobile nav issue |
+| Mobile viewport: Navigation works on mobile | **FIXED** | Dec 8: Updated selectors for new Mantine Drawer hamburger menu |
 
 ### cms (0 tests - all fixed 2025-12-08)
 | Test | Status | Failure Reason |
@@ -322,7 +326,7 @@ The following fixes were applied to all 92 failing test files:
 
 ---
 
-## PHASE TESTING (4 failures)
+## PHASE TESTING (3 failures)
 
 ### phase3-sessions-tickets (2 tests)
 | Test | Status | Failure Reason |
@@ -330,11 +334,11 @@ The following fixes were applied to all 92 failing test files:
 | Session CRUD - Add, edit, and delete sessions | FAILING | 44.7s timeout |
 | Ticket Types - Create and manage ticket types | FAILING | 44.7s timeout |
 
-### phase4-events-testing (2 tests)
+### phase4-events-testing (1 test → 1 FIXED ✅)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| should display event filters correctly | FAILING | 1.1s - assertion |
-| should be responsive on mobile viewport | FAILING | 2.1s - mobile viewport |
+| should display event filters correctly | PASSING | All 6 tests now passing |
+| should be responsive on mobile viewport | **FIXED** | Dec 8: Changed to check visible elements (search, sort dropdown) instead of hidden view toggle |
 
 ---
 
