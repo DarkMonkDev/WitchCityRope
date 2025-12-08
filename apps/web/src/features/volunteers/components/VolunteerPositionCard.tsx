@@ -137,7 +137,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         background: 'white',
         border: '1px solid var(--color-stone-light)',
         borderRadius: '16px',
-        padding: 'var(--space-lg)',
+        padding: 'var(--space-md)',
         transition: 'all 0.3s ease'
       }}
       onMouseEnter={(e) => {
@@ -149,37 +149,21 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
-      <Stack gap="md">
+      <Stack gap={4}>
         {/* Header */}
         <Group justify="space-between" align="flex-start">
           <div>
             <Group gap="xs" mb={4} align="baseline">
-              {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
-              {position.sessionName && !position.sessionName.includes('Main Session') && (
-                <Text
-                  size="lg"
-                  fw={700}
-                  style={{ color: 'var(--color-text)' }}
-                >
-                  {position.sessionName}
-                </Text>
-              )}
-              <Text
-                size="lg"
-                fw={700}
-                style={{ color: 'var(--color-text)', marginLeft: position.sessionName && !position.sessionName.includes('Main Session') ? '20px' : '0' }}
-              >
+              <h4>
+                {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
+                {position.sessionName && !position.sessionName.includes('Main Session') && (
+                  <>{position.sessionName} </>
+                )}
                 {position.title}
-              </Text>
-              {position.sessionStartTime && position.sessionEndTime && (
-                <Text
-                  size="lg"
-                  fw={700}
-                  style={{ color: 'var(--color-text)', marginLeft: '20px' }}
-                >
-                  {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}
-                </Text>
-              )}
+                {position.sessionStartTime && position.sessionEndTime && (
+                  <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}</>
+                )}
+              </h4>
               {position.hasUserSignedUp && (
                 <Badge
                   color="green"
@@ -205,9 +189,9 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         {/* Description, Sign Up Button, and Confirmation - grouped together */}
         <div>
           <Group align="flex-start" wrap="nowrap" gap="md" mb={0}>
-            <Text size="sm" c="dimmed" style={{ flex: 1 }}>
+            <p style={{ flex: 1 }}>
               {position.description}
-            </Text>
+            </p>
 
             {/* Show Sign Up button only if user hasn't signed up, position isn't full, AND signup window is open */}
             {!position.hasUserSignedUp && !position.isFullyStaffed && isAuthenticated && position.canSignUp && (
