@@ -13,16 +13,15 @@ test.describe('Vetting Application Complete Flow', () => {
 
     // Step 1: Register new user
     console.log('Step 1: Registering new user...');
-    await page.goto('/register');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/register', { waitUntil: 'domcontentloaded' });
 
     // Fill registration form (only 3 fields: Email, Scene Name, Password)
-    await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
-    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
-    await page.locator('[data-testid="password-input"]').fill(testPassword);
+    await page.locator('[data-testid="email-or-scenename-input"]').last().fill(testEmail);
+    await page.locator('[data-testid="scene-name-input"]').last().fill(testSceneName);
+    await page.locator('[data-testid="password-input"]').last().fill(testPassword);
 
     // Submit registration
-    await page.locator('button:has-text("CREATE ACCOUNT")').click();
+    await page.locator('button:has-text("CREATE ACCOUNT")').last().click();
     await page.waitForLoadState('domcontentloaded');
 
     // Wait for registration to complete
@@ -38,8 +37,7 @@ test.describe('Vetting Application Complete Flow', () => {
 
     // Step 3: Navigate to vetting application
     console.log('Step 3: Navigating to vetting application...');
-    await page.goto('/join');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     await page.screenshot({ path: `${screenshotDir}/03-vetting-form-page.png`, fullPage: true });

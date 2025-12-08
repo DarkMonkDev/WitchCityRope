@@ -240,6 +240,7 @@ export const EventDetailPage: React.FC = () => {
     eventEndDateTime: (event as any)?.endDate,
     eventInstructor: (event as any)?.instructor,
     eventLocation: (event as any)?.location,
+    eventSessions: (event as any)?.sessions,
   };
 
   return (
@@ -363,73 +364,38 @@ export const EventDetailPage: React.FC = () => {
               {(event as any)?.title}
             </Title>
 
-            <Group gap="lg" style={{ flexWrap: 'wrap' }}>
-              <Group gap="xs" style={{
-                color: 'var(--color-dusty-rose)',
-                fontSize: '20px'
-              }}>
-                <IconCalendar size={20} />
-                <Text size="lg">
-                  {(() => {
-                    const sessions = (event as any)?.sessions || [];
-                    if (sessions.length === 0) {
-                      // No sessions - show full event date
-                      return formatUtcToLocalDate((event as any)?.startDate, eventTimeZone);
-                    } else if (sessions.length === 1) {
-                      // Single session - show date or date range if multi-day
-                      const session = sessions[0];
-                      if (session.endDate && session.startDate !== session.endDate) {
-                        // Multi-day session: show date range
-                        const startDateDisplay = formatAbbreviatedDate(session.startDate, eventTimeZone);
-                        const endDate = formatAbbreviatedDate(session.endDate, eventTimeZone);
-                        return `${startDateDisplay} - ${endDate}`;
-                      }
-                      return formatAbbreviatedDate(session.startDate, eventTimeZone);
-                    } else {
-                      // Multiple sessions - show all dates abbreviated with bullet separator
-                      return sessions
-                        .filter((s: any) => s.startDate)
-                        .map((s: any) => {
-                          // Check if session spans multiple days
-                          if (s.endDate && s.startDate !== s.endDate) {
-                            const startDateDisplay = formatAbbreviatedDate(s.startDate, eventTimeZone);
-                            const endDate = formatAbbreviatedDate(s.endDate, eventTimeZone);
-                            return `${startDateDisplay} - ${endDate}`;
-                          }
-                          return formatAbbreviatedDate(s.startDate, eventTimeZone);
-                        })
-                        .join(' • ');
-                    }
-                  })()}
-                </Text>
-              </Group>
-              <Group gap="xs" style={{
-                color: 'var(--color-dusty-rose)',
-                fontSize: '20px'
-              }}>
-                <IconClock size={20} />
-                <Text size="lg">
-                  {formatUtcTimeRange((event as any)?.startDate, (event as any)?.endDate, eventTimeZone)}
-                </Text>
-              </Group>
-              <Group gap="xs" style={{
-                color: 'var(--color-dusty-rose)',
-                fontSize: '20px'
-              }}>
-                <IconMapPin size={20} />
-                <Text size="lg">
-                  {/* Show venueLocation for non-vetted non-participants, venue.name for others */}
-                  {(() => {
-                    const hasVenueAccess = isVetted || (participation?.hasRSVP || participation?.hasTicket);
-                    if (hasVenueAccess) {
-                      return venue?.name || (event as any)?.venueLocation || 'Location TBD';
-                    } else {
-                      return (event as any)?.venueLocation || 'Location TBD';
-                    }
-                  })()}
-                </Text>
-              </Group>
-            </Group>
+            <Stack gap="xs">
+              {/* Session date/times - one line each */}
+              {(() => {
+                const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
+                  new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
+                );
+
+                if (sessions.length === 0) {
+                  return <Text size="lg" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>Date and Time coming soon</Text>;
+                }
+
+                return sessions.map((session: any, index: number) => (
+                  <Text key={session.id || index} size="lg" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
+                    {formatUtcToLocalDate(session.startTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
+                    {' • '}
+                    {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
+                  </Text>
+                ));
+              })()}
+
+              {/* Location - no icon */}
+              <Text size="lg" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
+                {(() => {
+                  const hasVenueAccess = isVetted || (participation?.hasRSVP || participation?.hasTicket);
+                  if (hasVenueAccess) {
+                    return venue?.name || (event as any)?.venueLocation || 'Location TBD';
+                  } else {
+                    return (event as any)?.venueLocation || 'Location TBD';
+                  }
+                })()}
+              </Text>
+            </Stack>
           </Box>
         </Paper>
 

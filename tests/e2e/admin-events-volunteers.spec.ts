@@ -17,7 +17,7 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * Helper to get a valid event ID from the admin events list
  */
 async function getFirstEventId(page: Page): Promise<string> {
-  await page.goto('/admin/events');
+  await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('domcontentloaded');
 
   // Wait for the events table to load
@@ -101,7 +101,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should add volunteer position via inline form', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
 
     // Navigate to Volunteers tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -142,8 +142,8 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     // Fill slots needed
     await page.locator('[data-testid="input-slots-needed"]').fill('2');
 
-    // Save position
-    const saveButton = page.locator('[data-testid="button-save-volunteer-position"]');
+    // Save position (use .last() for React Strict Mode)
+    const saveButton = page.locator('[data-testid="button-save-volunteer-position"]').last();
     await expect(saveButton).toBeVisible();
     await saveButton.click();
 
@@ -251,7 +251,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should validate volunteer position form fields', async ({ page }) => {
     // Navigate to admin event edit page and volunteers tab
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     await page.locator('[data-testid="tab-volunteers"]').click();
 
@@ -286,8 +286,8 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
 
-    // Now save with valid data
-    const finalSaveButton = page.locator('[data-testid="button-save-volunteer-position"]');
+    // Now save with valid data (use .last() for React Strict Mode)
+    const finalSaveButton = page.locator('[data-testid="button-save-volunteer-position"]').last();
     await finalSaveButton.click();
 
     // Wait for grid to update after save
@@ -303,7 +303,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should display sessions in day format in position assignments', async ({ page }) => {
     // Navigate to admin event edit page and volunteers tab
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     await page.locator('[data-testid="tab-volunteers"]').click();
 

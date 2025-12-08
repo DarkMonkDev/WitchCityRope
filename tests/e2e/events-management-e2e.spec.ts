@@ -32,7 +32,7 @@ test.describe('Events Management System E2E Tests', () => {
 
     test('should load API demo page without errors', async ({ page }) => {
       // Navigate to the demo page
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page to load
       await expect(page).toHaveTitle(/Witch City Rope/i)
@@ -49,7 +49,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should display events list from API', async ({ page }) => {
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page to load
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -80,7 +80,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should switch between API tabs correctly', async ({ page }) => {
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page load
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -122,7 +122,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should allow event interaction', async ({ page }) => {
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page to load
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -152,7 +152,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should test refresh functionality', async ({ page }) => {
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page to load
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -197,7 +197,7 @@ test.describe('Events Management System E2E Tests', () => {
         }
       })
 
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page to fully load
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -249,7 +249,7 @@ test.describe('Events Management System E2E Tests', () => {
       // No login redirect issue since user is already authenticated before navigation
 
       // Navigate to the demo page
-      await page.goto('/admin/event-session-matrix-demo')
+      await page.goto('/admin/event-session-matrix-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page to fully load
       await page.waitForLoadState('domcontentloaded')
@@ -268,7 +268,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should display event form tabs', async ({ page }) => {
-      await page.goto('/admin/event-session-matrix-demo')
+      await page.goto('/admin/event-session-matrix-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page and form to load
       await expect(page.locator('h1')).toContainText('Event Session Matrix Demo')
@@ -299,7 +299,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should test tab switching functionality', async ({ page }) => {
-      await page.goto('/admin/event-session-matrix-demo')
+      await page.goto('/admin/event-session-matrix-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page load
       await page.waitForLoadState('domcontentloaded')
@@ -336,7 +336,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should verify form fields are present', async ({ page }) => {
-      await page.goto('/admin/event-session-matrix-demo')
+      await page.goto('/admin/event-session-matrix-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page load
       await page.waitForLoadState('domcontentloaded')
@@ -357,7 +357,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should verify Tiptap rich text editors load', async ({ page }) => {
-      await page.goto('/admin/event-session-matrix-demo')
+      await page.goto('/admin/event-session-matrix-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page load
       await page.waitForLoadState('domcontentloaded')
@@ -381,7 +381,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should test session grid display', async ({ page }) => {
-      await page.goto('/admin/event-session-matrix-demo')
+      await page.goto('/admin/event-session-matrix-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for content to load
       await page.waitForLoadState('domcontentloaded')
@@ -429,7 +429,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should verify ticket types section', async ({ page }) => {
-      await page.goto('/admin/event-session-matrix-demo')
+      await page.goto('/admin/event-session-matrix-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page load
       await page.waitForLoadState('domcontentloaded')
@@ -449,7 +449,7 @@ test.describe('Events Management System E2E Tests', () => {
     })
 
     test('should test Save Draft and Cancel buttons', async ({ page }) => {
-      await page.goto('/admin/event-session-matrix-demo')
+      await page.goto('/admin/event-session-matrix-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page load
       await page.waitForLoadState('domcontentloaded')
@@ -542,7 +542,7 @@ test.describe('Events Management System E2E Tests', () => {
         }
       })
 
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for API calls to complete
       await page.waitForLoadState('domcontentloaded')
@@ -572,7 +572,7 @@ test.describe('Events Management System E2E Tests', () => {
         })
       })
 
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for page load and error handling
       await page.waitForLoadState('domcontentloaded')
@@ -611,7 +611,7 @@ test.describe('Events Management System E2E Tests', () => {
         }
       })
 
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       // Wait for API response
       await page.waitForLoadState('domcontentloaded')
@@ -650,21 +650,21 @@ test.describe('Events Management System E2E Tests', () => {
     test('should work correctly in different viewport sizes', async ({ page }) => {
       // Test mobile viewport
       await page.setViewportSize({ width: 375, height: 667 })
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
       await page.screenshot({ path: 'test-results/mobile-viewport-api-demo.png' })
 
       // Test tablet viewport
       await page.setViewportSize({ width: 768, height: 1024 })
-      await page.goto('/admin/event-session-matrix-demo')
+      await page.goto('/admin/event-session-matrix-demo', { waitUntil: 'domcontentloaded' })
 
       await page.waitForLoadState('domcontentloaded')
       await page.screenshot({ path: 'test-results/tablet-viewport-matrix-demo.png' })
 
       // Test desktop viewport
       await page.setViewportSize({ width: 1920, height: 1080 })
-      await page.goto('/admin/events-management-api-demo')
+      await page.goto('/admin/events-management-api-demo', { waitUntil: 'domcontentloaded' })
 
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
       await page.screenshot({ path: 'test-results/desktop-viewport-api-demo.png' })

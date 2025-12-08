@@ -12,7 +12,7 @@ const wireframeUrl = process.env.WIREFRAME_BASE_URL || 'http://localhost:8080';
 test.describe('Wireframe Comparison', () => {
   test('capture original wireframe', async ({ page }) => {
     // Navigate to the original wireframe
-    await page.goto(`${wireframeUrl}/docs/functional-areas/events/admin-events-management/event-creation.html`);
+    await page.goto(`${wireframeUrl}/docs/functional-areas/events/admin-events-management/event-creation.html`, { waitUntil: 'domcontentloaded' });
     
     // Wait for the page to load
     await page.waitForLoadState('domcontentloaded');
@@ -29,7 +29,7 @@ test.describe('Wireframe Comparison', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to the current implementation
-    await page.goto(`${baseUrl}/admin/event-session-matrix-demo`);
+    await page.goto(`${baseUrl}/admin/event-session-matrix-demo`, { waitUntil: 'domcontentloaded' });
     
     // Wait for the page to load
     await page.waitForLoadState('domcontentloaded');

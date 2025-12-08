@@ -25,7 +25,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
     // STEP 1: Start logged out and navigate to "How to Join" page
     console.log('📍 STEP 1: Navigate to How to Join page while logged out');
-    await page.goto('/join');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Verify it shows text saying they need to login or create account
@@ -53,7 +53,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
         console.log('✅ Clicked nav login button');
       } else {
         // Navigate to login page directly if no button found
-        await page.goto('/login');
+        await page.goto('/login', { waitUntil: 'domcontentloaded' });
         console.log('✅ Navigated directly to login page');
       }
     }
@@ -85,7 +85,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
       console.log('✅ Clicked How to Join nav link');
     } else {
       // Navigate directly if nav link not found
-      await page.goto('/join');
+      await page.goto('/join', { waitUntil: 'domcontentloaded' });
       console.log('✅ Navigated directly to join page');
     }
 
@@ -218,7 +218,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     // STEP 5: Check dashboard to confirm application status
     console.log('📍 STEP 5: Check dashboard for application confirmation');
 
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot of dashboard
@@ -240,7 +240,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     if (await joinLinkFromDashboard.count() > 0) {
       await joinLinkFromDashboard.click();
     } else {
-      await page.goto('/join');
+      await page.goto('/join', { waitUntil: 'domcontentloaded' });
     }
 
     await page.waitForLoadState('domcontentloaded');
@@ -319,7 +319,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
       for (const url of adminUrls) {
         try {
-          await page.goto(url);
+          await page.goto(url, { waitUntil: 'domcontentloaded' });
           await page.waitForLoadState('domcontentloaded');
           const pageContent = await page.textContent('body');
           if (pageContent?.includes('vetting') || pageContent?.includes('application')) {
@@ -335,7 +335,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
     if (!foundAdminNav) {
       console.log('⚠️ Could not find vetting admin area - checking dashboard for admin features');
-      await page.goto('/dashboard');
+      await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
     }
 
@@ -483,7 +483,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     // STEP 16: Check dashboard for updated status
     console.log('📍 STEP 16: Check dashboard for updated application status');
 
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const finalDashboardText = await page.textContent('body');
@@ -495,7 +495,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     await page.screenshot({ path: 'test-results/final-dashboard-status.png', fullPage: true });
 
     // Navigate to join page one more time to see the updated status
-    await page.goto('/join');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const finalJoinPageText = await page.textContent('body');
@@ -539,10 +539,10 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     console.log('🔍 Testing vetting system accessibility and error scenarios...');
 
     // Test form validation and error handling
-    await page.goto('/login');
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await AuthHelpers.loginAs(page, 'guest');
 
-    await page.goto('/join');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Check for accessibility attributes

@@ -20,7 +20,7 @@ import {
 import { IconSearch } from '@tabler/icons-react'
 import { useEventFilters } from '../../hooks/useEventFilters'
 import { useEvents } from '../../lib/api/hooks/useEvents'
-import { formatEventDate, formatEventDateTime, formatEventTime, formatShortDate, calculateEventPriceRange, formatUtcTimeRange } from '../../utils/eventUtils'
+import { formatEventDate, formatEventDateTime, formatEventTime, formatShortDate, calculateEventPriceRange, formatUtcTimeRange, formatUtcToLocalDate } from '../../utils/eventUtils'
 import type { EventDto } from '../../lib/api/types/events.types'
 import { useNavigate } from 'react-router-dom'
 import { useParticipation } from '../../hooks/useParticipation'
@@ -782,52 +782,108 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
           flexDirection: 'column',
         }}
       >
-        {/* Date and Time - Split Layout */}
-        <Group
-          justify="space-between"
-          mb="sm"
-        >
-          <Text
-            data-testid="event-date"
-            size="sm"
-            fw={700}
-            style={{
-              fontFamily: 'var(--font-heading)',
-              color: 'var(--color-burgundy)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}
-          >
-            {(() => {
-              if (!event.startDate) return 'TBD'
-              const start = new Date(event.startDate)
-              return start.toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'short',
-                day: 'numeric',
-                timeZone: eventTimeZone
-              })
-            })()}
-          </Text>
-          <Text
-            data-testid="event-time"
-            size="sm"
-            fw={700}
-            style={{
-              fontFamily: 'var(--font-heading)',
-              color: 'var(--color-burgundy)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}
-          >
-            {(() => {
-              if (!event.startDate) return ''
-              // Use formatUtcTimeRange for TRUE UTC to local time conversion
-              // See: /docs/guides-setup/datetime-handling-guide.md
-              return formatUtcTimeRange(event.startDate, event.endDate || undefined)
-            })()}
-          </Text>
-        </Group>
+        {/* Date and Time - Multi-session support */}
+        {(() => {
+          const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
+            new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
+          );
+
+          if (sessions.length === 0) {
+            return (
+              <Text
+                size="sm"
+                fw={700}
+                mb="sm"
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  color: 'var(--color-burgundy)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                Date and Time coming soon
+              </Text>
+            );
+          }
+
+          if (sessions.length === 1) {
+            const session = sessions[0];
+            return (
+              <Group justify="space-between" mb="sm">
+                <Text
+                  data-testid="event-date"
+                  size="sm"
+                  fw={700}
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    color: 'var(--color-burgundy)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Text>
+                <Text
+                  data-testid="event-time"
+                  size="sm"
+                  fw={700}
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    color: 'var(--color-burgundy)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
+                </Text>
+              </Group>
+            );
+          }
+
+          // Multiple sessions
+          return (
+            <Stack gap={4} mb="sm">
+              {sessions.map((session: any, index: number) => (
+                <Group key={session.id || index} justify="space-between">
+                  <Text
+                    data-testid={index === 0 ? "event-date" : undefined}
+                    size="sm"
+                    fw={700}
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      color: 'var(--color-burgundy)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                      weekday: 'long',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </Text>
+                  <Text
+                    data-testid={index === 0 ? "event-time" : undefined}
+                    size="sm"
+                    fw={700}
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      color: 'var(--color-burgundy)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          );
+        })()}
 
         {/* Description */}
         <Text

@@ -26,7 +26,7 @@ test.describe('Tiptap Editor Rendering', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events page
-    await page.goto(`${baseUrl}/admin/events`);
+    await page.goto(`${baseUrl}/admin/events`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
   });
 

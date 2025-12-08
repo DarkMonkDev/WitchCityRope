@@ -154,47 +154,104 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
       </Box>
 
       <Stack gap="sm" p="lg" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Date/Time - Split Layout */}
-        <Group
-          justify="space-between"
-          style={{
-            marginBottom: '4px',
-          }}
-        >
-          <Text
-            fw={700}
-            c="burgundy"
-            size="sm"
-            tt="uppercase"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              letterSpacing: '0.5px',
-            }}
-          >
-            {(() => {
-              if (!event.startDate) return 'TBD'
-              const start = new Date(event.startDate)
-              return start.toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'short',
-                day: 'numeric'
-              ,
-      timeZone: eventTimeZone})
-            })()}
-          </Text>
-          <Text
-            fw={700}
-            c="burgundy"
-            size="sm"
-            tt="uppercase"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              letterSpacing: '0.5px',
-            }}
-          >
-            {event.startDate ? formatUtcTimeRange(event.startDate, event.endDate || undefined, eventTimeZone) : ''}
-          </Text>
-        </Group>
+        {/* Date/Time - Multi-session support */}
+        {(() => {
+          const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
+            new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
+          );
+
+          if (sessions.length === 0) {
+            return (
+              <Text
+                fw={700}
+                c="burgundy"
+                size="sm"
+                tt="uppercase"
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  letterSpacing: '0.5px',
+                  marginBottom: '4px',
+                }}
+              >
+                Date and Time coming soon
+              </Text>
+            );
+          }
+
+          if (sessions.length === 1) {
+            const session = sessions[0];
+            return (
+              <Group justify="space-between" style={{ marginBottom: '4px' }}>
+                <Text
+                  fw={700}
+                  c="burgundy"
+                  size="sm"
+                  tt="uppercase"
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Text>
+                <Text
+                  fw={700}
+                  c="burgundy"
+                  size="sm"
+                  tt="uppercase"
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
+                </Text>
+              </Group>
+            );
+          }
+
+          // Multiple sessions
+          return (
+            <Stack gap={4} style={{ marginBottom: '4px' }}>
+              {sessions.map((session: any, index: number) => (
+                <Group key={session.id || index} justify="space-between">
+                  <Text
+                    fw={700}
+                    c="burgundy"
+                    size="sm"
+                    tt="uppercase"
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                      weekday: 'long',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </Text>
+                  <Text
+                    fw={700}
+                    c="burgundy"
+                    size="sm"
+                    tt="uppercase"
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          );
+        })()}
 
         {/* Location - Shows venue location for dashboard (user already has access) */}
         <Text size="sm" c="dimmed">

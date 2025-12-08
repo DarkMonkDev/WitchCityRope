@@ -140,7 +140,7 @@ test.describe('Admin Session Deletion', () => {
 
     try {
       // Navigate to event edit page
-      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.goto(`/admin/events/${testEvent.id}`, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Navigate to Setup tab
@@ -190,7 +190,7 @@ test.describe('Admin Session Deletion', () => {
       }
 
       // Navigate to event edit page
-      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.goto(`/admin/events/${testEvent.id}`, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Navigate to Setup tab
@@ -235,7 +235,7 @@ test.describe('Admin Session Deletion', () => {
 
     try {
       // Navigate to event edit page
-      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.goto(`/admin/events/${testEvent.id}`, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Navigate to Setup tab
@@ -280,7 +280,7 @@ test.describe('Admin Session Deletion', () => {
 
     try {
       // Navigate to event edit page
-      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.goto(`/admin/events/${testEvent.id}`, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Navigate to Setup tab
@@ -332,7 +332,7 @@ test.describe('Admin Session Deletion', () => {
 
     try {
       // Navigate to event edit page
-      await page.goto(`/admin/events/${testEvent.id}`);
+      await page.goto(`/admin/events/${testEvent.id}`, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Navigate to Setup tab

@@ -87,6 +87,11 @@ interface ParticipationCardProps {
   eventEndDateTime?: string;
   eventInstructor?: string;
   eventLocation?: string;
+  eventSessions?: Array<{
+    id?: string;
+    startTime?: string;
+    endTime?: string;
+  }>;
 }
 
 export const ParticipationCard: React.FC<ParticipationCardProps> = ({
@@ -103,7 +108,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   eventStartDateTime,
   eventEndDateTime,
   eventInstructor,
-  eventLocation
+  eventLocation,
+  eventSessions
 }) => {
   // Format price display string based on range
   const formatPriceDisplay = (): string => {
@@ -534,6 +540,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                 ticketPrices={{
                   [validParticipation.ticket?.id || '']: validParticipation.ticket?.amount || 0
                 }}
+                sessions={eventSessions}
                 detailed={false}
                 title="Your Ticket Purchase"
               />

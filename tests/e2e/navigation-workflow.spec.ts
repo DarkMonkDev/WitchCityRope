@@ -185,7 +185,7 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
     await page.setViewportSize({ width: 375, height: 667 }); // iPhone SE size
 
     // Navigate to homepage as guest
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Verify hamburger menu button is visible
@@ -254,7 +254,7 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to homepage
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Open mobile menu
@@ -298,7 +298,7 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to homepage
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Open mobile menu
@@ -398,7 +398,7 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to homepage
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Open mobile menu

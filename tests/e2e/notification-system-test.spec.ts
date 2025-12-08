@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Notification System', () => {
   test('Notifications container appears when notification is shown', async ({ page }) => {
     // Navigate to test notifications page
-    await page.goto('/test-notifications');
+    await page.goto('/test-notifications', { waitUntil: 'domcontentloaded' });
 
     // Wait for page to load
     await expect(page.locator('h1')).toContainText('Notifications Test Page');
@@ -99,7 +99,7 @@ test.describe('Notification System', () => {
   });
 
   test('Multiple notifications stack correctly', async ({ page }) => {
-    await page.goto('/test-notifications');
+    await page.goto('/test-notifications', { waitUntil: 'domcontentloaded' });
 
     // Show multiple notifications quickly
     await page.locator('button').filter({ hasText: /Show Test Notification/i }).click();

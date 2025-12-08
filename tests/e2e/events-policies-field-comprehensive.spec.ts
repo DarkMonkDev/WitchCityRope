@@ -40,7 +40,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing policies field display...');
 
       // Navigate to admin events page
-      await page.goto('/admin/events');
+      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
       console.log('✓ Navigated to admin events page');
 
@@ -88,18 +88,18 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing policies field REQUIRED validation...');
 
       // Navigate to create new event page
-      await page.goto('/admin/events');
+      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
-      // Click "Create Event" button if it exists
-      const createButton = page.locator('button:has-text("Create Event")');
+      // Click "Create Event" button if it exists (use .last() for React Strict Mode)
+      const createButton = page.locator('button:has-text("Create Event")').last();
       if (await createButton.count() > 0) {
         await createButton.click();
         await page.waitForURL(/.*\/admin\/events\/new$/);
         console.log('✓ Navigated to new event form');
 
-        // Try to save without filling policies field
-        const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').first();
+        // Try to save without filling policies field (use .last() for React Strict Mode)
+        const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').last();
         await saveButton.click();
 
         // Look for validation error message
@@ -133,7 +133,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing policies field save and persistence...');
 
       // Navigate to admin events
-      await page.goto('/admin/events');
+      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Click on first event to edit
@@ -177,8 +177,8 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       expect(enteredValue).toBe(TEST_POLICIES);
       console.log('✓ Policies field filled with test content');
 
-      // Save the event
-      const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').first();
+      // Save the event (use .last() for React Strict Mode)
+      const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').last();
       await saveButton.click();
       console.log('✓ Clicked save button');
 
@@ -186,12 +186,18 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       await page.waitForTimeout(2000);
       await page.waitForLoadState('domcontentloaded');
 
-      // Verify API has the saved policies value
+      // Verify API has the saved policies value (use page.evaluate for API calls)
       console.log('📡 Verifying API saved the policies value...');
-      const apiResponse = await page.request.get(`/api/events/${eventId}`);
-      expect(apiResponse.ok()).toBe(true);
+      const apiResponse = await page.evaluate(async (eventId) => {
+        const response = await fetch(`/api/events/${eventId}`);
+        return {
+          ok: response.ok,
+          data: await response.json()
+        };
+      }, eventId);
+      expect(apiResponse.ok).toBe(true);
 
-      const apiData = await apiResponse.json();
+      const apiData = apiResponse.data;
 
       // Validate ApiResponse<EventDto> wrapper format
       expect(apiData.success).toBe(true);
@@ -238,7 +244,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing empty policies field handling...');
 
       // Navigate to events
-      await page.goto('/admin/events');
+      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Click on first event
@@ -275,8 +281,8 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       await policiesField.clear();
       await policiesField.fill('');
 
-      // Save
-      const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').first();
+      // Save (use .last() for React Strict Mode)
+      const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').last();
       await saveButton.click();
       await page.waitForTimeout(2000);
       await page.waitForLoadState('domcontentloaded');
@@ -310,7 +316,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing API response structure for policies field...');
 
       // Navigate to events
-      await page.goto('/admin/events');
+      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Get first event
@@ -328,11 +334,17 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       const eventId = currentUrl.split('/').pop();
       console.log(`✓ Testing event ID: ${eventId}`);
 
-      // Make direct API call
-      const apiResponse = await page.request.get(`/api/events/${eventId}`);
-      expect(apiResponse.ok()).toBe(true);
+      // Make direct API call (use page.evaluate)
+      const apiResponse = await page.evaluate(async (eventId) => {
+        const response = await fetch(`/api/events/${eventId}`);
+        return {
+          ok: response.ok,
+          data: await response.json()
+        };
+      }, eventId);
+      expect(apiResponse.ok).toBe(true);
 
-      const apiData = await apiResponse.json();
+      const apiData = apiResponse.data;
       console.log('📡 API response structure:');
       console.log(`  - success: ${apiData.success}`);
       console.log(`  - data: ${apiData.data ? 'present' : 'null'}`);

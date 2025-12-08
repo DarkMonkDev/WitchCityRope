@@ -167,9 +167,10 @@ export const EventsList: React.FC<EventsListProps> = ({
         margin: '0 auto',
         background: 'var(--color-ivory)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        borderRadius: '16px',
       }}
       sx={{
-        borderRadius: { base: 0, xs: '16px' }
+        borderRadius: { base: 0 }
       }}
     >
       <Title
@@ -206,10 +207,11 @@ export const EventsList: React.FC<EventsListProps> = ({
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(350px, 100%), 1fr))',
-          marginBottom: 'var(--space-xl)'
+          marginBottom: 'var(--space-xl)',
+          gap: 'var(--space-lg)',
         }}
         sx={{
-          gap: { base: '4px', xs: 'var(--space-lg)' }
+          gap: { base: '4px' }
         }}
       >
         {displayEvents.map((event) => (

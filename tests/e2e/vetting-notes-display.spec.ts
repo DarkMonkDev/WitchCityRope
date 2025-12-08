@@ -7,8 +7,7 @@ test('Verify notes appear after stage advancement', async ({ page }) => {
   await AuthHelpers.loginAs(page, 'admin');
 
   // Navigate to vetting page
-  await page.goto('/admin/vetting');
-  await page.waitForLoadState('domcontentloaded');
+  await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
 
   // Find and click on the first available application
   const applicationRows = page.locator('tbody tr');
@@ -19,7 +18,7 @@ test('Verify notes appear after stage advancement', async ({ page }) => {
     return;
   }
 
-  const firstApp = applicationRows.first();
+  const firstApp = applicationRows.last();
   await firstApp.click();
   await page.waitForLoadState('domcontentloaded');
 

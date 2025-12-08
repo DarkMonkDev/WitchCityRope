@@ -286,7 +286,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     await page.setViewportSize({ width: 390, height: 844 })
 
     // Start on events page
-    await page.goto(`${baseUrl}/events`)
+    await page.goto(`${baseUrl}/events`, { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('domcontentloaded')
 
     // Scroll down
@@ -398,7 +398,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     await page.setViewportSize({ width: 390, height: 844 })
 
     // Navigate to homepage
-    await page.goto(`${baseUrl}/`)
+    await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('domcontentloaded')
 
     // Verify initial body overflow state

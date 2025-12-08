@@ -42,11 +42,10 @@ test.describe('Vetting Application Profile Updates', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to vetting application form
-    await page.goto('/join');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
 
     // Wait for form to load
-    const vettingForm = page.locator('form').first();
+    const vettingForm = page.locator('form').last();
     await expect(vettingForm).toBeVisible({ timeout: 10000 });
 
     // Generate unique test data
@@ -100,30 +99,29 @@ test.describe('Vetting Application Profile Updates', () => {
     }
 
     // Act: Submit the application
-    const submitButton = page.locator('button[type="submit"]').first();
+    const submitButton = page.locator('button[type="submit"]').last();
     await submitButton.click();
 
     // Wait for submission to complete (success message or redirect)
     await page.waitForTimeout(2000);
 
     // Assert: Navigate to user profile/dashboard to verify updates
-    await page.goto('/dashboard');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
     // Verify profile displays updated information
     // Note: Actual selectors depend on dashboard implementation
-    const profileSection = page.locator('[data-testid="user-profile"], .profile, .user-info').first();
+    const profileSection = page.locator('[data-testid="user-profile"], .profile, .user-info').last();
     await expect(profileSection).toBeVisible({ timeout: 10000 });
 
     // Check for updated firstName and lastName
-    await expect(page.locator(`text=${testData.firstName}`).first()).toBeVisible();
-    await expect(page.locator(`text=${testData.lastName}`).first()).toBeVisible();
+    await expect(page.locator(`text=${testData.firstName}`).last()).toBeVisible();
+    await expect(page.locator(`text=${testData.lastName}`).last()).toBeVisible();
 
     // Check for updated pronouns
-    await expect(page.locator(`text=${testData.pronouns}`).first()).toBeVisible();
+    await expect(page.locator(`text=${testData.pronouns}`).last()).toBeVisible();
 
     // Check for updated fetLifeHandle
-    await expect(page.locator(`text=${testData.fetLifeHandle}`).first()).toBeVisible();
+    await expect(page.locator(`text=${testData.fetLifeHandle}`).last()).toBeVisible();
 
     // Screenshot for documentation
     await page.screenshot({
@@ -180,8 +178,7 @@ test.describe('Vetting Application Profile Updates', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to vetting application
-    await page.goto('/join');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
 
     const timestamp = Date.now();
     const testData = {
@@ -193,17 +190,17 @@ test.describe('Vetting Application Profile Updates', () => {
     // Fill and submit application (using data-testid attributes)
     const firstNameInput = page.getByTestId('first-name-input');
     if (await firstNameInput.count() > 0) {
-      await firstNameInput.fill(testData.firstName);
+      await firstNameInput.last().fill(testData.firstName);
     }
 
     const lastNameInput = page.getByTestId('last-name-input');
     if (await lastNameInput.count() > 0) {
-      await lastNameInput.fill(testData.lastName);
+      await lastNameInput.last().fill(testData.lastName);
     }
 
     const pronounsInput = page.getByTestId('pronouns-input');
     if (await pronounsInput.count() > 0) {
-      await pronounsInput.fill(testData.pronouns);
+      await pronounsInput.last().fill(testData.pronouns);
     }
 
     // Fill required fields
@@ -211,37 +208,36 @@ test.describe('Vetting Application Profile Updates', () => {
 
     const whyJoinInput = page.getByTestId('why-join-textarea');
     if (await whyJoinInput.count() > 0) {
-      await whyJoinInput.fill('I am interested in the community.');
+      await whyJoinInput.last().fill('I am interested in the community.');
     }
 
     const experienceInput = page.getByTestId('experience-with-rope-textarea');
     if (await experienceInput.count() > 0) {
-      await experienceInput.fill('I have some experience with rope.');
+      await experienceInput.last().fill('I have some experience with rope.');
     }
 
     const agreementCheckbox = page.getByTestId('community-standards-checkbox');
     if (await agreementCheckbox.count() > 0) {
-      await agreementCheckbox.check();
+      await agreementCheckbox.last().check();
     }
 
-    const submitButton = page.locator('button[type="submit"]').first();
+    const submitButton = page.locator('button[type="submit"]').last();
     await submitButton.click();
 
     // Wait for submission
     await page.waitForTimeout(2000);
 
     // Act: Navigate to dashboard
-    await page.goto('/dashboard');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
     // Assert: Verify profile section displays updated data
-    const profileSection = page.locator('[data-testid="user-profile"], .profile').first();
+    const profileSection = page.locator('[data-testid="user-profile"], .profile').last();
     await expect(profileSection).toBeVisible({ timeout: 10000 });
 
     // Verify updated information is visible
-    await expect(page.locator(`text=${testData.firstName}`).first()).toBeVisible({ timeout: 5000 });
-    await expect(page.locator(`text=${testData.lastName}`).first()).toBeVisible({ timeout: 5000 });
-    await expect(page.locator(`text=${testData.pronouns}`).first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator(`text=${testData.firstName}`).last()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator(`text=${testData.lastName}`).last()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator(`text=${testData.pronouns}`).last()).toBeVisible({ timeout: 5000 });
 
     // Screenshot for documentation
     await page.screenshot({

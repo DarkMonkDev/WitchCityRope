@@ -4,7 +4,7 @@ import {
   Button, Anchor, Alert
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { formatPrice, getCapacityColor, calculateEventPriceRange, formatUtcToLocalTime } from '../../../utils/eventUtils';
+import { formatPrice, getCapacityColor, calculateEventPriceRange, formatUtcToLocalTime, formatUtcToLocalDate, formatUtcTimeRange } from '../../../utils/eventUtils';
 
 interface EventCardProps {
   event: {
@@ -223,34 +223,62 @@ export const EventCard = memo<EventCardProps>(({
           </Group>
         </Group>
 
-        {/* Event Meta - Split Date and Time */}
-        <Group justify="space-between" gap="md">
-          <Group gap={4}>
-            <Text span>📅</Text>
-            <Text size="sm" c="dimmed" data-testid="event-date">
-              {(() => {
-                if (!event.startDate) return 'TBD'
-                const start = new Date(event.startDate)
-                return start.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'short',
-                  day: 'numeric'
-                })
-              })()}
-            </Text>
-          </Group>
-          <Text size="sm" c="dimmed">
-            {(() => {
-              if (!event.startDate) return ''
+        {/* Event Meta - Multi-session support */}
+        {(() => {
+          const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
+            new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
+          );
 
-              const startTime = formatUtcToLocalTime(event.startDate).toLowerCase();
-              if (!event.endDate) return startTime
+          if (sessions.length === 0) {
+            return (
+              <Text size="sm" c="dimmed">Date and Time coming soon</Text>
+            );
+          }
 
-              const endTime = formatUtcToLocalTime(event.endDate).toLowerCase();
-              return `${startTime} - ${endTime}`
-            })()}
-          </Text>
-        </Group>
+          if (sessions.length === 1) {
+            const session = sessions[0];
+            return (
+              <Group justify="space-between" gap="md">
+                <Group gap={4}>
+                  <Text span>📅</Text>
+                  <Text size="sm" c="dimmed" data-testid="event-date">
+                    {formatUtcToLocalDate(session.startTime, 'America/New_York', {
+                      weekday: 'long',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </Text>
+                </Group>
+                <Text size="sm" c="dimmed">
+                  {formatUtcTimeRange(session.startTime, session.endTime, 'America/New_York').toLowerCase()}
+                </Text>
+              </Group>
+            );
+          }
+
+          // Multiple sessions
+          return (
+            <Stack gap={4}>
+              {sessions.map((session: any, index: number) => (
+                <Group key={session.id || index} justify="space-between" gap="md">
+                  <Group gap={4}>
+                    <Text span>📅</Text>
+                    <Text size="sm" c="dimmed">
+                      {formatUtcToLocalDate(session.startTime, 'America/New_York', {
+                        weekday: 'long',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </Text>
+                  </Group>
+                  <Text size="sm" c="dimmed">
+                    {formatUtcTimeRange(session.startTime, session.endTime, 'America/New_York').toLowerCase()}
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          );
+        })()}
         {event.instructor && (
           <Group gap={4}>
             <Text span>👤</Text>

@@ -151,7 +151,8 @@ echo "2️⃣  Restarting API container..."
 echo "   Only restarting api service (not web or database containers)"
 
 # Use compose restart to handle any container name variations
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart api
+# CRITICAL: Must use -p witchcityrope-dev to match how containers were started
+docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml restart api
 
 if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Could not restart API container"

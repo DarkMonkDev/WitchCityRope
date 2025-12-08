@@ -112,7 +112,7 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
       await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
     } catch {
       // Purchase ticket if needed
-      await page.goto(`/events/${TEST_EVENT_ID}`);
+      await page.goto(`/events/${TEST_EVENT_ID}`, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       const purchaseButton = page.locator('button:has-text("Purchase Ticket"), button:has-text("Register")').first();
@@ -171,7 +171,7 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
     }
 
     // Navigate to event page
-    await page.goto(`/events/${TEST_EVENT_ID}`);
+    await page.goto(`/events/${TEST_EVENT_ID}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Cancel button should NOT be visible
@@ -210,7 +210,7 @@ test.describe('Ticket Persistence Edge Cases', () => {
     try {
       await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
     } catch {
-      await page.goto(`/events/${TEST_EVENT_ID}`);
+      await page.goto(`/events/${TEST_EVENT_ID}`, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       const purchaseButton = page.locator('button:has-text("Purchase Ticket")').first();
@@ -229,7 +229,7 @@ test.describe('Ticket Persistence Edge Cases', () => {
     });
 
     // Navigate and cancel
-    await page.goto(`/events/${TEST_EVENT_ID}`);
+    await page.goto(`/events/${TEST_EVENT_ID}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const cancelButton = page.locator('button:has-text("Cancel Ticket")').first();

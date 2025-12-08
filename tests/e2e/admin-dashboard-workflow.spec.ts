@@ -206,7 +206,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // HARD ASSERTION - Incidents table must be visible
@@ -261,7 +261,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // HARD ASSERTION - Incidents table must exist

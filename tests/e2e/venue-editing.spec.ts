@@ -37,7 +37,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto(`${baseUrl}/admin/settings`);
+    await page.goto(`${baseUrl}/admin/settings`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card container
@@ -93,7 +93,7 @@ test.describe('Admin Venue Editing', () => {
     await expect(successNotification).toBeVisible({ timeout: 10000 });
 
     // Verify updated name appears in dropdown
-    await page.goto(`${baseUrl}/admin/settings`);
+    await page.goto(`${baseUrl}/admin/settings`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Re-scope to venue card after page reload
@@ -111,7 +111,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto(`${baseUrl}/admin/settings`);
+    await page.goto(`${baseUrl}/admin/settings`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card container using data-testid
@@ -151,7 +151,7 @@ test.describe('Admin Venue Editing', () => {
     await expect(page.locator('[role="alert"]:has-text("Venue updated successfully")')).toBeVisible({ timeout: 5000 });
 
     // Verify saved by re-selecting venue
-    await page.goto(`${baseUrl}/admin/settings`);
+    await page.goto(`${baseUrl}/admin/settings`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Re-scope to venue card after page reload using data-testid
@@ -176,7 +176,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto(`${baseUrl}/admin/settings`);
+    await page.goto(`${baseUrl}/admin/settings`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card using data-testid
@@ -221,7 +221,7 @@ test.describe('Admin Venue Editing', () => {
     await expect(page.locator('[role="alert"]:has-text("Venue deleted successfully")')).toBeVisible({ timeout: 10000 });
 
     // Verify venue no longer appears in dropdown (soft deleted = IsActive = false)
-    await page.goto(`${baseUrl}/admin/settings`);
+    await page.goto(`${baseUrl}/admin/settings`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const venueCard2 = page.getByTestId('venue-management-card');
@@ -244,7 +244,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto(`${baseUrl}/admin/settings`);
+    await page.goto(`${baseUrl}/admin/settings`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card using data-testid
@@ -281,7 +281,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Try to navigate to admin settings (where venue management is)
-    await page.goto(`${baseUrl}/admin/settings`);
+    await page.goto(`${baseUrl}/admin/settings`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1000);
 
     // Should be redirected or see forbidden/unauthorized message
@@ -301,7 +301,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto(`${baseUrl}/admin/settings`);
+    await page.goto(`${baseUrl}/admin/settings`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card container

@@ -26,7 +26,7 @@ test.describe('Vetting System - Basic Functionality', () => {
 
     // STEP 1: Logged-out user discovers vetting requirement
     console.log('📍 STEP 1: Test logged-out vetting discovery');
-    await page.goto('/join');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Verify logged-out state shows login requirement
@@ -62,7 +62,7 @@ test.describe('Vetting System - Basic Functionality', () => {
     // STEP 4: Test authenticated vetting page access
     console.log('📍 STEP 4: Test authenticated vetting page');
 
-    await page.goto('/join');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const authenticatedText = await page.textContent('body');
@@ -190,7 +190,7 @@ test.describe('Vetting System - Basic Functionality', () => {
     ];
 
     for (const url of testUrls) {
-      await page.goto(url);
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Look for "How to Join" navigation link
@@ -228,7 +228,7 @@ test.describe('Vetting System - Basic Functionality', () => {
 
     for (const viewport of viewports) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await page.goto('/join');
+      await page.goto('/join', { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('domcontentloaded');
 
       // Take screenshot for each viewport

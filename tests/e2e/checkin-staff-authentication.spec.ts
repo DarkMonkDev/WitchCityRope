@@ -36,9 +36,8 @@ import {
   getAttendees
 } from './checkin/helpers/tokenHelpers';
 
-// Environment-aware URLs for container/host compatibility
-const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
-const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+// CRITICAL: DO NOT use hardcoded WEB_BASE_URL or API_BASE_URL
+// Use relative URLs and page.evaluate() for container compatibility
 
 // CHECK-IN KIOSK MODE TESTS
 // Routes: /events/:eventId/checkin and /events/:eventId/checkin/dashboard
@@ -92,10 +91,10 @@ test.describe('Check-In Token Validation', () => {
     // Clear cookies (no user auth)
     await page.context().clearCookies();
 
-    // Navigate with fake/invalid token
+    // Navigate with fake/invalid token - use relative URL for container compatibility
     const fakeToken = 'invalid-token-12345';
-    await page.goto(`${WEB_BASE_URL}/events/${testEventId}/checkin?token=${fakeToken}&event=${testEventId}`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(`/events/${testEventId}/checkin?token=${fakeToken}&event=${testEventId}`);
+    await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded, not networkidle
 
     // The page loads but API calls with invalid token will fail
     // Verify the page shows an error or loading state due to failed API calls
@@ -110,17 +109,18 @@ test.describe('Check-In Token Validation', () => {
     const hasEmptyState = await page.locator('text=/no attendees|loading|error/i').first().isVisible().catch(() => false);
 
     // Verify API call with invalid token fails
-    const response = await page.context().request.get(
-      `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
-      {
+    // Use page.evaluate() to call from browser context (container-compatible)
+    const apiResponse = await page.evaluate(async ({ eventId, token }) => {
+      const response = await fetch(`/api/checkin/events/${eventId}/attendees`, {
         headers: {
-          'X-CheckIn-Token': fakeToken
+          'X-CheckIn-Token': token
         }
-      }
-    );
+      });
+      return { status: response.status };
+    }, { eventId: testEventId, token: fakeToken });
 
     // Verify 401 Unauthorized response
-    expect(response.status()).toBe(401);
+    expect(apiResponse.status).toBe(401);
   });
 
   test('Missing token shows error message', async ({ page }) => {
@@ -157,18 +157,19 @@ test.describe('Check-In Token Validation', () => {
     const fakeEventId = 'fake-event-id-12345';
 
     // Try to get attendees for wrong event using token for different event
-    const attendeesData = await page.context().request.get(
-      `${API_BASE_URL}/api/checkin/events/${fakeEventId}/attendees`,
-      {
+    // Use page.evaluate() for container compatibility
+    const apiResponse = await page.evaluate(async ({ eventId, token }) => {
+      const response = await fetch(`/api/checkin/events/${eventId}/attendees`, {
         headers: {
-          'X-CheckIn-Token': sessionToken
+          'X-CheckIn-Token': token
         }
-      }
-    );
+      });
+      return { status: response.status };
+    }, { eventId: fakeEventId, token: sessionToken });
 
     // API returns 400 Bad Request for invalid event ID format
     // (Not 403 Forbidden because it validates input before authorization)
-    expect(attendeesData.status()).toBe(400);
+    expect(apiResponse.status).toBe(400);
   });
 
   test('Revoked token cannot be used', async ({ page, browser }) => {
@@ -201,17 +202,18 @@ test.describe('Check-In Token Validation', () => {
     await page.context().clearCookies();
 
     // Verify API calls with revoked token fail
-    const attendeesResponse = await page.context().request.get(
-      `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
-      {
+    // Use page.evaluate() for container compatibility
+    const apiResponse = await page.evaluate(async ({ eventId, token }) => {
+      const response = await fetch(`/api/checkin/events/${eventId}/attendees`, {
         headers: {
-          'X-CheckIn-Token': sessionToken
+          'X-CheckIn-Token': token
         }
-      }
-    );
+      });
+      return { status: response.status };
+    }, { eventId: testEventId, token: sessionToken });
 
     // Verify 401 Unauthorized (token revoked)
-    expect(attendeesResponse.status()).toBe(401);
+    expect(apiResponse.status).toBe(401);
   });
 
   test('No authentication required for valid token', async ({ page, browser }) => {
@@ -267,16 +269,17 @@ test.describe('Check-In Token Validation', () => {
     await page.context().clearCookies();
 
     // Verify API calls with expired token fail
-    const attendeesResponse = await page.context().request.get(
-      `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
-      {
+    // Use page.evaluate() for container compatibility
+    const apiResponse = await page.evaluate(async ({ eventId, token }) => {
+      const response = await fetch(`/api/checkin/events/${eventId}/attendees`, {
         headers: {
-          'X-CheckIn-Token': sessionToken
+          'X-CheckIn-Token': token
         }
-      }
-    );
+      });
+      return { status: response.status };
+    }, { eventId: testEventId, token: sessionToken });
 
     // Verify 401 Unauthorized (token expired)
-    expect(attendeesResponse.status()).toBe(401);
+    expect(apiResponse.status).toBe(401);
   });
 });

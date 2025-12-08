@@ -30,7 +30,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     testSceneName = `ToSTest ${timestamp} ${random}`;
 
     // Navigate to registration page
-    await page.goto('/register');
+    await page.goto('/register', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Wait for registration form to be ready

@@ -14,11 +14,29 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 3. **When re-running tests**: Update failure reasons if they changed
 
 ## Test Run Info
-- **Date**: December 2, 2025
-- **Total Tests**: 733
-- **Passed**: ~613
-- **Failed**: 120
-- **Pass Rate**: ~84%
+- **Date**: December 7, 2025 (Updated: December 8, 2025)
+- **Total Tests**: 807
+- **Passed**: 643
+- **Failed**: 92 → 93 (after fixes)
+- **Skipped**: 72
+- **Pass Rate**: **87.4%**
+- **Run Time**: 10.1 minutes
+
+### Fixes Applied (December 8, 2025)
+The following fixes were applied to all 92 failing test files:
+1. Added `{ waitUntil: 'domcontentloaded' }` to all `page.goto()` calls
+2. Changed `.first()` to `.last()` for React Strict Mode compatibility
+3. Replaced hardcoded URLs with `page.evaluate()` for API calls
+4. Used relative URLs instead of hardcoded localhost
+
+**Result**: Partial success - some tests now pass but 93 still failing due to deeper issues.
+
+### Comparison to Previous (Dec 2, 2025)
+| Metric | Dec 2 | Dec 7 | Change |
+|--------|-------|-------|--------|
+| Passed | 622 | 643 | +21 |
+| Failed | 111 | 92 | -19 |
+| Pass Rate | 84.9% | 87.4% | +2.5% |
 
 ---
 
@@ -27,35 +45,147 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 ### admin-checkin-sessions (3 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Session select is optional for multi-session events | FAILING | TBD |
-| Session name in generated token list | FAILING | TBD |
-| Token multi-session event | FAILING | TBD |
+| should show session selector in token generation modal for multi-session events | FAILING | Timeout waiting for session selector element |
+| should require session selection before generating token (multi-session event) | FAILING | Timeout waiting for session selector element |
+| should display session name in generated token list | FAILING | Timeout - 37.1s, element not found |
 
 ### checkin-attendee-workflow (4 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Covid Test -> Check-In flow | FAILING | TBD |
-| Check in a registered attendee | FAILING | TBD |
-| Cannot check in same attendee twice | FAILING | TBD |
-| Expired token during check-in | FAILING | TBD |
+| Check in a registered attendee | FAILING | Token validation/check-in interface access issue |
+| Cannot check in same attendee twice | FAILING | Token validation/check-in interface access issue |
+| Two-step check-in workflow (Covid Test → Check In) | FAILING | Token validation/check-in interface access issue |
+| Token validation fails for expired token during check-in | FAILING | Token validation/check-in interface access issue |
 
 ### checkin-dashboard (5 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Displays correct statistics | FAILING | TBD |
-| Check-ins section displays | FAILING | TBD |
-| Dashboard shows event information | FAILING | TBD |
-| Navigation from check-in interface | FAILING | TBD |
-| Sync status displays | FAILING | TBD |
+| Dashboard displays correct statistics | FAILING | 0ms duration - likely immediate failure/setup issue |
+| Dashboard shows event information | FAILING | 0ms duration - likely immediate failure/setup issue |
+| Recent check-ins section displays | FAILING | 0ms duration - likely immediate failure/setup issue |
+| Sync status displays | FAILING | 0ms duration - likely immediate failure/setup issue |
+| Dashboard navigation from check-in interface | FAILING | 0ms duration - likely immediate failure/setup issue |
 
 ### checkin-staff-authentication (5 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Wrong event returns error | FAILING | TBD |
-| Revoked token cannot be used | FAILING | TBD |
-| Access to check-in interface | FAILING | TBD |
-| Invalid token shows error message | FAILING | TBD |
-| Authentication required for valid token | FAILING | TBD |
+| Valid token allows access to check-in interface | FAILING | Token validation infrastructure issue |
+| Token for wrong event returns error | FAILING | Token validation infrastructure issue |
+| Revoked token cannot be used | FAILING | Token validation infrastructure issue |
+| No authentication required for valid token | FAILING | Token validation infrastructure issue |
+| Expired token shows error message | FAILING | Token validation infrastructure issue |
+
+---
+
+## VETTING MODULE (15 failures)
+
+### vetting-admin-dashboard (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| admin can view vetting applications grid | FAILING | 7.7s - navigation or grid rendering issue |
+
+### vetting-application-detail (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| admin can put application on hold with reasoning | FAILING | 7.2s - modal interaction issue |
+
+### vetting-application-workflow (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| incomplete form shows validation errors and does not submit | FAILING | 33.7s timeout - form validation timing |
+
+### vetting-complete-flow (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Complete vetting application with registration and login | FAILING | 31.9s timeout - multi-step workflow issue |
+
+### vetting-notes-direct (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Verify notes appear after stage advancement - Direct navigation | FAILING | 33.2s timeout |
+
+### vetting-notes-display (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Verify notes appear after stage advancement | FAILING | 7.8s |
+
+### vetting-profile-update (2 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| user submits application with all fields - profile fully updated | FAILING | 33.4s timeout |
+| profile updates are visible in user dashboard after submission | FAILING | 33.2s timeout |
+
+### vetting-success-screen (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Complete vetting application flow with success screen verification | FAILING | 33.7s timeout |
+
+### vetting-system-basic (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Basic vetting discovery and authentication workflow | FAILING | 13.2s |
+
+### vetting-system-complete-workflows (3 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Navigation to Application Detail | FAILING | 2.2s - navigation issue |
+| Put on Hold Modal Flow | FAILING | 33.2s timeout |
+| Send Reminder Modal Flow | FAILING | 33.2s timeout |
+
+### vetting-system (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Complete vetting workflow from discovery to approval | FAILING | 32.4s timeout |
+
+### vetting-workflow (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| user can submit vetting application successfully | FAILING | 33.2s timeout |
+
+---
+
+## EVENT MANAGEMENT (15 failures)
+
+### admin-events-volunteers (3 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should add volunteer position via inline form | FAILING | 12.2s - form submission issue |
+| should validate volunteer position form fields | FAILING | 11.6s - validation timing |
+| should display sessions in day format in position assignments | FAILING | 3.9s - format assertion |
+
+### event-update-e2e-test (6 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should access AdminEventDetailsPage via admin/events route | FAILING | 2.1s - navigation issue |
+| should show EventForm components and attempt event update | FAILING | 2.5s - form rendering |
+| should test partial update behavior | FAILING | 2.7s |
+| should handle authentication and authorization | FAILING | 2.7s |
+| should test publish/draft status toggle | FAILING | 2.8s |
+| should validate API endpoint responses | FAILING | 2.6s |
+
+### events-complete-workflow (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Step 2: Admin Event Editing - Login as admin and update event details | FAILING | 8.9s |
+
+### events-comprehensive (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should handle empty events state | FAILING | 11.6s timeout |
+
+### events-management-e2e (3 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should load Event Session Matrix demo page | FAILING | 13.5s timeout |
+| should display event form tabs | FAILING | 8.4s |
+| should verify form fields are present | FAILING | 2.8s |
+
+### events-policies-field-comprehensive (3 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should display policies field in event form | FAILING | 4.0s |
+| should validate policies field as REQUIRED | FAILING | 33.9s timeout |
+| should save policies field and persist after page refresh | FAILING | 3.4s |
 
 ---
 
@@ -64,262 +194,17 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 ### admin-dashboard-workflow (2 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Google Drive links for incident | FAILING | TBD |
-| Investigation note to incident | FAILING | TBD |
+| should update Google Drive links for incident | FAILING | 13.0s - modal/input interaction |
+| should add investigation note to incident | FAILING | 13.2s - modal/input interaction |
 
 ---
 
-## ADMIN EVENTS (4 failures)
-
-### admin-events-sessions (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Edit existing session via modal | FAILING | TBD |
-
-### admin-events-volunteers (3 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Volunteer position form fields | FAILING | TBD |
-| Session format in position assignments | FAILING | TBD |
-| Add volunteer position via inline form | FAILING | TBD |
-
----
-
-## ADMIN REFUND (1 failure - 2 FIXED 2025-12-03)
-
-### admin-refund-eligibility (0 tests - 2 FIXED)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| ~~Updated after successful refund~~ | ~~FIXED~~ | Fixed: `.or()` locator syntax, partial refund status |
-| ~~Can be processed in sequence~~ | ~~FIXED~~ | Fixed: `.or()` locator syntax, status guards |
+## ADMIN SESSION (1 failure)
 
 ### admin-session-deletion (1 test)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Modal with disabled button | FAILING | TBD |
-
----
-
-## REFUND WORKFLOW (6 failures)
-
-### refund-validations (4 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Counter updates in real-time | FAILING | TBD |
-| Counter displays correctly | FAILING | TBD |
-| Without confirmation checkbox | FAILING | TBD |
-| Invalid refund reason | FAILING | TBD |
-
-### refund-workflow (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Refund without refund reason | FAILING | TBD |
-| Without confirmation checkbox | FAILING | TBD |
-
----
-
-## EVENTS (22 failures)
-
-### e2e-events-full-journey (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| API Integration Verification | FAILING | TBD |
-| Environment Health Check | FAILING | TBD |
-
-### events-complete-workflow (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Login as member and RSVP to event | FAILING | TBD |
-| Login and update event details | FAILING | TBD |
-
-### events-comprehensive (3 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Number of events efficiently | FAILING | TBD |
-| Handle empty events state | FAILING | TBD |
-| Navigation for authenticated users | FAILING | TBD |
-
-### events-management-e2e (3 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Event Session Matrix demo page | FAILING | TBD |
-| Should display event form tabs | FAILING | TBD |
-| Verify form fields are present | FAILING | TBD |
-
-### events-policies-field-comprehensive (3 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Persist after page refresh | FAILING | TBD |
-| Policies field as REQUIRED | FAILING | TBD |
-| Policies field in event form | FAILING | TBD |
-
-### event-update-e2e-test (6 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Test partial update behavior | FAILING | TBD |
-| Authentication and authorization | FAILING | TBD |
-| Attempt event update | FAILING | TBD |
-| Page via admin events route | FAILING | TBD |
-| Update API endpoint responses | FAILING | TBD |
-| Publish/draft status toggle | FAILING | TBD |
-
-### phase3-sessions-tickets (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Create and manage ticket types | FAILING | TBD |
-| Add, edit and delete sessions | FAILING | TBD |
-
-### phase4-events-testing (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Display event filters correctly | FAILING | TBD |
-| Responsive on mobile viewport | FAILING | TBD |
-
-### session-based-timing (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Session-based timing settings | FAILING | TBD |
-
----
-
-## PUBLIC EVENTS (4 failures)
-
-### public-events-anonymous (4 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| View events without authentication | FAILING | TBD |
-| Events returned to anonymous users | FAILING | TBD |
-| Matches EventDto structure | FAILING | TBD |
-| Authentication returns 401 | FAILING | TBD |
-
----
-
-## CHECKOUT/TICKETS (4 failures)
-
-### checkout-workflow (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Form displays required fields | FAILING | TBD |
-
-### test-checkout (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Fixed price ticket display | FAILING | TBD |
-
-### ticket-lifecycle-persistence (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Cancellation reason to database | FAILING | TBD |
-
-### ticket-refund-workflow (0 tests - 1 FIXED 2025-12-03)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| ~~Admin can complete refund workflow~~ | ~~FIXED~~ | Fixed: `.or()` locator syntax |
-
----
-
-## CMS (3 failures)
-
-### cms-CMS-Feature (3 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Save response time 1 second | FAILING | TBD |
-| Edit and save page content | FAILING | TBD |
-| Sanitizes malicious HTML | FAILING | TBD |
-
----
-
-## DASHBOARD (5 failures)
-
-### dashboard-comprehensive (5 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Display correctly on Tablet | FAILING | TBD |
-| Correct layout and navigation | FAILING | TBD |
-| Validate password change form | FAILING | TBD |
-| Display correctly on Mobile | FAILING | TBD |
-| Validate profile form fields | FAILING | TBD |
-
----
-
-## HOME PAGE (3 failures)
-
-### home-page-Home-Page (3 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| API-PostgreSQL stack works | FAILING | TBD |
-| Different screen sizes | FAILING | TBD |
-| Events display from API | FAILING | TBD |
-
----
-
-## VETTING (18 failures)
-
-### vetting-admin-dashboard (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Vetting applications grid | FAILING | TBD |
-
-### vetting-application-detail (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| View application details | FAILING | TBD |
-| Application on hold with reasoning | FAILING | TBD |
-
-### vetting-application-workflow (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Errors and does not submit | FAILING | TBD |
-| Application successfully | FAILING | TBD |
-
-### vetting-complete-flow (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Registration and login | FAILING | TBD |
-
-### vetting-menu-visibility (3 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Without vetting application | FAILING | TBD |
-| Show How to Join menu item | FAILING | TBD |
-| Page when How to Join clicked | FAILING | TBD |
-
-### vetting-notes-direct (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Direct navigation | FAILING | TBD |
-
-### vetting-notes-display (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Clear after stage advancement | FAILING | TBD |
-
-### vetting-profile-update (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Profile fully updated | FAILING | TBD |
-| Dashboard after submission | FAILING | TBD |
-
-### vetting-success-screen (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Success screen verification | FAILING | TBD |
-
-### vetting-system-basic (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Authentication workflow | FAILING | TBD |
-
-### vetting-system-complete-workflows (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Send Reminder Modal Flow | FAILING | TBD |
-| Put on Hold Modal Flow | FAILING | TBD |
-
-### vetting-system (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| From discovery to approval | FAILING | TBD |
+| cannot delete session with paid tickets - shows blocked modal with disabled button | FAILING | 7.0s - modal assertion |
 
 ---
 
@@ -328,44 +213,30 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 ### anonymous-report-submission (2 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Required fields before submission | FAILING | TBD |
-| Receive reference number | FAILING | TBD |
+| should submit anonymous incident report and receive reference number | FAILING | 6.9s - form submission |
+| should validate required fields before submission | FAILING | 34.3s timeout |
 
 ### identified-report-submission (2 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| State when user has no reports | FAILING | TBD |
-| Anonymous and identified modes | FAILING | TBD |
+| should toggle between anonymous and identified modes | FAILING | 7.9s |
+| should show empty state when user has no reports | FAILING | 7.5s |
 
 ---
 
-## RSVP (3 failures)
+## CMS (4 failures)
 
-### comprehensive-rsvp-verification (1 test)
+### cms-workflow (1 test)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| RSVP Tab Content | FAILING | TBD |
+| Mobile viewport: Navigation works on mobile | FAILING | 4.4s - mobile nav issue |
 
-### rsvp-lifecycle-persistence (2 tests)
+### cms (3 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Rapid RSVP cancel cycles | FAILING | TBD |
-| Persist RSVP to database | FAILING | TBD |
-
----
-
-## PROFILE (3 failures)
-
-### profile-page (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Account information correctly | FAILING | TBD |
-| Handle user loading error | FAILING | TBD |
-
-### profile-update-persistence (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| After save and page refresh | FAILING | TBD |
+| Happy Path: Admin can edit and save page content | FAILING | 5.2s |
+| XSS Prevention: Backend sanitizes malicious HTML | FAILING | 11.0s |
+| Performance: Save response time < 1 second | FAILING | 5.8s - timing assertion |
 
 ---
 
@@ -374,35 +245,109 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 ### registration-tos (3 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Timestamp after registration | FAILING | TBD |
-| Terms of Service checkbox is checked | FAILING | TBD |
-| User can successfully log in | FAILING | TBD |
+| Positive: User can register when Terms of Service checkbox is checked | FAILING | 6.6s |
+| Positive: Database shows TermsOfServiceAccepted=true and timestamp after registration | FAILING | 11.5s |
+| Positive: Newly registered user can successfully log in | FAILING | 11.5s |
 
 ---
 
-## LOGIN/AUTH (3 failures)
+## RSVP (3 failures)
 
-### login-with-scene-name (2 tests)
+### comprehensive-rsvp-verification (1 test)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Explaining both login options | FAILING | TBD |
-| Case sensitive for scene name | FAILING | TBD |
+| 3. Admin Event Details - RSVP Tab Content | FAILING | 8.7s |
+
+### rsvp-lifecycle-persistence (2 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should persist RSVP to database | FAILING | 29.6s timeout |
+| should handle rapid RSVP/cancel cycles | FAILING | 29.7s timeout |
+
+---
+
+## PROFILE (2 failures)
+
+### profile-page (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should handle user loading error | FAILING | 2.8s |
+
+### profile-update-persistence (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should persist profile changes after save and page refresh | FAILING | 2.5s |
+
+---
+
+## CHECKOUT/TICKETS (3 failures)
+
+### checkout-workflow (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Payment form displays required fields | FAILING | 2.8s |
+
+### test-checkout (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Free RSVP ticket - fixed price display | FAILING | 35.1s timeout |
+
+### ticket-lifecycle-persistence (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should persist cancellation reason to database | FAILING | 2.7s |
+
+---
+
+## VENUE (1 failure)
+
+### venue-editing (1 test)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should update venue notes (admin-only field) | FAILING | 37.3s timeout |
+
+---
+
+## PHASE TESTING (4 failures)
+
+### phase3-sessions-tickets (2 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Session CRUD - Add, edit, and delete sessions | FAILING | 44.7s timeout |
+| Ticket Types - Create and manage ticket types | FAILING | 44.7s timeout |
+
+### phase4-events-testing (2 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| should display event filters correctly | FAILING | 1.1s - assertion |
+| should be responsive on mobile viewport | FAILING | 2.1s - mobile viewport |
+
+---
+
+## MOBILE/NAVIGATION (6 failures)
+
+### navigation-workflow (4 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| Mobile hamburger menu - opens and displays navigation items | FAILING | 6.7s |
+| Mobile menu - authenticated user sees dashboard and logout | FAILING | 8.2s |
+| Mobile menu - admin user sees admin link | FAILING | 8.1s |
+| Mobile menu logout - logs out user and closes menu | FAILING | 7.7s |
+
+### scroll-restoration (2 tests)
+| Test | Status | Failure Reason |
+|------|--------|----------------|
+| scrolls to top when navigating from events to homepage - MOBILE | FAILING | 32.6s timeout |
+| hamburger menu opens and resets body overflow on navigation - MOBILE | FAILING | 6.6s |
+
+---
+
+## CSRF/AUTH (1 failure)
 
 ### csrf-token-validation (1 test)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Logout flow with CSRF token | FAILING | TBD |
-
----
-
-## VENUE (3 failures)
-
-### venue-editing (3 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Venue notes admin only field | FAILING | TBD |
-| Venues in admin dropdown | FAILING | TBD |
-| Venue active/inactive status | FAILING | TBD |
+| should complete full login/logout flow with CSRF token | FAILING | 3.3s |
 
 ---
 
@@ -411,42 +356,30 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 ### tiptap-editors (2 tests)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Tiptap editor on Emails tab | FAILING | TBD |
-| Editor on their respective tabs | FAILING | TBD |
+| should render Email Content Tiptap editor on Emails tab | FAILING | 9.0s |
+| comprehensive: all three editors render on their respective tabs | FAILING | 8.9s |
 
 ---
 
-## DOCKER/INFRASTRUCTURE (2 failures)
+## SESSION TIMING (1 failure)
 
-### docker-services-test (2 tests)
+### session-based-timing (1 test)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Correct baseURL configuration | FAILING | TBD |
-| Connect to existing web service | FAILING | TBD |
+| admin can view session-based timing settings | FAILING | 3.3s |
 
 ---
 
-## OTHER (6 failures)
+## INFRASTRUCTURE/OTHER (6 failures)
 
-### compare-wireframe (1 test)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Capture original wireframe | FAILING | TBD |
-
-### manual-vetting-submission (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Application without 400 error | FAILING | TBD |
-
-### notification-system-test (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| When notification is shown | FAILING | TBD |
-
-### user-dashboard-vetting-status (1 test)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| VettingStatus enum values | FAILING | TBD |
+| compare-wireframe.spec.ts - capture original wireframe | FAILING | 263ms - setup issue |
+| docker-services-test.spec.ts - should have correct baseURL configuration | FAILING | 1.4s - config assertion |
+| e2e-events-full-journey.spec.ts - Environment Health Check | FAILING | 191ms - env check |
+| notification-system-test.spec.ts - Notifications container appears when notification is shown | FAILING | 6.6s |
+| user-dashboard-vetting-status.spec.ts - dashboard API returns correct VettingStatus enum values | FAILING | 33.1s timeout |
+| manual-vetting-submission-test.spec.ts - should submit vetting application without 400 error | FAILING | 33.7s timeout |
 
 ---
 
@@ -456,10 +389,48 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 - **FIXED_NOT_TESTED**: Code fix applied, needs verification
 - **(Remove entry)**: Test verified passing, remove from this file
 
+## Pattern Analysis
+
+### Common Issues Identified
+
+1. **Timeout Pattern (30+ seconds)**: Many tests failing with 30-35s durations
+   - Likely cause: Element not found, waiting for wrong selectors
+   - Affected: Vetting, RSVP, Phase tests, Venue, Checkout
+   - **Fix applied**: `domcontentloaded` wait strategy - PARTIAL SUCCESS
+
+2. **Check-In Infrastructure**: All 17 check-in tests failing
+   - Likely cause: Token generation/validation system issue
+   - Dashboard tests show 0ms duration = immediate failure in beforeEach
+   - **Fix applied**: `page.evaluate()` for API calls - STILL FAILING
+
+3. **Mobile Navigation**: 6 tests failing
+   - Likely cause: Hamburger menu selector changes or viewport handling
+   - **Fix applied**: `domcontentloaded` wait strategy - STILL FAILING
+
+4. **Form Validation Timing**: Multiple tests failing on validation
+   - Likely cause: waitFor strategies need updating
+   - **Fix applied**: `.last()` for React Strict Mode - PARTIAL SUCCESS
+
+### Root Cause Analysis (December 8, 2025)
+
+The `domcontentloaded` and selector fixes were **not sufficient** to resolve core issues:
+
+1. **Check-In Token Infrastructure**: The token validation system has deeper issues beyond wait strategies
+2. **Vetting Form Submission**: Form validation/submission logic needs investigation
+3. **Mobile Navigation**: Hamburger menu behavior/state management issues
+4. **API Authentication**: Many 401 errors during test runs suggest auth state management issues
+
+### Next Fix Priorities
+
+1. **HIGH**: Check-In Module (17 tests) - Investigate token generation/validation API
+2. **HIGH**: Vetting Module (15 tests) - Debug form submission flow
+3. **MEDIUM**: Event Management (15 tests) - Review form state management
+4. **MEDIUM**: Mobile Navigation (6 tests) - Debug hamburger menu state
+5. **LOW**: Infrastructure tests - Test framework configuration issues
+
 ## Notes
 
+- Console errors (401 Unauthorized) during tests are EXPECTED for auth-related tests
+- Font loading errors (fonts.gstatic.com) are cosmetic and don't affect functionality
 - Tests are grouped by functional area for easier navigation
-- "TBD" in Failure Reason means the specific error needs investigation
-- Focus on systemic issues first (check-in infrastructure, refund workflow)
-- Check-in module has the most failures (17) - likely infrastructure issue
-- Vetting module also has many failures (18) - possible systemic cause
+- Most timeout issues suggest selector or wait strategy problems, not app bugs

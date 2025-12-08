@@ -32,24 +32,24 @@ test.describe('Admin Vetting Dashboard', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Act - Navigate to vetting dashboard
-    await page.goto('/admin/vetting');
+    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
 
     // Assert - Page loads successfully
     await expect(page).toHaveURL('/admin/vetting');
 
     // Verify page title/heading
-    const heading = page.locator('h1, h2').filter({ hasText: /vetting.*applications/i });
+    const heading = page.locator('h1, h2').filter({ hasText: /vetting.*applications/i }).last();
     await expect(heading).toBeVisible();
 
     // Verify grid/table is displayed
-    const grid = page.locator('table, [data-testid="vetting-grid"]');
+    const grid = page.locator('table, [data-testid="vetting-grid"]').last();
     await expect(grid).toBeVisible();
 
     // Verify column headers exist
     // Updated to match actual implementation column headers (uppercase)
     const columnHeaders = ['NAME', 'FETLIFE NAME', 'EMAIL', 'APPLICATION DATE', 'CURRENT STATUS'];
     for (const header of columnHeaders) {
-      const headerElement = page.locator('th').filter({ hasText: new RegExp(header, 'i') }).first();
+      const headerElement = page.locator('th').filter({ hasText: new RegExp(header, 'i') }).last();
       await expect(headerElement).toBeVisible();
     }
 

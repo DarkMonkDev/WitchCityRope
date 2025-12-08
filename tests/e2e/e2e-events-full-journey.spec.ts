@@ -35,13 +35,13 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Ensure we're starting from a clean state by clearing any existing auth
     await AuthHelpers.clearAuthState(page);
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveTitle(/Witch City Rope/i);
   });
 
   test('1. User discovers events on public page', async ({ page }) => {
     // Navigate to events page (should be accessible without login)
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
 
     // Wait for page to load
     await page.waitForLoadState('domcontentloaded');
@@ -65,7 +65,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
   test('2. User views event details', async ({ page }) => {
     // Navigate to events page
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Wait for events to load
@@ -103,7 +103,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
   test('3. User attempts to RSVP/purchase ticket (should redirect to login)', async ({ page }) => {
     // Navigate to event details
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const firstEvent = page.locator('[data-testid="event-card"]').first();
@@ -140,7 +140,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Navigate to events and select a social event
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const firstEvent = page.locator('[data-testid="event-card"]').first();
@@ -183,7 +183,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Navigate to dashboard
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Should see dashboard title with user's name
@@ -218,7 +218,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Navigate to events page
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Click first event
@@ -266,7 +266,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'admin');
     
     // Navigate to admin/events management
-    await page.goto('/admin/events');
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Should see admin events page (events table)
@@ -291,7 +291,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     console.log('🚀 Starting complete user journey test...');
 
     // Step 1: Discover events (unauthenticated)
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const eventCards = page.locator('[data-testid="event-card"]');
@@ -317,7 +317,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     console.log('   ✅ Successfully logged in');
 
     // Step 5: Navigate back to event and complete RSVP
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     await page.locator('[data-testid="event-card"]').first().click();
     await page.waitForURL('**/events/**');
@@ -336,7 +336,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     }
 
     // Step 6: Verify in dashboard
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     const dashboardTitle = page.locator('h1').first();
     await expect(dashboardTitle).toBeVisible();
@@ -393,7 +393,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
     // Measure page load times
     const startTime = Date.now();
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     const loadTime = Date.now() - startTime;
     

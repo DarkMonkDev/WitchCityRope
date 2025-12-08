@@ -130,20 +130,37 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
           </Text>
           
           <Stack gap="xs">
-            <Group gap="xs" align="center">
-              <IconCalendar size={16} color="#6B0119" />
-              <Text size="sm" c="dimmed">
-                {formatDateTime(eventInfo.startDateTime)}
-              </Text>
-            </Group>
+            {/* Session date/times - show one line per session if available */}
+            {sessions && sessions.length > 0 ? (
+              sessions
+                .slice()
+                .sort((a, b) => new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime())
+                .map((session, index) => (
+                  <Group key={session.id || index} gap="xs" align="center">
+                    <IconCalendar size={16} color="#6B0119" />
+                    <Text size="sm" c="dimmed">
+                      {formatDateTime(session.startTime || '')} • {formatTime(session.startTime || '')} - {formatTime(session.endTime || '')}
+                    </Text>
+                  </Group>
+                ))
+            ) : (
+              <>
+                <Group gap="xs" align="center">
+                  <IconCalendar size={16} color="#6B0119" />
+                  <Text size="sm" c="dimmed">
+                    {formatDateTime(eventInfo.startDateTime)}
+                  </Text>
+                </Group>
 
-            {eventInfo.endDateTime && (
-              <Group gap="xs" align="center">
-                <IconClock size={16} color="#6B0119" />
-                <Text size="sm" c="dimmed">
-                  {formatTime(eventInfo.startDateTime)} - {formatTime(eventInfo.endDateTime)}
-                </Text>
-              </Group>
+                {eventInfo.endDateTime && (
+                  <Group gap="xs" align="center">
+                    <IconClock size={16} color="#6B0119" />
+                    <Text size="sm" c="dimmed">
+                      {formatTime(eventInfo.startDateTime)} - {formatTime(eventInfo.endDateTime)}
+                    </Text>
+                  </Group>
+                )}
+              </>
             )}
 
             {eventInfo.instructorName && (

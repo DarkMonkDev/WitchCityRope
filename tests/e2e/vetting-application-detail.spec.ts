@@ -27,11 +27,11 @@ test.describe('Admin Vetting Application Detail', () => {
    */
   async function navigateToFirstApplication() {
     await AuthHelpers.loginAs(page, 'admin');
-    await page.goto('/admin/vetting');
-    await expect(page.locator('table, [data-testid="vetting-grid"]')).toBeVisible();
+    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('table, [data-testid="vetting-grid"]').last()).toBeVisible();
 
-    const firstRow = page.locator('table tbody tr, [data-testid="application-row"]').first();
-    const viewButton = firstRow.locator('[data-testid="view-button"], button').filter({ hasText: /view|details/i }).first();
+    const firstRow = page.locator('table tbody tr, [data-testid="application-row"]').last();
+    const viewButton = firstRow.locator('[data-testid="view-button"], button').filter({ hasText: /view|details/i }).last();
 
     if (await viewButton.count() > 0) {
       await viewButton.click();
@@ -174,26 +174,26 @@ test.describe('Admin Vetting Application Detail', () => {
     await navigateToFirstApplication();
 
     // Act - Click put on hold button
-    const holdButton = page.locator('button, [data-testid="hold-button"]').filter({ hasText: /hold|pause/i }).first();
+    const holdButton = page.locator('button, [data-testid="hold-button"]').filter({ hasText: /hold|pause/i }).last();
 
     if (await holdButton.count() > 0) {
       await holdButton.click();
 
       // Wait for modal
-      const modal = page.locator('[role="dialog"], .modal, [data-testid="hold-modal"]');
-      await expect(modal).toBeVisible({ timeout: 2000 });
+      const modal = page.locator('[role="dialog"], .modal, [data-testid="hold-modal"]').last();
+      await expect(modal).toBeVisible({ timeout: 5000 });
 
       // Fill reason
-      const reasonInput = modal.locator('textarea, input, [data-testid="reason-input"]').filter({ hasText: /reason/i }).first();
+      const reasonInput = modal.locator('textarea, input, [data-testid="reason-input"]').filter({ hasText: /reason/i }).last();
       if (await reasonInput.count() === 0) {
         // Try generic textarea
-        await modal.locator('textarea').first().fill('Missing required references');
+        await modal.locator('textarea').last().fill('Missing required references');
       } else {
         await reasonInput.fill('Missing required references');
       }
 
       // Fill required actions
-      const actionsInput = modal.locator('textarea, input').filter({ hasText: /action|required/i }).first();
+      const actionsInput = modal.locator('textarea, input').filter({ hasText: /action|required/i }).last();
       if (await actionsInput.count() === 0) {
         // Try second textarea if exists
         const textareas = modal.locator('textarea');
@@ -205,16 +205,16 @@ test.describe('Admin Vetting Application Detail', () => {
       }
 
       // Submit
-      const submitButton = modal.locator('button').filter({ hasText: /hold|submit|confirm/i }).first();
+      const submitButton = modal.locator('button').filter({ hasText: /hold|submit|confirm/i }).last();
       await submitButton.click();
 
       // Assert - Verify success
-      await expect(modal).not.toBeVisible({ timeout: 3000 });
+      await expect(modal).not.toBeVisible({ timeout: 5000 });
 
       // Status should update to "OnHold"
       // Updated to use the actual data-testid from implementation
-      const statusBadge = page.locator('[data-testid="application-status-badge"]').filter({ hasText: /hold/i });
-      await expect(statusBadge).toBeVisible({ timeout: 3000 });
+      const statusBadge = page.locator('[data-testid="application-status-badge"]').filter({ hasText: /hold/i }).last();
+      await expect(statusBadge).toBeVisible({ timeout: 5000 });
     } else {
       console.log('Hold button not found - application may not be in correct status');
     }

@@ -42,7 +42,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Act - Navigate to vetting application page
-    await page.goto('/join');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Wait for form to load
@@ -140,7 +140,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Act - Navigate to admin vetting page
-    await page.goto('/admin/vetting');
+    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Assert - Vetting applications page loads
@@ -199,7 +199,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to vetting dashboard
-    await page.goto('/admin/vetting');
+    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Look for an application in UnderReview status
@@ -275,7 +275,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to vetting dashboard and open first application
-    await page.goto('/admin/vetting');
+    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const firstRow = page.locator('tbody tr').first();
@@ -373,7 +373,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to vetting dashboard and open first non-denied application
-    await page.goto('/admin/vetting');
+    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Find application that is NOT denied
@@ -467,7 +467,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to vetting dashboard
-    await page.goto('/admin/vetting');
+    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Look for InterviewApproved application
@@ -561,7 +561,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to vetting dashboard
-    await page.goto('/admin/vetting');
+    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Find application that is NOT in terminal status (not Approved, Denied, or Withdrawn)
@@ -634,7 +634,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to any application
-    await page.goto('/admin/vetting');
+    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const firstRow = page.locator('tbody tr').first();
@@ -690,7 +690,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Navigate to dashboard
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Look for vetting status section

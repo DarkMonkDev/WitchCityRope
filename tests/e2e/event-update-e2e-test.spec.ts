@@ -24,7 +24,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     console.log('Testing admin event details page access...');
 
     // First, navigate to admin events list page
-    await page.goto('/admin/events');
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     
     // Take screenshot of admin events page
@@ -35,7 +35,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     expect(currentUrl).toContain('/admin/events');
 
     // Now navigate directly to event details page
-    await page.goto(`/admin/events/${eventId}`);
+    await page.goto(`/admin/events/${eventId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     
     // Verify we're on the event details page
@@ -65,18 +65,18 @@ test.describe('Event Update Flow E2E Testing', () => {
     console.log('Testing EventForm integration and update attempt...');
 
     // Navigate directly to event details page
-    await page.goto(`/admin/events/${eventId}`);
+    await page.goto(`/admin/events/${eventId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     
     // Wait for page to load
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
     
-    // Look for event form elements - using .first() for Playwright strict mode
+    // Look for event form elements - using .last() for React Strict Mode
     const formElements = {
-      titleInput: page.locator('input[name="title"], input[placeholder*="title" i], [data-testid*="title"]').first(),
-      descriptionField: page.locator('textarea[name="description"], textarea[placeholder*="description" i], [data-testid*="description"]').first(),
-      locationField: page.locator('input[name="location"], input[placeholder*="location" i], [data-testid*="location"]').first(),
-      submitButton: page.locator('button[type="submit"], button:has-text("Save"), button:has-text("Update")').first()
+      titleInput: page.locator('input[name="title"], input[placeholder*="title" i], [data-testid*="title"]').last(),
+      descriptionField: page.locator('textarea[name="description"], textarea[placeholder*="description" i], [data-testid*="description"]').last(),
+      locationField: page.locator('input[name="location"], input[placeholder*="location" i], [data-testid*="location"]').last(),
+      submitButton: page.locator('button[type="submit"], button:has-text("Save"), button:has-text("Update")').last()
     };
     
     console.log('Checking for form elements...');
@@ -178,7 +178,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     console.log('Testing publish/draft status toggle functionality...');
 
     // Navigate to event details page
-    await page.goto(`/admin/events/${eventId}`);
+    await page.goto(`/admin/events/${eventId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -285,13 +285,13 @@ test.describe('Event Update Flow E2E Testing', () => {
   test('should test partial update behavior', async ({ page }) => {
     console.log('Testing partial update functionality...');
 
-    await page.goto(`/admin/events/${eventId}`);
+    await page.goto(`/admin/events/${eventId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
     
-    // Find title field only and modify it
-    const titleField = page.locator('input[name="title"], input[placeholder*="title" i], [data-testid*="title"]').first();
+    // Find title field only and modify it (use .last() for React Strict Mode)
+    const titleField = page.locator('input[name="title"], input[placeholder*="title" i], [data-testid*="title"]').last();
     
     if (await titleField.count() > 0) {
       console.log('Testing partial update - changing only title field...');
@@ -301,8 +301,8 @@ test.describe('Event Update Flow E2E Testing', () => {
       
       await titleField.fill(newTitle);
       
-      // Find submit button
-      const submitButton = page.locator('button[type="submit"], button:has-text("Save")').first();
+      // Find submit button (use .last() for React Strict Mode)
+      const submitButton = page.locator('button[type="submit"], button:has-text("Save")').last();
       
       if (await submitButton.count() > 0) {
         console.log('Submitting partial update...');
@@ -346,7 +346,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     console.log('Testing authentication and authorization for event updates...');
 
     // First test - ensure the page requires authentication
-    await page.goto(`/admin/events/${eventId}`);
+    await page.goto(`/admin/events/${eventId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     
     // Should be accessible since we're logged in as admin
@@ -370,56 +370,76 @@ test.describe('Event Update Flow E2E Testing', () => {
   test('should validate API endpoint responses', async ({ page }) => {
     console.log('Testing API endpoint responses for event updates...');
 
-    // Test GET endpoint first (should work)
-    const getResponse = await page.request.get(`${API_BASE_URL}/api/events/${eventId}`);
-    console.log(`GET /api/events/${eventId} - Status: ${getResponse.status()}`);
-    
-    if (getResponse.ok()) {
-      const eventData = await getResponse.json();
-      console.log(`✅ GET endpoint working - Event: ${eventData.data?.title}`);
+    // Test GET endpoint first (should work) - use page.evaluate for API calls
+    const getResponse = await page.evaluate(async (eventId) => {
+      const response = await fetch(`/api/events/${eventId}`);
+      return {
+        ok: response.ok,
+        status: response.status,
+        data: await response.json()
+      };
+    }, eventId);
+    console.log(`GET /api/events/${eventId} - Status: ${getResponse.status}`);
+
+    if (getResponse.ok) {
+      console.log(`✅ GET endpoint working - Event: ${getResponse.data.data?.title}`);
     } else {
       console.log('❌ GET endpoint failed');
     }
 
-    // Test PUT endpoint (expected to fail with 405 based on earlier testing)
-    const putResponse = await page.request.put(`${API_BASE_URL}/api/events/${eventId}`, {
-      data: {
-        id: eventId,
-        title: 'API Test Update'
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log(`PUT /api/events/${eventId} - Status: ${putResponse.status()}`);
-    
-    if (putResponse.status() === 405) {
+    // Test PUT endpoint (expected to fail with 405 based on earlier testing) - use page.evaluate
+    const putResponse = await page.evaluate(async (eventId) => {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: eventId,
+          title: 'API Test Update'
+        })
+      });
+      return {
+        ok: response.ok,
+        status: response.status
+      };
+    }, eventId);
+
+    console.log(`PUT /api/events/${eventId} - Status: ${putResponse.status}`);
+
+    if (putResponse.status === 405) {
       console.log('⚠️ PUT endpoint returns 405 Method Not Allowed - Backend implementation needed');
-    } else if (putResponse.ok()) {
+    } else if (putResponse.ok) {
       console.log('✅ PUT endpoint working');
     } else {
-      console.log(`❌ PUT endpoint failed with status: ${putResponse.status()}`);
+      console.log(`❌ PUT endpoint failed with status: ${putResponse.status}`);
     }
 
-    // Test PATCH endpoint as well
-    const patchResponse = await page.request.patch(`${API_BASE_URL}/api/events/${eventId}`, {
-      data: {
-        title: 'API Patch Test Update'
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log(`PATCH /api/events/${eventId} - Status: ${patchResponse.status()}`);
-    
-    if (patchResponse.status() === 405) {
+    // Test PATCH endpoint as well - use page.evaluate
+    const patchResponse = await page.evaluate(async (eventId) => {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: 'API Patch Test Update'
+        })
+      });
+      return {
+        ok: response.ok,
+        status: response.status
+      };
+    }, eventId);
+
+    console.log(`PATCH /api/events/${eventId} - Status: ${patchResponse.status}`);
+
+    if (patchResponse.status === 405) {
       console.log('⚠️ PATCH endpoint also returns 405 - Consistent with PUT behavior');
-    } else if (patchResponse.ok()) {
+    } else if (patchResponse.ok) {
       console.log('✅ PATCH endpoint working');
     } else {
-      console.log(`❌ PATCH endpoint failed with status: ${patchResponse.status()}`);
+      console.log(`❌ PATCH endpoint failed with status: ${patchResponse.status}`);
     }
     
     console.log('✅ API endpoint validation completed');

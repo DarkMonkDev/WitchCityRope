@@ -38,7 +38,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
      */
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -91,7 +91,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
         }
 
         // Go back to try next event
-        await page.goto('/events');
+        await page.goto('/events', { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle');
       }
     }
@@ -113,7 +113,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
           break;
         }
 
-        await page.goto('/events');
+        await page.goto('/events', { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle');
       }
     }
@@ -131,7 +131,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
      */
     await AuthHelpers.loginAs(page, 'admin');
 
-    await page.goto('/admin/events');
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     // Find an existing event to check registration settings
@@ -167,7 +167,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
      */
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -198,7 +198,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
         break;
       }
 
-      await page.goto('/events');
+      await page.goto('/events', { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle');
     }
 
@@ -214,7 +214,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
      */
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -254,7 +254,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
         return;
       }
 
-      await page.goto('/events');
+      await page.goto('/events', { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle');
     }
 
@@ -268,7 +268,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
      */
     await AuthHelpers.loginAs(page, 'admin');
 
-    await page.goto('/admin/events');
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     // Find an event to edit

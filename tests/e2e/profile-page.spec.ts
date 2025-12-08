@@ -38,7 +38,7 @@ test.describe('ProfilePage - E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to profile page - this will trigger the error (second request)
-    await page.goto('/dashboard/profile-settings');
+    await page.goto('/dashboard/profile-settings', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Verify error message is displayed (using flexible selector for error alert)

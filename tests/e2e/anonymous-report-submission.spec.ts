@@ -38,7 +38,7 @@ test.describe('Anonymous Incident Report Submission', () => {
 
   test('should submit anonymous incident report and receive reference number', async ({ page }) => {
     // Navigate to incident reporting page (CORRECT URL)
-    await page.goto('/safety/report');
+    await page.goto('/safety/report', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Verify page title
@@ -130,7 +130,7 @@ test.describe('Anonymous Incident Report Submission', () => {
 
   test('should validate required fields before submission', async ({ page }) => {
     // Navigate to incident reporting page (CORRECT URL)
-    await page.goto('/safety/report');
+    await page.goto('/safety/report', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // CORRECTED: Submit button uses exact text "Submit Safety Report"

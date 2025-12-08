@@ -243,7 +243,7 @@ test.describe('CMS Workflow - Mobile Responsiveness', () => {
     await page.setViewportSize({ width: 375, height: 667 });
     console.log('✅ Viewport set to mobile (375×667)');
 
-    await page.goto(`${baseUrl}/`);
+    await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Look for mobile hamburger menu

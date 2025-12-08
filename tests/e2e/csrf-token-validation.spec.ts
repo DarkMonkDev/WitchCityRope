@@ -69,7 +69,7 @@ test.describe('CSRF Token Validation', () => {
     await expect(loginLink).toBeVisible({ timeout: 5000 })
 
     // Step 9: Verify cannot access protected routes
-    await page.goto('/dashboard')
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
     await expect(page).toHaveURL(/.*login/, { timeout: 5000 })
 
     console.log('✓ User successfully logged out and redirected to login')
@@ -125,10 +125,10 @@ test.describe('CSRF Token Validation', () => {
     console.log('✓ CSRF token exists after login')
 
     // Navigate to different pages
-    await page.goto('/events')
+    await page.goto('/events', { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('domcontentloaded')
 
-    await page.goto('/dashboard')
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('domcontentloaded')
 
     // Get CSRF token after navigation
@@ -218,7 +218,7 @@ test.describe('CSRF Token Validation', () => {
     console.log('✓ CSRF token initialized after login')
 
     // Navigate to dashboard (simulates app startup with existing session)
-    await page.goto('/dashboard')
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('domcontentloaded')
 
     // Verify CSRF token still exists after navigation

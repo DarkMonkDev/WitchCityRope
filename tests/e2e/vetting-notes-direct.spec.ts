@@ -7,8 +7,7 @@ test('Verify notes appear after stage advancement - Direct navigation', async ({
   await AuthHelpers.loginAs(page, 'admin');
 
   // First get an application ID from the vetting list
-  await page.goto('/admin/vetting');
-  await page.waitForLoadState('domcontentloaded');
+  await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
 
   // Get first application row and extract ID from href
   const applicationRows = page.locator('tbody tr');
@@ -19,8 +18,8 @@ test('Verify notes appear after stage advancement - Direct navigation', async ({
     return;
   }
 
-  const firstApp = applicationRows.first();
-  const appLink = firstApp.locator('a').first();
+  const firstApp = applicationRows.last();
+  const appLink = firstApp.locator('a').last();
   const href = await appLink.getAttribute('href');
 
   if (!href) {
@@ -29,8 +28,7 @@ test('Verify notes appear after stage advancement - Direct navigation', async ({
   }
 
   // Navigate directly to vetting application detail
-  await page.goto(`${href}`);
-  await page.waitForLoadState('domcontentloaded');
+  await page.goto(`${href}`, { waitUntil: 'domcontentloaded' });
 
   // Wait for application detail to load
   await page.waitForSelector('[data-testid="application-title"]', { timeout: 10000 });

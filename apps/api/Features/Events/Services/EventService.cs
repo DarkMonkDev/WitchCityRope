@@ -837,16 +837,26 @@ public class EventService : IEventService
                 }
 
                 // Update session linkage (many-to-many relationship)
-                existingTicketType.Sessions.Clear();
-                if (ticketTypeDto.SessionIdentifiers.Any())
+                // Use differential update to avoid duplicate key violations
+                var currentSessionCodes = existingTicketType.Sessions.Select(s => s.SessionCode).ToHashSet();
+                var newSessionCodes = (ticketTypeDto.SessionIdentifiers ?? Enumerable.Empty<string>()).ToHashSet();
+
+                // Remove sessions that are no longer linked
+                var sessionsToRemove = existingTicketType.Sessions
+                    .Where(s => !newSessionCodes.Contains(s.SessionCode))
+                    .ToList();
+                foreach (var session in sessionsToRemove)
                 {
-                    var linkedSessions = eventEntity.Sessions
-                        .Where(s => ticketTypeDto.SessionIdentifiers.Contains(s.SessionCode))
-                        .ToList();
-                    foreach (var session in linkedSessions)
-                    {
-                        existingTicketType.Sessions.Add(session);
-                    }
+                    existingTicketType.Sessions.Remove(session);
+                }
+
+                // Add new sessions that aren't already linked
+                var sessionsToAdd = eventEntity.Sessions
+                    .Where(s => newSessionCodes.Contains(s.SessionCode) && !currentSessionCodes.Contains(s.SessionCode))
+                    .ToList();
+                foreach (var session in sessionsToAdd)
+                {
+                    existingTicketType.Sessions.Add(session);
                 }
 
                 processedTicketTypeIds.Add(ticketTypeId);
@@ -886,7 +896,7 @@ public class EventService : IEventService
 
                 // Link sessions (many-to-many relationship)
                 newTicketType.Sessions = new List<WitchCityRope.Api.Models.Session>();
-                if (ticketTypeDto.SessionIdentifiers.Any())
+                if (ticketTypeDto.SessionIdentifiers != null && ticketTypeDto.SessionIdentifiers.Any())
                 {
                     var linkedSessions = eventEntity.Sessions
                         .Where(s => ticketTypeDto.SessionIdentifiers.Contains(s.SessionCode))

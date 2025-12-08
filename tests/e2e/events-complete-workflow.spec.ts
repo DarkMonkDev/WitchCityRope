@@ -92,7 +92,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     console.log('🧪 Step 1: Testing public event viewing...');
 
     // Navigate to public events page
-    await page.goto(testUrls.publicEvents);
+    await page.goto(testUrls.publicEvents, { waitUntil: 'domcontentloaded' });
     await page.screenshot({ path: 'test-results/step1-navigate-to-events.png' });
 
     // Wait for page to load with proper error handling
@@ -197,7 +197,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
 
     // Navigate to admin events management
     try {
-      await page.goto(testUrls.adminEvents);
+      await page.goto(testUrls.adminEvents, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle', { timeout: 10000 });
     } catch (error) {
       console.log('⚠️ Direct navigation failed, trying alternative routes');
@@ -210,7 +210,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
       
       for (const route of alternativeRoutes) {
         try {
-          await page.goto(route);
+          await page.goto(route, { waitUntil: 'domcontentloaded' });
           await page.waitForTimeout(2000);
           
           // Look for admin events link
@@ -394,7 +394,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     console.log('🧪 Step 3: Verifying public can see updated events...');
 
     // Navigate to public events page (no authentication)
-    await page.goto(testUrls.publicEvents);
+    await page.goto(testUrls.publicEvents, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 10000 });
     await page.screenshot({ path: 'test-results/step3-public-events-after-admin-update.png' });
 
@@ -447,7 +447,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     await page.screenshot({ path: 'test-results/step4-member-logged-in.png' });
 
     // Navigate to events page
-    await page.goto(testUrls.publicEvents);
+    await page.goto(testUrls.publicEvents, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 10000 });
     await page.screenshot({ path: 'test-results/step4-member-viewing-events.png' });
 
@@ -530,7 +530,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
     }
 
     // Navigate to user dashboard to verify RSVP
-    await page.goto(testUrls.userDashboard);
+    await page.goto(testUrls.userDashboard, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await page.screenshot({ path: 'test-results/step4-user-dashboard.png' });
 
@@ -666,7 +666,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
 
     try {
       // Quick check: Public Events
-      await page.goto(testUrls.publicEvents);
+      await page.goto(testUrls.publicEvents, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle', { timeout: 5000 });
       const eventsCount = await page.locator('.event, .event-card, *:has-text("workshop")').count();
       workflowStatus.publicEventsVisible = eventsCount > 0;
@@ -679,7 +679,7 @@ test.describe('Events Complete Workflow - End-to-End', () => {
       if (workflowStatus.adminLoginSuccess) {
         // Check admin events access
         try {
-          await page.goto(testUrls.adminEvents);
+          await page.goto(testUrls.adminEvents, { waitUntil: 'domcontentloaded' });
           await page.waitForTimeout(2000);
           const adminEventsAvailable = await page.locator('*:has-text("event"), *:has-text("Event"), button:has-text("Create")').count() > 0;
           workflowStatus.eventEditingAvailable = adminEventsAvailable;
@@ -696,12 +696,12 @@ test.describe('Events Complete Workflow - End-to-End', () => {
       
       if (workflowStatus.memberLoginSuccess) {
         // Check dashboard access
-        await page.goto(testUrls.userDashboard);
+        await page.goto(testUrls.userDashboard, { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(2000);
         workflowStatus.dashboardAccessible = await page.locator('*:has-text("dashboard"), *:has-text("Dashboard"), *:has-text("profile")').count() > 0;
-        
+
         // Check RSVP functionality exists
-        await page.goto(testUrls.publicEvents);
+        await page.goto(testUrls.publicEvents, { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(2000);
         workflowStatus.rsvpFunctionalityExists = await page.locator('[data-testid="button-rsvp"], [data-testid="button-purchase-ticket"], button:has-text("RSVP"), button:has-text("Purchase Ticket")').count() > 0;
       }

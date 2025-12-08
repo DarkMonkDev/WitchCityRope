@@ -251,7 +251,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     console.log(`🎯 Found Rope Social event: ${ropeSocial.id} - ${ropeSocial.title}`)
 
     // Navigate to admin event details page
-    await page.goto(`/admin/events/${ropeSocial.id}`)
+    await page.goto(`/admin/events/${ropeSocial.id}`, { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(3000) // Allow admin page to fully load
 

@@ -40,7 +40,7 @@ test.describe('Identified Incident Report Submission', () => {
     await AuthHelpers.loginAs(page, 'member');
     console.log('✅ Logged in as member successfully');
 
-    await page.goto('/safety/report');
+    await page.goto('/safety/report', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // CORRECTED: Use getByRole for radio buttons with proper labels
@@ -89,7 +89,7 @@ test.describe('Identified Incident Report Submission', () => {
     console.log('✅ Logged in as vetted user successfully');
 
     // Navigate to potential My Reports page (may not exist)
-    const response = await page.goto('/my-reports');
+    const response = await page.goto('/my-reports', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Check if page exists or redirects

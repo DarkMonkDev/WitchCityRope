@@ -13,7 +13,7 @@ test.describe('Event Checkout - Pricing Step Verification', () => {
     console.log('Test 1: Navigating with Free RSVP ticket (Fixed Price)');
 
     const checkoutUrl = `${baseUrl}/checkout/${eventId}/reg_test_001?ticketTypeId=${freeRsvpTicketId}`;
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -44,7 +44,7 @@ test.describe('Event Checkout - Pricing Step Verification', () => {
     console.log('\nTest 2: Changing to Support Donation ticket (Sliding Scale)');
 
     const checkoutUrl = `${baseUrl}/checkout/${eventId}/reg_test_001?ticketTypeId=${freeRsvpTicketId}`;
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 

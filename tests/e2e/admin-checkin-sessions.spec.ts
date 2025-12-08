@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Environment-aware URLs for container/host compatibility
-const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
-const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+// CRITICAL: DO NOT use hardcoded API URLs - use page.context().request with relative URLs
+// API calls should use pattern matching or relative paths for container compatibility
 
 /**
  * E2E Tests for Session-Aware Check-In Functionality
@@ -34,10 +33,13 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Fetch an event with multiple sessions for testing
-    // Use module-level constant for container compatibility
-    // Use context().request to share authentication cookies
-    const eventsResponse = await page.context().request.get(`${API_BASE_URL}/api/events`);
-    const events = await eventsResponse.json();
+    // Use page.evaluate() to fetch from browser context (container-compatible)
+    // This ensures API requests work in both local and Docker test environments
+    const eventsData = await page.evaluate(async () => {
+      const response = await fetch('/api/events', { credentials: 'include' });
+      return response.json();
+    });
+    const events = eventsData;
 
     if (!events || events.length === 0) {
       throw new Error('No events found in database. Run seed data first.');
@@ -397,9 +399,12 @@ test.describe('Session-Aware Check-In - Attendees Tab', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Get an event with attendees (preferably with check-ins)
-    // Use context().request to share authentication cookies
-    const eventsResponse = await page.context().request.get(`${API_BASE_URL}/api/events`);
-    const events = await eventsResponse.json();
+    // Use page.evaluate() to fetch from browser context (container-compatible)
+    const eventsData = await page.evaluate(async () => {
+      const response = await fetch('/api/events', { credentials: 'include' });
+      return response.json();
+    });
+    const events = eventsData;
 
     if (!events || events.length === 0) {
       throw new Error('No events found in database. Run seed data first.');

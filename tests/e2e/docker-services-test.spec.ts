@@ -19,7 +19,7 @@ test.describe('Docker Services Configuration', () => {
   
   test('should connect to existing web service', async ({ page }) => {
     // This should work without starting new services
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Verify the React app loads - actual title is "Witch City Rope - Salem's Rope Bondage Community"
     await expect(page).toHaveTitle(/Witch City Rope/i);
@@ -36,7 +36,7 @@ test.describe('Docker Services Configuration', () => {
 
   test('should handle API requests without CORS issues', async ({ page }) => {
     // Navigate to the app first
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     
     // Try to make an API request from the browser context
     const apiCheck = await page.evaluate(async () => {
@@ -77,7 +77,7 @@ test.describe('Docker Services Configuration', () => {
 
   test('should have correct baseURL configuration', async ({ page }) => {
     // Verify that the baseURL is properly configured
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const currentUrl = page.url();
     // Check for localhost:5173 (Docker web service port)
@@ -117,7 +117,7 @@ test.describe('Configuration Validation', () => {
     // Try to navigate to login page to verify the auth flow works
     // with existing Docker services
 
-    await page.goto('/login');
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
     // Verify login page loads from Docker services using correct data-testid selectors
     await expect(page.locator('[data-testid="email-or-scenename-input"]')).toBeVisible();

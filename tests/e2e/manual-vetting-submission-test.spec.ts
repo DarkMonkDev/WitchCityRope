@@ -10,7 +10,7 @@ test.describe('Manual Vetting Application Submission Test', () => {
 
     // Step 3: Navigate to vetting application page
     console.log('Step 3: Navigating to /vetting/apply');
-    await page.goto('/vetting/apply');
+    await page.goto('/vetting/apply', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot of the form

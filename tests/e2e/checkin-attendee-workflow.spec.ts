@@ -33,9 +33,8 @@ import {
   getAttendees
 } from './checkin/helpers/tokenHelpers';
 
-// Environment-aware URLs for container/host compatibility
-const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
-const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+// CRITICAL: DO NOT use hardcoded WEB_BASE_URL or API_BASE_URL
+// Use relative URLs and tokenHelpers (which use relative URLs) for container compatibility
 
 
 // CHECK-IN KIOSK MODE TESTS - ATTENDEE WORKFLOW
@@ -223,18 +222,22 @@ test.describe('Check-In Attendee Workflow', () => {
 
     await kioskPage.context().clearCookies();
 
+    // Navigate to a page first so page.evaluate() has a context
+    await kioskPage.goto('/');
+
     // Try to get attendees with expired token
-    const response = await kioskPage.request.get(
-      `${API_BASE_URL}/api/checkin/events/${testEventId}/attendees`,
-      {
+    // Use page.evaluate() for container compatibility
+    const apiResponse = await kioskPage.evaluate(async ({ eventId, token }) => {
+      const response = await fetch(`/api/checkin/events/${eventId}/attendees`, {
         headers: {
-          'X-CheckIn-Token': shortLivedToken
+          'X-CheckIn-Token': token
         }
-      }
-    );
+      });
+      return { status: response.status };
+    }, { eventId: testEventId, token: shortLivedToken });
 
     // Verify 401 Unauthorized (token expired)
-    expect(response.status()).toBe(401);
+    expect(apiResponse.status).toBe(401);
 
     await kioskContext.close();
   });

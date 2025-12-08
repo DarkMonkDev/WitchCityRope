@@ -46,7 +46,7 @@ test.describe('Profile Update Persistence', () => {
 
     // Step 2: Navigate to Profile Settings
     console.log('📍 Step 2: Navigating to Profile Settings...');
-    await page.goto('/dashboard/profile-settings');
+    await page.goto('/dashboard/profile-settings', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     console.log('✅ Profile Settings page loaded');
 
@@ -234,7 +234,7 @@ test.describe('Profile Update Persistence', () => {
 
     // Step 2: Get current user ID from page context
     console.log('📍 Step 2: Fetching current user profile...');
-    await page.goto('/dashboard/profile-settings');
+    await page.goto('/dashboard/profile-settings', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Step 3: Make direct API call to get profile

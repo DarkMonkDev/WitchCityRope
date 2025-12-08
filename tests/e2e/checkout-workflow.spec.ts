@@ -31,7 +31,7 @@ test.describe('Checkout Workflow - Ticket Selection', () => {
 
     // Navigate to events page
     console.log('📝 Step 1: Navigate to events page');
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     console.log('   ✅ Events page loaded');
 
@@ -108,7 +108,7 @@ test.describe('Checkout Workflow - Ticket Selection', () => {
     const checkoutUrl = `/checkout/${eventId}/reg_test_checkout_${Date.now()}`;
 
     console.log('📝 Step 1: Navigate to checkout page');
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     console.log('   ✅ Checkout page loaded');
 
@@ -160,7 +160,7 @@ test.describe('Checkout Workflow - Ticket Selection', () => {
     const checkoutUrl = `/checkout/${eventId}/reg_test_single_${Date.now()}`;
 
     console.log('📝 Step 1: Navigate to checkout');
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Check for error
@@ -203,7 +203,7 @@ test.describe('Checkout Workflow - Ticket Selection', () => {
 
     // Verify "Continue" button is enabled
     console.log('📝 Step 4: Verify continue button enabled');
-    const continueButton = page.locator('button').filter({ hasText: /continue|next|payment/i }).first();
+    const continueButton = page.locator('button').filter({ hasText: /continue|next|payment/i }).last();
     if (await continueButton.count() > 0) {
       await expect(continueButton).toBeEnabled({ timeout: 3000 });
       console.log('   ✅ Continue button enabled');
@@ -228,7 +228,7 @@ test.describe('Checkout Workflow - Ticket Selection', () => {
     const checkoutUrl = `/checkout/${eventId}/reg_test_multi_${Date.now()}`;
 
     console.log('📝 Step 1: Navigate to checkout');
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Check for error
@@ -297,7 +297,7 @@ test.describe('Checkout Workflow - Sliding Scale Pricing', () => {
     const checkoutUrl = `/checkout/${eventId}/reg_test_sliding_${Date.now()}?ticketTypeId=${slidingTicketId}`;
 
     console.log('📝 Step 1: Navigate to checkout with sliding scale ticket');
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Check for error
@@ -358,7 +358,7 @@ test.describe('Checkout Workflow - Sliding Scale Pricing', () => {
     const checkoutUrl = `/checkout/${eventId}/reg_test_adjust_${Date.now()}?ticketTypeId=${slidingTicketId}`;
 
     console.log('📝 Step 1: Navigate to checkout');
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Check for error
@@ -425,7 +425,7 @@ test.describe('Checkout Workflow - Payment Step', () => {
     const checkoutUrl = `/checkout/${eventId}/reg_test_payment_${Date.now()}`;
 
     console.log('📝 Step 1: Navigate to checkout and select ticket');
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Check for error
@@ -447,7 +447,7 @@ test.describe('Checkout Workflow - Payment Step', () => {
 
     // Click continue button
     console.log('📝 Step 2: Click continue to payment');
-    const continueButton = page.locator('button').filter({ hasText: /continue.*payment|next|proceed/i }).first();
+    const continueButton = page.locator('button').filter({ hasText: /continue.*payment|next|proceed/i }).last();
 
     if (await continueButton.count() === 0) {
       console.log('⏭️  Continue button not found - skipping test');
@@ -496,7 +496,7 @@ test.describe('Checkout Workflow - Payment Step', () => {
     const checkoutUrl = `/checkout/${eventId}/reg_test_form_${Date.now()}`;
 
     console.log('📝 Step 1: Navigate to payment step');
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Check for error
@@ -507,7 +507,7 @@ test.describe('Checkout Workflow - Payment Step', () => {
     }
 
     // Click continue to get to payment step
-    const continueButton = page.locator('button').filter({ hasText: /continue.*payment|next/i }).first();
+    const continueButton = page.locator('button').filter({ hasText: /continue.*payment|next/i }).last();
     if (await continueButton.count() > 0 && await continueButton.isEnabled()) {
       await continueButton.click();
       await page.waitForLoadState('domcontentloaded');
@@ -562,7 +562,7 @@ test.describe('Checkout Workflow - Payment Step', () => {
     const checkoutUrl = `/checkout/${eventId}/reg_test_summary_${Date.now()}`;
 
     console.log('📝 Step 1: Navigate to checkout');
-    await page.goto(checkoutUrl);
+    await page.goto(checkoutUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Check for error

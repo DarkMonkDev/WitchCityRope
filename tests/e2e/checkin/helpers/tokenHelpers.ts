@@ -21,17 +21,14 @@ const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
 /**
  * Login as Administrator to generate tokens
  * Admin authentication is required to access token generation endpoints
+ *
+ * IMPORTANT: This re-exports AuthHelpers.loginAs for convenience in check-in tests.
+ * DO NOT duplicate login logic - always use AuthHelpers.loginAs as the source of truth.
  */
 export async function loginAsAdmin(page: Page) {
-  await page.goto(`${WEB_BASE_URL}/login`);
-  await page.waitForLoadState('networkidle');
-
-  await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com');
-  await page.locator('[data-testid="password-input"]').fill('Test123!');
-  await page.locator('[data-testid="login-button"]').click();
-
-  await page.waitForURL('**/dashboard', { timeout: 10000 });
-  await page.waitForLoadState('networkidle');
+  // Import AuthHelpers dynamically to avoid circular dependency issues
+  const { AuthHelpers } = await import('../../test-utils/helpers/auth.helpers');
+  await AuthHelpers.loginAs(page, 'admin');
 }
 
 /**
@@ -130,8 +127,9 @@ export async function getTestEventId(page: Page): Promise<string> {
  * @param token - Session token
  */
 export async function navigateToCheckIn(page: Page, eventId: string, token: string) {
-  await page.goto(`${WEB_BASE_URL}/events/${eventId}/checkin?token=${token}&event=${eventId}`);
-  await page.waitForLoadState('networkidle');
+  // Use relative URL for container compatibility (baseURL from playwright.config.ts)
+  await page.goto(`/events/${eventId}/checkin?token=${token}&event=${eventId}`);
+  await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded, not networkidle
 }
 
 /**
@@ -145,8 +143,9 @@ export async function navigateToCheckIn(page: Page, eventId: string, token: stri
  * @param token - Session token
  */
 export async function navigateToCheckInDashboard(page: Page, eventId: string, token: string) {
-  await page.goto(`${WEB_BASE_URL}/events/${eventId}/checkin/dashboard?token=${token}&event=${eventId}`);
-  await page.waitForLoadState('networkidle');
+  // Use relative URL for container compatibility (baseURL from playwright.config.ts)
+  await page.goto(`/events/${eventId}/checkin/dashboard?token=${token}&event=${eventId}`);
+  await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded, not networkidle
 }
 
 /**

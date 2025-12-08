@@ -12,7 +12,7 @@ test.describe('User Dashboard - Vetting Status Display', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Act - Navigate to dashboard
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Assert - Verify vetting status is displayed
@@ -44,7 +44,7 @@ test.describe('User Dashboard - Vetting Status Display', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Act - Navigate to dashboard
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot
@@ -65,7 +65,7 @@ test.describe('User Dashboard - Vetting Status Display', () => {
     await AuthHelpers.loginAs(page, 'guest');
 
     // Act - Navigate to dashboard
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot

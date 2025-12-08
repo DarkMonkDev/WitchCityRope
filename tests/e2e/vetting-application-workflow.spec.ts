@@ -316,11 +316,10 @@ test.describe('Vetting Application Workflow', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to vetting application form
-    await page.goto('/join');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/join', { waitUntil: 'domcontentloaded' });
 
     // Wait for form to load
-    const vettingForm = page.locator('form, [data-testid="vetting-application-form"]').first();
+    const vettingForm = page.locator('form, [data-testid="vetting-application-form"]').last();
 
     // Skip if form not found
     if (await vettingForm.count() === 0) {
@@ -333,7 +332,7 @@ test.describe('Vetting Application Workflow', () => {
     // Act: Try to submit empty form (using data-testid)
     const submitButton = page.getByTestId('submit-application-button').or(
       page.locator('button[type="submit"]').filter({ hasText: /submit/i })
-    ).first();
+    ).last();
     await submitButton.click();
 
     // Assert: Validation errors appear (Mantine form validation)
@@ -342,7 +341,7 @@ test.describe('Vetting Application Workflow', () => {
       .or(page.locator('text=/required|must be/i'));
 
     // Wait for at least one validation error to appear
-    await expect(validationErrors.first()).toBeVisible({ timeout: 5000 });
+    await expect(validationErrors.last()).toBeVisible({ timeout: 5000 });
 
     // Assert: Still on /join page (form did not submit)
     await expect(page).toHaveURL(/\/join/);

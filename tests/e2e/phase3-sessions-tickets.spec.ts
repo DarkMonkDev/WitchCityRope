@@ -14,7 +14,7 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to events page
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
   });
 
   /**
@@ -24,7 +24,7 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     console.log('🧪 Testing Session Management...');
     
     // Navigate to admin events (would need auth in real scenario)
-    await page.goto('/admin/events');
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Look for create event button or any event card
@@ -107,7 +107,7 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     console.log('🧪 Testing Ticket Type Management...');
     
     // Navigate to admin events
-    await page.goto('/admin/events');
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Look for create event button or any event card
@@ -192,7 +192,7 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     // This test verifies that sessions and tickets can be linked
     // In the Event Session Matrix architecture
 
-    await page.goto('/admin/events');
+    await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     const hasContent = await page.locator('button:has-text("Create Event"), [data-testid="admin-event"]').count() > 0;
@@ -243,7 +243,7 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     // Test that capacity can be set for sessions
     // and validates against ticket sales
     
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     
     // Check if any events are displayed
     const eventCards = page.locator('[data-testid="event-card"], .admin-event-card, h3');
@@ -283,7 +283,7 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     // Based on requirements: no difference between member/non-member pricing
     // But test that pricing can be set for tickets
     
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     
     // Look for any price displays
     const priceElements = page.locator('text=/$\\d+/, text=/\\$\\d+/');
@@ -317,7 +317,7 @@ test.describe('Phase 3: Data Validation', () => {
     // This would be tested through the API or by creating a ticket and checking capacities
     
     // For now, we'll verify the UI elements exist
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     
     // Look for multi-session indicators
     const multiSessionText = page.locator('text=/multi.?session/i, text=/all.?sessions/i');

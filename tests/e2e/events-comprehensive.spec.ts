@@ -9,7 +9,7 @@ import { WaitHelpers } from './test-utils/helpers/wait.helpers';
 test.describe('Events - Public Access', () => {
   // Public events browsing test
   test('should browse events without authentication', async ({ page }) => {
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Verify events page loads with correct title
@@ -36,7 +36,7 @@ test.describe('Events - Public Access', () => {
   });
 
   test('should display event details when clicking event card', async ({ page }) => {
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForPageLoad(page);
 
     // Wait for events page to load
@@ -69,7 +69,7 @@ test.describe('Events - Public Access', () => {
 
   // Event type filtering is now available
   test('should filter events by type', async ({ page }) => {
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForDataLoad(page, 'events-list');
 
     // Look for filter controls
@@ -119,7 +119,7 @@ test.describe('Events - Public Access', () => {
       });
     });
 
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForPageLoad(page);
 
     // ACTUAL selector from EventsListPage.tsx line 598: data-testid="events-empty-state"
@@ -144,7 +144,7 @@ test.describe('Events - Public Access', () => {
       });
     });
 
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     
     // Should show error state or fallback content
     await page.waitForTimeout(2000);
@@ -181,7 +181,7 @@ test.describe('Events - Authenticated Access', () => {
     // Login using AuthHelpers
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForPageLoad(page);
 
     // Wait for events page to load
@@ -224,7 +224,7 @@ test.describe('Events - Authenticated Access', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Test as regular member
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForPageLoad(page);
 
     // Wait for events page to load
@@ -236,7 +236,7 @@ test.describe('Events - Authenticated Access', () => {
     await AuthHelpers.clearAuthState(page);
     await AuthHelpers.loginAs(page, 'admin');
 
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForPageLoad(page);
 
     // Wait for events page to load
@@ -271,7 +271,7 @@ test.describe('Events - Authenticated Access', () => {
     // Login using vetted member (required for social events)
     await AuthHelpers.loginAs(page, 'vetted');
 
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForPageLoad(page);
 
     // Wait for events page to load
@@ -314,7 +314,7 @@ test.describe('Events - Authenticated Access', () => {
     // Login using AuthHelpers
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.goto('/events');
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForDataLoad(page, 'events-list');
 
     // Look for a social event (usually has both RSVP and ticket options)
@@ -360,8 +360,8 @@ test.describe('Events - Responsive Design', () => {
   viewports.forEach(viewport => {
     test(`should display correctly on ${viewport.name}`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      
-      await page.goto('/events');
+
+      await page.goto('/events', { waitUntil: 'domcontentloaded' });
       await WaitHelpers.waitForPageLoad(page);
 
       // Verify page loads without horizontal scroll
@@ -388,8 +388,8 @@ test.describe('Events - Responsive Design', () => {
 test.describe('Events - Performance', () => {
   test('should load events within performance budget', async ({ page }) => {
     const startTime = Date.now();
-    
-    await page.goto('/events');
+
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForDataLoad(page, 'events-list');
     
     const loadTime = Date.now() - startTime;
@@ -426,8 +426,8 @@ test.describe('Events - Performance', () => {
     });
 
     const startTime = Date.now();
-    
-    await page.goto('/events');
+
+    await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForPageLoad(page);
     
     const loadTime = Date.now() - startTime;

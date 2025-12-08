@@ -1,7 +1,7 @@
 import React from 'react'
-import { Box, Text, Group } from '@mantine/core'
+import { Box, Text, Group, Stack } from '@mantine/core'
 import { EventDto } from '@witchcityrope/shared-types'
-import { calculateEventPriceRange, formatUtcToLocalTime, formatUtcToLocalDate } from '../../utils/eventUtils'
+import { calculateEventPriceRange, formatUtcToLocalTime, formatUtcToLocalDate, formatUtcTimeRange } from '../../utils/eventUtils'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone'
 
 interface EventCardProps {
@@ -193,50 +193,102 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       {/* Event Content */}
       <Box style={{ padding: 'var(--space-lg)' }}>
-        {/* Date and Time - Split Layout */}
-        <Group
-          justify="space-between"
-          style={{
-            marginBottom: 'var(--space-xs)',
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}
-          >
-            {event.startDate ? formatUtcToLocalDate(event.startDate, eventTimeZone, {
-              weekday: 'long',
-              month: 'short',
-              day: 'numeric',
-            }) : 'TBD'}
-          </Text>
-          <Text
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}
-          >
-            {(() => {
-              if (!event.startDate) return ''
+        {/* Date and Time - Multi-session support */}
+        {(() => {
+          const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
+            new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
+          );
 
-              const startTime = formatUtcToLocalTime(event.startDate, eventTimeZone).toLowerCase();
-              if (!event.endDate) return startTime
+          if (sessions.length === 0) {
+            return (
+              <Text style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: '14px',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                marginBottom: 'var(--space-xs)',
+              }}>
+                Date and Time coming soon
+              </Text>
+            );
+          }
 
-              const endTime = formatUtcToLocalTime(event.endDate, eventTimeZone).toLowerCase();
-              return `${startTime} - ${endTime}`
-            })()}
-          </Text>
-        </Group>
+          if (sessions.length === 1) {
+            const session = sessions[0];
+            return (
+              <Group justify="space-between" style={{ marginBottom: 'var(--space-xs)' }}>
+                <Text
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--color-burgundy)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--color-burgundy)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone).toLowerCase()}
+                </Text>
+              </Group>
+            );
+          }
+
+          // Multiple sessions
+          return (
+            <Stack gap={4} style={{ marginBottom: 'var(--space-xs)' }}>
+              {sessions.map((session: any, index: number) => (
+                <Group key={session.id || index} justify="space-between" style={{ marginBottom: index < sessions.length - 1 ? '4px' : '0' }}>
+                  <Text
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'var(--color-burgundy)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                      weekday: 'long',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'var(--color-burgundy)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone).toLowerCase()}
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          );
+        })()}
 
         <Text
           mb={{ base: 0, sm: 'var(--space-md)' }}

@@ -1893,3 +1893,203 @@ public Guid Id { get; set; }
 **Tags**: #critical #entity-framework #id-generation #email-triggers #technical-debt
 
 ---
+
+## 🚨 CRITICAL: Null Check Required for List Properties Before .Any() - NullReferenceException (2025-12-07)
+
+**Problem**: Adding ticket types in admin event details area failed with "failed to save" error. Ticket type briefly appeared (optimistic update) then disappeared (rollback).
+
+**Date Discovered**: December 7, 2025 during ticket type addition testing
+**Context**: Admin clicks "Add Ticket Type", fills form, clicks Save → 500 error
+
+**Root Cause**:
+- `UpdateEventTicketTypesAsync` called `.Any()` on `ticketTypeDto.SessionIdentifiers` without null check (line 841, 889)
+- Frontend sends partial update with only required fields: `{ id, ticketTypes: [...] }`
+- `SessionIdentifiers` property is nullable and was `null` in the request
+- `.Any()` throws `NullReferenceException` when called on `null` collection
+
+**Error Manifestation**:
+```
+User Action: Click "Add Ticket Type" → Fill form → Click Save
+Frontend: Optimistic update shows new ticket type
+Backend: NullReferenceException at line 841 (existing) or 889 (new)
+Response: 500 Internal Server Error
+Frontend: Error notification "failed to save", rollback removes ticket type
+```
+
+**Investigation Process**:
+1. ✅ Endpoint calling service method correctly (PUT /api/events/{id})
+2. ✅ Service executing `UpdateEventAsync` with request
+3. ✅ Request contained `TicketTypes` array with new ticket type
+4. ❌ `SessionIdentifiers` property was `null` (not required for ticket type save)
+5. ❌ Code called `.Any()` without checking for null first
+
+**Wrong Implementation**:
+```csharp
+// ❌ WRONG - NullReferenceException when SessionIdentifiers is null
+if (ticketTypeDto.SessionIdentifiers.Any())
+{
+    var linkedSessions = eventEntity.Sessions
+        .Where(s => ticketTypeDto.SessionIdentifiers.Contains(s.SessionCode))
+        .ToList();
+}
+```
+
+**Correct Implementation**:
+```csharp
+// ✅ CORRECT - Null check before .Any()
+if (ticketTypeDto.SessionIdentifiers != null && ticketTypeDto.SessionIdentifiers.Any())
+{
+    var linkedSessions = eventEntity.Sessions
+        .Where(s => ticketTypeDto.SessionIdentifiers.Contains(s.SessionCode))
+        .ToList();
+}
+```
+
+**Locations Fixed**:
+- Line 841: Update existing ticket type - session linkage
+- Line 889: Add new ticket type - session linkage
+
+**Why This Matters**:
+- Partial updates often send `null` for optional fields
+- List/collection properties can be `null` even if they're not nullable types in C#
+- `.Any()`, `.Contains()`, `.Count()` all throw NullReferenceException on `null` collections
+- Frontend sends minimal data for performance - backend must handle null values
+
+**Prevention Checklist**:
+1. ✅ **ALWAYS check for null** before calling LINQ methods on collections
+2. ✅ **Use pattern**: `collection != null && collection.Any()` NOT just `collection.Any()`
+3. ✅ **Test with partial updates** - verify null handling for optional fields
+4. ✅ **Apply to all LINQ operations**: `.Any()`, `.Contains()`, `.Where()`, `.Select()`, `.Count()`
+5. ✅ **Check both update and create paths** - null handling needed in both
+
+**Common LINQ Operations That Require Null Checks**:
+```csharp
+// ❌ WRONG - All throw NullReferenceException on null
+collection.Any()
+collection.Contains(value)
+collection.Where(predicate)
+collection.Select(selector)
+collection.Count()
+collection.First()
+collection.FirstOrDefault()
+
+// ✅ CORRECT - Safe null checks
+collection != null && collection.Any()
+collection != null && collection.Contains(value)
+collection?.Where(predicate) ?? Enumerable.Empty<T>()
+collection?.Select(selector) ?? Enumerable.Empty<T>()
+collection?.Count() ?? 0
+collection?.FirstOrDefault()
+```
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Events/Services/EventService.cs`
+  - Line 841: Added null check for existing ticket type session linkage
+  - Line 889: Added null check for new ticket type session linkage
+
+**Build Verification**:
+```bash
+cd /home/chad/repos/witchcityrope/apps/api
+dotnet build --no-restore
+# Result: Build succeeded. 0 Error(s), 110 Warning(s)
+```
+
+**Success Criteria**:
+- ✅ API builds with 0 errors
+- ✅ Adding ticket types succeeds without error
+- ✅ Ticket types persist to database
+- ✅ No NullReferenceException when SessionIdentifiers is null
+- ✅ Session linking works when SessionIdentifiers provided
+
+**Related Patterns**:
+- **Defensive Programming** (Part 2, lines 115-265): Verify data and handle edge cases
+- **Nullable Field Null Value Persistence** (Part 4, lines 239-365): Handling null values in partial updates
+- Similar to null checks required throughout codebase for navigation properties
+
+**Pattern**: When working with collection properties in partial updates, ALWAYS check for null before calling LINQ methods. Partial updates send only changed fields, leaving optional fields null.
+
+**Tags**: #critical #null-reference #linq #any-method #partial-updates #ticket-types #defensive-programming #collection-null-check
+
+---
+
+## 🚨 CRITICAL: EF Core Many-to-Many Relationship Updates - Use Differential Updates, NOT Clear() (2025-12-07)
+
+**Problem**: Using `collection.Clear()` followed by `collection.Add()` in many-to-many relationships causes "duplicate key value violates unique constraint" errors in the join table.
+
+**Date Discovered**: December 7, 2025 during ticket type session linkage updates
+**Error**: `Npgsql.PostgresException (0x80004005): 23505: duplicate key value violates unique constraint "PK_TicketTypeSessions"`
+**Location**: `/apps/api/Features/Events/Services/EventService.cs` - `UpdateEventTicketTypesAsync` method
+
+**Root Cause**:
+- EF Core batches operations and doesn't immediately execute `Clear()` on collections
+- When you call `Add()` after `Clear()`, EF tries to insert new records BEFORE deleting old ones
+- If any sessions are the same (re-adding existing links), it attempts to insert duplicates into the join table
+- PostgreSQL rejects the duplicate key violation in `TicketTypeSessions` (or any join table)
+
+**Wrong Implementation** (Causes Duplicate Key Errors):
+```csharp
+// ❌ WRONG - Clear() + Add() pattern causes duplicate key violations
+existingTicketType.Sessions.Clear();  // Batched for later
+if (ticketTypeDto.SessionIdentifiers != null && ticketTypeDto.SessionIdentifiers.Any())
+{
+    var linkedSessions = eventEntity.Sessions
+        .Where(s => ticketTypeDto.SessionIdentifiers.Contains(s.SessionCode))
+        .ToList();
+    foreach (var session in linkedSessions)
+    {
+        existingTicketType.Sessions.Add(session);  // Tries to insert before Clear() executes
+    }
+}
+// Result: 23505 duplicate key constraint violation in TicketTypeSessions
+```
+
+**Correct Implementation** (Differential Update):
+```csharp
+// ✅ CORRECT - Only remove/add what actually changed
+var currentSessionCodes = existingTicketType.Sessions.Select(s => s.SessionCode).ToHashSet();
+var newSessionCodes = (ticketTypeDto.SessionIdentifiers ?? Enumerable.Empty<string>()).ToHashSet();
+
+// Remove sessions that are no longer linked
+var sessionsToRemove = existingTicketType.Sessions
+    .Where(s => !newSessionCodes.Contains(s.SessionCode))
+    .ToList();
+foreach (var session in sessionsToRemove)
+{
+    existingTicketType.Sessions.Remove(session);
+}
+
+// Add new sessions that aren't already linked
+var sessionsToAdd = eventEntity.Sessions
+    .Where(s => newSessionCodes.Contains(s.SessionCode) && !currentSessionCodes.Contains(s.SessionCode))
+    .ToList();
+foreach (var session in sessionsToAdd)
+{
+    existingTicketType.Sessions.Add(session);
+}
+```
+
+**Why This Matters**:
+- **Clear() is NOT immediate**: EF Core queues operations for batch execution
+- **Order matters**: Insert attempts happen before delete execution in some cases
+- **Differential updates are safer**: Only change what needs changing
+- **Performance benefit**: Fewer database operations (don't delete/re-insert unchanged records)
+
+**Pattern**: For ALL many-to-many relationship updates in EF Core:
+1. **Build HashSets** of current and new identifiers for O(1) lookups
+2. **Calculate removals**: Items in current but not in new
+3. **Calculate additions**: Items in new but not in current
+4. **Execute individually**: Remove items first, then add items
+5. **Never use Clear()**: Unless you genuinely want to remove ALL items (rare)
+
+**Applies To**:
+- TicketType.Sessions (TicketTypeSessions join table)
+- Event.Organizers (EventOrganizers join table)
+- Any other many-to-many relationships in the codebase
+
+**Related Patterns**:
+- See `UpdateEventOrganizersAsync` method in same file for identical pattern
+- Same approach used successfully for organizer updates
+
+**Tags**: #critical #entity-framework #many-to-many #join-table #duplicate-key #postgresql #batch-operations #differential-update #collections
+
+---

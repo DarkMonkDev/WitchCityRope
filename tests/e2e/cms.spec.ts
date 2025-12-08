@@ -48,7 +48,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     console.log('✅ Logged in as admin successfully');
 
     // 2. Navigate to CMS page
-    await page.goto(`${baseUrl}/resources`);
+    await page.goto(`${baseUrl}/resources`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     console.log('✅ Navigated to /resources');
 
@@ -159,7 +159,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // 2. Navigate to CMS page
-    await page.goto(`${baseUrl}/private-lessons`);
+    await page.goto(`${baseUrl}/private-lessons`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // 3. Click edit
@@ -392,7 +392,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
 
   test('Performance: Save response time < 1 second', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
-    await page.goto(`${baseUrl}/resources`);
+    await page.goto(`${baseUrl}/resources`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Start editing
