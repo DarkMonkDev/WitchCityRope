@@ -11955,7 +11955,7 @@
             "type": "string",
             "nullable": true
           },
-          "notes": {
+          "venueInformation": {
             "type": "string",
             "nullable": true
           },
@@ -12151,6 +12151,10 @@
           },
           "canCancelTicket": {
             "type": "boolean"
+          },
+          "ticketPurchaseMessage": {
+            "type": "string",
+            "nullable": true
           },
           "rsvp": {
             "$ref": "#/components/schemas/RsvpDetailsDto"
@@ -15596,7 +15600,7 @@
             "type": "string",
             "nullable": true
           },
-          "notes": {
+          "venueInformation": {
             "type": "string",
             "nullable": true
           },
@@ -16155,7 +16159,7 @@
             "type": "string",
             "nullable": true
           },
-          "notes": {
+          "venueInformation": {
             "type": "string",
             "nullable": true
           },

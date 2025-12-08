@@ -537,61 +537,18 @@ export const EventDetailPage: React.FC = () => {
             if (hasVenueAccess && venue.directions) {
               // Full venue details for vetted users or participants
               return (
-                <ContentSection title="Venue Details">
-                  <Stack gap="md">
-                    <Box>
-                      <Text
-                        fw={600}
-                        size="sm"
-                        style={{
-                          fontFamily: 'var(--font-heading)',
-                          fontSize: '14px',
-                          color: 'var(--color-smoke)',
-                          marginBottom: 'var(--space-xs)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Venue
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)',
-                          lineHeight: 1.8,
-                          color: 'var(--color-charcoal)',
-                        }}
-                      >
-                        {venue.name}
-                      </Text>
-                    </Box>
-
-                    <Box>
-                      <Text
-                        fw={600}
-                        size="sm"
-                        style={{
-                          fontFamily: 'var(--font-heading)',
-                          fontSize: '14px',
-                          color: 'var(--color-smoke)',
-                          marginBottom: 'var(--space-xs)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Directions
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)',
-                          lineHeight: 1.8,
-                          color: 'var(--color-charcoal)',
-                          whiteSpace: 'pre-line',
-                        }}
-                      >
-                        {venue.directions}
-                      </Text>
-                    </Box>
-                  </Stack>
+                <ContentSection>
+                  <div className="html-content">
+                    <h2>{venue.name}</h2>
+                    <h3>Directions</h3>
+                    <p style={{ whiteSpace: 'pre-line' }}>{venue.directions}</p>
+                    {venue.venueInformation && (
+                      <>
+                        <h3>Venue Information</h3>
+                        <p style={{ whiteSpace: 'pre-line' }}>{venue.venueInformation}</p>
+                      </>
+                    )}
+                  </div>
                 </ContentSection>
               );
             } else if (!hasVenueAccess && (event as any)?.venueLocation) {

@@ -55,7 +55,7 @@ public class VenueSeeder
                 Name = "Main Studio",
                 Location = "Salem, MA",
                 Directions = "Enter through main entrance, studio is on the second floor. Elevator available. Street parking on Washington St.",
-                Notes = "Maximum capacity: 30 people. Please remove shoes before entering.",
+                VenueInformation = "Maximum capacity: 30 people. Please remove shoes before entering.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -65,7 +65,7 @@ public class VenueSeeder
                 Name = "Community Space",
                 Location = "Newton, MA",
                 Directions = "Located at 123 Salem Street, Salem MA. Use side entrance after 6pm. Free parking in rear lot.",
-                Notes = "Large open space suitable for social events and large classes. Capacity: 50 people.",
+                VenueInformation = "Large open space suitable for social events and large classes. Capacity: 50 people.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -75,7 +75,7 @@ public class VenueSeeder
                 Name = "Outdoor Space",
                 Location = "Providence, RI",
                 Directions = "Weather-dependent location will be announced via email 24 hours before event.",
-                Notes = "Backup indoor location: Main Studio. Bring sun protection and bug spray in summer months.",
+                VenueInformation = "Backup indoor location: Main Studio. Bring sun protection and bug spray in summer months.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow

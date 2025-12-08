@@ -30,11 +30,11 @@ public class Venue
     public string? Directions { get; set; }
 
     /// <summary>
-    /// Additional venue notes (capacity, parking, etc.) (optional)
+    /// Additional venue information for attendees (capacity, parking, amenities, etc.)
     /// Max length: 1000 characters
     /// </summary>
     [MaxLength(1000)]
-    public string? Notes { get; set; }
+    public string? VenueInformation { get; set; }
 
     /// <summary>
     /// General location information (city, state) for public display

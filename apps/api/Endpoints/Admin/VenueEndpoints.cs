@@ -53,7 +53,7 @@ public static class VenueEndpoints
                             Id = v.Id,
                             Name = v.Name,
                             Directions = v.Directions,
-                            Notes = v.Notes,
+                            VenueInformation = v.VenueInformation,
                             Location = v.Location,
                             IsActive = v.IsActive,
                             CreatedAt = v.CreatedAt,
@@ -115,7 +115,7 @@ public static class VenueEndpoints
                             Id = v.Id,
                             Name = v.Name,
                             Directions = v.Directions,
-                            Notes = v.Notes,
+                            VenueInformation = v.VenueInformation,
                             Location = v.Location,
                             IsActive = v.IsActive,
                             CreatedAt = v.CreatedAt,
@@ -177,7 +177,7 @@ public static class VenueEndpoints
                             Id = v.Id,
                             Name = v.Name,
                             Directions = v.Directions,
-                            Notes = v.Notes,
+                            VenueInformation = v.VenueInformation,
                             Location = v.Location,
                             IsActive = v.IsActive,
                             CreatedAt = v.CreatedAt,
@@ -264,11 +264,11 @@ public static class VenueEndpoints
                         statusCode: 400);
                 }
 
-                if (request.Notes?.Length > 1000)
+                if (request.VenueInformation?.Length > 1000)
                 {
                     return Results.Problem(
                         title: "Validation Failed",
-                        detail: "Notes must not exceed 1000 characters",
+                        detail: "VenueInformation must not exceed 1000 characters",
                         statusCode: 400);
                 }
 
@@ -291,7 +291,7 @@ public static class VenueEndpoints
                     {
                         Name = request.Name.Trim(),
                         Directions = string.IsNullOrWhiteSpace(request.Directions) ? null : request.Directions.Trim(),
-                        Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim(),
+                        VenueInformation = string.IsNullOrWhiteSpace(request.VenueInformation) ? null : request.VenueInformation.Trim(),
                         Location = string.IsNullOrWhiteSpace(request.Location) ? null : request.Location.Trim(),
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
@@ -306,7 +306,7 @@ public static class VenueEndpoints
                         Id = venue.Id,
                         Name = venue.Name,
                         Directions = venue.Directions,
-                        Notes = venue.Notes,
+                        VenueInformation = venue.VenueInformation,
                         Location = venue.Location,
                         IsActive = venue.IsActive,
                         CreatedAt = venue.CreatedAt,
@@ -385,11 +385,11 @@ public static class VenueEndpoints
                         statusCode: 400);
                 }
 
-                if (request.Notes?.Length > 1000)
+                if (request.VenueInformation?.Length > 1000)
                 {
                     return Results.Problem(
                         title: "Validation Failed",
-                        detail: "Notes must not exceed 1000 characters",
+                        detail: "VenueInformation must not exceed 1000 characters",
                         statusCode: 400);
                 }
 
@@ -420,7 +420,7 @@ public static class VenueEndpoints
                     // Update venue properties
                     venue.Name = request.Name.Trim();
                     venue.Directions = string.IsNullOrWhiteSpace(request.Directions) ? null : request.Directions.Trim();
-                    venue.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
+                    venue.VenueInformation = string.IsNullOrWhiteSpace(request.VenueInformation) ? null : request.VenueInformation.Trim();
                     venue.Location = string.IsNullOrWhiteSpace(request.Location) ? null : request.Location.Trim();
                     venue.IsActive = request.IsActive;
                     venue.UpdatedAt = DateTime.UtcNow;
@@ -432,7 +432,7 @@ public static class VenueEndpoints
                         Id = venue.Id,
                         Name = venue.Name,
                         Directions = venue.Directions,
-                        Notes = venue.Notes,
+                        VenueInformation = venue.VenueInformation,
                         Location = venue.Location,
                         IsActive = venue.IsActive,
                         CreatedAt = venue.CreatedAt,

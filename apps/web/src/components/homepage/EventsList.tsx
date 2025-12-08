@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Event } from '../../types/Event';
 import { EventDto } from '@witchcityrope/shared-types';
-import { EventCard } from './EventCard';
+import { PublicEventCard } from '../events/PublicEventCard';
 import { apiClient } from '../../lib/api/client';
 import { queryKeys } from '../../api/queryKeys';
 
@@ -215,9 +215,10 @@ export const EventsList: React.FC<EventsListProps> = ({
         }}
       >
         {displayEvents.map((event) => (
-          <EventCard
+          <PublicEventCard
             key={event.id}
             event={event}
+            variant="homepage"
             onClick={() => handleEventClick(event.id)}
           />
         ))}

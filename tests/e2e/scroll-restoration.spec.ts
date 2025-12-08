@@ -420,8 +420,8 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
       fullPage: false,
     })
 
-    // Verify mobile menu is visible
-    const mobileMenu = page.locator('#mobile-menu')
+    // Verify mobile menu is visible (Mantine Drawer)
+    const mobileMenu = page.locator('.mantine-Drawer-content')
     await expect(mobileMenu).toBeVisible()
 
     // Verify Events link is visible in mobile menu

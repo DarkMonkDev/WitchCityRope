@@ -52,15 +52,26 @@ export const paymentsService = {
   async purchaseTicket(request: CreateTicketPurchaseRequest): Promise<TicketPurchaseResponse> {
     debugLog('🔍 Purchasing ticket:', request);
 
+    // Debug: Log the exact ticketTypeId value
+    console.log('🎫 TICKET PURCHASE DEBUG:');
+    console.log('  - request.ticketTypeId:', request.ticketTypeId);
+    console.log('  - request.ticketTypeId type:', typeof request.ticketTypeId);
+    console.log('  - request.ticketTypeId is truthy:', !!request.ticketTypeId);
+    console.log('  - Full request object:', JSON.stringify(request, null, 2));
+
+    const requestBody = {
+      eventId: request.eventId,
+      ticketTypeId: request.ticketTypeId,
+      notes: request.notes,
+      paymentMethodId: request.paymentMethodId,
+      eventWaiverAccepted: request.eventWaiverAccepted
+    };
+
+    console.log('  - Request body to send:', JSON.stringify(requestBody, null, 2));
+
     const response = await apiClient.post<TicketPurchaseResponse>(
       `/api/events/${request.eventId}/tickets`,
-      {
-        eventId: request.eventId,
-        ticketTypeId: request.ticketTypeId,
-        notes: request.notes,
-        paymentMethodId: request.paymentMethodId,
-        eventWaiverAccepted: request.eventWaiverAccepted
-      }
+      requestBody
     );
 
     debugLog('✅ Ticket purchase response:', response.data);

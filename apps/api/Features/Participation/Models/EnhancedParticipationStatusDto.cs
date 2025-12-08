@@ -45,6 +45,13 @@ public class EnhancedParticipationStatusDto
     public bool CanCancelTicket { get; set; }
 
     /// <summary>
+    /// Message explaining when ticket purchase is available (e.g., "Sales open Dec 15", "Sales closed")
+    /// Only populated when CanPurchaseTicket is false due to timing restrictions
+    /// Null when CanPurchaseTicket is true or when user already has a ticket
+    /// </summary>
+    public string? TicketPurchaseMessage { get; set; }
+
+    /// <summary>
     /// RSVP details if user has an active RSVP, null otherwise
     /// </summary>
     public RsvpDetailsDto? Rsvp { get; set; }
@@ -58,6 +65,23 @@ public class EnhancedParticipationStatusDto
     /// Event capacity information
     /// </summary>
     public CapacityInfoDto? Capacity { get; set; }
+
+    /// <summary>
+    /// Session IDs the user already has tickets for
+    /// Used to prevent duplicate session purchases and show partial ownership
+    /// </summary>
+    public List<Guid> OwnedSessionIds { get; set; } = new();
+
+    /// <summary>
+    /// Whether user can purchase tickets for additional sessions
+    /// (has available sessions they don't own, within timing window)
+    /// </summary>
+    public bool CanPurchaseAdditionalSessions { get; set; }
+
+    /// <summary>
+    /// Per-session availability information (for multi-session events)
+    /// </summary>
+    public List<SessionAvailabilityDto> SessionAvailability { get; set; } = new();
 }
 
 /// <summary>
@@ -161,4 +185,50 @@ public class CapacityInfoDto
     /// Number of available spots (Total - Current)
     /// </summary>
     public int Available { get; set; }
+}
+
+/// <summary>
+/// Per-session availability information
+/// </summary>
+public class SessionAvailabilityDto
+{
+    /// <summary>
+    /// Session ID
+    /// </summary>
+    public Guid SessionId { get; set; }
+
+    /// <summary>
+    /// Session identifier (for matching with ticket types)
+    /// </summary>
+    public string SessionIdentifier { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Session name/description
+    /// </summary>
+    public string SessionName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Session start time (UTC)
+    /// </summary>
+    public DateTime StartTime { get; set; }
+
+    /// <summary>
+    /// Session end time (UTC)
+    /// </summary>
+    public DateTime EndTime { get; set; }
+
+    /// <summary>
+    /// Number of tickets sold for this session
+    /// </summary>
+    public int SoldCount { get; set; }
+
+    /// <summary>
+    /// Number of spots available for this session
+    /// </summary>
+    public int AvailableCount { get; set; }
+
+    /// <summary>
+    /// Maximum capacity for this session
+    /// </summary>
+    public int Capacity { get; set; }
 }

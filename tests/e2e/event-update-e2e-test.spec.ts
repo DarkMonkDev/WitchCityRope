@@ -14,9 +14,15 @@ test.describe('Event Update Flow E2E Testing', () => {
     expect(loginSuccess).toBeTruthy();
 
     // Get the first event ID from API for testing
-    const eventsResponse = await page.request.get(`${API_BASE_URL}/api/events`);
-    const eventsData = await eventsResponse.json();
-    eventId = eventsData.data[0].id;
+    // Use page.evaluate to fetch from browser context (relative URL works correctly)
+    eventId = await page.evaluate(async () => {
+      const response = await fetch('/api/events', { credentials: 'include' });
+      const events = await response.json();
+      return events[0]?.id;
+    });
+    if (!eventId) {
+      throw new Error('No events found in database');
+    }
     console.log(`Using event ID for testing: ${eventId}`);
   });
 

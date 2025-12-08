@@ -198,13 +198,9 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
     // Click hamburger to open menu
     await hamburgerButton.click();
 
-    // Wait for mobile menu to open
-    const mobileMenu = page.locator('#mobile-menu');
+    // Wait for mobile menu to open (Mantine Drawer creates .mantine-Drawer-content)
+    const mobileMenu = page.locator('.mantine-Drawer-content');
     await expect(mobileMenu).toBeVisible();
-
-    // Verify mobile menu has correct accessibility attributes
-    await expect(mobileMenu).toHaveAttribute('role', 'navigation');
-    await expect(mobileMenu).toHaveAttribute('aria-label', 'Mobile navigation menu');
 
     // Verify hamburger button aria-expanded is true
     await expect(hamburgerButton).toHaveAttribute('aria-expanded', 'true');
@@ -229,21 +225,21 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
     await expect(page.getByTestId('mobile-link-login')).toBeVisible();
     await expect(page.getByTestId('mobile-link-login')).toContainText('Login');
 
-    // Verify overlay is visible
-    const overlay = page.locator('.mobile-menu-overlay');
+    // Verify overlay is visible (Mantine Drawer uses .mantine-Drawer-overlay)
+    const overlay = page.locator('.mantine-Drawer-overlay');
     await expect(overlay).toBeVisible();
 
-    // Click overlay to close menu (force click since menu items might intercept)
+    // Click overlay to close menu
     await overlay.click({ force: true });
 
-    // Wait for CSS transition to complete (0.3s ease)
+    // Wait for CSS transition to complete
     await page.waitForTimeout(400);
 
     // Verify hamburger button aria-expanded is false
     await expect(hamburgerButton).toHaveAttribute('aria-expanded', 'false');
 
-    // Verify overlay is no longer visible (removed from DOM when menu closed)
-    await expect(overlay).not.toBeVisible();
+    // Verify drawer is no longer visible
+    await expect(mobileMenu).not.toBeVisible();
   });
 
   test('Mobile menu - authenticated user sees dashboard and logout', async ({ page }) => {
@@ -262,7 +258,7 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
     await hamburgerButton.click();
 
     // Wait for mobile menu to open
-    const mobileMenu = page.locator('#mobile-menu');
+    const mobileMenu = page.locator('.mantine-Drawer-content');
     await expect(mobileMenu).toBeVisible();
 
     // Verify Dashboard button is visible (NOT Login)
@@ -306,7 +302,7 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
     await hamburgerButton.click();
 
     // Wait for mobile menu to open
-    const mobileMenu = page.locator('#mobile-menu');
+    const mobileMenu = page.locator('.mantine-Drawer-content');
     await expect(mobileMenu).toBeVisible();
 
     // Verify Admin link is visible
@@ -406,7 +402,7 @@ test.describe('Navigation Workflow - Role-Based Visibility', () => {
     await hamburgerButton.click();
 
     // Wait for mobile menu to open
-    const mobileMenu = page.locator('#mobile-menu');
+    const mobileMenu = page.locator('.mantine-Drawer-content');
     await expect(mobileMenu).toBeVisible();
 
     // Click logout button

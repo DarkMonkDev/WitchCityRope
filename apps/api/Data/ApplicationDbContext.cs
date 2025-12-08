@@ -485,8 +485,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(v => v.Directions)
                   .HasMaxLength(500);
 
-            // Notes: optional, max 1000
-            entity.Property(v => v.Notes)
+            // VenueInformation: optional, max 1000
+            entity.Property(v => v.VenueInformation)
                   .HasMaxLength(1000);
 
             // Location: optional, max 100

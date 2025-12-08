@@ -694,6 +694,64 @@ export function generateUniqueTestEmail(prefix: string = 'test-user'): string {
 }
 
 // ============================================================================
+// SESSION HELPERS FOR CHECK-IN TESTS
+// ============================================================================
+
+/**
+ * Update session start time in database
+ * Used to set sessions within ±12h window for check-in modal testing
+ *
+ * @param sessionId Session ID to update
+ * @param newStartTime New start time (UTC)
+ * @returns Updated session data
+ */
+export async function updateSessionStartTime(
+  sessionId: string,
+  newStartTime: Date
+): Promise<{ id: string; startTime: Date; endTime: Date }> {
+  // Calculate end time as 3 hours after start
+  const endTime = new Date(newStartTime.getTime() + 3 * 60 * 60 * 1000);
+
+  const sql = `
+    UPDATE "Sessions"
+    SET "StartTime" = $2, "EndTime" = $3, "UpdatedAt" = NOW()
+    WHERE "Id" = $1
+    RETURNING "Id" as id, "StartTime" as "startTime", "EndTime" as "endTime"
+  `;
+
+  const rows = await query<{ id: string; startTime: Date; endTime: Date }>(sql, [
+    sessionId,
+    newStartTime.toISOString(),
+    endTime.toISOString()
+  ]);
+
+  if (rows.length === 0) {
+    throw new Error(`Session not found: ${sessionId}`);
+  }
+
+  console.log(`✅ Updated session ${sessionId} startTime to ${newStartTime.toISOString()}`);
+  return rows[0];
+}
+
+/**
+ * Get sessions for an event
+ * @param eventId Event ID
+ * @returns Array of sessions with id, name, startTime
+ */
+export async function getEventSessions(
+  eventId: string
+): Promise<Array<{ id: string; name: string; startTime: Date }>> {
+  const sql = `
+    SELECT "Id" as id, "Name" as name, "StartTime" as "startTime"
+    FROM "Sessions"
+    WHERE "EventId" = $1
+    ORDER BY "StartTime"
+  `;
+
+  return query<{ id: string; name: string; startTime: Date }>(sql, [eventId]);
+}
+
+// ============================================================================
 // CLEANUP HELPERS FOR TESTS
 // ============================================================================
 
@@ -745,5 +803,7 @@ export const DatabaseHelpers = {
   cleanupTestData,
   cleanupTestUser,
   closeDatabaseConnections,
-  getParticipationTypeName, // Export new helper
+  getParticipationTypeName,
+  updateSessionStartTime, // Session helper for check-in tests
+  getEventSessions, // Session helper for check-in tests
 };

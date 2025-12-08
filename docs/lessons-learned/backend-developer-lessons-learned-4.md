@@ -2093,3 +2093,131 @@ foreach (var session in sessionsToAdd)
 **Tags**: #critical #entity-framework #many-to-many #join-table #duplicate-key #postgresql #batch-operations #differential-update #collections
 
 ---
+
+## 🚨 CRITICAL: Event Filtering Must Use Session Times, Not Event.StartDate (2025-12-07)
+
+**Problem**: Event filtering was using `Event.StartDate` field to determine if events are "past" or "future", causing events with upcoming sessions to be hidden when `Event.StartDate` becomes stale.
+
+**Date Discovered**: December 7, 2025 during event timing investigation
+**Context**: Events named "Timing Test - 300hr Close", "Timing Test - 6hr Close", "Timing Test - 48hr Close" had:
+- Event.StartDate = 2025-12-07 18:00:00 UTC (IN THE PAST)
+- Session.StartTime = 2025-12-08 23:30:00 UTC (IN THE FUTURE)
+- Result: Events were hidden from public view despite having upcoming sessions
+
+**Root Cause**:
+- Event.StartDate is a denormalized/cached field that can become stale
+- Events are multi-session entities - sessions are the source of truth for timing
+- Filtering logic was checking `e.StartDate > DateTime.UtcNow` instead of checking session times
+- An event should be "upcoming" if it has ANY session with `StartTime > DateTime.UtcNow`
+- An event should be "past" only if ALL sessions have `EndTime < DateTime.UtcNow`
+
+**Why This is Critical**:
+- Events with future sessions disappear from public view prematurely
+- Users can't register for events that are still open
+- Breaks user expectations ("Why is this event hidden when registration is still open?")
+- StartDate is unreliable as a filter criterion for multi-session events
+- Sessions are the single source of truth for event timing
+
+**Wrong Implementation** (StartDate-based filtering):
+```csharp
+// ❌ WRONG - Uses stale Event.StartDate field
+// Default: Only published future events
+query = query.Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow);
+
+// Result: Events with past StartDate but future sessions are hidden
+// Example: StartDate = Dec 7 (past), Session.StartTime = Dec 8 (future) → HIDDEN
+```
+
+**Correct Implementation** (Session-based filtering):
+```csharp
+// ✅ CORRECT - Uses actual session times as source of truth
+var now = DateTime.UtcNow;
+
+// Default: Only published future events
+// An event is "future" if it has ANY session with StartTime > now
+// An event is "past" only if ALL sessions have ended (EndTime < now)
+query = query.Where(e => e.IsPublished && (
+    e.Sessions.Any(s => s.StartTime > now) || // Has at least one upcoming session
+    (!e.Sessions.Any() && e.StartDate > now))); // Fallback: no sessions but StartDate is future
+```
+
+**Complete Fix Pattern** (All three filter modes):
+```csharp
+var now = DateTime.UtcNow;
+
+if (includeUnpublished)
+{
+    // Admin access: Show all events (both published and draft), including future and past
+    // Filter based on sessions: show events with sessions in last 30 days OR with future sessions
+    query = query.Where(e =>
+        e.Sessions.Any(s => s.EndTime > now.AddDays(-30)) || // Has session that ended within last 30 days
+        e.Sessions.Any(s => s.StartTime > now) || // Has upcoming session
+        e.StartDate > now.AddDays(-30)); // Fallback to StartDate for events without sessions
+}
+else
+{
+    // Public access: Only published events
+    if (includePastEvents)
+    {
+        // Show published events including past ones (last 90 days)
+        // Filter based on sessions: show events with sessions in last 90 days OR with future sessions
+        query = query.Where(e => e.IsPublished && (
+            e.Sessions.Any(s => s.EndTime > now.AddDays(-90)) || // Has session that ended within last 90 days
+            e.Sessions.Any(s => s.StartTime > now) || // Has upcoming session
+            e.StartDate > now.AddDays(-90))); // Fallback to StartDate for events without sessions
+    }
+    else
+    {
+        // Default: Only published future events
+        // An event is "future" if it has ANY session with StartTime > now
+        // An event is "past" only if ALL sessions have ended (EndTime < now)
+        query = query.Where(e => e.IsPublished && (
+            e.Sessions.Any(s => s.StartTime > now) || // Has at least one upcoming session
+            (!e.Sessions.Any() && e.StartDate > now))); // Fallback: no sessions but StartDate is future
+    }
+}
+```
+
+**Why Sessions Are Source of Truth**:
+1. **Session.StartTime/EndTime are set by users** during event creation/editing
+2. **Event.StartDate is calculated/cached** and can become stale if sessions change
+3. **Multi-session events** have multiple start/end times - which StartDate to use?
+4. **Business logic uses session times** for registration windows, capacity, etc.
+5. **Timing windows are session-relative** (e.g., "24 hours before session start")
+
+**Fallback Logic**:
+- For events WITHOUT sessions: Use `Event.StartDate` as fallback
+- This handles edge cases where events are being created/edited
+- Most production events will have sessions, making this rare
+
+**Location of Fix**:
+- File: `/home/chad/repos/witchcityrope/apps/api/Features/Events/Services/EventService.cs`
+- Method: `GetEventsAsync`
+- Lines: ~72-105 (filter application logic)
+
+**Testing Verification**:
+After fix, events with:
+- Past Event.StartDate (Dec 7 18:00 UTC)
+- Future Session.StartTime (Dec 8 23:30 UTC)
+
+Should appear on `/events` page WITHOUT requiring "Show Past Events" toggle.
+
+**Performance Note**:
+- Session filtering requires loading Sessions navigation property (already done via `.Include(e => e.Sessions)` at line 58)
+- No additional database queries needed
+- Filtering happens in-database via EF Core query translation
+
+**Pattern**: For ALL event time-based queries:
+1. **PRIMARY**: Check session times (`Sessions.Any(s => s.StartTime > now)`)
+2. **FALLBACK**: Check Event.StartDate only for events without sessions
+3. **NEVER**: Filter solely on Event.StartDate for multi-session events
+4. **REMEMBER**: Sessions are the single source of truth for event timing
+
+**Related Code**:
+- RecalculateEventStartDate/EndDate methods (lines 654-716) update Event.StartDate based on sessions
+- These should be called after session changes to keep StartDate in sync
+- But filtering should still use sessions as primary criterion
+
+**Tags**: #critical #event-filtering #session-timing #startdate #multi-session-events #source-of-truth #linq #entity-framework #business-logic
+
+---

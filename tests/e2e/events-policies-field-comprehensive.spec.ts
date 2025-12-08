@@ -197,15 +197,12 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       }, eventId);
       expect(apiResponse.ok).toBe(true);
 
-      const apiData = apiResponse.data;
-
-      // Validate ApiResponse<EventDto> wrapper format
-      expect(apiData.success).toBe(true);
-      expect(apiData.error).toBeNull();
-      expect(apiData.data).not.toBeNull();
+      // API returns event object directly (not wrapped)
+      const eventData = apiResponse.data;
+      expect(eventData).not.toBeNull();
 
       // Check policies field in API response
-      const policiesInAPI = apiData.data.policies;
+      const policiesInAPI = eventData.policies;
       console.log(`API policies value: "${policiesInAPI}"`);
       expect(policiesInAPI).toBe(TEST_POLICIES);
       console.log('✅ API correctly saved policies value');
@@ -344,23 +341,17 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       }, eventId);
       expect(apiResponse.ok).toBe(true);
 
-      const apiData = apiResponse.data;
-      console.log('📡 API response structure:');
-      console.log(`  - success: ${apiData.success}`);
-      console.log(`  - data: ${apiData.data ? 'present' : 'null'}`);
-      console.log(`  - error: ${apiData.error}`);
-
-      // Validate ApiResponse<EventDto> wrapper
-      expect(apiData.success).toBe(true);
-      expect(apiData.error).toBeNull();
-      expect(apiData.data).not.toBeNull();
+      // API returns event object directly (not wrapped)
+      const eventData = apiResponse.data;
+      console.log('📡 API response - event data present:', !!eventData);
+      expect(eventData).not.toBeNull();
 
       // Check policies field exists in API response
-      const hasPoliciesField = 'policies' in apiData.data;
+      const hasPoliciesField = 'policies' in eventData;
       console.log(`  - policies field present: ${hasPoliciesField}`);
 
       if (hasPoliciesField) {
-        console.log(`  - policies value: "${apiData.data.policies || 'NULL'}"`);
+        console.log(`  - policies value: "${eventData.policies || 'NULL'}"`);
       }
 
       // Verify UI displays policies field
@@ -387,7 +378,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log(`  - UI displayed value: "${displayedValue || 'EMPTY'}"`);
 
       // Verify API value matches UI display
-      const policiesInAPI = apiData.data.policies || '';
+      const policiesInAPI = eventData.policies || '';
       if (policiesInAPI && displayedValue) {
         // Both have values - check if they match
         expect(displayedValue).toContain(policiesInAPI);

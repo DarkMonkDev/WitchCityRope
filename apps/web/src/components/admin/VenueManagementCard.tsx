@@ -25,7 +25,7 @@ interface VenueFormValues {
   name: string;
   location: string;
   directions: string;
-  notes: string;
+  venueInformation: string;
 }
 
 /**
@@ -47,7 +47,7 @@ export const VenueManagementCard: React.FC = () => {
       name: '',
       location: '',
       directions: '',
-      notes: '',
+      venueInformation: '',
     },
     validate: {
       name: (value) => (!value?.trim() ? 'Venue name is required' : null),
@@ -159,7 +159,7 @@ export const VenueManagementCard: React.FC = () => {
     if (value === 'add-new') {
       // Blank form for creating new venue
       form.reset();
-      form.setValues({ name: '', location: '', directions: '', notes: '' });
+      form.setValues({ name: '', location: '', directions: '', venueInformation: '' });
     } else if (value && value !== '') {
       // Load existing venue data
       const venue = venues?.find((v) => v.id!.toString() === value);
@@ -168,7 +168,7 @@ export const VenueManagementCard: React.FC = () => {
           name: venue.name || '',
           location: venue.location || '',
           directions: venue.directions || '',
-          notes: venue.notes || '',
+          venueInformation: venue.venueInformation || '',
         });
       }
     } else {
@@ -189,7 +189,7 @@ export const VenueManagementCard: React.FC = () => {
         name: form.values.name.trim(),
         location: form.values.location.trim() || null,
         directions: form.values.directions.trim() || null,
-        notes: form.values.notes.trim() || null,
+        venueInformation: form.values.venueInformation.trim() || null,
       });
     } else if (isEditMode && selectedVenueId) {
       updateMutation.mutate({
@@ -198,7 +198,7 @@ export const VenueManagementCard: React.FC = () => {
           name: form.values.name.trim(),
           location: form.values.location.trim() || null,
           directions: form.values.directions.trim() || null,
-          notes: form.values.notes.trim() || null,
+          venueInformation: form.values.venueInformation.trim() || null,
           isActive: true, // Always true when updating
         },
       });
@@ -436,7 +436,7 @@ export const VenueManagementCard: React.FC = () => {
                     />
                   </Box>
 
-                  {/* Notes */}
+                  {/* Venue Information */}
                   <Box>
                     <Text
                       component="label"
@@ -451,12 +451,12 @@ export const VenueManagementCard: React.FC = () => {
                         letterSpacing: '0.5px',
                       }}
                     >
-                      Notes
+                      Venue Information
                     </Text>
                     <Textarea
-                      data-testid="venue-notes-input"
-                      {...form.getInputProps('notes')}
-                      placeholder="Enter additional notes"
+                      data-testid="venue-information-input"
+                      {...form.getInputProps('venueInformation')}
+                      placeholder="Enter venue information (capacity, parking, amenities, etc.)"
                       rows={4}
                       maxLength={1000}
                       styles={{

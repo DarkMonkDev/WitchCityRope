@@ -153,6 +153,9 @@ test.describe('Check-In Token Validation', () => {
     // Clear cookies to simulate kiosk mode
     await page.context().clearCookies();
 
+    // Navigate to establish base URL for fetch calls
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+
     // Use a fake event ID (invalid format returns 400 Bad Request)
     const fakeEventId = 'fake-event-id-12345';
 
@@ -267,6 +270,9 @@ test.describe('Check-In Token Validation', () => {
 
     // Clear cookies to simulate kiosk mode
     await page.context().clearCookies();
+
+    // Navigate to establish base URL for fetch calls
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Verify API calls with expired token fail
     // Use page.evaluate() for container compatibility

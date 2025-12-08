@@ -2,6 +2,7 @@
 // Handles all CMS-related API calls
 
 import type { ContentPageDto, UpdateContentPageRequest, ContentRevisionDto, CmsPageSummaryDto } from './types'
+import { getCSRFToken } from '../../hooks/useCSRFToken'
 
 const API_BASE_URL = '/api/cms'
 
@@ -32,12 +33,20 @@ export const updateCmsPage = async (
   id: number,
   data: UpdateContentPageRequest
 ): Promise<ContentPageDto> => {
+  const csrfToken = getCSRFToken()
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+
+  if (csrfToken) {
+    headers['X-CSRF-TOKEN'] = csrfToken
+  }
+
   const response = await fetch(`${API_BASE_URL}/pages/${id}`, {
     method: 'PUT',
     credentials: 'include', // Include httpOnly cookies for authentication
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(data),
   })
 
@@ -50,7 +59,8 @@ export const updateCmsPage = async (
     }
     if (response.status === 400) {
       const errorData = await response.json()
-      throw new Error(errorData.message || 'Validation failed')
+      // Handle both { error: "..." } and { title: "...", detail: "..." } formats
+      throw new Error(errorData.error || errorData.detail || errorData.message || 'Validation failed')
     }
     throw new Error(`Failed to update page: ${response.statusText}`)
   }

@@ -100,6 +100,12 @@ public class EventAttendance
     public Guid? TicketPurchaseId { get; set; }
 
     /// <summary>
+    /// Session the user is attending (NULL for single-session events or legacy data)
+    /// For multi-session tickets, multiple EventAttendance records are created.
+    /// </summary>
+    public Guid? SessionId { get; set; }
+
+    /// <summary>
     /// When the attendance was created (UTC)
     /// CRITICAL: UTC for PostgreSQL timestamptz compatibility
     /// </summary>
@@ -183,6 +189,11 @@ public class EventAttendance
     /// Navigation property to payment transaction
     /// </summary>
     public TicketPurchase? TicketPurchase { get; set; }
+
+    /// <summary>
+    /// Navigation property to session
+    /// </summary>
+    public Session? Session { get; set; }
 
     /// <summary>
     /// Navigation property to attendance history records

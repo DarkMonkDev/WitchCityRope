@@ -10,13 +10,15 @@
  * - Token embedded in URL: /events/{eventId}/checkin?token={token}&event={eventId}
  *
  * IMPORTANT: Tests should clear cookies to simulate kiosk mode (no user auth)
+ *
+ * CONTAINER COMPATIBILITY:
+ * - All API calls use page.evaluate() with relative URLs
+ * - This ensures compatibility with Docker test containers
+ * - DO NOT use hardcoded localhost URLs
  */
 
 import { Page } from '@playwright/test';
-
-// Environment-aware URLs for container/host compatibility
-const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
-const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
+import { AuthHelpers } from '../../test-utils/helpers/auth.helpers';
 
 /**
  * Login as Administrator to generate tokens
@@ -26,9 +28,47 @@ const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
  * DO NOT duplicate login logic - always use AuthHelpers.loginAs as the source of truth.
  */
 export async function loginAsAdmin(page: Page) {
-  // Import AuthHelpers dynamically to avoid circular dependency issues
-  const { AuthHelpers } = await import('../../test-utils/helpers/auth.helpers');
   await AuthHelpers.loginAs(page, 'admin');
+}
+
+/**
+ * Get sessions for an event via API
+ *
+ * @param page - Playwright page (no auth required for public endpoint)
+ * @param eventId - Event ID to get sessions for
+ * @returns Array of session objects with id, name, startTime
+ *
+ * CONTAINER COMPATIBLE: Uses page.evaluate() with relative URLs
+ */
+export async function getEventSessions(
+  page: Page,
+  eventId: string
+): Promise<Array<{ id: string; name: string; startTime: string }>> {
+  // Ensure page has a URL for fetch context
+  const currentUrl = page.url();
+  if (!currentUrl || currentUrl === 'about:blank') {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+  }
+
+  const result = await page.evaluate(async (evtId: string) => {
+    const response = await fetch(`/api/events/${evtId}/sessions`, {
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      return { success: false, error: `${response.status} ${text}`, sessions: [] };
+    }
+
+    const data = await response.json();
+    return { success: true, sessions: data };
+  }, eventId);
+
+  if (!result.success) {
+    throw new Error(`Failed to fetch sessions: ${result.error}`);
+  }
+
+  return result.sessions;
 }
 
 /**
@@ -36,34 +76,64 @@ export async function loginAsAdmin(page: Page) {
  *
  * @param page - Playwright page with admin authentication cookie
  * @param eventId - Event ID to generate token for
+ * @param sessionId - Session ID to generate token for (optional - will fetch first session if not provided)
  * @param expiresInHours - Optional expiration time (default 12 hours)
  * @returns The generated session token string
  *
  * API Endpoint: POST /api/checkin/session-tokens/generate
  * Requires: Administrator or EventOrganizer authentication
  *
- * CRITICAL: Use page.context().request to share authentication cookies
- * page.request does NOT include cookies from the browser context
+ * CONTAINER COMPATIBLE: Uses page.evaluate() with relative URLs
  */
 export async function generateSessionToken(
   page: Page,
   eventId: string,
-  expiresInHours: number = 12
+  sessionIdOrExpiration?: string | number,
+  expiresInHours?: number
 ): Promise<string> {
-  // Use context().request to share authentication cookies with API calls
-  const response = await page.context().request.post(
-    `${API_BASE_URL}/api/checkin/session-tokens/generate`,
-    {
-      data: { eventId, expirationHours: expiresInHours }
-    }
-  );
+  // Handle overloaded parameters
+  let sessionId: string | undefined;
+  let expiration: number = 12;
 
-  if (!response.ok()) {
-    throw new Error(`Failed to generate token: ${response.status()} ${await response.text()}`);
+  if (typeof sessionIdOrExpiration === 'string') {
+    sessionId = sessionIdOrExpiration;
+    expiration = expiresInHours ?? 12;
+  } else if (typeof sessionIdOrExpiration === 'number') {
+    expiration = sessionIdOrExpiration;
   }
 
-  const data = await response.json();
-  return data.token;
+  // If no sessionId provided, fetch the first session for this event
+  if (!sessionId) {
+    const sessions = await getEventSessions(page, eventId);
+    if (sessions.length === 0) {
+      throw new Error(`No sessions found for event ${eventId}`);
+    }
+    sessionId = sessions[0].id;
+  }
+
+  // Use page.evaluate() for container compatibility - runs fetch in browser context
+  const result = await page.evaluate(async (params: { eventId: string; sessionId: string; expirationHours: number }) => {
+    const response = await fetch('/api/checkin/session-tokens/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Include auth cookies
+      body: JSON.stringify(params)
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      return { success: false, error: `${response.status} ${text}` };
+    }
+
+    const data = await response.json();
+    return { success: true, token: data.token };
+  }, { eventId, sessionId, expirationHours: expiration });
+
+  if (!result.success) {
+    throw new Error(`Failed to generate token: ${result.error}`);
+  }
+
+  return result.token!;
 }
 
 /**
@@ -75,19 +145,28 @@ export async function generateSessionToken(
  * API Endpoint: POST /api/checkin/session-tokens/revoke
  * Requires: Administrator or EventOrganizer authentication
  *
- * CRITICAL: Use page.context().request to share authentication cookies
+ * CONTAINER COMPATIBLE: Uses page.evaluate() with relative URLs
  */
 export async function revokeSessionToken(page: Page, token: string): Promise<void> {
-  // Use context().request to share authentication cookies with API calls
-  const response = await page.context().request.post(
-    `${API_BASE_URL}/api/checkin/session-tokens/revoke`,
-    {
-      data: { token }
-    }
-  );
+  // Use page.evaluate() for container compatibility - runs fetch in browser context
+  const result = await page.evaluate(async (tokenToRevoke: string) => {
+    const response = await fetch('/api/checkin/session-tokens/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Include auth cookies
+      body: JSON.stringify({ token: tokenToRevoke })
+    });
 
-  if (!response.ok()) {
-    throw new Error(`Failed to revoke token: ${response.status()} ${await response.text()}`);
+    if (!response.ok) {
+      const text = await response.text();
+      return { success: false, error: `${response.status} ${text}` };
+    }
+
+    return { success: true };
+  }, token);
+
+  if (!result.success) {
+    throw new Error(`Failed to revoke token: ${result.error}`);
   }
 }
 
@@ -97,23 +176,42 @@ export async function revokeSessionToken(page: Page, token: string): Promise<voi
  *
  * @param page - Playwright page (no auth required for public events endpoint)
  * @returns Event ID string
+ *
+ * CONTAINER COMPATIBLE: Navigates to base URL first, then uses page.evaluate()
+ * This ensures the browser has a valid origin for relative fetch calls.
  */
 export async function getTestEventId(page: Page): Promise<string> {
-  // Use context().request for consistency (public endpoint, no auth needed)
-  const response = await page.context().request.get(`${API_BASE_URL}/api/events`);
-
-  if (!response.ok()) {
-    throw new Error(`Failed to fetch events: ${response.status()} ${await response.text()}`);
+  // CRITICAL: Navigate to root first to establish base URL for fetch calls
+  // Without this, page.evaluate() with relative URLs fails in beforeAll hooks
+  const currentUrl = page.url();
+  if (!currentUrl || currentUrl === 'about:blank') {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
   }
 
-  const data = await response.json();
+  // Use page.evaluate() for container compatibility - runs fetch in browser context
+  const result = await page.evaluate(async () => {
+    const response = await fetch('/api/events', { credentials: 'include' });
 
-  // API returns raw array, not wrapped in { success, data }
-  if (Array.isArray(data) && data.length > 0) {
-    return data[0].id;
+    if (!response.ok) {
+      const text = await response.text();
+      return { success: false, error: `${response.status} ${text}` };
+    }
+
+    const data = await response.json();
+
+    // API returns raw array, not wrapped in { success, data }
+    if (Array.isArray(data) && data.length > 0) {
+      return { success: true, eventId: data[0].id };
+    }
+
+    return { success: false, error: 'No test events found' };
+  });
+
+  if (!result.success) {
+    throw new Error(`Failed to fetch events: ${result.error}`);
   }
 
-  throw new Error('No test events found. Please seed test data.');
+  return result.eventId!;
 }
 
 /**
@@ -128,8 +226,9 @@ export async function getTestEventId(page: Page): Promise<string> {
  */
 export async function navigateToCheckIn(page: Page, eventId: string, token: string) {
   // Use relative URL for container compatibility (baseURL from playwright.config.ts)
-  await page.goto(`/events/${eventId}/checkin?token=${token}&event=${eventId}`);
-  await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded, not networkidle
+  await page.goto(`/events/${eventId}/checkin?token=${token}&event=${eventId}`, {
+    waitUntil: 'domcontentloaded'
+  });
 }
 
 /**
@@ -144,8 +243,9 @@ export async function navigateToCheckIn(page: Page, eventId: string, token: stri
  */
 export async function navigateToCheckInDashboard(page: Page, eventId: string, token: string) {
   // Use relative URL for container compatibility (baseURL from playwright.config.ts)
-  await page.goto(`/events/${eventId}/checkin/dashboard?token=${token}&event=${eventId}`);
-  await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded, not networkidle
+  await page.goto(`/events/${eventId}/checkin/dashboard?token=${token}&event=${eventId}`, {
+    waitUntil: 'domcontentloaded'
+  });
 }
 
 /**
@@ -154,21 +254,28 @@ export async function navigateToCheckInDashboard(page: Page, eventId: string, to
  * @param page - Playwright page
  * @param eventId - Event ID
  * @param sessionToken - Check-in session token
- * @returns Attendees data from API response
+ * @returns Attendees data from API response, or null if failed
+ *
+ * CONTAINER COMPATIBLE: Uses page.evaluate() with relative URLs
  */
 export async function getAttendees(page: Page, eventId: string, sessionToken: string) {
-  // Use context().request for consistency (uses token, not cookies)
-  const response = await page.context().request.get(
-    `${API_BASE_URL}/api/checkin/events/${eventId}/attendees`,
-    {
+  // Use page.evaluate() for container compatibility - runs fetch in browser context
+  const result = await page.evaluate(async (params: { eventId: string; token: string }) => {
+    const response = await fetch(`/api/checkin/events/${params.eventId}/attendees`, {
       headers: {
-        'X-CheckIn-Token': sessionToken
+        'X-CheckIn-Token': params.token
       }
-    }
-  );
+    });
 
-  const data = await response.json();
-  return response.ok() ? data : null;
+    if (!response.ok) {
+      return { success: false, data: null };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  }, { eventId, token: sessionToken });
+
+  return result.success ? result.data : null;
 }
 
 /**
@@ -177,19 +284,26 @@ export async function getAttendees(page: Page, eventId: string, sessionToken: st
  * @param page - Playwright page
  * @param eventId - Event ID
  * @param sessionToken - Check-in session token
- * @returns Dashboard data from API response
+ * @returns Dashboard data from API response, or null if failed
+ *
+ * CONTAINER COMPATIBLE: Uses page.evaluate() with relative URLs
  */
 export async function getDashboardData(page: Page, eventId: string, sessionToken: string) {
-  // Use context().request for consistency (uses token, not cookies)
-  const response = await page.context().request.get(
-    `${API_BASE_URL}/api/checkin/events/${eventId}/dashboard`,
-    {
+  // Use page.evaluate() for container compatibility - runs fetch in browser context
+  const result = await page.evaluate(async (params: { eventId: string; token: string }) => {
+    const response = await fetch(`/api/checkin/events/${params.eventId}/dashboard`, {
       headers: {
-        'X-CheckIn-Token': sessionToken
+        'X-CheckIn-Token': params.token
       }
-    }
-  );
+    });
 
-  const data = await response.json();
-  return response.ok() ? data : null;
+    if (!response.ok) {
+      return { success: false, data: null };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  }, { eventId, token: sessionToken });
+
+  return result.success ? result.data : null;
 }

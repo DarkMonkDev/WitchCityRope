@@ -73,11 +73,16 @@ public class MemberDetailsService : IMemberDetailsService
                 .FirstOrDefaultAsync(cancellationToken);
 
             // FutureEvents: Active registrations where event hasn't started yet
+            // CRITICAL: Filter based on sessions - event is "future" if it has ANY session with StartTime > now
+            var now = DateTime.UtcNow;
             var futureEvents = await _context.EventAttendances
                 .AsNoTracking()
+                .Include(ep => ep.Event)
+                    .ThenInclude(e => e.Sessions) // Load sessions for session-based filtering
                 .Where(ep => ep.UserId == userId
                           && ep.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
-                          && ep.Event.StartDate > DateTime.UtcNow)
+                          && (ep.Event.Sessions.Any(s => s.StartTime > now) ||
+                              (!ep.Event.Sessions.Any() && ep.Event.StartDate > now)))
                 .CountAsync(cancellationToken);
 
             // TotalPastEventsRegistered: ALL registrations (any status) for past events

@@ -26,7 +26,6 @@ public class VenueService : IVenueService
     public async Task<VenueDto?> GetPublicVenueAsync(int id, CancellationToken cancellationToken = default)
     {
         // Only return active venues to public
-        // Notes field excluded for public endpoints
         var venue = await _dbContext.Venues
             .Where(v => v.Id == id && v.IsActive)
             .Select(v => new VenueDto
@@ -35,7 +34,7 @@ public class VenueService : IVenueService
                 Name = v.Name,
                 Directions = v.Directions,
                 Location = v.Location,
-                Notes = null, // Don't expose internal notes to public
+                VenueInformation = v.VenueInformation,
                 IsActive = v.IsActive,
                 CreatedAt = v.CreatedAt,
                 UpdatedAt = v.UpdatedAt
@@ -53,7 +52,6 @@ public class VenueService : IVenueService
     public async Task<List<VenueDto>> GetPublicVenuesAsync(CancellationToken cancellationToken = default)
     {
         // Only return active venues to public
-        // Notes field excluded for public endpoints
         var venues = await _dbContext.Venues
             .Where(v => v.IsActive)
             .OrderBy(v => v.Name)
@@ -63,7 +61,7 @@ public class VenueService : IVenueService
                 Name = v.Name,
                 Directions = v.Directions,
                 Location = v.Location,
-                Notes = null, // Don't expose internal notes to public
+                VenueInformation = v.VenueInformation,
                 IsActive = v.IsActive,
                 CreatedAt = v.CreatedAt,
                 UpdatedAt = v.UpdatedAt

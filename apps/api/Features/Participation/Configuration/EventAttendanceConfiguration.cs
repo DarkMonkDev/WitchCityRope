@@ -95,6 +95,13 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
                .HasForeignKey(e => e.TicketPurchaseId)
                .OnDelete(DeleteBehavior.Cascade);
 
+        // Session relationship (nullable for backward compatibility)
+        builder.HasOne(e => e.Session)
+               .WithMany()
+               .HasForeignKey(e => e.SessionId)
+               .OnDelete(DeleteBehavior.Cascade)
+               .IsRequired(false);
+
         // One-to-many relationship with AttendanceHistory
         builder.HasMany(e => e.History)
                .WithOne(h => h.Attendance)
@@ -113,6 +120,16 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
 
         builder.HasIndex(e => e.TicketPurchaseId)
                .HasDatabaseName("IX_EventAttendances_TicketPurchaseId");
+
+        // Session indexes for performance
+        builder.HasIndex(e => e.SessionId)
+               .HasDatabaseName("IX_EventAttendances_SessionId");
+
+        builder.HasIndex(e => new { e.UserId, e.SessionId, e.Status })
+               .HasDatabaseName("IX_EventAttendances_UserId_SessionId_Status");
+
+        builder.HasIndex(e => new { e.SessionId, e.Status, e.AttendanceType })
+               .HasDatabaseName("IX_EventAttendances_SessionId_Status_AttendanceType");
 
         // GIN index for JSONB metadata
         builder.HasIndex(e => e.Metadata)

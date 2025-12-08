@@ -4275,6 +4275,7 @@ export interface components {
             rsvp?: components["schemas"]["RsvpDetailsDto"];
             ticket?: components["schemas"]["TicketDetailsDto"];
             capacity?: components["schemas"]["CapacityInfoDto"];
+            ticketPurchaseMessage?: string | null;
         };
         ErrorResponse: {
             error?: string;

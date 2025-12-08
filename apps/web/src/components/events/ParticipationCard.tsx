@@ -258,12 +258,14 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
     const hasTicket = participationAny.participationType === 'Ticket' && participationAny.status === 'Active';
 
     // Create proper nested structure with actual backend data
+    // CRITICAL: Use backend's canRSVP and canPurchaseTicket values, don't hardcode
     validParticipation = {
       ...(validParticipation as any),
       hasRSVP,
       hasTicket,
-      canRSVP: !hasRSVP && !hasTicket,
-      canPurchaseTicket: !hasTicket,
+      // Use backend values if available, otherwise fallback to simple logic
+      canRSVP: participationAny.canRSVP !== undefined ? participationAny.canRSVP : (!hasRSVP && !hasTicket),
+      canPurchaseTicket: participationAny.canPurchaseTicket !== undefined ? participationAny.canPurchaseTicket : !hasTicket,
       // Create nested structures with proper date mapping
       rsvp: hasRSVP ? {
         id: participationAny.id || '',
@@ -587,146 +589,194 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
               {/* Social Event Pattern: RSVP first, then optional ticket */}
               {eventType === 'social' && (
                 <>
-                  {/* Show RSVP button only if user hasn't RSVP'd yet AND backend allows */}
-                  {!validParticipation?.hasRSVP && validParticipation?.canRSVP && (
-                    <Box>
-                      {/* Terms of Service Acceptance */}
-                      <Group gap="sm" align="center" justify="center" mb="md">
-                        <Checkbox
-                          id="rsvp-terms-checkbox"
-                          checked={rsvpTermsAccepted}
-                          onChange={(event) => setRsvpTermsAccepted(event.currentTarget.checked)}
-                          size="md"
-                          color="var(--color-burgundy)"
-                          data-testid="rsvp-terms-checkbox"
-                        />
-                        <Text
-                          component="label"
-                          htmlFor="rsvp-terms-checkbox"
-                          size="md"
-                          style={{
-                            cursor: 'pointer',
-                            color: '#000000',
-                            fontWeight: 700,
-                            lineHeight: 1.5
-                          }}
-                        >
-                          I agree to the{' '}
-                          <a
-                            href="/event-waiver"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              color: 'var(--color-burgundy)',
-                              textDecoration: 'underline',
-                              fontWeight: 700
+                  {/* Check if we should show "sales not open" message */}
+                  {!validParticipation?.canPurchaseTicket && (validParticipation as any)?.ticketPurchaseMessage ? (
+                    // Show only the sales message when sales aren't open
+                    <Text
+                      size="md"
+                      ta="center"
+                      style={{
+                        color: '#000000',
+                        fontWeight: 700,
+                        lineHeight: 1.5
+                      }}
+                    >
+                      {(() => {
+                        const backendMessage = (validParticipation as any).ticketPurchaseMessage;
+                        // Transform "Sales open Dec 14" → "RSVP and Ticket Sales open Dec 14"
+                        return backendMessage.replace('Sales', 'RSVP and Ticket Sales');
+                      })()}
+                    </Text>
+                  ) : (
+                    // Show normal RSVP and ticket purchase UI when sales are open
+                    <>
+                      {/* Show RSVP button only if user hasn't RSVP'd yet AND backend allows */}
+                      {!validParticipation?.hasRSVP && validParticipation?.canRSVP && (
+                        <Box>
+                          {/* Terms of Service Acceptance */}
+                          <Group gap="sm" align="center" justify="center" mb="md">
+                            <Checkbox
+                              id="rsvp-terms-checkbox"
+                              checked={rsvpTermsAccepted}
+                              onChange={(event) => setRsvpTermsAccepted(event.currentTarget.checked)}
+                              size="md"
+                              color="var(--color-burgundy)"
+                              data-testid="rsvp-terms-checkbox"
+                            />
+                            <Text
+                              component="label"
+                              htmlFor="rsvp-terms-checkbox"
+                              size="md"
+                              style={{
+                                cursor: 'pointer',
+                                color: '#000000',
+                                fontWeight: 700,
+                                lineHeight: 1.5
+                              }}
+                            >
+                              I agree to the{' '}
+                              <a
+                                href="/event-waiver"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  color: 'var(--color-burgundy)',
+                                  textDecoration: 'underline',
+                                  fontWeight: 700
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Event Waiver
+                              </a>
+                            </Text>
+                          </Group>
+
+                          {/* RSVP Button */}
+                          <Button
+                            onClick={handleRSVPClick}
+                            fullWidth
+                            variant="filled"
+                            color="green"
+                            disabled={!rsvpTermsAccepted || isLoading || isLoadingUser}
+                            loading={isLoading || isLoadingUser}
+                            mb="md"
+                            data-testid="button-rsvp"
+                            styles={{
+                              root: {
+                                height: '44px',
+                                paddingTop: '12px',
+                                paddingBottom: '12px',
+                                fontSize: '14px',
+                                lineHeight: '1.2'
+                              }
                             }}
-                            onClick={(e) => e.stopPropagation()}
                           >
-                            Event Waiver
-                          </a>
-                        </Text>
-                      </Group>
+                            RSVP Now (Free)
+                          </Button>
+                        </Box>
+                      )}
 
-                      {/* RSVP Button */}
-                      <Button
-                        onClick={handleRSVPClick}
-                        fullWidth
-                        variant="filled"
-                        color="green"
-                        disabled={!rsvpTermsAccepted || isLoading || isLoadingUser}
-                        loading={isLoading || isLoadingUser}
-                        mb="md"
-                        data-testid="button-rsvp"
-                        styles={{
-                          root: {
-                            height: '44px',
-                            paddingTop: '12px',
-                            paddingBottom: '12px',
-                            fontSize: '14px',
-                            lineHeight: '1.2'
-                          }
-                        }}
-                      >
-                        RSVP Now (Free)
-                      </Button>
-                    </Box>
-                  )}
-
-                  {/* Show ticket purchase option when user hasn't purchased a ticket yet AND backend allows */}
-                  {!validParticipation?.hasTicket && validParticipation?.canPurchaseTicket && (
-                    <Box>
-                      <Text size="sm" c="dimmed" ta="center" mb="sm">
-                        {validParticipation?.hasRSVP
-                          ? "Support the event with an optional ticket purchase"
-                          : "Purchase a ticket for this event"}
-                      </Text>
-                      <Button
-                        onClick={handleTicketPurchase}
-                        fullWidth
-                        variant="outline"
-                        color="blue"
-                        disabled={isLoading || isLoadingUser}
-                        loading={isLoading || isLoadingUser}
-                        data-testid="button-purchase-ticket"
-                        styles={{
-                          root: {
-                            height: '44px',
-                            paddingTop: '12px',
-                            paddingBottom: '12px',
-                            fontSize: '14px',
-                            lineHeight: '1.2'
-                          }
-                        }}
-                      >
-                        Purchase Ticket ({formatPriceDisplay()})
-                      </Button>
-                    </Box>
+                      {/* Show ticket purchase option when user hasn't purchased a ticket yet AND sales are open */}
+                      {!validParticipation?.hasTicket && validParticipation?.canPurchaseTicket && (
+                        <Box>
+                          <Text size="sm" c="dimmed" ta="center" mb="sm">
+                            {validParticipation?.hasRSVP
+                              ? "Support the event with an optional ticket purchase"
+                              : "Purchase a ticket for this event"}
+                          </Text>
+                          <Button
+                            onClick={handleTicketPurchase}
+                            fullWidth
+                            variant="outline"
+                            color="blue"
+                            disabled={isLoading || isLoadingUser}
+                            loading={isLoading || isLoadingUser}
+                            data-testid="button-purchase-ticket"
+                            styles={{
+                              root: {
+                                height: '44px',
+                                paddingTop: '12px',
+                                paddingBottom: '12px',
+                                fontSize: '14px',
+                                lineHeight: '1.2'
+                              }
+                            }}
+                          >
+                            Purchase Ticket ({formatPriceDisplay()})
+                          </Button>
+                        </Box>
+                      )}
+                    </>
                   )}
                 </>
               )}
 
               {/* Class Pattern: Ticket purchase required */}
-              {eventType === 'class' && !validParticipation?.hasTicket && validParticipation?.canPurchaseTicket && (
+              {eventType === 'class' && !validParticipation?.hasTicket && (
                 <Box>
-                  <Box
-                    p={{ base: 'xs', md: 'md' }}
-                    mb={{ base: 'xs', md: 'md' }}
-                    style={{
-                      background: 'var(--color-cream)',
-                      borderRadius: '12px',
-                      textAlign: 'center'
-                    }}
-                  >
-                    <Text fw={700} size="lg" c="var(--color-burgundy)" mb="xs">
-                      Class Fee: {formatPriceDisplay()}
+                  {/* Check if we should show "sales not open" message */}
+                  {!validParticipation?.canPurchaseTicket && (validParticipation as any)?.ticketPurchaseMessage ? (
+                    // Show only the sales message when sales aren't open
+                    <Text
+                      size="md"
+                      ta="center"
+                      style={{
+                        color: '#000000',
+                        fontWeight: 700,
+                        lineHeight: 1.5
+                      }}
+                    >
+                      {(() => {
+                        const backendMessage = (validParticipation as any).ticketPurchaseMessage;
+                        // Transform "Sales open Dec 14" → "Ticket Sales open Dec 14"
+                        return backendMessage.replace('Sales', 'Ticket Sales');
+                      })()}
                     </Text>
-                    {ticketPriceRange && !ticketPriceRange.isSinglePrice && (
-                      <Text size="sm" c="dimmed">
-                        Multiple ticket options available
-                      </Text>
-                    )}
-                  </Box>
+                  ) : (
+                    // Show normal ticket purchase UI when sales are open
+                    validParticipation?.canPurchaseTicket && (
+                      <>
+                        <Box
+                          p={{ base: 'xs', md: 'md' }}
+                          mb={{ base: 'xs', md: 'md' }}
+                          style={{
+                            background: 'var(--color-cream)',
+                            borderRadius: '12px',
+                            textAlign: 'center'
+                          }}
+                        >
+                          <Text fw={700} size="lg" c="var(--color-burgundy)" mb="xs">
+                            Class Fee: {formatPriceDisplay()}
+                          </Text>
+                          {ticketPriceRange && !ticketPriceRange.isSinglePrice && (
+                            <Text size="sm" c="dimmed">
+                              Multiple ticket options available
+                            </Text>
+                          )}
+                        </Box>
 
-                  <Button
-                    onClick={handleTicketPurchase}
-                    fullWidth
-                    variant="filled"
-                    color="blue"
-                    leftSection={<IconTicket size={18} />}
-                    data-testid="button-purchase-ticket"
-                    styles={{
-                      root: {
-                        height: '44px',
-                        paddingTop: '12px',
-                        paddingBottom: '12px',
-                        fontSize: '14px',
-                        lineHeight: '1.2'
-                      }
-                    }}
-                  >
-                    Purchase Ticket
-                  </Button>
+                        <Button
+                          onClick={handleTicketPurchase}
+                          fullWidth
+                          variant="filled"
+                          color="blue"
+                          leftSection={<IconTicket size={18} />}
+                          data-testid="button-purchase-ticket"
+                          styles={{
+                            root: {
+                              height: '44px',
+                              paddingTop: '12px',
+                              paddingBottom: '12px',
+                              fontSize: '14px',
+                              lineHeight: '1.2'
+                            }
+                          }}
+                        >
+                          Purchase Ticket
+                        </Button>
+                      </>
+                    )
+                  )}
                 </Box>
               )}
             </Stack>

@@ -22,9 +22,9 @@ public class VenueDto
     public string? Directions { get; set; }
 
     /// <summary>
-    /// Additional notes about the venue (capacity, parking, etc.)
+    /// Additional venue information for attendees (capacity, parking, amenities, etc.)
     /// </summary>
-    public string? Notes { get; set; }
+    public string? VenueInformation { get; set; }
 
     /// <summary>
     /// General location information (city, state)
@@ -64,9 +64,9 @@ public class CreateVenueRequest
     public string? Directions { get; set; }
 
     /// <summary>
-    /// Additional notes (optional, max 1000 characters)
+    /// Additional venue information for attendees (optional, max 1000 characters)
     /// </summary>
-    public string? Notes { get; set; }
+    public string? VenueInformation { get; set; }
 
     /// <summary>
     /// General location (optional, max 100 characters)
@@ -91,9 +91,9 @@ public class UpdateVenueRequest
     public string? Directions { get; set; }
 
     /// <summary>
-    /// Additional notes (optional, max 1000 characters)
+    /// Additional venue information for attendees (optional, max 1000 characters)
     /// </summary>
-    public string? Notes { get; set; }
+    public string? VenueInformation { get; set; }
 
     /// <summary>
     /// General location (optional, max 100 characters)

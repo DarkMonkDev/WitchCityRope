@@ -118,37 +118,49 @@ test.describe('Check-In Attendee Workflow', () => {
     // Get attendees from API using session token
     const attendeesData = await getAttendees(page, testEventId, sessionToken);
 
-    // Skip test if no checked-in attendees exist
+    // Need attendees to test
     if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test.skip();
-      return;
+      throw new Error('No attendees found - test data is missing');
     }
 
-    // Find an attendee who IS checked in
-    const checkedInAttendee = attendeesData.attendees.find(
-      (a: any) => a.registrationStatus === 'checked-in' || a.registrationStatus === 'CheckedIn'
+    // Find an attendee who is NOT checked in - we'll check them in first
+    const uncheckedAttendee = attendeesData.attendees.find(
+      (a: any) => a.registrationStatus !== 'checked-in' && a.registrationStatus !== 'CheckedIn'
     );
 
-    if (!checkedInAttendee) {
-      test.skip();
-      return;
+    if (!uncheckedAttendee) {
+      throw new Error('All attendees are already checked in - need unchecked attendee for test');
     }
 
     // Find the attendee row by sceneName (UI displays sceneName, not email)
-    const sceneName = checkedInAttendee.sceneName || checkedInAttendee.email;
+    const sceneName = uncheckedAttendee.sceneName || uncheckedAttendee.email;
     const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
-    // Verify attendee shows "Checked In" text (complete state shows "✓ Checked In")
+    // STEP 1: Check in the attendee (Covid Test → Check In)
+    // Click "Covid Test" button first
+    const covidTestButton = attendeeRow.locator('button').filter({ hasText: /covid test/i }).first();
+    await expect(covidTestButton).toBeVisible({ timeout: 5000 });
+    await covidTestButton.click();
+
+    // Click "Check In" button
+    const checkInButton = attendeeRow.locator('button').filter({ hasText: /check.?in/i }).first();
+    await expect(checkInButton).toBeVisible({ timeout: 5000 });
+    await checkInButton.click();
+
+    // Wait for check-in to complete - "Checked In" text appears
     const checkedInText = attendeeRow.locator('text=/Checked In/i').first();
     await expect(checkedInText).toBeVisible({ timeout: 5000 });
 
-    // Verify NO "Covid Test" or "Check In" buttons exist for this attendee (complete state shows text, not buttons)
-    const covidTestButton = attendeeRow.locator('button').filter({ hasText: /covid test/i });
-    await expect(covidTestButton).toHaveCount(0);
+    // STEP 2: Verify attendee CANNOT be checked in again
+    // The "Covid Test" and "Check In" buttons should no longer exist
+    const covidTestButtonAfter = attendeeRow.locator('button').filter({ hasText: /covid test/i });
+    await expect(covidTestButtonAfter).toHaveCount(0);
 
-    const checkInButton = attendeeRow.locator('button').filter({ hasText: /^check.?in$/i });
-    await expect(checkInButton).toHaveCount(0);
+    const checkInButtonAfter = attendeeRow.locator('button').filter({ hasText: /^check.?in$/i });
+    await expect(checkInButtonAfter).toHaveCount(0);
+
+    // The checked-in state shows text, not buttons - this prevents duplicate check-ins
   });
 
   test('Two-step check-in workflow (Covid Test → Check In)', async ({ page }) => {

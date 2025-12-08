@@ -369,16 +369,22 @@ public class VolunteerService : IVolunteerService
             }
 
             // Get user's confirmed volunteer signups for upcoming events
+            var now = DateTime.UtcNow;
             var shifts = await _context.VolunteerSignups
                 .AsNoTracking()
                 .Include(vs => vs.VolunteerPosition)
                     .ThenInclude(vp => vp!.Event)
                         .ThenInclude(e => e!.Venue)
                 .Include(vs => vs.VolunteerPosition)
+                    .ThenInclude(vp => vp!.Event)
+                        .ThenInclude(e => e!.Sessions) // CRITICAL: Load sessions for session-based filtering
+                .Include(vs => vs.VolunteerPosition)
                     .ThenInclude(vp => vp!.Session)
                 .Where(vs => vs.UserId == userGuid
                     && vs.Status == VolunteerSignupStatus.Confirmed
-                    && vs.VolunteerPosition!.Event!.StartDate >= DateTime.UtcNow) // Only upcoming events
+                    // Filter based on sessions: event is "upcoming" if it has ANY future session
+                    && (vs.VolunteerPosition!.Event!.Sessions.Any(s => s.StartTime > now) ||
+                        (!vs.VolunteerPosition!.Event!.Sessions.Any() && vs.VolunteerPosition!.Event!.StartDate >= now)))
                 .OrderBy(vs => vs.VolunteerPosition!.Event!.StartDate)
                 .ToListAsync(cancellationToken);
 

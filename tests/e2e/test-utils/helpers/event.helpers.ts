@@ -28,14 +28,14 @@ export interface EventData {
  */
 export async function getFirstActiveEvent(page: Page): Promise<EventData> {
   const response = await page.request.get('/api/events');
-  const apiResponse = await response.json();
+  const events = await response.json();
 
-  // API returns ApiResponse<T> wrapper format
-  if (!apiResponse.success || !apiResponse.data || apiResponse.data.length === 0) {
+  // API returns plain array of events
+  if (!Array.isArray(events) || events.length === 0) {
     throw new Error('No events found in database');
   }
 
-  const firstEvent = apiResponse.data[0];
+  const firstEvent = events[0];
   return {
     id: firstEvent.id,
     title: firstEvent.title,
@@ -54,13 +54,14 @@ export async function getFirstActiveEvent(page: Page): Promise<EventData> {
  */
 export async function getEventByTitle(page: Page, titleContains: string): Promise<EventData> {
   const response = await page.request.get('/api/events');
-  const apiResponse = await response.json();
+  const events = await response.json();
 
-  if (!apiResponse.success || !apiResponse.data) {
+  // API returns plain array of events
+  if (!Array.isArray(events)) {
     throw new Error('Failed to fetch events from API');
   }
 
-  const event = apiResponse.data.find((e: any) =>
+  const event = events.find((e: any) =>
     e.title.toLowerCase().includes(titleContains.toLowerCase())
   );
 
@@ -86,13 +87,14 @@ export async function getEventByTitle(page: Page, titleContains: string): Promis
  */
 export async function getAllActiveEvents(page: Page): Promise<EventData[]> {
   const response = await page.request.get('/api/events');
-  const apiResponse = await response.json();
+  const events = await response.json();
 
-  if (!apiResponse.success || !apiResponse.data) {
+  // API returns plain array of events
+  if (!Array.isArray(events)) {
     throw new Error('Failed to fetch events from API');
   }
 
-  return apiResponse.data.map((e: any) => ({
+  return events.map((e: any) => ({
     id: e.id,
     title: e.title,
     shortDescription: e.shortDescription,
@@ -110,13 +112,13 @@ export async function getAllActiveEvents(page: Page): Promise<EventData[]> {
  */
 export async function getEventById(page: Page, eventId: string): Promise<EventData> {
   const response = await page.request.get(`/api/events/${eventId}`);
-  const apiResponse = await response.json();
 
-  if (!apiResponse.success || !apiResponse.data) {
+  if (!response.ok()) {
     throw new Error(`Event not found: ${eventId}`);
   }
 
-  const event = apiResponse.data;
+  // API returns event object directly
+  const event = await response.json();
   return {
     id: event.id,
     title: event.title,

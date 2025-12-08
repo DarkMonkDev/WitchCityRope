@@ -80,8 +80,8 @@ test.describe('Docker Services Configuration', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const currentUrl = page.url();
-    // Check for localhost:5173 (Docker web service port)
-    expect(currentUrl).toContain('localhost:5173');
+    // Check for :5173 port (Docker web service) - accepts both localhost and container hostname
+    expect(currentUrl).toMatch(/:5173/);
 
     console.log('✅ Base URL configuration correct:', currentUrl);
   });

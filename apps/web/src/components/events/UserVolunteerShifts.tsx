@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Paper, Stack, Title, Text, Badge, Group, Button, Modal, Alert } from '@mantine/core';
-import { IconCheck, IconClock, IconX, IconAlertCircle } from '@tabler/icons-react';
+import { IconCheck, IconClock, IconX, IconAlertCircle, IconCalendar } from '@tabler/icons-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import type { VolunteerPosition } from '../../features/volunteers/types/volunteer.types';
@@ -76,6 +76,16 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
     }
   };
 
+  // Format date as "Sun, Jan 3"
+  const formatShortDateWithDay = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: eventTimeZone });
+    const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: eventTimeZone });
+    const day = date.toLocaleDateString('en-US', { day: 'numeric', timeZone: eventTimeZone });
+    return `${dayOfWeek}, ${month} ${day}`;
+  };
+
   return (
     <Paper
       style={{
@@ -146,12 +156,9 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
                   </Group>
 
                   {position.sessionStartTime && position.sessionEndTime && (
-                    <Group gap="xs">
-                      <IconClock size={12} color="var(--color-stone)" />
-                      <Text size="xs" c="dimmed">
-                        {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}
-                      </Text>
-                    </Group>
+                    <Text size="xs" c="dimmed">
+                      {formatShortDateWithDay(position.sessionStartTime)} • {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}
+                    </Text>
                   )}
                 </Stack>
 
@@ -165,7 +172,7 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
                         size="xs"
                         onClick={() => handleCancelClick(position)}
                         disabled={cancelMutation.isPending}
-                        style={{ minWidth: '80px' }}
+                        style={{ minWidth: '60px' }}
                       >
                         Cancel
                       </Button>

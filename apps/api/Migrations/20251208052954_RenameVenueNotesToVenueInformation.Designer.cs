@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WitchCityRope.Api.Data;
@@ -11,9 +12,11 @@ using WitchCityRope.Api.Data;
 namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251208052954_RenameVenueNotesToVenueInformation")]
+    partial class RenameVenueNotesToVenueInformation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1391,9 +1394,6 @@ namespace WitchCityRope.Api.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
-                    b.Property<Guid?>("SessionId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -1421,9 +1421,6 @@ namespace WitchCityRope.Api.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Metadata"), "gin");
 
-                    b.HasIndex("SessionId")
-                        .HasDatabaseName("IX_EventAttendances_SessionId");
-
                     b.HasIndex("TicketPurchaseId")
                         .HasDatabaseName("IX_EventAttendances_TicketPurchaseId");
 
@@ -1435,16 +1432,10 @@ namespace WitchCityRope.Api.Migrations
                     b.HasIndex("UserId", "Status")
                         .HasDatabaseName("IX_EventAttendances_UserId_Status");
 
-                    b.HasIndex("SessionId", "Status", "AttendanceType")
-                        .HasDatabaseName("IX_EventAttendances_SessionId_Status_AttendanceType");
-
                     b.HasIndex("UserId", "EventId", "AttendanceType")
                         .IsUnique()
                         .HasDatabaseName("UQ_EventAttendances_User_Event_Type_Active")
                         .HasFilter("\"Status\" = 1");
-
-                    b.HasIndex("UserId", "SessionId", "Status")
-                        .HasDatabaseName("IX_EventAttendances_UserId_SessionId_Status");
 
                     b.ToTable("EventAttendances", "public", t =>
                         {
@@ -3667,11 +3658,6 @@ namespace WitchCityRope.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WitchCityRope.Api.Models.Session", "Session")
-                        .WithMany()
-                        .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("WitchCityRope.Api.Models.TicketPurchase", "TicketPurchase")
                         .WithMany("EventAttendances")
                         .HasForeignKey("TicketPurchaseId")
@@ -3691,8 +3677,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("Event");
-
-                    b.Navigation("Session");
 
                     b.Navigation("TicketPurchase");
 

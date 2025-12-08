@@ -144,15 +144,55 @@ public class AttendanceService : IAttendanceService
                     cancellationToken);
             }
 
+            // Check if ticket purchase is allowed based on timing rules
+            // User must not have a ticket AND event must not be at capacity AND timing window must be open
+            bool canPurchaseTicket = false;
+            string? ticketPurchaseMessage = null;
+
+            if (ticketAttendance == null && activeAttendancesCount < eventEntity.Capacity)
+            {
+                // Basic conditions met (no existing ticket, event has space)
+                // Now check timing window
+                bool isTimingAllowed = await _timeZoneService.IsActionAllowedAsync(
+                    eventEntity,
+                    EventActionType.GetTicket,
+                    cancellationToken);
+
+                if (isTimingAllowed)
+                {
+                    canPurchaseTicket = true;
+                    ticketPurchaseMessage = null; // No message needed when purchase is allowed
+                }
+                else
+                {
+                    canPurchaseTicket = false;
+                    // Generate helpful message based on timing state
+                    ticketPurchaseMessage = GetTicketPurchaseTimingMessage(eventEntity);
+                }
+            }
+            else if (ticketAttendance != null)
+            {
+                // User already has a ticket
+                canPurchaseTicket = false;
+                ticketPurchaseMessage = null; // No timing message needed
+            }
+            else
+            {
+                // Event is at capacity
+                canPurchaseTicket = false;
+                ticketPurchaseMessage = null; // Capacity issue, not timing
+            }
+
             // Build enhanced DTO with nested structure
             var dto = new EnhancedParticipationStatusDto
             {
                 HasRSVP = rsvpAttendance != null,
                 HasTicket = ticketAttendance != null,
                 CanRSVP = rsvpAttendance == null && activeAttendancesCount < eventEntity.Capacity,
-                CanPurchaseTicket = ticketAttendance == null && activeAttendancesCount < eventEntity.Capacity,
+                CanPurchaseTicket = canPurchaseTicket,
                 CanCancelRSVP = canCancelRSVP,
                 CanCancelTicket = canCancelTicket,
+                TicketPurchaseMessage = ticketPurchaseMessage,
                 Capacity = new CapacityInfoDto
                 {
                     Current = activeAttendancesCount,
@@ -519,19 +559,44 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("User not found");
             }
 
-            // Check if user already has a TICKET for this event
+            // Check if user already has a TICKET for ANY SESSION in this ticket type
             // Allow ticket purchase even if user has RSVP'd (social events support both)
-            var existingTicket = await _context.EventAttendances
-                .FirstOrDefaultAsync(ea =>
-                    ea.EventId == request.EventId &&
+            // NEW: Session-level duplicate check - load ticket type with sessions
+            var ticketTypeWithSessions = await _context.TicketTypes
+                .Include(tt => tt.Sessions)
+                .FirstOrDefaultAsync(tt => tt.Id == ticketType.Id, cancellationToken);
+
+            if (ticketTypeWithSessions == null)
+            {
+                return Result<ParticipationStatusDto>.Failure("Ticket type not found");
+            }
+
+            // Get all session IDs for this ticket type
+            var requestedSessionIds = ticketTypeWithSessions.Sessions
+                .Select(s => s.Id)
+                .ToList();
+
+            // Check if user already has a ticket for ANY of these sessions
+            var overlappingAttendance = await _context.EventAttendances
+                .Where(ea =>
                     ea.UserId == userId &&
                     ea.Status == AttendanceStatus.Active &&
-                    ea.AttendanceType == AttendanceType.Ticket,
-                    cancellationToken);
+                    ea.AttendanceType == AttendanceType.Ticket &&
+                    ea.SessionId.HasValue &&
+                    requestedSessionIds.Contains(ea.SessionId.Value))
+                .Include(ea => ea.Session)
+                .Include(ea => ea.TicketPurchase)
+                    .ThenInclude(tp => tp != null ? tp.TicketType : null)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (existingTicket != null)
+            if (overlappingAttendance != null)
             {
-                return Result<ParticipationStatusDto>.Failure("User already has a ticket for this event");
+                // Get the session name for error message
+                var overlappingSessionName = overlappingAttendance.Session?.Name ?? "a session";
+                var existingTicketName = overlappingAttendance.TicketPurchase?.TicketType?.Name ?? "an existing ticket";
+
+                return Result<ParticipationStatusDto>.Failure(
+                    $"You already have a ticket that includes the {overlappingSessionName} session ({existingTicketName})");
             }
 
             // Check event capacity
@@ -543,16 +608,25 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("Event is at full capacity");
             }
 
-            // Create the ticket purchase with Event Waiver acceptance
-            var attendance = new EventAttendance(request.EventId, userId, AttendanceType.Ticket)
-            {
-                Notes = request.Notes,
-                EventWaiverAccepted = true,
-                EventWaiverAcceptedAt = DateTime.UtcNow,
-                CreatedBy = userId
-            };
+            // Create EventAttendance records for each session in the ticket type
+            // For multi-session tickets, this creates multiple records
+            // For single-session tickets, this creates one record
+            var attendances = new List<EventAttendance>();
 
-            _context.EventAttendances.Add(attendance);
+            foreach (var session in ticketTypeWithSessions.Sessions)
+            {
+                var attendance = new EventAttendance(request.EventId, userId, AttendanceType.Ticket)
+                {
+                    SessionId = session.Id,
+                    Notes = request.Notes,
+                    EventWaiverAccepted = true,
+                    EventWaiverAcceptedAt = DateTime.UtcNow,
+                    CreatedBy = userId
+                };
+
+                attendances.Add(attendance);
+                _context.EventAttendances.Add(attendance);
+            }
 
             // Create or update EventAttendee record so user appears in check-in system
             var ticketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
@@ -596,19 +670,25 @@ public class AttendanceService : IAttendanceService
                 _context.EventAttendees.Update(existingAttendee);
             }
 
-            // Create audit history for ticket
-            var history = new AttendanceHistory(attendance.Id, "Created")
+            // Create audit history for the first attendance record (represents the ticket purchase)
+            // For multi-session tickets, we create one history entry for the primary record
+            var primaryAttendance = attendances.First();
+            var history = new AttendanceHistory(primaryAttendance.Id, "Created")
             {
                 NewValues = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    EventId = attendance.EventId,
-                    UserId = attendance.UserId,
-                    AttendanceType = attendance.AttendanceType,
-                    Notes = attendance.Notes,
+                    EventId = primaryAttendance.EventId,
+                    UserId = primaryAttendance.UserId,
+                    AttendanceType = primaryAttendance.AttendanceType,
+                    SessionIds = requestedSessionIds,
+                    SessionCount = requestedSessionIds.Count,
+                    Notes = primaryAttendance.Notes,
                     PaymentMethodId = request.PaymentMethodId
                 }),
                 ChangedBy = userId,
-                ChangeReason = "Ticket purchased by user"
+                ChangeReason = requestedSessionIds.Count > 1
+                    ? $"Multi-session ticket purchased by user ({requestedSessionIds.Count} sessions)"
+                    : "Ticket purchased by user"
             };
 
             _context.AttendanceHistory.Add(history);
@@ -672,28 +752,28 @@ public class AttendanceService : IAttendanceService
             // Verify persistence (defensive check)
             var savedAttendance = await _context.EventAttendances
                 .AsNoTracking()
-                .FirstOrDefaultAsync(ea => ea.Id == attendance.Id, cancellationToken);
+                .FirstOrDefaultAsync(ea => ea.Id == primaryAttendance.Id, cancellationToken);
 
             if (savedAttendance == null)
             {
                 _logger.LogError("CRITICAL: Ticket purchase {AttendanceId} for user {UserId} in event {EventId} failed to persist to database",
-                    attendance.Id, userId, request.EventId);
+                    primaryAttendance.Id, userId, request.EventId);
                 return Result<ParticipationStatusDto>.Failure("Failed to save ticket purchase to database");
             }
 
-            _logger.LogInformation("Successfully created and verified ticket purchase {AttendanceId} for user {UserId} in event {EventId} (Status: {Status})",
-                savedAttendance.Id, userId, request.EventId, savedAttendance.Status);
+            _logger.LogInformation("Successfully created and verified ticket purchase {AttendanceId} for user {UserId} in event {EventId} ({SessionCount} sessions, Status: {Status})",
+                savedAttendance.Id, userId, request.EventId, attendances.Count, savedAttendance.Status);
 
             var dto = new ParticipationStatusDto
             {
-                EventId = attendance.EventId,
-                UserId = attendance.UserId,
-                ParticipationType = attendance.AttendanceType,
-                Status = attendance.Status,
-                ParticipationDate = attendance.CreatedAt,
-                Notes = attendance.Notes,
-                CanCancel = attendance.CanBeCancelled(),
-                Metadata = attendance.Metadata
+                EventId = primaryAttendance.EventId,
+                UserId = primaryAttendance.UserId,
+                ParticipationType = primaryAttendance.AttendanceType,
+                Status = primaryAttendance.Status,
+                ParticipationDate = primaryAttendance.CreatedAt,
+                Notes = primaryAttendance.Notes,
+                CanCancel = primaryAttendance.CanBeCancelled(),
+                Metadata = primaryAttendance.Metadata
             };
 
             return Result<ParticipationStatusDto>.Success(dto);
@@ -1270,5 +1350,49 @@ public class AttendanceService : IAttendanceService
             // TODO: Send notification to admins about failed automatic refund
             // This would require email service integration - out of scope for this task
         }
+    }
+
+    /// <summary>
+    /// Generate a helpful message explaining when ticket purchase will be available
+    /// Based on event's RegistrationOpenHours and RegistrationCloseHours
+    /// </summary>
+    private string GetTicketPurchaseTimingMessage(WitchCityRope.Api.Models.Event eventEntity)
+    {
+        var now = DateTime.UtcNow;
+
+        // For events with sessions, use the earliest session start time
+        // For events without sessions, use the event start date
+        DateTime referenceTime;
+        if (eventEntity.Sessions != null && eventEntity.Sessions.Any())
+        {
+            referenceTime = eventEntity.Sessions.Min(s => s.StartTime);
+        }
+        else
+        {
+            referenceTime = eventEntity.StartDate;
+        }
+
+        var hoursUntilEvent = (referenceTime - now).TotalHours;
+
+        // Check if we're before the registration open window
+        if (eventEntity.RegistrationOpenHours.HasValue &&
+            hoursUntilEvent > (double)eventEntity.RegistrationOpenHours.Value)
+        {
+            var opensAt = referenceTime.AddHours(-(double)eventEntity.RegistrationOpenHours.Value);
+            // Convert UTC to Eastern Time for display
+            var easternZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+            var opensAtLocal = TimeZoneInfo.ConvertTimeFromUtc(opensAt, easternZone);
+            return $"Sales open {opensAtLocal:MMM d}";
+        }
+
+        // Check if we're past the registration close window
+        if (eventEntity.RegistrationCloseHours.HasValue &&
+            hoursUntilEvent < (double)eventEntity.RegistrationCloseHours.Value)
+        {
+            return "Sales closed";
+        }
+
+        // Otherwise, assume sales are closed (past the event)
+        return "Sales closed";
     }
 }

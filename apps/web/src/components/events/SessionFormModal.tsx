@@ -258,7 +258,13 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               required
               minDate={new Date()}
               data-testid="input-session-date"
-              {...form.getInputProps('date')}
+              value={form.values.date}
+              onChange={(value) => {
+                form.setFieldValue('date', value);
+                // Auto-sync end date to match start date
+                form.setFieldValue('endDate', value);
+              }}
+              error={form.errors.date}
             />
             <TimeInput
               label="Start Time"

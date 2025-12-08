@@ -98,8 +98,8 @@ test.describe('Check-In Dashboard', () => {
     const eventTitle = page.locator('text=/test|event/i').first();
     await expect(eventTitle).toBeVisible({ timeout: 10000 });
 
-    // Event status badge (shows "Active", "Completed", etc based on EVENT_STATUS_CONFIGS)
-    const statusBadge = page.locator('[class*="Badge"]').filter({ hasText: /active|completed|upcoming/i }).first();
+    // Event status badge (shows "Active", "Upcoming", "Ended" based on EVENT_STATUS_CONFIGS)
+    const statusBadge = page.locator('[class*="Badge"]').filter({ hasText: /active|ended|upcoming/i }).first();
     await expect(statusBadge).toBeVisible({ timeout: 5000 });
 
     // Event date/time display (line 149)
