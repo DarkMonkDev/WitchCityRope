@@ -70,10 +70,16 @@ public class EventService : IEventService
                             .ThenInclude(tt => tt.Sessions); // CRITICAL: Load Sessions collection for Session.CurrentAttendees calculation (Session.cs lines 73-86)
 
             // Apply filters based on admin vs public access
+            var now = DateTime.UtcNow;
+
             if (includeUnpublished)
             {
                 // Admin access: Show all events (both published and draft), including future and past
-                query = query.Where(e => e.StartDate > DateTime.UtcNow.AddDays(-30)); // Show events from last 30 days
+                // Filter based on sessions: show events with sessions in last 30 days OR with future sessions
+                query = query.Where(e =>
+                    e.Sessions.Any(s => s.EndTime > now.AddDays(-30)) || // Has session that ended within last 30 days
+                    e.Sessions.Any(s => s.StartTime > now) || // Has upcoming session
+                    e.StartDate > now.AddDays(-30)); // Fallback to StartDate for events without sessions
             }
             else
             {
@@ -81,12 +87,20 @@ public class EventService : IEventService
                 if (includePastEvents)
                 {
                     // Show published events including past ones (last 90 days)
-                    query = query.Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow.AddDays(-90));
+                    // Filter based on sessions: show events with sessions in last 90 days OR with future sessions
+                    query = query.Where(e => e.IsPublished && (
+                        e.Sessions.Any(s => s.EndTime > now.AddDays(-90)) || // Has session that ended within last 90 days
+                        e.Sessions.Any(s => s.StartTime > now) || // Has upcoming session
+                        e.StartDate > now.AddDays(-90))); // Fallback to StartDate for events without sessions
                 }
                 else
                 {
                     // Default: Only published future events
-                    query = query.Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow);
+                    // An event is "future" if it has ANY session with StartTime > now
+                    // An event is "past" only if ALL sessions have ended (EndTime < now)
+                    query = query.Where(e => e.IsPublished && (
+                        e.Sessions.Any(s => s.StartTime > now) || // Has at least one upcoming session
+                        (!e.Sessions.Any() && e.StartDate > now))); // Fallback: no sessions but StartDate is future
                 }
             }
 
@@ -295,6 +309,7 @@ public class EventService : IEventService
             var eventEntity = await _context.Events
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
+                    .ThenInclude(tt => tt.Sessions)  // Load TicketType->Session links for differential updates
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
                 .Include(e => e.Venue) // Load venue for location name
