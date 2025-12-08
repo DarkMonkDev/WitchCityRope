@@ -78,6 +78,7 @@ interface ParticipationCardProps {
   eventType: 'social' | 'class';
   participation: EnhancedParticipationStatusDto | null;
   isLoading?: boolean;
+  ticketTypeId?: string;
   onRSVP: (notes?: string, eventWaiverAccepted?: boolean) => void;
   onPurchaseTicket: (amount: number, slidingScalePercentage?: number) => void;
   onCancel: (type: 'rsvp' | 'ticket', reason?: string) => void;
@@ -100,6 +101,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   eventType,
   participation,
   isLoading = false,
+  ticketTypeId,
   onRSVP,
   onPurchaseTicket,
   onCancel,
@@ -380,10 +382,16 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
     debugLog('🔍 PayPal payment successful:', paymentDetails);
 
     try {
+      if (!ticketTypeId) {
+        console.error('❌ Cannot process PayPal payment: ticketTypeId is required');
+        return;
+      }
+
       // Confirm payment with backend and create ticket
       await confirmPayPalPayment.mutateAsync({
         orderId: paymentDetails.id,
-        paymentDetails
+        paymentDetails,
+        ticketTypeId
       });
 
       // Call the parent component's purchase handler for additional UI updates

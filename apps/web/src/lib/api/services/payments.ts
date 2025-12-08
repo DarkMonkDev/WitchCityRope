@@ -7,6 +7,7 @@ import { debugLog } from '../../../utils/debug';
 
 export interface CreateTicketPurchaseRequest {
   eventId: string;
+  ticketTypeId: string;
   notes?: string;
   paymentMethodId?: string;
   eventWaiverAccepted: boolean;
@@ -55,6 +56,7 @@ export const paymentsService = {
       `/api/events/${request.eventId}/tickets`,
       {
         eventId: request.eventId,
+        ticketTypeId: request.ticketTypeId,
         notes: request.notes,
         paymentMethodId: request.paymentMethodId,
         eventWaiverAccepted: request.eventWaiverAccepted
@@ -91,8 +93,8 @@ export const paymentsService = {
    * Confirm PayPal payment after user approval
    * This would integrate with the backend to confirm payment and create ticket
    */
-  async confirmPayPalPayment(orderId: string, paymentDetails: any): Promise<TicketPurchaseResponse> {
-    debugLog('🔍 Confirming PayPal payment:', { orderId, paymentDetails });
+  async confirmPayPalPayment(orderId: string, paymentDetails: any, ticketTypeId: string): Promise<TicketPurchaseResponse> {
+    debugLog('🔍 Confirming PayPal payment:', { orderId, paymentDetails, ticketTypeId });
 
     // Extract event ID from payment details or store it during order creation
     const eventId = paymentDetails?.purchase_units?.[0]?.custom_id || '';
@@ -100,6 +102,7 @@ export const paymentsService = {
     // For now, call the regular ticket purchase endpoint with PayPal payment method
     const ticketResponse = await this.purchaseTicket({
       eventId,
+      ticketTypeId,
       notes: `PayPal payment confirmed - Order ID: ${orderId}`,
       paymentMethodId: orderId,
       eventWaiverAccepted: true // PayPal flow requires waiver acceptance before payment

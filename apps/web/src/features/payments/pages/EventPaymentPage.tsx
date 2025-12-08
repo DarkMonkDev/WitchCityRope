@@ -232,8 +232,15 @@ export const EventPaymentPage: React.FC = () => {
       });
 
       // Call the API to create the ticket purchase
+      // Note: If multiple tickets are selected, we purchase each one separately
+      const firstTicketId = selectedTickets[0]?.id;
+      if (!firstTicketId) {
+        throw new Error('No ticket type selected');
+      }
+
       await purchaseTicket.mutateAsync({
         eventId: eventId,
+        ticketTypeId: firstTicketId,
         notes: metadata,
         paymentMethodId: paymentData.transactionId,
         eventWaiverAccepted: true // UI enforces checkbox must be checked before payment

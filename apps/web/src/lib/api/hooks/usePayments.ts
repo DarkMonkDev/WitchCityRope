@@ -92,8 +92,8 @@ export function useConfirmPayPalPayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ orderId, paymentDetails }: { orderId: string; paymentDetails: any }) =>
-      paymentsService.confirmPayPalPayment(orderId, paymentDetails),
+    mutationFn: ({ orderId, paymentDetails, ticketTypeId }: { orderId: string; paymentDetails: any; ticketTypeId: string }) =>
+      paymentsService.confirmPayPalPayment(orderId, paymentDetails, ticketTypeId),
 
     onSuccess: (data, variables) => {
       // Extract event ID from payment details

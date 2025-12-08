@@ -231,6 +231,7 @@ export const EventDetailPage: React.FC = () => {
     eventType: eventType as 'social' | 'class',
     participation,
     isLoading: participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending || cancelTicketMutation.isPending,
+    ticketTypeId: (event as any)?.ticketTypes?.[0]?.id,
     onRSVP: handleRSVP,
     onPurchaseTicket: handlePurchaseTicket,
     onCancel: handleCancel,
