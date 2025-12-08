@@ -35,9 +35,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Paper, Stack, Alert, Group, Text, Box, Badge, Button,
-  LoadingOverlay, Progress, Modal, Textarea, Checkbox
+  LoadingOverlay, Progress, Modal, Textarea, Checkbox, Title, Divider
 } from '@mantine/core';
-import { IconUsers, IconTicket, IconCalendarCheck, IconCheck, IconAlertCircle } from '@tabler/icons-react';
+import { IconUsers, IconTicket, IconCalendarCheck, IconCheck, IconAlertCircle, IconClock } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import {
   EnhancedParticipationStatusDto
@@ -49,6 +49,8 @@ import { PaymentSummary } from '../../features/payments/components/PaymentSummar
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { debugLog } from '../../utils/debug';
 import { useVettingStatus } from '../../features/vetting/hooks/useVettingStatus';
+import { formatUtcToLocalDate, formatUtcTimeRange } from '../../utils/eventUtils';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
@@ -122,6 +124,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
   const navigate = useNavigate();
   const isAuthenticated = !!user;
+  const eventTimeZone = useEventTimeZone();
 
   // Check if user has submitted a vetting application
   const { data: vettingStatus } = useVettingStatus();
@@ -364,7 +367,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
     setSelectedAmount(ticketPrice);
     setSlidingScalePercentage(0);
 
-    // Navigate to checkout page with event info
+    // Navigate to checkout page with event info and owned session IDs for filtering
     navigate(`/checkout/${eventId}`, {
       state: {
         eventInfo: {
@@ -375,7 +378,9 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           instructor: eventInstructor,
           location: eventLocation,
           price: ticketPrice
-        }
+        },
+        // Pass owned session IDs so checkout can filter out tickets that include them
+        ownedSessionIds: (validParticipation as any)?.ownedSessionIds || []
       }
     });
   };
@@ -433,8 +438,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
     <>
       <ParticipationCardShell isLoading={isLoading}>
         <Stack gap="lg">
-          {/* Capacity Status */}
-          {validParticipation?.capacity && (
+          {/* Capacity Status - Only show for single-session events or if no session data */}
+          {validParticipation?.capacity && (!eventSessions || eventSessions.length <= 1) && (
             <Box>
               <Group justify="space-between" mb="xs">
                 <Text size="sm" fw={600}>Event Capacity</Text>
@@ -454,6 +459,59 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                 </Text>
               )}
             </Box>
+          )}
+
+          {/* Event Dates / Times - Show for multi-session events when user does NOT have a ticket */}
+          {eventSessions && eventSessions.length > 1 &&
+           (validParticipation as any)?.sessionAvailability &&
+           !validParticipation?.hasTicket && (
+            <Stack gap="xs">
+              <Text fw={600} size="sm" c="dimmed" tt="uppercase">
+                Event Dates / Times
+              </Text>
+              {(validParticipation as any).sessionAvailability.map((session: any) => (
+                <Group key={session.sessionId} justify="space-between">
+                  <Text size="sm">
+                    {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                    {session.startTime && session.endTime && (
+                      <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                    )}
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    {session.soldCount || 0} sold, {session.availableCount || 0} Available
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          )}
+
+          {/* Owned Sessions Alert - Show when user has partial tickets */}
+          {(validParticipation as any)?.ownedSessionIds &&
+           (validParticipation as any).ownedSessionIds.length > 0 &&
+           (validParticipation as any).canPurchaseAdditionalSessions && (
+            <Alert color="green" variant="light" icon={<IconCheck />}>
+              <Text size="sm" fw={500}>You have tickets for:</Text>
+              <Stack gap={4} mt="xs">
+                {eventSessions
+                  ?.filter(session => (validParticipation as any).ownedSessionIds.includes(session.id))
+                  .map(session => (
+                    <Text key={session.id} size="sm">
+                      • {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                        {session.startTime && session.endTime && (
+                          <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                        )}
+                    </Text>
+                  ))}
+              </Stack>
+            </Alert>
           )}
 
           {/* Capacity Full Alert */}
@@ -518,42 +576,127 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             </Box>
           )}
 
+          {/* Additional Session Purchase Option - Show above ticket box when user can buy more sessions */}
+          {validParticipation?.hasTicket &&
+           (validParticipation as any)?.canPurchaseAdditionalSessions && (
+            <Box mb="md">
+              <Text size="sm" c="dimmed" ta="center" mb="sm">
+                Additional sessions available for purchase:
+              </Text>
+              {/* Show available sessions user doesn't own */}
+              <Stack gap="xs" mb="sm">
+                {(validParticipation as any)?.sessionAvailability
+                  ?.filter((session: any) =>
+                    !(validParticipation as any).ownedSessionIds?.includes(session.sessionId)
+                  )
+                  .map((session: any) => (
+                    <Group key={session.sessionId} justify="space-between">
+                      <Text size="sm">
+                        {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                        {session.startTime && session.endTime && (
+                          <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                        )}
+                      </Text>
+                      <Text size="sm" c="dimmed">
+                        {session.availableCount || 0} Available
+                      </Text>
+                    </Group>
+                  ))}
+              </Stack>
+              <Button
+                onClick={handleTicketPurchase}
+                fullWidth
+                variant="outline"
+                color="blue"
+                disabled={isLoading || isLoadingUser}
+                data-testid="button-purchase-additional-tickets"
+                styles={{
+                  root: {
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2'
+                  }
+                }}
+              >
+                Purchase Additional Sessions
+              </Button>
+            </Box>
+          )}
+
           {/* Ticket Purchase Summary */}
           {validParticipation?.hasTicket && (
             <Box>
-              <PaymentSummary
-                eventInfo={{
-                  id: eventId,
-                  title: eventTitle,
-                  startDateTime: eventStartDateTime || new Date().toISOString(),
-                  endDateTime: eventEndDateTime || new Date().toISOString(),
-                  currency: 'USD',
-                  location: eventLocation,
-                  instructorName: eventInstructor,
-                  basePrice: validParticipation.ticket?.amount || 0,
-                  registrationId: eventId
+              {/* Custom display for purchased tickets - shows only owned sessions */}
+              <Paper
+                radius="md"
+                p="lg"
+                withBorder
+                style={{
+                  backgroundColor: '#FAF6F2',
+                  border: '1px solid #D4A5A5'
                 }}
-                selectedTickets={[
-                  {
-                    id: validParticipation.ticket?.id || '',
-                    name: 'Event Ticket',
-                    pricingType: 'Fixed' as const,
-                    sessionIdentifiers: [],
-                    price: validParticipation.ticket?.amount || 0,
-                    minPrice: null,
-                    maxPrice: null,
-                    defaultPrice: null,
-                    quantityAvailable: 0,
-                    salesEndDate: null
-                  } as TicketTypeDto
-                ]}
-                ticketPrices={{
-                  [validParticipation.ticket?.id || '']: validParticipation.ticket?.amount || 0
-                }}
-                sessions={eventSessions}
-                detailed={false}
-                title="Your Ticket Purchase"
-              />
+              >
+                <Stack gap="md">
+                  <Title order={4} c="#880124">
+                    Your Ticket(s) Purchase
+                  </Title>
+
+                  {/* Show owned sessions with session name + date/time */}
+                  <Stack gap="xs">
+                    {eventSessions
+                      ?.filter(session => (validParticipation as any).ownedSessionIds?.includes(session.id))
+                      .map((session, index) => (
+                        <Group key={session.id || index} gap="xs" align="flex-start">
+                          <IconTicket size={16} color="#6B0119" style={{ marginTop: 2, flexShrink: 0 }} />
+                          <Box>
+                            <Text size="sm" fw={500}>
+                              {(session as any).sessionIdentifier || `Session ${index + 1}`}
+                            </Text>
+                            <Text size="sm" c="dimmed">
+                              {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                              {session.startTime && session.endTime && (
+                                <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                              )}
+                            </Text>
+                          </Box>
+                        </Group>
+                      ))}
+
+                    {/* Fallback: If no owned sessions found, show generic ticket info */}
+                    {(!eventSessions ||
+                      !(validParticipation as any).ownedSessionIds?.length ||
+                      !eventSessions.some(s => (validParticipation as any).ownedSessionIds?.includes(s.id))) && (
+                      <Group gap="xs" align="center">
+                        <IconTicket size={16} color="#6B0119" />
+                        <Text size="sm">Event Ticket</Text>
+                      </Group>
+                    )}
+                  </Stack>
+
+                  {/* Purchase amount */}
+                  {validParticipation.ticket?.amount != null && validParticipation.ticket.amount > 0 && (
+                    <>
+                      <Divider />
+                      <Group justify="space-between" align="center">
+                        <Text fw={500} size="sm">Amount Paid:</Text>
+                        <Text fw={700} c="#880124">
+                          ${validParticipation.ticket.amount.toFixed(2)}
+                        </Text>
+                      </Group>
+                    </>
+                  )}
+                </Stack>
+              </Paper>
               <Box mt="md">
                 {/* Cancel button - show only if backend allows */}
                 {validParticipation.canCancelTicket ? (

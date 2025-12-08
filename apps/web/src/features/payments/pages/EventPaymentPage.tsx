@@ -2,7 +2,7 @@
 // Complete payment flow for event registration
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Container,
   Stack,
@@ -29,7 +29,7 @@ import { usePayment } from '../hooks/usePayment';
 import { useSlidingScale } from '../hooks/useSlidingScale';
 import { usePurchaseTicket } from '../../../lib/api/hooks/usePayments';
 import { eventsManagementService } from '../../../api/services/eventsManagement.service';
-import { formatAbbreviatedDate } from '../../../utils/eventUtils';
+import { formatAbbreviatedDate, formatUtcTimeRange } from '../../../utils/eventUtils';
 
 import type { PaymentEventInfo } from '../types/payment.types';
 
@@ -48,6 +48,10 @@ export const EventPaymentPage: React.FC = () => {
   }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get owned session IDs from navigation state (for filtering out already-purchased sessions)
+  const ownedSessionIds: string[] = (location.state as any)?.ownedSessionIds || [];
 
   // Generate registration ID if not provided in URL
   const [registrationId] = useState(() =>
@@ -110,16 +114,47 @@ export const EventPaymentPage: React.FC = () => {
         // Extract ticket types and sessions
         const eventTicketTypes = eventDetails?.ticketTypes || [];
         const eventSessions = eventDetails?.sessions || [];
-        setTicketTypes(eventTicketTypes);
         setSessions(eventSessions);
+
+        // Filter out tickets that include sessions the user already owns
+        // Map owned session IDs to session identifiers
+        const ownedSessionIdentifiers = new Set<string>();
+        if (ownedSessionIds.length > 0) {
+          eventSessions.forEach(session => {
+            if (ownedSessionIds.includes(session.id || '') && session.sessionIdentifier) {
+              ownedSessionIdentifiers.add(session.sessionIdentifier);
+            }
+          });
+        }
+
+        // Filter tickets: exclude any ticket that includes an already-owned session
+        const availableTicketTypes = ownedSessionIdentifiers.size > 0
+          ? eventTicketTypes.filter(ticket => {
+              // If ticket has no session identifiers, include it
+              if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
+                return true;
+              }
+              // Exclude if ANY of the ticket's sessions are already owned
+              const hasOwnedSession = ticket.sessionIdentifiers.some(
+                sessionId => ownedSessionIdentifiers.has(sessionId)
+              );
+              return !hasOwnedSession;
+            })
+          : eventTicketTypes;
+
+        setTicketTypes(availableTicketTypes);
+
+        debugLog('EventPaymentPage: Owned session IDs:', ownedSessionIds);
+        debugLog('EventPaymentPage: Owned session identifiers:', Array.from(ownedSessionIdentifiers));
+        debugLog('EventPaymentPage: Filtered tickets:', availableTicketTypes.map(t => t.name));
 
         // Auto-select ticket(s): if only one ticket, select it automatically; otherwise use URL param or empty
         let initialSelectedIds: string[] = [];
         const initialPrices: Record<string, number> = {};
 
-        if (eventTicketTypes.length === 1) {
+        if (availableTicketTypes.length === 1) {
           // Only one ticket - auto-select it
-          const ticket = eventTicketTypes[0];
+          const ticket = availableTicketTypes[0];
           initialSelectedIds = [ticket.id || ''];
           // Set initial price based on ticket type
           const price = ticket.pricingType === 'Fixed'
@@ -127,9 +162,9 @@ export const EventPaymentPage: React.FC = () => {
             : (ticket.defaultPrice ?? ticket.minPrice ?? 0); // Use default price for sliding scale
           initialPrices[ticket.id || ''] = price;
         } else if (searchParams.get('ticketTypeId')) {
-          // URL param provided - select that one
+          // URL param provided - select that one (only if it's still available after filtering)
           const ticketId = searchParams.get('ticketTypeId')!;
-          const ticket = eventTicketTypes.find(t => t.id === ticketId);
+          const ticket = availableTicketTypes.find(t => t.id === ticketId);
           if (ticket) {
             initialSelectedIds = [ticketId];
             const price = ticket.pricingType === 'Fixed'
@@ -143,8 +178,8 @@ export const EventPaymentPage: React.FC = () => {
         setTicketPrices(initialPrices);
 
         // Calculate base price from first selected ticket (or first available)
-        const firstSelectedId = initialSelectedIds[0] || eventTicketTypes[0]?.id;
-        const selectedTicket = eventTicketTypes.find((tt) => tt.id === firstSelectedId) || eventTicketTypes[0];
+        const firstSelectedId = initialSelectedIds[0] || availableTicketTypes[0]?.id;
+        const selectedTicket = availableTicketTypes.find((tt) => tt.id === firstSelectedId) || availableTicketTypes[0];
         // Use correct price field based on pricing type
         const basePrice = selectedTicket?.pricingType === 'Fixed'
           ? (selectedTicket?.price ?? 0)
@@ -346,6 +381,37 @@ export const EventPaymentPage: React.FC = () => {
   debugLog('  - isSingleTicketSelected:', isSingleTicketSelected);
 
   /**
+   * Get ticket IDs that should be disabled due to session overlap
+   */
+  const getDisabledTicketIds = (selectedIds: string[]): Set<string> => {
+    const disabledIds = new Set<string>();
+
+    // Get all sessions covered by currently selected tickets
+    const coveredSessionIds = new Set<string>();
+    selectedIds.forEach(ticketId => {
+      const ticket = ticketTypes.find(tt => tt.id === ticketId);
+      ticket?.sessionIdentifiers?.forEach(sessionId => {
+        coveredSessionIds.add(sessionId);
+      });
+    });
+
+    // Find tickets that have overlapping sessions (disable them)
+    ticketTypes.forEach(ticket => {
+      if (selectedIds.includes(ticket.id || '')) return; // Already selected
+
+      const hasOverlap = ticket.sessionIdentifiers?.some(
+        sessionId => coveredSessionIds.has(sessionId)
+      );
+
+      if (hasOverlap) {
+        disabledIds.add(ticket.id || '');
+      }
+    });
+
+    return disabledIds;
+  };
+
+  /**
    * Handle ticket type checkbox toggle
    */
   const handleTicketTypeToggle = (ticketTypeId: string, checked: boolean) => {
@@ -389,8 +455,8 @@ export const EventPaymentPage: React.FC = () => {
   };
 
   /**
-   * Get formatted session dates for a ticket
-   * Returns abbreviated date string like "Sun, Dec 1" or "Sun, Dec 1 • Sat, Dec 7"
+   * Get formatted session dates with times for a ticket
+   * Returns string like "Sun, Dec 1 • 6:00 PM - 9:00 PM" or multiple lines for multi-session
    */
   const getTicketSessionDates = (ticket: TicketTypeDto): string => {
     if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
@@ -406,11 +472,17 @@ export const EventPaymentPage: React.FC = () => {
       return '';
     }
 
-    // Format each session date and join with bullet separator
+    // Format each session with date and time, joined with bullet separator
     const formattedDates = matchingSessions
       .filter(session => session.startDate) // Only include sessions with dates
-      .map(session => formatAbbreviatedDate(session.startDate!))
-      .join(' • ');
+      .map(session => {
+        const date = formatAbbreviatedDate(session.startDate!);
+        const timeRange = session.startTime && session.endTime
+          ? formatUtcTimeRange(session.startTime, session.endTime)
+          : '';
+        return timeRange ? `${date} • ${timeRange}` : date;
+      })
+      .join(' | ');
 
     return formattedDates;
   };
@@ -549,6 +621,10 @@ export const EventPaymentPage: React.FC = () => {
                           const isSelected = selectedTicketTypeIds.includes(tt.id || '');
                           const showCheckbox = ticketTypes.length > 1;
 
+                          // Check if this ticket should be disabled due to session overlap
+                          const disabledTicketIds = getDisabledTicketIds(selectedTicketTypeIds);
+                          const isDisabledDueToOverlap = disabledTicketIds.has(tt.id || '');
+
                           return (
                             <Paper
                               key={tt.id || Math.random()}
@@ -558,15 +634,17 @@ export const EventPaymentPage: React.FC = () => {
                                 border: isSelected
                                   ? '2px solid var(--mantine-color-wcr-6)'
                                   : '1px solid var(--mantine-color-gray-3)',
-                                cursor: showCheckbox ? 'pointer' : 'default',
+                                cursor: showCheckbox && !isDisabledDueToOverlap ? 'pointer' : 'default',
+                                opacity: isDisabledDueToOverlap ? 0.5 : 1,
                               }}
-                              onClick={() => showCheckbox && handleTicketTypeToggle(tt.id, !isSelected)}
+                              onClick={() => showCheckbox && !isDisabledDueToOverlap && handleTicketTypeToggle(tt.id, !isSelected)}
                             >
                               <Group justify="space-between" wrap="nowrap">
                                 <Group gap="sm" style={{ flex: 1 }}>
                                   {showCheckbox && (
                                     <Checkbox
                                       checked={isSelected}
+                                      disabled={isDisabledDueToOverlap}
                                       onChange={(e) => {
                                         e.stopPropagation();
                                         handleTicketTypeToggle(tt.id, e.currentTarget.checked);
@@ -587,6 +665,11 @@ export const EventPaymentPage: React.FC = () => {
                                       }
                                       return null;
                                     })()}
+                                    {isDisabledDueToOverlap && (
+                                      <Text size="xs" c="dimmed" mt={4}>
+                                        Sessions overlap with selected ticket
+                                      </Text>
+                                    )}
                                   </Box>
                                 </Group>
                                 <Text fw={700} size="lg" c="#880124" style={{ whiteSpace: 'nowrap' }}>
@@ -686,6 +769,11 @@ export const EventPaymentPage: React.FC = () => {
               <PaymentConfirmation
                 payment={completedPayment || paymentData || {} as any}
                 eventInfo={eventInfo}
+                purchasedTickets={selectedTickets.map(ticket => ({
+                  id: ticket.id || '',
+                  name: ticket.name || '',
+                  sessionDates: getTicketSessionDates(ticket)
+                }))}
                 onViewRegistrations={handleViewRegistrations}
                 onRegisterMore={handleRegisterMore}
               />

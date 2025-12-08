@@ -4206,7 +4206,7 @@ export interface components {
         CreateVenueRequest: {
             name?: string;
             directions?: string | null;
-            notes?: string | null;
+            venueInformation?: string | null;
             location?: string | null;
         };
         DashboardResponse: {
@@ -4272,10 +4272,13 @@ export interface components {
             canPurchaseTicket?: boolean;
             canCancelRSVP?: boolean;
             canCancelTicket?: boolean;
+            ticketPurchaseMessage?: string | null;
             rsvp?: components["schemas"]["RsvpDetailsDto"];
             ticket?: components["schemas"]["TicketDetailsDto"];
             capacity?: components["schemas"]["CapacityInfoDto"];
-            ticketPurchaseMessage?: string | null;
+            ownedSessionIds?: string[];
+            canPurchaseAdditionalSessions?: boolean;
+            sessionAvailability?: components["schemas"]["SessionAvailabilityDto"][];
         };
         ErrorResponse: {
             error?: string;
@@ -5158,6 +5161,22 @@ export interface components {
             userId?: string;
             email?: string;
         };
+        SessionAvailabilityDto: {
+            /** Format: uuid */
+            sessionId?: string;
+            sessionIdentifier?: string;
+            sessionName?: string;
+            /** Format: date-time */
+            startTime?: string;
+            /** Format: date-time */
+            endTime?: string;
+            /** Format: int32 */
+            soldCount?: number;
+            /** Format: int32 */
+            availableCount?: number;
+            /** Format: int32 */
+            capacity?: number;
+        };
         SessionDto: {
             id?: string;
             sessionIdentifier?: string;
@@ -5451,7 +5470,7 @@ export interface components {
         UpdateVenueRequest: {
             name?: string;
             directions?: string | null;
-            notes?: string | null;
+            venueInformation?: string | null;
             location?: string | null;
             isActive?: boolean;
         };
@@ -5650,7 +5669,7 @@ export interface components {
             id?: number;
             name?: string;
             directions?: string | null;
-            notes?: string | null;
+            venueInformation?: string | null;
             location?: string | null;
             isActive?: boolean;
             /** Format: date-time */

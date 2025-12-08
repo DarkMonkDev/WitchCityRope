@@ -169,9 +169,6 @@ export const EventsList: React.FC<EventsListProps> = ({
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
         borderRadius: '16px',
       }}
-      sx={{
-        borderRadius: { base: 0 }
-      }}
     >
       <Title
         order={2}
@@ -209,9 +206,6 @@ export const EventsList: React.FC<EventsListProps> = ({
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(350px, 100%), 1fr))',
           marginBottom: 'var(--space-xl)',
           gap: 'var(--space-lg)',
-        }}
-        sx={{
-          gap: { base: '4px' }
         }}
       >
         {displayEvents.map((event) => (

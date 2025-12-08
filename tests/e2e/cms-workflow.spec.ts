@@ -246,32 +246,27 @@ test.describe('CMS Workflow - Mobile Responsiveness', () => {
     await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
-    // Look for mobile hamburger menu
-    const hamburgerButton = page.locator('button[aria-label*="menu" i], button[aria-label*="navigation" i], [data-testid*="mobile-menu"]').first();
+    // Look for mobile hamburger menu (matches Navigation.tsx data-testid="button-mobile-menu")
+    const hamburgerButton = page.getByTestId('button-mobile-menu');
+    await expect(hamburgerButton).toBeVisible({ timeout: 5000 });
+    console.log('✅ Mobile hamburger menu found');
 
-    if (await hamburgerButton.isVisible()) {
-      console.log('✅ Mobile hamburger menu found');
+    // Open mobile menu
+    await hamburgerButton.click();
+    await page.waitForTimeout(500); // Allow menu animation
 
-      // Open mobile menu
-      await hamburgerButton.click();
-      await page.waitForTimeout(500); // Allow menu animation
+    // Verify menu opened (Mantine Drawer creates .mantine-Drawer-content)
+    const mobileNav = page.locator('.mantine-Drawer-content');
+    await expect(mobileNav).toBeVisible({ timeout: 2000 });
+    console.log('✅ Mobile menu opened');
 
-      // Verify menu opened
-      const mobileNav = page.locator('[role="navigation"], nav, [data-testid*="mobile-nav"]').first();
-      await expect(mobileNav).toBeVisible({ timeout: 2000 });
-      console.log('✅ Mobile menu opened');
-
-      // Look for CMS page links in mobile menu
-      const resourcesLink = page.locator('a[href="/resources"]').first();
-      if (await resourcesLink.isVisible()) {
-        await resourcesLink.click();
-        await page.waitForLoadState('domcontentloaded');
-        expect(page.url()).toContain('/resources');
-        console.log('✅ Navigation from mobile menu works');
-      }
-    } else {
-      console.log('ℹ️ No hamburger menu found - might use different mobile nav pattern');
-    }
+    // Look for Resources link in mobile menu (uses data-testid="mobile-link-resources")
+    const resourcesLink = page.getByTestId('mobile-link-resources');
+    await expect(resourcesLink).toBeVisible({ timeout: 2000 });
+    await resourcesLink.click();
+    await page.waitForLoadState('domcontentloaded');
+    expect(page.url()).toContain('/resources');
+    console.log('✅ Navigation from mobile menu works');
   });
 
   test('Tablet viewport: CMS pages display correctly on tablet', async ({ page }) => {

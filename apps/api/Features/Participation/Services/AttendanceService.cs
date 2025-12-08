@@ -8,6 +8,7 @@ using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
+using WitchCityRope.Api.Models;
 using PaymentModels = WitchCityRope.Api.Features.Payments.Models;
 using IRefundService = WitchCityRope.Api.Features.Payments.Services.IRefundService;
 using ProcessRefundRequest = WitchCityRope.Api.Features.Payments.Services.ProcessRefundRequest;
@@ -90,9 +91,12 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogInformation("Getting enhanced attendance status for user {UserId} in event {EventId}", userId, eventId);
 
-            // Get event details for capacity calculation
+            // Get event details with sessions for capacity calculation
             var eventEntity = await _context.Events
                 .AsNoTracking()
+                .Include(e => e.Sessions)
+                .Include(e => e.TicketTypes)
+                    .ThenInclude(tt => tt.Sessions)
                 .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
 
             if (eventEntity == null)
@@ -105,6 +109,62 @@ public class AttendanceService : IAttendanceService
             var activeAttendancesCount = await _context.EventAttendances
                 .Where(ea => ea.EventId == eventId && ea.Status == AttendanceStatus.Active)
                 .CountAsync(cancellationToken);
+
+            // Get user's owned session IDs (sessions they have tickets for)
+            var userTicketAttendances = await _context.EventAttendances
+                .AsNoTracking()
+                .Where(ea => ea.EventId == eventId &&
+                            ea.UserId == userId &&
+                            ea.Status == AttendanceStatus.Active &&
+                            ea.AttendanceType == AttendanceType.Ticket &&
+                            ea.SessionId.HasValue)
+                .Select(ea => ea.SessionId!.Value)
+                .ToListAsync(cancellationToken);
+
+            // Calculate per-session sold counts
+            // This needs to handle two cases:
+            // 1. Tickets with SessionId set → count directly
+            // 2. Legacy tickets without SessionId → trace through TicketPurchase → TicketType → TicketTypeSessions
+
+            // First, get counts from tickets WITH SessionId
+            var directSessionCounts = await _context.EventAttendances
+                .Where(ea => ea.EventId == eventId &&
+                            ea.Status == AttendanceStatus.Active &&
+                            ea.AttendanceType == AttendanceType.Ticket &&
+                            ea.SessionId.HasValue)
+                .GroupBy(ea => ea.SessionId!.Value)
+                .Select(g => new { SessionId = g.Key, SoldCount = g.Count() })
+                .ToDictionaryAsync(x => x.SessionId, x => x.SoldCount, cancellationToken);
+
+            // Second, get counts from tickets WITHOUT SessionId by tracing through TicketType
+            // For each ticket without SessionId, it counts toward ALL sessions its TicketType covers
+            var legacyTicketCounts = await _context.EventAttendances
+                .Where(ea => ea.EventId == eventId &&
+                            ea.Status == AttendanceStatus.Active &&
+                            ea.AttendanceType == AttendanceType.Ticket &&
+                            !ea.SessionId.HasValue &&
+                            ea.TicketPurchaseId.HasValue)
+                .Join(_context.TicketPurchases,
+                      ea => ea.TicketPurchaseId,
+                      tp => tp.Id,
+                      (ea, tp) => tp.TicketTypeId)
+                .Join(_context.Set<TicketType>().SelectMany(tt => tt.Sessions, (tt, s) => new { tt.Id, SessionId = s.Id }),
+                      ticketTypeId => ticketTypeId,
+                      tts => tts.Id,
+                      (ticketTypeId, tts) => tts.SessionId)
+                .GroupBy(sessionId => sessionId)
+                .Select(g => new { SessionId = g.Key, SoldCount = g.Count() })
+                .ToDictionaryAsync(x => x.SessionId, x => x.SoldCount, cancellationToken);
+
+            // Merge the counts
+            var sessionSoldCounts = new Dictionary<Guid, int>(directSessionCounts);
+            foreach (var kvp in legacyTicketCounts)
+            {
+                if (sessionSoldCounts.ContainsKey(kvp.Key))
+                    sessionSoldCounts[kvp.Key] += kvp.Value;
+                else
+                    sessionSoldCounts[kvp.Key] = kvp.Value;
+            }
 
             // BUSINESS RULE: Users can have BOTH RSVP and Ticket for social events
             // Query for both attendance types separately
@@ -248,6 +308,55 @@ public class AttendanceService : IAttendanceService
                     CancelReason = ticketAttendance.CancellationReason,
                     Notes = ticketAttendance.Notes
                 };
+            }
+
+            // Populate session-based fields for multi-session events
+            dto.OwnedSessionIds = userTicketAttendances;
+
+            // Build session availability list for multi-session events
+            if (eventEntity.Sessions.Count > 1)
+            {
+                foreach (var session in eventEntity.Sessions.OrderBy(s => s.StartTime))
+                {
+                    var soldCount = sessionSoldCounts.GetValueOrDefault(session.Id, 0);
+                    dto.SessionAvailability.Add(new SessionAvailabilityDto
+                    {
+                        SessionId = session.Id,
+                        SessionIdentifier = session.SessionCode ?? string.Empty,
+                        SessionName = session.Name ?? string.Empty,
+                        StartTime = session.StartTime,
+                        EndTime = session.EndTime,
+                        SoldCount = soldCount,
+                        AvailableCount = Math.Max(0, session.Capacity - soldCount),
+                        Capacity = session.Capacity
+                    });
+                }
+
+                // Calculate CanPurchaseAdditionalSessions:
+                // True if there are sessions user doesn't own AND there are purchasable ticket types for those sessions
+                var unownedSessionIds = eventEntity.Sessions
+                    .Where(s => !userTicketAttendances.Contains(s.Id))
+                    .Select(s => s.Id)
+                    .ToHashSet();
+
+                if (unownedSessionIds.Any())
+                {
+                    // Check if any ticket types cover unowned sessions and have availability
+                    // Note: Using Available > 0 as a simple check; actual capacity is validated at purchase time
+                    var hasPurchasableTickets = eventEntity.TicketTypes.Any(tt =>
+                        tt.Sessions.Any(s => unownedSessionIds.Contains(s.Id)) &&
+                        tt.Available > 0);
+
+                    // Also check timing window
+                    if (hasPurchasableTickets)
+                    {
+                        var isTimingAllowed = await _timeZoneService.IsActionAllowedAsync(
+                            eventEntity,
+                            EventActionType.GetTicket,
+                            cancellationToken);
+                        dto.CanPurchaseAdditionalSessions = isTimingAllowed;
+                    }
+                }
             }
 
             _logger.LogInformation(

@@ -12164,6 +12164,22 @@
           },
           "capacity": {
             "$ref": "#/components/schemas/CapacityInfoDto"
+          },
+          "ownedSessionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "canPurchaseAdditionalSessions": {
+            "type": "boolean"
+          },
+          "sessionAvailability": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionAvailabilityDto"
+            }
           }
         }
       },
@@ -14652,6 +14668,41 @@
           },
           "email": {
             "type": "string"
+          }
+        }
+      },
+      "SessionAvailabilityDto": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sessionIdentifier": {
+            "type": "string"
+          },
+          "sessionName": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "soldCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "availableCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

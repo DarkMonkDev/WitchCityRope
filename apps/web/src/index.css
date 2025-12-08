@@ -292,6 +292,48 @@ article p,
   color: var(--color-charcoal);
 }
 
+/* Light variant for dark backgrounds (hero sections, etc.) */
+.html-content-light {
+  font-size: clamp(1rem, 0.19vw + 0.94rem, 1.06rem);
+  line-height: 1.8;
+  color: var(--color-ivory);
+}
+
+.html-content-light h2 {
+  margin-block-start: 0;
+  margin-block-end: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 0.93vw + 1.2rem, 1.75rem);
+  font-weight: 700;
+  color: var(--color-ivory);
+}
+
+.html-content-light h3 {
+  margin-block-start: .75em;
+  margin-block-end: 0;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-ivory);
+}
+
+/* Default (desktop): date and time inline with spacing */
+.html-content-light h3 .date-part {
+  margin-right: 1.2em;
+}
+
+/* Mobile: date and time stacked, no margin between date/time */
+@media (max-width: 767px) {
+  .html-content-light h3 .date-part {
+    display: block;
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+  .html-content-light h3 .time-part {
+    display: block;
+  }
+}
+
 /* Legacy class name for backwards compatibility */
 .cms-content {
   font-size: clamp(1rem, 0.19vw + 0.94rem, 1.06rem);

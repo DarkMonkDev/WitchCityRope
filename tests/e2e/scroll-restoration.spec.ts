@@ -315,9 +315,10 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // MOBILE NAVIGATION PATTERN: No "Home" link in mobile menu
     // Real user behavior: Close menu, then click logo to navigate home
-    // Close mobile menu by clicking hamburger button again
-    await hamburgerButton.click()
-    console.log('Mobile (reverse) - Hamburger clicked to close menu')
+    // Close mobile menu by clicking the overlay (drawer body intercepts hamburger button clicks)
+    const overlay = page.locator('.mantine-Drawer-overlay')
+    await overlay.click({ force: true })
+    console.log('Mobile (reverse) - Overlay clicked to close menu')
 
     // Wait for mobile menu close animation (300ms transition + buffer)
     await page.waitForTimeout(400)

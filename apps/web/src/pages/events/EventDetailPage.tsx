@@ -351,42 +351,40 @@ export const EventDetailPage: React.FC = () => {
           />
 
           <Box style={{ position: 'relative', zIndex: 1 }}>
-            <Title
-              order={1}
-              style={{
+            {/* Title row with location on right */}
+            <Group justify="flex-start" align="flex-start" wrap="wrap" gap="md">
+              <Title
+                order={1}
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 'clamp(1.75rem, 1.11vw + 1.39rem, 3rem)', // 28px mobile → 48px desktop
+                  fontWeight: 800,
+                  color: 'var(--color-ivory)',
+                  lineHeight: 1.2
+                }}
+              >
+                {(event as any)?.title}
+              </Title>
+
+              {/* Separator - hidden on mobile */}
+              <Text visibleFrom="md" style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: 'clamp(1.75rem, 1.11vw + 1.39rem, 3rem)', // 28px mobile → 48px desktop
+                fontSize: 'clamp(1.75rem, 1.11vw + 1.39rem, 3rem)',
                 fontWeight: 800,
                 color: 'var(--color-ivory)',
-                marginBottom: 'var(--space-md)',
                 lineHeight: 1.2
-              }}
-            >
-              {(event as any)?.title}
-            </Title>
+              }}>
+                -
+              </Text>
 
-            <Stack gap="xs">
-              {/* Session date/times - one line each */}
-              {(() => {
-                const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
-                  new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
-                );
-
-                if (sessions.length === 0) {
-                  return <Text size="lg" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>Date and Time coming soon</Text>;
-                }
-
-                return sessions.map((session: any, index: number) => (
-                  <Text key={session.id || index} size="lg" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
-                    {formatUtcToLocalDate(session.startTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
-                    {' • '}
-                    {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
-                  </Text>
-                ));
-              })()}
-
-              {/* Location - no icon */}
-              <Text size="lg" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
+              {/* Location - moved to right of title */}
+              <Text size="lg" style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: 'clamp(1.75rem, 1.11vw + 1.39rem, 3rem)',
+                fontWeight: 800,
+                color: 'var(--color-ivory)',
+                lineHeight: 1.2
+              }}>
                 {(() => {
                   const hasVenueAccess = isVetted || (participation?.hasRSVP || participation?.hasTicket);
                   if (hasVenueAccess) {
@@ -396,7 +394,31 @@ export const EventDetailPage: React.FC = () => {
                   }
                 })()}
               </Text>
-            </Stack>
+            </Group>
+
+            <div className="html-content-light">
+              {/* Session date/times - one line each */}
+              {(() => {
+                const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
+                  new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
+                );
+
+                if (sessions.length === 0) {
+                  return <h3>Date and Time coming soon</h3>;
+                }
+
+                return sessions.map((session: any, index: number) => (
+                  <h3 key={session.id || index}>
+                    <span className="date-part">
+                      {formatUtcToLocalDate(session.startTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
+                    </span>
+                    <span className="time-part">
+                      {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
+                    </span>
+                  </h3>
+                ));
+              })()}
+            </div>
           </Box>
         </Paper>
 
@@ -595,28 +617,30 @@ export const EventDetailPage: React.FC = () => {
           {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && isAuthenticated && canVolunteerBasedOnEventType && (
             <div id="volunteer-opportunities-section">
               <ContentSection title="Volunteer Opportunities">
-                <Stack gap="md">
-                  <Text size="sm" c="dimmed" mb="sm">
+                <div className="html-content">
+                  <p>
                     Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
-                  </Text>
-                  {volunteerPositions.map((position) => (
-                    <VolunteerPositionCard
-                      key={position.id}
-                      position={position}
-                      hasExistingParticipation={participation?.hasRSVP || participation?.hasTicket || false}
-                    />
-                  ))}
+                  </p>
+                  <Stack gap="md" mt="md">
+                    {volunteerPositions.map((position) => (
+                      <VolunteerPositionCard
+                        key={position.id}
+                        position={position}
+                        hasExistingParticipation={participation?.hasRSVP || participation?.hasTicket || false}
+                      />
+                    ))}
 
-                  {/* Show message if all positions are filled or signup closed */}
-                  {volunteerPositions.every((p) => p.isFullyStaffed || !p.canSignUp) &&
-                   !volunteerPositions.some((p) => p.hasUserSignedUp) && (
-                    <Alert color="gray" variant="light">
-                      <Text size="sm">
-                        All volunteer positions are either full or signup has closed.
-                      </Text>
-                    </Alert>
-                  )}
-                </Stack>
+                    {/* Show message if all positions are filled or signup closed */}
+                    {volunteerPositions.every((p) => p.isFullyStaffed || !p.canSignUp) &&
+                     !volunteerPositions.some((p) => p.hasUserSignedUp) && (
+                      <Alert color="gray" variant="light">
+                        <Text size="sm">
+                          All volunteer positions are either full or signup has closed.
+                        </Text>
+                      </Alert>
+                    )}
+                  </Stack>
+                </div>
               </ContentSection>
             </div>
           )}

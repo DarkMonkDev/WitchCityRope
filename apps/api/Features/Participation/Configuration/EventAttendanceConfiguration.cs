@@ -149,13 +149,17 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
             "CHK_EventAttendances_CancelledAt_Logic",
             "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)"));
 
-        // Partial unique constraint: one ACTIVE attendance per user per event PER TYPE
+        // Partial unique constraint: one ACTIVE attendance per user per event PER TYPE PER SESSION
         // BUSINESS RULE: Users can have both RSVP and Ticket for the same event (social events)
-        // AttendanceType included in constraint to allow this combination
+        // BUSINESS RULE: For multi-session events, users can have one ticket per session
+        // AttendanceType included in constraint to allow RSVP + Ticket combination
+        // SessionId included to allow multiple tickets for different sessions
+        // NOTE: PostgreSQL treats NULL SessionId values as distinct, so single-session events
+        //       (with NULL SessionId) allow multiple tickets - this is handled by application logic
         // Allows users to re-RSVP/repurchase after cancelling (cancelled attendances are not constrained)
-        builder.HasIndex(e => new { e.UserId, e.EventId, e.AttendanceType })
+        builder.HasIndex(e => new { e.UserId, e.EventId, e.AttendanceType, e.SessionId })
                .IsUnique()
-               .HasDatabaseName("UQ_EventAttendances_User_Event_Type_Active")
+               .HasDatabaseName("UQ_EventAttendances_User_Event_Type_Session_Active")
                .HasFilter("\"Status\" = 1"); // Only enforce uniqueness for Active attendances (Status = 1)
     }
 }

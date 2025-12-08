@@ -17,7 +17,6 @@ import {
 } from '@mantine/core';
 import {
   IconCheck,
-  IconCalendar,
   IconMapPin,
   IconUser,
   IconTicket,
@@ -28,13 +27,20 @@ import {
 import type { PaymentResponse, PaymentEventInfo } from '../types/payment.types';
 import { paymentUtils } from '../api/paymentApi';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
-import { formatUtcToLocalTime } from '../../../utils/eventUtils';
+
+interface PurchasedTicket {
+  id: string;
+  name: string;
+  sessionDates: string; // e.g., "Sun, Dec 1 • Sat, Dec 7"
+}
 
 interface PaymentConfirmationProps {
   /** Payment details */
   payment: PaymentResponse;
   /** Event information */
   eventInfo: PaymentEventInfo;
+  /** Purchased tickets (for multi-session events) */
+  purchasedTickets?: PurchasedTicket[];
   /** Callback to view registrations */
   onViewRegistrations?: () => void;
   /** Callback to register for more events */
@@ -49,6 +55,7 @@ interface PaymentConfirmationProps {
 export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   payment,
   eventInfo,
+  purchasedTickets,
   onViewRegistrations,
   onRegisterMore,
   onDownloadReceipt
@@ -65,12 +72,6 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
       minute: '2-digit',
       timeZone: eventTimeZone
     });
-  };
-
-  // Format time using TRUE UTC to local conversion
-  // See: /docs/guides-setup/datetime-handling-guide.md
-  const formatTime = (dateString: string) => {
-    return formatUtcToLocalTime(dateString, eventTimeZone);
   };
 
   return (
@@ -103,32 +104,43 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
           </Stack>
         </Paper>
 
-        {/* Registration Details */}
+        {/* Event Details */}
         <Paper radius="md" p="lg" withBorder>
           <Stack gap="md">
             <Title order={3} c="#880124">
-              Registration Details
+              Event Details
             </Title>
 
-            {/* Event Information */}
-            <Stack gap="sm">
-              <Group gap="sm">
-                <IconCalendar size={20} color="#880124" />
-                <Box>
-                  <Text fw={600} size="lg">{eventInfo.title}</Text>
-                  <Text c="dimmed" size="sm">
-                    {formatDateTime(eventInfo.startDateTime)} - {formatTime(eventInfo.endDateTime)}
-                  </Text>
-                </Box>
-              </Group>
+            {/* Event Name */}
+            <Text fw={600} size="lg">{eventInfo.title}</Text>
 
-              {eventInfo.location && (
-                <Group gap="sm">
-                  <IconMapPin size={18} color="#6B0119" />
-                  <Text>Location: {eventInfo.location}</Text>
-                </Group>
-              )}
-            </Stack>
+            {/* Location (if available) */}
+            {eventInfo.location && (
+              <Group gap="sm">
+                <IconMapPin size={18} color="#6B0119" />
+                <Text>Location: {eventInfo.location}</Text>
+              </Group>
+            )}
+
+            {/* Ticket Information - Show purchased tickets with session times */}
+            {purchasedTickets && purchasedTickets.length > 0 && (
+              <Stack gap="xs">
+                <Text size="sm" fw={500} c="dimmed" tt="uppercase">Your Ticket(s)</Text>
+                {purchasedTickets.map((ticket, index) => (
+                  <Group key={ticket.id || index} gap="sm">
+                    <IconTicket size={18} color="#6B0119" />
+                    <Box>
+                      <Text fw={600}>{ticket.name}</Text>
+                      {ticket.sessionDates && (
+                        <Text size="sm" c="dimmed">
+                          {ticket.sessionDates}
+                        </Text>
+                      )}
+                    </Box>
+                  </Group>
+                ))}
+              </Stack>
+            )}
 
             <Divider />
 

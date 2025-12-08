@@ -16,10 +16,10 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 ## Test Run Info
 - **Date**: December 7, 2025 (Updated: December 8, 2025)
 - **Total Tests**: 807
-- **Passed**: 643
-- **Failed**: 92 → 93 (after fixes)
-- **Skipped**: 72
-- **Pass Rate**: **87.4%**
+- **Passed**: 643 → 652 (after CMS fix)
+- **Failed**: 92 → 67 (after fixes and CMS backend fix)
+- **Skipped**: 72 → 83
+- **Pass Rate**: **87.4%** → **81.2%** (denominator changed due to skips)
 - **Run Time**: 10.1 minutes
 
 ### Fixes Applied (December 8, 2025)
@@ -29,7 +29,12 @@ The following fixes were applied to all 92 failing test files:
 3. Replaced hardcoded URLs with `page.evaluate()` for API calls
 4. Used relative URLs instead of hardcoded localhost
 
-**Result**: Partial success - some tests now pass but 93 still failing due to deeper issues.
+**CMS Backend Bug Fix (December 8, 2025)**: User discovered and fixed a backend bug preventing CMS saves. This resolved 3 CMS test failures:
+- Happy Path: Admin can edit and save page content ✅
+- XSS Prevention: Backend sanitizes malicious HTML ✅
+- Performance: Save response time < 1 second ✅
+
+**Result**: 67 tests still failing after multiple rounds of fixes.
 
 ### Comparison to Previous (Dec 2, 2025)
 | Metric | Dec 2 | Dec 7 | Change |
@@ -233,19 +238,19 @@ The following fixes were applied to all 92 failing test files:
 
 ---
 
-## CMS (4 failures)
+## CMS (1 failure)
 
 ### cms-workflow (1 test)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
 | Mobile viewport: Navigation works on mobile | FAILING | 4.4s - mobile nav issue |
 
-### cms (3 tests)
+### cms (0 tests - all fixed 2025-12-08)
 | Test | Status | Failure Reason |
 |------|--------|----------------|
-| Happy Path: Admin can edit and save page content | FAILING | 5.2s |
-| XSS Prevention: Backend sanitizes malicious HTML | FAILING | 11.0s |
-| Performance: Save response time < 1 second | FAILING | 5.8s - timing assertion |
+| Happy Path: Admin can edit and save page content | FIXED | Backend CMS save bug resolved |
+| XSS Prevention: Backend sanitizes malicious HTML | FIXED | Backend CMS save bug resolved |
+| Performance: Save response time < 1 second | FIXED | Backend CMS save bug resolved |
 
 ---
 
