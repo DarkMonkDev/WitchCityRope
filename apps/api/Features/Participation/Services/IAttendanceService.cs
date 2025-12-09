@@ -35,12 +35,28 @@ public interface IAttendanceService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Cancel user's attendance in an event
+    /// Cancel user's attendance in an event (legacy mode - cancels one attendance)
     /// </summary>
     Task<Result> CancelParticipationAsync(
         Guid eventId,
         Guid userId,
         AttendanceType? attendanceType = null,
+        string? reason = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cancel specific ticket purchases (selective mode - cancels all sessions for each ticket)
+    /// </summary>
+    /// <param name="eventId">Event identifier</param>
+    /// <param name="userId">User identifier (for security verification)</param>
+    /// <param name="ticketPurchaseIds">List of TicketPurchase IDs to cancel</param>
+    /// <param name="reason">Optional cancellation reason</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success result or error</returns>
+    Task<Result> CancelTicketPurchasesAsync(
+        Guid eventId,
+        Guid userId,
+        List<Guid> ticketPurchaseIds,
         string? reason = null,
         CancellationToken cancellationToken = default);
 

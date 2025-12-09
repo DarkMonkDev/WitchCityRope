@@ -2988,6 +2988,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelTicketRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "No Content"
@@ -11224,6 +11233,25 @@
           }
         }
       },
+      "CancelTicketRequest": {
+        "type": "object",
+        "properties": {
+          "ticketPurchaseIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "default": null,
+        "nullable": true
+      },
       "CapacityInfo": {
         "type": "object",
         "properties": {
@@ -12209,6 +12237,22 @@
             "items": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          "ticketPurchaseSessionMap": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          "ticketPurchases": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TicketPurchaseInfoDto"
             }
           },
           "canPurchaseAdditionalSessions": {
@@ -15176,6 +15220,21 @@
           }
         },
         "nullable": true
+      },
+      "TicketPurchaseInfoDto": {
+        "type": "object",
+        "properties": {
+          "ticketTypeName": {
+            "type": "string"
+          },
+          "sessionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
       },
       "TicketTypeDto": {
         "type": "object",

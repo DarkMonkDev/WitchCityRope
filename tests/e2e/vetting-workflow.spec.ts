@@ -1,5 +1,19 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, APIRequestContext } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
+
+/**
+ * Helper function to verify user email via test helper endpoint
+ * ONLY works in Development/Test environments
+ */
+async function verifyUserEmail(request: APIRequestContext, email: string): Promise<void> {
+  const response = await request.post('/api/test-helpers/verify-email', {
+    data: { email }
+  });
+  if (!response.ok()) {
+    throw new Error(`Failed to verify email: ${await response.text()}`);
+  }
+  console.log(`✅ Email verified via test helper: ${email}`);
+}
 
 /**
  * Vetting System Workflow E2E Tests
@@ -36,10 +50,36 @@ test.describe('Vetting System - Complete Workflows', () => {
    *   - Submission succeeds
    *   - Confirmation page appears with email notification message
    *   - User can navigate to dashboard
+   *
+   * NOTE: Test creates its own user to ensure clean state (no existing application)
    */
-  test('user can submit vetting application successfully', async ({ page }) => {
-    // Arrange - Login as member without vetting application
-    await AuthHelpers.loginAs(page, 'member');
+  test('user can submit vetting application successfully', async ({ page, request }) => {
+    // Arrange - Create a fresh user for this test (tests create their own data)
+    const timestamp = Date.now();
+    const randomId = Math.floor(Math.random() * 10000);
+    const testEmail = `vetting-submit-${timestamp}-${randomId}@example.com`;
+    const testSceneName = `VettingTest ${timestamp}`;
+    const testPassword = 'Test123!';
+
+    // Step 1: Register new user
+    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('[data-testid="register-form"]', { timeout: 10000 });
+
+    await page.locator('[data-testid="email-input"]').fill(testEmail);
+    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
+    await page.locator('[data-testid="password-input"]').fill(testPassword);
+    await page.locator('[data-testid="terms-checkbox"]').check();
+    await page.locator('[data-testid="register-button"]').click();
+
+    await page.waitForURL(/\/login/, { timeout: 15000 });
+    console.log(`✅ Registered new user: ${testEmail}`);
+
+    // Step 2: Verify email
+    await verifyUserEmail(request, testEmail);
+
+    // Step 3: Login
+    await AuthHelpers.loginWith(page, { email: testEmail, password: testPassword });
+    console.log('✅ Logged in as new user');
 
     // Act - Navigate to vetting application page
     await page.goto('/join', { waitUntil: 'domcontentloaded' });
@@ -50,29 +90,32 @@ test.describe('Vetting System - Complete Workflows', () => {
     await expect(form).toBeVisible({ timeout: 10000 });
 
     // Fill required fields
-    // Scene Name (should be pre-filled from user profile)
-    const sceneNameInput = page.locator('input[name="sceneName"], [data-testid="scene-name-input"]').first();
-    if (await sceneNameInput.count() > 0 && !(await sceneNameInput.inputValue())) {
-      await sceneNameInput.fill('TestMember');
+    // First Name
+    const firstNameInput = page.locator('[data-testid="first-name-input"]');
+    if (await firstNameInput.count() > 0) {
+      await firstNameInput.fill('Test');
+    }
+
+    // Last Name
+    const lastNameInput = page.locator('[data-testid="last-name-input"]');
+    if (await lastNameInput.count() > 0) {
+      await lastNameInput.fill('User');
     }
 
     // Why join field (20+ characters required)
-    const whyJoinInput = page.locator('textarea[name="whyJoinCommunity"], [data-testid="why-join-textarea"]').first();
+    const whyJoinInput = page.locator('[data-testid="why-join-textarea"]');
     if (await whyJoinInput.count() > 0) {
       await whyJoinInput.fill('I am very interested in learning rope bondage techniques and connecting with the community.');
     }
 
     // Experience field (50+ characters required)
-    const experienceInput = page.locator('textarea[name="experienceDescription"], [data-testid="experience-textarea"]').first();
-    if (await experienceInput.count() > 0) {
-      await experienceInput.fill('I have been practicing rope bondage for 2 years, attending workshops and local events to improve my skills.');
-    }
+    const experienceInput = page.locator('[data-testid="experience-with-rope-textarea"]');
+    await experienceInput.fill('I have been practicing rope bondage for 2 years, attending workshops and local events to improve my skills.');
 
-    // Agreement checkbox
-    const agreementCheckbox = page.locator('input[type="checkbox"][name="agreedToGuidelines"]').first();
-    if (await agreementCheckbox.count() > 0) {
-      await agreementCheckbox.check();
-    }
+    // Agreement checkbox (community standards)
+    const agreementCheckbox = page.locator('[data-testid="community-standards-checkbox"]');
+    await agreementCheckbox.scrollIntoViewIfNeeded();
+    await agreementCheckbox.check();
 
     // Screenshot before submission
     await page.screenshot({
@@ -80,26 +123,13 @@ test.describe('Vetting System - Complete Workflows', () => {
       fullPage: true
     });
 
-    // Check if submit button is enabled (form validation passed)
-    const submitButton = page.locator('button[type="submit"]').filter({ hasText: /submit/i }).first();
-    const isEnabled = await submitButton.isEnabled();
+    // Submit form - button should be enabled for a freshly created user
+    const submitButton = page.locator('[data-testid="submit-application-button"]')
+      .or(page.locator('button[type="submit"]').filter({ hasText: /submit/i }))
+      .first();
 
-    if (!isEnabled) {
-      console.log('⚠️ Submit button disabled - form validation may have failed. Checking form state...');
-      // Check if member already has application
-      const existingAppMessage = page.locator('text=/already.*application|existing.*application/i');
-      if (await existingAppMessage.count() > 0) {
-        console.log('Member already has vetting application - skipping submission test');
-        test.skip();
-        return;
-      }
-      // Form may need additional fields filled
-      console.log('Submit button disabled - may need additional required fields');
-      test.skip();
-      return;
-    }
-
-    // Submit form
+    // Wait for button to be enabled (form validation should pass with all required fields filled)
+    await expect(submitButton).toBeEnabled({ timeout: 5000 });
     await submitButton.click();
 
     // Assert - Success confirmation page appears
@@ -107,8 +137,8 @@ test.describe('Vetting System - Complete Workflows', () => {
     const successMessage = page.locator('text=/application.*submitted.*successfully/i').first();
     await expect(successMessage).toBeVisible({ timeout: 15000 });
 
-    // Verify email notification message is shown
-    const emailMessage = page.locator('text=/confirmation email/i');
+    // Verify email notification message is shown (use first() due to multiple matches)
+    const emailMessage = page.locator('text=/confirmation email/i').first();
     await expect(emailMessage).toBeVisible();
 
     // Verify "What happens next?" section appears

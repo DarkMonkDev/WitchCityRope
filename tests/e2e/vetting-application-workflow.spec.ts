@@ -329,33 +329,27 @@ test.describe('Vetting Application Workflow', () => {
 
     await expect(vettingForm).toBeVisible({ timeout: 10000 });
 
-    // Act: Try to submit empty form (using data-testid)
+    // The submit button uses Mantine form validation which disables the button
+    // until required fields are filled. This IS the validation behavior.
     const submitButton = page.getByTestId('submit-application-button').or(
       page.locator('button[type="submit"]').filter({ hasText: /submit/i })
     ).last();
-    await submitButton.click();
 
-    // Assert: Validation errors appear (Mantine form validation)
-    // Mantine displays errors in the input's error prop
-    const validationErrors = page.locator('[class*="mantine-Input-error"], [class*="error"]')
-      .or(page.locator('text=/required|must be/i'));
-
-    // Wait for at least one validation error to appear
-    await expect(validationErrors.last()).toBeVisible({ timeout: 5000 });
+    // Assert: Submit button should be DISABLED on empty form (Mantine validation)
+    // This is the primary validation mechanism - button disabled until form valid
+    await expect(submitButton).toBeDisabled({ timeout: 5000 });
+    console.log('✅ Submit button is disabled for empty form (Mantine form validation)');
 
     // Assert: Still on /join page (form did not submit)
     await expect(page).toHaveURL(/\/join/);
 
-    // Assert: Multiple validation errors shown (one per required field)
-    const errorCount = await validationErrors.count();
-    expect(errorCount).toBeGreaterThan(0);
-    console.log(`Validation errors shown: ${errorCount}`);
-
     // Screenshot for documentation
     await page.screenshot({
-      path: 'test-results/vetting-application-validation-errors.png',
+      path: './test-results/vetting-application-validation-errors.png',
       fullPage: true
     });
+
+    console.log('✅ Form validation prevents submission of incomplete form');
   });
 
   /**

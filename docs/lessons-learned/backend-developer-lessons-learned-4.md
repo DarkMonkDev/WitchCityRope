@@ -2221,3 +2221,165 @@ Should appear on `/events` page WITHOUT requiring "Show Past Events" toggle.
 **Tags**: #critical #event-filtering #session-timing #startdate #multi-session-events #source-of-truth #linq #entity-framework #business-logic
 
 ---
+
+## 🚨 CRITICAL: TicketPurchaseId Missing from EventAttendance Records - Selective Cancellation Broken (2025-12-09)
+
+**Problem**: Frontend selective ticket cancellation feature broken - `ticketPurchaseSessionMap` empty despite users having tickets. Admin user shows `hasTicket: true` but cannot cancel specific sessions because the map linking purchases to sessions is empty.
+
+**Date Discovered**: December 9, 2025 during ticket purchase flow investigation
+**Context**: `GetParticipationStatusAsync` builds `ticketPurchaseSessionMap` by grouping EventAttendance records by `TicketPurchaseId`, but all TicketPurchaseId fields were `null`
+
+**Root Cause**:
+- `CreateTicketPurchaseAsync` in `AttendanceService.cs` created EventAttendance records (lines 736-754) without creating a TicketPurchase record
+- EventAttendance records had `TicketPurchaseId = null` because no TicketPurchase existed to link to
+- The method only created attendance tracking records, not the financial transaction record
+- This broke the selective ticket cancellation feature which relies on the TicketPurchase → EventAttendance linkage
+
+**Evidence**:
+```
+Admin User Data:
+- hasTicket: true
+- ticket.id exists
+- BUT ticketPurchaseSessionMap: {} (empty!)
+
+Teacher User Data (from seed data):
+- ticketPurchaseSessionMap: {"6ce042b5...":["019b01c5..."]} (correct!)
+
+Difference: Seed data correctly creates TicketPurchase + links EventAttendance
+UI flow: Only created EventAttendance without TicketPurchase link
+```
+
+**Database Schema**:
+```csharp
+// EventAttendance entity
+public class EventAttendance
+{
+    public Guid? TicketPurchaseId { get; set; }  // Link to financial transaction
+    public TicketPurchase? TicketPurchase { get; set; }  // Navigation property
+    // ... other fields
+}
+```
+
+**Why This Pattern Failed**:
+1. EventAttendance was created for attendance tracking (who's attending which sessions)
+2. TicketPurchase was never created for financial tracking (who paid for what ticket type)
+3. Without TicketPurchase, there was no record to link EventAttendance records to
+4. `GetParticipationStatusAsync` grouped by `TicketPurchaseId` → all null → empty map
+5. Frontend couldn't build UI for selective cancellation (didn't know which sessions belonged to which purchase)
+
+**Correct Pattern** (from TestHelperService.cs lines 207-247 and TicketPurchaseSeeder.cs):
+```csharp
+// STEP 1: Create TicketPurchase record FIRST
+var ticketPurchase = new TicketPurchase
+{
+    Id = Guid.NewGuid(),
+    TicketTypeId = request.TicketTypeId,
+    UserId = userId,
+    Quantity = 1,
+    TotalPrice = ticketType.Price,
+    PaymentStatus = "Pending",
+    PaymentMethod = request.PaymentMethodId ?? "Unknown",
+    PaymentReference = $"WCR-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+    Notes = request.Notes ?? $"Ticket purchase - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
+    EventWaiverAccepted = request.EventWaiverAccepted,
+    EventWaiverAcceptedAt = DateTime.UtcNow,
+    PurchaseDate = DateTime.UtcNow,
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+};
+
+_context.TicketPurchases.Add(ticketPurchase);
+await _context.SaveChangesAsync(cancellationToken);
+
+// STEP 2: Create EventAttendance records linked to TicketPurchase
+foreach (var session in ticketTypeWithSessions.Sessions)
+{
+    var attendance = new EventAttendance(request.EventId, userId, AttendanceType.Ticket)
+    {
+        SessionId = session.Id,
+        TicketPurchaseId = ticketPurchase.Id,  // CRITICAL: Link to TicketPurchase
+        Notes = request.Notes,
+        EventWaiverAccepted = true,
+        EventWaiverAcceptedAt = DateTime.UtcNow,
+        CreatedBy = userId
+    };
+
+    _context.EventAttendances.Add(attendance);
+}
+
+await _context.SaveChangesAsync(cancellationToken);
+```
+
+**Why Two Separate Records**:
+- **TicketPurchase**: Financial transaction record (payment tracking, refunds, purchase history)
+- **EventAttendance**: Attendance tracking record (capacity, check-in, roster)
+- **Link**: `EventAttendance.TicketPurchaseId` → `TicketPurchase.Id`
+- **Purpose**: Enables selective cancellation (cancel specific sessions within a multi-session ticket)
+
+**Multi-Session Ticket Support**:
+```
+One TicketPurchase → Multiple EventAttendance records
+Example: Weekend Pass ticket
+- 1 TicketPurchase (financial record)
+- 3 EventAttendance records (one per session: Fri, Sat, Sun)
+- All 3 attendance records link to same TicketPurchaseId
+- Frontend can show: "Weekend Pass - 3 sessions" with individual cancel buttons
+```
+
+**Payment Status Field**:
+- Initially "Pending" when EventAttendance created
+- Updated to "Completed" after PayPal payment processes
+- Separate payment processing step updates TicketPurchase record
+- EventAttendance records remain linked regardless of payment status changes
+
+**Prevention Rules**:
+1. ✅ **ALWAYS create TicketPurchase BEFORE EventAttendance** when user purchases a ticket
+2. ✅ **ALWAYS set EventAttendance.TicketPurchaseId** to link to the financial record
+3. ✅ **Use TicketPurchaseId for grouping** in APIs that need to identify which sessions belong to same purchase
+4. ✅ **Test with multi-session tickets** to verify cancellation works for individual sessions
+5. ✅ **Compare with seed data patterns** - TestHelperService and seeders show correct implementation
+
+**Testing Verification**:
+```bash
+# 1. User purchases ticket through UI
+curl -X POST 'http://localhost:5173/api/events/{eventId}/tickets' \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{"ticketTypeId":"...","notes":"Test purchase","eventWaiverAccepted":true}'
+
+# 2. Query database - verify TicketPurchase created
+docker exec witchcity-postgres psql -U postgres -d witchcitydb \
+  -c "SELECT \"Id\", \"TicketTypeId\", \"PaymentStatus\" FROM \"TicketPurchases\" WHERE \"UserId\" = '{userId}' ORDER BY \"CreatedAt\" DESC LIMIT 1;"
+
+# 3. Query database - verify EventAttendance links to TicketPurchase
+docker exec witchcity-postgres psql -U postgres -d witchcitydb \
+  -c "SELECT \"Id\", \"TicketPurchaseId\", \"SessionId\", \"Status\" FROM \"EventAttendances\" WHERE \"UserId\" = '{userId}' AND \"AttendanceType\" = 2 ORDER BY \"CreatedAt\" DESC LIMIT 3;"
+
+# 4. Get participation status - verify ticketPurchaseSessionMap populated
+curl 'http://localhost:5173/api/events/{eventId}/participation' -b cookies.txt | jq '.data.ticketPurchaseSessionMap'
+# Expected: {"<ticketPurchaseId>":["<sessionId1>","<sessionId2>",...]}
+```
+
+**File Modified**: `/home/chad/repos/witchcityrope/apps/api/Features/Participation/Services/AttendanceService.cs`
+- Lines 736-790: Added TicketPurchase creation before EventAttendance records
+- Added extensive comments explaining the two-step process
+- Pattern matches TestHelperService.cs (lines 208-247)
+
+**Related Patterns**:
+- **Event Participation Architecture** (AttendanceService.cs lines 18-51): Documents ticket vs RSVP separation
+- **TestHelperService Pattern** (lines 207-247): Shows correct TicketPurchase → EventAttendance linking
+- **TicketPurchaseSeeder Pattern** (lines 653-794): Production seed data creates both records correctly
+
+**Success Criteria**:
+- ✅ API builds with 0 errors (warnings only)
+- ✅ Every ticket purchase creates TicketPurchase record first
+- ✅ Every EventAttendance for tickets has TicketPurchaseId set
+- ✅ `ticketPurchaseSessionMap` populated for all users with tickets
+- ✅ Frontend selective cancellation UI works for multi-session tickets
+- ✅ Payment processing can update TicketPurchase.PaymentStatus independently
+
+**Pattern**: Ticket purchases require TWO records: TicketPurchase (financial) + EventAttendance (attendance). Create TicketPurchase FIRST, then create EventAttendance with TicketPurchaseId link. Never create EventAttendance alone for ticket purchases.
+
+**Tags**: #critical #ticketpurchase #eventattendance #foreign-key #selective-cancellation #multi-session-tickets #payment-tracking #financial-records #attendance-tracking #database-relationships
+
+---

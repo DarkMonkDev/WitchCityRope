@@ -110,16 +110,53 @@ public class AttendanceService : IAttendanceService
                 .Where(ea => ea.EventId == eventId && ea.Status == AttendanceStatus.Active)
                 .CountAsync(cancellationToken);
 
-            // Get user's owned session IDs (sessions they have tickets for)
-            var userTicketAttendances = await _context.EventAttendances
+            // Get user's owned session IDs and ticket purchase mappings (sessions they have tickets for)
+            // Include TicketPurchase -> TicketType for ticket name and price
+            var userTicketAttendanceData = await _context.EventAttendances
                 .AsNoTracking()
                 .Where(ea => ea.EventId == eventId &&
                             ea.UserId == userId &&
                             ea.Status == AttendanceStatus.Active &&
                             ea.AttendanceType == AttendanceType.Ticket &&
                             ea.SessionId.HasValue)
-                .Select(ea => ea.SessionId!.Value)
+                .Select(ea => new {
+                    ea.SessionId,
+                    ea.TicketPurchaseId,
+                    TicketTypeName = ea.TicketPurchase != null && ea.TicketPurchase.TicketType != null
+                        ? ea.TicketPurchase.TicketType.Name
+                        : null,
+                    TotalPrice = ea.TicketPurchase != null ? ea.TicketPurchase.TotalPrice : 0m
+                })
                 .ToListAsync(cancellationToken);
+
+            // Extract flat list of owned session IDs (for backward compatibility)
+            var userTicketAttendances = userTicketAttendanceData
+                .Where(x => x.SessionId.HasValue)
+                .Select(x => x.SessionId!.Value)
+                .ToList();
+
+            // Build TicketPurchaseSessionMap: maps TicketPurchaseId -> List of SessionIds
+            var ticketPurchaseSessionMap = userTicketAttendanceData
+                .Where(x => x.TicketPurchaseId.HasValue && x.SessionId.HasValue)
+                .GroupBy(x => x.TicketPurchaseId!.Value)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.SessionId!.Value).ToList()
+                );
+
+            // Build TicketPurchases: maps TicketPurchaseId -> TicketPurchaseInfoDto (includes ticket type name and price)
+            var ticketPurchases = userTicketAttendanceData
+                .Where(x => x.TicketPurchaseId.HasValue && x.SessionId.HasValue)
+                .GroupBy(x => x.TicketPurchaseId!.Value)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new TicketPurchaseInfoDto
+                    {
+                        TicketTypeName = g.First().TicketTypeName ?? "Event Ticket",
+                        SessionIds = g.Select(x => x.SessionId!.Value).ToList(),
+                        TotalPrice = g.First().TotalPrice // All records in group have same price (same TicketPurchase)
+                    }
+                );
 
             // Calculate per-session sold counts
             // This needs to handle two cases:
@@ -278,29 +315,15 @@ public class AttendanceService : IAttendanceService
             // Populate Ticket details if exists
             if (ticketAttendance != null)
             {
-                // Extract purchase amount from notes JSON (payment details stored in Notes field)
-                decimal? amount = null;
-                if (!string.IsNullOrWhiteSpace(ticketAttendance.Notes))
-                {
-                    try
-                    {
-                        var notesData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, System.Text.Json.JsonElement>>(ticketAttendance.Notes);
-                        if (notesData != null && notesData.TryGetValue("purchaseAmount", out var amountElement))
-                        {
-                            amount = amountElement.GetDecimal();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to parse notes for attendance {AttendanceId}", ticketAttendance.Id);
-                    }
-                }
+                // Calculate TOTAL amount from ALL ticket purchases (not just one)
+                // This handles users who purchased multiple tickets for the same event
+                var totalAmount = ticketPurchases.Values.Sum(tp => tp.TotalPrice);
 
                 dto.Ticket = new TicketDetailsDto
                 {
                     Id = ticketAttendance.Id,
                     Status = ticketAttendance.Status.ToString(),
-                    Amount = amount,
+                    Amount = totalAmount > 0 ? totalAmount : null, // Only show amount if there's a price
                     PaymentStatus = ticketAttendance.Status == AttendanceStatus.Active ? "Completed" :
                                    ticketAttendance.Status == AttendanceStatus.Refunded ? "Refunded" : "Unknown",
                     CreatedAt = ticketAttendance.CreatedAt,
@@ -312,6 +335,8 @@ public class AttendanceService : IAttendanceService
 
             // Populate session-based fields for multi-session events
             dto.OwnedSessionIds = userTicketAttendances;
+            dto.TicketPurchaseSessionMap = ticketPurchaseSessionMap;
+            dto.TicketPurchases = ticketPurchases;
 
             // Build session availability list for multi-session events
             if (eventEntity.Sessions.Count > 1)
@@ -717,9 +742,44 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("Event is at full capacity");
             }
 
-            // Create EventAttendance records for each session in the ticket type
-            // For multi-session tickets, this creates multiple records
+            // ============================================================================
+            // STEP 1: Create TicketPurchase record FIRST
+            // ============================================================================
+            // CRITICAL: Create TicketPurchase BEFORE EventAttendance records
+            // so we can link EventAttendance.TicketPurchaseId to the purchase.
+            // This link is REQUIRED for selective ticket cancellation feature.
+            //
+            // Pattern matches TestHelperService.cs lines 208-247
+            var ticketPurchase = new TicketPurchase
+            {
+                Id = Guid.NewGuid(),
+                TicketTypeId = request.TicketTypeId,
+                UserId = userId,
+                Quantity = 1, // Currently only support quantity=1 per purchase
+                TotalPrice = ticketType.Price ?? 0m, // Use full ticket price (sliding scale handled elsewhere)
+                PaymentStatus = "Pending", // Payment will be processed separately via PayPal
+                PaymentMethod = request.PaymentMethodId ?? "Unknown", // Track payment method if provided
+                PaymentReference = $"WCR-{Guid.NewGuid().ToString()[..8].ToUpper()}", // Temporary reference until payment completes
+                Notes = request.Notes ?? $"Ticket purchase - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
+                EventWaiverAccepted = request.EventWaiverAccepted,
+                EventWaiverAcceptedAt = DateTime.UtcNow,
+                PurchaseDate = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.TicketPurchases.Add(ticketPurchase);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Created TicketPurchase {TicketPurchaseId} for user {UserId} in event {EventId}",
+                ticketPurchase.Id, userId, request.EventId);
+
+            // ============================================================================
+            // STEP 2: Create EventAttendance records linked to TicketPurchase
+            // ============================================================================
+            // For multi-session tickets, this creates multiple records (one per session)
             // For single-session tickets, this creates one record
+            // CRITICAL: Set TicketPurchaseId to link attendance to the purchase
             var attendances = new List<EventAttendance>();
 
             foreach (var session in ticketTypeWithSessions.Sessions)
@@ -727,6 +787,7 @@ public class AttendanceService : IAttendanceService
                 var attendance = new EventAttendance(request.EventId, userId, AttendanceType.Ticket)
                 {
                     SessionId = session.Id,
+                    TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to TicketPurchase
                     Notes = request.Notes,
                     EventWaiverAccepted = true,
                     EventWaiverAcceptedAt = DateTime.UtcNow,
@@ -1216,6 +1277,312 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogError(ex, "Error cancelling attendance for user {UserId} in event {EventId}", userId, eventId);
             return Result.Failure("Failed to cancel attendance", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Cancel specific ticket purchases (selective mode)
+    /// </summary>
+    /// <remarks>
+    /// BUSINESS RULE: Cancel ALL EventAttendance records for the specified TicketPurchase IDs
+    ///
+    /// CRITICAL: Multi-session tickets create MULTIPLE EventAttendance records (one per session)
+    /// - Each EventAttendance has the same TicketPurchaseId
+    /// - Must cancel ALL attendances for each ticket purchase
+    /// - Process refund for each unique TicketPurchase
+    ///
+    /// SECURITY: Verify all ticket purchases belong to the requesting user
+    ///
+    /// INTEGRATION:
+    /// - Cancels associated RSVP if exists
+    /// - Processes automatic refunds via RefundService
+    /// - Auto-cancels volunteer signups
+    /// - Updates EventAttendee records
+    /// </remarks>
+    public async Task<Result> CancelTicketPurchasesAsync(
+        Guid eventId,
+        Guid userId,
+        List<Guid> ticketPurchaseIds,
+        string? reason = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation(
+                "Cancelling {Count} ticket purchase(s) for user {UserId} in event {EventId}",
+                ticketPurchaseIds.Count, userId, eventId);
+
+            // Validate event exists and get event details (needed for timing checks)
+            var eventEntity = await _context.Events
+                .Include(e => e.Sessions)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                return Result.Failure("Event not found");
+            }
+
+            // Find ALL active attendances for these ticket purchases
+            // CRITICAL: Must include ALL sessions, not just one attendance per ticket
+            var attendancesToCancel = await _context.EventAttendances
+                .Where(ea =>
+                    ea.EventId == eventId &&
+                    ea.UserId == userId &&
+                    ea.Status == AttendanceStatus.Active &&
+                    ea.TicketPurchaseId.HasValue &&
+                    ticketPurchaseIds.Contains(ea.TicketPurchaseId.Value))
+                .ToListAsync(cancellationToken);
+
+            if (attendancesToCancel.Count == 0)
+            {
+                return Result.Failure("No active ticket attendances found for the specified ticket purchases");
+            }
+
+            // SECURITY: Verify all ticket purchases belong to this user
+            var ticketPurchases = await _context.TicketPurchases
+                .Include(tp => tp.TicketType)
+                .Where(tp => ticketPurchaseIds.Contains(tp.Id))
+                .ToListAsync(cancellationToken);
+
+            var unauthorizedPurchases = ticketPurchases.Where(tp => tp.UserId != userId).ToList();
+            if (unauthorizedPurchases.Any())
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to cancel ticket purchases belonging to other users: {Ids}",
+                    userId, string.Join(", ", unauthorizedPurchases.Select(p => p.Id)));
+                return Result.Failure("Unauthorized: Cannot cancel tickets that don't belong to you");
+            }
+
+            // TIMING VALIDATION: Check if cancellation is still allowed for each ticket type
+            foreach (var ticketPurchase in ticketPurchases)
+            {
+                if (ticketPurchase.TicketType == null)
+                {
+                    _logger.LogWarning(
+                        "Ticket purchase {TicketPurchaseId} has no TicketType - allowing cancellation for legacy data",
+                        ticketPurchase.Id);
+                    continue;
+                }
+
+                var referenceSession = _timeZoneService.GetReferenceSessionForTicketType(
+                    ticketPurchase.TicketType, eventEntity.Sessions);
+
+                if (referenceSession == null)
+                {
+                    _logger.LogWarning(
+                        "Ticket cancellation attempt for event {EventId} - all sessions for ticket {TicketId} have passed",
+                        eventId, ticketPurchase.Id);
+                    return Result.Failure($"Cannot cancel - all sessions for ticket '{ticketPurchase.TicketType.Name}' have passed");
+                }
+
+                var canCancel = _timeZoneService.IsActionAllowedForSession(
+                    referenceSession,
+                    null, // No open restriction for cancellation
+                    eventEntity.CancellationCloseHours);
+
+                if (!canCancel)
+                {
+                    _logger.LogWarning(
+                        "Ticket cancellation attempt for event {EventId} outside allowed timing window for session {SessionId}",
+                        eventId, referenceSession.Id);
+                    return Result.Failure($"Cancellation window has closed for ticket '{ticketPurchase.TicketType.Name}'");
+                }
+            }
+
+            // Check if each attendance can be cancelled
+            foreach (var attendance in attendancesToCancel)
+            {
+                if (!attendance.CanBeCancelled())
+                {
+                    return Result.Failure($"Attendance {attendance.Id} cannot be cancelled in its current status");
+                }
+            }
+
+            // ============================================================================
+            // BUSINESS RULE: Also cancel associated RSVP if exists
+            // ============================================================================
+            var associatedRsvp = await _context.EventAttendances
+                .Where(ea =>
+                    ea.EventId == eventId &&
+                    ea.UserId == userId &&
+                    ea.Status == AttendanceStatus.Active &&
+                    ea.AttendanceType == AttendanceType.RSVP)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (associatedRsvp != null)
+            {
+                _logger.LogInformation(
+                    "Found associated RSVP {RsvpId} - will also cancel when cancelling tickets",
+                    associatedRsvp.Id);
+            }
+
+            // ============================================================================
+            // PROCESS REFUNDS: One refund per TicketPurchase
+            // ============================================================================
+            var processedRefunds = new HashSet<Guid>();
+            foreach (var attendance in attendancesToCancel)
+            {
+                if (attendance.TicketPurchaseId.HasValue && !processedRefunds.Contains(attendance.TicketPurchaseId.Value))
+                {
+                    // Process refund (once per ticket purchase, not per attendance)
+                    await ProcessAutomaticRefundAsync(
+                        attendance.Id,
+                        userId,
+                        reason,
+                        cancellationToken);
+
+                    processedRefunds.Add(attendance.TicketPurchaseId.Value);
+                }
+            }
+
+            // ============================================================================
+            // CANCEL ALL ATTENDANCES
+            // ============================================================================
+            foreach (var attendance in attendancesToCancel)
+            {
+                var oldValues = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    Status = attendance.Status,
+                    CancelledAt = attendance.CancelledAt,
+                    CancellationReason = attendance.CancellationReason
+                });
+
+                attendance.Cancel(reason);
+                attendance.UpdatedBy = userId;
+                _context.EventAttendances.Update(attendance);
+
+                // Create audit history
+                var history = new AttendanceHistory(attendance.Id, "Cancelled")
+                {
+                    OldValues = oldValues,
+                    NewValues = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        Status = attendance.Status,
+                        CancelledAt = attendance.CancelledAt,
+                        CancellationReason = attendance.CancellationReason
+                    }),
+                    ChangedBy = userId,
+                    ChangeReason = reason ?? "User cancelled ticket purchase"
+                };
+
+                _context.AttendanceHistory.Add(history);
+
+                _logger.LogInformation(
+                    "Cancelled attendance {AttendanceId} for ticket purchase {TicketPurchaseId}",
+                    attendance.Id, attendance.TicketPurchaseId);
+            }
+
+            // Cancel associated RSVP if exists
+            if (associatedRsvp != null)
+            {
+                var rsvpOldValues = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    Status = associatedRsvp.Status,
+                    CancelledAt = associatedRsvp.CancelledAt,
+                    CancellationReason = associatedRsvp.CancellationReason
+                });
+
+                associatedRsvp.Cancel("Auto-cancelled when ticket was cancelled");
+                associatedRsvp.UpdatedBy = userId;
+                _context.EventAttendances.Update(associatedRsvp);
+
+                var rsvpHistory = new AttendanceHistory(associatedRsvp.Id, "Cancelled")
+                {
+                    OldValues = rsvpOldValues,
+                    NewValues = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        Status = associatedRsvp.Status,
+                        CancelledAt = associatedRsvp.CancelledAt,
+                        CancellationReason = associatedRsvp.CancellationReason
+                    }),
+                    ChangedBy = userId,
+                    ChangeReason = "Auto-cancelled when ticket was cancelled"
+                };
+
+                _context.AttendanceHistory.Add(rsvpHistory);
+                _logger.LogInformation("Cancelled associated RSVP {RsvpId}", associatedRsvp.Id);
+            }
+
+            // ============================================================================
+            // UPDATE EventAttendee RECORD
+            // ============================================================================
+            // Check if user has any remaining ACTIVE attendances after these cancellations
+            var remainingActiveAttendances = await _context.EventAttendances
+                .Where(ea =>
+                    ea.EventId == eventId &&
+                    ea.UserId == userId &&
+                    ea.Status == AttendanceStatus.Active &&
+                    !attendancesToCancel.Select(a => a.Id).Contains(ea.Id) &&
+                    (associatedRsvp == null || ea.Id != associatedRsvp.Id))
+                .AnyAsync(cancellationToken);
+
+            if (!remainingActiveAttendances)
+            {
+                var eventAttendee = await _context.EventAttendees
+                    .FirstOrDefaultAsync(ea => ea.EventId == eventId && ea.UserId == userId, cancellationToken);
+
+                if (eventAttendee != null)
+                {
+                    _logger.LogInformation(
+                        "Updating EventAttendee {AttendeeId} status to 'cancelled' - no active attendances remain",
+                        eventAttendee.Id);
+
+                    eventAttendee.RegistrationStatus = "cancelled";
+                    eventAttendee.UpdatedAt = DateTime.UtcNow;
+                    _context.EventAttendees.Update(eventAttendee);
+                }
+            }
+
+            // ============================================================================
+            // SAVE ALL CHANGES
+            // ============================================================================
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Successfully cancelled {Count} attendance(s) for {TicketCount} ticket purchase(s) for user {UserId} in event {EventId}",
+                attendancesToCancel.Count, ticketPurchaseIds.Count, userId, eventId);
+
+            // ============================================================================
+            // AUTO-CANCEL VOLUNTEER SIGNUPS
+            // ============================================================================
+            try
+            {
+                var cancellationResult = await _volunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
+                    userId,
+                    eventId,
+                    "Refunded Ticket, so automatically canceled volunteer spot",
+                    cancellationToken);
+
+                if (cancellationResult.success && cancellationResult.cancelledCount > 0)
+                {
+                    _logger.LogInformation(
+                        "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId}",
+                        cancellationResult.cancelledCount, userId, eventId);
+                }
+                else if (!cancellationResult.success)
+                {
+                    _logger.LogWarning(
+                        "Failed to auto-cancel volunteer signups: {Error}",
+                        cancellationResult.error);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but don't fail the cancellation
+                _logger.LogError(ex,
+                    "Error auto-cancelling volunteer signups for user {UserId} at event {EventId}",
+                    userId, eventId);
+            }
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error cancelling ticket purchases for user {UserId} in event {EventId}",
+                userId, eventId);
+            return Result.Failure("Failed to cancel ticket purchases", ex.Message);
         }
     }
 

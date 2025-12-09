@@ -83,7 +83,7 @@ interface ParticipationCardProps {
   ticketTypeId?: string;
   onRSVP: (notes?: string, eventWaiverAccepted?: boolean) => void;
   onPurchaseTicket: (amount: number, slidingScalePercentage?: number) => void;
-  onCancel: (type: 'rsvp' | 'ticket', reason?: string) => void;
+  onCancel: (type: 'rsvp' | 'ticket', reason?: string, ticketPurchaseIds?: string[]) => void;
   ticketPrice?: number;
   ticketPriceRange?: TicketPriceRange;
   eventStartDateTime?: string;
@@ -149,6 +149,10 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const [selectedAmount, setSelectedAmount] = useState(ticketPrice);
   const [slidingScalePercentage, setSlidingScalePercentage] = useState(0);
   const [rsvpTermsAccepted, setRsvpTermsAccepted] = useState(false);
+
+  // Cancel mode state for selective ticket cancellation
+  const [isCancelMode, setIsCancelMode] = useState(false);
+  const [selectedTicketPurchaseIds, setSelectedTicketPurchaseIds] = useState<string[]>([]);
 
   // PayPal payment confirmation hook
   const confirmPayPalPayment = useConfirmPayPalPayment();
@@ -350,8 +354,15 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   };
 
   const handleCancelClick = (type: 'rsvp' | 'ticket') => {
-    setCancelType(type);
-    setCancelModalOpen(true);
+    if (type === 'ticket') {
+      // For tickets, enter cancel mode to allow selective cancellation
+      setIsCancelMode(true);
+      setSelectedTicketPurchaseIds([]);
+    } else {
+      // For RSVP, use the modal
+      setCancelType(type);
+      setCancelModalOpen(true);
+    }
   };
 
   const handleConfirmCancel = () => {
@@ -363,6 +374,30 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const handleCancelModal = () => {
     setCancelModalOpen(false);
     setCancelReason('');
+  };
+
+  // Toggle ticket purchase selection for cancellation
+  const toggleTicketPurchaseSelection = (ticketPurchaseId: string) => {
+    setSelectedTicketPurchaseIds(prev =>
+      prev.includes(ticketPurchaseId)
+        ? prev.filter(id => id !== ticketPurchaseId)
+        : [...prev, ticketPurchaseId]
+    );
+  };
+
+  // Confirm selective ticket cancellation
+  const handleConfirmTicketCancel = () => {
+    if (selectedTicketPurchaseIds.length > 0) {
+      onCancel('ticket', undefined, selectedTicketPurchaseIds);
+    }
+    setIsCancelMode(false);
+    setSelectedTicketPurchaseIds([]);
+  };
+
+  // Exit cancel mode without cancelling
+  const handleExitCancelMode = () => {
+    setIsCancelMode(false);
+    setSelectedTicketPurchaseIds([]);
   };
 
   const handleTicketPurchase = () => {
@@ -443,23 +478,53 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           {/* Capacity Status - Only show for single-session events or if no session data */}
           {validParticipation?.capacity && (!eventSessions || eventSessions.length <= 1) && (
             <Box>
-              <Group justify="space-between" mb="xs">
-                <Text size="sm" fw={600}>Event Capacity</Text>
-                <Text size="sm" c="dimmed">
-                  {validParticipation.capacity.current} / {validParticipation.capacity.total}
-                </Text>
-              </Group>
+              {/* Availability status text - same logic as PublicEventCard */}
+              {(() => {
+                const available = validParticipation.capacity.available;
+                const current = validParticipation.capacity.current;
+                const isSocialEvent = eventType === 'social';
+
+                // Color logic: >10 = success, >3 = warning, ≤3 = error
+                const getSpotColor = () => {
+                  if (available > 10) return 'var(--color-success)';
+                  if (available > 3) return 'var(--color-warning)';
+                  return 'var(--color-error)';
+                };
+
+                // Status text logic matching PublicEventCard
+                const getStatusText = () => {
+                  if (isSocialEvent) {
+                    if (available <= 0) return 'RSVPs Full';
+                    if (available <= 3) return `Only ${available} left!`;
+                    return `${current} RSVPs, ${available} left`;
+                  } else {
+                    if (available <= 0) return 'Sold Out';
+                    if (available <= 3) return `Only ${available} left!`;
+                    return `${current} sold, ${available} left`;
+                  }
+                };
+
+                return (
+                  <Text
+                    fw={600}
+                    ta="center"
+                    mb="xs"
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: '14px',
+                      color: getSpotColor(),
+                    }}
+                  >
+                    {getStatusText()}
+                  </Text>
+                );
+              })()}
               <Progress
                 value={(validParticipation.capacity.current / validParticipation.capacity.total) * 100}
-                color={validParticipation.capacity.available <= 3 ? 'red' : 'green'}
+                color={validParticipation.capacity.available <= 3 ? 'red' : validParticipation.capacity.available <= 10 ? 'yellow' : 'green'}
                 size="sm"
                 radius="md"
               />
-              {validParticipation.capacity.available <= 3 && validParticipation.capacity.available > 0 && (
-                <Text size="xs" c="orange" mt="xs" ta="center">
-                  ⚠️ Only {validParticipation.capacity.available} spots left!
-                </Text>
-              )}
             </Box>
           )}
 
@@ -482,20 +547,26 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                 </Title>
                 <Stack gap="xs">
                   {(validParticipation as any).sessionAvailability.map((session: any) => (
-                    <Group key={session.sessionId} justify="space-between">
-                      <Text size="sm">
-                        {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                        {session.startTime && session.endTime && (
-                          <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
-                        )}
-                      </Text>
-                      <Text size="sm" c="dimmed">
-                        {session.soldCount || 0} sold, {session.availableCount || 0} available
-                      </Text>
+                    <Group key={session.sessionId} gap="xs" align="flex-start">
+                      <IconTicket size={16} color="#6B0119" style={{ marginTop: 2, flexShrink: 0 }} />
+                      <Box>
+                        <Text size="sm" fw={500}>
+                          {session.sessionName || session.sessionIdentifier || 'Session'}
+                        </Text>
+                        <Text size="sm" c="dimmed">
+                          {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                          {session.startTime && session.endTime && (
+                            <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                          )}
+                        </Text>
+                        <Text size="sm" c="dimmed">
+                          {session.soldCount || 0} sold, {session.availableCount || 0} available
+                        </Text>
+                      </Box>
                     </Group>
                   ))}
                 </Stack>
@@ -503,30 +574,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             </Paper>
           )}
 
-          {/* Owned Sessions Alert - Show when user has partial tickets */}
-          {(validParticipation as any)?.ownedSessionIds &&
-           (validParticipation as any).ownedSessionIds.length > 0 &&
-           (validParticipation as any).canPurchaseAdditionalSessions && (
-            <Alert color="green" variant="light" icon={<IconCheck />}>
-              <Text size="sm" fw={500}>You have tickets for:</Text>
-              <Stack gap={4} mt="xs">
-                {eventSessions
-                  ?.filter(session => (validParticipation as any).ownedSessionIds.includes(session.id))
-                  .map(session => (
-                    <Text key={session.id} size="sm">
-                      • {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                        {session.startTime && session.endTime && (
-                          <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
-                        )}
-                    </Text>
-                  ))}
-              </Stack>
-            </Alert>
-          )}
+          {/* Removed: Owned Sessions Alert - data is now shown in "Your Ticket(s)" box below */}
 
           {/* Capacity Full Alert */}
           {isAtCapacity && (
@@ -590,63 +638,10 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             </Box>
           )}
 
-          {/* Additional Session Purchase Option - Show above ticket box when user can buy more sessions */}
-          {validParticipation?.hasTicket &&
-           (validParticipation as any)?.canPurchaseAdditionalSessions && (
-            <Box mb="md">
-              <Text size="sm" c="dimmed" ta="center" mb="sm">
-                Additional sessions available for purchase:
-              </Text>
-              {/* Show available sessions user doesn't own */}
-              <Stack gap="xs" mb="sm">
-                {(validParticipation as any)?.sessionAvailability
-                  ?.filter((session: any) =>
-                    !(validParticipation as any).ownedSessionIds?.includes(session.sessionId)
-                  )
-                  .map((session: any) => (
-                    <Group key={session.sessionId} justify="space-between">
-                      <Text size="sm">
-                        {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                        {session.startTime && session.endTime && (
-                          <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
-                        )}
-                      </Text>
-                      <Text size="sm" c="dimmed">
-                        {session.availableCount || 0} Available
-                      </Text>
-                    </Group>
-                  ))}
-              </Stack>
-              <Button
-                onClick={handleTicketPurchase}
-                fullWidth
-                variant="outline"
-                color="blue"
-                disabled={isLoading || isLoadingUser}
-                data-testid="button-purchase-additional-tickets"
-                styles={{
-                  root: {
-                    height: '44px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    fontSize: '14px',
-                    lineHeight: '1.2'
-                  }
-                }}
-              >
-                Purchase Additional Sessions
-              </Button>
-            </Box>
-          )}
-
           {/* Ticket Purchase Summary */}
           {validParticipation?.hasTicket && (
             <Box>
-              {/* Custom display for purchased tickets - shows only owned sessions */}
+              {/* Custom display for purchased tickets */}
               <Paper
                 radius="md"
                 p="lg"
@@ -657,86 +652,334 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                 }}
               >
                 <Stack gap="md">
-                  <Title order={4} c="#880124">
-                    Your Ticket(s) Purchase
-                  </Title>
-
-                  {/* Show owned sessions with session name + date/time */}
-                  <Stack gap="xs">
-                    {eventSessions
-                      ?.filter(session => (validParticipation as any).ownedSessionIds?.includes(session.id))
-                      .map((session, index) => (
-                        <Group key={session.id || index} gap="xs" align="flex-start">
-                          <IconTicket size={16} color="#6B0119" style={{ marginTop: 2, flexShrink: 0 }} />
-                          <Box>
-                            <Text size="sm" fw={500}>
-                              {session.name || session.sessionIdentifier || `Session ${index + 1}`}
-                            </Text>
-                            <Text size="sm" c="dimmed">
-                              {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
-                                weekday: 'short',
-                                month: 'short',
-                                day: 'numeric'
-                              })}
-                              {session.startTime && session.endTime && (
-                                <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
-                              )}
-                            </Text>
-                          </Box>
-                        </Group>
-                      ))}
-
-                    {/* Fallback: If no owned sessions found, show generic ticket info */}
-                    {(!eventSessions ||
-                      !(validParticipation as any).ownedSessionIds?.length ||
-                      !eventSessions.some(s => (validParticipation as any).ownedSessionIds?.includes(s.id))) && (
-                      <Group gap="xs" align="center">
-                        <IconTicket size={16} color="#6B0119" />
-                        <Text size="sm">Event Ticket</Text>
-                      </Group>
+                  <Group justify="space-between" align="center">
+                    <Title order={4} c="#880124">
+                      {isCancelMode ? 'Select Tickets to Cancel' : 'Your Tickets'}
+                    </Title>
+                    {isCancelMode && (
+                      <Text
+                        size="sm"
+                        c="dimmed"
+                        style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={handleExitCancelMode}
+                      >
+                        Cancel
+                      </Text>
                     )}
-                  </Stack>
+                  </Group>
 
-                  {/* Purchase amount */}
-                  {validParticipation.ticket?.amount != null && validParticipation.ticket.amount > 0 && (
-                    <>
+                  {/* Cancel Mode: Show tickets grouped by purchase with checkboxes */}
+                  {isCancelMode ? (
+                    <Stack gap="md">
+                      {/* Get ticket purchases from the map */}
+                      {(() => {
+                        // Use ticketPurchases (includes ticket type name) if available, fall back to ticketPurchaseSessionMap
+                        const ticketPurchases = (validParticipation as any)?.ticketPurchases as Record<string, { ticketTypeName: string; sessionIds: string[] }> | undefined;
+                        const ticketPurchaseMap = (validParticipation as any)?.ticketPurchaseSessionMap as Record<string, string[]> | undefined;
+                        debugLog('🎫 Cancel Mode - ticketPurchases:', ticketPurchases);
+                        debugLog('🎫 Cancel Mode - ticketPurchaseMap:', ticketPurchaseMap);
+
+                        // If no map available, this indicates a data issue - ticketPurchaseSessionMap should always be populated
+                        if ((!ticketPurchases || Object.keys(ticketPurchases).length === 0) &&
+                            (!ticketPurchaseMap || Object.keys(ticketPurchaseMap).length === 0)) {
+                          debugLog('🎫 ERROR: ticketPurchases/ticketPurchaseSessionMap is empty - this is a data issue');
+                          return (
+                            <Alert color="red" variant="light">
+                              <Text size="sm">Unable to load ticket details. Please contact support.</Text>
+                            </Alert>
+                          );
+                        }
+
+                        // Prefer ticketPurchases (has ticket type name), fall back to ticketPurchaseMap
+                        const purchaseEntries = ticketPurchases
+                          ? Object.entries(ticketPurchases).map(([id, info]) => ({
+                              ticketPurchaseId: id,
+                              sessionIds: info.sessionIds,
+                              ticketTypeName: info.ticketTypeName
+                            }))
+                          : Object.entries(ticketPurchaseMap || {}).map(([id, sessionIds]) => ({
+                              ticketPurchaseId: id,
+                              sessionIds,
+                              ticketTypeName: null as string | null
+                            }));
+
+                        // Render each ticket purchase as a selectable item
+                        return purchaseEntries.map(({ ticketPurchaseId, sessionIds, ticketTypeName }) => {
+                          const ticketSessions = eventSessions?.filter(s => sessionIds.includes(s.id || '')) || [];
+                          const isSelected = selectedTicketPurchaseIds.includes(ticketPurchaseId);
+
+                          // Use ticket type name from API, or generate fallback if not available
+                          const ticketName = ticketTypeName || (ticketSessions.length > 1
+                            ? `${ticketSessions.length}-Session Ticket`
+                            : ticketSessions[0]?.name || ticketSessions[0]?.sessionIdentifier || 'Event Ticket');
+
+                          return (
+                            <Box
+                              key={ticketPurchaseId}
+                              onClick={() => toggleTicketPurchaseSelection(ticketPurchaseId)}
+                              style={{
+                                cursor: 'pointer',
+                                padding: '8px',
+                                borderRadius: '8px',
+                                backgroundColor: isSelected ? 'rgba(220, 53, 69, 0.1)' : 'transparent',
+                                border: isSelected ? '1px solid rgba(220, 53, 69, 0.3)' : '1px solid transparent'
+                              }}
+                            >
+                              <Group gap="sm" align="flex-start">
+                                <Checkbox
+                                  checked={isSelected}
+                                  onChange={() => {}}
+                                  readOnly
+                                  color="red"
+                                  mt={2}
+                                />
+                                <Box style={{ flex: 1 }}>
+                                  <Text size="sm" fw={500}>{ticketName}</Text>
+                                  <Stack gap={4} mt={4}>
+                                    {ticketSessions.map((session, idx) => (
+                                      <Text key={session.id || idx} size="xs" c="dimmed">
+                                        {session.name || session.sessionIdentifier || `Session ${idx + 1}`}
+                                        {session.startTime && (
+                                          <> – {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                                            weekday: 'short',
+                                            month: 'short',
+                                            day: 'numeric'
+                                          })}
+                                          {session.endTime && (
+                                            <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                                          )}</>
+                                        )}
+                                      </Text>
+                                    ))}
+                                  </Stack>
+                                </Box>
+                              </Group>
+                            </Box>
+                          );
+                        });
+                      })()}
+
+                      {/* Cancel mode action buttons */}
                       <Divider />
-                      <Group justify="space-between" align="center">
-                        <Text fw={500} size="sm">Amount Paid:</Text>
-                        <Text fw={700} c="#880124">
-                          ${validParticipation.ticket.amount.toFixed(2)}
-                        </Text>
+                      <Group justify="center">
+                        <Button
+                          variant="filled"
+                          color="red"
+                          onClick={handleConfirmTicketCancel}
+                          disabled={selectedTicketPurchaseIds.length === 0}
+                          styles={{
+                            root: {
+                              height: '40px',
+                              fontSize: '14px'
+                            }
+                          }}
+                        >
+                          Cancel Selected ({selectedTicketPurchaseIds.length})
+                        </Button>
                       </Group>
+                    </Stack>
+                  ) : (
+                    /* Normal Mode: Show tickets grouped by purchase */
+                    <>
+                      <Stack gap="md">
+                        {(() => {
+                          // Get ticket purchases dictionary (includes ticket type name and price)
+                          const ticketPurchases = validParticipation?.ticketPurchases as Record<string, { ticketTypeName?: string; sessionIds?: string[]; totalPrice?: number }> | undefined;
+
+                          // If ticketPurchases exists and has entries, show grouped by purchase
+                          if (ticketPurchases && Object.keys(ticketPurchases).length > 0) {
+                            return Object.entries(ticketPurchases).map(([purchaseId, purchase]) => {
+                              const ticketSessions = eventSessions?.filter(s => purchase.sessionIds?.includes(s.id || '')) || [];
+                              const ticketName = purchase.ticketTypeName || (ticketSessions.length > 1
+                                ? `${ticketSessions.length}-Session Ticket`
+                                : ticketSessions[0]?.name || 'Event Ticket');
+
+                              return (
+                                <Box key={purchaseId}>
+                                  <Group gap="xs" align="flex-start">
+                                    <IconTicket size={16} color="#6B0119" style={{ marginTop: 2, flexShrink: 0 }} />
+                                    <Box style={{ flex: 1 }}>
+                                      <Group justify="space-between" align="center">
+                                        <Text size="sm" fw={500}>{ticketName}</Text>
+                                        {purchase.totalPrice != null && purchase.totalPrice > 0 && (
+                                          <Text size="sm" fw={600} c="#880124">${purchase.totalPrice.toFixed(2)}</Text>
+                                        )}
+                                      </Group>
+                                      <Stack gap={4} mt={4}>
+                                        {ticketSessions.map((session, idx) => (
+                                          <Text key={session.id || idx} size="xs" c="dimmed">
+                                            {session.name || session.sessionIdentifier || `Session ${idx + 1}`}
+                                            {session.startTime && (
+                                              <> – {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                                                weekday: 'short',
+                                                month: 'short',
+                                                day: 'numeric'
+                                              })}
+                                              {session.endTime && (
+                                                <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                                              )}</>
+                                            )}
+                                          </Text>
+                                        ))}
+                                      </Stack>
+                                    </Box>
+                                  </Group>
+                                </Box>
+                              );
+                            });
+                          }
+
+                          // Fallback: Show flat session list from ownedSessionIds (legacy or single ticket)
+                          const ownedSessions = eventSessions?.filter(session =>
+                            (validParticipation as any).ownedSessionIds?.includes(session.id)
+                          ) || [];
+
+                          if (ownedSessions.length > 0) {
+                            return ownedSessions.map((session, index) => (
+                              <Group key={session.id || index} gap="xs" align="flex-start">
+                                <IconTicket size={16} color="#6B0119" style={{ marginTop: 2, flexShrink: 0 }} />
+                                <Box>
+                                  <Text size="sm" fw={500}>
+                                    {session.name || session.sessionIdentifier || `Session ${index + 1}`}
+                                  </Text>
+                                  <Text size="sm" c="dimmed">
+                                    {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                                      weekday: 'short',
+                                      month: 'short',
+                                      day: 'numeric'
+                                    })}
+                                    {session.startTime && session.endTime && (
+                                      <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                                    )}
+                                  </Text>
+                                </Box>
+                              </Group>
+                            ));
+                          }
+
+                          // Ultimate fallback: Generic ticket info
+                          return (
+                            <Group gap="xs" align="center">
+                              <IconTicket size={16} color="#6B0119" />
+                              <Text size="sm">Event Ticket</Text>
+                            </Group>
+                          );
+                        })()}
+                      </Stack>
+
+                      {/* Total purchase amount - sum of all ticket purchases */}
+                      {validParticipation.ticket?.amount != null && validParticipation.ticket.amount > 0 && (
+                        <>
+                          <Divider />
+                          <Group justify="space-between" align="center">
+                            <Text fw={500} size="sm">Total Paid:</Text>
+                            <Text fw={700} c="#880124">
+                              ${validParticipation.ticket.amount.toFixed(2)}
+                            </Text>
+                          </Group>
+                        </>
+                      )}
                     </>
                   )}
                 </Stack>
               </Paper>
-              <Box mt="md">
-                {/* Cancel button - show only if backend allows */}
-                {validParticipation.canCancelTicket ? (
-                  <Button
-                    variant="light"
-                    color="red"
-                    onClick={() => handleCancelClick('ticket')}
-                    fullWidth
-                    styles={{
-                      root: {
-                        height: '44px',
-                        paddingTop: '12px',
-                        paddingBottom: '12px',
-                        fontSize: '14px',
-                        lineHeight: '1.2'
-                      }
+
+              {/* Cancel button - only show when NOT in cancel mode */}
+              {!isCancelMode && (
+                <Box mt="md">
+                  {validParticipation.canCancelTicket ? (
+                    <Button
+                      variant="light"
+                      color="red"
+                      onClick={() => handleCancelClick('ticket')}
+                      fullWidth
+                      styles={{
+                        root: {
+                          height: '44px',
+                          paddingTop: '12px',
+                          paddingBottom: '12px',
+                          fontSize: '14px',
+                          lineHeight: '1.2'
+                        }
+                      }}
+                    >
+                      Cancel Ticket
+                    </Button>
+                  ) : (
+                    <Alert color="orange" variant="light">
+                      <Text size="sm">Cancellations are not available at this time</Text>
+                    </Alert>
+                  )}
+                </Box>
+              )}
+
+              {/* Additional Sessions - Show when user can purchase more sessions */}
+              {(validParticipation as any)?.canPurchaseAdditionalSessions && (
+                <Box mt="md">
+                  <Paper
+                    radius="md"
+                    p="lg"
+                    withBorder
+                    style={{
+                      backgroundColor: '#FAF6F2',
+                      border: '1px solid #D4A5A5'
                     }}
                   >
-                    Cancel Ticket
-                  </Button>
-                ) : (
-                  <Alert color="orange" variant="light">
-                    <Text size="sm">Cancellations are not available at this time</Text>
-                  </Alert>
-                )}
-              </Box>
+                    <Stack gap="md">
+                      <Title order={4} c="#880124">
+                        Additional Sessions
+                      </Title>
+
+                      {/* Show available sessions user doesn't own - same format as Your Tickets */}
+                      <Stack gap="xs">
+                        {eventSessions
+                          ?.filter(session => !(validParticipation as any).ownedSessionIds?.includes(session.id))
+                          .map((session, index) => (
+                            <Group key={session.id || index} gap="xs" align="flex-start">
+                              <IconTicket size={16} color="#6B0119" style={{ marginTop: 2, flexShrink: 0 }} />
+                              <Box>
+                                <Text size="sm" fw={500}>
+                                  {session.name || session.sessionIdentifier || `Session ${index + 1}`}
+                                </Text>
+                                <Text size="sm" c="dimmed">
+                                  {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                  {session.startTime && session.endTime && (
+                                    <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                                  )}
+                                </Text>
+                              </Box>
+                            </Group>
+                          ))}
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                  <Box mt="md">
+                    <Button
+                      onClick={handleTicketPurchase}
+                      fullWidth
+                      variant="outline"
+                      color="blue"
+                      disabled={isLoading || isLoadingUser}
+                      data-testid="button-purchase-additional-tickets"
+                      styles={{
+                        root: {
+                          height: '44px',
+                          paddingTop: '12px',
+                          paddingBottom: '12px',
+                          fontSize: '14px',
+                          lineHeight: '1.2'
+                        }
+                      }}
+                    >
+                      Get Additional Tickets
+                    </Button>
+                  </Box>
+                </Box>
+              )}
             </Box>
           )}
 

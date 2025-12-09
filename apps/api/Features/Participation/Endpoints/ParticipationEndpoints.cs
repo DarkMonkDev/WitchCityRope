@@ -456,6 +456,10 @@ public static class ParticipationEndpoints
         //
         // BUSINESS RULE: Cancels attendance record(s)
         //
+        // SUPPORTS TWO MODES:
+        // 1. Legacy mode (type + reason): Cancels most recent attendance of specified type
+        // 2. Selective mode (ticketPurchaseIds): Cancels ALL sessions for specified ticket purchases
+        //
         // CRITICAL: Cancelling a TICKET also cancels associated RSVP
         // - If type=ticket: Cancels ticket AND any associated RSVP
         // - If type=rsvp: Cancels RSVP only (does NOT affect ticket)
@@ -473,6 +477,7 @@ public static class ParticipationEndpoints
                 Guid eventId,
                 [FromServices] IAttendanceService attendanceService,
                 ClaimsPrincipal user,
+                [FromBody] CancelTicketRequest? request = null,
                 string? type = null,
                 string? reason = null,
                 CancellationToken cancellationToken = default) =>
@@ -498,6 +503,34 @@ public static class ParticipationEndpoints
                         statusCode: 401);
                 }
 
+                // NEW: Selective ticket cancellation mode (takes precedence)
+                if (request?.TicketPurchaseIds != null && request.TicketPurchaseIds.Count > 0)
+                {
+                    var result = await attendanceService.CancelTicketPurchasesAsync(
+                        eventId,
+                        userId,
+                        request.TicketPurchaseIds,
+                        request.Reason,
+                        cancellationToken);
+
+                    if (!result.IsSuccess)
+                    {
+                        if (result.Error.Contains("not found") || result.Error.Contains("No active"))
+                        {
+                            return Results.NotFound();
+                        }
+                        if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("Cancellation window"))
+                        {
+                            return Results.BadRequest(result.Error);
+                        }
+
+                        return Results.Problem(result.Error);
+                    }
+
+                    return Results.NoContent();
+                }
+
+                // LEGACY: Original cancellation mode (by type)
                 // Parse attendance type if provided (rsvp, ticket, or null for most recent)
                 AttendanceType? attendanceType = type?.ToLower() switch
                 {
@@ -506,20 +539,20 @@ public static class ParticipationEndpoints
                     _ => null
                 };
 
-                var result = await attendanceService.CancelParticipationAsync(eventId, userId, attendanceType, reason, cancellationToken);
+                var legacyResult = await attendanceService.CancelParticipationAsync(eventId, userId, attendanceType, reason, cancellationToken);
 
-                if (!result.IsSuccess)
+                if (!legacyResult.IsSuccess)
                 {
-                    if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
+                    if (legacyResult.Error.Contains("not found") || legacyResult.Error.Contains("No active attendance"))
                     {
                         return Results.NotFound();
                     }
-                    if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("Cancellation window") || result.Error.Contains("Cancellation"))
+                    if (legacyResult.Error.Contains("cannot be cancelled") || legacyResult.Error.Contains("Cancellation window") || legacyResult.Error.Contains("Cancellation"))
                     {
-                        return Results.BadRequest(result.Error);
+                        return Results.BadRequest(legacyResult.Error);
                     }
 
-                    return Results.Problem(result.Error);
+                    return Results.Problem(legacyResult.Error);
                 }
 
                 return Results.NoContent();

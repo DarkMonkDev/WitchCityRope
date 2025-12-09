@@ -36,8 +36,16 @@ export type ParticipationStatusDto = components['schemas']['ParticipationStatusD
 /**
  * Enhanced Participation Status DTO (includes capacity and availability info)
  * Source: C# EnhancedParticipationStatusDto via NSwag generation
+ * Now includes ticketPurchaseSessionMap, ticketPurchases with totalPrice
  */
 export type EnhancedParticipationStatusDto = components['schemas']['EnhancedParticipationStatusDto']
+
+/**
+ * Ticket Purchase Info DTO
+ * Source: C# TicketPurchaseInfoDto via NSwag generation
+ * Contains ticket type name, session IDs, and total price for a ticket purchase
+ */
+export type TicketPurchaseInfoDto = components['schemas']['TicketPurchaseInfoDto']
 
 /**
  * User Participation DTO

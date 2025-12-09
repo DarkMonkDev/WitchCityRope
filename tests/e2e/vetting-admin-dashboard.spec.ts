@@ -47,7 +47,8 @@ test.describe('Admin Vetting Dashboard', () => {
 
     // Verify column headers exist
     // Updated to match actual implementation column headers (uppercase)
-    const columnHeaders = ['NAME', 'FETLIFE NAME', 'EMAIL', 'APPLICATION DATE', 'CURRENT STATUS'];
+    // Column is "FETLIFE HANDLE" not "FETLIFE NAME" per VettingApplicationsList.tsx line 243
+    const columnHeaders = ['SCENE NAME', 'FETLIFE HANDLE', 'EMAIL', 'APPLICATION DATE', 'CURRENT STATUS'];
     for (const header of columnHeaders) {
       const headerElement = page.locator('th').filter({ hasText: new RegExp(header, 'i') }).last();
       await expect(headerElement).toBeVisible();

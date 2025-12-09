@@ -73,6 +73,20 @@ public class EnhancedParticipationStatusDto
     public List<Guid> OwnedSessionIds { get; set; } = new();
 
     /// <summary>
+    /// Maps TicketPurchaseId to its associated SessionIds
+    /// Used for selective ticket cancellation - allows frontend to group sessions by ticket purchase
+    /// Key: TicketPurchase.Id, Value: List of SessionIds owned by that purchase
+    /// </summary>
+    public Dictionary<Guid, List<Guid>> TicketPurchaseSessionMap { get; set; } = new();
+
+    /// <summary>
+    /// Detailed ticket purchase information including ticket type name
+    /// Used for displaying ticket names in cancel mode
+    /// Key: TicketPurchase.Id, Value: TicketPurchaseInfoDto with name and session IDs
+    /// </summary>
+    public Dictionary<Guid, TicketPurchaseInfoDto> TicketPurchases { get; set; } = new();
+
+    /// <summary>
     /// Whether user can purchase tickets for additional sessions
     /// (has available sessions they don't own, within timing window)
     /// </summary>
@@ -164,6 +178,28 @@ public class TicketDetailsDto
     /// Optional notes from purchaser
     /// </summary>
     public string? Notes { get; set; }
+}
+
+/// <summary>
+/// Information about a ticket purchase including ticket type name
+/// Used for displaying proper ticket names in cancel mode
+/// </summary>
+public class TicketPurchaseInfoDto
+{
+    /// <summary>
+    /// Name of the ticket type (e.g., "Day 1 Only", "Full Weekend Pass")
+    /// </summary>
+    public string TicketTypeName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Session IDs included in this ticket purchase
+    /// </summary>
+    public List<Guid> SessionIds { get; set; } = new();
+
+    /// <summary>
+    /// Total price paid for this ticket purchase
+    /// </summary>
+    public decimal TotalPrice { get; set; }
 }
 
 /// <summary>

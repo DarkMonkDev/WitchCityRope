@@ -1,42 +1,66 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, APIRequestContext } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
+
+/**
+ * Helper function to verify user email via test helper endpoint
+ * ONLY works in Development/Test environments
+ */
+async function verifyUserEmail(request: APIRequestContext, email: string): Promise<void> {
+  const response = await request.post('/api/test-helpers/verify-email', {
+    data: { email }
+  });
+  if (!response.ok()) {
+    throw new Error(`Failed to verify email: ${await response.text()}`);
+  }
+  console.log(`✅ Email verified via test helper: ${email}`);
+}
 
 test.describe('Vetting Application Complete Flow', () => {
   const timestamp = Date.now();
   const randomId = Math.floor(Math.random() * 10000);
   const testEmail = `test-vetting-${timestamp}-${randomId}@example.com`;
-  const testSceneName = `TestUser${timestamp}`;
+  // Scene name can only contain letters, numbers, and spaces (no hyphens)
+  const testSceneName = `TestUser ${timestamp}`;
   const testPassword = 'Test123!';
 
-  test('Complete vetting application with registration and login', async ({ page }) => {
-    const screenshotDir = `./test-results/vetting-success-final-20251006-014514`;
+  test('Complete vetting application with registration and login', async ({ page, request }) => {
+    const screenshotDir = `./test-results/vetting-success-final-${timestamp}`;
 
     // Step 1: Register new user
     console.log('Step 1: Registering new user...');
     await page.goto('/register', { waitUntil: 'domcontentloaded' });
 
-    // Fill registration form (only 3 fields: Email, Scene Name, Password)
-    await page.locator('[data-testid="email-or-scenename-input"]').last().fill(testEmail);
-    await page.locator('[data-testid="scene-name-input"]').last().fill(testSceneName);
-    await page.locator('[data-testid="password-input"]').last().fill(testPassword);
+    // Wait for registration form to be ready
+    await page.waitForSelector('[data-testid="register-form"]', { timeout: 10000 });
+
+    // Fill registration form using correct data-testid selectors
+    await page.locator('[data-testid="email-input"]').fill(testEmail);
+    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
+    await page.locator('[data-testid="password-input"]').fill(testPassword);
+
+    // Check Terms of Service checkbox (required)
+    await page.locator('[data-testid="terms-checkbox"]').check();
 
     // Submit registration
-    await page.locator('button:has-text("CREATE ACCOUNT")').last().click();
+    await page.locator('[data-testid="register-button"]').click();
     await page.waitForLoadState('domcontentloaded');
 
-    // Wait for registration to complete
-    await page.waitForTimeout(2000);
+    // Wait for registration to complete and redirect to login
+    await page.waitForURL(/\/login/, { timeout: 15000 });
     console.log(`✅ Registration completed for ${testEmail}`);
 
-    // Step 2: Login with newly created credentials
-    console.log('Step 2: Logging in with new credentials...');
+    // Step 2: Verify email via test helper (required before login)
+    await verifyUserEmail(request, testEmail);
+
+    // Step 3: Login with newly created credentials
+    console.log('Step 3: Logging in with new credentials...');
     await AuthHelpers.loginWith(page, { email: testEmail, password: testPassword });
 
     await page.screenshot({ path: `${screenshotDir}/02-dashboard-after-login.png`, fullPage: true });
     console.log('✅ Login successful, redirected to dashboard');
 
-    // Step 3: Navigate to vetting application
-    console.log('Step 3: Navigating to vetting application...');
+    // Step 4: Navigate to vetting application
+    console.log('Step 4: Navigating to vetting application...');
     await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
@@ -47,25 +71,31 @@ test.describe('Vetting Application Complete Flow', () => {
     expect(pageContent).not.toContain('Login Required');
     expect(pageContent).not.toContain('Please log in');
 
-    // Step 4: Fill out vetting application with actual form fields
-    console.log('Step 4: Filling out vetting application...');
+    // Step 5: Fill out vetting application with actual form fields
+    console.log('Step 5: Filling out vetting application...');
 
-    // Real Name (required)
-    await page.locator('[data-testid="real-name-input"]').fill('Test User');
+    // First Name (required)
+    const firstNameInput = page.locator('[data-testid="first-name-input"]');
+    if (await firstNameInput.count() > 0) {
+      await firstNameInput.fill('Test');
+    }
+
+    // Last Name (required)
+    const lastNameInput = page.locator('[data-testid="last-name-input"]');
+    if (await lastNameInput.count() > 0) {
+      await lastNameInput.fill('User');
+    }
 
     // Pronouns (optional)
-    await page.locator('[data-testid="pronouns-input"]').fill('they/them');
+    const pronounsInput = page.locator('[data-testid="pronouns-input"]');
+    if (await pronounsInput.count() > 0) {
+      await pronounsInput.fill('they/them');
+    }
 
     // FetLife Handle (optional)
     const fetlifeInput = page.locator('[data-testid="fetlife-handle-input"]');
     if (await fetlifeInput.count() > 0) {
       await fetlifeInput.fill('TestUser123');
-    }
-
-    // Other Names (optional)
-    const otherNamesTextarea = page.locator('[data-testid="other-names-textarea"]');
-    if (await otherNamesTextarea.count() > 0) {
-      await otherNamesTextarea.fill('TestAlias');
     }
 
     // Why Join (required)
@@ -86,8 +116,8 @@ test.describe('Vetting Application Complete Flow', () => {
 
     await page.screenshot({ path: `${screenshotDir}/04-vetting-form-filled.png`, fullPage: true });
 
-    // Step 5: Submit the form
-    console.log('Step 5: Submitting vetting application...');
+    // Step 6: Submit the form
+    console.log('Step 6: Submitting vetting application...');
     const submitButton = page.locator('[data-testid="submit-application-button"]');
     await submitButton.scrollIntoViewIfNeeded();
 
@@ -103,8 +133,8 @@ test.describe('Vetting Application Complete Flow', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(3000);
 
-    // Step 6: CRITICAL - Verify success screen
-    console.log('Step 6: Verifying success screen...');
+    // Step 7: CRITICAL - Verify success screen
+    console.log('Step 7: Verifying success screen...');
     await page.screenshot({ path: `${screenshotDir}/05-success-screen-CRITICAL.png`, fullPage: true });
 
     // Get full page content for detailed analysis
@@ -154,8 +184,8 @@ test.describe('Vetting Application Complete Flow', () => {
     // Verify buttons - Note: The buttons might be in the Paper component, not necessarily at bottom
     // According to the code, there should be navigation buttons but let me check what's actually rendered
 
-    // Step 7: Navigate back to dashboard to verify vetting status
-    console.log('Step 7: Navigating to dashboard to verify vetting status...');
+    // Step 8: Navigate back to dashboard to verify vetting status
+    console.log('Step 8: Navigating to dashboard to verify vetting status...');
     await page.goto('/dashboard');
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);

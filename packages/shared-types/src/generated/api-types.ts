@@ -3970,6 +3970,11 @@ export interface components {
             totalSizeBytes?: number;
             totalSizeFormatted?: string;
         };
+        /** @default null */
+        CancelTicketRequest: {
+            ticketPurchaseIds?: string[] | null;
+            reason?: string | null;
+        } | null;
         CapacityInfo: {
             /** Format: int32 */
             totalCapacity?: number;
@@ -4297,6 +4302,12 @@ export interface components {
             ticket?: components["schemas"]["TicketDetailsDto"];
             capacity?: components["schemas"]["CapacityInfoDto"];
             ownedSessionIds?: string[];
+            ticketPurchaseSessionMap?: {
+                [key: string]: string[];
+            };
+            ticketPurchases?: {
+                [key: string]: components["schemas"]["TicketPurchaseInfoDto"];
+            };
             canPurchaseAdditionalSessions?: boolean;
             sessionAvailability?: components["schemas"]["SessionAvailabilityDto"][];
         };
@@ -5341,6 +5352,12 @@ export interface components {
             cancelReason?: string | null;
             notes?: string | null;
         } | null;
+        TicketPurchaseInfoDto: {
+            ticketTypeName?: string;
+            sessionIds?: string[];
+            /** Format: double */
+            totalPrice?: number;
+        };
         TicketTypeDto: {
             id?: string;
             name?: string;
@@ -5538,6 +5555,9 @@ export interface components {
             isSocialEvent?: boolean;
             hasTicket?: boolean;
             isPastEvent?: boolean;
+            registeredSessions?: components["schemas"]["UserSessionDto"][];
+            /** Format: int32 */
+            additionalSessionsAvailable?: number;
         };
         UserListResponse: {
             users?: components["schemas"]["UserDto"][];
@@ -5637,6 +5657,15 @@ export interface components {
             count?: number;
             description?: string;
             segmentName?: string;
+        };
+        UserSessionDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            /** Format: date-time */
+            startTime?: string;
+            /** Format: date-time */
+            endTime?: string;
         };
         UserVolunteerShiftDto: {
             /** Format: uuid */
@@ -8385,7 +8414,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CancelTicketRequest"];
+            };
+        };
         responses: {
             /** @description No Content */
             204: {
