@@ -155,19 +155,26 @@ fi
 echo "   ✅ API container stopped"
 echo ""
 
-# Step 3: Drop schemas
-echo "3️⃣  Dropping database schemas (public + cms)..."
+# Step 3: Drop all tables (can't drop schema on managed DB - user doesn't own it)
+echo "3️⃣  Dropping all tables in database..."
 echo "   This will delete ALL tables and data..."
+echo "   (Using table drop instead of schema drop - managed DB limitation)"
 
+# Generate and execute DROP TABLE statements for all tables owned by this user
 PGPASSWORD="$DB_PASSWORD" psql \
   -h "$DB_HOST" \
   -p "$DB_PORT" \
   -U "$DB_USER" \
   -d "$DB_NAME" \
-  -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; DROP SCHEMA IF EXISTS cms CASCADE;"
+  -t -c "SELECT 'DROP TABLE IF EXISTS \"' || tablename || '\" CASCADE;' FROM pg_tables WHERE schemaname = 'public' AND tableowner = '$DB_USER';" | \
+  PGPASSWORD="$DB_PASSWORD" psql \
+  -h "$DB_HOST" \
+  -p "$DB_PORT" \
+  -U "$DB_USER" \
+  -d "$DB_NAME"
 
 if [ $? -ne 0 ]; then
-    echo "   ❌ FAIL: Schema drop failed"
+    echo "   ❌ FAIL: Table drop failed"
     echo ""
     echo "💡 Attempting to restart containers..."
     ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker compose -f docker-compose.staging.yml up -d"
@@ -175,7 +182,7 @@ if [ $? -ne 0 ]; then
     echo "   See: .claude/skills/database-reset-staging/SKILL.md (Common Issues)"
     exit 1
 fi
-echo "   ✅ Schemas dropped and recreated"
+echo "   ✅ All tables dropped"
 echo ""
 
 # Step 4: Recreate API container (uses existing deployed image)

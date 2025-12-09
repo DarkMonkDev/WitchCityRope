@@ -5,7 +5,7 @@ description: Resets staging database with full schema drop. Use for schema chang
 
 # Database Reset Staging Skill
 
-**Purpose**: Full database schema reset for staging environment - drops all schemas and lets migrations rebuild.
+**Purpose**: Full database reset for staging environment - drops all tables and lets migrations rebuild.
 
 **When to Use**:
 - Schema changes requiring clean slate
@@ -23,10 +23,12 @@ description: Resets staging database with full schema drop. Use for schema chang
 
 **This skill performs DESTRUCTIVE operations:**
 - ❌ ALL data in staging database will be DELETED
-- ❌ Both `public` AND `cms` schemas will be DROPPED
+- ❌ All tables will be DROPPED (not schemas - managed DB limitation)
 - ❌ Cannot be undone
-- ✅ ONLY affects staging database (`witchcityrope_staging`)
-- ✅ Migrations will rebuild schema automatically
+- ✅ ONLY affects staging database (`pgbouncer-staging`)
+- ✅ Migrations will rebuild tables automatically
+
+**Note**: DigitalOcean managed databases don't allow dropping the `public` schema (owned by `doadmin`). This skill drops all tables owned by `witchcity_staging` user instead.
 
 **Prerequisites:**
 - Staging code already deployed (use `staging-deploy` skill first)
@@ -53,15 +55,14 @@ SKIP_CONFIRMATION=true bash .claude/skills/database-reset-staging/execute.sh
    - SSH key accessible
    - PostgreSQL client installed (psql)
    - Server connectivity
-4. Retrieves database credentials from staging server
-5. Stops staging containers
-6. Drops all database schemas (public + cms)
-7. Recreates public schema
-8. Starts containers (migrations run automatically)
-9. Waits for database initialization
-10. Verifies schema rebuild
-11. Runs health check
-12. Reports summary
+4. Retrieves database credentials from staging server (from `.env.staging`)
+5. Stops API container
+6. Drops all tables owned by `witchcity_staging` user (CASCADE)
+7. Starts containers (migrations run automatically)
+8. Waits for database initialization
+9. Verifies tables rebuilt
+10. Runs health check
+11. Reports summary
 
 **Script includes CRITICAL safety warnings** - this is a DESTRUCTIVE operation that cannot be undone.
 
@@ -72,16 +73,25 @@ SKIP_CONFIRMATION=true bash .claude/skills/database-reset-staging/execute.sh
 If skill fails, manual steps:
 
 **Prerequisites**: Get DB credentials from server first
-
-**Manual schema drop:**
-Connect to database and execute:
-```sql
-DROP SCHEMA IF EXISTS public CASCADE;
-CREATE SCHEMA public;
-DROP SCHEMA IF EXISTS cms CASCADE;
+```bash
+ssh witchcity@104.131.165.14 'cat /opt/witchcityrope/staging/.env.staging | grep STAGING_DB_CONNECTION_STRING'
 ```
 
-**Then**: Use `restart-dev-containers` skill to restart staging containers
+**Manual table drop:**
+Connect to database and execute:
+```sql
+-- Generate DROP statements for all tables owned by witchcity_staging
+SELECT 'DROP TABLE IF EXISTS "' || tablename || '" CASCADE;'
+FROM pg_tables
+WHERE schemaname = 'public' AND tableowner = 'witchcity_staging';
+
+-- Then execute the generated statements
+```
+
+**Then**: Restart staging containers via SSH:
+```bash
+ssh witchcity@104.131.165.14 'cd /opt/witchcityrope/staging && docker compose -f docker-compose.staging.yml up -d --force-recreate api'
+```
 
 ---
 
@@ -142,6 +152,9 @@ brew install postgresql
 
 ## Version History
 
+- **2025-12-09**: Fixed to drop tables instead of schemas (DigitalOcean managed DB limitation)
+  - `witchcity_staging` user cannot drop `public` schema (owned by `doadmin`)
+  - Now drops all tables owned by `witchcity_staging` with CASCADE
 - **2025-11-05**: Created as automation wrapper for staging database reset
 - Extracted from: `docs/functional-areas/deployment/staging-deployment-guide.md`
 - Complements: `docs/guides-setup/database-setup.md`
