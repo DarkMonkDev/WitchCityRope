@@ -9,14 +9,13 @@ import {
   Text,
   Title,
   Paper,
-  Badge,
   Divider
 } from '@mantine/core';
-import { IconCalendar, IconMapPin, IconUser, IconClock } from '@tabler/icons-react';
+import { IconMapPin } from '@tabler/icons-react';
 import type { PaymentEventInfo, SlidingScaleCalculation } from '../types/payment.types';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
-import { formatAbbreviatedDate, formatUtcToLocalTime } from '../../../utils/eventUtils';
+import { formatUtcToLocalTime } from '../../../utils/eventUtils';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 type SessionDto = components["schemas"]["SessionDto"];
@@ -84,27 +83,17 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
   };
 
   /**
-   * Get formatted session dates for a ticket
+   * Get matching sessions for a ticket
+   * Returns array of sessions that the ticket covers
    */
-  const getTicketSessionDates = (ticket: TicketTypeDto): string => {
+  const getTicketSessions = (ticket: TicketTypeDto): SessionDto[] => {
     if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
-      return '';
+      return [];
     }
 
-    const matchingSessions = sessions.filter(session =>
-      ticket.sessionIdentifiers?.includes(session.sessionIdentifier || '')
-    );
-
-    if (matchingSessions.length === 0) {
-      return '';
-    }
-
-    const formattedDates = matchingSessions
-      .filter(session => session.startDate)
-      .map(session => formatAbbreviatedDate(session.startDate!, eventTimeZone))
-      .join(', ');
-
-    return formattedDates;
+    return sessions
+      .filter(session => ticket.sessionIdentifiers?.includes(session.sessionIdentifier || ''))
+      .sort((a, b) => new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime());
   };
 
   return (
@@ -128,59 +117,15 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
           <Text fw={600} size="md" mb="xs">
             {eventInfo.title}
           </Text>
-          
-          <Stack gap="xs">
-            {/* Session date/times - show one line per session if available */}
-            {sessions && sessions.length > 0 ? (
-              sessions
-                .slice()
-                .sort((a, b) => new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime())
-                .map((session, index) => (
-                  <Group key={session.id || index} gap="xs" align="center">
-                    <IconCalendar size={16} color="#6B0119" />
-                    <Text size="sm" c="dimmed">
-                      {formatDateTime(session.startTime || '')} • {formatTime(session.startTime || '')} - {formatTime(session.endTime || '')}
-                    </Text>
-                  </Group>
-                ))
-            ) : (
-              <>
-                <Group gap="xs" align="center">
-                  <IconCalendar size={16} color="#6B0119" />
-                  <Text size="sm" c="dimmed">
-                    {formatDateTime(eventInfo.startDateTime)}
-                  </Text>
-                </Group>
 
-                {eventInfo.endDateTime && (
-                  <Group gap="xs" align="center">
-                    <IconClock size={16} color="#6B0119" />
-                    <Text size="sm" c="dimmed">
-                      {formatTime(eventInfo.startDateTime)} - {formatTime(eventInfo.endDateTime)}
-                    </Text>
-                  </Group>
-                )}
-              </>
-            )}
-
-            {eventInfo.instructorName && (
-              <Group gap="xs" align="center">
-                <IconUser size={16} color="#6B0119" />
-                <Text size="sm" c="dimmed">
-                  Instructor: {eventInfo.instructorName}
-                </Text>
-              </Group>
-            )}
-
-            {eventInfo.location && (
-              <Group gap="xs" align="center">
-                <IconMapPin size={16} color="#6B0119" />
-                <Text size="sm" c="dimmed">
-                  {eventInfo.location}
-                </Text>
-              </Group>
-            )}
-          </Stack>
+          {eventInfo.location && (
+            <Group gap="xs" align="center">
+              <IconMapPin size={16} color="#6B0119" />
+              <Text size="sm" c="dimmed">
+                {eventInfo.location}
+              </Text>
+            </Group>
+          )}
         </Box>
 
         <Divider />
@@ -191,22 +136,32 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             {/* Individual Ticket Line Items */}
             {selectedTickets.map((ticket) => {
               const price = ticketPrices[ticket.id || ''] || 0;
-              const sessionDates = getTicketSessionDates(ticket);
+              const ticketSessions = getTicketSessions(ticket);
               return (
                 <Box key={ticket.id}>
                   <Group justify="space-between" align="flex-start">
-                    <Box style={{ flex: 1 }}>
-                      <Text size="sm">{ticket.name}</Text>
-                      {sessionDates && (
-                        <Text size="xs" c="dimmed" mt={2}>
-                          {sessionDates}
-                        </Text>
-                      )}
-                    </Box>
+                    <Text size="sm" fw={500}>{ticket.name}</Text>
                     <Text size="sm" style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>
                       {formatCurrency(price)}
                     </Text>
                   </Group>
+                  {/* Show each session this ticket covers */}
+                  {ticketSessions.length > 0 && (
+                    <Stack gap="xs" mt={4}>
+                      {ticketSessions.map((session, index) => (
+                        <Box key={session.id || index}>
+                          <Text size="xs" c="dimmed" fw={500}>
+                            {session.name || `Session ${index + 1}`}
+                          </Text>
+                          {session.startTime && (
+                            <Text size="xs" c="dimmed">
+                              {formatDateTime(session.startTime)} • {formatTime(session.startTime)}{session.endTime && <> - {formatTime(session.endTime)}</>}
+                            </Text>
+                          )}
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
                 </Box>
               );
             })}

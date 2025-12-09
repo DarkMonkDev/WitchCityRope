@@ -102,13 +102,13 @@ export const EventDetailPage: React.FC = () => {
     // PayPal integration handles ticket creation
   };
 
-  const handleCancel = (type: 'rsvp' | 'ticket', reason?: string) => {
+  const handleCancel = (type: 'rsvp' | 'ticket', reason?: string, sessionIds?: string[]) => {
     if (!id) return;
 
     if (type === 'rsvp') {
       cancelRSVPMutation.mutate({ eventId: id, reason });
     } else {
-      cancelTicketMutation.mutate({ eventId: id, reason });
+      cancelTicketMutation.mutate({ eventId: id, reason, sessionIds });
     }
   };
 

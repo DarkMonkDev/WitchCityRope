@@ -60,8 +60,10 @@ public class TicketPurchaseSeeder
         }
 
         // Get ticket types for class events only (social event donations handled by SeedSocialEventDonationTicketsAsync)
+        // Include Sessions to create EventAttendance records with SessionId
         var ticketTypes = await _context.TicketTypes
             .Include(t => t.Event)
+            .Include(t => t.Sessions)
             .Where(tt => tt.Event.EventType == EventType.Class)
             .ToListAsync(cancellationToken);
 
@@ -174,7 +176,7 @@ public class TicketPurchaseSeeder
                     purchase,
                     eventId,
                     user.Id,
-                    ticketType.Name,
+                    ticketType,
                     paymentStatus,
                     paymentMethod,
                     attendancesToAdd,
@@ -242,8 +244,10 @@ public class TicketPurchaseSeeder
         _logger.LogInformation("Creating ticket purchases for vetted test user dashboard E2E testing");
 
         // Find events to register for
+        // Include Sessions for creating EventAttendance records with SessionId
         var upcomingWorkshop = await _context.Events
             .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Sessions)
             .Where(e => e.EventType == EventType.Class &&
                        e.StartDate > DateTime.UtcNow &&
                        e.TicketTypes.Any())
@@ -252,6 +256,7 @@ public class TicketPurchaseSeeder
 
         var upcomingSocial = await _context.Events
             .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Sessions)
             .Where(e => e.EventType == EventType.Social &&
                        e.StartDate > DateTime.UtcNow &&
                        e.TicketTypes.Any())
@@ -260,6 +265,7 @@ public class TicketPurchaseSeeder
 
         var pastEvent = await _context.Events
             .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Sessions)
             .Where(e => e.EndDate < DateTime.UtcNow &&
                        e.TicketTypes.Any())
             .OrderByDescending(e => e.EndDate)
@@ -268,6 +274,7 @@ public class TicketPurchaseSeeder
         // Additional upcoming events for comprehensive testing
         var additionalUpcomingEvents = await _context.Events
             .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Sessions)
             .Where(e => e.StartDate > DateTime.UtcNow &&
                        e.TicketTypes.Any() &&
                        e.Id != (upcomingWorkshop != null ? upcomingWorkshop.Id : Guid.Empty) &&
@@ -321,7 +328,7 @@ public class TicketPurchaseSeeder
                     vettedPaidPurchase,
                     upcomingWorkshop.Id,
                     vettedUser.Id,
-                    paidTicket.Name,
+                    paidTicket,
                     "Completed",
                     "PayPal",
                     attendancesToAdd,
@@ -363,7 +370,7 @@ public class TicketPurchaseSeeder
                     freePurchase,
                     upcomingSocial.Id,
                     vettedUser.Id,
-                    freeTicket.Name,
+                    freeTicket,
                     "Completed",
                     "Free",
                     attendancesToAdd,
@@ -427,7 +434,7 @@ public class TicketPurchaseSeeder
                     pastPurchase,
                     pastEvent.Id,
                     vettedUser.Id,
-                    pastTicketType.Name,
+                    pastTicketType,
                     "Completed",
                     isPaid ? "PayPal" : "Free",
                     attendancesToAdd,
@@ -485,7 +492,7 @@ public class TicketPurchaseSeeder
                     additionalPurchase,
                     additionalEvent.Id,
                     vettedUser.Id,
-                    ticketType.Name,
+                    ticketType,
                     "Completed",
                     isSocialEvent ? "Free" : "Venmo",
                     attendancesToAdd,
@@ -526,8 +533,10 @@ public class TicketPurchaseSeeder
         }
 
         // Find any past event with paid tickets
+        // Include Sessions for creating EventAttendance records with SessionId
         var pastEvent = await _context.Events
             .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Sessions)
             .Where(e => e.EndDate < DateTime.UtcNow &&
                        e.TicketTypes.Any(tt => tt.Price > 0))
             .OrderByDescending(e => e.EndDate)
@@ -630,25 +639,58 @@ public class TicketPurchaseSeeder
                         _ => AttendanceStatus.Active
                     };
 
-                    var attendance = new EventAttendance(pastEvent.Id, user.Id, AttendanceType.Ticket)
+                    // Create EventAttendance records - one per session (matching real behavior)
+                    // Note: For historical test data, we use the paidTicket's sessions if available
+                    if (paidTicket.Sessions != null && paidTicket.Sessions.Any())
                     {
-                        Id = Guid.NewGuid(),
-                        Status = attendanceStatus,
-                        TicketPurchaseId = historicalPurchase.Id,
-                        CreatedAt = purchaseDate,
-                        UpdatedAt = purchaseDate,
-                        CreatedBy = user.Id,
-                        UpdatedBy = user.Id,
-                        Metadata = $"{{\"ticketType\":\"{paidTicket.Name}\",\"price\":{historicalPurchase.TotalPrice},\"paymentMethod\":\"PayPal\"}}"
-                    };
+                        foreach (var session in paidTicket.Sessions)
+                        {
+                            var attendance = new EventAttendance(pastEvent.Id, user.Id, AttendanceType.Ticket)
+                            {
+                                Id = Guid.NewGuid(),
+                                SessionId = session.Id, // CRITICAL: Set SessionId for each session
+                                Status = attendanceStatus,
+                                TicketPurchaseId = historicalPurchase.Id,
+                                CreatedAt = purchaseDate,
+                                UpdatedAt = purchaseDate,
+                                CreatedBy = user.Id,
+                                UpdatedBy = user.Id,
+                                Metadata = $"{{\"ticketType\":\"{paidTicket.Name}\",\"price\":{historicalPurchase.TotalPrice},\"paymentMethod\":\"PayPal\"}}"
+                            };
 
-                    if (status == "Refunded")
+                            if (status == "Refunded")
+                            {
+                                attendance.CancelledAt = purchaseDate.AddDays(Random.Shared.Next(1, 7));
+                                attendance.CancellationReason = "User requested refund";
+                            }
+
+                            attendancesToAdd.Add(attendance);
+                        }
+                    }
+                    else
                     {
-                        attendance.CancelledAt = purchaseDate.AddDays(Random.Shared.Next(1, 7));
-                        attendance.CancellationReason = "User requested refund";
+                        // Legacy: No sessions - create single attendance without SessionId
+                        var attendance = new EventAttendance(pastEvent.Id, user.Id, AttendanceType.Ticket)
+                        {
+                            Id = Guid.NewGuid(),
+                            Status = attendanceStatus,
+                            TicketPurchaseId = historicalPurchase.Id,
+                            CreatedAt = purchaseDate,
+                            UpdatedAt = purchaseDate,
+                            CreatedBy = user.Id,
+                            UpdatedBy = user.Id,
+                            Metadata = $"{{\"ticketType\":\"{paidTicket.Name}\",\"price\":{historicalPurchase.TotalPrice},\"paymentMethod\":\"PayPal\"}}"
+                        };
+
+                        if (status == "Refunded")
+                        {
+                            attendance.CancelledAt = purchaseDate.AddDays(Random.Shared.Next(1, 7));
+                            attendance.CancellationReason = "User requested refund";
+                        }
+
+                        attendancesToAdd.Add(attendance);
                     }
 
-                    attendancesToAdd.Add(attendance);
                     _logger.LogDebug("Created EventAttendance for existing attendee: {Email}", user.Email);
                 }
             }
@@ -659,7 +701,7 @@ public class TicketPurchaseSeeder
                     historicalPurchase,
                     pastEvent.Id,
                     user.Id,
-                    paidTicket.Name,
+                    paidTicket,
                     status,
                     "PayPal",
                     attendancesToAdd,
@@ -682,13 +724,15 @@ public class TicketPurchaseSeeder
     /// <summary>
     /// Helper method to create EventAttendance and EventAttendee records for a TicketPurchase.
     /// Centralizes attendance/attendee creation logic to reduce code duplication.
+    /// Creates one EventAttendance per session (matching real ticket purchase behavior).
     /// </summary>
+    /// <param name="ticketType">The ticket type with Sessions loaded to create attendance per session</param>
     /// <param name="ticketPrefix">Unique prefix for ticket numbers (e.g., "HIST", "CLASS", "SOCIAL") to prevent collisions between seeding methods</param>
     private void CreateAttendanceAndAttendee(
         TicketPurchase purchase,
         Guid eventId,
         Guid userId,
-        string ticketTypeName,
+        TicketType ticketType,
         string paymentStatus,
         string paymentMethod,
         List<EventAttendance> attendancesToAdd,
@@ -711,29 +755,61 @@ public class TicketPurchaseSeeder
             _ => AttendanceStatus.Active
         };
 
-        // Create EventAttendance linked to TicketPurchase
-        var attendance = new EventAttendance(eventId, userId, AttendanceType.Ticket)
+        // Create EventAttendance records - one per session (matching real behavior in AttendanceService.cs)
+        if (ticketType.Sessions != null && ticketType.Sessions.Any())
         {
-            Id = Guid.NewGuid(),
-            Status = attendanceStatus,
-            TicketPurchaseId = purchase.Id,
-            CreatedAt = purchase.PurchaseDate,
-            UpdatedAt = purchase.PurchaseDate,
-            CreatedBy = userId,
-            UpdatedBy = userId,
-            Metadata = $"{{\"ticketType\":\"{ticketTypeName}\",\"price\":{purchase.TotalPrice},\"paymentMethod\":\"{paymentMethod}\"}}"
-        };
+            // Ticket has specific sessions - create one attendance per session
+            foreach (var session in ticketType.Sessions)
+            {
+                var attendance = new EventAttendance(eventId, userId, AttendanceType.Ticket)
+                {
+                    Id = Guid.NewGuid(),
+                    SessionId = session.Id, // CRITICAL: Set SessionId for each session
+                    Status = attendanceStatus,
+                    TicketPurchaseId = purchase.Id,
+                    CreatedAt = purchase.PurchaseDate,
+                    UpdatedAt = purchase.PurchaseDate,
+                    CreatedBy = userId,
+                    UpdatedBy = userId,
+                    Metadata = $"{{\"ticketType\":\"{ticketType.Name}\",\"price\":{purchase.TotalPrice},\"paymentMethod\":\"{paymentMethod}\"}}"
+                };
 
-        // If refunded, set cancellation details
-        if (paymentStatus == "Refunded")
+                // If refunded, set cancellation details
+                if (paymentStatus == "Refunded")
+                {
+                    attendance.CancelledAt = purchase.PurchaseDate.AddDays(Random.Shared.Next(1, 7));
+                    attendance.CancellationReason = "User requested refund";
+                }
+
+                attendancesToAdd.Add(attendance);
+            }
+        }
+        else
         {
-            attendance.CancelledAt = purchase.PurchaseDate.AddDays(Random.Shared.Next(1, 7));
-            attendance.CancellationReason = "User requested refund";
+            // Legacy: Ticket has no specific sessions - create single attendance without SessionId
+            var attendance = new EventAttendance(eventId, userId, AttendanceType.Ticket)
+            {
+                Id = Guid.NewGuid(),
+                Status = attendanceStatus,
+                TicketPurchaseId = purchase.Id,
+                CreatedAt = purchase.PurchaseDate,
+                UpdatedAt = purchase.PurchaseDate,
+                CreatedBy = userId,
+                UpdatedBy = userId,
+                Metadata = $"{{\"ticketType\":\"{ticketType.Name}\",\"price\":{purchase.TotalPrice},\"paymentMethod\":\"{paymentMethod}\"}}"
+            };
+
+            // If refunded, set cancellation details
+            if (paymentStatus == "Refunded")
+            {
+                attendance.CancelledAt = purchase.PurchaseDate.AddDays(Random.Shared.Next(1, 7));
+                attendance.CancellationReason = "User requested refund";
+            }
+
+            attendancesToAdd.Add(attendance);
         }
 
-        attendancesToAdd.Add(attendance);
-
-        // Create EventAttendee record (registration details)
+        // Create EventAttendee record (registration details) - one per purchase
         if (!ticketCountersByEvent.ContainsKey(eventId))
         {
             ticketCountersByEvent[eventId] = 1;
@@ -818,9 +894,10 @@ public class TicketPurchaseSeeder
     {
         _logger.LogInformation("Creating historical workshop tickets for event {EventId} ({DaysAgo} days ago)", eventId, daysAgo);
 
-        // 1. Get event details from database (include Sessions for CheckIn)
+        // 1. Get event details from database (include Sessions for CheckIn and EventAttendance)
         var evt = await _context.Events
             .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Sessions)
             .Include(e => e.Sessions)
             .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
 
@@ -943,19 +1020,43 @@ public class TicketPurchaseSeeder
                 };
                 _context.TicketPurchases.Add(ticketPurchase);
 
-                // Create EventAttendance LINKED to purchase
-                var participation = new EventAttendance(evt.Id, user.Id, AttendanceType.Ticket)
+                // Create EventAttendance records - one per session (matching real behavior)
+                if (ticketType.Sessions != null && ticketType.Sessions.Any())
                 {
-                    Id = Guid.NewGuid(),
-                    Status = AttendanceStatus.Active,
-                    TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to purchase
-                    CreatedAt = purchaseDate,
-                    UpdatedAt = purchaseDate,
-                    CreatedBy = user.Id,
-                    UpdatedBy = user.Id,
-                    Metadata = $"{{\"ticketType\":\"{ticketTypeName}\",\"price\":{ticketType.Price},\"paymentMethod\":\"Stripe\"}}"
-                };
-                _context.EventAttendances.Add(participation);
+                    // Ticket has specific sessions - create one attendance per session
+                    foreach (var session in ticketType.Sessions)
+                    {
+                        var participation = new EventAttendance(evt.Id, user.Id, AttendanceType.Ticket)
+                        {
+                            Id = Guid.NewGuid(),
+                            SessionId = session.Id, // CRITICAL: Set SessionId for each session
+                            Status = AttendanceStatus.Active,
+                            TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to purchase
+                            CreatedAt = purchaseDate,
+                            UpdatedAt = purchaseDate,
+                            CreatedBy = user.Id,
+                            UpdatedBy = user.Id,
+                            Metadata = $"{{\"ticketType\":\"{ticketTypeName}\",\"price\":{ticketType.Price},\"paymentMethod\":\"Stripe\"}}"
+                        };
+                        _context.EventAttendances.Add(participation);
+                    }
+                }
+                else
+                {
+                    // Legacy: Ticket has no specific sessions - create single attendance without SessionId
+                    var participation = new EventAttendance(evt.Id, user.Id, AttendanceType.Ticket)
+                    {
+                        Id = Guid.NewGuid(),
+                        Status = AttendanceStatus.Active,
+                        TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to purchase
+                        CreatedAt = purchaseDate,
+                        UpdatedAt = purchaseDate,
+                        CreatedBy = user.Id,
+                        UpdatedBy = user.Id,
+                        Metadata = $"{{\"ticketType\":\"{ticketTypeName}\",\"price\":{ticketType.Price},\"paymentMethod\":\"Stripe\"}}"
+                    };
+                    _context.EventAttendances.Add(participation);
+                }
 
                 // Create EventAttendee (registration details)
                 var attendee = new EventAttendee(evt.Id, user.Id, "confirmed")
@@ -1074,21 +1175,47 @@ public class TicketPurchaseSeeder
                     };
                     _context.EventAttendees.Add(canceledAttendee);
 
-                    // Create canceled EventAttendance LINKED to purchase (NO CheckIn for canceled)
-                    var canceledParticipation = new EventAttendance(evt.Id, canceledUser.Id, AttendanceType.Ticket)
+                    // Create canceled EventAttendance records - one per session (matching real behavior)
+                    if (canceledType.Sessions != null && canceledType.Sessions.Any())
                     {
-                        Id = Guid.NewGuid(),
-                        Status = AttendanceStatus.Refunded,
-                        TicketPurchaseId = canceledPurchase.Id, // CRITICAL: Link to purchase
-                        CreatedAt = canceledPurchaseDate,
-                        UpdatedAt = canceledDate,
-                        CancelledAt = canceledDate,
-                        CancellationReason = "User requested refund",
-                        CreatedBy = canceledUser.Id,
-                        UpdatedBy = canceledUser.Id,
-                        Metadata = $"{{\"ticketType\":\"{canceledTicketType}\",\"price\":{canceledType.Price},\"paymentMethod\":\"Stripe\",\"refundedAt\":\"{canceledDate:O}\"}}"
-                    };
-                    _context.EventAttendances.Add(canceledParticipation);
+                        // Ticket has specific sessions - create one attendance per session
+                        foreach (var session in canceledType.Sessions)
+                        {
+                            var canceledParticipation = new EventAttendance(evt.Id, canceledUser.Id, AttendanceType.Ticket)
+                            {
+                                Id = Guid.NewGuid(),
+                                SessionId = session.Id, // CRITICAL: Set SessionId for each session
+                                Status = AttendanceStatus.Refunded,
+                                TicketPurchaseId = canceledPurchase.Id, // CRITICAL: Link to purchase
+                                CreatedAt = canceledPurchaseDate,
+                                UpdatedAt = canceledDate,
+                                CancelledAt = canceledDate,
+                                CancellationReason = "User requested refund",
+                                CreatedBy = canceledUser.Id,
+                                UpdatedBy = canceledUser.Id,
+                                Metadata = $"{{\"ticketType\":\"{canceledTicketType}\",\"price\":{canceledType.Price},\"paymentMethod\":\"Stripe\",\"refundedAt\":\"{canceledDate:O}\"}}"
+                            };
+                            _context.EventAttendances.Add(canceledParticipation);
+                        }
+                    }
+                    else
+                    {
+                        // Legacy: Ticket has no specific sessions - create single attendance without SessionId
+                        var canceledParticipation = new EventAttendance(evt.Id, canceledUser.Id, AttendanceType.Ticket)
+                        {
+                            Id = Guid.NewGuid(),
+                            Status = AttendanceStatus.Refunded,
+                            TicketPurchaseId = canceledPurchase.Id, // CRITICAL: Link to purchase
+                            CreatedAt = canceledPurchaseDate,
+                            UpdatedAt = canceledDate,
+                            CancelledAt = canceledDate,
+                            CancellationReason = "User requested refund",
+                            CreatedBy = canceledUser.Id,
+                            UpdatedBy = canceledUser.Id,
+                            Metadata = $"{{\"ticketType\":\"{canceledTicketType}\",\"price\":{canceledType.Price},\"paymentMethod\":\"Stripe\",\"refundedAt\":\"{canceledDate:O}\"}}"
+                        };
+                        _context.EventAttendances.Add(canceledParticipation);
+                    }
 
                     _logger.LogInformation("Created canceled ticket for user {UserId} (refunded {CanceledDate})", canceledUser.Id, canceledDate);
                 }
@@ -1124,8 +1251,10 @@ public class TicketPurchaseSeeder
         var ticketCountersByEvent = new Dictionary<Guid, int>();
 
         // Get class events that need specific ticket counts
+        // Include Sessions for creating EventAttendance records with SessionId
         var classEvents = await _context.Events
             .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Sessions)
             .Where(e => e.EventType == EventType.Class)
             .ToListAsync(cancellationToken);
 
@@ -1240,7 +1369,7 @@ public class TicketPurchaseSeeder
                     ticketPurchase,
                     eventItem.Id,
                     user.Id,
-                    all2DaysTicket.Name,
+                    all2DaysTicket,
                     "Completed",
                     "PayPal",
                     attendancesToAdd,
@@ -1306,7 +1435,7 @@ public class TicketPurchaseSeeder
                     ticketPurchase,
                     eventItem.Id,
                     user.Id,
-                    day1OnlyTicket.Name,
+                    day1OnlyTicket,
                     "Completed",
                     ticketPurchase.PaymentMethod,
                     attendancesToAdd,
@@ -1396,7 +1525,7 @@ public class TicketPurchaseSeeder
                 ticketPurchase,
                 eventItem.Id,
                 user.Id,
-                ticketType.Name,
+                ticketType,
                 "Completed",
                 paymentMethod,
                 attendancesToAdd,
@@ -1419,8 +1548,10 @@ public class TicketPurchaseSeeder
         _logger.LogInformation("Starting social event donation ticket purchases creation");
 
         // Get all social events with donation ticket types
+        // Include Sessions for creating EventAttendance records with SessionId
         var socialEvents = await _context.Events
             .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Sessions)
             .Where(e => e.EventType == EventType.Social &&
                        e.TicketTypes.Any(tt => tt.Name.Contains("Donation") || tt.Name.Contains("Suggested")))
             .ToListAsync(cancellationToken);
@@ -1511,7 +1642,7 @@ public class TicketPurchaseSeeder
                     ticketPurchase,
                     eventItem.Id,
                     user.Id,
-                    donationTicketType.Name,
+                    donationTicketType,
                     "Completed",
                     paymentMethod,
                     attendancesToAdd,

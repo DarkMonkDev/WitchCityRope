@@ -1456,6 +1456,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/test-helpers/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify user email for E2E testing
+         * @description Programmatically verify a user's email address for testing. Bypasses email confirmation flow. ONLY available in Development/Test.
+         */
+        post: operations["VerifyUserEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/test-helpers/health": {
         parameters: {
             query?: never;
@@ -5681,6 +5701,9 @@ export interface components {
             userId: string;
             token: string;
         };
+        VerifyUserEmailRequest: {
+            email: string;
+        };
         VettingDetailsResponse: {
             hasApplication?: boolean;
             /** Format: uuid */
@@ -9693,6 +9716,39 @@ export interface operations {
         responses: {
             /** @description No Content */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    VerifyUserEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyUserEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

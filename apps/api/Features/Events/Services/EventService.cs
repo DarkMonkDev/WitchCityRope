@@ -612,15 +612,37 @@ public class EventService : IEventService
                 }
                 else
                 {
-                    ticketTypeDto.CanPurchase = _timeZoneService.IsActionAllowedForSession(
-                        referenceSession,
-                        eventEntity.RegistrationOpenHours,
-                        eventEntity.RegistrationCloseHours);
+                    // Check if this is a multi-session ticket
+                    var isMultiSession = ticketTypeEntity.Sessions != null && ticketTypeEntity.Sessions.Count > 1;
 
-                    ticketTypeDto.CanCancel = _timeZoneService.IsActionAllowedForSession(
-                        referenceSession,
-                        null,
-                        eventEntity.CancellationCloseHours);
+                    if (isMultiSession)
+                    {
+                        // For multi-session tickets, user can purchase if ANY session is still purchasable
+                        // This fixes the bug where Session 1 is closed but Session 2 is still open
+                        ticketTypeDto.CanPurchase = _timeZoneService.IsAnySessionPurchasable(
+                            ticketTypeEntity.Sessions!, // ! is safe - null checked in isMultiSession condition
+                            eventEntity.RegistrationOpenHours,
+                            eventEntity.RegistrationCloseHours);
+
+                        // Same logic for cancellation - allow if ANY session is still within cancel window
+                        ticketTypeDto.CanCancel = _timeZoneService.IsAnySessionPurchasable(
+                            ticketTypeEntity.Sessions!, // ! is safe - null checked in isMultiSession condition
+                            null,
+                            eventEntity.CancellationCloseHours);
+                    }
+                    else
+                    {
+                        // Single-session ticket - use existing logic
+                        ticketTypeDto.CanPurchase = _timeZoneService.IsActionAllowedForSession(
+                            referenceSession,
+                            eventEntity.RegistrationOpenHours,
+                            eventEntity.RegistrationCloseHours);
+
+                        ticketTypeDto.CanCancel = _timeZoneService.IsActionAllowedForSession(
+                            referenceSession,
+                            null,
+                            eventEntity.CancellationCloseHours);
+                    }
 
                     ticketTypeDto.AvailabilityMessage = GetTicketAvailabilityMessage(
                         referenceSession,

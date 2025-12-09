@@ -308,6 +308,46 @@ public class TestHelperService : ITestHelperService
     }
 
     /// <summary>
+    /// Verify a user's email address
+    /// Used for E2E tests to bypass email verification flow
+    /// </summary>
+    public async Task<(bool Success, string? Error)> VerifyUserEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Verifying email for test user: {Email}", email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for email verification: {Email}", email);
+                return (false, "User not found with the specified email");
+            }
+
+            // Set email as confirmed
+            user.EmailConfirmed = true;
+            var updateResult = await _userManager.UpdateAsync(user);
+
+            if (!updateResult.Succeeded)
+            {
+                var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to verify email: {Errors}", errors);
+                return (false, $"Email verification failed: {errors}");
+            }
+
+            _logger.LogInformation("✅ Successfully verified email for user: {Email} (ID: {UserId})", email, user.Id);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception verifying email: {Email}", email);
+            return (false, $"Internal error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Creates a unique test user for each ticket purchase
     /// This avoids unique constraint violations (one active attendance per user per event per type)
     /// </summary>

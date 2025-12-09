@@ -238,6 +238,39 @@ public class TimeZoneService : ITimeZoneService
     }
 
     /// <summary>
+    /// Checks if ANY session in a multi-session ticket has an open purchase window
+    /// For multi-session tickets, users should be able to purchase if ANY session is still purchasable
+    /// </summary>
+    /// <param name="sessions">Sessions to check</param>
+    /// <param name="openHours">Hours before session when purchase opens (null = always open)</param>
+    /// <param name="closeHours">Hours before session when purchase closes (null = never closes)</param>
+    /// <returns>True if at least one session has an open purchase window, false otherwise</returns>
+    public bool IsAnySessionPurchasable(
+        IEnumerable<WitchCityRope.Api.Models.Session> sessions,
+        decimal? openHours,
+        decimal? closeHours)
+    {
+        // Check if ANY session has an open purchase window
+        foreach (var session in sessions)
+        {
+            if (IsActionAllowedForSession(session, openHours, closeHours))
+            {
+                // Found at least one purchasable session
+                _logger.LogDebug(
+                    "Multi-session ticket is purchasable - Session {SessionId} has open window",
+                    session.Id);
+                return true;
+            }
+        }
+
+        // No sessions have open purchase windows
+        _logger.LogDebug(
+            "Multi-session ticket is NOT purchasable - all {Count} sessions have closed windows",
+            sessions.Count());
+        return false;
+    }
+
+    /// <summary>
     /// Get the earliest session from a list of sessions (regardless of past/future)
     /// Used for multi-session ticket timing - timing is based on the EARLIEST session
     /// </summary>

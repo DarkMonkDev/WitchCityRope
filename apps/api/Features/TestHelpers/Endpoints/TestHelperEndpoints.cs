@@ -130,6 +130,36 @@ public static class TestHelperEndpoints
             .Produces<object>(204)
             .Produces<object>(400);
 
+        // Verify user email endpoint
+        app.MapPost("/api/test-helpers/verify-email", async (
+            VerifyUserEmailRequest request,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await testHelperService.VerifyUserEmailAsync(request.Email, cancellationToken);
+
+                if (success)
+                {
+                    return Results.Ok(new
+                    {
+                        Success = true,
+                        Message = "Email verified successfully"
+                    });
+                }
+
+                return Results.Problem(
+                    title: "Failed to verify email",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous() // No auth required for test email verification
+            .WithName("VerifyUserEmail")
+            .WithSummary("Verify user email for E2E testing")
+            .WithDescription("Programmatically verify a user's email address for testing. Bypasses email confirmation flow. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces<object>(200)
+            .Produces<object>(400);
+
         // Health check endpoint to verify test helpers are available
         app.MapGet("/api/test-helpers/health", () =>
             {

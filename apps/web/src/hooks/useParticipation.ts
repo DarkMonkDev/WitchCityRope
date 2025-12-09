@@ -159,9 +159,10 @@ export function useCancelTicket() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ eventId, reason }: { eventId: string; reason?: string }): Promise<void> => {
+    mutationFn: async ({ eventId, reason, sessionIds }: { eventId: string; reason?: string; sessionIds?: string[] }): Promise<void> => {
       await apiClient.delete(`/api/events/${eventId}/participation`, {
-        params: { type: 'ticket', reason }
+        params: { type: 'ticket', reason },
+        data: sessionIds && sessionIds.length > 0 ? { sessionIds } : undefined
       });
     },
     onSuccess: (_, variables) => {

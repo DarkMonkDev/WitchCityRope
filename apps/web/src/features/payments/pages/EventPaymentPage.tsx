@@ -455,12 +455,13 @@ export const EventPaymentPage: React.FC = () => {
   };
 
   /**
-   * Get formatted session dates with times for a ticket
-   * Returns string like "Sun, Dec 1 • 6:00 PM - 9:00 PM" or multiple lines for multi-session
+   * Get formatted session info for a ticket (for ticket selection display)
+   * Returns array of { name, date } for each session the ticket covers
+   * Format: "Session Name - Day, Date" (no time)
    */
-  const getTicketSessionDates = (ticket: TicketTypeDto): string => {
+  const getTicketSessionInfo = (ticket: TicketTypeDto): Array<{ name: string; date: string }> => {
     if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
-      return '';
+      return [];
     }
 
     // Find sessions matching the ticket's session identifiers
@@ -469,22 +470,44 @@ export const EventPaymentPage: React.FC = () => {
     );
 
     if (matchingSessions.length === 0) {
-      return '';
+      return [];
     }
 
-    // Format each session with date and time, joined with bullet separator
-    const formattedDates = matchingSessions
-      .filter(session => session.startDate) // Only include sessions with dates
-      .map(session => {
-        const date = formatAbbreviatedDate(session.startDate!);
-        const timeRange = session.startTime && session.endTime
-          ? formatUtcTimeRange(session.startTime, session.endTime)
-          : '';
-        return timeRange ? `${date} • ${timeRange}` : date;
-      })
-      .join(' | ');
+    // Return array of session name + date (no time) for each session
+    return matchingSessions
+      .filter(session => session.startDate)
+      .map((session, index) => ({
+        name: session.name || `Session ${index + 1}`,
+        date: formatAbbreviatedDate(session.startDate!),
+      }));
+  };
 
-    return formattedDates;
+  /**
+   * Get full session details for a ticket (for confirmation page)
+   * Returns array with name, date, and time for each session
+   */
+  const getTicketSessionDetails = (ticket: TicketTypeDto): Array<{ name: string; date: string; timeRange: string }> => {
+    if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
+      return [];
+    }
+
+    const matchingSessions = sessions.filter(session =>
+      ticket.sessionIdentifiers?.includes(session.sessionIdentifier || '')
+    );
+
+    if (matchingSessions.length === 0) {
+      return [];
+    }
+
+    return matchingSessions
+      .filter(session => session.startDate)
+      .map((session, index) => ({
+        name: session.name || `Session ${index + 1}`,
+        date: formatAbbreviatedDate(session.startDate!),
+        timeRange: session.startTime && session.endTime
+          ? formatUtcTimeRange(session.startTime, session.endTime)
+          : '',
+      }));
   };
 
   // Show loading state
@@ -655,12 +678,16 @@ export const EventPaymentPage: React.FC = () => {
                                   <Box style={{ flex: 1 }}>
                                     <Text fw={600} size="md">{tt.name}</Text>
                                     {(() => {
-                                      const sessionDates = getTicketSessionDates(tt);
-                                      if (sessionDates) {
+                                      const sessionInfo = getTicketSessionInfo(tt);
+                                      if (sessionInfo.length > 0) {
                                         return (
-                                          <Text size="sm" c="dimmed" mt={4}>
-                                            {sessionDates}
-                                          </Text>
+                                          <Stack gap={2} mt={4}>
+                                            {sessionInfo.map((session, idx) => (
+                                              <Text key={idx} size="sm" c="dimmed">
+                                                {session.name} - {session.date}
+                                              </Text>
+                                            ))}
+                                          </Stack>
                                         );
                                       }
                                       return null;
@@ -772,7 +799,7 @@ export const EventPaymentPage: React.FC = () => {
                 purchasedTickets={selectedTickets.map(ticket => ({
                   id: ticket.id || '',
                   name: ticket.name || '',
-                  sessionDates: getTicketSessionDates(ticket)
+                  sessions: getTicketSessionDetails(ticket)
                 }))}
                 onViewRegistrations={handleViewRegistrations}
                 onRegisterMore={handleRegisterMore}

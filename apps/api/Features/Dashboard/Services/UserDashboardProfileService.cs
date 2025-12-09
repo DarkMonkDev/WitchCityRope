@@ -37,7 +37,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
         {
             _logger.LogInformation("Fetching events for user {UserId}, includePast={IncludePast}", userId, includePast);
 
-            // SERVER-SIDE PROJECTION: Query EventAttendances and project to DTO at database level
+            // STEP 1: SERVER-SIDE PROJECTION - Query EventAttendances and project to DTO at database level
             // EventAttendances is the central table for both RSVP and ticket attendance types
             // Benefits: Only loads needed event fields, no Include() overhead
             var query = _context.EventAttendances
@@ -52,7 +52,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 query = query.Where(ea => ea.Event.EndDate >= DateTime.UtcNow);
             }
 
-            // SERVER-SIDE PROJECTION: Group by event and aggregate attendance data
+            // STEP 2: Group by event and aggregate basic attendance data (without sessions)
             // This ensures one UserEventDto per event even if user has multiple attendance types (RSVP + Ticket)
             var events = await query
                 .GroupBy(ea => new {
@@ -86,6 +86,40 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 })
                 .OrderBy(e => e.StartDate)
                 .ToListAsync(cancellationToken);
+
+            // STEP 3: Populate session data for each event (post-query in-memory)
+            // This is necessary because EF Core doesn't support complex navigation in GroupBy
+            foreach (var eventDto in events)
+            {
+                // Get user's registered sessions for this event
+                var registeredSessions = await _context.EventAttendances
+                    .AsNoTracking()
+                    .Where(ea => ea.UserId == userId
+                        && ea.EventId == eventDto.Id
+                        && ea.Status == AttendanceStatus.Active
+                        && ea.AttendanceType == AttendanceType.Ticket
+                        && ea.SessionId != null)
+                    .Select(ea => new UserSessionDto
+                    {
+                        Id = ea.Session!.Id,
+                        Name = ea.Session.Name,
+                        StartTime = ea.Session.StartTime,
+                        EndTime = ea.Session.EndTime
+                    })
+                    .Distinct()
+                    .ToListAsync(cancellationToken);
+
+                eventDto.RegisteredSessions = registeredSessions;
+
+                // Get total session count for this event
+                var totalSessionCount = await _context.Sessions
+                    .AsNoTracking()
+                    .Where(s => s.EventId == eventDto.Id)
+                    .CountAsync(cancellationToken);
+
+                // Calculate additional sessions available
+                eventDto.AdditionalSessionsAvailable = totalSessionCount - registeredSessions.Count;
+            }
 
             _logger.LogInformation("Retrieved {EventCount} events using server-side projection for user {UserId}", events.Count, userId);
 

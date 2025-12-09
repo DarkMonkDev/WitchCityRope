@@ -92,6 +92,8 @@ interface ParticipationCardProps {
   eventLocation?: string;
   eventSessions?: Array<{
     id?: string;
+    name?: string;
+    sessionIdentifier?: string;
     startTime?: string;
     endTime?: string;
   }>;
@@ -465,28 +467,40 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           {eventSessions && eventSessions.length > 1 &&
            (validParticipation as any)?.sessionAvailability &&
            !validParticipation?.hasTicket && (
-            <Stack gap="xs">
-              <Text fw={600} size="sm" c="dimmed" tt="uppercase">
-                Event Dates / Times
-              </Text>
-              {(validParticipation as any).sessionAvailability.map((session: any) => (
-                <Group key={session.sessionId} justify="space-between">
-                  <Text size="sm">
-                    {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                    {session.startTime && session.endTime && (
-                      <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
-                    )}
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    {session.soldCount || 0} sold, {session.availableCount || 0} Available
-                  </Text>
-                </Group>
-              ))}
-            </Stack>
+            <Paper
+              radius="md"
+              p="lg"
+              withBorder
+              style={{
+                backgroundColor: '#FAF6F2',
+                border: '1px solid #D4A5A5'
+              }}
+            >
+              <Stack gap="md">
+                <Title order={4} c="#880124">
+                  Available Sessions
+                </Title>
+                <Stack gap="xs">
+                  {(validParticipation as any).sessionAvailability.map((session: any) => (
+                    <Group key={session.sessionId} justify="space-between">
+                      <Text size="sm">
+                        {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                        {session.startTime && session.endTime && (
+                          <> • {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}</>
+                        )}
+                      </Text>
+                      <Text size="sm" c="dimmed">
+                        {session.soldCount || 0} sold, {session.availableCount || 0} available
+                      </Text>
+                    </Group>
+                  ))}
+                </Stack>
+              </Stack>
+            </Paper>
           )}
 
           {/* Owned Sessions Alert - Show when user has partial tickets */}
@@ -656,7 +670,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                           <IconTicket size={16} color="#6B0119" style={{ marginTop: 2, flexShrink: 0 }} />
                           <Box>
                             <Text size="sm" fw={500}>
-                              {(session as any).sessionIdentifier || `Session ${index + 1}`}
+                              {session.name || session.sessionIdentifier || `Session ${index + 1}`}
                             </Text>
                             <Text size="sm" c="dimmed">
                               {session.startTime && formatUtcToLocalDate(session.startTime, eventTimeZone, {

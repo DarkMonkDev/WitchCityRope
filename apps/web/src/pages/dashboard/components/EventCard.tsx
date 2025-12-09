@@ -156,7 +156,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
       <Stack gap="sm" p="lg" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Date/Time - Multi-session support */}
         {(() => {
-          const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
+          // Use registeredSessions (sessions the user purchased tickets for)
+          // Cast to any because these fields exist in API response but not yet in generated types
+          const eventAny = event as any;
+          const sessions = (eventAny.registeredSessions || []).slice().sort((a: any, b: any) =>
             new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
           );
 
@@ -217,7 +220,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           // Multiple sessions
           return (
             <Stack gap={4} style={{ marginBottom: '4px' }}>
-              {sessions.map((session: any, index: number) => (
+              {sessions.map((session, index) => (
                 <Group key={session.id || index} justify="space-between">
                   <Text
                     fw={700}
@@ -252,6 +255,18 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
             </Stack>
           );
         })()}
+
+        {/* Additional sessions available badge */}
+        {(event as any).additionalSessionsAvailable > 0 && (
+          <Badge
+            color="blue"
+            variant="light"
+            size="sm"
+            style={{ marginTop: '4px', alignSelf: 'flex-start' }}
+          >
+            {(event as any).additionalSessionsAvailable} more available
+          </Badge>
+        )}
 
         {/* Location - Shows venue location for dashboard (user already has access) */}
         <Text size="sm" c="dimmed">

@@ -57,6 +57,18 @@ public class UserEventDto
     /// </summary>
     public bool IsPastEvent => EndDate < DateTime.UtcNow;
 
+    /// <summary>
+    /// Sessions the user is registered for (via their ticket purchase)
+    /// Empty list for events with no sessions or if user hasn't purchased a ticket
+    /// </summary>
+    public List<UserSessionDto> RegisteredSessions { get; set; } = new();
+
+    /// <summary>
+    /// Count of additional sessions available that user hasn't purchased
+    /// 0 for single-session events or if user has purchased all sessions
+    /// </summary>
+    public int AdditionalSessionsAvailable { get; set; }
+
     // NO pricing fields - this is user dashboard, not sales page
     // NO capacity fields - user doesn't need to see event capacity
 }

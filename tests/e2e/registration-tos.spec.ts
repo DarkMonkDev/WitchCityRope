@@ -1,4 +1,19 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, APIRequestContext } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
+
+/**
+ * Helper function to verify user email via test helper endpoint
+ * ONLY works in Development/Test environments (endpoint is disabled in Production)
+ */
+async function verifyUserEmail(request: APIRequestContext, email: string): Promise<void> {
+  const response = await request.post('/api/test-helpers/verify-email', {
+    data: { email }
+  });
+  if (!response.ok()) {
+    throw new Error(`Failed to verify email: ${await response.text()}`);
+  }
+  console.log(`✅ Email verified via test helper: ${email}`);
+}
 
 /**
  * E2E TESTS: Registration Terms of Service Compliance
@@ -37,7 +52,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     await page.waitForSelector('[data-testid="register-form"]', { timeout: 10000 });
   });
 
-  test('Positive: User can register when Terms of Service checkbox is checked', async ({ page }) => {
+  test('Positive: User can register when Terms of Service checkbox is checked', async ({ page, request }) => {
     // Fill in registration form
     await page.locator('[data-testid="email-input"]').fill(testEmail);
     await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
@@ -75,26 +90,19 @@ test.describe('Registration Terms of Service Compliance', () => {
       throw new Error(`Registration failed with status ${status}. Response: ${responseBody}`);
     }
 
-    // After successful registration, should see success message on same page
-    await expect(page.getByTestId('page-register-success')).toBeVisible({ timeout: 10000 });
-    console.log('✅ Registration success message displayed');
-
-    // Click "Go to Login" button to navigate to login page
-    const goToLoginButton = page.getByRole('link', { name: 'Go to Login' });
-    await expect(goToLoginButton).toBeVisible();
-    await goToLoginButton.click();
-
-    // Should navigate to login page
-    await page.waitForURL(/\/login/, { timeout: 10000 });
+    // After successful registration, app auto-navigates to /login (see mutations.ts line 153)
+    // The success page shows briefly but the onSuccess callback navigates immediately
+    await page.waitForURL(/\/login/, { timeout: 15000 });
+    console.log('✅ Registration successful - navigated to login page');
     expect(page.url()).toContain('/login');
 
-    // Now login with the newly created credentials
-    await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
+    // Verify email via test helper (required before login - email verification is enforced)
+    await verifyUserEmail(request, testEmail);
 
-    // After login, should navigate to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // Now login with the newly created credentials using AuthHelpers
+    await AuthHelpers.loginWith(page, { email: testEmail, password: 'Test123!' });
+
+    // Verify we're on dashboard
     expect(page.url()).toContain('/dashboard');
 
     // Take screenshot of successful login after registration
@@ -117,25 +125,15 @@ test.describe('Registration Terms of Service Compliance', () => {
     const submitButton = page.locator('[data-testid="register-button"]');
     await submitButton.click();
 
-    // After successful registration, should see success message on same page
-    await expect(page.getByTestId('page-register-success')).toBeVisible({ timeout: 10000 });
-    console.log('✅ Registration success message displayed');
+    // After successful registration, app auto-navigates to /login (see mutations.ts line 153)
+    await page.waitForURL(/\/login/, { timeout: 15000 });
+    console.log('✅ Registration successful - navigated to login page');
 
-    // Click "Go to Login" button to navigate to login page
-    const goToLoginButton = page.getByRole('link', { name: 'Go to Login' });
-    await expect(goToLoginButton).toBeVisible();
-    await goToLoginButton.click();
+    // Verify email via test helper (required before login - email verification is enforced)
+    await verifyUserEmail(request, testEmail);
 
-    // Wait for navigation to login page
-    await page.waitForURL(/\/login/, { timeout: 10000 });
-
-    // Login with newly created credentials
-    await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-
-    // After login, should navigate to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // Login with newly created credentials using AuthHelpers
+    await AuthHelpers.loginWith(page, { email: testEmail, password: 'Test123!' });
 
     // Query API to verify ToS acceptance was stored
     // Note: This requires an API endpoint to fetch user data
@@ -168,7 +166,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     }
   });
 
-  test('Positive: Newly registered user can successfully log in', async ({ page }) => {
+  test('Positive: Newly registered user can successfully log in', async ({ page, request }) => {
     // First, register the user
     await page.locator('[data-testid="email-input"]').fill(testEmail);
     await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
@@ -176,25 +174,17 @@ test.describe('Registration Terms of Service Compliance', () => {
     await page.locator('[data-testid="terms-checkbox"]').check();
     await page.locator('[data-testid="register-button"]').click();
 
-    // After successful registration, should see success message on same page
-    await expect(page.getByTestId('page-register-success')).toBeVisible({ timeout: 10000 });
-    console.log('✅ Registration success message displayed');
+    // After successful registration, app auto-navigates to /login (see mutations.ts line 153)
+    await page.waitForURL(/\/login/, { timeout: 15000 });
+    console.log('✅ Registration successful - navigated to login page');
 
-    // Click "Go to Login" button to navigate to login page
-    const goToLoginButton = page.getByRole('link', { name: 'Go to Login' });
-    await expect(goToLoginButton).toBeVisible();
-    await goToLoginButton.click();
+    // Verify email via test helper (required before login - email verification is enforced)
+    await verifyUserEmail(request, testEmail);
 
-    // Wait for navigation to login page
-    await page.waitForURL(/\/login/, { timeout: 10000 });
+    // Now log in with the same credentials using AuthHelpers
+    await AuthHelpers.loginWith(page, { email: testEmail, password: 'Test123!' });
 
-    // Now log in with the same credentials
-    await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-
-    // Should successfully log in and navigate to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // Verify we're on dashboard
     expect(page.url()).toContain('/dashboard');
 
     console.log('✅ Newly registered user successfully logged in');

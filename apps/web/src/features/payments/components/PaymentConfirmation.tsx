@@ -28,10 +28,16 @@ import type { PaymentResponse, PaymentEventInfo } from '../types/payment.types';
 import { paymentUtils } from '../api/paymentApi';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
+interface PurchasedTicketSession {
+  name: string;
+  date: string;
+  timeRange: string;
+}
+
 interface PurchasedTicket {
   id: string;
   name: string;
-  sessionDates: string; // e.g., "Sun, Dec 1 • Sat, Dec 7"
+  sessions: PurchasedTicketSession[];
 }
 
 interface PaymentConfirmationProps {
@@ -127,14 +133,23 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
               <Stack gap="xs">
                 <Text size="sm" fw={500} c="dimmed" tt="uppercase">Your Ticket(s)</Text>
                 {purchasedTickets.map((ticket, index) => (
-                  <Group key={ticket.id || index} gap="sm">
-                    <IconTicket size={18} color="#6B0119" />
+                  <Group key={ticket.id || index} gap="sm" align="flex-start">
+                    <IconTicket size={18} color="#6B0119" style={{ marginTop: 4 }} />
                     <Box>
                       <Text fw={600}>{ticket.name}</Text>
-                      {ticket.sessionDates && (
-                        <Text size="sm" c="dimmed">
-                          {ticket.sessionDates}
-                        </Text>
+                      {ticket.sessions && ticket.sessions.length > 0 && (
+                        <Stack gap="xs" mt={4}>
+                          {ticket.sessions.map((session, sessionIndex) => (
+                            <Box key={sessionIndex}>
+                              <Text size="sm" c="dimmed" fw={500}>
+                                {session.name}
+                              </Text>
+                              <Text size="sm" c="dimmed">
+                                {session.date}{session.timeRange && ` • ${session.timeRange}`}
+                              </Text>
+                            </Box>
+                          ))}
+                        </Stack>
                       )}
                     </Box>
                   </Group>

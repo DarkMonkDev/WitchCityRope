@@ -4458,6 +4458,45 @@
         }
       }
     },
+    "/api/test-helpers/verify-email": {
+      "post": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Verify user email for E2E testing",
+        "description": "Programmatically verify a user's email address for testing. Bypasses email confirmation flow. ONLY available in Development/Test.",
+        "operationId": "VerifyUserEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyUserEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/test-helpers/health": {
       "get": {
         "tags": [
@@ -15782,6 +15821,16 @@
           },
           "isPastEvent": {
             "type": "boolean"
+          },
+          "registeredSessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserSessionDto"
+            }
+          },
+          "additionalSessionsAvailable": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -16064,6 +16113,26 @@
           }
         }
       },
+      "UserSessionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "UserVolunteerShiftDto": {
         "type": "object",
         "properties": {
@@ -16242,6 +16311,17 @@
             "type": "string"
           },
           "token": {
+            "type": "string"
+          }
+        }
+      },
+      "VerifyUserEmailRequest": {
+        "required": [
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
             "type": "string"
           }
         }

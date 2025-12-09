@@ -51,4 +51,15 @@ public interface ITestHelperService
     Task<(bool Success, string? Error)> DeleteTestTicketPurchaseAsync(
         Guid ticketPurchaseId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Verify a user's email address
+    /// Used for E2E tests to bypass email verification
+    /// </summary>
+    /// <param name="email">Email address to verify</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    Task<(bool Success, string? Error)> VerifyUserEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default);
 }
