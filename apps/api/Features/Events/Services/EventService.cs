@@ -714,11 +714,11 @@ public class EventService : IEventService
         }
         else
         {
-            // All sessions have passed - use earliest session overall
-            var earliestSession = eventEntity.Sessions
-                .OrderBy(s => s.StartTime)
+            // All sessions have passed - use LATEST session (most recent) for edit grace period calculation
+            var latestSession = eventEntity.Sessions
+                .OrderByDescending(s => s.StartTime)
                 .First();
-            eventEntity.StartDate = earliestSession.StartTime;
+            eventEntity.StartDate = latestSession.StartTime;
         }
     }
 
