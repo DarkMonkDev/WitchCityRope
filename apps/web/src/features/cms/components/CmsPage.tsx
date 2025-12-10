@@ -278,11 +278,6 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
       {/* View mode */}
       {!isEditing && (
         <Box>
-          {/* Display page title as H1 */}
-          <h1 className="page-title">
-            {pageContent.title}
-          </h1>
-
           {/* Display page content with global HTML content styling */}
           <div className="html-content" dangerouslySetInnerHTML={{ __html: pageContent.content }} />
         </Box>

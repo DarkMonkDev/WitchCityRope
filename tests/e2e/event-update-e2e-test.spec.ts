@@ -77,12 +77,17 @@ test.describe('Event Update Flow E2E Testing', () => {
     // Wait for page to load
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
     
-    // Look for event form elements - using .last() for React Strict Mode
+    // Look for event form elements
+    // IMPORTANT: Use specific selectors to avoid matching volunteer position form fields
+    // The event title field has label="Event Title" and placeholder="Enter event title"
     const formElements = {
-      titleInput: page.locator('input[name="title"], input[placeholder*="title" i], [data-testid*="title"]').last(),
-      descriptionField: page.locator('textarea[name="description"], textarea[placeholder*="description" i], [data-testid*="description"]').last(),
-      locationField: page.locator('input[name="location"], input[placeholder*="location" i], [data-testid*="location"]').last(),
-      submitButton: page.locator('button[type="submit"], button:has-text("Save"), button:has-text("Update")').last()
+      // Use label text to find the correct event title input (not volunteer position title)
+      titleInput: page.getByLabel('Event Title'),
+      // Short description field
+      descriptionField: page.getByLabel(/Short Description/i),
+      // Location field - if present on form
+      locationField: page.getByLabel(/Location/i).first(),
+      submitButton: page.locator('button[type="submit"]').filter({ hasText: /save/i }).first()
     };
     
     console.log('Checking for form elements...');
@@ -295,20 +300,20 @@ test.describe('Event Update Flow E2E Testing', () => {
     await page.waitForLoadState('domcontentloaded');
     
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
-    
-    // Find title field only and modify it (use .last() for React Strict Mode)
-    const titleField = page.locator('input[name="title"], input[placeholder*="title" i], [data-testid*="title"]').last();
-    
+
+    // Find event title field using label (avoid matching volunteer position title)
+    const titleField = page.getByLabel('Event Title');
+
     if (await titleField.count() > 0) {
       console.log('Testing partial update - changing only title field...');
-      
+
       const originalTitle = await titleField.inputValue();
       const newTitle = `PARTIAL UPDATE TEST: ${originalTitle}`;
-      
+
       await titleField.fill(newTitle);
-      
-      // Find submit button (use .last() for React Strict Mode)
-      const submitButton = page.locator('button[type="submit"], button:has-text("Save")').last();
+
+      // Find submit button
+      const submitButton = page.locator('button[type="submit"]').filter({ hasText: /save/i }).first();
       
       if (await submitButton.count() > 0) {
         console.log('Submitting partial update...');

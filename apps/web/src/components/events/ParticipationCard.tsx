@@ -357,7 +357,20 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
     if (type === 'ticket') {
       // For tickets, enter cancel mode to allow selective cancellation
       setIsCancelMode(true);
-      setSelectedTicketPurchaseIds([]);
+
+      // Get ticket purchase IDs to determine if we should pre-select
+      const ticketPurchases = (validParticipation as any)?.ticketPurchases;
+      const ticketPurchaseMap = (validParticipation as any)?.ticketPurchaseSessionMap;
+      const purchaseIds = ticketPurchases
+        ? Object.keys(ticketPurchases)
+        : (ticketPurchaseMap ? Object.keys(ticketPurchaseMap) : []);
+
+      // Pre-select the ticket if there's exactly one, otherwise start with none selected
+      if (purchaseIds.length === 1) {
+        setSelectedTicketPurchaseIds([purchaseIds[0]]);
+      } else {
+        setSelectedTicketPurchaseIds([]);
+      }
     } else {
       // For RSVP, use the modal
       setCancelType(type);

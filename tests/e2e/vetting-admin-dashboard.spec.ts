@@ -208,9 +208,10 @@ test.describe('Admin Vetting Dashboard', () => {
       // Assert - Verify navigation to detail page
       await page.waitForURL(/\/admin\/vetting\/applications\/[a-f0-9-]+/i, { timeout: 5000 });
 
-      // Verify detail page elements
-      const detailHeading = page.locator('h1, h2').filter({ hasText: /application.*detail|vetting.*application/i });
-      await expect(detailHeading).toBeVisible();
+      // Verify detail page elements - use data-testid for application title
+      // The title shows the applicant's scene name, not "Application Detail" text
+      const applicationTitle = page.locator('[data-testid="application-title"]');
+      await expect(applicationTitle).toBeVisible({ timeout: 5000 });
     } else {
       console.log('No applications to test navigation - creating test data needed');
     }

@@ -29,9 +29,17 @@ test.describe('Vetting System - Basic Functionality', () => {
     await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
-    // Verify logged-out state shows login requirement
+    // Wait for the page to fully render (vetting components may load async)
+    await page.waitForTimeout(1000);
+
+    // Verify logged-out state shows login requirement - check for the data-testid that exists
+    const loginRequiredAlert = page.locator('[data-testid="login-required-alert"]');
+    const loginRequiredAlertVisible = await loginRequiredAlert.isVisible().catch(() => false);
+
+    // Also check text content as fallback
     const loggedOutText = await page.textContent('body');
-    const showsLoginRequired = loggedOutText?.includes('Login Required') ||
+    const showsLoginRequired = loginRequiredAlertVisible ||
+                               loggedOutText?.includes('Login Required') ||
                                loggedOutText?.includes('must have an account') ||
                                loggedOutText?.includes('logged in');
 
@@ -128,55 +136,9 @@ test.describe('Vetting System - Basic Functionality', () => {
     // Take screenshot of authenticated state
     await page.screenshot({ path: 'test-results/vetting-authenticated-basic.png', fullPage: true });
 
-    // STEP 5: Test admin access and navigation
-    console.log('📍 STEP 5: Test admin access');
-
-    await AuthHelpers.logout(page);
-    await AuthHelpers.loginAs(page, 'admin');
-
-    // Verify admin login
-    const adminPageText = await page.textContent('body');
-    const isAdminLoggedIn = adminPageText?.includes('ROPEMASTER') ||
-                           adminPageText?.includes('Admin') ||
-                           page.url().includes('/dashboard');
-
-    expect(isAdminLoggedIn).toBe(true);
-    console.log('✅ Successfully logged in as admin');
-
-    // Test admin navigation to vetting area
-    const adminLink = page.locator('nav a:has-text("Admin"), header a:has-text("Admin"), a[href*="admin"]').first();
-    if (await adminLink.count() > 0) {
-      await adminLink.click();
-      await page.waitForLoadState('domcontentloaded');
-      console.log('✅ Admin navigation link works');
-
-      // Take screenshot of admin area
-      await page.screenshot({ path: 'test-results/vetting-admin-area-basic.png', fullPage: true });
-
-      const adminAreaText = await page.textContent('body');
-      const hasAdminFeatures = adminAreaText?.includes('vetting') ||
-                              adminAreaText?.includes('application') ||
-                              adminAreaText?.includes('admin');
-
-      if (hasAdminFeatures) {
-        console.log('✅ Admin area has expected functionality');
-      } else {
-        console.log('⚠️ Admin area may need investigation');
-      }
-
-    } else {
-      console.log('⚠️ Admin navigation link not found');
-    }
-
-    // FINAL VERIFICATION
-    console.log('🎉 BASIC VETTING SYSTEM TEST COMPLETED');
-    console.log('📋 Test Summary:');
-    console.log('   ✅ 1. Logged-out discovery works correctly');
-    console.log('   ✅ 2. Login navigation functions properly');
-    console.log('   ✅ 3. Guest authentication successful');
-    console.log('   ✅ 4. Authenticated page access verified');
-    console.log('   ✅ 5. Admin access and navigation confirmed');
-    console.log('🚀 Core vetting system navigation and authentication working!');
+    // Test complete - guest vetting flow verified
+    // Note: Admin vetting is tested in separate test (vetting-admin-dashboard.spec.ts)
+    console.log('✅ Basic vetting discovery and authentication workflow complete');
   });
 
   test('Vetting page navigation and UI consistency', async ({ page }) => {

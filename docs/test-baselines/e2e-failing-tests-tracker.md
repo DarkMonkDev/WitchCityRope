@@ -122,23 +122,11 @@ The following fixes were applied to all 92 failing test files:
 
 ---
 
-## MOBILE/NAVIGATION (6 failures → NEED VERIFICATION)
+## MOBILE/NAVIGATION (0 failures → ALL FIXED)
 
-These tests were previously reported as failing. Status needs verification after Dec 8 fixes.
+**Verified December 9, 2025**: All 16 navigation and scroll-restoration tests now pass (100%).
 
-### navigation-workflow (4 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| Mobile hamburger menu - opens and displays navigation items | NEED_VERIFICATION | May be fixed with Dec 8 mobile fixes |
-| Mobile menu - authenticated user sees dashboard and logout | NEED_VERIFICATION | May be fixed with Dec 8 mobile fixes |
-| Mobile menu - admin user sees admin link | NEED_VERIFICATION | May be fixed with Dec 8 mobile fixes |
-| Mobile menu logout - logs out user and closes menu | NEED_VERIFICATION | May be fixed with Dec 8 mobile fixes |
-
-### scroll-restoration (2 tests)
-| Test | Status | Failure Reason |
-|------|--------|----------------|
-| scrolls to top when navigating from events to homepage - MOBILE | NEED_VERIFICATION | Timeout - mobile viewport issue |
-| hamburger menu opens and resets body overflow on navigation - MOBILE | NEED_VERIFICATION | Mobile menu state |
+*(All entries removed - tests verified passing in test containers)*
 
 ---
 
