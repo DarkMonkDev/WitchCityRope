@@ -94,6 +94,95 @@ These tests previously skipped silently but have been **converted to `test.fail(
 
 ---
 
+## 🚨 VETTING-WORKFLOW.SPEC.TS - REQUIRES BACKEND ENDPOINT (13 tests)
+
+### Problem Summary
+
+The `vetting-workflow.spec.ts` tests (13 tests) **cannot be fixed with the same approach** used for other test files. Unlike events which can be created via `POST /api/events`, there is **no API endpoint to create vetting applications programmatically**.
+
+### Why This Is Different
+
+| Test File | Solution | Works? |
+|-----------|----------|--------|
+| `multi-ticket-purchase.spec.ts` | Create event via `POST /api/events` in `beforeAll` | ✅ YES |
+| `admin-events-workflow.spec.ts` | Create event via `POST /api/events` in `beforeAll` | ✅ YES |
+| `vetting-workflow.spec.ts` | ❌ **No endpoint to create applications** | ❌ NO |
+
+### Current Vetting Application Flow
+
+1. **User submits application**: `POST /api/vetting/apply` - Creates application for CURRENT authenticated user
+2. **Problem**: Cannot create application for TEST users programmatically
+3. **Seed data approach**: Applications exist in seed data but may be in wrong state or already processed
+
+### What Backend Work Is Needed
+
+**Option A: Test-Only Endpoint (Recommended)**
+
+Create `POST /api/admin/vetting/test-application` endpoint that:
+- Requires `Admin` role
+- Creates a vetting application for a specified user email
+- Sets application to a specified status (Pending, InReview, etc.)
+- Only available in Development/Test environments
+
+```csharp
+// Example endpoint signature
+[HttpPost("admin/vetting/test-application")]
+[Authorize(Roles = "Admin")]
+public async Task<ActionResult<VettingApplicationDto>> CreateTestApplication(
+    string userEmail,
+    VettingStatus status = VettingStatus.Pending)
+```
+
+**Option B: Seeder Enhancement**
+
+Enhance `VettingSeeder` to create applications in specific states that tests can rely on:
+- Create "pending" application for `vetting-test-pending@witchcityrope.com`
+- Create "in-review" application for `vetting-test-inreview@witchcityrope.com`
+- Etc.
+
+**Option C: Reset Endpoint**
+
+Create `POST /api/admin/vetting/reset-test-data` that:
+- Resets all test vetting applications to known states
+- Called in `beforeAll` of test file
+
+### Tests Affected (13 tests)
+
+| Test | What It Needs |
+|------|---------------|
+| Admin can view pending applications list | At least 1 pending application |
+| Admin can view application details | Application with known ID |
+| Admin can approve application | Pending application to approve |
+| Admin can deny application with reason | Pending application to deny |
+| Admin can put application on hold | Pending application |
+| Admin can send reminder to applicant | Application in specific state |
+| Admin can add notes to application | Any application |
+| Application status updates correctly | Application to modify |
+| Email is sent on approval | Pending application |
+| Email is sent on denial | Pending application |
+| Email is sent on hold | Pending application |
+| Email is sent on reminder | Application |
+| Audit log tracks admin actions | Application to modify |
+
+### Next Steps for Future Agent
+
+1. **Backend Developer**: Create one of the endpoint options above
+2. **Test Developer**: Update `vetting-workflow.spec.ts` to use new endpoint in `beforeAll`
+3. **Test Executor**: Run tests to verify
+
+### Temporary Workaround (If Needed)
+
+If backend work is delayed, tests can be marked with `test.fixme()` with a TODO comment:
+
+```typescript
+test.fixme('admin can approve application', async ({ page }) => {
+  // TODO: Requires POST /api/admin/vetting/test-application endpoint
+  // See: /docs/test-baselines/e2e-failing-tests-tracker.md#vetting-workflow
+});
+```
+
+---
+
 ## LEGITIMATELY SKIPPED TESTS (Updated Dec 10, 2025)
 
 **Only 1 test remains legitimately skipped** after Phase 5 fixes.
@@ -328,6 +417,69 @@ test.beforeAll(async ({ browser }) => {
   await page.close();
 });
 ```
+
+### CSRF Token Pattern for API Calls (Phase 6 Fix)
+
+**Problem**: POST/PUT/DELETE requests to `/api/events` require CSRF token.
+
+**Solution**: Add CSRF token helper and include token in requests:
+
+```typescript
+// Helper to get CSRF token from cookies
+async function getCsrfToken(page: Page): Promise<string | null> {
+  let cookies = await page.context().cookies();
+  let csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
+
+  // If CSRF token not found, fetch it from the API
+  if (!csrfCookie) {
+    await page.request.get('/api/antiforgery/token');
+    cookies = await page.context().cookies();
+    csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
+  }
+
+  return csrfCookie?.value || null;
+}
+
+// Helper to make authenticated API request with CSRF token
+async function apiRequest(page: Page, method: string, url: string, data?: unknown) {
+  const headers: Record<string, string> = {};
+
+  // Get CSRF token for state-changing requests
+  if (method !== 'GET') {
+    const csrfToken = await getCsrfToken(page);
+    if (csrfToken) {
+      headers['X-CSRF-TOKEN'] = csrfToken;
+    }
+  }
+
+  if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const response = await page.request.fetch(url, {
+    method,
+    headers,
+    data: data ? data : undefined,
+  });
+
+  const text = await response.text();
+  try {
+    return { status: response.status(), data: JSON.parse(text) };
+  } catch {
+    return { status: response.status(), data: text };
+  }
+}
+```
+
+### Correct API Endpoints
+
+| Action | ❌ Wrong Endpoint | ✅ Correct Endpoint |
+|--------|-------------------|---------------------|
+| Create Event | `/api/admin/events` | `/api/events` |
+| Get Events | `/api/admin/events` | `/api/events` |
+| Delete Event | `/api/admin/events/{id}` | ⚠️ No DELETE endpoint exists |
+
+**Note**: There is no DELETE endpoint for events. Tests should create unique events with timestamps and not rely on cleanup.
 
 ---
 
