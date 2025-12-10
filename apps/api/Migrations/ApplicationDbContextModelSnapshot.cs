@@ -877,7 +877,7 @@ namespace WitchCityRope.Api.Migrations
                     b.HasIndex("TemplateName")
                         .HasDatabaseName("IX_AdHocEmailTemplates_TemplateName");
 
-                    b.ToTable("AdHocEmailTemplates", null, t =>
+                    b.ToTable("AdHocEmailTemplates", "public", t =>
                         {
                             t.HasCheckConstraint("CHK_AdHocEmailTemplates_HtmlBody_NotEmpty", "LENGTH(TRIM(\"HtmlBody\")) > 0");
 
@@ -967,7 +967,7 @@ namespace WitchCityRope.Api.Migrations
                         .HasDatabaseName("UQ_EmailTriggerLogs_Idempotency")
                         .HasFilter("\"SessionId\" IS NOT NULL AND \"Status\" = 'Sent'");
 
-                    b.ToTable("EmailTriggerLogs", null, t =>
+                    b.ToTable("EmailTriggerLogs", "public", t =>
                         {
                             t.HasCheckConstraint("CHK_EmailTriggerLogs_RecipientCount", "\"RecipientCount\" >= 0");
 
@@ -1059,7 +1059,7 @@ namespace WitchCityRope.Api.Migrations
                         .IsUnique()
                         .HasDatabaseName("UQ_EventEmailTemplates_EventId_Type");
 
-                    b.ToTable("EventEmailTemplates", null, t =>
+                    b.ToTable("EventEmailTemplates", "public", t =>
                         {
                             t.HasCheckConstraint("CHK_EventEmailTemplates_HtmlBody_NotEmpty", "LENGTH(TRIM(\"HtmlBody\")) > 0");
 
@@ -1174,7 +1174,7 @@ namespace WitchCityRope.Api.Migrations
                         .HasDatabaseName("IX_GlobalEmailTemplates_TriggerType_Enabled")
                         .HasFilter("\"TriggerEnabled\" = TRUE");
 
-                    b.ToTable("GlobalEmailTemplates", null, t =>
+                    b.ToTable("GlobalEmailTemplates", "public", t =>
                         {
                             t.HasCheckConstraint("CHK_GlobalEmailTemplates_Category", "\"Category\" IN (0, 1, 2, 3, 4)");
 
@@ -1274,7 +1274,7 @@ namespace WitchCityRope.Api.Migrations
                         .HasDatabaseName("IX_SentAdHocEmails_Scheduled_Pending")
                         .HasFilter("\"ScheduledSendAt\" IS NOT NULL AND \"DeliveryStatus\" = 'Pending'");
 
-                    b.ToTable("SentAdHocEmails", null, t =>
+                    b.ToTable("SentAdHocEmails", "public", t =>
                         {
                             t.HasCheckConstraint("CHK_SentAdHocEmails_DeliveryStatus", "\"DeliveryStatus\" IN ('Pending', 'Scheduled', 'Sent', 'Delivered', 'Failed', 'Bounced')");
 
