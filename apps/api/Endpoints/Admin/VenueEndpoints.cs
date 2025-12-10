@@ -272,6 +272,14 @@ public static class VenueEndpoints
                         statusCode: 400);
                 }
 
+                if (request.Location?.Length > 100)
+                {
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Location must not exceed 100 characters",
+                        statusCode: 400);
+                }
+
                 try
                 {
                     // Check for duplicate name (case-insensitive)
@@ -390,6 +398,14 @@ public static class VenueEndpoints
                     return Results.Problem(
                         title: "Validation Failed",
                         detail: "VenueInformation must not exceed 1000 characters",
+                        statusCode: 400);
+                }
+
+                if (request.Location?.Length > 100)
+                {
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Location must not exceed 100 characters",
                         statusCode: 400);
                 }
 

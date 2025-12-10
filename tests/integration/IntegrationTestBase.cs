@@ -275,7 +275,7 @@ namespace WitchCityRope.IntegrationTests
             {
                 Name = name ?? $"Test Venue {Guid.NewGuid():N}"[..30],
                 Directions = "Test directions",
-                Notes = "Test venue for integration testing",
+                VenueInformation = "Test venue for integration testing",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow

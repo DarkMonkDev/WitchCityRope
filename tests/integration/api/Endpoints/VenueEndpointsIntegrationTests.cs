@@ -29,7 +29,7 @@ namespace WitchCityRope.IntegrationTests.Api.Endpoints;
 /// - Admin endpoints: GET, POST, PUT, DELETE /api/admin/venues
 /// - Authentication requirements (401)
 /// - Authorization requirements (403)
-/// - Data visibility (Notes field filtering)
+/// - Data visibility (VenueInformation field filtering)
 /// - Validation (field length, required fields, duplicates)
 /// </summary>
 [Collection("Database")]
@@ -75,7 +75,7 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
     public async Task GetPublicVenue_WithValidId_ReturnsVenue()
     {
         // Arrange
-        var venueId = await CreateVenueAsync("Test Venue", "Turn left at Main St", "Internal notes");
+        var venueId = await CreateVenueAsync("Test Venue", "Turn left at Main St", "Internal info");
         var userId = await GetUserIdAsync("member@witchcityrope.com");
         var token = GenerateJwtToken(userId, "member@witchcityrope.com", "Member");
 
@@ -92,7 +92,7 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         result!.Id.Should().Be(venueId);
         result.Name.Should().Be("Test Venue");
         result.Directions.Should().Be("Turn left at Main St");
-        result.Notes.Should().BeNull(); // Notes should not be exposed to public
+        result.VenueInformation.Should().BeNull(); // VenueInformation should not be exposed to public
         result.IsActive.Should().BeTrue();
     }
 
@@ -163,7 +163,7 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         result.Should().NotBeNull();
         result!.Count.Should().BeGreaterThanOrEqualTo(2);
         result.Should().OnlyContain(v => v.IsActive == true);
-        result.Should().OnlyContain(v => v.Notes == null); // Notes should not be exposed
+        result.Should().OnlyContain(v => v.VenueInformation == null); // VenueInformation should not be exposed to public
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         {
             Name = "New Admin Venue",
             Directions = "Admin-created directions",
-            Notes = "Internal admin notes"
+            VenueInformation = "Internal admin info"
         };
 
         // Act
@@ -207,13 +207,13 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         var result = await response.Content.ReadFromJsonAsync<VenueDto>();
         result.Should().NotBeNull();
         result!.Name.Should().Be("New Admin Venue");
-        result.Notes.Should().Be("Internal admin notes");
+        result.VenueInformation.Should().Be("Internal admin info");
 
         // Verify in database
         await using var context = CreateDbContext();
         var venue = await context.Venues.FindAsync(result.Id);
         venue.Should().NotBeNull();
-        venue!.Notes.Should().Be("Internal admin notes");
+        venue!.VenueInformation.Should().Be("Internal admin info");
     }
 
     [Fact]
@@ -286,14 +286,14 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
 
         var problemDetails = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
         problemDetails.Should().NotBeNull();
-        problemDetails!.Detail.Should().Contain("Duplicate venue name");
+        problemDetails!.Detail.Should().Contain("already exists");
     }
 
     [Fact]
     public async Task UpdateVenue_AsAdmin_Succeeds()
     {
         // Arrange
-        var venueId = await CreateVenueAsync("Original Venue", "Original directions", "Original notes");
+        var venueId = await CreateVenueAsync("Original Venue", "Original directions", "Original info");
 
         var userId = await GetUserIdAsync("admin@witchcityrope.com");
         var token = GenerateJwtToken(userId, "admin@witchcityrope.com", "Administrator");
@@ -303,7 +303,7 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         {
             Name = "Updated Venue Name",
             Directions = "Updated directions",
-            Notes = "Updated notes",
+            VenueInformation = "Updated info",
             IsActive = false
         };
 
@@ -391,10 +391,10 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task GetAdminVenue_AsAdmin_IncludesNotes()
+    public async Task GetAdminVenue_AsAdmin_IncludesVenueInformation()
     {
         // Arrange
-        var venueId = await CreateVenueAsync("Test Venue", "Directions", "Admin-only notes");
+        var venueId = await CreateVenueAsync("Test Venue", "Directions", "Admin-only info");
 
         var userId = await GetUserIdAsync("admin@witchcityrope.com");
         var token = GenerateJwtToken(userId, "admin@witchcityrope.com", "Administrator");
@@ -408,7 +408,7 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
 
         var result = await response.Content.ReadFromJsonAsync<VenueDto>();
         result.Should().NotBeNull();
-        result!.Notes.Should().Be("Admin-only notes");
+        result!.VenueInformation.Should().Be("Admin-only info");
     }
 
     [Fact]
@@ -689,7 +689,7 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
     private async Task<int> CreateVenueAsync(
         string name = "Test Venue",
         string? directions = "Test directions to the venue",
-        string? notes = null,
+        string? venueInformation = null,
         bool isActive = true,
         string? location = null)
     {
@@ -700,7 +700,7 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
             Name = name,
             Location = location,
             Directions = directions,
-            Notes = notes,
+            VenueInformation = venueInformation,
             IsActive = isActive,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
