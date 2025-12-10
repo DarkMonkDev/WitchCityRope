@@ -707,11 +707,6 @@ export const EventPaymentPage: React.FC = () => {
                           );
                         })}
                       </Stack>
-                      {selectedTickets.length > 1 && (
-                        <Text size="sm" c="dimmed" mt="xs">
-                          {selectedTickets.length} tickets selected
-                        </Text>
-                      )}
                     </Stack>
                   </Paper>
                 )}
@@ -740,14 +735,6 @@ export const EventPaymentPage: React.FC = () => {
                   />
                 )}
 
-                {/* Multiple tickets notice */}
-                {selectedTickets.length > 1 && (
-                  <Alert color="blue" variant="light">
-                    <Text size="sm">
-                      You've selected {selectedTickets.length} tickets. {hasAnySlidingScaleTicket && 'The sliding scale amount will apply to all sliding scale tickets.'}
-                    </Text>
-                  </Alert>
-                )}
 
                 <Group justify="flex-end" mt={0}>
                   <Button

@@ -11974,7 +11974,7 @@
       "CreateTicketPurchaseRequest": {
         "required": [
           "eventId",
-          "ticketTypeId",
+          "ticketTypeIds",
           "eventWaiverAccepted"
         ],
         "type": "object",
@@ -11983,9 +11983,13 @@
             "type": "string",
             "format": "uuid"
           },
-          "ticketTypeId": {
-            "type": "string",
-            "format": "uuid"
+          "ticketTypeIds": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
           "notes": {
             "maxLength": 2000,

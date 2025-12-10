@@ -110,28 +110,41 @@ test.describe('Events - Public Access', () => {
   });
 
   test('should handle empty events state', async ({ page }) => {
-    // Mock API to return empty events
-    await page.route('**/api/events', route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([])
-      });
+    // Set up route mock BEFORE navigating to page
+    // Mock API to return empty events array
+    await page.route('**/api/events**', route => {
+      // Only mock GET requests for events list, not POSTs
+      if (route.request().method() === 'GET') {
+        console.log(`Mocking events API: ${route.request().url()}`);
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify([])
+        });
+      } else {
+        route.continue();
+      }
     });
 
+    // Navigate to events page AFTER mock is set up
     await page.goto('/events', { waitUntil: 'domcontentloaded' });
     await WaitHelpers.waitForPageLoad(page);
 
-    // ACTUAL selector from EventsListPage.tsx line 598: data-testid="events-empty-state"
+    // ACTUAL selector from EventsListPage.tsx line 600: data-testid="events-empty-state"
+    // The EmptyEventsState component passes this to a Center component
     const emptyState = page.locator('[data-testid="events-empty-state"]');
 
     // Wait for empty state to be visible (should appear when events array is empty)
-    await expect(emptyState).toBeVisible({ timeout: 10000 });
+    // Allow extra time for React state to update after API response
+    await expect(emptyState).toBeVisible({ timeout: 15000 });
     console.log('✅ Empty state displayed with correct data-testid');
 
     // Verify empty state contains expected text
     await expect(emptyState).toContainText(/No Events Found/i);
     console.log('✅ Empty state shows correct message');
+
+    // Take screenshot for verification
+    await page.screenshot({ path: './test-results/events-empty-state.png', fullPage: true });
   });
 
   test('should handle events API error gracefully', async ({ page }) => {

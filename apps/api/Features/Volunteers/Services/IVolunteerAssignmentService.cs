@@ -68,4 +68,22 @@ public interface IVolunteerAssignmentService
         Guid eventId,
         string cancellationReason,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cancel volunteer signups for a user for specific sessions only
+    /// Used when a ticket is cancelled to only cancel volunteer commitments for those sessions
+    /// Preserves volunteer signups for sessions the user still has tickets for
+    /// </summary>
+    /// <param name="userId">User ID whose volunteer signups should be cancelled</param>
+    /// <param name="eventId">Event ID to cancel volunteer signups for</param>
+    /// <param name="sessionIds">Session IDs to cancel volunteer signups for</param>
+    /// <param name="cancellationReason">Reason for cancellation</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success tuple with count of cancelled signups or error message</returns>
+    Task<(bool success, int cancelledCount, string? error)> CancelVolunteerSignupsForSessionsAsync(
+        Guid userId,
+        Guid eventId,
+        List<Guid> sessionIds,
+        string cancellationReason,
+        CancellationToken cancellationToken = default);
 }

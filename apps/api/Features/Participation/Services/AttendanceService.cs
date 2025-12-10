@@ -1519,27 +1519,46 @@ public class AttendanceService : IAttendanceService
                 attendancesToCancel.Count, ticketPurchaseIds.Count, userId, eventId);
 
             // ============================================================================
-            // AUTO-CANCEL VOLUNTEER SIGNUPS
+            // AUTO-CANCEL VOLUNTEER SIGNUPS FOR CANCELLED SESSIONS ONLY
             // ============================================================================
+            // Only cancel volunteer signups for sessions that were associated with the cancelled tickets
+            // This preserves volunteer signups for sessions the user still has tickets for
             try
             {
-                var cancellationResult = await _volunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
-                    userId,
-                    eventId,
-                    "Refunded Ticket, so automatically canceled volunteer spot",
-                    cancellationToken);
+                // Collect the session IDs from the cancelled attendances
+                var cancelledSessionIds = attendancesToCancel
+                    .Where(a => a.SessionId.HasValue)
+                    .Select(a => a.SessionId!.Value)
+                    .Distinct()
+                    .ToList();
 
-                if (cancellationResult.success && cancellationResult.cancelledCount > 0)
+                if (cancelledSessionIds.Count > 0)
+                {
+                    var cancellationResult = await _volunteerAssignmentService.CancelVolunteerSignupsForSessionsAsync(
+                        userId,
+                        eventId,
+                        cancelledSessionIds,
+                        "Ticket cancelled, so automatically canceled volunteer spot for affected sessions",
+                        cancellationToken);
+
+                    if (cancellationResult.success && cancellationResult.cancelledCount > 0)
+                    {
+                        _logger.LogInformation(
+                            "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} for {SessionCount} sessions",
+                            cancellationResult.cancelledCount, userId, eventId, cancelledSessionIds.Count);
+                    }
+                    else if (!cancellationResult.success)
+                    {
+                        _logger.LogWarning(
+                            "Failed to auto-cancel volunteer signups: {Error}",
+                            cancellationResult.error);
+                    }
+                }
+                else
                 {
                     _logger.LogInformation(
-                        "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId}",
-                        cancellationResult.cancelledCount, userId, eventId);
-                }
-                else if (!cancellationResult.success)
-                {
-                    _logger.LogWarning(
-                        "Failed to auto-cancel volunteer signups: {Error}",
-                        cancellationResult.error);
+                        "No session-specific attendances found in cancelled tickets for user {UserId} at event {EventId}",
+                        userId, eventId);
                 }
             }
             catch (Exception ex)

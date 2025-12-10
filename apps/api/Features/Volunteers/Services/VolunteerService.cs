@@ -68,14 +68,35 @@ public class VolunteerService : IVolunteerService
                 .Where(s => s.EventId == eventGuid)
                 .ToListAsync(cancellationToken);
 
-            // Get user's existing signups if authenticated
+            // Get user's existing signups and ticket attendances if authenticated
             List<VolunteerSignup>? userSignups = null;
+            HashSet<Guid>? userTicketSessionIds = null;
+            bool userHasAnyTicket = false;
+
             if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var userGuid))
             {
                 userSignups = await _context.VolunteerSignups
                     .AsNoTracking()
                     .Where(vs => vs.UserId == userGuid && vs.Status == VolunteerSignupStatus.Confirmed)
                     .ToListAsync(cancellationToken);
+
+                // For Class events (workshops), get the sessions the user has tickets for
+                if (eventEntity.EventType == Enums.EventType.Class)
+                {
+                    var userTicketAttendances = await _context.EventAttendances
+                        .AsNoTracking()
+                        .Where(ea =>
+                            ea.UserId == userGuid &&
+                            ea.EventId == eventGuid &&
+                            ea.AttendanceType == AttendanceType.Ticket &&
+                            ea.Status == AttendanceStatus.Active &&
+                            ea.SessionId.HasValue)
+                        .Select(ea => ea.SessionId!.Value)
+                        .ToListAsync(cancellationToken);
+
+                    userTicketSessionIds = new HashSet<Guid>(userTicketAttendances);
+                    userHasAnyTicket = userTicketSessionIds.Count > 0;
+                }
             }
 
             // Map to DTOs with session-based timing checks
@@ -119,6 +140,22 @@ public class VolunteerService : IVolunteerService
                 if (canSignUp)
                 {
                     canSignUp = vp.SlotsRemaining > 0 && userSignup == null;
+                }
+
+                // TICKET VALIDATION FOR CLASS/WORKSHOP EVENTS
+                // User must have a ticket for the specific session (or any ticket for event-wide positions)
+                if (canSignUp && userTicketSessionIds != null)
+                {
+                    if (vp.SessionId.HasValue)
+                    {
+                        // Session-specific position - user needs ticket for THIS session
+                        canSignUp = userTicketSessionIds.Contains(vp.SessionId.Value);
+                    }
+                    else
+                    {
+                        // Event-wide position - user needs at least one ticket
+                        canSignUp = userHasAnyTicket;
+                    }
                 }
 
                 // Check if can cancel (for existing signups) using session-based timing
@@ -266,6 +303,63 @@ public class VolunteerService : IVolunteerService
             if (existingSignup != null)
             {
                 return (false, null, "You have already signed up for this volunteer position");
+            }
+
+            // ============================================================================
+            // TICKET VALIDATION FOR CLASS/WORKSHOP EVENTS
+            // ============================================================================
+            // For Class events (workshops), users must have a ticket that covers the session
+            // the volunteer position is for. Social events only require RSVP (handled below).
+            if (position.Event?.EventType == Enums.EventType.Class)
+            {
+                if (position.SessionId.HasValue)
+                {
+                    // Session-specific volunteer position - user must have a ticket for THIS session
+                    var hasTicketForSession = await _context.EventAttendances
+                        .AnyAsync(ea =>
+                            ea.UserId == userGuid &&
+                            ea.EventId == position.EventId &&
+                            ea.SessionId == position.SessionId &&
+                            ea.AttendanceType == AttendanceType.Ticket &&
+                            ea.Status == AttendanceStatus.Active,
+                            cancellationToken);
+
+                    if (!hasTicketForSession)
+                    {
+                        var sessionName = position.Session?.Name ?? "this session";
+                        _logger.LogWarning(
+                            "Volunteer signup denied for user {UserId} - no ticket for session {SessionId} ({SessionName})",
+                            userId, position.SessionId, sessionName);
+                        return (false, null, $"You must have a ticket for {sessionName} to volunteer for this position");
+                    }
+
+                    _logger.LogInformation(
+                        "Validated ticket ownership for user {UserId} volunteering for session {SessionId}",
+                        userId, position.SessionId);
+                }
+                else
+                {
+                    // Event-wide volunteer position - user must have at least one active ticket for the event
+                    var hasAnyTicket = await _context.EventAttendances
+                        .AnyAsync(ea =>
+                            ea.UserId == userGuid &&
+                            ea.EventId == position.EventId &&
+                            ea.AttendanceType == AttendanceType.Ticket &&
+                            ea.Status == AttendanceStatus.Active,
+                            cancellationToken);
+
+                    if (!hasAnyTicket)
+                    {
+                        _logger.LogWarning(
+                            "Volunteer signup denied for user {UserId} - no ticket for event {EventId}",
+                            userId, position.EventId);
+                        return (false, null, "You must have a ticket for this event to volunteer");
+                    }
+
+                    _logger.LogInformation(
+                        "Validated ticket ownership for user {UserId} volunteering for event-wide position at {EventId}",
+                        userId, position.EventId);
+                }
             }
 
             // Create the signup
