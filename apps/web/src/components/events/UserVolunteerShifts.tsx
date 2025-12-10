@@ -47,7 +47,7 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
     onError: (error: any) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to cancel volunteer shift. Please try again.',
+        message: error instanceof Error ? error.message : 'Failed to cancel volunteer shift. Please try again.',
         color: 'red',
         icon: <IconX size={16} />,
       });

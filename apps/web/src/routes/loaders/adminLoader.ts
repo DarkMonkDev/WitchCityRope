@@ -1,11 +1,13 @@
 import { LoaderFunctionArgs, redirect } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { apiClient } from '../../lib/api/client';
 
 /**
  * Admin-specific loader for protected admin routes
  *
  * SECURITY: Validates both authentication AND admin role
  * Only users with role "Administrator" can access admin routes
+ * Uses apiClient with skipAutoRedirect to handle returnUrl properly
  *
  * Redirects:
  * - Not authenticated → /login with returnTo
@@ -52,47 +54,50 @@ export async function adminLoader({ request }: LoaderFunctionArgs) {
     console.log('Attempting server auth validation...');
 
     // Attempt to get current session from server using httpOnly cookies
-    const response = await fetch('/api/auth/user', {
-      credentials: 'include' // Use httpOnly cookies for auth
+    // skipAutoRedirect: true prevents apiClient from redirecting on 401
+    // so we can handle it here with the proper returnTo
+    const response = await apiClient.get('/api/auth/user', {
+      skipAutoRedirect: true
     });
 
     console.log('Auth validation response:', response.status, response.statusText);
 
-    if (response.ok) {
-      const apiResponse = await response.json();
-      const userData = apiResponse.data || apiResponse;
+    const apiResponse = response.data;
+    const userData = apiResponse.data || apiResponse;
 
-      console.log('Server auth validation successful, user:', userData?.email, 'role:', userData?.role);
+    console.log('Server auth validation successful, user:', userData?.email, 'role:', userData?.role);
 
-      // User is authenticated - check role before granting access
-      if (userData.role !== 'Administrator') {
-        console.warn('Access denied - authenticated user lacks Administrator role:', {
-          email: userData.email,
-          role: userData.role,
-          path: requestUrl.pathname
-        });
+    // User is authenticated - check role before granting access
+    if (userData.role !== 'Administrator') {
+      console.warn('Access denied - authenticated user lacks Administrator role:', {
+        email: userData.email,
+        role: userData.role,
+        path: requestUrl.pathname
+      });
 
-        // Update auth store with user data
-        actions.login(userData);
-
-        // Redirect to unauthorized page (403)
-        throw redirect('/unauthorized');
-      }
-
-      // User is authenticated AND has admin role - update store and allow access
+      // Update auth store with user data
       actions.login(userData);
-      console.log('Admin access granted for:', userData.email);
-      return { user: userData };
-    } else {
-      console.warn('Server auth validation failed:', response.status, response.statusText);
+
+      // Redirect to unauthorized page (403)
+      throw redirect('/unauthorized');
     }
-  } catch (error) {
+
+    // User is authenticated AND has admin role - update store and allow access
+    actions.login(userData);
+    console.log('Admin access granted for:', userData.email);
+    return { user: userData };
+  } catch (error: any) {
     // If it's a redirect, re-throw it
     if (error instanceof Response && error.status === 302) {
       throw error;
     }
 
-    console.error('Auth validation failed:', error);
+    // Check if this is a 401 (expected when not authenticated)
+    if (error.response?.status === 401) {
+      console.log('User not authenticated (401)');
+    } else {
+      console.error('Auth validation failed:', error.message);
+    }
   } finally {
     actions.setLoading(false);
   }

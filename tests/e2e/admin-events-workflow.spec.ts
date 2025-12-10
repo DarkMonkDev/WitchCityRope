@@ -1,5 +1,30 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
+
+// Helper to make authenticated API request using page.evaluate (works in browser context)
+async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
+  const response = await page.evaluate(async ({ method, url, data }) => {
+    const options: RequestInit = {
+      method,
+      credentials: 'include',
+      headers: data ? { 'Content-Type': 'application/json' } : {},
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+    }
+
+    const res = await fetch(url, options);
+    const text = await res.text();
+    try {
+      return { status: res.status, data: JSON.parse(text) };
+    } catch {
+      return { status: res.status, data: text };
+    }
+  }, { method, url, data });
+
+  return response;
+}
 
 /**
  * Admin Events Workflow Tests
@@ -27,6 +52,75 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  */
 
 test.describe('Admin Events - Complete Workflow Tests', () => {
+  let testEventId: string | null = null;
+
+  test.beforeAll(async ({ browser }) => {
+    // Create a test event for tests that need an existing event
+    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
+    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
+    const context = await browser.newContext({ baseURL });
+    const page = await context.newPage();
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Get first venue ID
+    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
+    const venues = venuesResponse.data as Array<{ id: string }>;
+    const venueId = venues[0]?.id;
+
+    if (!venueId) {
+      console.error('No venues found - cannot create test event');
+      await page.close();
+      return;
+    }
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+
+    const eventData = {
+      title: `Admin Workflow Test ${Date.now()}`,
+      shortDescription: 'Test event for admin workflow tests',
+      description: 'This event tests admin workflow functionality.',
+      eventType: 'Class',
+      startDate: sessionStart.toISOString(),
+      endDate: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      venueId: venueId,
+      capacity: 20,
+      isPublished: true,
+      registrationOpenHours: null,
+      registrationCloseHours: 0,
+    };
+
+    console.log('Creating test event for admin workflow tests...');
+    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
+
+    if (createResponse.status === 200 || createResponse.status === 201) {
+      const responseData = createResponse.data as { id: string };
+      testEventId = responseData.id;
+      console.log(`✅ Created test event: ${testEventId}`);
+    } else {
+      console.error('Failed to create test event:', createResponse);
+    }
+
+    await page.close();
+  });
+
+  test.afterAll(async ({ browser }) => {
+    if (!testEventId) return;
+
+    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
+    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
+    const context = await browser.newContext({ baseURL });
+    const page = await context.newPage();
+    await AuthHelpers.loginAs(page, 'admin');
+
+    console.log(`Cleaning up test event: ${testEventId}`);
+    await apiRequest(page, 'DELETE', `/api/admin/events/${testEventId}`);
+    console.log('✅ Test event deleted');
+
+    await page.close();
+  });
+
   test.beforeEach(async ({ page }) => {
     // Login as admin using AuthHelpers (MANDATORY pattern)
     await AuthHelpers.loginAs(page, 'admin');
@@ -196,31 +290,14 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
 
   test.describe('3. Edit Event Flow', () => {
     test('should navigate to event edit page via row click', async ({ page }) => {
-      await page.goto('/admin/events');
+      if (!testEventId) {
+        test.skip(true, 'Test event not created in beforeAll');
+        return;
+      }
+
+      // Navigate directly to the test event
+      await page.goto(`/admin/events/${testEventId}`);
       await page.waitForLoadState('domcontentloaded');
-
-      // Get first event row (skip if no events)
-      const tableRows = page.locator('[data-testid="events-table"] tbody tr');
-      const rowCount = await tableRows.count();
-
-      if (rowCount === 0) {
-        console.log('⚠️ No events found - skipping test');
-        test.skip();
-        return;
-      }
-
-      const firstRow = tableRows.first();
-      const rowText = await firstRow.textContent();
-
-      // Skip if it's the "No events found" message
-      if (rowText?.includes('No events found')) {
-        console.log('⚠️ No events found - skipping test');
-        test.skip();
-        return;
-      }
-
-      // Click row to navigate to edit page
-      await firstRow.click();
 
       // VERIFY: Navigation to /admin/events/:id (NOT a modal)
       await page.waitForURL('**/admin/events/**', { timeout: 5000 });
@@ -371,8 +448,8 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
       const addSessionButton = page.locator('[data-testid="button-add-session"]');
 
       if (await addSessionButton.count() === 0) {
-        console.log('⚠️ MODAL ISSUE: Add session button not found - skipping modal test');
-        test.skip();
+        console.log('⚠️ MODAL ISSUE: Add session button not found');
+        test.fail(true, 'Add session button not found - feature exists but button not visible');
         return;
       }
 

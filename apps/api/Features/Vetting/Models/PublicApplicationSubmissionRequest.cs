@@ -16,9 +16,13 @@ public class PublicApplicationSubmissionRequest
     [StringLength(50, MinimumLength = 3, ErrorMessage = "Scene name must be between 3 and 50 characters")]
     public string SceneName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Real name is required")]
-    [StringLength(100, MinimumLength = 2, ErrorMessage = "Real name must be between 2 and 100 characters")]
-    public string RealName { get; set; } = string.Empty;
+    [Required(ErrorMessage = "First name is required")]
+    [StringLength(50, MinimumLength = 1, ErrorMessage = "First name must be between 1 and 50 characters")]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Last name is required")]
+    [StringLength(50, MinimumLength = 1, ErrorMessage = "Last name must be between 1 and 50 characters")]
+    public string LastName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Phone number is required")]
     [Phone(ErrorMessage = "Valid phone number is required")]

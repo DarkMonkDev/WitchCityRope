@@ -203,7 +203,8 @@ public class MemberDetailsService : IMemberDetailsService
 
                 // Questionnaire responses
                 SceneName = application.SceneName,
-                RealName = application.RealName,
+                FirstName = application.FirstName,
+                LastName = application.LastName,
                 Email = application.Email,
                 Phone = null, // Field removed from entity
                 FetLifeHandle = application.FetLifeHandle,

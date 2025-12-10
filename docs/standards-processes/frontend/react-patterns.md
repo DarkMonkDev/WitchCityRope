@@ -5,7 +5,7 @@
 **Related**: [TypeScript Patterns](./typescript-patterns.md), [Mantine UI Standards](./mantine-ui-standards.md), [State Management](./state-management-patterns.md)
 
 *Created: 2025-09-20*
-*Last Updated: 2025-11-04*
+*Last Updated: 2025-12-10*
 *Maintained By: React Developer Agent*
 
 ## Overview
@@ -132,6 +132,47 @@ const options = sessions
     value: session.sessionIdentifier,
     label: `${session.sessionIdentifier} - ${session.name}`,
   }));
+```
+
+## 🚨 API Error Handling Pattern
+
+**📖 MANDATORY**: See `/docs/standards-processes/frontend/api-error-handling-standard.md` for complete guide.
+
+### Key Points
+- Use ONLY `apiClient` from `/apps/web/src/lib/api/client.ts`
+- The interceptor automatically extracts RFC 9457 error messages
+- `error.message` always contains the user-friendly API message
+
+### Bad Pattern
+```typescript
+// ❌ WRONG: Generic error message
+onError: (error) => {
+  notifications.show({ message: 'An error occurred' });
+}
+
+// ❌ WRONG: Manual extraction (duplicates interceptor)
+const message = error.response?.data?.detail || error.message;
+```
+
+### Good Pattern
+```typescript
+// ✅ CORRECT: Use error.message directly (interceptor extracted it)
+onError: (error) => {
+  notifications.show({
+    title: 'Error',
+    message: error.message,  // Already contains "Event cannot be changed..."
+    color: 'red',
+  });
+}
+
+// ✅ BEST: Use useApiMutation for automatic notifications
+import { useApiMutation } from '@/lib/api'
+import { apiClient } from '@/lib/api/client'
+
+const updateEvent = useApiMutation(
+  async (data) => (await apiClient.put(`/api/events/${data.id}`, data)).data,
+  { successMessage: 'Event updated' }  // Error notification automatic
+)
 ```
 
 ## Loading State Management

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Button, Card, Text, TextInput, Stack, Alert, Code } from '@mantine/core';
-import { api } from '../api/client';
+import { apiClient } from '../lib/api/client';
 
 /**
  * API Connection Test Page
@@ -27,7 +27,7 @@ export function ApiConnectionTest() {
     try {
       // Test 1: Health endpoint
       addResult('Testing API health endpoint...');
-      const healthResponse = await api.get('/api/Health');
+      const healthResponse = await apiClient.get('/api/Health');
       addResult(`✅ Health check: ${healthResponse.status} - ${healthResponse.data}`);
     } catch (error: any) {
       addResult(`❌ Health check failed: ${error.message}`);
@@ -36,7 +36,7 @@ export function ApiConnectionTest() {
     try {
       // Test 2: Protected endpoint (should return 401)
       addResult('Testing protected endpoint (should return 401)...');
-      await api.get('/api/Protected/profile');
+      await apiClient.get('/api/Protected/profile');
       addResult('❌ Protected endpoint should have returned 401');
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -49,7 +49,7 @@ export function ApiConnectionTest() {
     try {
       // Test 3: Login with test credentials (should fail with real API validation)
       addResult('Testing login with test credentials...');
-      await api.post('/api/Auth/login', { email, password });
+      await apiClient.post('/api/Auth/login', { email, password });
       addResult('❌ Login should have failed (test user not in real DB)');
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -73,7 +73,7 @@ export function ApiConnectionTest() {
       addResult('✅ Running on localhost - real API expected');
     }
     
-    addResult(`API Base URL: ${api.defaults.baseURL}`);
+    addResult(`API Base URL: ${apiClient.defaults.baseURL}`);
     addResult(`If MSW is disabled, all requests above should hit the real API at ${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'}`);
     addResult('If MSW is enabled, responses would be from the mock handlers');
   };

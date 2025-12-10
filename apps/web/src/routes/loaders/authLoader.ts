@@ -1,12 +1,13 @@
 import { LoaderFunctionArgs, redirect } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { apiClient } from '../../lib/api/client';
 
 /**
  * Authentication loader for protected routes
  * Validates user authentication and redirects if necessary
  *
  * Updated for httpOnly cookie-based authentication
- * Enhanced with better error handling and debugging
+ * Uses apiClient with skipAutoRedirect to handle returnUrl properly
  */
 export async function authLoader({ request }: LoaderFunctionArgs) {
   const requestUrl = new URL(request.url);
@@ -31,26 +32,29 @@ export async function authLoader({ request }: LoaderFunctionArgs) {
     console.log('Attempting server auth validation...');
 
     // Attempt to get current session from server using httpOnly cookies
-    const response = await fetch('/api/auth/user', {
-      credentials: 'include' // Use httpOnly cookies for auth
+    // skipAutoRedirect: true prevents apiClient from redirecting on 401
+    // so we can handle it here with the proper returnUrl
+    const response = await apiClient.get('/api/auth/user', {
+      skipAutoRedirect: true
     });
 
     console.log('Auth validation response:', response.status, response.statusText);
 
-    if (response.ok) {
-      const apiResponse = await response.json();
-      const userData = apiResponse.data || apiResponse;
+    const apiResponse = response.data;
+    const userData = apiResponse.data || apiResponse;
 
-      console.log('Server auth validation successful, user:', userData?.email);
+    console.log('Server auth validation successful, user:', userData?.email);
 
-      // User is authenticated via httpOnly cookie - update store with current user data
-      actions.login(userData);
-      return { user: userData };
+    // User is authenticated via httpOnly cookie - update store with current user data
+    actions.login(userData);
+    return { user: userData };
+  } catch (error: any) {
+    // Check if this is a 401 (expected when not authenticated)
+    if (error.response?.status === 401) {
+      console.log('User not authenticated (401)');
     } else {
-      console.warn('Server auth validation failed:', response.status, response.statusText);
+      console.error('Auth validation failed:', error.message);
     }
-  } catch (error) {
-    console.error('Auth validation failed:', error);
   } finally {
     actions.setLoading(false);
   }

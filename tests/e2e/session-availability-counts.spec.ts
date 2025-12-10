@@ -8,13 +8,133 @@
  * @see /docs/functional-areas/payments/new-work/2025-12-07-session-based-ticketing/README.md
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Test data - uses "Session Timing Test Event" which has 2 sessions and known ticket counts
-const TEST_EVENT_TITLE = 'Session Timing Test Event';
+// Helper to make authenticated API request using page.evaluate (works in browser context)
+async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
+  const response = await page.evaluate(async ({ method, url, data }) => {
+    const options: RequestInit = {
+      method,
+      credentials: 'include',
+      headers: data ? { 'Content-Type': 'application/json' } : {},
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+    }
+
+    const res = await fetch(url, options);
+    const text = await res.text();
+    try {
+      return { status: res.status, data: JSON.parse(text) };
+    } catch {
+      return { status: res.status, data: text };
+    }
+  }, { method, url, data });
+
+  return response;
+}
 
 test.describe('Session Availability Counts', () => {
+  let testEventId: string | null = null;
+
+  test.beforeAll(async ({ browser }) => {
+    // Create a multi-session event for testing
+    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
+    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
+    const context = await browser.newContext({ baseURL });
+    const page = await context.newPage();
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Get first venue ID
+    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
+    const venues = venuesResponse.data as Array<{ id: string }>;
+    const venueId = venues[0]?.id;
+
+    if (!venueId) {
+      console.error('No venues found - cannot create test event');
+      await page.close();
+      return;
+    }
+
+    // Create event with 2 sessions
+    const session1Start = new Date();
+    session1Start.setDate(session1Start.getDate() + 7);
+    session1Start.setHours(18, 0, 0, 0);
+
+    const session2Start = new Date();
+    session2Start.setDate(session2Start.getDate() + 8);
+    session2Start.setHours(18, 0, 0, 0);
+
+    const eventData = {
+      title: `Session Availability Test ${Date.now()}`,
+      shortDescription: 'Test event for session availability counts',
+      description: 'This event tests session availability calculations.',
+      eventType: 'Class',
+      startDate: session1Start.toISOString(),
+      endDate: session2Start.toISOString(),
+      venueId: venueId,
+      capacity: 20,
+      isPublished: true,
+      registrationOpenHours: null,
+      registrationCloseHours: 0,
+      cancellationCloseHours: 0,
+      sessions: [
+        {
+          sessionIdentifier: 'S1',
+          name: 'Session 1',
+          startTime: session1Start.toISOString(),
+          endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+          capacity: 20,
+        },
+        {
+          sessionIdentifier: 'S2',
+          name: 'Session 2',
+          startTime: session2Start.toISOString(),
+          endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+          capacity: 20,
+        },
+      ],
+      ticketTypes: [
+        {
+          name: 'Both Sessions Pass',
+          pricingType: 'Fixed',
+          price: 0,
+          sessionIdentifiers: ['S1', 'S2'],
+        },
+      ],
+    };
+
+    console.log('Creating multi-session test event...');
+    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
+
+    if (createResponse.status === 200 || createResponse.status === 201) {
+      const responseData = createResponse.data as { id: string };
+      testEventId = responseData.id;
+      console.log(`✅ Created test event: ${testEventId}`);
+    } else {
+      console.error('Failed to create test event:', createResponse);
+    }
+
+    await page.close();
+  });
+
+  test.afterAll(async ({ browser }) => {
+    if (!testEventId) return;
+
+    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
+    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
+    const context = await browser.newContext({ baseURL });
+    const page = await context.newPage();
+    await AuthHelpers.loginAs(page, 'admin');
+
+    console.log(`Cleaning up test event: ${testEventId}`);
+    await apiRequest(page, 'DELETE', `/api/admin/events/${testEventId}`);
+    console.log('✅ Test event deleted');
+
+    await page.close();
+  });
 
   test.describe('API Tests', () => {
 
@@ -91,24 +211,17 @@ test.describe('Session Availability Counts', () => {
     });
 
     test('should have consistent counts between events API and participation API', async ({ page }) => {
+      if (!testEventId) {
+        test.skip(true, 'Test event not created in beforeAll');
+        return;
+      }
+
       // Login using AuthHelpers (MANDATORY)
       await AuthHelpers.loginAs(page, 'vetted');
 
-      // Get events list
-      const eventsResponse = await page.request.get('/api/events');
-      const events = await eventsResponse.json();
-
-      // Find a multi-session event with tickets
-      const multiSessionEvent = events.find((e: any) =>
-        e.sessions &&
-        e.sessions.length > 1 &&
-        e.sessions.some((s: any) => s.registrationCount > 0)
-      );
-
-      if (!multiSessionEvent) {
-        test.skip();
-        return;
-      }
+      // Get the test event
+      const eventResponse = await page.request.get(`/api/events/${testEventId}`);
+      const multiSessionEvent = await eventResponse.json();
 
       // Get participation status
       const participationResponse = await page.request.get(
@@ -133,51 +246,16 @@ test.describe('Session Availability Counts', () => {
   test.describe('UI Tests', () => {
 
     test('should display session availability on event details page', async ({ page }) => {
-      // Login using AuthHelpers (MANDATORY)
-      await AuthHelpers.loginAs(page, 'vetted');
-
-      // Navigate to events page using relative URL (MANDATORY)
-      await page.goto('/events');
-      await page.waitForLoadState('domcontentloaded');
-
-      // Find and click on a multi-session event
-      // Look for events that have multiple session dates displayed
-      const eventCards = page.locator('[data-testid="event-card"], .event-card, [class*="EventCard"]');
-      const eventCount = await eventCards.count();
-
-      let multiSessionEventFound = false;
-
-      for (let i = 0; i < eventCount && !multiSessionEventFound; i++) {
-        const card = eventCards.nth(i);
-        const cardText = await card.textContent();
-
-        // Look for events with session indicators (multiple dates, "sessions", etc.)
-        if (cardText && (cardText.includes('Session') || cardText.includes('|') || cardText.includes('sessions'))) {
-          await card.click();
-          multiSessionEventFound = true;
-        }
-      }
-
-      if (!multiSessionEventFound) {
-        // If no multi-session event found via cards, try direct navigation to test event
-        await page.goto('/events');
-        await page.waitForLoadState('domcontentloaded');
-
-        // Look for "Session Timing Test Event" or similar
-        const testEventLink = page.getByText(TEST_EVENT_TITLE);
-        if (await testEventLink.isVisible()) {
-          await testEventLink.click();
-          multiSessionEventFound = true;
-        }
-      }
-
-      if (!multiSessionEventFound) {
-        console.log('⚠️ No multi-session event found - skipping test');
-        test.skip();
+      if (!testEventId) {
+        test.skip(true, 'Test event not created in beforeAll');
         return;
       }
 
-      // Wait for event details page to load
+      // Login using AuthHelpers (MANDATORY)
+      await AuthHelpers.loginAs(page, 'vetted');
+
+      // Navigate directly to the test event
+      await page.goto(`/events/${testEventId}`);
       await page.waitForLoadState('domcontentloaded');
 
       // Check for "Event Dates / Times" section (renamed from "Session Availability")
@@ -252,28 +330,24 @@ test.describe('Session Availability Counts', () => {
   test.describe('Data Integrity Tests', () => {
 
     test('should correctly count tickets via TicketPurchase -> TicketType -> TicketTypeSessions chain', async ({ page }) => {
+      if (!testEventId) {
+        test.skip(true, 'Test event not created in beforeAll');
+        return;
+      }
+
       // This test verifies the fix for legacy tickets without SessionId
       // which need to be counted via the TicketPurchase relationship
 
       // Login using AuthHelpers (MANDATORY)
       await AuthHelpers.loginAs(page, 'admin');
 
-      // Get events using page.request (uses baseURL automatically)
-      const eventsResponse = await page.request.get('/api/events');
-      const events = await eventsResponse.json();
-
-      // Find "Session Timing Test Event" specifically
-      const testEvent = events.find((e: any) => e.title === TEST_EVENT_TITLE);
-
-      if (!testEvent) {
-        console.log('⚠️ Session Timing Test Event not found - skipping test');
-        test.skip();
-        return;
-      }
+      // Get the test event details
+      const eventResponse = await page.request.get(`/api/events/${testEventId}`);
+      const testEvent = await eventResponse.json();
 
       // Get participation status
       const participationResponse = await page.request.get(
-        `/api/events/${testEvent.id}/participation`
+        `/api/events/${testEventId}/participation`
       );
       const participation = await participationResponse.json();
 

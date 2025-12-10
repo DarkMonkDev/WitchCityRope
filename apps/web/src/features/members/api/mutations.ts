@@ -1,6 +1,6 @@
 // features/members/api/mutations.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../../api/client'
+import { apiClient } from '../../../lib/api/client'
 import { queryKeys } from '../../../api/queryKeys'
 import type { UserDto } from '@witchcityrope/shared-types'
 
@@ -23,7 +23,7 @@ export function useUpdateProfile() {
   
   return useMutation({
     mutationFn: async (data: UpdateProfileData) => {
-      const response = await api.put('/api/members/profile', data)
+      const response = await apiClient.put('/api/members/profile', data)
       return response.data
     },
     onSettled: () => {
@@ -38,7 +38,7 @@ export function useUpdateMemberStatus() {
   
   return useMutation({
     mutationFn: async ({ id, status, reason }: UpdateMemberStatusData): Promise<UserDto> => {
-      const response = await api.put(`/api/members/${id}/status`, { status, reason })
+      const response = await apiClient.put(`/api/members/${id}/status`, { status, reason })
       return response.data
     },
     onMutate: async ({ id, status }) => {

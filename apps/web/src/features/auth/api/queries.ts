@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { api } from '../../../api/client'
+import { apiClient } from '../../../lib/api/client'
 import type { UserDto } from '@witchcityrope/shared-types'
 
 // Response interfaces - temporary until full API coverage
@@ -23,7 +23,7 @@ export function useCurrentUser() {
   return useQuery<UserDto>({
     queryKey: ['auth', 'user'],
     queryFn: async (): Promise<UserDto> => {
-      const response = await api.get<UserDto>('/api/auth/user')
+      const response = await apiClient.get<UserDto>('/api/auth/user')
       return response.data  // API returns UserDto directly, not wrapped in ApiResponse
     },
     staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
@@ -44,7 +44,7 @@ export function useProtectedWelcome() {
   return useQuery<ProtectedWelcomeData>({
     queryKey: ['protected', 'welcome'],
     queryFn: async (): Promise<ProtectedWelcomeData> => {
-      const response = await api.get<ProtectedWelcomeData>('/api/protected/welcome')
+      const response = await apiClient.get<ProtectedWelcomeData>('/api/protected/welcome')
       return response.data
     },
     staleTime: 30 * 1000, // Consider data stale after 30 seconds

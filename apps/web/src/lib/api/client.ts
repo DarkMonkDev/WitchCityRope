@@ -1,6 +1,16 @@
-import axios from 'axios'
+import axios, { InternalAxiosRequestConfig } from 'axios'
 import { queryClient } from './queryClient'
 import { getCSRFToken } from '../../hooks/useCSRFToken'
+
+// Extend axios config to support custom options
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    /** Skip auto-redirect to login on 401. Use in auth loaders to handle returnUrl. */
+    skipAutoRedirect?: boolean
+    /** Request timing metadata */
+    metadata?: { requestStartTime: number }
+  }
+}
 
 // Use environment variable for API base URL, fallback to development default
 // Note: Vite replaces import.meta.env.VITE_* with literal values at build time
@@ -117,14 +127,18 @@ apiClient.interceptors.response.use(
       const isOnLoginPage = currentPath.includes('/login')
       const isDemoPage = currentPath.includes('-demo') || currentPath.includes('/test')
 
+      // Check if request explicitly disabled auto-redirect (used by auth loaders)
+      // This allows loaders to handle 401 locally and redirect with proper returnUrl
+      const skipAutoRedirect = config?.skipAutoRedirect === true
+
       // Only log 401 errors for protected routes, not public routes
       // Public routes expect 401s when accessing protected data while unauthenticated
       if (!isPublicRoute) {
         console.warn(`🚫 401 Unauthorized: ${config?.method?.toUpperCase()} ${config?.url}`)
       }
 
-      // Only redirect if NOT on login, demo, test, or public pages
-      if (!isOnLoginPage && !isDemoPage && !isPublicRoute) {
+      // Only redirect if NOT on login, demo, test, or public pages, and not explicitly skipped
+      if (!isOnLoginPage && !isDemoPage && !isPublicRoute && !skipAutoRedirect) {
         // Clear auth store if available
         const authStore = (
           window as unknown as {
@@ -142,6 +156,17 @@ apiClient.interceptors.response.use(
         // Clear query cache and redirect to login
         queryClient.clear()
         window.location.href = '/login'
+      }
+    }
+
+    // Extract API error message from RFC 9457 Problem Details format
+    // This replaces generic "Request failed with status code 400" with actual API message
+    // See: /docs/standards-processes/frontend/api-error-handling-standard.md
+    const apiData = response?.data
+    if (apiData) {
+      const apiMessage = apiData.detail || apiData.title || apiData.message
+      if (apiMessage && typeof apiMessage === 'string') {
+        error.message = apiMessage
       }
     }
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Select, Button, Group, Text, Stack } from '@mantine/core';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
+import { apiClient } from '../../../lib/api/client';
 
 interface CoordinatorAssignmentModalProps {
   opened: boolean;
@@ -23,11 +24,8 @@ export const CoordinatorAssignmentModal: React.FC<CoordinatorAssignmentModalProp
   const { data: users } = useQuery<Array<{ id: string; sceneName: string; realName: string; role: string; activeIncidentCount: number }>>({
     queryKey: ['safety', 'coordinators'],
     queryFn: async () => {
-      const response = await fetch('/api/safety/admin/users/coordinators', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch coordinators');
-      return response.json();
+      const response = await apiClient.get('/api/safety/admin/users/coordinators');
+      return response.data;
     },
     enabled: opened,
   });
@@ -35,14 +33,8 @@ export const CoordinatorAssignmentModal: React.FC<CoordinatorAssignmentModalProp
   // Assign coordinator mutation: POST /api/safety/admin/incidents/{id}/assign
   const assignMutation = useMutation({
     mutationFn: async (coordinatorId: string) => {
-      const response = await fetch(`/api/safety/admin/incidents/${incidentId}/assign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ coordinatorId }),
-      });
-      if (!response.ok) throw new Error('Failed to assign coordinator');
-      return response.json();
+      const response = await apiClient.post(`/api/safety/admin/incidents/${incidentId}/assign`, { coordinatorId });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'incident', incidentId] });

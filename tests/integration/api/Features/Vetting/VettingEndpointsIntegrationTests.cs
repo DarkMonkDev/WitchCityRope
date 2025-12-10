@@ -499,7 +499,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             UserId = userId,
             Email = email,
             SceneName = "Test",
-            RealName = "User",
+            FirstName = "Test",
+            LastName = "User",
             WorkflowStatus = initialStatus,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -544,7 +545,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             UserId = userId,
             Email = email,
             SceneName = "Test",
-            RealName = "User",
+            FirstName = "Test",
+            LastName = "User",
             WorkflowStatus = initialStatus,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

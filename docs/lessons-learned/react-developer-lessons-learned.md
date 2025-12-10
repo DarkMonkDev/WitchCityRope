@@ -11,13 +11,16 @@
 2. **React Architecture Guide** - **CORE ARCHITECTURE DECISIONS**
 `/home/chad/repos/witchcityrope/docs/architecture/react-migration/react-architecture.md`
 
-3. **API Changes Guide**
+3. **API Error Handling Standard** - **REQUIRED FOR ALL API CALLS**
+`/home/chad/repos/witchcityrope/docs/standards-processes/frontend/api-error-handling-standard.md`
+
+4. **API Changes Guide**
 `/home/chad/repos/witchcityrope/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
 
-4. **Project Architecture** - **TECH STACK AND STANDARDS**
+5. **Project Architecture** - **TECH STACK AND STANDARDS**
 `/ARCHITECTURE.md`
 
-5. **Design System**
+6. **Design System**
 `/home/chad/repos/witchcityrope/docs/design/current/design-system-v7.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
@@ -35,6 +38,7 @@
 
 ### Validation Gates (MUST COMPLETE WHEN STARTING A NEW SESSION):
 - [ ] **Read React Architecture Guide FIRST** - Core React architecture decisions and patterns
+- [ ] **Read API Error Handling Standard** - Use `apiClient` for all API calls, RFC 9457 error extraction
 - [ ] Read API changes guide for backend integration awareness
 - [ ] Review DTO Alignment Strategy to prevent TypeScript errors
 - [ ] Check Project Architecture for current tech stack
@@ -46,7 +50,8 @@
 - **DTO Alignment Strategy PREVENTS 393 TypeScript errors** - read before ANY API work
 - **Project Architecture defines tech stack** - Mantine v7, TypeScript, Vite, etc.
 - **Backend migration is transparent to frontend** (API contracts maintained)
-- **Use improved response formats and error handling**
+- **Use `apiClient` from `/lib/api/client.ts` for ALL API calls** - SINGLE canonical client
+- **Error messages extracted automatically** - `error.message` contains RFC 9457 detail from interceptor
 - **Always check for existing components before creating new ones**
 - **Use standardized CSS classes, NOT inline styles**
 - **Follow Design System v7 for all styling decisions**

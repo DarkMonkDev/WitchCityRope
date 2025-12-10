@@ -35,5 +35,5 @@ public class UserSearchResultDto
     public string SceneName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? DiscordName { get; set; }
-    public string? RealName { get; set; }
+    public string? FullName { get; set; }
 }

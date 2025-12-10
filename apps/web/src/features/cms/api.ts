@@ -2,7 +2,7 @@
 // Handles all CMS-related API calls
 
 import type { ContentPageDto, UpdateContentPageRequest, ContentRevisionDto, CmsPageSummaryDto } from './types'
-import { getCSRFToken } from '../../hooks/useCSRFToken'
+import { apiClient } from '../../lib/api/client'
 
 const API_BASE_URL = '/api/cms'
 
@@ -11,61 +11,21 @@ const API_BASE_URL = '/api/cms'
  * Public endpoint - no authentication required
  */
 export const getCmsPageBySlug = async (slug: string): Promise<ContentPageDto> => {
-  const response = await fetch(`${API_BASE_URL}/pages/${slug}`, {
-    credentials: 'include', // Include httpOnly cookies
-  })
-
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error(`Page with slug "${slug}" not found`)
-    }
-    throw new Error(`Failed to fetch page: ${response.statusText}`)
-  }
-
-  return response.json()
+  const response = await apiClient.get(`${API_BASE_URL}/pages/${slug}`)
+  return response.data
 }
 
 /**
  * Update a CMS page
  * Requires Administrator role
+ * Note: apiClient automatically includes CSRF token
  */
 export const updateCmsPage = async (
   id: number,
   data: UpdateContentPageRequest
 ): Promise<ContentPageDto> => {
-  const csrfToken = getCSRFToken()
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  }
-
-  if (csrfToken) {
-    headers['X-CSRF-TOKEN'] = csrfToken
-  }
-
-  const response = await fetch(`${API_BASE_URL}/pages/${id}`, {
-    method: 'PUT',
-    credentials: 'include', // Include httpOnly cookies for authentication
-    headers,
-    body: JSON.stringify(data),
-  })
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Authentication required. Please log in.')
-    }
-    if (response.status === 403) {
-      throw new Error('Administrator role required to edit content.')
-    }
-    if (response.status === 400) {
-      const errorData = await response.json()
-      // Handle both { error: "..." } and { title: "...", detail: "..." } formats
-      throw new Error(errorData.error || errorData.detail || errorData.message || 'Validation failed')
-    }
-    throw new Error(`Failed to update page: ${response.statusText}`)
-  }
-
-  return response.json()
+  const response = await apiClient.put(`${API_BASE_URL}/pages/${id}`, data)
+  return response.data
 }
 
 /**
@@ -73,21 +33,8 @@ export const updateCmsPage = async (
  * Requires Administrator role
  */
 export const getCmsRevisions = async (pageId: number): Promise<ContentRevisionDto[]> => {
-  const response = await fetch(`${API_BASE_URL}/pages/${pageId}/revisions`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Authentication required')
-    }
-    if (response.status === 403) {
-      throw new Error('Administrator role required')
-    }
-    throw new Error(`Failed to fetch revisions: ${response.statusText}`)
-  }
-
-  return response.json()
+  const response = await apiClient.get(`${API_BASE_URL}/pages/${pageId}/revisions`)
+  return response.data
 }
 
 /**
@@ -95,19 +42,6 @@ export const getCmsRevisions = async (pageId: number): Promise<ContentRevisionDt
  * Requires Administrator role
  */
 export const getAllCmsPages = async (): Promise<CmsPageSummaryDto[]> => {
-  const response = await fetch(`${API_BASE_URL}/pages`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Authentication required')
-    }
-    if (response.status === 403) {
-      throw new Error('Administrator role required')
-    }
-    throw new Error(`Failed to fetch pages: ${response.statusText}`)
-  }
-
-  return response.json()
+  const response = await apiClient.get(`${API_BASE_URL}/pages`)
+  return response.data
 }

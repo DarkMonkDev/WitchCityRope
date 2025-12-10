@@ -1019,7 +1019,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // IncidentNote entity configuration
         modelBuilder.Entity<IncidentNote>(entity =>
         {
-            entity.ToTable("IncidentNotes", "public");
+            entity.ToTable("IncidentNotes", "public", t =>
+            {
+                t.HasCheckConstraint("CHK_IncidentNotes_Type", "\"Type\" IN (1, 2)");
+                t.HasCheckConstraint("CHK_IncidentNotes_Content_NotEmpty", "LENGTH(TRIM(\"Content\")) > 0");
+            });
+
             entity.HasKey(e => e.Id);
 
             // Required fields
@@ -1070,17 +1075,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
             entity.HasIndex(e => e.Type)
                   .HasDatabaseName("IX_IncidentNotes_Type");
-
-            // Check constraints
-            entity.HasCheckConstraint(
-                "CHK_IncidentNotes_Type",
-                "\"Type\" IN (1, 2)"
-            );
-
-            entity.HasCheckConstraint(
-                "CHK_IncidentNotes_Content_NotEmpty",
-                "LENGTH(TRIM(\"Content\")) > 0"
-            );
         });
 
         // Apply CheckIn System configurations

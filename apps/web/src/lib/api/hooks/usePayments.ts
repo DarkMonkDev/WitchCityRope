@@ -49,7 +49,8 @@ export function usePurchaseTicket() {
     },
 
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to purchase ticket';
+      // apiClient interceptor extracts RFC 9457 message to error.message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to purchase ticket';
 
       notifications.show({
         title: 'Purchase Failed',
@@ -71,7 +72,8 @@ export function useCreatePayPalOrder() {
     mutationFn: paymentsService.createPayPalOrder,
 
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create PayPal order';
+      // apiClient interceptor extracts RFC 9457 message to error.message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create PayPal order';
 
       notifications.show({
         title: 'PayPal Order Failed',
@@ -136,7 +138,8 @@ export function useConfirmPayPalPayment() {
     },
 
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to confirm PayPal payment';
+      // apiClient interceptor extracts RFC 9457 message to error.message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to confirm PayPal payment';
 
       notifications.show({
         title: 'Payment Confirmation Failed',

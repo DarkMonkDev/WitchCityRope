@@ -195,7 +195,7 @@ public static class EventEndpoints
                 {
                     string msg when msg.Contains("not found") => 404,
                     string msg when msg.Contains("Invalid event ID") => 400,
-                    string msg when msg.Contains("past events") => 400,
+                    string msg when msg.Contains("started more than") => 400, // Grace period exceeded
                     string msg when msg.Contains("capacity") => 400,
                     string msg when msg.Contains("date") => 400,
                     string msg when msg.Contains("null") => 400,

@@ -65,16 +65,10 @@ export const simplifiedVettingApi = {
 
       return data;
     } catch (error: any) {
-      console.error('simplifiedVettingApi.submitApplication: FULL ERROR DETAILS:', {
+      // apiClient interceptor already extracts RFC 9457 message to error.message
+      console.error('simplifiedVettingApi.submitApplication: Error:', {
         status: error.response?.status,
-        message: error.message,
-        responseData: error.response?.data,
-        fullError: error.response?.data?.error || error.response?.data?.Error,
-        details: error.response?.data?.details || error.response?.data?.Details,
-        validationErrors: error.response?.data?.errors || error.response?.data?.Errors,
-        title: error.response?.data?.title,
-        type: error.response?.data?.type,
-        allResponseData: JSON.stringify(error.response?.data, null, 2)
+        message: error.message
       });
 
       // Add context to authentication errors
@@ -104,11 +98,13 @@ export const simplifiedVettingApi = {
 
 /**
  * Transform API errors to user-friendly messages
+ * Note: apiClient interceptor already extracts RFC 9457 message to error.message
  */
 export const getSimplifiedVettingErrorMessage = (error: any): string => {
   // Handle different types of error objects
   const status = error.response?.status || error.status;
-  const message = error.message || error.response?.data?.message || error.response?.data?.error;
+  // apiClient interceptor extracts RFC 9457 message to error.message
+  const message = error instanceof Error ? error.message : undefined;
 
   if (status === 401) {
     return 'You must be logged in to submit an application. Please login or create an account first.';

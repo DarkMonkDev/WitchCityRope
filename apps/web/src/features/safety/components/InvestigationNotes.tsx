@@ -7,6 +7,7 @@ import { modals } from '@mantine/modals';
 import type { components } from '@witchcityrope/shared-types';
 import { IncidentStatusBadge } from './IncidentStatusBadge';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
+import { apiClient } from '../../../lib/api/client';
 
 // Use auto-generated types from API
 type IncidentNoteDto = components['schemas']['IncidentNoteDto'];
@@ -57,11 +58,8 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
   const { data: notesResponse, refetch } = useQuery<{ notes: IncidentNoteDto[] }>({
     queryKey: ['safety', 'notes', incidentId],
     queryFn: async () => {
-      const response = await fetch(`/api/safety/admin/incidents/${incidentId}/notes`, {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch notes');
-      return response.json();
+      const response = await apiClient.get(`/api/safety/admin/incidents/${incidentId}/notes`);
+      return response.data;
     },
   });
 
@@ -80,14 +78,10 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
   // Add note mutation: POST /api/safety/admin/incidents/{id}/notes
   const addNoteMutation = useMutation<unknown, Error, void>({
     mutationFn: async () => {
-      const response = await fetch(`/api/safety/admin/incidents/${incidentId}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ content: noteContent }),
+      const response = await apiClient.post(`/api/safety/admin/incidents/${incidentId}/notes`, {
+        content: noteContent
       });
-      if (!response.ok) throw new Error('Failed to add note');
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'notes', incidentId] });
@@ -110,14 +104,8 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
   // Update note mutation: PUT /api/safety/admin/notes/{noteId}
   const updateNoteMutation = useMutation({
     mutationFn: async ({ noteId, content }: { noteId: string; content: string }) => {
-      const response = await fetch(`/api/safety/admin/notes/${noteId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ content }),
-      });
-      if (!response.ok) throw new Error('Failed to update note');
-      return response.json();
+      const response = await apiClient.put(`/api/safety/admin/notes/${noteId}`, { content });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'notes', incidentId] });
@@ -141,11 +129,7 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
   // Delete note mutation: DELETE /api/safety/admin/notes/{noteId}
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
-      const response = await fetch(`/api/safety/admin/notes/${noteId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to delete note');
+      await apiClient.delete(`/api/safety/admin/notes/${noteId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'notes', incidentId] });

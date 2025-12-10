@@ -14002,7 +14002,8 @@
         "required": [
           "email",
           "sceneName",
-          "realName",
+          "firstName",
+          "lastName",
           "phoneNumber",
           "experience",
           "interests",
@@ -14020,9 +14021,14 @@
             "minLength": 3,
             "type": "string"
           },
-          "realName": {
-            "maxLength": 100,
-            "minLength": 2,
+          "firstName": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "lastName": {
+            "maxLength": 50,
+            "minLength": 1,
             "type": "string"
           },
           "phoneNumber": {
@@ -16436,7 +16442,11 @@
             "type": "string",
             "nullable": true
           },
-          "realName": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
             "type": "string",
             "nullable": true
           },

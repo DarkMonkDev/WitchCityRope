@@ -71,9 +71,10 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
       setVolunteerTermsAccepted(false); // Reset ToS checkbox
     },
     onError: (error: any) => {
+      // apiClient interceptor extracts RFC 9457 message to error.message
       notifications.show({
         title: 'Signup Failed',
-        message: error.response?.data?.error || error.message || 'Failed to sign up for volunteer position',
+        message: error instanceof Error ? error.message : 'Failed to sign up for volunteer position',
         color: 'red',
         icon: <IconAlertCircle size={16} />
       });
@@ -108,9 +109,10 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
       queryClient.invalidateQueries({ queryKey: ['participation', 'event', position.eventId] });
     },
     onError: (error: any) => {
+      // apiClient interceptor extracts RFC 9457 message to error.message
       notifications.show({
         title: 'Cancel Failed',
-        message: error.response?.data?.error || error.message || 'Failed to cancel volunteer signup',
+        message: error instanceof Error ? error.message : 'Failed to cancel volunteer signup',
         color: 'red',
         icon: <IconAlertCircle size={16} />
       });

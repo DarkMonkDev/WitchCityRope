@@ -83,33 +83,7 @@ test.describe('Event Copy - Admin Workflow', () => {
   });
 
   /**
-   * Test 2: Copy modal validates past dates
-   * SKIP: Past dates cannot be selected through the UI due to minDate={new Date()}
-   * The Mantine DatePickerInput component disables past dates at the UI level.
-   * Form validation exists as a fallback but can't be tested via E2E.
-   * Consider unit testing the form validation logic instead.
-   */
-  test.skip('Copy modal validates past dates', async ({ page }) => {
-    // This test cannot be implemented via E2E because:
-    // 1. Mantine DatePickerInput with minDate disables past dates in the calendar
-    // 2. Users cannot select past dates through the UI
-    // 3. The form validation is a server-side fallback that can't be triggered via UI
-
-    // Click Copy on first event using data-testid
-    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
-    await copyButton.waitFor({ state: 'visible' });
-    await copyButton.click();
-
-    // Wait for modal
-    const modal = page.locator('[role="dialog"]').last();
-    await expect(modal).toBeVisible();
-
-    // Past dates are disabled in calendar - can't test via UI
-    // Validation logic tested in unit tests
-  });
-
-  /**
-   * Test 3: Copy modal validates required title
+   * Test 2: Copy modal validates required title
    */
   test('Copy modal validates required title', async ({ page }) => {
     // Click Copy on first event using data-testid

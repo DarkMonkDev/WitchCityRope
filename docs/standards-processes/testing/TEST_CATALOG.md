@@ -5,6 +5,151 @@
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
 
+## ✅ NEW TESTS: MULTI-TICKET AND VOLUNTEER SESSION VALIDATION - December 9, 2025
+
+**CREATION DATE**: 2025-12-09
+**STATUS**: ✅ **4 NEW E2E TEST FILES CREATED**
+**IMPACT**: Comprehensive coverage for multi-ticket purchases and volunteer session validation
+
+### New E2E Test Files Created
+
+#### 1. Multi-Ticket Purchase Flow ✅
+- **File**: `tests/e2e/multi-ticket-purchase.spec.ts`
+- **Tests**: 4 comprehensive tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Purchasing multiple separate tickets in one transaction
+- **Focus**: Day 1 Only + Day 2 Only (not Both Days combo ticket)
+
+**Test Coverage**:
+1. **Purchase multiple tickets** - User selects Day 1 Only AND Day 2 Only tickets together
+2. **Order confirmation** - Both tickets appear in confirmation
+3. **Dashboard display** - Both tickets visible in user registrations
+4. **Event details** - Event page reflects both ticket purchases
+
+**Key Features**:
+- Creates test event with 2 sessions (Session 1, Session 2)
+- Creates 3 ticket types: Day 1 Only, Day 2 Only, Both Days
+- Tests purchasing separate session tickets (not combo)
+- Verifies multi-ticket checkout flow works end-to-end
+- Uses CRITICAL timing configuration to avoid business logic failures
+
+#### 2. Ticket Cancellation - Selective Checkbox ✅
+- **File**: `tests/e2e/ticket-cancellation-selective.spec.ts`
+- **Tests**: 3 comprehensive tests (Test A, B, C)
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Selective ticket cancellation with checkbox behavior
+- **Focus**: Single vs multiple ticket cancellation pre-selection
+
+**Test Coverage**:
+1. **Test A: Single ticket pre-selection** - Checkbox auto-selected for single ticket
+2. **Test B: Multiple tickets no pre-selection** - No checkboxes pre-selected for multiple tickets
+3. **Test C: Selective cancellation** - Cancel Session 1 only, Session 2 preserved
+
+**Key Features**:
+- Creates unique test user per test run
+- Tests UI behavior for cancel ticket modal
+- Verifies selective cancellation preserves other tickets
+- Confirms event details page reflects changes after cancellation
+- Uses test-helpers API for user creation and cleanup
+
+#### 3. Volunteer Session Validation ✅
+- **File**: `tests/e2e/volunteer-session-validation.spec.ts`
+- **Tests**: 3 comprehensive tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Volunteer signup restricted to sessions with tickets
+- **Focus**: Users can only volunteer for sessions they have tickets for
+
+**Test Coverage**:
+1. **Purchase Session 1 ticket** - User buys ticket for Session 1 only
+2. **Can sign up for Session 1 volunteer** - Signup allowed (has ticket)
+3. **Cannot sign up for Session 2 volunteer** - Signup blocked (no ticket), error shown
+
+**Key Features**:
+- Creates test event with 2 sessions and separate tickets
+- Creates volunteer positions for each session
+- Tests vetted member volunteer signup (vettingStatus: 3)
+- Verifies error messages indicate ticket requirement
+- Uses API endpoints for event/ticket/volunteer creation
+
+#### 4. Volunteer Auto-Cancel on Ticket Cancellation ✅
+- **File**: `tests/e2e/volunteer-auto-cancel.spec.ts`
+- **Tests**: 5 comprehensive tests
+- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Coverage**: Automatic volunteer cancellation when ticket cancelled
+- **Focus**: Cancelling Session 1 ticket auto-cancels Session 1 volunteer, preserves Session 2
+
+**Test Coverage**:
+1. **Setup: Purchase both tickets** - User buys Session 1 and Session 2 tickets
+2. **Setup: Sign up for both volunteers** - User volunteers for both sessions
+3. **Cancel Session 1 ticket** - User cancels only Session 1 ticket
+4. **Verify Session 1 volunteer cancelled** - Volunteer signup auto-cancelled
+5. **Verify Session 2 volunteer preserved** - Session 2 volunteer still active
+
+**Key Features**:
+- Full workflow test (purchase → volunteer → cancel → verify)
+- Tests cascade deletion of volunteer signups
+- Verifies selective cancellation doesn't affect other sessions
+- Uses vetted member (required for volunteer features)
+- API verification of volunteer signup status
+
+### Common Patterns Across All New Tests
+
+**CRITICAL Timing Configuration** (prevents business logic failures):
+```typescript
+registrationOpenHours: null,      // No open restriction
+registrationCloseHours: 0,        // Doesn't close before session
+cancellationCloseHours: 0,        // Cancellation always allowed
+volunteerRegistrationCloseHours: 0,
+volunteerCancellationCloseHours: 0,
+```
+
+**Test Data Management**:
+- All tests create their own events/sessions/tickets
+- Uses unique timestamps to avoid conflicts
+- Proper cleanup in `afterAll` hooks
+- Uses test-helpers API for user creation
+
+**Container Compatibility**:
+- Uses relative URLs (`/checkout/${eventId}`)
+- Uses `page.evaluate()` for API calls from browser context
+- No hardcoded `localhost` URLs
+- Works in both local and test container environments
+
+**Playwright Best Practices**:
+- Uses AuthHelpers for authentication
+- Uses `.last()` for React strict mode duplicates
+- Defensive selectors with fallbacks
+- Screenshots for debugging
+- Clear console logging
+
+### Architecture Alignment
+
+**Complements Existing Tests**:
+- `session-based-ticket-timing.spec.ts` - Basic session timing (this adds multi-ticket)
+- `session-based-volunteer-timing.spec.ts` - Basic volunteer timing (this adds validation + auto-cancel)
+- `ticket-purchase-e2e.spec.ts` - Single ticket purchase (this adds multiple tickets)
+
+**Business Logic Tested**:
+- Multi-ticket purchase in single transaction
+- Selective ticket cancellation
+- Session-based volunteer signup validation
+- Cascade deletion of volunteer signups on ticket cancellation
+
+**User Flows Covered**:
+- End-to-end multi-ticket checkout
+- Partial ticket cancellation workflow
+- Volunteer signup with session validation
+- Ticket cancellation triggering volunteer cancellation
+
+### Related Documentation
+
+- **Specification**: `/docs/functional-areas/events/session-timing-refactor/SPECIFICATION.md`
+- **Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+- **Test Creation Guide**: `/docs/standards-processes/testing/TEST-CREATION-GUIDE.md`
+- **Test Helpers API**: `/apps/api/Features/TestHelpers/`
+
+---
+
 ## ✅ TEST EXECUTION: SESSION-BASED TICKET VALIDATION - December 8, 2025
 
 **EXECUTION DATE**: 2025-12-08T06:45:00Z

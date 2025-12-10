@@ -1,6 +1,6 @@
 // features/events/api/queries.ts
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
-import { api } from '../../../api/client'
+import { apiClient } from '../../../lib/api/client'
 import { queryKeys } from '../../../api/queryKeys'
 import type { EventDto } from '@witchcityrope/shared-types'
 import type { PaginatedResponse, EventFilters } from '../../../types/api.types'
@@ -9,7 +9,7 @@ export function useEvent(eventId: string) {
   return useQuery<EventDto>({
     queryKey: queryKeys.event(eventId),
     queryFn: async (): Promise<EventDto> => {
-      const response = await api.get(`/api/events/${eventId}`)
+      const response = await apiClient.get(`/api/events/${eventId}`)
       // Pattern B: Direct DTO response
       return response.data
     },
@@ -27,7 +27,7 @@ export function useEvents(options: { includeUnpublished?: boolean } = {}) {
         params.includeUnpublished = true
       }
 
-      const response = await api.get('/api/events', { params })
+      const response = await apiClient.get('/api/events', { params })
       // Pattern B: Direct DTO response
       return response.data || []
     },
@@ -39,7 +39,7 @@ export function useInfiniteEvents(filters: EventFilters = {}) {
   return useInfiniteQuery<{ events: EventDto[], page: number, totalPages: number }>({
     queryKey: queryKeys.infiniteEvents(filters),
     queryFn: async ({ pageParam = 1 }): Promise<{ events: EventDto[], page: number, totalPages: number }> => {
-      const response = await api.get('/api/events', {
+      const response = await apiClient.get('/api/events', {
         params: { page: pageParam, pageSize: 20, ...filters }
       })
       // Pattern B: Direct DTO response
@@ -62,7 +62,7 @@ export function useEventAttendanceStatus(eventId: string) {
   return useQuery({
     queryKey: ['event-attendance', eventId],
     queryFn: async () => {
-      const response = await api.get(`/api/events-management/${eventId}/attendance`)
+      const response = await apiClient.get(`/api/events-management/${eventId}/attendance`)
       return response.data as {
         hasRSVP: boolean
         hasTicket: boolean

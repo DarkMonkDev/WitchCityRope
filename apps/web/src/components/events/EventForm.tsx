@@ -24,7 +24,7 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../api/client'
+import { apiClient } from '../../lib/api/client'
 import { notifications } from '@mantine/notifications'
 import {
   IconCheck,
@@ -477,7 +477,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   const { data: venuesData } = useQuery<VenueDto[]>({
     queryKey: ['admin', 'venues', 'active'],
     queryFn: async () => {
-      const response = await api.get<VenueDto[]>('/api/admin/venues/active')
+      const response = await apiClient.get<VenueDto[]>('/api/admin/venues/active')
       return response.data || []
     },
   })
@@ -817,7 +817,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
     try {
       // Call API to check if session can be deleted
-      const response = await api.get(
+      const response = await apiClient.get(
         `/api/events/${eventId}/sessions/${sessionId}/can-delete`
       )
       setDeletionCheckResponse(response.data)
@@ -911,7 +911,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
     try {
       // Call API to check if ticket type can be deleted
-      const response = await api.get(
+      const response = await apiClient.get(
         `/api/events/${eventId}/ticket-types/${ticketTypeId}/can-delete`
       )
       setDeletionCheckResponse(response.data)
@@ -942,7 +942,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
     try {
       if (deleteItemType === 'session') {
-        await api.delete(`/api/events/${eventId}/sessions/${deleteItemId}`)
+        await apiClient.delete(`/api/events/${eventId}/sessions/${deleteItemId}`)
 
         notifications.show({
           title: 'Session Deleted',
@@ -951,7 +951,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           icon: <IconCheck size={16} />,
         })
       } else {
-        await api.delete(`/api/events/${eventId}/ticket-types/${deleteItemId}`)
+        await apiClient.delete(`/api/events/${eventId}/ticket-types/${deleteItemId}`)
 
         notifications.show({
           title: 'Ticket Type Deleted',
@@ -972,9 +972,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       notifications.show({
         title: 'Delete Failed',
         message:
-          error.response?.data?.detail ||
-          error.message ||
-          `Failed to delete ${deleteItemType}. Please try again.`,
+          error instanceof Error ? error.message : `Failed to delete ${deleteItemType}. Please try again.`,
         color: 'red',
         icon: <IconAlertCircle size={16} />,
       })
@@ -1164,7 +1162,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     if (!selectedParticipant || !eventId) return
 
     try {
-      const response = await api.delete(
+      const response = await apiClient.delete(
         `/api/admin/events/${eventId}/participations/${selectedParticipant.userId}`
       )
 
@@ -1199,7 +1197,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
 
     try {
-      const response = await api.post(
+      const response = await apiClient.post(
         `/api/payments/transactions/${selectedParticipant.id}/refund`,
         {
           refundAmount,

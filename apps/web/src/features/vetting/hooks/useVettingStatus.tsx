@@ -4,24 +4,17 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { useIsAuthenticated } from '../../../stores/authStore';
+import { apiClient } from '../../../lib/api/client';
 import type { MyApplicationStatusResponse } from '../types/vettingStatus';
 
 /**
  * Fetch vetting status from API
- * Uses fetch directly with credentials for httpOnly cookie authentication
+ * Uses apiClient for consistent error handling and CSRF protection
  * API returns DTO directly (Pattern B - no wrapper)
  */
 const fetchVettingStatus = async (): Promise<MyApplicationStatusResponse> => {
-  const response = await fetch('/api/vetting/status', {
-    credentials: 'include' // Include httpOnly cookies
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch vetting status: ${response.status}`);
-  }
-
-  const data: MyApplicationStatusResponse = await response.json();
-  return data;
+  const response = await apiClient.get('/api/vetting/status');
+  return response.data;
 };
 
 /**

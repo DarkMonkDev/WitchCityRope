@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import type { UserDto } from '../types/shared';
 import { debugLog } from '../utils/debug';
+import { apiClient } from '../lib/api/client';
 
 // Auth state interface from functional specification
 interface AuthState {
@@ -70,7 +71,7 @@ const useAuthStore = create<AuthStore>()(
           
           checkAuth: async () => {
             const currentState = get();
-            
+
             // Prevent repeated auth checks within a short time period
             if (currentState.lastAuthCheck) {
               // Handle case where lastAuthCheck might be a string from localStorage
@@ -94,32 +95,13 @@ const useAuthStore = create<AuthStore>()(
 
             try {
               debugLog('🔍 Checking auth with API...');
-              // Use fetch directly with credentials to check auth via cookies
-              // Use relative URL to leverage Vite proxy in development
-              const response = await fetch('/api/auth/user', {
-                credentials: 'include'
+              // Use apiClient with skipAutoRedirect to prevent redirect loop
+              // We want to handle 401 locally and update state, not redirect
+              const response = await apiClient.get('/api/auth/user', {
+                skipAutoRedirect: true
               });
 
-              if (!response.ok) {
-                if (response.status === 401) {
-                  // User is not authenticated
-                  debugLog('🔍 Auth check: User not authenticated');
-                  set(
-                    {
-                      user: null,
-                      isAuthenticated: false,
-                      isLoading: false,
-                      lastAuthCheck: new Date()
-                    },
-                    false,
-                    'auth/checkAuth/not-authenticated'
-                  );
-                  return;
-                }
-                throw new Error('Failed to check authentication');
-              }
-
-              const data = await response.json();
+              const data = response.data;
 
               // Handle nested response structure: { success: true, data: {...} }
               const user = data.data || data;
@@ -136,13 +118,29 @@ const useAuthStore = create<AuthStore>()(
                 false,
                 'auth/checkAuth/success'
               );
-            } catch (error) {
+            } catch (error: any) {
+              // Check if this is a 401 (user not authenticated - expected case)
+              if (error.response?.status === 401) {
+                debugLog('🔍 Auth check: User not authenticated');
+                set(
+                  {
+                    user: null,
+                    isAuthenticated: false,
+                    isLoading: false,
+                    lastAuthCheck: new Date()
+                  },
+                  false,
+                  'auth/checkAuth/not-authenticated'
+                );
+                return;
+              }
+
               debugLog('🔍 Auth check failed:', error.message);
               // Update state directly instead of calling logout action
               set(
-                { 
+                {
                   user: null,
-                  isAuthenticated: false, 
+                  isAuthenticated: false,
                   isLoading: false,
                   lastAuthCheck: new Date()
                 },

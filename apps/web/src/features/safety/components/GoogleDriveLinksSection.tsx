@@ -3,6 +3,7 @@ import { Card, Title, TextInput, Button, Group, Stack, Text, Anchor, Grid } from
 import { IconBrandGoogleDrive, IconDeviceFloppy } from '@tabler/icons-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
+import { apiClient } from '../../../lib/api/client';
 
 interface GoogleDriveLinksSectionProps {
   incidentId: string;
@@ -35,17 +36,11 @@ export const GoogleDriveLinksSection: React.FC<GoogleDriveLinksSectionProps> = (
   // Update links mutation: PUT /api/safety/admin/incidents/{id}/google-drive
   const updateMutation = useMutation<unknown, Error, void>({
     mutationFn: async () => {
-      const response = await fetch(`/api/safety/admin/incidents/${incidentId}/google-drive`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          googleDriveFolderUrl: folderUrl || null,
-          googleDriveFinalReportUrl: reportUrl || null,
-        }),
+      const response = await apiClient.put(`/api/safety/admin/incidents/${incidentId}/google-drive`, {
+        googleDriveFolderUrl: folderUrl || null,
+        googleDriveFinalReportUrl: reportUrl || null,
       });
-      if (!response.ok) throw new Error('Failed to update links');
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'incident', incidentId] });

@@ -641,8 +641,8 @@ test.describe('Comprehensive Timing Tests', () => {
         console.log('⚠️ No volunteer positions returned - checking event details...');
         const eventDetails = await fetchEventDetails(event.id);
         console.log(`Event volunteer positions: ${eventDetails.volunteerPositions?.length || 0}`);
-        // Skip if positions not available (API may filter based on user role)
-        test.skip();
+        // Fail if positions not available (API may filter based on user role)
+        test.fail(true, 'No volunteer positions returned - API may filter based on user role');
         return;
       }
 

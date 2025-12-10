@@ -77,7 +77,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     // Skip test if no attendees or all are checked in
     if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test.skip();
+      test.fail(true, 'No attendees found - test should create own data');
       return;
     }
 
@@ -88,7 +88,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     if (!uncheckedAttendee) {
       // All attendees are already checked in - create a test registration first
-      test.skip();
+      test.fail(true, 'All attendees already checked in - need unchecked attendee');
       return;
     }
 
@@ -174,7 +174,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     // Skip if no unchecked attendees
     if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test.skip();
+      test.fail(true, 'No attendees found - test should create own data');
       return;
     }
 
@@ -183,7 +183,7 @@ test.describe('Check-In Attendee Workflow', () => {
     );
 
     if (!uncheckedAttendee) {
-      test.skip();
+      test.fail(true, 'All attendees already checked in - need unchecked attendee');
       return;
     }
 

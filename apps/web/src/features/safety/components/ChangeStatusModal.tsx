@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Select, Textarea, Button, Group, Stack, Text, Checkbox } from '@mantine/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
+import { apiClient } from '../../../lib/api/client';
 
 type IncidentStatus = 'ReportSubmitted' | 'InformationGathering' | 'ReviewingFinalReport' | 'OnHold' | 'Closed';
 
@@ -66,14 +67,11 @@ export const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({
   // Update status mutation: PUT /api/safety/admin/incidents/{id}/status
   const statusMutation = useMutation<unknown, Error, void>({
     mutationFn: async () => {
-      const response = await fetch(`/api/safety/admin/incidents/${incidentId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ newStatus, notes }),
+      const response = await apiClient.put(`/api/safety/admin/incidents/${incidentId}/status`, {
+        newStatus,
+        notes
       });
-      if (!response.ok) throw new Error('Failed to update status');
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'incident', incidentId] });

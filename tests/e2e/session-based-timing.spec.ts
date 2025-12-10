@@ -120,7 +120,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
 
     if (!foundEvent) {
       console.log('⚠️ No events with ticket options found in seed data');
-      test.skip();
+      test.fail(true, 'No events with ticket options found - test should create own data');
     }
   });
 
@@ -157,7 +157,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
       expect(true).toBe(true); // Test passes if we can access event settings
     } else {
       console.log('⚠️ No events found to check registration settings');
-      test.skip();
+      test.fail(true, 'No events found - test should create own data');
     }
   });
 
@@ -204,7 +204,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
 
     if (!foundVolunteerEvent) {
       console.log('⚠️ No events with volunteer opportunities found');
-      test.skip();
+      test.fail(true, 'No events with volunteer opportunities found - test should create own data');
     }
   });
 
@@ -259,7 +259,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
     }
 
     console.log('⚠️ No events with ticket options found');
-    test.skip();
+    test.fail(true, 'No events with ticket options found - test should create own data');
   });
 
   test('admin can view session-based timing settings', async ({ page }) => {
@@ -306,7 +306,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
       expect(page.url()).toContain('/admin/events/');
     } else {
       console.log('⚠️ No events found in admin panel');
-      test.skip();
+      test.fail(true, 'No events found in admin panel');
     }
   });
 

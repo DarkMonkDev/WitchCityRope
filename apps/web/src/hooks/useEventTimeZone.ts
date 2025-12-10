@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../api/client';
+import { apiClient } from '../lib/api/client';
 
 interface Settings {
   EventTimeZone: string;
@@ -13,7 +13,7 @@ export function useEventTimeZone(): string {
   const { data } = useQuery<Settings>({
     queryKey: ['adminSettings'],
     queryFn: async () => {
-      const response = await api.get<Settings>('/api/admin/settings');
+      const response = await apiClient.get<Settings>('/api/admin/settings');
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes

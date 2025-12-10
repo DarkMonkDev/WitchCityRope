@@ -113,15 +113,18 @@ export class PaymentApiService {
    * Handle and normalize payment API errors
    * @param error Raw API error
    * @returns Normalized PaymentError
+   *
+   * Note: apiClient interceptor extracts RFC 9457 message to error.message
+   * We still check for structured payment error responses with code/type/retryable
    */
   private handlePaymentError(error: any): PaymentError {
-    // Handle axios errors
-    if (error.response?.data) {
-      const apiError = error.response.data;
-      
+    // Check for structured payment error response from API
+    const apiError = error.response?.data;
+    if (apiError?.code) {
+      // Structured payment error with code field - use it
       return {
-        code: apiError.code || 'PAYMENT_ERROR',
-        message: apiError.message || 'An error occurred while processing your payment',
+        code: apiError.code,
+        message: apiError.message || error.message || 'An error occurred while processing your payment',
         type: apiError.type || 'api_error',
         retryable: apiError.retryable || false,
         suggestedAction: this.getSuggestedAction(apiError.code)
@@ -139,11 +142,11 @@ export class PaymentApiService {
       };
     }
 
-    // Handle unknown errors
+    // Default: use error.message from apiClient interceptor (RFC 9457 extracted)
     return {
-      code: 'UNKNOWN_ERROR',
-      message: 'An unexpected error occurred. Please try again or contact support.',
-      type: 'unknown_error',
+      code: 'PAYMENT_ERROR',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again or contact support.',
+      type: 'api_error',
       retryable: true,
       suggestedAction: 'Try again or contact support if the problem persists'
     };

@@ -137,11 +137,8 @@ export function useCancelRSVP() {
     onError: (error: any) => {
       debugError('Failed to cancel RSVP:', error);
 
-      // Extract error message from API response
-      const errorMessage = error.response?.data?.detail
-        || error.response?.data?.title
-        || error.message
-        || 'Unable to cancel RSVP. Please try again or contact support.';
+      // apiClient interceptor extracts RFC 9457 message to error.message
+      const errorMessage = error instanceof Error ? error.message : 'Unable to cancel RSVP. Please try again or contact support.';
 
       // Show error notification to user
       notifications.show({
@@ -206,11 +203,8 @@ export function useCancelTicket() {
     onError: (error: any) => {
       debugError('Failed to cancel ticket:', error);
 
-      // Extract error message from API response
-      const errorMessage = error.response?.data?.detail
-        || error.response?.data?.title
-        || error.message
-        || 'Unable to cancel ticket. Please try again or contact support.';
+      // apiClient interceptor extracts RFC 9457 message to error.message
+      const errorMessage = error instanceof Error ? error.message : 'Unable to cancel ticket. Please try again or contact support.';
 
       // Show error notification to user
       notifications.show({

@@ -290,13 +290,8 @@ export const EventPaymentPage: React.FC = () => {
     } catch (error: any) {
       console.error('❌ Failed to create ticket purchase:', error);
 
-      // Extract the most helpful error message from API response
-      const errorMessage =
-        error.response?.data?.detail ||
-        error.response?.data?.title ||
-        error.response?.data?.message ||
-        error.message ||
-        'Payment succeeded but ticket creation failed. Please contact support.';
+      // apiClient interceptor extracts RFC 9457 message to error.message
+      const errorMessage = error instanceof Error ? error.message : 'Payment succeeded but ticket creation failed. Please contact support.';
 
       notifications.show({
         title: 'Purchase Error',

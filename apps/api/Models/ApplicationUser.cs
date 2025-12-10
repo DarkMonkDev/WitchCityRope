@@ -161,11 +161,4 @@ public class ApplicationUser : IdentityUser<Guid>
     /// </summary>
     [MaxLength(20)]
     public override string? PhoneNumber { get; set; }
-
-    /// <summary>
-    /// Legacy RealName field (deprecated, use FirstName/LastName instead)
-    /// </summary>
-    [Obsolete("Use FirstName and LastName instead")]
-    [MaxLength(100)]
-    public string? RealName { get; set; }
 }

@@ -240,8 +240,8 @@ test.describe('Vetting System - Complete Workflows', () => {
     const hasUnderReviewApp = await underReviewRow.count() > 0;
 
     if (!hasUnderReviewApp) {
-      console.log('⚠️ No UnderReview applications found - skipping test');
-      test.skip();
+      console.log('⚠️ No UnderReview applications found');
+      test.fail(true, 'No UnderReview applications found - test should create own data');
       return;
     }
 
@@ -255,8 +255,8 @@ test.describe('Vetting System - Complete Workflows', () => {
       .first();
 
     if (await approveButton.count() === 0) {
-      console.log('⚠️ Approve for Interview button not found - feature may not be implemented');
-      test.skip();
+      console.log('⚠️ Approve for Interview button not found');
+      test.fail(true, 'Approve for Interview button not found - feature exists but button not visible');
       return;
     }
 
@@ -312,8 +312,8 @@ test.describe('Vetting System - Complete Workflows', () => {
     const hasApplications = await firstRow.count() > 0;
 
     if (!hasApplications) {
-      console.log('⚠️ No applications found - skipping test');
-      test.skip();
+      console.log('⚠️ No applications found');
+      test.fail(true, 'No applications found - test should create own data');
       return;
     }
 
@@ -326,8 +326,8 @@ test.describe('Vetting System - Complete Workflows', () => {
       .first();
 
     if (await onHoldButton.count() === 0) {
-      console.log('⚠️ On Hold button not found - application may be in terminal status');
-      test.skip();
+      console.log('⚠️ On Hold button not found');
+      test.fail(true, 'On Hold button not found - feature exists but button not visible');
       return;
     }
 
@@ -338,8 +338,8 @@ test.describe('Vetting System - Complete Workflows', () => {
     const modalContent = page.locator('text=/put.*on hold/i, text=/reason.*hold/i').first();
 
     if (await modalContent.count() === 0) {
-      console.log('⚠️ On Hold modal did not open - feature may require selections or different UI pattern');
-      test.skip();
+      console.log('⚠️ On Hold modal did not open');
+      test.fail(true, 'On Hold modal did not open - bug if modal does not open');
       return;
     }
 
@@ -417,8 +417,8 @@ test.describe('Vetting System - Complete Workflows', () => {
     const hasActiveApp = await activeRow.count() > 0;
 
     if (!hasActiveApp) {
-      console.log('⚠️ No active applications found - skipping test');
-      test.skip();
+      console.log('⚠️ No active applications found');
+      test.fail(true, 'No active applications found - test should create own data');
       return;
     }
 
@@ -435,9 +435,9 @@ test.describe('Vetting System - Complete Workflows', () => {
     const buttonVisible = await denyButton.isVisible().catch(() => false);
 
     if (!buttonVisible) {
-      console.log('⚠️ Deny button not visible - application may be in terminal status (Approved/Denied)');
+      console.log('⚠️ Deny button not visible');
       await page.screenshot({ path: './test-results/vetting-deny-no-button.png', fullPage: true });
-      test.skip();
+      test.fail(true, 'Deny button not visible - feature exists but button not visible');
       return;
     }
 
@@ -528,8 +528,8 @@ test.describe('Vetting System - Complete Workflows', () => {
     const hasInterviewApp = await interviewApprovedRow.count() > 0;
 
     if (!hasInterviewApp) {
-      console.log('⚠️ No InterviewApproved applications found - skipping test');
-      test.skip();
+      console.log('⚠️ No InterviewApproved applications found');
+      test.fail(true, 'No InterviewApproved applications found - test should create own data');
       return;
     }
 
@@ -543,8 +543,8 @@ test.describe('Vetting System - Complete Workflows', () => {
       .first();
 
     if (await reminderButton.count() === 0) {
-      console.log('⚠️ Reminder button not found - may not be visible for this status');
-      test.skip();
+      console.log('⚠️ Reminder button not found');
+      test.fail(true, 'Reminder button not found - feature exists but button not visible');
       return;
     }
 
@@ -622,8 +622,8 @@ test.describe('Vetting System - Complete Workflows', () => {
     const hasActiveApp = await activeRow.count() > 0;
 
     if (!hasActiveApp) {
-      console.log('⚠️ No active applications found - skipping test');
-      test.skip();
+      console.log('⚠️ No active applications found');
+      test.fail(true, 'No active applications found - test should create own data');
       return;
     }
 
@@ -637,7 +637,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (await skipButton.count() === 0) {
       console.log('⚠️ Skip to Approved button not found');
-      test.skip();
+      test.fail(true, 'Skip to Approved button not found - feature exists but button not visible');
       return;
     }
 
@@ -691,8 +691,8 @@ test.describe('Vetting System - Complete Workflows', () => {
     const hasApplications = await firstRow.count() > 0;
 
     if (!hasApplications) {
-      console.log('⚠️ No applications found - skipping test');
-      test.skip();
+      console.log('⚠️ No applications found');
+      test.fail(true, 'No applications found - test should create own data');
       return;
     }
 
@@ -750,7 +750,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     if (await vettingSection.count() === 0) {
       console.log('⚠️ Vetting status section not found on dashboard');
-      test.skip();
+      test.fail(true, 'Vetting status section not found on dashboard - feature exists');
       return;
     }
 

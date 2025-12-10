@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../../../api/client'
+import { apiClient } from '../../../lib/api/client'
 import { useAuthActions } from '../../../stores/authStore'
-import { extractErrorMessage } from '../../../lib/api/utils/errors'
 import { initializeCSRFProtection, getCSRFToken } from '../../../hooks/useCSRFToken'
 import type {
   UserDto,
@@ -55,18 +54,10 @@ export function useLogin() {
   const navigate = useNavigate()
 
   return useMutation({
+    // apiClient interceptor extracts RFC 9457 error message to error.message automatically
     mutationFn: async (credentials: LoginRequest): Promise<LoginResponseData> => {
-      try {
-        const response = await api.post('/api/auth/login', credentials)
-        return response.data
-      } catch (error: any) {
-        // Use existing utility that properly handles RFC 9457 Problem Details
-        const userFriendlyMessage = extractErrorMessage(error)
-        const enhancedError = new Error(userFriendlyMessage)
-        // Preserve original error for debugging
-        console.error('Login error:', error)
-        throw enhancedError
-      }
+      const response = await apiClient.post('/api/auth/login', credentials)
+      return response.data
     },
     onSuccess: async (data, variables, context) => {
       // Handle httpOnly cookie authentication - no tokens in response
@@ -131,18 +122,10 @@ export function useRegister() {
   const navigate = useNavigate()
 
   return useMutation({
+    // apiClient interceptor extracts RFC 9457 error message to error.message automatically
     mutationFn: async (credentials: RegisterCredentials): Promise<UserDto> => {
-      try {
-        const response = await api.post('/api/auth/register', credentials)
-        return response.data
-      } catch (error: any) {
-        // Use existing utility that properly handles RFC 9457 Problem Details
-        const userFriendlyMessage = extractErrorMessage(error)
-        const enhancedError = new Error(userFriendlyMessage)
-        // Preserve original error for debugging
-        console.error('Registration error:', error)
-        throw enhancedError
-      }
+      const response = await apiClient.post('/api/auth/register', credentials)
+      return response.data
     },
     onSuccess: (userData) => {
       // Handle flat response structure from API
@@ -202,14 +185,14 @@ export function useLogout() {
 
       // Attempt logout with CSRF token
       try {
-        await api.post('/api/auth/logout')
+        await apiClient.post('/api/auth/logout')
       } catch (error: any) {
         // If CSRF validation failed, try once more with fresh token
         if (error.response?.status === 400 &&
             error.response?.data?.title === 'CSRF Validation Failed') {
           console.warn('⚠️ CSRF validation failed, retrying with fresh token...')
           await initializeCSRFProtection()
-          await api.post('/api/auth/logout') // Retry once
+          await apiClient.post('/api/auth/logout') // Retry once
         } else {
           throw error // Re-throw other errors
         }
@@ -251,16 +234,10 @@ export function useLogout() {
  */
 export function useVerifyEmail() {
   return useMutation({
+    // apiClient interceptor extracts RFC 9457 error message to error.message automatically
     mutationFn: async ({ userId, token }: { userId: string; token: string }): Promise<void> => {
-      try {
-        const response = await api.post('/api/auth/verify-email', { userId, token })
-        return response.data
-      } catch (error: any) {
-        const userFriendlyMessage = extractErrorMessage(error)
-        const enhancedError = new Error(userFriendlyMessage)
-        console.error('Email verification error:', error)
-        throw enhancedError
-      }
+      const response = await apiClient.post('/api/auth/verify-email', { userId, token })
+      return response.data
     },
     retry: false,
   })
@@ -272,16 +249,10 @@ export function useVerifyEmail() {
  */
 export function useResendVerification() {
   return useMutation({
+    // apiClient interceptor extracts RFC 9457 error message to error.message automatically
     mutationFn: async ({ email }: { email: string }): Promise<void> => {
-      try {
-        const response = await api.post('/api/auth/resend-verification', { email })
-        return response.data
-      } catch (error: any) {
-        const userFriendlyMessage = extractErrorMessage(error)
-        const enhancedError = new Error(userFriendlyMessage)
-        console.error('Resend verification error:', error)
-        throw enhancedError
-      }
+      const response = await apiClient.post('/api/auth/resend-verification', { email })
+      return response.data
     },
     retry: false,
   })
@@ -294,16 +265,10 @@ export function useResendVerification() {
  */
 export function useForgotPassword() {
   return useMutation({
+    // apiClient interceptor extracts RFC 9457 error message to error.message automatically
     mutationFn: async ({ email }: { email: string }): Promise<void> => {
-      try {
-        const response = await api.post('/api/auth/forgot-password', { email })
-        return response.data
-      } catch (error: any) {
-        const userFriendlyMessage = extractErrorMessage(error)
-        const enhancedError = new Error(userFriendlyMessage)
-        console.error('Forgot password error:', error)
-        throw enhancedError
-      }
+      const response = await apiClient.post('/api/auth/forgot-password', { email })
+      return response.data
     },
     retry: false,
   })
@@ -315,16 +280,10 @@ export function useForgotPassword() {
  */
 export function useResetPassword() {
   return useMutation({
+    // apiClient interceptor extracts RFC 9457 error message to error.message automatically
     mutationFn: async ({ userId, token, newPassword }: { userId: string; token: string; newPassword: string }): Promise<void> => {
-      try {
-        const response = await api.post('/api/auth/reset-password', { userId, token, newPassword })
-        return response.data
-      } catch (error: any) {
-        const userFriendlyMessage = extractErrorMessage(error)
-        const enhancedError = new Error(userFriendlyMessage)
-        console.error('Reset password error:', error)
-        throw enhancedError
-      }
+      const response = await apiClient.post('/api/auth/reset-password', { userId, token, newPassword })
+      return response.data
     },
     retry: false,
   })

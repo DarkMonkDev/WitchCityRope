@@ -916,7 +916,7 @@ const { data: currentUser } = useCurrentUser()
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { api } from '@/api/client'
+import { apiClient } from '@/lib/api/client'  // SINGLE canonical API client
 import { useAuthActions } from '@/stores/authStore'
 import { getCSRFToken, initializeCSRFProtection } from '@/hooks/useCSRFToken'
 
@@ -936,13 +936,13 @@ export function useLogout() {
 
       // Call logout endpoint (CSRF token sent via interceptor)
       try {
-        await api.post('/api/auth/logout')
+        await apiClient.post('/api/auth/logout')
       } catch (error: any) {
         // If CSRF validation failed, retry with fresh token
         if (error.response?.status === 400 &&
             error.response?.data?.title === 'CSRF Validation Failed') {
           await initializeCSRFProtection()
-          await api.post('/api/auth/logout') // Retry once
+          await apiClient.post('/api/auth/logout') // Retry once
         } else {
           throw error
         }
@@ -1292,5 +1292,190 @@ const startTimeString = `${startDate.getUTCHours().toString().padStart(2, '0')}:
 
 ### Tags
 #critical #datetime #timezone #naive-utc #event-times #session-times #tolocalestring #getutchours #time-display #bug-fix
+
+---
+
+## 🚨 CRITICAL: API ERROR HANDLING STANDARDIZATION - SINGLE API CLIENT 🚨
+
+**Date**: 2025-12-09
+**Category**: API / Error Handling / Architecture Standardization
+**Severity**: CRITICAL - PREVENTS DUPLICATE CODE AND INCONSISTENT ERROR HANDLING
+
+### What We Learned
+
+**THERE IS ONE CANONICAL API CLIENT**: `/apps/web/src/lib/api/client.ts` exports `apiClient`
+
+The project previously had TWO API clients causing confusion:
+- `/apps/web/src/api/client.ts` (DELETED - old location)
+- `/apps/web/src/lib/api/client.ts` (KEPT - single source of truth)
+
+**THE SINGLE CLIENT HAS RFC 9457 ERROR EXTRACTION BUILT-IN**: The `apiClient` response interceptor automatically extracts user-friendly error messages from RFC 9457 Problem Details responses.
+
+### 🛑 ROOT CAUSE OF PROBLEMS:
+
+**Before standardization**:
+1. Two API clients existed with different behaviors
+2. Some code imported `api` from `/api/client.ts`
+3. Other code imported `apiClient` from `/lib/api/client.ts`
+4. Error handling was inconsistent - some places extracted messages manually, others didn't
+5. Users saw generic "Request failed with status code 400" instead of helpful messages
+
+### ✅ STANDARD API CLIENT PATTERN:
+
+**📖 MANDATORY READING**: `/docs/standards-processes/frontend/api-error-handling-standard.md`
+
+**Import the single canonical client**:
+```typescript
+// ✅ CORRECT - Single source of truth
+import { apiClient } from '@/lib/api/client'
+
+// ❌ WRONG - Old import path (file deleted)
+import { api } from '@/api/client'
+
+// ❌ WRONG - Never use raw axios
+import axios from 'axios'
+```
+
+### 🔄 ERROR MESSAGE EXTRACTION (AUTOMATIC):
+
+The `apiClient` interceptor automatically extracts RFC 9457 error messages:
+
+```typescript
+// Backend returns RFC 9457 Problem Details:
+// {
+//   "type": "https://tools.ietf.org/html/rfc9457",
+//   "title": "Bad Request",
+//   "status": 400,
+//   "detail": "Event cannot be changed to Draft status because it started more than 2 hours ago"
+// }
+
+// Without extraction (raw axios):
+error.message === "Request failed with status code 400"  // ❌ Generic, unhelpful
+
+// With apiClient interceptor:
+error.message === "Event cannot be changed to Draft status because it started more than 2 hours ago"  // ✅ User-friendly
+```
+
+### 📋 CORRECT USAGE PATTERNS:
+
+**Pattern 1: Using useApiMutation Hook (Recommended)**
+```typescript
+import { useApiMutation } from '@/lib/api'
+import { apiClient } from '@/lib/api/client'
+
+const createEvent = useApiMutation(
+  async (data: CreateEventRequest) => {
+    const response = await apiClient.post('/api/events', data)
+    return response.data
+  },
+  {
+    successMessage: 'Event created successfully',
+    onSuccess: () => navigate('/events'),
+  }
+)
+// Error notifications shown automatically with extracted message
+```
+
+**Pattern 2: Direct useMutation with Error Display**
+```typescript
+import { useMutation } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api/client'
+import { notifications } from '@mantine/notifications'
+
+const updateEvent = useMutation({
+  mutationFn: async (data) => {
+    const response = await apiClient.put(`/api/events/${data.id}`, data)
+    return response.data
+  },
+  onError: (error) => {
+    // error.message is ALREADY extracted - just use it directly
+    notifications.show({
+      title: 'Error',
+      message: error.message,  // "Event cannot be changed..." from interceptor
+      color: 'red',
+    })
+  },
+})
+```
+
+### ❌ ANTI-PATTERNS - DO NOT DO THIS:
+
+**Anti-Pattern 1: Generic Error Messages**
+```typescript
+// ❌ WRONG - Ignores API's helpful error message
+onError: (error) => {
+  notifications.show({
+    message: 'An error occurred',  // Generic, unhelpful
+  })
+}
+```
+
+**Anti-Pattern 2: Manual Response Parsing**
+```typescript
+// ❌ WRONG - Duplicates interceptor logic
+onError: (error) => {
+  const message = error.response?.data?.detail || error.response?.data?.title || error.message
+  // This is already done by the interceptor!
+}
+```
+
+**Anti-Pattern 3: Using Wrong Import**
+```typescript
+// ❌ WRONG - Don't import from these paths
+import { api } from '@/api/client'  // DELETED
+import axios from 'axios'           // Never use raw axios
+```
+
+### 📁 FILES AFFECTED BY STANDARDIZATION:
+
+**Deleted** (duplicate API client):
+- `/apps/web/src/api/client.ts` - Old location, removed
+
+**Updated to use `apiClient`** (13 files migrated):
+- `/apps/web/src/features/events/api/queries.ts`
+- `/apps/web/src/features/events/api/mutations.ts`
+- `/apps/web/src/features/tickets/api/ticketApi.ts`
+- `/apps/web/src/features/tickets/api/mutations.ts`
+- `/apps/web/src/pages/admin/AdminSettingsPage.tsx`
+- `/apps/web/src/pages/ApiConnectionTest.tsx`
+- And more...
+
+**New files created**:
+- `/apps/web/src/lib/api/hooks/useApiMutation.ts` - Standardized mutation wrapper
+- `/docs/standards-processes/frontend/api-error-handling-standard.md` - Complete guide
+
+### 🎯 PREVENTION CHECKLIST:
+
+**Before creating ANY API code:**
+- [ ] Read API Error Handling Standard FIRST
+- [ ] Import `apiClient` from `@/lib/api/client`
+- [ ] NEVER import from `@/api/client` (deleted)
+- [ ] NEVER use raw axios directly
+- [ ] Use `error.message` directly - it's already extracted
+- [ ] Consider using `useApiMutation` for automatic notifications
+- [ ] Don't duplicate RFC 9457 parsing logic
+
+**For error handling in mutations:**
+- [ ] Use `error.message` directly - interceptor extracts it
+- [ ] Show error in notification or UI element
+- [ ] Don't use generic messages like "An error occurred"
+
+### 💥 CONSEQUENCES OF IGNORING:
+
+1. ❌ **Inconsistent error messages**: Some components show "Request failed with status code 400", others show actual message
+2. ❌ **Duplicate code**: Multiple places parsing RFC 9457 responses
+3. ❌ **Maintenance nightmare**: Bug fixes need to be applied in multiple locations
+4. ❌ **Poor user experience**: Generic error messages don't help users understand what went wrong
+5. ❌ **TypeScript errors**: Wrong imports cause build failures
+
+### 🔗 RELATED DOCUMENTATION:
+
+- **API Error Handling Standard**: `/docs/standards-processes/frontend/api-error-handling-standard.md`
+- **Authentication Pattern Guide**: `/docs/standards-processes/frontend/authentication-pattern-guide.md`
+- **useApiMutation Hook**: `/apps/web/src/lib/api/hooks/useApiMutation.ts`
+- **API Client Source**: `/apps/web/src/lib/api/client.ts`
+
+### Tags
+#critical #api-client #error-handling #rfc9457 #standardization #single-source-of-truth #apiClient #useMutation #architecture
 
 ---

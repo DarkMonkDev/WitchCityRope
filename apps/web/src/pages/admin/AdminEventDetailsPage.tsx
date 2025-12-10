@@ -350,10 +350,10 @@ export const AdminEventDetailsPage: React.FC = () => {
         color: isPublished ? 'green' : 'blue',
       })
     } catch (error) {
+      // apiClient interceptor extracts RFC 9457 message to error.message
       notifications.show({
         title: `${action.charAt(0).toUpperCase() + action.slice(1)} Failed`,
-        message:
-          error instanceof Error ? error.message : `Failed to ${action} event. Please try again.`,
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
         color: 'red',
       })
       // Reset pending status on error

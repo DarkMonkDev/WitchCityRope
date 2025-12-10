@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '../../../../lib/api/client';
 
 // Temporary type definition until backend API endpoint is created
 // TODO: Replace with auto-generated type from @witchcityrope/shared-types once API is implemented
@@ -68,16 +69,8 @@ export const usePayments = (filters: PaymentFilters) => {
       params.append('page', (filters.page || 1).toString());
       params.append('pageSize', (filters.pageSize || 50).toString());
 
-      const response = await fetch(`/api/admin/payments?${params}`, {
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || errorData.message || 'Failed to fetch payments');
-      }
-
-      return response.json();
+      const response = await apiClient.get(`/api/admin/payments?${params}`);
+      return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false

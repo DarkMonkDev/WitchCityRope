@@ -298,53 +298,6 @@ test.describe('Login with Email or Scene Name', () => {
       expect(onDashboard || onLogin).toBe(true);
     });
 
-    test('should be case-sensitive for scene name', async ({ page }) => {
-      // TODO: Scene names appear to be case-insensitive in the backend
-      // This test expects case sensitivity but the login succeeds with uppercase scene names
-      // Need to verify if this is intended behavior
-      // Arrange - Get admin scene name
-      const testAccount = TEST_ACCOUNTS.admin;
-      const sceneName = await getUserSceneName(page, testAccount.email, testAccount.password);
-      const upperCaseSceneName = sceneName.toUpperCase();
-
-      // Skip test if scene name is already all uppercase
-      if (sceneName === upperCaseSceneName) {
-        test.skip();
-        return;
-      }
-
-      // Navigate to login page FIRST (localStorage requires a domain context)
-      await page.goto('/login');
-      await page.waitForLoadState('domcontentloaded');
-
-      // Clear auth state AFTER navigation
-      await AuthHelpers.clearAuthState(page);
-
-      // Act - Try to login with uppercase scene name
-      await fillAndSubmitLogin(page, upperCaseSceneName, testAccount.password);
-
-      // Wait for response
-      await page.waitForTimeout(2000);
-
-      // Assert - Check if login succeeded or failed
-      // If scene names are case-insensitive (backend behavior), login will succeed
-      const currentUrl = page.url();
-      const onDashboard = currentUrl.includes('/dashboard');
-
-      if (onDashboard) {
-        // Scene names are case-insensitive - document this behavior
-        console.log('⚠️ Scene names are case-insensitive (backend behavior)');
-        // Test passes - just documenting actual behavior
-      } else {
-        // Scene names are case-sensitive - verify error shown
-        const errorAlert = page.locator('[data-testid="login-error"]');
-        await expect(errorAlert).toBeVisible({ timeout: 5000 });
-
-        // Verify still on login page
-        await expect(page).toHaveURL(/\/login/);
-      }
-    });
-
     test('should be case-insensitive for email address', async ({ page }) => {
       // Arrange
       const testAccount = TEST_ACCOUNTS.admin;

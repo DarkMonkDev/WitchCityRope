@@ -35,6 +35,7 @@ import {
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useMembers } from '../hooks/useMembers';
+import { apiClient } from '../../../../lib/api/client';
 import type { UserDto, MemberFilterRequest } from '../types/members.types';
 import type { components } from '@witchcityrope/shared-types';
 import { useEventTimeZone } from '../../../../hooks/useEventTimeZone';
@@ -108,11 +109,8 @@ export const MembersList: React.FC = () => {
   const { data: rolesData } = useQuery<AvailableRolesResponse>({
     queryKey: ['availableRoles'],
     queryFn: async () => {
-      const response = await fetch('/api/users/roles/available', {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to fetch roles');
-      return response.json();
+      const response = await apiClient.get('/api/users/roles/available');
+      return response.data;
     },
     staleTime: 1000 * 60 * 60, // Cache for 1 hour (roles don't change often)
   });

@@ -1,6 +1,6 @@
 // features/events/api/mutations.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../../api/client'
+import { apiClient } from '../../../lib/api/client'
 import { queryKeys } from '../../../api/queryKeys'
 import type { Event, UpdateEventData, EventRegistration } from '../../../types/api.types'
 import type { components } from '@witchcityrope/shared-types'
@@ -30,7 +30,7 @@ export function useCreateEvent() {
   return useMutation({
     mutationFn: async (data: CreateEventRequest): Promise<Event> => {
       console.log('useCreateEvent: Sending request with data:', data)
-      const response = await api.post('/api/events', data)
+      const response = await apiClient.post('/api/events', data)
       console.log('useCreateEvent: Response received:', response.data)
       return response.data
     },
@@ -49,7 +49,7 @@ export function useUpdateEvent() {
   
   return useMutation({
     mutationFn: async (params: { id: string; data: UpdateEventData }): Promise<Event> => {
-      const response = await api.put(`/api/events/${params.id}`, params.data)
+      const response = await apiClient.put(`/api/events/${params.id}`, params.data)
       return response.data
     },
     onSuccess: (updatedEvent, variables) => {
@@ -71,7 +71,7 @@ export function useDeleteEvent() {
   
   return useMutation({
     mutationFn: async (eventId: string): Promise<void> => {
-      await api.delete(`/api/events/${eventId}`)
+      await apiClient.delete(`/api/events/${eventId}`)
     },
     onSuccess: (_, deletedEventId) => {
       queryClient.removeQueries({ queryKey: queryKeys.event(deletedEventId) })
@@ -93,7 +93,7 @@ export function useCopyEvent() {
     newTitle: string;
   }>({
     mutationFn: async ({ eventId, newStartDate, newTitle }) => {
-      const response = await api.post<Event>(
+      const response = await apiClient.post<Event>(
         `/api/events/${eventId}/copy`,
         {
           newStartDate,
@@ -119,7 +119,7 @@ export function useEventRegistration() {
   
   return useMutation({
     mutationFn: async ({ eventId, action }: { eventId: string; action: 'register' | 'unregister' }) => {
-      const response = await api.post(`/api/events/${eventId}/registration`, { action })
+      const response = await apiClient.post(`/api/events/${eventId}/registration`, { action })
       return response.data
     },
     onMutate: async ({ eventId, action }) => {
@@ -166,7 +166,7 @@ export function usePurchaseTicket() {
   
   return useMutation({
     mutationFn: async (ticketData: TicketPurchaseData): Promise<EventRegistration> => {
-      const response = await api.post(`/api/events/${ticketData.eventId}/purchase-ticket`, ticketData)
+      const response = await apiClient.post(`/api/events/${ticketData.eventId}/purchase-ticket`, ticketData)
       return response.data
     },
     onMutate: async (ticketData) => {
@@ -212,7 +212,7 @@ export function useCancelTicket() {
   
   return useMutation({
     mutationFn: async ({ eventId, ticketId }: { eventId: string; ticketId: string }): Promise<void> => {
-      await api.delete(`/api/events/${eventId}/ticket/${ticketId}`)
+      await apiClient.delete(`/api/events/${eventId}/ticket/${ticketId}`)
     },
     onMutate: async ({ eventId, ticketId }) => {
       // Cancel outgoing refetches
@@ -258,7 +258,7 @@ export function useRSVPForEvent() {
   return useMutation({
     mutationFn: async (rsvpData: RSVPData): Promise<{ id: string; eventId: string; confirmationCode: string; status: string }> => {
       // Use the correct events-management endpoint for RSVP
-      const response = await api.post(`/api/events-management/${rsvpData.eventId}/rsvp`, {
+      const response = await apiClient.post(`/api/events-management/${rsvpData.eventId}/rsvp`, {
         dietaryRestrictions: '',
         emergencyContactName: '',
         emergencyContactPhone: ''
@@ -304,7 +304,7 @@ export function useCancelRSVP() {
   return useMutation({
     mutationFn: async ({ eventId }: { eventId: string }): Promise<void> => {
       // Use the correct events-management endpoint for canceling RSVP
-      await api.delete(`/api/events-management/${eventId}/rsvp`)
+      await apiClient.delete(`/api/events-management/${eventId}/rsvp`)
     },
     onMutate: async ({ eventId, rsvpId }) => {
       // Cancel outgoing refetches

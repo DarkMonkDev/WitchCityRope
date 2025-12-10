@@ -18,7 +18,7 @@ import {
 } from '@mantine/core';
 import { IconCheck, IconAlertCircle, IconSettings, IconClock } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../api/client';
+import { apiClient } from '../../lib/api/client';
 import { VenueManagementCard } from '../../components/admin/VenueManagementCard';
 import { BackupManagementCard } from '../../features/admin/backup/components/BackupManagementCard';
 import { backupApi } from '../../features/admin/backup/api/backupApi';
@@ -67,7 +67,7 @@ export const AdminSettingsPage: React.FC = () => {
   const { data: settings, isLoading, error } = useQuery<Settings>({
     queryKey: ['adminSettings'],
     queryFn: async () => {
-      const response = await api.get<Settings>('/api/admin/settings');
+      const response = await apiClient.get<Settings>('/api/admin/settings');
       return response.data;
     },
   });
@@ -82,7 +82,7 @@ export const AdminSettingsPage: React.FC = () => {
   // Update settings mutation
   const updateMutation = useMutation({
     mutationFn: async (updates: Settings) => {
-      const response = await api.put('/api/admin/settings', {
+      const response = await apiClient.put('/api/admin/settings', {
         settings: updates,
       });
       return response.data;

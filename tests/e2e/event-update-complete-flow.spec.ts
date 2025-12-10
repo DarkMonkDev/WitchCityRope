@@ -208,9 +208,9 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     }
     
     if (!editButton) {
-      // No edit button found - skip test rather than use fake event ID
-      console.log('⚠️  No edit button found in admin events page - skipping test')
-      test.skip(true, 'No events available in admin events page to test with')
+      // No edit button found - fail test
+      console.log('⚠️  No edit button found in admin events page')
+      test.fail(true, 'No events available in admin events page to test with')
       return
     } else {
       await editButton.click()
@@ -488,8 +488,8 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     // Find an edit link/button
     const editLink = page.locator('a[href*="/edit"]').first()
     if (await editLink.count() === 0) {
-      console.log('⚠️  No events found to test cookie persistence - skipping')
-      test.skip(true, 'No events available to test with')
+      console.log('⚠️  No events found to test cookie persistence')
+      test.fail(true, 'No events available to test with')
       return
     }
 
@@ -551,8 +551,8 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     // Find an edit link/button
     const editLink = page.locator('a[href*="/edit"]').first()
     if (await editLink.count() === 0) {
-      console.log('⚠️  No events found to test error handling - skipping')
-      test.skip(true, 'No events available to test with')
+      console.log('⚠️  No events found to test error handling')
+      test.fail(true, 'No events available to test with')
       return
     }
 

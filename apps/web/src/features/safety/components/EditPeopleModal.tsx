@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Select, Textarea, Button, Group, Stack, Text, MultiSelect } from '@mantine/core';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
+import { apiClient } from '../../../lib/api/client';
 
 interface EditPeopleModalProps {
   opened: boolean;
@@ -43,11 +44,8 @@ export const EditPeopleModal: React.FC<EditPeopleModalProps> = ({
   const { data: users } = useQuery<Array<{ id: string; sceneName: string; realName: string }>>({
     queryKey: ['safety', 'all-users'],
     queryFn: async () => {
-      const response = await fetch('/api/safety/admin/users/coordinators', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch users');
-      return response.json();
+      const response = await apiClient.get('/api/safety/admin/users/coordinators');
+      return response.data;
     },
     enabled: opened,
   });
@@ -64,16 +62,10 @@ export const EditPeopleModal: React.FC<EditPeopleModalProps> = ({
         .filter(Boolean)
         .join('\n');
 
-      const response = await fetch(`/api/safety/admin/incidents/${incidentId}/people`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          [type]: allNames || null,
-        }),
+      const response = await apiClient.put(`/api/safety/admin/incidents/${incidentId}/people`, {
+        [type]: allNames || null,
       });
-      if (!response.ok) throw new Error(`Failed to update ${type}`);
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'incident', incidentId] });

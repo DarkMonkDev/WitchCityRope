@@ -20,10 +20,6 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(x => x.RealName)
-            .IsRequired()
-            .HasMaxLength(200);
-
         builder.Property(x => x.Email)
             .IsRequired()
             .HasMaxLength(255);

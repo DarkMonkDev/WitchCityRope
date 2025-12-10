@@ -299,7 +299,8 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
                 UserId = userId,
                 Email = email,
                 SceneName = "Test",
-                RealName = "User",
+                FirstName = "Test",
+                LastName = "User",
                 WorkflowStatus = vettingStatus.Value,
                 SubmittedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow

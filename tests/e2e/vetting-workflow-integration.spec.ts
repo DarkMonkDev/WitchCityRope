@@ -50,7 +50,8 @@ test.describe('Vetting Workflow Integration', () => {
     const response = await apiContext.post('/api/vetting/public/applications', {
       data: {
         sceneName: uniqueSceneName,
-        realName: `Test User ${timestamp}`,
+        firstName: 'Test',
+        lastName: `User${timestamp}`,
         email: uniqueEmail,
         phoneNumber: '555-1234',
         experience: 'Beginner',

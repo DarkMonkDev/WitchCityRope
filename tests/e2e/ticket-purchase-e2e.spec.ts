@@ -17,156 +17,185 @@
  * CONTAINER COMPATIBLE: Uses relative URLs and page.evaluate() for API calls
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
+
+// Helper to make authenticated API request using page.evaluate (works in browser context)
+async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
+  const response = await page.evaluate(async ({ method, url, data }) => {
+    const options: RequestInit = {
+      method,
+      credentials: 'include',
+      headers: data ? { 'Content-Type': 'application/json' } : {},
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+    }
+
+    const res = await fetch(url, options);
+    const text = await res.text();
+    try {
+      return { status: res.status, data: JSON.parse(text) };
+    } catch {
+      return { status: res.status, data: text };
+    }
+  }, { method, url, data });
+
+  return response;
+}
 
 test.describe('Ticket Purchase - Complete Workflow', () => {
   // Run checkout tests serially to avoid conflicts with same user buying same ticket
   test.describe.configure({ mode: 'serial' });
 
+  let testEventId: string | null = null;
+  let paidTicketTypeId: string | null = null;
+  let freeTicketTypeId: string | null = null;
+
+  test.beforeAll(async ({ browser }) => {
+    // Create test event with both paid and free ticket types
+    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
+    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
+    const context = await browser.newContext({ baseURL });
+    const page = await context.newPage();
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Get first venue ID
+    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
+    const venues = venuesResponse.data as Array<{ id: string }>;
+    const venueId = venues[0]?.id;
+
+    if (!venueId) {
+      console.error('No venues found - cannot create test event');
+      await page.close();
+      return;
+    }
+
+    // Create event with sessions 7 days in future
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+
+    const eventData = {
+      title: `Ticket Purchase Test ${Date.now()}`,
+      shortDescription: 'Test event for ticket purchase workflow',
+      description: 'This event tests complete ticket purchase flow.',
+      eventType: 'Class',
+      startDate: sessionStart.toISOString(),
+      endDate: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      venueId: venueId,
+      capacity: 20,
+      isPublished: true,
+      registrationOpenHours: null,
+      registrationCloseHours: 0,
+      cancellationCloseHours: 0,
+      sessions: [
+        {
+          sessionIdentifier: 'S1',
+          name: 'Main Session',
+          startTime: sessionStart.toISOString(),
+          endTime: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+          capacity: 20,
+        },
+      ],
+      ticketTypes: [
+        {
+          name: 'Paid Ticket',
+          pricingType: 'Fixed',
+          price: 25.00,
+          sessionIdentifiers: ['S1'],
+        },
+        {
+          name: 'Free RSVP',
+          pricingType: 'Fixed',
+          price: 0,
+          sessionIdentifiers: ['S1'],
+        },
+      ],
+    };
+
+    console.log('Creating test event with paid and free tickets...');
+    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
+
+    if (createResponse.status !== 201 && createResponse.status !== 200) {
+      console.error('Failed to create test event:', createResponse);
+      await page.close();
+      return;
+    }
+
+    const responseData = createResponse.data as { id: string; ticketTypes?: Array<{ id: string; name: string }> };
+    testEventId = responseData.id;
+    console.log(`✅ Created test event: ${testEventId}`);
+
+    // Get ticket type IDs
+    const ticketTypes = responseData.ticketTypes || [];
+    paidTicketTypeId = ticketTypes.find((t) => t.name === 'Paid Ticket')?.id || null;
+    freeTicketTypeId = ticketTypes.find((t) => t.name === 'Free RSVP')?.id || null;
+
+    console.log(`✅ Paid ticket ID: ${paidTicketTypeId}`);
+    console.log(`✅ Free ticket ID: ${freeTicketTypeId}`);
+
+    await page.close();
+  });
+
+  test.afterAll(async ({ browser }) => {
+    if (!testEventId) return;
+
+    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
+    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
+    const context = await browser.newContext({ baseURL });
+    const page = await context.newPage();
+    await AuthHelpers.loginAs(page, 'admin');
+
+    console.log(`Cleaning up test event: ${testEventId}`);
+    await apiRequest(page, 'DELETE', `/api/admin/events/${testEventId}`);
+    console.log('✅ Test event deleted');
+
+    await page.close();
+  });
+
   test.beforeEach(async ({ page }) => {
     // Login as member before each test
     await AuthHelpers.loginAs(page, 'member');
 
-    // Cancel any existing registrations for this user to allow re-testing
-    await page.evaluate(async () => {
-      try {
-        // Get user's current participations using correct endpoint
-        const response = await fetch('/api/user/participations', {
-          credentials: 'include'
-        });
-        if (!response.ok) return;
+    // Cancel any existing registrations for this user on the test event
+    if (testEventId) {
+      await page.evaluate(async (eventId) => {
+        try {
+          const response = await fetch('/api/user/participations', {
+            credentials: 'include'
+          });
+          if (!response.ok) return;
 
-        const participations = await response.json();
-        console.log('Found participations:', participations.length);
+          const participations = await response.json();
 
-        // Cancel each active participation using DELETE /api/attendance/{id}
-        for (const p of participations) {
-          // Check for active status and valid ID
-          if (p.status === 'Active' && p.id) {
-            console.log(`Cancelling participation ${p.id} for event ${p.eventTitle}`);
-            const cancelResponse = await fetch(`/api/attendance/${p.id}`, {
-              method: 'DELETE',
-              credentials: 'include'
-            });
-            console.log(`Cancel result: ${cancelResponse.status}`);
-          }
-        }
-      } catch (e) {
-        // Ignore errors - just continue with the test
-        console.log('Could not clean up registrations:', e);
-      }
-    });
-  });
-
-  test('Complete ticket purchase with credit card', async ({ page }) => {
-    // Step 1: Find an event with available paid tickets, or cancel existing ticket to make one available
-    const eventData = await page.evaluate(async () => {
-      // Get all events
-      const eventsResponse = await fetch('/api/events', { credentials: 'include' });
-      if (!eventsResponse.ok) {
-        return { success: false, error: `Failed to fetch events: ${eventsResponse.status}` };
-      }
-      const events = await eventsResponse.json();
-
-      // Get user's current participations
-      const participationsResponse = await fetch('/api/user/participations', { credentials: 'include' });
-      const participations = participationsResponse.ok ? await participationsResponse.json() : [];
-
-      // Create a set of event IDs user already has tickets for
-      const userEventIds = new Set(participations.map((p: any) => p.eventId));
-
-      // First, try to find an event with paid tickets that user hasn't purchased yet
-      // Note: Use == null to catch both null and undefined for capacity
-      for (const event of events) {
-        if (event.ticketTypes && event.ticketTypes.length > 0) {
-          const paidTicket = event.ticketTypes.find(
-            (tt: any) => tt.price > 0 && (tt.capacity == null || tt.capacity > (tt.soldCount || 0))
-          );
-          if (paidTicket && !userEventIds.has(event.id)) {
-            return {
-              success: true,
-              eventId: event.id,
-              eventTitle: event.title,
-              ticketTypes: event.ticketTypes,
-              cancelled: false
-            };
-          }
-        }
-      }
-
-      // If no available events, find an event with paid ticket that user HAS purchased, cancel it
-      console.log('No available paid tickets found, looking for ticket to cancel...');
-
-      for (const participation of participations) {
-        if (participation.status === 'Active' && participation.id) {
-          // Find the corresponding event to check if it has paid tickets
-          const event = events.find((e: any) => e.id === participation.eventId);
-          if (event && event.ticketTypes) {
-            const hasPaidTicket = event.ticketTypes.some((tt: any) => tt.price > 0);
-            if (hasPaidTicket) {
-              // Cancel this participation
-              console.log(`Cancelling ticket for event: ${event.title} (participation ${participation.id})`);
-              const cancelResponse = await fetch(`/api/attendance/${participation.id}`, {
+          for (const p of participations) {
+            if (p.status === 'Active' && p.id && p.eventId === eventId) {
+              console.log(`Cancelling participation ${p.id}`);
+              await fetch(`/api/attendance/${p.id}`, {
                 method: 'DELETE',
                 credentials: 'include'
               });
-
-              if (cancelResponse.ok) {
-                console.log('Ticket cancelled successfully');
-                return {
-                  success: true,
-                  eventId: event.id,
-                  eventTitle: event.title,
-                  ticketTypes: event.ticketTypes,
-                  cancelled: true
-                };
-              } else {
-                console.log(`Cancel failed: ${cancelResponse.status}`);
-              }
             }
           }
+        } catch (e) {
+          console.log('Could not clean up registrations:', e);
         }
-      }
+      }, testEventId);
+    }
+  });
 
-      // Still no luck - try to find ANY event with paid tickets (even if user has it)
-      // The beforeEach should have cancelled all registrations anyway
-      for (const event of events) {
-        if (event.ticketTypes && event.ticketTypes.length > 0) {
-          const paidTicket = event.ticketTypes.find(
-            (tt: any) => tt.price > 0 && (tt.capacity == null || tt.capacity > (tt.soldCount || 0))
-          );
-          if (paidTicket) {
-            console.log(`Found event with paid ticket (may already own): ${event.title}`);
-            return {
-              success: true,
-              eventId: event.id,
-              eventTitle: event.title,
-              ticketTypes: event.ticketTypes,
-              cancelled: false
-            };
-          }
-        }
-      }
-
-      return { success: false, error: 'No events with paid tickets found in database' };
-    });
-
-    if (!eventData.success) {
-      console.log(`Skipping test: ${eventData.error}`);
-      test.skip();
+  test('Complete ticket purchase with credit card', async ({ page }) => {
+    if (!testEventId || !paidTicketTypeId) {
+      test.skip(true, 'Test event not created in beforeAll');
       return;
     }
 
-    if (eventData.cancelled) {
-      console.log('Cancelled existing ticket to free up slot for test');
-    }
-
-    console.log(`Found event: ${eventData.eventTitle} (${eventData.eventId})`);
-    console.log(`Available ticket types: ${eventData.ticketTypes.length}`);
+    console.log(`Using test event: ${testEventId}`);
 
     // Step 2: Navigate to checkout page
-    await page.goto(`/checkout/${eventData.eventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/checkout/${testEventId}`, { waitUntil: 'domcontentloaded' });
 
     // Wait for checkout page to load
     await page.waitForLoadState('networkidle');
@@ -185,15 +214,21 @@ test.describe('Ticket Purchase - Complete Workflow', () => {
     expect(ticketSelectionVisible || stepperVisible).toBeTruthy();
     console.log('Ticket selection step loaded');
 
-    // Step 4: If multiple ticket types, select one; otherwise verify auto-selection
-    if (eventData.ticketTypes.length > 1) {
-      // Find and check a ticket type checkbox
-      const ticketCheckbox = page.locator('input[type="checkbox"]').first();
-      if (await ticketCheckbox.isVisible()) {
-        const isChecked = await ticketCheckbox.isChecked();
-        if (!isChecked) {
-          await ticketCheckbox.check();
-        }
+    // Step 4: Select the paid ticket type
+    // Find and check the paid ticket checkbox
+    const ticketCheckbox = page.locator(`input[type="checkbox"][value="${paidTicketTypeId}"]`).last();
+    if (await ticketCheckbox.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const isChecked = await ticketCheckbox.isChecked();
+      if (!isChecked) {
+        await ticketCheckbox.check();
+        console.log('Selected paid ticket');
+      }
+    } else {
+      // Try clicking on the label with "Paid Ticket" text
+      const ticketLabel = page.locator('text=Paid Ticket').last();
+      if (await ticketLabel.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await ticketLabel.click();
+        console.log('Selected paid ticket via label');
       }
     }
 
@@ -294,43 +329,16 @@ test.describe('Ticket Purchase - Complete Workflow', () => {
   });
 
   test('Free RSVP ticket purchase completes successfully', async ({ page }) => {
-    // Find an event with a free ticket type
-    const eventData = await page.evaluate(async () => {
-      const response = await fetch('/api/events', { credentials: 'include' });
-      if (!response.ok) {
-        return { success: false, error: `Failed to fetch events: ${response.status}` };
-      }
-      const events = await response.json();
-
-      // Find an event with a free ticket (price === 0)
-      for (const event of events) {
-        if (event.ticketTypes && event.ticketTypes.length > 0) {
-          const freeTicket = event.ticketTypes.find((tt: any) => tt.price === 0);
-          if (freeTicket) {
-            return {
-              success: true,
-              eventId: event.id,
-              eventTitle: event.title,
-              ticketId: freeTicket.id,
-              ticketName: freeTicket.name
-            };
-          }
-        }
-      }
-      return { success: false, error: 'No events with free tickets found' };
-    });
-
-    if (!eventData.success) {
-      console.log(`Skipping test: ${eventData.error}`);
-      test.skip();
+    if (!testEventId || !freeTicketTypeId) {
+      test.skip(true, 'Test event not created in beforeAll');
       return;
     }
 
-    console.log(`Found event with free ticket: ${eventData.eventTitle}`);
-    console.log(`Free ticket: ${eventData.ticketName}`);
+    console.log(`Using test event: ${testEventId}`);
+    console.log(`Free ticket ID: ${freeTicketTypeId}`);
 
     // Navigate to checkout with the free ticket pre-selected
-    await page.goto(`/checkout/${eventData.eventId}?ticketTypeId=${eventData.ticketId}`, {
+    await page.goto(`/checkout/${testEventId}?ticketTypeId=${freeTicketTypeId}`, {
       waitUntil: 'domcontentloaded'
     });
 
@@ -443,26 +451,16 @@ test.describe('Ticket Purchase - Complete Workflow', () => {
   });
 
   test('Checkout requires authentication', async ({ page, context }) => {
-    // Clear authentication to test redirect
-    await context.clearCookies();
-
-    // Get an event ID
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
-
-    const eventId = await page.evaluate(async () => {
-      const response = await fetch('/api/events');
-      if (!response.ok) return null;
-      const events = await response.json();
-      return events[0]?.id || null;
-    });
-
-    if (!eventId) {
-      test.skip();
+    if (!testEventId) {
+      test.skip(true, 'Test event not created in beforeAll');
       return;
     }
 
+    // Clear authentication to test redirect
+    await context.clearCookies();
+
     // Try to access checkout without authentication
-    await page.goto(`/checkout/${eventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/checkout/${testEventId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     // Should be redirected to login page

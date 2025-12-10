@@ -69,7 +69,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     if (!testEvent) {
       console.log('⚠️ Session Timing Test Event not found - database may need reseeding');
       console.log('Available events:', response.data.map((e: any) => e.title));
-      test.skip();
+      test.fail(true, 'Session Timing Test Event not found - relies on seed data');
       return;
     }
 
@@ -150,7 +150,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     if (!testEvent) {
       console.log('⚠️ Session Timing Test Event not found');
-      test.skip();
+      test.fail(true, 'Session Timing Test Event not found - relies on seed data');
       return;
     }
 
@@ -198,7 +198,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     if (!testEvent) {
       console.log('⚠️ Session Timing Test Event not found');
-      test.skip();
+      test.fail(true, 'Session Timing Test Event not found - relies on seed data');
       return;
     }
 
@@ -248,7 +248,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     if (!testEvent) {
       console.log('⚠️ Session Timing Test Event not found');
-      test.skip();
+      test.fail(true, 'Session Timing Test Event not found - relies on seed data');
       return;
     }
 
@@ -296,7 +296,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     if (!testEvent) {
       console.log('⚠️ Session Timing Test Event not found in public events');
-      test.skip();
+      test.fail(true, 'Session Timing Test Event not found - relies on seed data');
       return;
     }
 
@@ -367,7 +367,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     if (!testEvent) {
       console.log('⚠️ Session Timing Test Event not found');
-      test.skip();
+      test.fail(true, 'Session Timing Test Event not found - relies on seed data');
       return;
     }
 

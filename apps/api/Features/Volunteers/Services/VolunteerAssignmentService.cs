@@ -358,7 +358,7 @@ public class VolunteerAssignmentService : IVolunteerAssignmentService
                 SceneName = u.SceneName,
                 Email = u.Email ?? string.Empty,
                 DiscordName = u.DiscordName,
-                RealName = !string.IsNullOrEmpty(u.FirstName) || !string.IsNullOrEmpty(u.LastName)
+                FullName = !string.IsNullOrEmpty(u.FirstName) || !string.IsNullOrEmpty(u.LastName)
                     ? $"{u.FirstName} {u.LastName}".Trim()
                     : null
             }).ToList();

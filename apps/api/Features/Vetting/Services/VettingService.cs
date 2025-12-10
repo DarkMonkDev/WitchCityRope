@@ -986,7 +986,8 @@ public class VettingService : IVettingService
             var application = new VettingApplication
             {
                 SceneName = request.SceneName,
-                RealName = request.RealName,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
                 Email = request.Email,
                 Pronouns = request.Pronouns,
                 ApplicationNumber = applicationNumber,
@@ -1046,7 +1047,7 @@ public class VettingService : IVettingService
                 var emailResult = await _emailService.SendApplicationConfirmationAsync(
                     application,
                     request.Email,
-                    request.SceneName ?? request.RealName,
+                    request.SceneName ?? $"{request.FirstName} {request.LastName}",
                     cancellationToken);
 
                 if (emailResult.IsSuccess)
@@ -1133,7 +1134,6 @@ public class VettingService : IVettingService
                 SceneName = request.PreferredSceneName,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                RealName = $"{request.FirstName} {request.LastName}", // Backward compatibility
                 Email = request.Email,
                 Pronouns = request.Pronouns,
                 FetLifeHandle = request.FetLifeHandle,

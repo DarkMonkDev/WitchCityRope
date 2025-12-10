@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { apiClient } from '../../../../lib/api/client';
 
 interface VariableRefundRequest {
   transactionId: string;
@@ -22,19 +23,11 @@ export const useVariableRefund = () => {
 
   return useMutation({
     mutationFn: async ({ transactionId, refundAmount, refundReason }: VariableRefundRequest): Promise<VariableRefundResponse> => {
-      const response = await fetch(`/api/payments/transactions/${transactionId}/refund`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ refundAmount, refundReason })
+      const response = await apiClient.post(`/api/payments/transactions/${transactionId}/refund`, {
+        refundAmount,
+        refundReason
       });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.detail || error.message || 'Refund failed');
-      }
-
-      return response.json();
+      return response.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['admin-payments'] });

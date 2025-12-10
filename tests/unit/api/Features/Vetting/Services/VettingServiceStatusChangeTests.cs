@@ -708,7 +708,8 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             UserId = userId.Value, // Always have a valid UserId
             SceneName = $"SceneName-{uniqueId}", // Unique SceneName
-            RealName = $"Real Name {uniqueId}",
+            FirstName = "Test",
+            LastName = $"User{uniqueId}",
             Email = $"test-{uniqueId}@example.com",
             ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{uniqueId}",
             StatusToken = Guid.NewGuid().ToString("N"),

@@ -138,8 +138,8 @@ apps/web/src/
 │   └── useCSRFToken.ts           ← CSRF token management
 ├── lib/api/hooks/
 │   └── useAuth.ts                ← useCurrentUser() only (server-verified user data)
-└── api/
-    └── client.ts                 ← Axios client with CSRF interceptor
+└── lib/api/
+    └── client.ts                 ← Axios client with CSRF interceptor (SINGLE canonical client)
 ```
 
 ---
@@ -519,24 +519,25 @@ WitchCityRope uses the **two-cookie pattern** for CSRF protection:
 
 ### Automatic CSRF Handling
 
-**File**: `/apps/web/src/api/client.ts`
+**File**: `/apps/web/src/lib/api/client.ts`
 
-The axios client automatically:
+The `apiClient` automatically:
 1. Fetches CSRF token before first request
 2. Includes `X-XSRF-TOKEN` header in all requests
 3. Refreshes token if expired
+4. Extracts RFC 9457 error messages in response interceptor
 
 ```typescript
 import axios from 'axios'
 import { getCSRFToken, initializeCSRFProtection } from '@/hooks/useCSRFToken'
 
-export const api = axios.create({
+export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true, // Send httpOnly cookies
 })
 
 // Request interceptor - add CSRF token
-api.interceptors.request.use(async (config) => {
+apiClient.interceptors.request.use(async (config) => {
   let token = getCSRFToken()
 
   if (!token) {
@@ -550,6 +551,21 @@ api.interceptors.request.use(async (config) => {
 
   return config
 })
+
+// Response interceptor - extract RFC 9457 error messages
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Extract user-friendly message from RFC 9457 Problem Details
+    if (error.response?.data) {
+      const { detail, title } = error.response.data
+      if (detail || title) {
+        error.message = detail || title
+      }
+    }
+    return Promise.reject(error)
+  }
+)
 ```
 
 ### Manual CSRF Initialization
@@ -573,42 +589,40 @@ onSuccess: async (data) => {
 
 ### Standard Error Pattern
 
-**File**: `/apps/web/src/lib/api/utils/errors.ts`
+**📖 MANDATORY**: See `/docs/standards-processes/frontend/api-error-handling-standard.md` for complete API error handling guide.
 
-```typescript
-export function extractErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    // RFC 9457 Problem Details format
-    if (error.response?.data?.title) {
-      return error.response.data.title
-    }
-    // Fallback to generic message
-    return error.response?.data?.message || 'An error occurred'
-  }
-  return 'An unexpected error occurred'
-}
-```
-
-**Usage in Mutations**:
-```typescript
-mutationFn: async (credentials: LoginRequest) => {
-  try {
-    const response = await api.post('/api/auth/login', credentials)
-    return response.data
-  } catch (error: any) {
-    const userFriendlyMessage = extractErrorMessage(error)
-    throw new Error(userFriendlyMessage)
-  }
-}
-```
+**Key Points**:
+- The `apiClient` (from `/apps/web/src/lib/api/client.ts`) has RFC 9457 error extraction built into its interceptor
+- Error messages are automatically extracted - `error.message` contains the API's user-friendly message
+- No need for manual `extractErrorMessage()` calls in most cases
 
 **Display in Component**:
 ```typescript
 {loginMutation.error && (
   <Alert color="red">
-    {loginMutation.error.message}
+    {loginMutation.error.message}  {/* Already extracted by apiClient interceptor */}
   </Alert>
 )}
+```
+
+**For mutations with notifications**, use `useApiMutation` from `/apps/web/src/lib/api/hooks/useApiMutation.ts`:
+```typescript
+import { useApiMutation } from '@/lib/api'
+import { apiClient } from '@/lib/api/client'
+
+const loginMutation = useApiMutation(
+  async (credentials: LoginRequest) => {
+    const response = await apiClient.post('/api/auth/login', credentials)
+    return response.data
+  },
+  {
+    successMessage: 'Login successful',
+    onSuccess: (data) => {
+      login(data.user)
+      navigate('/dashboard')
+    },
+  }
+)
 ```
 
 ---
@@ -763,29 +777,33 @@ app.MapPost("/api/...", handler)
 
 **Frontend - Automatic via Interceptor**:
 ```typescript
-// No manual code needed - axios interceptor handles it
-await api.post('/api/auth/logout') // ✅ CSRF token added automatically
+// No manual code needed - apiClient interceptor handles it
+await apiClient.post('/api/auth/logout') // ✅ CSRF token added automatically
 ```
 
 ### 📝 Error Message Standards
 
-**Always use extractErrorMessage utility**:
+**`apiClient` automatically extracts RFC 9457 error messages** - no manual extraction needed:
 ```typescript
-import { extractErrorMessage } from '@/lib/api/utils/errors'
+import { apiClient } from '@/lib/api/client'
 
 try {
-  await api.post('/api/auth/login', credentials)
+  await apiClient.post('/api/auth/login', credentials)
 } catch (error: any) {
-  const userFriendlyMessage = extractErrorMessage(error)
-  throw new Error(userFriendlyMessage)
+  // error.message already contains the API's user-friendly message
+  // No need for extractErrorMessage() - interceptor handles it
+  console.log(error.message) // e.g., "Invalid email or password"
 }
 ```
+
+**📖 See**: `/docs/standards-processes/frontend/api-error-handling-standard.md` for complete patterns
 
 ---
 
 ## Related Documentation
 
 - [Technology Research Document](/docs/functional-areas/authentication/research/2025-11-23-authentication-pattern-research.md) - Why we chose this pattern
+- [API Error Handling Standard](/docs/standards-processes/frontend/api-error-handling-standard.md) - **MANDATORY** for all API error handling
 - [React Patterns](/docs/standards-processes/frontend/react-patterns.md) - General React guidelines
 - [API Design Patterns](/docs/standards-processes/backend/api-design-patterns.md) - Backend API standards
 - [Error Handling Patterns](/docs/standards-processes/backend/error-handling-patterns.md) - Error response standards
@@ -803,6 +821,6 @@ If you encounter authentication-related issues:
 
 ---
 
-**Last Updated**: 2025-11-23
+**Last Updated**: 2025-12-09
 **Author**: WitchCityRope Development Team
-**Version**: 1.0
+**Version**: 1.1 (Updated error handling to reference new API error handling standard)

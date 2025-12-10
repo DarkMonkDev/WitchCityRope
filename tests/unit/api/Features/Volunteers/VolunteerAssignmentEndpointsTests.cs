@@ -424,7 +424,7 @@ public class VolunteerAssignmentEndpointsTests
             {
                 UserId = Guid.NewGuid(),
                 SceneName = "TestUser1",
-                RealName = "Test User One",
+                FullName = "Test User One",
                 Email = "test1@example.com",
                 DiscordName = "Discord1"
             }

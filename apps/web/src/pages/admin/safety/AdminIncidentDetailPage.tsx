@@ -4,6 +4,7 @@ import { Container, Stack, Title, Card, Group, Button, Text, Loader, Alert, Text
 import { IconArrowLeft, IconUserPlus, IconAlertCircle, IconCheck, IconClock, IconX, IconEdit, IconDeviceFloppy } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
+import { apiClient } from '@/lib/api/client';
 import { IncidentDetailsCard } from '@/features/safety/components/IncidentDetailsCard';
 import { PeopleInvolvedCard } from '@/features/safety/components/PeopleInvolvedCard';
 import { InvestigationNotes, InvestigationNotesRef } from '@/features/safety/components/InvestigationNotes';
@@ -67,19 +68,8 @@ export const AdminIncidentDetailPage: React.FC = () => {
   const { data: incident, isLoading, error } = useQuery<SafetyIncidentDetailDto>({
     queryKey: ['safety', 'incident', id],
     queryFn: async () => {
-      const response = await fetch(`/api/safety/admin/incidents/${id}`, {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        const status = response.status;
-        if (status === 401) {
-          throw new Error('Authentication required. Please log in.');
-        } else if (status === 404) {
-          throw new Error(`Incident with ID "${id}" was not found.`);
-        }
-        throw new Error('Failed to fetch incident');
-      }
-      return response.json();
+      const response = await apiClient.get(`/api/safety/admin/incidents/${id}`);
+      return response.data;
     },
     enabled: !!id
   });
@@ -87,14 +77,11 @@ export const AdminIncidentDetailPage: React.FC = () => {
   // Status update mutation
   const statusMutation = useMutation<unknown, Error, { newStatus: IncidentStatus; notes?: string }>({
     mutationFn: async ({ newStatus, notes }) => {
-      const response = await fetch(`/api/safety/admin/incidents/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ newStatus, notes }),
+      const response = await apiClient.put(`/api/safety/admin/incidents/${id}/status`, {
+        newStatus,
+        notes
       });
-      if (!response.ok) throw new Error('Failed to update status');
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'incident', id] });

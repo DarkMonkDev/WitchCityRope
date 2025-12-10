@@ -8,7 +8,7 @@
  * IMPORTANT: Call initializeCSRFProtection() after login
  */
 
-import { api } from '../api/client'
+import { apiClient } from '../lib/api/client'
 
 /**
  * Utility function to get CSRF token synchronously from cookie
@@ -44,7 +44,7 @@ export async function initializeCSRFProtection(): Promise<void> {
   try {
     // Fetch token endpoint - backend will set XSRF-TOKEN cookie
     // Using axios instead of fetch to ensure baseURL is applied correctly
-    await api.get('/api/antiforgery/token')
+    await apiClient.get('/api/antiforgery/token')
 
     console.log('✅ CSRF protection initialized')
   } catch (error) {

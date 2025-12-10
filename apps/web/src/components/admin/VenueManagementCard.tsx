@@ -14,7 +14,7 @@ import { IconBuilding, IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
-import { api } from '../../api/client';
+import { apiClient } from '../../lib/api/client';
 import type { components } from '@witchcityrope/shared-types';
 
 type VenueDto = components['schemas']['VenueDto'];
@@ -58,7 +58,7 @@ export const VenueManagementCard: React.FC = () => {
   const { data: venues, isLoading } = useQuery<VenueDto[]>({
     queryKey: ['admin', 'venues', 'active'],
     queryFn: async () => {
-      const response = await api.get<VenueDto[]>('/api/admin/venues/active');
+      const response = await apiClient.get<VenueDto[]>('/api/admin/venues/active');
       return response.data || [];
     },
   });
@@ -66,7 +66,7 @@ export const VenueManagementCard: React.FC = () => {
   // Create venue mutation
   const createMutation = useMutation({
     mutationFn: async (data: CreateVenueRequest) => {
-      const response = await api.post<VenueDto>('/api/admin/venues', data);
+      const response = await apiClient.post<VenueDto>('/api/admin/venues', data);
       return response.data;
     },
     onSuccess: () => {
@@ -83,7 +83,7 @@ export const VenueManagementCard: React.FC = () => {
     onError: (error: any) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to create venue',
+        message: error instanceof Error ? error.message : 'Failed to create venue',
         color: 'red',
         icon: <IconAlertCircle />,
       });
@@ -93,7 +93,7 @@ export const VenueManagementCard: React.FC = () => {
   // Update venue mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UpdateVenueRequest }) => {
-      const response = await api.put<VenueDto>(`/api/admin/venues/${id}`, data);
+      const response = await apiClient.put<VenueDto>(`/api/admin/venues/${id}`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -108,7 +108,7 @@ export const VenueManagementCard: React.FC = () => {
     onError: (error: any) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to update venue',
+        message: error instanceof Error ? error.message : 'Failed to update venue',
         color: 'red',
         icon: <IconAlertCircle />,
       });
@@ -118,7 +118,7 @@ export const VenueManagementCard: React.FC = () => {
   // Delete venue mutation (soft delete - sets IsActive = false)
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await api.delete(`/api/admin/venues/${id}`);
+      await apiClient.delete(`/api/admin/venues/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'venues', 'active'] });
@@ -134,7 +134,7 @@ export const VenueManagementCard: React.FC = () => {
     onError: (error: any) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to delete venue',
+        message: error instanceof Error ? error.message : 'Failed to delete venue',
         color: 'red',
         icon: <IconAlertCircle />,
       });
