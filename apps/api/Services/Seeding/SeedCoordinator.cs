@@ -175,10 +175,8 @@ public class SeedCoordinator : ISeedDataService
             _logger.LogDebug("Seeding vetting applications...");
             await _vettingSeeder.SeedVettingApplicationsAsync(cancellationToken);
 
-            _logger.LogDebug("Seeding vetting email templates...");
-            await _vettingSeeder.SeedVettingEmailTemplatesAsync(cancellationToken);
-
             // Dev/staging uses admin@witchcityrope.com (default), production uses ropemaster@witchcityrope.com
+            // Note: Vetting email templates are now seeded by EmailTemplateSeeder.SeedVettingTemplatesAsync()
             _logger.LogDebug("Seeding email templates (Events, Admin, Incident, Ad Hoc)...");
             await _emailTemplateSeeder.SeedAsync(adminUserEmail: "admin@witchcityrope.com", cancellationToken);
 

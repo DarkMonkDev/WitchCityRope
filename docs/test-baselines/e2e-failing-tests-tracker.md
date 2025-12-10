@@ -14,13 +14,27 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 3. **When re-running tests**: Update failure reasons if they changed
 
 ## Test Run Info
-- **Date**: December 10, 2025 (Last Updated - Phase 5 Complete)
-- **Total Tests**: 783 (2 obsolete tests deleted)
-- **Passed**: 681
-- **Failed**: ~100 (includes tests converted from skip to fail)
+- **Date**: December 10, 2025 (Last Updated - Phase 6 Complete)
+- **Total Tests**: 785+ (includes newly fixed tests)
+- **Passed**: 705+ (24 more tests now passing)
+- **Failed**: ~76 (reduced from ~100)
 - **Skipped**: 1 (token revocation only)
-- **Pass Rate**: **~87%**
+- **Pass Rate**: **~89%** (up from 87%)
 - **Run Time**: ~10 minutes
+
+### ✅ Phase 6 Complete: API Endpoint & CSRF Fixes (December 10, 2025)
+
+**Fixed 24 tests across 4 test files** that were failing due to:
+1. Wrong API endpoint (`/api/admin/events` → `/api/events`)
+2. Missing CSRF token in POST requests
+3. Stray syntax errors from earlier edit attempts
+
+| File | Tests Fixed | Root Cause |
+|------|-------------|------------|
+| `multi-ticket-purchase.spec.ts` | 3 | Wrong endpoint + CSRF + confirmation locator |
+| `session-availability-counts.spec.ts` | 7 | Wrong endpoint + CSRF + syntax errors |
+| `ticket-purchase-e2e.spec.ts` | 3 | Wrong endpoint + CSRF |
+| `admin-events-workflow.spec.ts` | 11 | Wrong endpoint + CSRF + syntax error |
 
 ### ✅ Phase 5 Complete: Skipped Tests Fixed (December 10, 2025)
 
@@ -38,14 +52,14 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 - `test.fail()` marks tests as "expected failures" - they show in results but don't break CI
 
 ### Progress Comparison
-| Metric | Dec 2 | Dec 7 | Dec 9 | Dec 10 (Before) | Dec 10 (After) |
-|--------|-------|-------|-------|-----------------|----------------|
-| Passed | 622 | 643 | 688 | 681 | 681 |
-| Failed | 111 | 92 | 38 | 72 | ~100 |
-| Skipped | 74 | 72 | 83 | 32 | **1** |
-| Pass Rate | 84.9% | 87.4% | 85.0% | 86.7% | **~87%** |
+| Metric | Dec 2 | Dec 7 | Dec 9 | Dec 10 (Phase 5) | Dec 10 (Phase 6) |
+|--------|-------|-------|-------|------------------|------------------|
+| Passed | 622 | 643 | 688 | 681 | **705+** |
+| Failed | 111 | 92 | 38 | ~100 | **~76** |
+| Skipped | 74 | 72 | 83 | 1 | **1** |
+| Pass Rate | 84.9% | 87.4% | 85.0% | ~87% | **~89%** |
 
-**Note**: Failed count increased because ~50 tests moved from "hidden skip" to "visible fail".
+**Note**: Phase 6 fixed 24 tests by correcting API endpoints and adding CSRF token support.
 
 ---
 
@@ -55,21 +69,21 @@ These tests previously skipped silently but have been **converted to `test.fail(
 
 ### Files Updated with test.fail()
 
-| File | Tests Converted | Issue |
-|------|-----------------|-------|
-| `admin-checkin-sessions.spec.ts` | 8 | Checkin Link button / Session select not found |
-| `ticket-cancellation-selective.spec.ts` | 4 | Cancel button not visible / beforeAll failed |
-| `volunteer-session-validation.spec.ts` | 1 | Volunteer section not visible |
-| `multi-ticket-purchase.spec.ts` | 3 | Test event not created in beforeAll |
-| `vetting-workflow.spec.ts` | 13 | No applications found / buttons not visible |
-| `session-availability-counts.spec.ts` | 3 | No multi-session event found |
-| `ticket-purchase-e2e.spec.ts` | 3 | Test event not created |
-| `checkin-attendee-workflow.spec.ts` | 4 | Event/attendees not found |
-| `session-based-timing.spec.ts` | 5 | No events with ticket options found |
-| `session-ticket-availability.spec.ts` | 6 | Session Timing Test Event not found |
-| `admin-events-workflow.spec.ts` | 3 | No events found / add session button not found |
-| `event-update-complete-flow.spec.ts` | 3 | No events available to test with |
-| `comprehensive-timing-tests.spec.ts` | 1 | No volunteer positions returned |
+| File | Tests | Status | Issue |
+|------|-------|--------|-------|
+| `admin-checkin-sessions.spec.ts` | 8 | 🔴 Still failing | Checkin Link button / Session select not found |
+| `ticket-cancellation-selective.spec.ts` | 4 | 🔴 Still failing | Cancel button not visible / beforeAll failed |
+| `volunteer-session-validation.spec.ts` | 1 | 🔴 Still failing | Volunteer section not visible |
+| `multi-ticket-purchase.spec.ts` | 3 | ✅ **FIXED (Phase 6)** | Was: wrong endpoint + missing CSRF |
+| `vetting-workflow.spec.ts` | 13 | 🔴 **NEEDS BACKEND WORK** | See detailed section below |
+| `session-availability-counts.spec.ts` | 7 | ✅ **FIXED (Phase 6)** | Was: wrong endpoint + missing CSRF |
+| `ticket-purchase-e2e.spec.ts` | 3 | ✅ **FIXED (Phase 6)** | Was: wrong endpoint + missing CSRF |
+| `checkin-attendee-workflow.spec.ts` | 4 | 🔴 Still failing | Event/attendees not found |
+| `session-based-timing.spec.ts` | 5 | 🔴 Still failing | No events with ticket options found |
+| `session-ticket-availability.spec.ts` | 6 | 🔴 Still failing | Session Timing Test Event not found |
+| `admin-events-workflow.spec.ts` | 11 | ✅ **FIXED (Phase 6)** | Was: wrong endpoint + missing CSRF |
+| `event-update-complete-flow.spec.ts` | 3 | 🔴 Still failing | No events available to test with |
+| `comprehensive-timing-tests.spec.ts` | 1 | 🔴 Still failing | No volunteer positions returned |
 
 ### Tests Deleted (December 10, 2025)
 

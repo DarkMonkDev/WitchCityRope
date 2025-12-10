@@ -548,19 +548,6 @@ public class VettingSeeder
     }
 
     /// <summary>
-    /// Seeds default email templates for the vetting system workflow.
-    /// OBSOLETE: Vetting email templates have been migrated to the GlobalEmailTemplates system.
-    /// This method is kept for backward compatibility but does nothing.
-    /// Templates are now seeded by EmailTemplateSeeder.SeedVettingTemplatesAsync()
-    /// </summary>
-    [Obsolete("Vetting templates now use GlobalEmailTemplates system. See EmailTemplateSeeder.SeedVettingTemplatesAsync()")]
-    public async Task SeedVettingEmailTemplatesAsync(CancellationToken cancellationToken = default)
-    {
-        _logger.LogInformation("VettingSeeder.SeedVettingEmailTemplatesAsync called - OBSOLETE: Vetting templates now managed by GlobalEmailTemplates system");
-        await Task.CompletedTask;
-    }
-
-    /// <summary>
     /// Creates audit log entries showing workflow progression for vetting applications.
     /// Generates realistic audit trail based on current workflow status.
     ///
