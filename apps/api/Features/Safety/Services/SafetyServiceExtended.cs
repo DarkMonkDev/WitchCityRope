@@ -304,7 +304,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 {
                     Id = u.Id,
                     SceneName = u.SceneName ?? u.Email ?? "Unknown",
-                    RealName = (u.FirstName != null && u.LastName != null)
+                    FullName = (u.FirstName != null && u.LastName != null)
                         ? $"{u.FirstName} {u.LastName}"
                         : (u.FirstName ?? u.LastName ?? ""),
                     Role = u.Role ?? "Member",

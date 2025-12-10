@@ -12,7 +12,8 @@ public class VettingApplicationDetail
     public DateTime LastUpdated { get; set; }
 
     // Decrypted applicant information
-    public string RealName { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
     public string SceneName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? FetLifeHandle { get; set; }

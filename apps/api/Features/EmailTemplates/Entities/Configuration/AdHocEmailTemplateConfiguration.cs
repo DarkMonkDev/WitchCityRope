@@ -7,7 +7,25 @@ public class AdHocEmailTemplateConfiguration : IEntityTypeConfiguration<AdHocEma
 {
     public void Configure(EntityTypeBuilder<AdHocEmailTemplate> builder)
     {
-        builder.ToTable("AdHocEmailTemplates");
+        builder.ToTable("AdHocEmailTemplates", "public", t =>
+        {
+            t.HasCheckConstraint(
+                "CHK_AdHocEmailTemplates_TemplateName_NotEmpty",
+                "LENGTH(TRIM(\"TemplateName\")) > 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_AdHocEmailTemplates_Subject_NotEmpty",
+                "LENGTH(TRIM(\"Subject\")) > 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_AdHocEmailTemplates_HtmlBody_NotEmpty",
+                "LENGTH(TRIM(\"HtmlBody\")) > 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_AdHocEmailTemplates_PlainTextBody_NotEmpty",
+                "LENGTH(TRIM(\"PlainTextBody\")) > 0"
+            );
+        });
 
         // Primary Key
         builder.HasKey(e => e.Id);
@@ -57,25 +75,5 @@ public class AdHocEmailTemplateConfiguration : IEntityTypeConfiguration<AdHocEma
         builder.HasIndex(e => e.TemplateName)
             .HasDatabaseName("IX_AdHocEmailTemplates_TemplateName");
 
-        // Check Constraints
-        builder.HasCheckConstraint(
-            "CHK_AdHocEmailTemplates_TemplateName_NotEmpty",
-            "LENGTH(TRIM(\"TemplateName\")) > 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_AdHocEmailTemplates_Subject_NotEmpty",
-            "LENGTH(TRIM(\"Subject\")) > 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_AdHocEmailTemplates_HtmlBody_NotEmpty",
-            "LENGTH(TRIM(\"HtmlBody\")) > 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_AdHocEmailTemplates_PlainTextBody_NotEmpty",
-            "LENGTH(TRIM(\"PlainTextBody\")) > 0"
-        );
     }
 }

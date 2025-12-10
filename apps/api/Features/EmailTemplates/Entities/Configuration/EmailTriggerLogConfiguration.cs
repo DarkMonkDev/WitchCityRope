@@ -7,7 +7,17 @@ public class EmailTriggerLogConfiguration : IEntityTypeConfiguration<EmailTrigge
 {
     public void Configure(EntityTypeBuilder<EmailTriggerLog> builder)
     {
-        builder.ToTable("EmailTriggerLogs");
+        builder.ToTable("EmailTriggerLogs", "public", t =>
+        {
+            t.HasCheckConstraint(
+                "CHK_EmailTriggerLogs_Status",
+                "\"Status\" IN ('Sent', 'Failed', 'Skipped')"
+            );
+            t.HasCheckConstraint(
+                "CHK_EmailTriggerLogs_RecipientCount",
+                "\"RecipientCount\" >= 0"
+            );
+        });
 
         // Primary Key
         builder.HasKey(e => e.Id);
@@ -102,15 +112,5 @@ public class EmailTriggerLogConfiguration : IEntityTypeConfiguration<EmailTrigge
             .HasDatabaseName("IX_EmailTriggerLogs_Failed_TriggeredAt")
             .HasFilter("\"Status\" = 'Failed'");
 
-        // Check Constraints
-        builder.HasCheckConstraint(
-            "CHK_EmailTriggerLogs_Status",
-            "\"Status\" IN ('Sent', 'Failed', 'Skipped')"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_EmailTriggerLogs_RecipientCount",
-            "\"RecipientCount\" >= 0"
-        );
     }
 }

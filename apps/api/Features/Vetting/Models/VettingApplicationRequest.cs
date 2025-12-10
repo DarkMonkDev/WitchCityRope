@@ -8,8 +8,12 @@ namespace WitchCityRope.Api.Features.Vetting.Models;
 public class VettingApplicationRequest
 {
     [Required]
-    [StringLength(100, MinimumLength = 2)]
-    public string RealName { get; set; } = string.Empty;
+    [StringLength(50, MinimumLength = 1)]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public string LastName { get; set; } = string.Empty;
 
     [Required]
     [StringLength(50, MinimumLength = 2)]

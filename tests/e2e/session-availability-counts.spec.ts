@@ -11,29 +11,54 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Helper to make authenticated API request using page.evaluate (works in browser context)
+// Helper to get CSRF token from cookies, fetching it if not present
+async function getCsrfToken(page: Page): Promise<string | null> {
+  let cookies = await page.context().cookies();
+  let csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
+
+  // If CSRF token not found, fetch it from the API
+  if (!csrfCookie) {
+    await page.request.get('/api/antiforgery/token');
+    cookies = await page.context().cookies();
+    csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
+  }
+
+  return csrfCookie?.value || null;
+}
+
+// Helper to make authenticated API request with CSRF token support
 async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
-  const response = await page.evaluate(async ({ method, url, data }) => {
-    const options: RequestInit = {
-      method,
-      credentials: 'include',
-      headers: data ? { 'Content-Type': 'application/json' } : {},
-    };
+  const headers: Record<string, string> = {};
 
-    if (data) {
-      options.body = JSON.stringify(data);
+  // Get CSRF token for state-changing requests
+  if (method !== 'GET') {
+    const csrfToken = await getCsrfToken(page);
+    if (csrfToken) {
+      headers['X-CSRF-TOKEN'] = csrfToken;
     }
+  }
 
-    const res = await fetch(url, options);
-    const text = await res.text();
-    try {
-      return { status: res.status, data: JSON.parse(text) };
-    } catch {
-      return { status: res.status, data: text };
-    }
-  }, { method, url, data });
+  if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
 
-  return response;
+  const options: Parameters<typeof page.request.fetch>[1] = {
+    method,
+    headers,
+  };
+
+  if (data) {
+    options.data = data;
+  }
+
+  const response = await page.request.fetch(url, options);
+  const text = await response.text();
+
+  try {
+    return { status: response.status(), data: JSON.parse(text) };
+  } catch {
+    return { status: response.status(), data: text };
+  }
 }
 
 test.describe('Session Availability Counts', () => {
@@ -107,7 +132,7 @@ test.describe('Session Availability Counts', () => {
     };
 
     console.log('Creating multi-session test event...');
-    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
+    const createResponse = await apiRequest(page, 'POST', '/api/events', eventData);
 
     if (createResponse.status === 200 || createResponse.status === 201) {
       const responseData = createResponse.data as { id: string };
@@ -120,20 +145,12 @@ test.describe('Session Availability Counts', () => {
     await page.close();
   });
 
-  test.afterAll(async ({ browser }) => {
-    if (!testEventId) return;
-
-    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
-    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
-    const context = await browser.newContext({ baseURL });
-    const page = await context.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    console.log(`Cleaning up test event: ${testEventId}`);
-    await apiRequest(page, 'DELETE', `/api/admin/events/${testEventId}`);
-    console.log('✅ Test event deleted');
-
-    await page.close();
+  test.afterAll(async () => {
+    // Note: No DELETE endpoint for events exists currently
+    // Test events are created with unique timestamps so cleanup is not critical
+    if (testEventId) {
+      console.log(`Test event ${testEventId} was created - no cleanup endpoint available`);
+    }
   });
 
   test.describe('API Tests', () => {
@@ -211,10 +228,7 @@ test.describe('Session Availability Counts', () => {
     });
 
     test('should have consistent counts between events API and participation API', async ({ page }) => {
-      if (!testEventId) {
-        test.skip(true, 'Test event not created in beforeAll');
-        return;
-      }
+      expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
 
       // Login using AuthHelpers (MANDATORY)
       await AuthHelpers.loginAs(page, 'vetted');
@@ -246,10 +260,7 @@ test.describe('Session Availability Counts', () => {
   test.describe('UI Tests', () => {
 
     test('should display session availability on event details page', async ({ page }) => {
-      if (!testEventId) {
-        test.skip(true, 'Test event not created in beforeAll');
-        return;
-      }
+      expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
 
       // Login using AuthHelpers (MANDATORY)
       await AuthHelpers.loginAs(page, 'vetted');
@@ -330,10 +341,7 @@ test.describe('Session Availability Counts', () => {
   test.describe('Data Integrity Tests', () => {
 
     test('should correctly count tickets via TicketPurchase -> TicketType -> TicketTypeSessions chain', async ({ page }) => {
-      if (!testEventId) {
-        test.skip(true, 'Test event not created in beforeAll');
-        return;
-      }
+      expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
 
       // This test verifies the fix for legacy tickets without SessionId
       // which need to be counted via the TicketPurchase relationship

@@ -111,7 +111,7 @@ describe('VettingAdminApiService', () => {
         priorityFilters: [1, 2],
         skillsFilters: ['Rope', 'Bondage'],
         searchQuery: 'test user',
-        sortBy: 'RealName',
+        sortBy: 'LastName',
         sortDirection: 'Asc'
       };
 

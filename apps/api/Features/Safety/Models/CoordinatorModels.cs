@@ -27,9 +27,9 @@ public class UserCoordinatorDto
     public string SceneName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Real name
+    /// Full name (combined first and last name)
     /// </summary>
-    public string RealName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
 
     /// <summary>
     /// User role

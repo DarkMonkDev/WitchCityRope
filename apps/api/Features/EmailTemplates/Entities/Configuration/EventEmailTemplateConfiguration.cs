@@ -7,7 +7,29 @@ public class EventEmailTemplateConfiguration : IEntityTypeConfiguration<EventEma
 {
     public void Configure(EntityTypeBuilder<EventEmailTemplate> builder)
     {
-        builder.ToTable("EventEmailTemplates");
+        builder.ToTable("EventEmailTemplates", "public", t =>
+        {
+            t.HasCheckConstraint(
+                "CHK_EventEmailTemplates_Subject_NotEmpty",
+                "LENGTH(TRIM(\"Subject\")) > 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_EventEmailTemplates_OverrideTimingOffsetDays",
+                "\"OverrideTimingOffsetDays\" IS NULL OR (\"OverrideTimingOffsetDays\" >= -365 AND \"OverrideTimingOffsetDays\" <= 365)"
+            );
+            t.HasCheckConstraint(
+                "CHK_EventEmailTemplates_OverrideRecipientGroup",
+                "\"OverrideRecipientGroup\" IS NULL OR \"OverrideRecipientGroup\" IN (0, 1, 2, 3)"
+            );
+            t.HasCheckConstraint(
+                "CHK_EventEmailTemplates_HtmlBody_NotEmpty",
+                "LENGTH(TRIM(\"HtmlBody\")) > 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_EventEmailTemplates_PlainTextBody_NotEmpty",
+                "LENGTH(TRIM(\"PlainTextBody\")) > 0"
+            );
+        });
 
         // Primary Key
         builder.HasKey(e => e.Id);
@@ -109,30 +131,5 @@ public class EventEmailTemplateConfiguration : IEntityTypeConfiguration<EventEma
             .IsRequired(false) // Nullable
             .HasConversion<int>(); // Stored as int when set
 
-        // Check Constraints
-        builder.HasCheckConstraint(
-            "CHK_EventEmailTemplates_Subject_NotEmpty",
-            "LENGTH(TRIM(\"Subject\")) > 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_EventEmailTemplates_OverrideTimingOffsetDays",
-            "\"OverrideTimingOffsetDays\" IS NULL OR (\"OverrideTimingOffsetDays\" >= -365 AND \"OverrideTimingOffsetDays\" <= 365)"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_EventEmailTemplates_OverrideRecipientGroup",
-            "\"OverrideRecipientGroup\" IS NULL OR \"OverrideRecipientGroup\" IN (0, 1, 2, 3)"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_EventEmailTemplates_HtmlBody_NotEmpty",
-            "LENGTH(TRIM(\"HtmlBody\")) > 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_EventEmailTemplates_PlainTextBody_NotEmpty",
-            "LENGTH(TRIM(\"PlainTextBody\")) > 0"
-        );
     }
 }

@@ -7,7 +7,21 @@ public class SentAdHocEmailConfiguration : IEntityTypeConfiguration<SentAdHocEma
 {
     public void Configure(EntityTypeBuilder<SentAdHocEmail> builder)
     {
-        builder.ToTable("SentAdHocEmails");
+        builder.ToTable("SentAdHocEmails", "public", t =>
+        {
+            t.HasCheckConstraint(
+                "CHK_SentAdHocEmails_Subject_NotEmpty",
+                "LENGTH(TRIM(\"Subject\")) > 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_SentAdHocEmails_RecipientCount",
+                "\"RecipientCount\" >= 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_SentAdHocEmails_DeliveryStatus",
+                "\"DeliveryStatus\" IN ('Pending', 'Scheduled', 'Sent', 'Delivered', 'Failed', 'Bounced')"
+            );
+        });
 
         // Primary Key
         builder.HasKey(e => e.Id);
@@ -99,20 +113,5 @@ public class SentAdHocEmailConfiguration : IEntityTypeConfiguration<SentAdHocEma
             .HasDatabaseName("IX_SentAdHocEmails_Scheduled_Pending")
             .HasFilter("\"ScheduledSendAt\" IS NOT NULL AND \"DeliveryStatus\" = 'Pending'");
 
-        // Check Constraints
-        builder.HasCheckConstraint(
-            "CHK_SentAdHocEmails_Subject_NotEmpty",
-            "LENGTH(TRIM(\"Subject\")) > 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_SentAdHocEmails_RecipientCount",
-            "\"RecipientCount\" >= 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_SentAdHocEmails_DeliveryStatus",
-            "\"DeliveryStatus\" IN ('Pending', 'Scheduled', 'Sent', 'Delivered', 'Failed', 'Bounced')"
-        );
     }
 }

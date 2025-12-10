@@ -31,29 +31,54 @@
 import { test, expect, Page, APIRequestContext } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Helper to make authenticated API request using page.evaluate (works in browser context)
+// Helper to get CSRF token from cookies, fetching it if not present
+async function getCsrfToken(page: Page): Promise<string | null> {
+  let cookies = await page.context().cookies();
+  let csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
+
+  // If CSRF token not found, fetch it from the API
+  if (!csrfCookie) {
+    await page.request.get('/api/antiforgery/token');
+    cookies = await page.context().cookies();
+    csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
+  }
+
+  return csrfCookie?.value || null;
+}
+
+// Helper to make authenticated API request with CSRF token support
 async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
-  const response = await page.evaluate(async ({ method, url, data }) => {
-    const options: RequestInit = {
-      method,
-      credentials: 'include',
-      headers: data ? { 'Content-Type': 'application/json' } : {},
-    };
+  const headers: Record<string, string> = {};
 
-    if (data) {
-      options.body = JSON.stringify(data);
+  // Get CSRF token for state-changing requests
+  if (method !== 'GET') {
+    const csrfToken = await getCsrfToken(page);
+    if (csrfToken) {
+      headers['X-CSRF-TOKEN'] = csrfToken;
     }
+  }
 
-    const res = await fetch(url, options);
-    const text = await res.text();
-    try {
-      return { status: res.status, data: JSON.parse(text) };
-    } catch {
-      return { status: res.status, data: text };
-    }
-  }, { method, url, data });
+  if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
 
-  return response;
+  const options: Parameters<typeof page.request.fetch>[1] = {
+    method,
+    headers,
+  };
+
+  if (data) {
+    options.data = data;
+  }
+
+  const response = await page.request.fetch(url, options);
+  const text = await response.text();
+
+  try {
+    return { status: response.status(), data: JSON.parse(text) };
+  } catch {
+    return { status: response.status(), data: text };
+  }
 }
 
 test.describe('Multi-Ticket Purchase Flow', () => {
@@ -150,7 +175,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     };
 
     console.log('Creating test event with 2 sessions and 3 ticket types...');
-    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
+    const createResponse = await apiRequest(page, 'POST', '/api/events', eventData);
 
     if (createResponse.status !== 201 && createResponse.status !== 200) {
       console.error('Failed to create test event:', createResponse);
@@ -182,29 +207,18 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     await page.close();
   });
 
-  test.afterAll(async ({ browser }) => {
-    // Cleanup: Delete test event
-    if (!testEventId) return;
-
-    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
-    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
-    const context = await browser.newContext({ baseURL });
-    const page = await context.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    console.log(`Cleaning up test event: ${testEventId}`);
-    await apiRequest(page, 'DELETE', `/api/admin/events/${testEventId}`);
-    console.log('✅ Test event deleted');
-
-    await page.close();
+  test.afterAll(async () => {
+    // Note: No DELETE endpoint for events exists currently
+    // Test events are created with unique timestamps so cleanup is not critical
+    if (testEventId) {
+      console.log(`Test event ${testEventId} was created - no cleanup endpoint available`);
+    }
   });
 
   test('user can purchase Day 1 Only and Day 2 Only tickets together', async ({ page }) => {
-    if (!testEventId || !ticketTypeDay1Id || !ticketTypeDay2Id) {
-      console.log('Test event not created');
-      test.skip(true, 'Test event not created in beforeAll - check event creation');
-      return;
-    }
+    expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
+    expect(ticketTypeDay1Id, 'Day 1 ticket type should exist').toBeTruthy();
+    expect(ticketTypeDay2Id, 'Day 2 ticket type should exist').toBeTruthy();
 
     // Login as member
     await AuthHelpers.loginAs(page, 'member');
@@ -293,9 +307,10 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     // Take screenshot after payment
     await page.screenshot({ path: './test-results/multi-ticket-after-pay.png' });
 
-    // Verify confirmation
-    const confirmationIndicator = page.locator('text=/confirmation|success|thank you|complete/i').first();
-    await expect(confirmationIndicator).toBeVisible({ timeout: 10000 });
+    // Verify confirmation - look for visible confirmation content
+    // The page shows "Your registration is confirmed" when payment succeeds
+    const confirmationText = page.locator('text=/Your registration is confirmed|Payment Successful/i').first();
+    await expect(confirmationText).toBeVisible({ timeout: 10000 });
     console.log('✅ Payment completed successfully');
 
     // Verify both tickets appear in confirmation
@@ -311,11 +326,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
   });
 
   test('dashboard shows user has both tickets', async ({ page }) => {
-    if (!testEventId) {
-      console.log('Test event not created');
-      test.skip(true, 'Test event not created in beforeAll - check event creation');
-      return;
-    }
+    expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
 
     // Login as member
     await AuthHelpers.loginAs(page, 'member');
@@ -345,11 +356,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
   });
 
   test('event details page shows both ticket types purchased', async ({ page }) => {
-    if (!testEventId) {
-      console.log('Test event not created');
-      test.skip(true, 'Test event not created in beforeAll - check event creation');
-      return;
-    }
+    expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
 
     // Login as member
     await AuthHelpers.loginAs(page, 'member');

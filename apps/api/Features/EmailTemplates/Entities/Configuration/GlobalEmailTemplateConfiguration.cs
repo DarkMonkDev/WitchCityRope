@@ -7,7 +7,41 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
 {
     public void Configure(EntityTypeBuilder<GlobalEmailTemplate> builder)
     {
-        builder.ToTable("GlobalEmailTemplates");
+        builder.ToTable("GlobalEmailTemplates", "public", t =>
+        {
+            t.HasCheckConstraint(
+                "CHK_GlobalEmailTemplates_Category",
+                "\"Category\" IN (0, 1, 2, 3, 4)"
+            );
+            t.HasCheckConstraint(
+                "CHK_GlobalEmailTemplates_TriggerType",
+                "\"TriggerType\" IN (0, 1, 2)"
+            );
+            t.HasCheckConstraint(
+                "CHK_GlobalEmailTemplates_TimingOffsetDays",
+                "\"TimingOffsetDays\" IS NULL OR (\"TimingOffsetDays\" >= -365 AND \"TimingOffsetDays\" <= 365)"
+            );
+            t.HasCheckConstraint(
+                "CHK_GlobalEmailTemplates_RecipientGroup",
+                "\"RecipientGroup\" IS NULL OR \"RecipientGroup\" IN (0, 1, 2, 3)"
+            );
+            t.HasCheckConstraint(
+                "CHK_GlobalEmailTemplates_Subject_NotEmpty",
+                "LENGTH(TRIM(\"Subject\")) > 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_GlobalEmailTemplates_HtmlBody_NotEmpty",
+                "LENGTH(TRIM(\"HtmlBody\")) > 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_GlobalEmailTemplates_PlainTextBody_NotEmpty",
+                "LENGTH(TRIM(\"PlainTextBody\")) > 0"
+            );
+            t.HasCheckConstraint(
+                "CHK_GlobalEmailTemplates_Version",
+                "\"Version\" >= 1"
+            );
+        });
 
         // Primary Key
         builder.HasKey(e => e.Id);
@@ -118,45 +152,5 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
             .HasDatabaseName("IX_GlobalEmailTemplates_TriggerType_Enabled")
             .HasFilter("\"TriggerEnabled\" = TRUE");
 
-        // Check Constraints
-        builder.HasCheckConstraint(
-            "CHK_GlobalEmailTemplates_Category",
-            "\"Category\" IN (0, 1, 2, 3, 4)"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_GlobalEmailTemplates_TriggerType",
-            "\"TriggerType\" IN (0, 1, 2)"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_GlobalEmailTemplates_TimingOffsetDays",
-            "\"TimingOffsetDays\" IS NULL OR (\"TimingOffsetDays\" >= -365 AND \"TimingOffsetDays\" <= 365)"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_GlobalEmailTemplates_RecipientGroup",
-            "\"RecipientGroup\" IS NULL OR \"RecipientGroup\" IN (0, 1, 2, 3)"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_GlobalEmailTemplates_Subject_NotEmpty",
-            "LENGTH(TRIM(\"Subject\")) > 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_GlobalEmailTemplates_HtmlBody_NotEmpty",
-            "LENGTH(TRIM(\"HtmlBody\")) > 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_GlobalEmailTemplates_PlainTextBody_NotEmpty",
-            "LENGTH(TRIM(\"PlainTextBody\")) > 0"
-        );
-
-        builder.HasCheckConstraint(
-            "CHK_GlobalEmailTemplates_Version",
-            "\"Version\" >= 1"
-        );
     }
 }
