@@ -59,9 +59,16 @@ export class AuthHelpers {
    * Uses relative URLs that work with baseURL in containers
    */
   static async loginWith(page: Page, credentials: TestCredentials) {
+    // Clear auth state safely first (same as loginAs)
+    await this.clearAuthState(page);
+
     // Navigate to login page using relative URL (works with baseURL in containers)
     await page.goto('/login');
     await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded instead of networkidle
+
+    // CRITICAL: Wait for CSRF to be ready before attempting login
+    // LoginPage disables button until csrfStore.isReady is true
+    await this.waitForLoginReady(page);
 
     // Fill form using data-testid selectors (updated for email-or-scenename field)
     await page.locator('[data-testid="email-or-scenename-input"]').fill(credentials.email);
