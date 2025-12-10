@@ -7,7 +7,8 @@ import { debugLog } from '../../../utils/debug';
 
 export interface CreateTicketPurchaseRequest {
   eventId: string;
-  ticketTypeId: string;
+  /** Ticket type IDs to purchase */
+  ticketTypeIds: string[];
   notes?: string;
   paymentMethodId?: string;
   eventWaiverAccepted: boolean;
@@ -52,22 +53,15 @@ export const paymentsService = {
   async purchaseTicket(request: CreateTicketPurchaseRequest): Promise<TicketPurchaseResponse> {
     debugLog('🔍 Purchasing ticket:', request);
 
-    // Debug: Log the exact ticketTypeId value
-    console.log('🎫 TICKET PURCHASE DEBUG:');
-    console.log('  - request.ticketTypeId:', request.ticketTypeId);
-    console.log('  - request.ticketTypeId type:', typeof request.ticketTypeId);
-    console.log('  - request.ticketTypeId is truthy:', !!request.ticketTypeId);
-    console.log('  - Full request object:', JSON.stringify(request, null, 2));
-
     const requestBody = {
       eventId: request.eventId,
-      ticketTypeId: request.ticketTypeId,
+      ticketTypeIds: request.ticketTypeIds,
       notes: request.notes,
       paymentMethodId: request.paymentMethodId,
       eventWaiverAccepted: request.eventWaiverAccepted
     };
 
-    console.log('  - Request body to send:', JSON.stringify(requestBody, null, 2));
+    debugLog('  - Request body:', requestBody);
 
     const response = await apiClient.post<TicketPurchaseResponse>(
       `/api/events/${request.eventId}/tickets`,
@@ -104,8 +98,8 @@ export const paymentsService = {
    * Confirm PayPal payment after user approval
    * This would integrate with the backend to confirm payment and create ticket
    */
-  async confirmPayPalPayment(orderId: string, paymentDetails: any, ticketTypeId: string): Promise<TicketPurchaseResponse> {
-    debugLog('🔍 Confirming PayPal payment:', { orderId, paymentDetails, ticketTypeId });
+  async confirmPayPalPayment(orderId: string, paymentDetails: any, ticketTypeIds: string[]): Promise<TicketPurchaseResponse> {
+    debugLog('🔍 Confirming PayPal payment:', { orderId, paymentDetails, ticketTypeIds });
 
     // Extract event ID from payment details or store it during order creation
     const eventId = paymentDetails?.purchase_units?.[0]?.custom_id || '';
@@ -113,7 +107,7 @@ export const paymentsService = {
     // For now, call the regular ticket purchase endpoint with PayPal payment method
     const ticketResponse = await this.purchaseTicket({
       eventId,
-      ticketTypeId,
+      ticketTypeIds,
       notes: `PayPal payment confirmed - Order ID: ${orderId}`,
       paymentMethodId: orderId,
       eventWaiverAccepted: true // PayPal flow requires waiver acceptance before payment

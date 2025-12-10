@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace WitchCityRope.Api.Features.Participation.Models;
 
 /// <summary>
-/// Request model for purchasing a ticket for a class event
+/// Request model for purchasing one or more tickets for a class event
 /// </summary>
 public class CreateTicketPurchaseRequest
 {
@@ -14,10 +14,11 @@ public class CreateTicketPurchaseRequest
     public Guid EventId { get; set; }
 
     /// <summary>
-    /// Ticket type ID to purchase
+    /// Ticket type IDs to purchase in a single transaction
     /// </summary>
     [Required]
-    public Guid TicketTypeId { get; set; }
+    [MinLength(1, ErrorMessage = "At least one ticket type must be specified")]
+    public List<Guid> TicketTypeIds { get; set; } = new();
 
     /// <summary>
     /// Optional notes from the participant
