@@ -31,6 +31,7 @@ COVERAGE=false
 KEEP_IMAGES=false
 KEEP_CONTAINERS=false
 SKIP_REBUILD=false
+FULL_REBUILD=false
 SKIP_CONFIRMATION="${SKIP_CONFIRMATION:-false}"
 
 show_usage() {
@@ -46,7 +47,8 @@ ${YELLOW}OPTIONS:${NC}
     --coverage          Generate coverage reports
     --keep-images       Keep built images after cleanup
     --keep-containers   Keep containers running for debugging
-    --skip-rebuild      Skip container rebuild (faster when code hasn't changed)
+    --skip-rebuild      Skip container rebuild (fastest, use existing images)
+    --full-rebuild      Full rebuild with --no-cache (slowest, re-downloads everything)
     --skip-confirm      Skip confirmation prompts
 
 ${YELLOW}TEST MODES:${NC}
@@ -129,9 +131,11 @@ ${YELLOW}What this will do:${NC}
   1. Call restart-test-containers skill to setup test environment
 EOF
     if [ "$SKIP_REBUILD" = "true" ]; then
-        echo "     (using --skip-rebuild mode - faster, no container rebuild)"
+        echo "     (using --skip-rebuild mode - fastest, no container rebuild)"
+    elif [ "$FULL_REBUILD" = "true" ]; then
+        echo "     (using --full-rebuild mode - slowest, downloads everything fresh)"
     else
-        echo "     (full rebuild with --no-cache for clean test environment)"
+        echo "     (incremental rebuild - uses Docker cache)"
     fi
     cat << EOF
   2. Run health checks (compilation, database, services)
@@ -187,6 +191,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --skip-rebuild)
             SKIP_REBUILD=true
+            shift
+            ;;
+        --full-rebuild)
+            FULL_REBUILD=true
             shift
             ;;
         --skip-confirm)
@@ -246,6 +254,8 @@ echo ""
 RESTART_CMD="SKIP_CONFIRMATION=true bash $PROJECT_ROOT/.claude/skills/restart-test-containers/execute.sh"
 if [ "$SKIP_REBUILD" = "true" ]; then
     RESTART_CMD="$RESTART_CMD --skip-rebuild"
+elif [ "$FULL_REBUILD" = "true" ]; then
+    RESTART_CMD="$RESTART_CMD --full-rebuild"
 fi
 
 if ! eval "$RESTART_CMD"; then
