@@ -1,6 +1,6 @@
 import { Paper, Group, Text, Badge, Button, Stack, Collapse, Alert, Checkbox } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconClock, IconCheck, IconAlertCircle } from '@tabler/icons-react';
+import { IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
@@ -28,16 +28,6 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
   // Determine if we need to show ToS checkbox
   // Only show if user hasn't already RSVPed or purchased a ticket
   const needsTermsAcceptance = !hasExistingParticipation;
-
-  // Debug: Log position data to verify time fields
-  console.log('VolunteerPositionCard - position data:', {
-    id: position.id,
-    title: position.title,
-    sessionStartTime: position.sessionStartTime,
-    sessionEndTime: position.sessionEndTime,
-    sessionName: position.sessionName,
-    hasSessionTimes: !!(position.sessionStartTime && position.sessionEndTime)
-  });
 
   const signupMutation = useMutation<any, any, void>({
     mutationFn: async () => {
