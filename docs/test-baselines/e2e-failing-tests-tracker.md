@@ -84,9 +84,9 @@ Test infrastructure improvements stabilized the test suite:
 
 ---
 
-## Current Failing Tests by Category (146 total - December 11, 2025)
+## Current Failing Tests - Complete List (146 total - December 11, 2025)
 
-### Failure Categories
+### Summary by Category
 
 | Category | Count | Description |
 |----------|-------|-------------|
@@ -97,35 +97,326 @@ Test infrastructure improvements stabilized the test suite:
 | Ticket Operations | 11 | Ticket cancellation, purchase, lifecycle |
 | Venue | 8 | Venue creation, editing, display permissions |
 | Check-in | 4 | Check-in staff and attendee workflows |
-| Volunteer | 4 | Volunteer auto-cancel, session validation |
+| Volunteer | 5 | Volunteer auto-cancel, session validation |
 | RSVP | 4 | RSVP lifecycle, comprehensive tests |
 | Home/Basic | 4 | Home page, events basic validation |
-| Other | 43 | Anonymous reports, notifications, CSRF, etc. |
+| Other | 42 | Anonymous reports, notifications, CSRF, etc. |
 
 ### Recommended Fix Priority
 
-1. **HIGH**: Vetting System (25 failures)
-   - Most failures are vetting-related
-   - Likely missing vetting email service registration
-   - Incomplete vetting workflow API implementation
+1. **HIGH**: Vetting System (25 failures) - Missing email service, workflow API issues
+2. **HIGH**: Profile Persistence (16 failures) - API success but not saving
+3. **MEDIUM**: Events Admin (14 failures) - Session CRUD, volunteers
+4. **MEDIUM**: Session Timing (13 failures) - Business logic for availability
+5. **LOW**: Infrastructure tests - wireframe, health checks
 
-2. **HIGH**: Profile Persistence (16 failures)
-   - Profile update tests fail to persist changes
-   - API returning success but not saving
-   - Form data transformation issues
+---
 
-3. **MEDIUM**: Events Admin (14 failures)
-   - Session CRUD operations
-   - Volunteer position management
-   - Event workflow state transitions
+## Complete Failing Tests by File (December 11, 2025)
 
-4. **MEDIUM**: Session Timing (13 failures)
-   - Complex business logic for ticket availability
-   - Timing window calculations
+### Admin Dashboard (2 tests)
+| Test | File |
+|------|------|
+| should add investigation note to incident | `admin-dashboard-workflow.spec.ts` |
+| should update Google Drive links for incident | `admin-dashboard-workflow.spec.ts` |
 
-5. **LOW**: Infrastructure tests
-   - compare-wireframe, env health check
-   - Anonymous reports, notifications
+### Admin Events - Sessions (4 tests)
+| Test | File |
+|------|------|
+| should add a new session via modal without page refresh | `admin-events-sessions.spec.ts` |
+| should assign S# IDs sequentially to new sessions | `admin-events-sessions.spec.ts` |
+| should edit existing session via modal | `admin-events-sessions.spec.ts` |
+| should validate session form fields | `admin-events-sessions.spec.ts` |
+
+### Admin Events - Volunteers (2 tests)
+| Test | File |
+|------|------|
+| should add volunteer position via inline form | `admin-events-volunteers.spec.ts` |
+| should validate volunteer position form fields | `admin-events-volunteers.spec.ts` |
+
+### Admin Events - Workflow (1 test)
+| Test | File |
+|------|------|
+| should toggle event between draft and published | `admin-events-workflow.spec.ts` |
+
+### Admin Member History (3 tests)
+| Test | File |
+|------|------|
+| should display multiple profile changes chronologically | `admin-member-history.spec.ts` |
+| should display profile changes in History tab after user updates profile | `admin-member-history.spec.ts` |
+| should show empty state when no history exists | `admin-member-history.spec.ts` |
+
+### Admin Refund (1 test)
+| Test | File |
+|------|------|
+| multiple refunds can be processed in sequence | `admin-refund-eligibility.spec.ts` |
+
+### Admin Session Deletion (1 test)
+| Test | File |
+|------|------|
+| cannot delete session with paid tickets - shows blocked modal with disabled button | `admin-session-deletion.spec.ts` |
+
+### Admin Ticket Type Deletion (5 tests)
+| Test | File |
+|------|------|
+| can delete ticket type with no sales - shows confirmation modal with enabled button | `admin-tickettype-deletion.spec.ts` |
+| cannot delete ticket type with sales - shows blocked modal with disabled button | `admin-tickettype-deletion.spec.ts` |
+| delete button in table opens confirmation modal | `admin-tickettype-deletion.spec.ts` |
+| delete ticket type successfully removes it from the list | `admin-tickettype-deletion.spec.ts` |
+| ticket type deletion shows correct sales count in blocked modal | `admin-tickettype-deletion.spec.ts` |
+
+### Anonymous Reports (2 tests)
+| Test | File |
+|------|------|
+| should submit anonymous incident report and receive reference number | `anonymous-report-submission.spec.ts` |
+| should validate required fields before submission | `anonymous-report-submission.spec.ts` |
+
+### Check-in (4 tests)
+| Test | File |
+|------|------|
+| Cannot check in same attendee twice | `checkin-attendee-workflow.spec.ts` |
+| Check in a registered attendee | `checkin-attendee-workflow.spec.ts` |
+| Two-step check-in workflow (Covid Test → Check In) | `checkin-attendee-workflow.spec.ts` |
+| Valid token allows access to check-in interface | `checkin-staff-authentication.spec.ts` |
+
+### Comprehensive Timing Tests (8 tests)
+| Test | File |
+|------|------|
+| all tickets should be available when sessions are far in future | `comprehensive-timing-tests.spec.ts` |
+| all tickets should be closed | `comprehensive-timing-tests.spec.ts` |
+| boundary test: close to boundary behaves consistently | `comprehensive-timing-tests.spec.ts` |
+| server calculation matches client-side UTC calculation | `comprehensive-timing-tests.spec.ts` |
+| session starting in 1 hour with 30min close window should be OPEN | `comprehensive-timing-tests.spec.ts` |
+| session starting in 15 minutes with 30min close window should be CLOSED | `comprehensive-timing-tests.spec.ts` |
+| tight margin CLOSED case: 3hr until session, 4hr close window (-1hr margin) | `comprehensive-timing-tests.spec.ts` |
+| tight margin OPEN case: 5hr until session, 4hr close window (1hr margin) | `comprehensive-timing-tests.spec.ts` |
+
+### CSRF/Auth (1 test)
+| Test | File |
+|------|------|
+| should complete full login/logout flow with CSRF token | `csrf-token-validation.spec.ts` |
+
+### Events - Basic/Core (6 tests)
+| Test | File |
+|------|------|
+| Environment Health Check | `e2e-events-full-journey.spec.ts` |
+| Admin can update event without getting logged out | `event-update-complete-flow.spec.ts` |
+| Events Page Loading and Content Detection | `events-basic-validation.spec.ts` |
+| Step 2: Admin Event Editing - Login as admin and update event details | `events-complete-workflow.spec.ts` |
+| should handle large number of events efficiently | `events-comprehensive.spec.ts` |
+| capture original wireframe | `compare-wireframe.spec.ts` |
+
+### Events Management (3 tests)
+| Test | File |
+|------|------|
+| should display event form tabs | `events-management-e2e.spec.ts` |
+| should load Event Session Matrix demo page | `events-management-e2e.spec.ts` |
+| should verify form fields are present | `events-management-e2e.spec.ts` |
+
+### Events Policies (3 tests)
+| Test | File |
+|------|------|
+| should display policies field in event form | `events-policies-field-comprehensive.spec.ts` |
+| should save policies field and persist after page refresh | `events-policies-field-comprehensive.spec.ts` |
+| should validate policies field as REQUIRED | `events-policies-field-comprehensive.spec.ts` |
+
+### Events Copy (2 tests)
+| Test | File |
+|------|------|
+| Admin can copy event with new date and title | `events/admin-event-copy.spec.ts` |
+| Copied event has correct ticket types | `events/admin-event-copy.spec.ts` |
+
+### Home Page (2 tests)
+| Test | File |
+|------|------|
+| events display from API | `home-page.spec.ts` |
+| proves complete React + API + PostgreSQL stack works | `home-page.spec.ts` |
+
+### Login (1 test)
+| Test | File |
+|------|------|
+| should show error for wrong password with valid scene name | `login-with-scene-name.spec.ts` |
+
+### Multi-Ticket Purchase (3 tests)
+| Test | File |
+|------|------|
+| dashboard shows user has both tickets | `multi-ticket-purchase.spec.ts` |
+| event details page shows both ticket types purchased | `multi-ticket-purchase.spec.ts` |
+| user can purchase Day 1 Only and Day 2 Only tickets together | `multi-ticket-purchase.spec.ts` |
+
+### Notification System (1 test)
+| Test | File |
+|------|------|
+| Notifications container appears when notification is shown | `notification-system-test.spec.ts` |
+
+### Phase Testing (3 tests)
+| Test | File |
+|------|------|
+| Session CRUD - Add, edit, and delete sessions | `phase3-sessions-tickets.spec.ts` |
+| Ticket Types - Create and manage ticket types | `phase3-sessions-tickets.spec.ts` |
+| should display event filters correctly | `phase4-events-testing.spec.ts` |
+
+### Post-Login Return (1 test)
+| Test | File |
+|------|------|
+| should sanitize and validate returnUrl with special characters | `post-login-return.spec.ts` |
+
+### Profile (15 tests)
+| Test | File |
+|------|------|
+| should handle user loading error | `profile-page.spec.ts` |
+| CRITICAL: should detect if profile update shows success but fails to persist | `profile-update-full-persistence.spec.ts` |
+| should handle empty string updates (clearing optional fields) | `profile-update-full-persistence.spec.ts` |
+| should handle null vs empty string correctly | `profile-update-full-persistence.spec.ts` |
+| should handle rapid successive updates | `profile-update-full-persistence.spec.ts` |
+| should handle special characters in all fields | `profile-update-full-persistence.spec.ts` |
+| should persist Discord name update | `profile-update-full-persistence.spec.ts` |
+| should persist FetLife name update | `profile-update-full-persistence.spec.ts` |
+| should persist bio update with special characters | `profile-update-full-persistence.spec.ts` |
+| should persist clearing bio field | `profile-update-full-persistence.spec.ts` |
+| should persist complete profile update to database | `profile-update-full-persistence.spec.ts` |
+| should persist long bio text | `profile-update-full-persistence.spec.ts` |
+| should persist multiple profile updates in sequence | `profile-update-full-persistence.spec.ts` |
+| should persist pronouns update | `profile-update-full-persistence.spec.ts` |
+| should persist single field update (firstName only) | `profile-update-full-persistence.spec.ts` |
+| should persist profile changes after save and page refresh | `profile-update-persistence.spec.ts` |
+
+### RSVP (3 tests)
+| Test | File |
+|------|------|
+| 3. Admin Event Details - RSVP Tab Content | `comprehensive-rsvp-verification.spec.ts` |
+| should handle rapid RSVP/cancel cycles | `rsvp-lifecycle-persistence.spec.ts` |
+| should persist RSVP to database | `rsvp-lifecycle-persistence.spec.ts` |
+
+### Session Availability (5 tests)
+| Test | File |
+|------|------|
+| should correctly count tickets via TicketPurchase -> TicketType -> TicketTypeSessions chain | `session-availability-counts.spec.ts` |
+| should display session availability on event details page | `session-availability-counts.spec.ts` |
+| should have consistent counts between events API and participation API | `session-availability-counts.spec.ts` |
+| should return correct session soldCount and availableCount from events API | `session-availability-counts.spec.ts` |
+| should return correct sessionAvailability from participation API | `session-availability-counts.spec.ts` |
+
+### Session-Based Ticket Timing (6 tests)
+| Test | File |
+|------|------|
+| admin can view timing settings for event | `session-based-ticket-timing.spec.ts` |
+| member can view event with tickets | `session-based-ticket-timing.spec.ts` |
+| multi-session event shows tickets for future sessions | `session-based-ticket-timing.spec.ts` |
+| ticket availability reflects timing settings | `session-based-ticket-timing.spec.ts` |
+| ticket shows which sessions it covers | `session-based-ticket-timing.spec.ts` |
+| ticket timing uses session dates not event dates | `session-based-ticket-timing.spec.ts` |
+
+### Session-Based Timing (3 tests)
+| Test | File |
+|------|------|
+| event with registration window settings | `session-based-timing.spec.ts` |
+| multi-session event - tickets available for future sessions | `session-based-timing.spec.ts` |
+| ticket purchase uses session-based timing | `session-based-timing.spec.ts` |
+
+### Session Ticket Availability (3 tests)
+| Test | File |
+|------|------|
+| API returns correct ticket availability status | `session-ticket-availability.spec.ts` |
+| Both Sessions ticket uses EARLIEST session (S1) - NOT purchasable | `session-ticket-availability.spec.ts` |
+| S1 Only ticket should NOT be available (timing window closed) | `session-ticket-availability.spec.ts` |
+
+### Ticket Cancellation (3 tests)
+| Test | File |
+|------|------|
+| Test A: Single ticket cancellation pre-selects checkbox | `ticket-cancellation-selective.spec.ts` |
+| Test B: Multiple tickets no pre-selection | `ticket-cancellation-selective.spec.ts` |
+| Test C: Selective cancellation preserves other tickets | `ticket-cancellation-selective.spec.ts` |
+
+### Ticket Lifecycle (3 tests)
+| Test | File |
+|------|------|
+| should persist cancellation reason to database | `ticket-lifecycle-persistence.spec.ts` |
+| should prevent duplicate cancellations | `ticket-lifecycle-persistence.spec.ts` |
+| should verify endpoint called is correct | `ticket-lifecycle-persistence.spec.ts` |
+
+### Ticket Purchase (1 test)
+| Test | File |
+|------|------|
+| Complete ticket purchase with credit card | `ticket-purchase-e2e-datafactory.spec.ts` |
+
+### Tiptap Editors (2 tests)
+| Test | File |
+|------|------|
+| comprehensive: all three editors render on their respective tabs | `tiptap-editors.spec.ts` |
+| should render Email Content Tiptap editor on Emails tab | `tiptap-editors.spec.ts` |
+
+### Venue (8 tests)
+| Test | File |
+|------|------|
+| should create new venue with all fields | `venue-creation.spec.ts` |
+| should NOT display admin Notes field to public | `venue-display.spec.ts` |
+| should NOT display venue to unauthenticated users | `venue-display.spec.ts` |
+| should display correct venue name and directions | `venue-display.spec.ts` |
+| should display venue to users WITH RSVP | `venue-display.spec.ts` |
+| should display venue to users WITH ticket | `venue-display.spec.ts` |
+| should hide venue when user cancels RSVP | `venue-display.spec.ts` |
+| should edit existing venue name and directions | `venue-editing.spec.ts` |
+| should update venue notes (admin-only field) | `venue-editing.spec.ts` |
+
+### Vetting - Admin Dashboard (5 tests)
+| Test | File |
+|------|------|
+| admin can filter applications by status | `vetting-admin-dashboard.spec.ts` |
+| admin can navigate to application detail | `vetting-admin-dashboard.spec.ts` |
+| admin can search applications by scene name | `vetting-admin-dashboard.spec.ts` |
+| admin can sort applications by submission date | `vetting-admin-dashboard.spec.ts` |
+| admin can view vetting applications grid | `vetting-admin-dashboard.spec.ts` |
+
+### Vetting - Application Detail (8 tests)
+| Test | File |
+|------|------|
+| admin can add notes to application | `vetting-application-detail.spec.ts` |
+| admin can advance application to interview stage | `vetting-application-detail.spec.ts` |
+| admin can deny application with reasoning | `vetting-application-detail.spec.ts` |
+| admin can put application on hold with reasoning | `vetting-application-detail.spec.ts` |
+| admin can skip to approved | `vetting-application-detail.spec.ts` |
+| admin can view application details | `vetting-application-detail.spec.ts` |
+| admin can view audit log history | `vetting-application-detail.spec.ts` |
+| approved application shows vetted member status | `vetting-application-detail.spec.ts` |
+
+### Vetting - Complete Flow (1 test)
+| Test | File |
+|------|------|
+| Complete vetting application with registration and login | `vetting-complete-flow.spec.ts` |
+
+### Vetting - Profile Update (4 tests)
+| Test | File |
+|------|------|
+| admin can see updated profile after user submits vetting application | `vetting-profile-update.spec.ts` |
+| profile updates are visible in user dashboard after submission | `vetting-profile-update.spec.ts` |
+| user submits application with all fields - profile fully updated | `vetting-profile-update.spec.ts` |
+| user submits application with minimal fields - existing optional fields preserved | `vetting-profile-update.spec.ts` |
+
+### Vetting - Workflow Integration (3 tests)
+| Test | File |
+|------|------|
+| complete approval workflow from submission to role grant | `vetting-workflow-integration.spec.ts` |
+| complete denial workflow sends notification | `vetting-workflow-integration.spec.ts` |
+| status changes trigger email notifications | `vetting-workflow-integration.spec.ts` |
+
+### Vetting - Workflow (5 tests)
+| Test | File |
+|------|------|
+| admin can approve application for interview | `vetting-workflow.spec.ts` |
+| admin can deny application with reason | `vetting-workflow.spec.ts` |
+| admin can put application on hold with reason | `vetting-workflow.spec.ts` |
+| admin can skip to approved status | `vetting-workflow.spec.ts` |
+| user can submit vetting application successfully | `vetting-workflow.spec.ts` |
+
+### Volunteer (5 tests)
+| Test | File |
+|------|------|
+| cancelling Session 1 ticket auto-cancels Session 1 volunteer signup | `volunteer-auto-cancel.spec.ts` |
+| cancelling Session 2 ticket preserves Session 1 volunteer signup | `volunteer-auto-cancel.spec.ts` |
+| cancelling all tickets cancels all volunteer signups | `volunteer-auto-cancel.spec.ts` |
+| user can sign up for volunteer position when they have ticket for that session | `volunteer-session-validation.spec.ts` |
+| user cannot sign up for volunteer position when they lack ticket for that session | `volunteer-session-validation.spec.ts` |
 
 ---
 
