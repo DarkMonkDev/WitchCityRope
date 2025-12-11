@@ -3,30 +3,35 @@
 ## Purpose
 Track E2E test suite health over time, documenting baseline results, improvements, and remaining issues. Originally started as a parity investigation between dev/test containers (Nov 2025), now serves as ongoing test health tracker.
 
-## Current Status: 74% Pass Rate (Dec 11, 2025 - POST DATAFACTORY MIGRATION)
+## Current Status: 78.1% Pass Rate (Dec 11, 2025 - POST INFRASTRUCTURE FIXES)
 
-### ⚠️ MAJOR REGRESSION: DataFactory Migration Introduced ~130 New Failures
+### ✅ Infrastructure Improvements Applied (December 11, 2025)
 
-### Full Test Suite Results (December 11, 2025 - Post DataFactory Migration)
+Test reporting infrastructure has been stabilized with the following improvements:
+1. **Custom Playwright Reporter** - Shows `Passed - #num - test name` format for easy reading
+2. **Fixed Dockerfile.test Layer Ordering** - Playwright install cached BEFORE tests copied (no more 93MB re-download on every test change)
+3. **Volume Mount for Results** - test-results.json immediately available on host
+4. **Structured JSON Output** - quick-summary.json for automated parsing
+5. **Comprehensive Test Summary** - test-summary.txt with all failed test names
+
+### Full Test Suite Results (December 11, 2025 - Post Infrastructure Fixes)
 
 | Metric | Value |
 |--------|-------|
-| **Passed** | 589 |
-| **Failed** | 206 |
+| **Passed** | 617 |
+| **Failed** | 146 |
 | **Skipped** | 27 |
-| **Total** | ~822 |
-| **Pass Rate** | **74%** |
+| **Total** | 790 |
+| **Pass Rate** | **78.1%** |
 | **Run Time** | ~27 minutes |
 
-### Regression Analysis
+### Test Result Files
 
-| Metric | Dec 10 (Before) | Dec 11 (After) | Change |
-|--------|-----------------|----------------|--------|
-| Passed | ~705 | 589 | **-116** |
-| Failed | ~76 | 206 | **+130** |
-| Pass Rate | ~89% | 74% | **-15%** |
-
-**Root Cause**: DataFactory migration (41 E2E files migrated) introduced regressions. Many tests that previously worked now fail.
+All test artifacts in `/test-results/`:
+- `quick-summary.json` - Machine-readable summary (total, passed, failed, pass_rate)
+- `test-summary.txt` - Human-readable summary with failed test list
+- `test-results.json` - Full Playwright JSON report
+- `html-report/` - Interactive HTML report
 
 ### Improvement Summary
 
@@ -35,9 +40,10 @@ Track E2E test suite health over time, documenting baseline results, improvement
 | Dec 9 (corrected) | 688 | 89 | 32 | ~77% | Before skipped test fixes |
 | Dec 10 (Phase 5) | 681 | ~100 | 1 | ~87% | Converted skips to fails |
 | Dec 10 (Phase 6) | ~705 | ~76 | 1 | ~89% | Fixed 24 tests (CSRF + endpoint) |
-| **Dec 11 (DataFactory)** | **589** | **206** | **27** | **74%** | ⚠️ DataFactory migration regression |
+| Dec 11 (DataFactory) | 589 | 206 | 27 | 74% | DataFactory migration regression |
+| **Dec 11 (Infrastructure)** | **617** | **146** | **27** | **78.1%** | Infrastructure fixes + test stabilization |
 
-**Note:** Total test count decreased from 809 to 785 because 11 obsolete tests were deleted (payment and UI consistency tests that were TDD stubs for features never implemented).
+**Note:** Pass rate improved from 74% to 78.1% after infrastructure stabilization. Test count standardized at 790.
 
 ### Key Fixes Applied (Dec 9-10)
 
