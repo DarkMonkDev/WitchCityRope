@@ -71,7 +71,10 @@ namespace WitchCityRope.Api.Features.Cms
 
             if (page == null)
             {
-                return Results.NotFound(new { error = "Page not found or not published" });
+                return Results.Problem(
+                    title: "Not Found",
+                    detail: "Page not found or not published",
+                    statusCode: 404);
             }
 
             var dto = new ContentPageDto
@@ -120,7 +123,10 @@ namespace WitchCityRope.Api.Features.Cms
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
                 logger.LogWarning("UpdatePage called without valid user ID claim");
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "User authentication failed - missing or invalid user identifier",
+                    statusCode: 401);
             }
 
             // Fetch page
@@ -131,7 +137,10 @@ namespace WitchCityRope.Api.Features.Cms
 
             if (page == null)
             {
-                return Results.NotFound(new { error = $"Page with ID {id} not found" });
+                return Results.Problem(
+                    title: "Not Found",
+                    detail: $"Page with ID {id} not found",
+                    statusCode: 404);
             }
 
             // Sanitize content BEFORE database write (XSS prevention)
@@ -139,7 +148,10 @@ namespace WitchCityRope.Api.Features.Cms
 
             if (string.IsNullOrWhiteSpace(cleanContent))
             {
-                return Results.BadRequest(new { error = "Content is empty after sanitization" });
+                return Results.Problem(
+                    title: "Bad Request",
+                    detail: "Content is empty after sanitization",
+                    statusCode: 400);
             }
 
             // Use domain method to update content (creates revision automatically)
@@ -178,12 +190,18 @@ namespace WitchCityRope.Api.Features.Cms
             catch (ArgumentException ex)
             {
                 logger.LogWarning(ex, "Validation error updating page {PageId}", id);
-                return Results.BadRequest(new { error = ex.Message });
+                return Results.Problem(
+                    title: "Validation Error",
+                    detail: ex.Message,
+                    statusCode: 400);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error updating page {PageId}", id);
-                return Results.Problem("An error occurred while updating the page");
+                return Results.Problem(
+                    title: "Internal Server Error",
+                    detail: "An error occurred while updating the page",
+                    statusCode: 500);
             }
         }
 
@@ -199,7 +217,10 @@ namespace WitchCityRope.Api.Features.Cms
             var pageExists = await db.ContentPages.AnyAsync(p => p.Id == id, ct);
             if (!pageExists)
             {
-                return Results.NotFound(new { error = $"Page with ID {id} not found" });
+                return Results.Problem(
+                    title: "Not Found",
+                    detail: $"Page with ID {id} not found",
+                    statusCode: 404);
             }
 
             // Fetch revisions (most recent first, limit 50)

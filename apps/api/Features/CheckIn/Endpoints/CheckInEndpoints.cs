@@ -37,19 +37,28 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Check-in token is required",
+                    statusCode: 401);
             }
 
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Invalid or expired check-in token",
+                    statusCode: 401);
             }
 
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Forbid(); // 403 - Token is for different event
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "Check-in token is for a different event",
+                    statusCode: 403);
             }
 
             // TOKEN IS VALID - Proceed with check-in operation
@@ -86,19 +95,28 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Check-in token is required",
+                    statusCode: 401);
             }
 
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Invalid or expired check-in token",
+                    statusCode: 401);
             }
 
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Forbid(); // 403 - Token is for different event
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "Check-in token is for a different event",
+                    statusCode: 403);
             }
 
             // Validate request
@@ -142,19 +160,28 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Check-in token is required",
+                    statusCode: 401);
             }
 
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Invalid or expired check-in token",
+                    statusCode: 401);
             }
 
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Forbid(); // 403 - Token is for different event
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "Check-in token is for a different event",
+                    statusCode: 403);
             }
 
             // TOKEN IS VALID - Proceed with check-in operation
@@ -190,19 +217,28 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Check-in token is required",
+                    statusCode: 401);
             }
 
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Invalid or expired check-in token",
+                    statusCode: 401);
             }
 
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Forbid(); // 403 - Token is for different event
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "Check-in token is for a different event",
+                    statusCode: 403);
             }
 
             // Validate request
@@ -240,19 +276,28 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Check-in token is required",
+                    statusCode: 401);
             }
 
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Invalid or expired check-in token",
+                    statusCode: 401);
             }
 
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Forbid(); // 403 - Token is for different event
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "Check-in token is for a different event",
+                    statusCode: 403);
             }
 
             // EXTRACT STAFF ID FROM TOKEN - Frontend can't provide this
@@ -301,19 +346,28 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Check-in token is required",
+                    statusCode: 401);
             }
 
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Invalid or expired check-in token",
+                    statusCode: 401);
             }
 
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Forbid(); // 403 - Token is for different event
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "Check-in token is for a different event",
+                    statusCode: 403);
             }
 
             // Validate request
@@ -458,13 +512,19 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Check-in token is required",
+                    statusCode: 401);
             }
 
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Invalid or expired check-in token",
+                    statusCode: 401);
             }
 
             // Token is valid - use a system GUID for sync count since we don't have user context

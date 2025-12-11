@@ -350,7 +350,10 @@ public static class EmailTemplateEndpoints
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Unauthorized();
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
         }
 
         var result = await service.UpdateGlobalTemplateAsync(id, request, userId, cancellationToken);
@@ -430,7 +433,10 @@ public static class EmailTemplateEndpoints
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Unauthorized();
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
         }
 
         // TODO: Check if user is event organizer or admin
@@ -511,7 +517,10 @@ public static class EmailTemplateEndpoints
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Unauthorized();
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
         }
 
         var result = await service.SendAdHocEmailAsync(request, userId, cancellationToken);
@@ -699,7 +708,10 @@ public static class EmailTemplateEndpoints
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Unauthorized();
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
         }
 
         var result = await service.SaveAsTemplateAsync(request, userId, cancellationToken);
@@ -773,7 +785,10 @@ public static class EmailTemplateEndpoints
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Unauthorized();
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
         }
 
         var result = await service.ScheduleAdHocEmailAsync(request, userId, cancellationToken);

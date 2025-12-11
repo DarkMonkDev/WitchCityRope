@@ -517,14 +517,23 @@ public static class ParticipationEndpoints
                     {
                         if (result.Error.Contains("not found") || result.Error.Contains("No active"))
                         {
-                            return Results.NotFound();
+                            return Results.Problem(
+                                title: "Not Found",
+                                detail: result.Error,
+                                statusCode: 404);
                         }
                         if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("Cancellation window"))
                         {
-                            return Results.BadRequest(result.Error);
+                            return Results.Problem(
+                                title: "Cancellation Not Allowed",
+                                detail: result.Error,
+                                statusCode: 400);
                         }
 
-                        return Results.Problem(result.Error);
+                        return Results.Problem(
+                            title: "Cancellation Failed",
+                            detail: result.Error,
+                            statusCode: 500);
                     }
 
                     return Results.NoContent();
@@ -545,14 +554,23 @@ public static class ParticipationEndpoints
                 {
                     if (legacyResult.Error.Contains("not found") || legacyResult.Error.Contains("No active attendance"))
                     {
-                        return Results.NotFound();
+                        return Results.Problem(
+                            title: "Not Found",
+                            detail: legacyResult.Error,
+                            statusCode: 404);
                     }
                     if (legacyResult.Error.Contains("cannot be cancelled") || legacyResult.Error.Contains("Cancellation window") || legacyResult.Error.Contains("Cancellation"))
                     {
-                        return Results.BadRequest(legacyResult.Error);
+                        return Results.Problem(
+                            title: "Cancellation Not Allowed",
+                            detail: legacyResult.Error,
+                            statusCode: 400);
                     }
 
-                    return Results.Problem(legacyResult.Error);
+                    return Results.Problem(
+                        title: "Cancellation Failed",
+                        detail: legacyResult.Error,
+                        statusCode: 500);
                 }
 
                 return Results.NoContent();
@@ -593,7 +611,10 @@ public static class ParticipationEndpoints
 
                 if (attendance == null)
                 {
-                    return Results.NotFound();
+                    return Results.Problem(
+                        title: "Not Found",
+                        detail: "Attendance record not found",
+                        statusCode: 404);
                 }
 
                 // Verify user owns this attendance
@@ -617,14 +638,23 @@ public static class ParticipationEndpoints
                 {
                     if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
                     {
-                        return Results.NotFound();
+                        return Results.Problem(
+                            title: "Not Found",
+                            detail: result.Error,
+                            statusCode: 404);
                     }
                     if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open") || result.Error.Contains("Cancellation window") || result.Error.Contains("Cancellation"))
                     {
-                        return Results.BadRequest(result.Error);
+                        return Results.Problem(
+                            title: "Cancellation Not Allowed",
+                            detail: result.Error,
+                            statusCode: 400);
                     }
 
-                    return Results.Problem(result.Error);
+                    return Results.Problem(
+                        title: "Cancellation Failed",
+                        detail: result.Error,
+                        statusCode: 500);
                 }
 
                 return Results.NoContent();
@@ -696,14 +726,23 @@ public static class ParticipationEndpoints
                 {
                     if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
                     {
-                        return Results.NotFound();
+                        return Results.Problem(
+                            title: "Not Found",
+                            detail: result.Error,
+                            statusCode: 404);
                     }
                     if (result.Error.Contains("cannot be cancelled"))
                     {
-                        return Results.BadRequest(result.Error);
+                        return Results.Problem(
+                            title: "Cancellation Not Allowed",
+                            detail: result.Error,
+                            statusCode: 400);
                     }
 
-                    return Results.Problem(result.Error);
+                    return Results.Problem(
+                        title: "Cancellation Failed",
+                        detail: result.Error,
+                        statusCode: 500);
                 }
 
                 return Results.NoContent();

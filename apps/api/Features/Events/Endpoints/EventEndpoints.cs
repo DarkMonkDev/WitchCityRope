@@ -329,19 +329,28 @@ public static class EventEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Check-in token is required",
+                    statusCode: 401);
             }
 
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Unauthorized();
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "Invalid or expired check-in token",
+                    statusCode: 401);
             }
 
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Forbid(); // 403 - Token is for different event
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "Check-in token is for a different event",
+                    statusCode: 403);
             }
 
             // EXTRACT STAFF ID FROM TOKEN - Frontend can't provide this
