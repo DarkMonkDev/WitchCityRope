@@ -32,13 +32,19 @@ export class VolunteerFactory {
    * });
    */
   async create(options: CreateVolunteerPositionRequest): Promise<VolunteerPositionResponse> {
+    // Backend uses camelCase JSON naming policy (configured in Program.cs)
+    // Map frontend field names to backend DTO field names:
+    // - slotsAvailable (frontend) -> slotsNeeded (backend)
+    // - startTime/endTime (frontend) -> not used, use sessionId instead
     const request = {
       eventId: options.eventId,
       title: options.title,
       description: options.description ?? `Volunteer role: ${options.title}`,
-      slotsAvailable: options.slotsAvailable ?? 3,
-      startTime: options.startTime?.toISOString(),
-      endTime: options.endTime?.toISOString(),
+      slotsNeeded: options.slotsAvailable ?? 3,
+      slotsFilled: 0,
+      isPublicFacing: true,
+      // Note: Backend uses sessionId, not startTime/endTime
+      // sessionId: options.sessionId, // Would need to add to types if needed
     };
 
     const response = await this.client.post<

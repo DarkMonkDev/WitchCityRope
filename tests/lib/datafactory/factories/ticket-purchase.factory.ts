@@ -32,10 +32,17 @@ export class TicketPurchaseFactory {
    * });
    */
   async create(options: CreateTicketPurchaseRequest): Promise<TicketPurchaseResponse> {
+    // Backend uses camelCase JSON naming policy (configured in Program.cs)
+    // Backend has more fields than frontend types.ts, so we map what we have
+    // and add required fields with defaults
     const request = {
       userId: options.userId,
       ticketTypeId: options.ticketTypeId,
       quantity: options.quantity ?? 1,
+      totalPrice: 20.00, // Default price for test purchases
+      paymentMethod: 'Cash', // Use Cash to avoid PayPal API issues in tests
+      paymentStatus: 'Completed',
+      notes: 'Created by DataFactory for E2E testing',
     };
 
     const response = await this.client.post<typeof request, TicketPurchaseResponse>(
