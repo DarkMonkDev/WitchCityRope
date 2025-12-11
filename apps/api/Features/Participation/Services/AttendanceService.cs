@@ -144,19 +144,87 @@ public class AttendanceService : IAttendanceService
                     g => g.Select(x => x.SessionId!.Value).ToList()
                 );
 
-            // Build TicketPurchases: maps TicketPurchaseId -> TicketPurchaseInfoDto (includes ticket type name and price)
-            var ticketPurchases = userTicketAttendanceData
-                .Where(x => x.TicketPurchaseId.HasValue && x.SessionId.HasValue)
-                .GroupBy(x => x.TicketPurchaseId!.Value)
-                .ToDictionary(
-                    g => g.Key,
-                    g => new TicketPurchaseInfoDto
+            // Build TicketPurchases with per-purchase cancellation eligibility
+            // Need to load TicketPurchase entities to get TicketType for reference session calculation
+            var ticketPurchaseIds = userTicketAttendanceData
+                .Where(x => x.TicketPurchaseId.HasValue)
+                .Select(x => x.TicketPurchaseId!.Value)
+                .Distinct()
+                .ToList();
+
+            var ticketPurchaseEntities = ticketPurchaseIds.Count > 0
+                ? await _context.TicketPurchases
+                    .AsNoTracking()
+                    .Include(tp => tp.TicketType)
+                        .ThenInclude(tt => tt.Sessions)
+                    .Where(tp => ticketPurchaseIds.Contains(tp.Id))
+                    .ToListAsync(cancellationToken)
+                : new List<TicketPurchase>();
+
+            var ticketPurchases = new Dictionary<Guid, TicketPurchaseInfoDto>();
+            var hasAnyCancelableTicket = false;
+
+            foreach (var ticketPurchaseEntity in ticketPurchaseEntities)
+            {
+                var sessionIds = userTicketAttendanceData
+                    .Where(x => x.TicketPurchaseId == ticketPurchaseEntity.Id && x.SessionId.HasValue)
+                    .Select(x => x.SessionId!.Value)
+                    .ToList();
+
+                // Calculate cancellation eligibility for this specific ticket purchase
+                var canCancelThisPurchase = false;
+                string? cancellationMessage = null;
+
+                if (ticketPurchaseEntity.TicketType != null)
+                {
+                    var referenceSession = _timeZoneService.GetReferenceSessionForTicketType(
+                        ticketPurchaseEntity.TicketType,
+                        eventEntity.Sessions);
+
+                    if (referenceSession == null)
                     {
-                        TicketTypeName = g.First().TicketTypeName ?? "Event Ticket",
-                        SessionIds = g.Select(x => x.SessionId!.Value).ToList(),
-                        TotalPrice = g.First().TotalPrice // All records in group have same price (same TicketPurchase)
+                        // All sessions have passed
+                        canCancelThisPurchase = false;
+                        cancellationMessage = "All sessions for this ticket have passed";
                     }
-                );
+                    else
+                    {
+                        canCancelThisPurchase = _timeZoneService.IsActionAllowedForSession(
+                            referenceSession,
+                            null, // No open restriction for cancellation
+                            eventEntity.CancellationCloseHours);
+
+                        if (!canCancelThisPurchase)
+                        {
+                            cancellationMessage = "Cancellation window has closed for this ticket";
+                        }
+                    }
+                }
+                else
+                {
+                    // TicketType not found - allow cancellation (defensive)
+                    canCancelThisPurchase = true;
+                }
+
+                if (canCancelThisPurchase)
+                {
+                    hasAnyCancelableTicket = true;
+                }
+
+                var ticketTypeName = userTicketAttendanceData
+                    .Where(x => x.TicketPurchaseId == ticketPurchaseEntity.Id)
+                    .Select(x => x.TicketTypeName)
+                    .FirstOrDefault() ?? "Event Ticket";
+
+                ticketPurchases[ticketPurchaseEntity.Id] = new TicketPurchaseInfoDto
+                {
+                    TicketTypeName = ticketTypeName,
+                    SessionIds = sessionIds,
+                    TotalPrice = ticketPurchaseEntity.TotalPrice,
+                    CanCancel = canCancelThisPurchase,
+                    CancellationMessage = cancellationMessage
+                };
+            }
 
             // Calculate per-session sold counts
             // This needs to handle two cases:
@@ -232,14 +300,9 @@ public class AttendanceService : IAttendanceService
                     cancellationToken);
             }
 
-            var canCancelTicket = false;
-            if (ticketAttendance != null)
-            {
-                canCancelTicket = await _timeZoneService.IsActionAllowedAsync(
-                    eventEntity,
-                    EventActionType.CancelTicket,
-                    cancellationToken);
-            }
+            // canCancelTicket is now derived from per-purchase calculations above
+            // True if ANY ticket purchase is cancelable (for showing/hiding the cancel button)
+            var canCancelTicket = ticketAttendance != null && hasAnyCancelableTicket;
 
             // Check if ticket purchase is allowed based on timing rules
             // User must not have a ticket AND event must not be at capacity AND timing window must be open

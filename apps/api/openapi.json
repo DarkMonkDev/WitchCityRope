@@ -15804,6 +15804,13 @@
           "totalPrice": {
             "type": "number",
             "format": "double"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "cancellationMessage": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

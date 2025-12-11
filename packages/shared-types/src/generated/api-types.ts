@@ -1496,6 +1496,206 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/test-helpers/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test event for E2E testing
+         * @description Programmatically create an event with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test event for cleanup
+         * @description Delete a test event by ID. Also deletes related sessions and ticket types. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestEvent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test session for E2E testing
+         * @description Programmatically create a session with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test session for cleanup
+         * @description Delete a test session by ID. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestSession"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/ticket-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test ticket type for E2E testing
+         * @description Programmatically create a ticket type with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestTicketType"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/ticket-types/{ticketTypeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test ticket type for cleanup
+         * @description Delete a test ticket type by ID. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestTicketType"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/volunteer-positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test volunteer position for E2E testing
+         * @description Programmatically create a volunteer position with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestVolunteerPosition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/volunteer-positions/{positionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test volunteer position for cleanup
+         * @description Delete a test volunteer position by ID. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestVolunteerPosition"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/vetting-applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test vetting application for E2E testing
+         * @description Programmatically create a vetting application with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestVettingApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/vetting-applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test vetting application for cleanup
+         * @description Delete a test vetting application by ID. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestVettingApplication"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/test-email": {
         parameters: {
             query?: never;
@@ -4185,6 +4385,36 @@ export interface components {
             notes?: string | null;
             eventWaiverAccepted: boolean;
         };
+        CreateTestEventRequest: {
+            title: string;
+            shortDescription?: string | null;
+            description?: string | null;
+            /** Format: date-time */
+            startDate: string;
+            /** Format: date-time */
+            endDate: string;
+            /** Format: int32 */
+            eventType?: number;
+            /** Format: int32 */
+            status?: number;
+            isPublished?: boolean;
+            /** Format: int32 */
+            capacity?: number;
+            /** Format: int32 */
+            venueId?: number | null;
+        };
+        CreateTestSessionRequest: {
+            /** Format: uuid */
+            eventId: string;
+            sessionCode?: string | null;
+            name: string;
+            /** Format: date-time */
+            startTime: string;
+            /** Format: date-time */
+            endTime: string;
+            /** Format: int32 */
+            capacity?: number;
+        };
         CreateTestTicketPurchaseRequest: {
             /** Format: double */
             totalPrice: number;
@@ -4201,6 +4431,19 @@ export interface components {
             includePayPalCaptureId?: boolean | null;
             eventName?: string | null;
         };
+        CreateTestTicketTypeRequest: {
+            /** Format: uuid */
+            eventId: string;
+            name: string;
+            description?: string | null;
+            /** Format: double */
+            price: number;
+            /** Format: int32 */
+            pricingType?: number;
+            /** Format: int32 */
+            available?: number;
+            sessionIds?: string[] | null;
+        };
         CreateTestUserRequest: {
             email: string;
             password: string;
@@ -4215,11 +4458,31 @@ export interface components {
             bio?: string | null;
             pronouns?: string | null;
         };
+        CreateTestVettingApplicationRequest: {
+            userId: string;
+            /** Format: int32 */
+            workflowStatus?: number;
+            experienceDescription?: string | null;
+            whyJoinCommunity?: string | null;
+            howDidYouHearAboutUs?: string | null;
+        };
+        CreateTestVolunteerPositionRequest: {
+            /** Format: uuid */
+            eventId: string;
+            title: string;
+            description?: string | null;
+            /** Format: int32 */
+            slotsNeeded?: number;
+            /** Format: int32 */
+            slotsFilled?: number;
+            isPublicFacing?: boolean;
+            /** Format: uuid */
+            sessionId?: string | null;
+        };
         CreateTicketPurchaseRequest: {
             /** Format: uuid */
             eventId: string;
-            /** Format: uuid */
-            ticketTypeId: string;
+            ticketTypeIds: string[];
             notes?: string | null;
             paymentMethodId?: string | null;
             eventWaiverAccepted: boolean;
@@ -4941,7 +5204,8 @@ export interface components {
         PublicApplicationSubmissionRequest: {
             email: string;
             sceneName: string;
-            realName: string;
+            firstName: string;
+            lastName: string;
             phoneNumber: string;
             experience: string;
             interests: string;
@@ -5357,6 +5621,8 @@ export interface components {
             sessionIds?: string[];
             /** Format: double */
             totalPrice?: number;
+            canCancel?: boolean;
+            cancellationMessage?: string | null;
         };
         TicketTypeDto: {
             id?: string;
@@ -5515,7 +5781,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             sceneName?: string;
-            realName?: string;
+            fullName?: string;
             role?: string;
             /** Format: int32 */
             activeIncidentCount?: number;
@@ -5647,7 +5913,7 @@ export interface components {
             sceneName?: string;
             email?: string;
             discordName?: string | null;
-            realName?: string | null;
+            fullName?: string | null;
         };
         /** @enum {unknown} */
         UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending";
@@ -5748,7 +6014,8 @@ export interface components {
             /** Format: date-time */
             decisionMadeAt?: string | null;
             sceneName?: string | null;
-            realName?: string | null;
+            firstName?: string | null;
+            lastName?: string | null;
             email?: string | null;
             phone?: string | null;
             fetLifeHandle?: string | null;
@@ -9811,6 +10078,316 @@ export interface operations {
         responses: {
             /** @description OK */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestEventRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestTicketType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestTicketTypeRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestTicketType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketTypeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestVolunteerPosition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestVolunteerPositionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestVolunteerPosition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                positionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestVettingApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestVettingApplicationRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestVettingApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

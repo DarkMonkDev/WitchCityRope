@@ -687,7 +687,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       {/* Get ticket purchases from the map */}
                       {(() => {
                         // Use ticketPurchases (includes ticket type name) if available, fall back to ticketPurchaseSessionMap
-                        const ticketPurchases = (validParticipation as any)?.ticketPurchases as Record<string, { ticketTypeName: string; sessionIds: string[] }> | undefined;
+                        const ticketPurchases = (validParticipation as any)?.ticketPurchases as Record<string, { ticketTypeName: string; sessionIds: string[]; canCancel?: boolean; cancellationMessage?: string | null }> | undefined;
                         const ticketPurchaseMap = (validParticipation as any)?.ticketPurchaseSessionMap as Record<string, string[]> | undefined;
                         debugLog('🎫 Cancel Mode - ticketPurchases:', ticketPurchases);
                         debugLog('🎫 Cancel Mode - ticketPurchaseMap:', ticketPurchaseMap);
@@ -708,16 +708,20 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                           ? Object.entries(ticketPurchases).map(([id, info]) => ({
                               ticketPurchaseId: id,
                               sessionIds: info.sessionIds,
-                              ticketTypeName: info.ticketTypeName
+                              ticketTypeName: info.ticketTypeName,
+                              canCancel: info.canCancel !== false, // Default to true if not specified
+                              cancellationMessage: info.cancellationMessage || null
                             }))
                           : Object.entries(ticketPurchaseMap || {}).map(([id, sessionIds]) => ({
                               ticketPurchaseId: id,
                               sessionIds,
-                              ticketTypeName: null as string | null
+                              ticketTypeName: null as string | null,
+                              canCancel: true, // Legacy data without the new field - assume cancelable
+                              cancellationMessage: null as string | null
                             }));
 
                         // Render each ticket purchase as a selectable item
-                        return purchaseEntries.map(({ ticketPurchaseId, sessionIds, ticketTypeName }) => {
+                        return purchaseEntries.map(({ ticketPurchaseId, sessionIds, ticketTypeName, canCancel, cancellationMessage }) => {
                           const ticketSessions = eventSessions?.filter(s => sessionIds.includes(s.id || '')) || [];
                           const isSelected = selectedTicketPurchaseIds.includes(ticketPurchaseId);
 
@@ -729,25 +733,33 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                           return (
                             <Box
                               key={ticketPurchaseId}
-                              onClick={() => toggleTicketPurchaseSelection(ticketPurchaseId)}
+                              onClick={() => canCancel && toggleTicketPurchaseSelection(ticketPurchaseId)}
                               style={{
-                                cursor: 'pointer',
+                                cursor: canCancel ? 'pointer' : 'not-allowed',
                                 padding: '8px',
                                 borderRadius: '8px',
                                 backgroundColor: isSelected ? 'rgba(220, 53, 69, 0.1)' : 'transparent',
-                                border: isSelected ? '1px solid rgba(220, 53, 69, 0.3)' : '1px solid transparent'
+                                border: isSelected ? '1px solid rgba(220, 53, 69, 0.3)' : '1px solid transparent',
+                                opacity: canCancel ? 1 : 0.6
                               }}
                             >
                               <Group gap="sm" align="flex-start">
                                 <Checkbox
-                                  checked={isSelected}
+                                  checked={isSelected && canCancel}
                                   onChange={() => {}}
                                   readOnly
+                                  disabled={!canCancel}
                                   color="red"
                                   mt={2}
                                 />
                                 <Box style={{ flex: 1 }}>
                                   <Text size="sm" fw={500}>{ticketName}</Text>
+                                  {/* Show cancellation message if ticket can't be cancelled */}
+                                  {!canCancel && cancellationMessage && (
+                                    <Text size="xs" c="red" mt={4}>
+                                      {cancellationMessage}
+                                    </Text>
+                                  )}
                                   <Stack gap={4} mt={4}>
                                     {ticketSessions.map((session, idx) => (
                                       <Text key={session.id || idx} size="xs" c="dimmed">

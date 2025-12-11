@@ -31,10 +31,12 @@ export class SessionFactory {
   async create(options: CreateSessionRequest): Promise<SessionResponse> {
     // Map frontend field names to backend DTO field names
     // Backend: EventId (Guid), Name (string), SessionCode (optional), StartTime, EndTime, Capacity
+    // CRITICAL: SessionCode has MaxLength(10) in backend - keep it short!
+    const shortCode = Math.random().toString(36).substring(2, 6).toUpperCase();
     const request = {
       eventId: options.eventId,
       name: options.title, // Backend uses 'name', frontend uses 'title'
-      sessionCode: `S${Date.now()}`, // Auto-generate session code
+      sessionCode: `S${shortCode}`, // 5-char code like "S4A2B" - must be <= 10 chars
       startTime: options.startTime.toISOString(),
       endTime: options.endTime.toISOString(),
       capacity: options.maxCapacity ?? 20, // Backend uses 'capacity', frontend uses 'maxCapacity'

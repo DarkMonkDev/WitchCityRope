@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2025-12-10 -->
-<!-- Version: 4.545 -->
+<!-- Last Updated: 2025-12-11 -->
+<!-- Version: 4.546 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,9 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-12-11 | /docs/functional-areas/payments/new-work/2025-12-11-per-ticket-cancellation-flags/ | CREATED | Feature work folder for per-ticket-purchase cancellation flags enhancement | Main Agent: Per-Ticket Cancellation Flags Implementation Plan | ACTIVE | Never |
+| 2025-12-11 | /docs/functional-areas/payments/new-work/2025-12-11-per-ticket-cancellation-flags/implementation-plan.md | CREATED | Comprehensive implementation plan for per-ticket-purchase cancellation eligibility tracking - Fixes multi-session event bug where cancellation is blocked based on event start date instead of individual session timing. Complete step-by-step guide with backend DTO changes, service logic updates, frontend UI enhancements, testing requirements, rollback plan. | Main Agent: Per-Ticket Cancellation Flags Implementation Plan | ACTIVE | Never |
+| 2025-12-11 | /docs/functional-areas/payments/new-work/2025-12-11-per-ticket-cancellation-flags/README.md | CREATED | Overview document for per-ticket-purchase cancellation flags feature - Problem statement, solution summary, key changes, timeline, related work references | Main Agent: Per-Ticket Cancellation Flags Implementation Plan | ACTIVE | Never |
 | 2025-12-10 | /tests/e2e/vetting-admin-dashboard.spec.ts | MODIFIED | Migrated from seed data dependency to DataFactory pattern - Removed beforeEach/afterEach hooks, now creates own test users/applications | Test Developer: DataFactory Migration | ACTIVE | Never |
 | 2025-12-10 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Added vetting-admin-dashboard test migration entry (Version 12.04.0) | Test Developer: DataFactory Migration | ACTIVE | Never |
 | 2025-12-10 | /tests/e2e/session-based-timing.spec.ts | MODIFIED | Migrated from seed data dependency to DataFactory pattern - Now creates own test data with df fixture | Test Developer: DataFactory Migration | ACTIVE | Never |

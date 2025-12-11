@@ -41,7 +41,7 @@ export const EditPeopleModal: React.FC<EditPeopleModalProps> = ({
   }, [opened, currentValue]);
 
   // Fetch all users for member selection
-  const { data: users } = useQuery<Array<{ id: string; sceneName: string; realName: string }>>({
+  const { data: users } = useQuery<Array<{ id: string; sceneName: string; fullName: string }>>({
     queryKey: ['safety', 'all-users'],
     queryFn: async () => {
       const response = await apiClient.get('/api/safety/admin/users/coordinators');
@@ -87,7 +87,7 @@ export const EditPeopleModal: React.FC<EditPeopleModalProps> = ({
 
   const userOptions: UserOption[] = users?.map(user => ({
     value: user.id,
-    label: `${user.sceneName} (${user.realName})`,
+    label: `${user.sceneName}${user.fullName ? ` (${user.fullName})` : ''}`,
   })) || [];
 
   const handleSave = () => {

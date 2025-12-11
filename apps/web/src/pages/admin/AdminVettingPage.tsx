@@ -173,7 +173,7 @@ export const AdminVettingPage: React.FC = () => {
           onClose={() => setOnHoldModalOpen(false)}
           applicationIds={Array.from(selectedApplications)}
           applicantNames={selectedApplicationsData.map(app =>
-            (app as any).realName || [(app as any).firstName, (app as any).lastName].filter(Boolean).join(' ') || app.sceneName || 'Unknown'
+            [(app as any).firstName, (app as any).lastName].filter(Boolean).join(' ') || app.sceneName || 'Unknown'
           )}
           onSuccess={() => {
             setSelectedApplications(new Set());

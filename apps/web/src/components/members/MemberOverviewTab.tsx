@@ -133,8 +133,8 @@ export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }
             </Grid.Col>
             <Grid.Col span={{ base: 6, md: 4 }}>
               <Group gap="xs" wrap="nowrap">
-                <Text size="sm" c="dimmed">Real Name:</Text>
-                <Text fw={500}>{vettingDetails?.realName || '-'}</Text>
+                <Text size="sm" c="dimmed">Name:</Text>
+                <Text fw={500}>{[vettingDetails?.firstName, vettingDetails?.lastName].filter(Boolean).join(' ') || '-'}</Text>
               </Group>
             </Grid.Col>
             <Grid.Col span={{ base: 6, md: 4 }}>

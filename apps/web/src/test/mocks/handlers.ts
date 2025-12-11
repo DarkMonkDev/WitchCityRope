@@ -782,17 +782,17 @@ export const handlers = [
   // Get available coordinators
   http.get('/api/safety/admin/users/coordinators', () => {
     return HttpResponse.json([
-      { id: '1', sceneName: 'Admin User', realName: 'Alice Smith', role: 'Admin', activeIncidentCount: 2 },
-      { id: '2', sceneName: 'Safety Coordinator', realName: 'Bob Johnson', role: 'Teacher', activeIncidentCount: 1 },
-      { id: '3', sceneName: 'RopeTeacher', realName: 'Carol Martinez', role: 'Teacher', activeIncidentCount: 0 }
+      { id: '1', sceneName: 'Admin User', fullName: 'Alice Smith', role: 'Admin', activeIncidentCount: 2 },
+      { id: '2', sceneName: 'Safety Coordinator', fullName: 'Bob Johnson', role: 'Teacher', activeIncidentCount: 1 },
+      { id: '3', sceneName: 'RopeTeacher', fullName: 'Carol Martinez', role: 'Teacher', activeIncidentCount: 0 }
     ])
   }),
 
   http.get(`${API_BASE_URL}/api/safety/admin/users/coordinators`, () => {
     return HttpResponse.json([
-      { id: '1', sceneName: 'Admin User', realName: 'Alice Smith', role: 'Admin', activeIncidentCount: 2 },
-      { id: '2', sceneName: 'Safety Coordinator', realName: 'Bob Johnson', role: 'Teacher', activeIncidentCount: 1 },
-      { id: '3', sceneName: 'RopeTeacher', realName: 'Carol Martinez', role: 'Teacher', activeIncidentCount: 0 }
+      { id: '1', sceneName: 'Admin User', fullName: 'Alice Smith', role: 'Admin', activeIncidentCount: 2 },
+      { id: '2', sceneName: 'Safety Coordinator', fullName: 'Bob Johnson', role: 'Teacher', activeIncidentCount: 1 },
+      { id: '3', sceneName: 'RopeTeacher', fullName: 'Carol Martinez', role: 'Teacher', activeIncidentCount: 0 }
     ])
   }),
 

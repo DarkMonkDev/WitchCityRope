@@ -181,8 +181,8 @@ public class TicketDetailsDto
 }
 
 /// <summary>
-/// Information about a ticket purchase including ticket type name
-/// Used for displaying proper ticket names in cancel mode
+/// Information about a ticket purchase including ticket type name and cancellation eligibility
+/// Used for displaying proper ticket names in cancel mode and per-purchase cancellation control
 /// </summary>
 public class TicketPurchaseInfoDto
 {
@@ -200,6 +200,18 @@ public class TicketPurchaseInfoDto
     /// Total price paid for this ticket purchase
     /// </summary>
     public decimal TotalPrice { get; set; }
+
+    /// <summary>
+    /// Whether this specific ticket purchase can be cancelled based on its sessions' timing
+    /// True if the reference session (earliest session in this ticket) is within the cancellation window
+    /// </summary>
+    public bool CanCancel { get; set; }
+
+    /// <summary>
+    /// Message explaining why cancellation is not available (e.g., "Cancellation window closed")
+    /// Null when CanCancel is true
+    /// </summary>
+    public string? CancellationMessage { get; set; }
 }
 
 /// <summary>
