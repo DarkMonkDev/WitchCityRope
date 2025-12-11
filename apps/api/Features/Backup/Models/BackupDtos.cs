@@ -53,8 +53,3 @@ public class RestoreRequest
     public string Confirmation { get; set; } = string.Empty;
     public bool CreatePreBackup { get; set; } = true;
 }
-
-public class ErrorResponse
-{
-    public string Error { get; set; } = string.Empty;
-}

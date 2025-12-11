@@ -26,8 +26,8 @@ public static class AdminBackupEndpoints
             .Produces<BackupJobResponse>(200)
             .Produces(401)
             .Produces(403)
-            .Produces<ErrorResponse>(400)
-            .Produces<ErrorResponse>(500);
+            .ProducesProblem(400)
+            .ProducesProblem(500);
 
         // 2. List All Backups
         group.MapGet("/list", ListBackups)
@@ -38,7 +38,7 @@ public static class AdminBackupEndpoints
             .Produces<BackupListResponse>(200)
             .Produces(401)
             .Produces(403)
-            .Produces<ErrorResponse>(500);
+            .ProducesProblem(500);
 
         // 3. Restore from Backup
         group.MapPost("/restore", RestoreBackup)
@@ -49,9 +49,9 @@ public static class AdminBackupEndpoints
             .Produces<BackupJobResponse>(200)
             .Produces(401)
             .Produces(403)
-            .Produces<ErrorResponse>(400)
-            .Produces<ErrorResponse>(404)
-            .Produces<ErrorResponse>(500);
+            .ProducesProblem(400)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
 
         // 4. Delete Backup
         group.MapDelete("/{fileName}", DeleteBackup)
@@ -62,8 +62,8 @@ public static class AdminBackupEndpoints
             .Produces<object>(200)
             .Produces(401)
             .Produces(403)
-            .Produces<ErrorResponse>(404)
-            .Produces<ErrorResponse>(500);
+            .ProducesProblem(404)
+            .ProducesProblem(500);
 
         // 5. Download Backup
         group.MapGet("/download/{fileName}", DownloadBackup)
@@ -74,8 +74,8 @@ public static class AdminBackupEndpoints
             .Produces<Stream>(200)
             .Produces(401)
             .Produces(403)
-            .Produces<ErrorResponse>(404)
-            .Produces<ErrorResponse>(500);
+            .ProducesProblem(404)
+            .ProducesProblem(500);
 
         // 6. Get Job Status
         group.MapGet("/job/{jobId}", GetJobStatus)
@@ -86,7 +86,7 @@ public static class AdminBackupEndpoints
             .Produces<BackupJobStatusResponse>(200)
             .Produces(401)
             .Produces(403)
-            .Produces<ErrorResponse>(404);
+            .ProducesProblem(404);
 
         // 7. Get Storage Summary
         group.MapGet("/storage", GetStorageSummary)
@@ -97,7 +97,7 @@ public static class AdminBackupEndpoints
             .Produces<StorageSummaryResponse>(200)
             .Produces(401)
             .Produces(403)
-            .Produces<ErrorResponse>(500);
+            .ProducesProblem(500);
 
         // 8. Upload and Restore Local Backup
         // CRITICAL SECURITY NOTE: CSRF protection is AUTOMATICALLY ENABLED via app.UseAntiforgery() middleware
@@ -112,8 +112,8 @@ public static class AdminBackupEndpoints
             .Produces<BackupJobResponse>(200)
             .Produces(401)
             .Produces(403)
-            .Produces<ErrorResponse>(400)
-            .Produces<ErrorResponse>(500);
+            .ProducesProblem(400)
+            .ProducesProblem(500);
     }
 
     private static IResult TriggerBackup(
@@ -186,10 +186,10 @@ public static class AdminBackupEndpoints
             // Validate confirmation
             if (request.Confirmation != "RESTORE")
             {
-                return Results.BadRequest(new ErrorResponse
-                {
-                    Error = "Confirmation must be 'RESTORE'"
-                });
+                return Results.Problem(
+                    title: "Bad Request",
+                    detail: "Confirmation must be 'RESTORE'",
+                    statusCode: 400);
             }
 
             // Verify backup exists (simplified check)
@@ -228,7 +228,10 @@ public static class AdminBackupEndpoints
         }
         catch (FileNotFoundException)
         {
-            return Results.NotFound(new ErrorResponse { Error = "Backup not found" });
+            return Results.Problem(
+                title: "Not Found",
+                detail: "Backup not found",
+                statusCode: 404);
         }
         catch (Exception ex)
         {
@@ -252,7 +255,10 @@ public static class AdminBackupEndpoints
         }
         catch (FileNotFoundException)
         {
-            return Results.NotFound(new ErrorResponse { Error = "Backup not found" });
+            return Results.Problem(
+                title: "Not Found",
+                detail: "Backup not found",
+                statusCode: 404);
         }
         catch (Exception ex)
         {
@@ -274,7 +280,10 @@ public static class AdminBackupEndpoints
             var jobDetails = monitoringApi.JobDetails(jobId);
             if (jobDetails == null)
             {
-                return Results.NotFound(new ErrorResponse { Error = "Job not found" });
+                return Results.Problem(
+                    title: "Not Found",
+                    detail: "Job not found",
+                    statusCode: 404);
             }
 
             var response = new BackupJobStatusResponse
@@ -292,7 +301,10 @@ public static class AdminBackupEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get job status");
-            return Results.NotFound(new ErrorResponse { Error = "Job not found" });
+            return Results.Problem(
+                title: "Not Found",
+                detail: "Job not found or error retrieving status",
+                statusCode: 404);
         }
     }
 
@@ -325,10 +337,10 @@ public static class AdminBackupEndpoints
         {
             if (!request.HasFormContentType)
             {
-                return Results.BadRequest(new ErrorResponse
-                {
-                    Error = "Request must be multipart/form-data"
-                });
+                return Results.Problem(
+                    title: "Bad Request",
+                    detail: "Request must be multipart/form-data",
+                    statusCode: 400);
             }
 
             var form = await request.ReadFormAsync();
@@ -336,19 +348,19 @@ public static class AdminBackupEndpoints
 
             if (file == null || file.Length == 0)
             {
-                return Results.BadRequest(new ErrorResponse
-                {
-                    Error = "No file uploaded"
-                });
+                return Results.Problem(
+                    title: "Bad Request",
+                    detail: "No file uploaded",
+                    statusCode: 400);
             }
 
             if (!file.FileName.EndsWith(".dump", StringComparison.OrdinalIgnoreCase) &&
                 !file.FileName.EndsWith(".sql", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.BadRequest(new ErrorResponse
-                {
-                    Error = "File must be a .dump or .sql file"
-                });
+                return Results.Problem(
+                    title: "Bad Request",
+                    detail: "File must be a .dump or .sql file",
+                    statusCode: 400);
             }
 
             // Get temp directory from configuration
