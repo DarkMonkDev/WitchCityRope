@@ -31,6 +31,7 @@
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
 - **Playwright Guide** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/browser-automation/playwright-guide.md`
 - **Integration Test Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/integration-test-patterns.md`
+- **DataFactory README** - `/home/chad/repos/witchcityrope/tests/lib/datafactory/README.md` - E2E test data creation infrastructure
 - **Skills Usage Guide** - `/.claude/skills/HOW-TO-USE-SKILLS.md` - Complete guide on when/how to use skills
 - **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 
@@ -60,17 +61,15 @@ This lessons learned file contains ONLY:
 
 ## Prevention Pattern: Running Playwright from Wrong Directory
 
-**Problem Discovered**: Running `npx playwright test` from `/tests/` subdirectory caused only 8 of 855 tests to execute.
+**Problem Discovered**: Running Playwright from `/tests/` subdirectory caused only 8 of 855 tests to execute.
 
 **When**: 2025-11-24 (test structure simplification)
 
 **Symptoms**: Tests report "All passing" but 99% silently skipped
 
-**Solution**: See Test Execution Guide, section "E2E Tests (Playwright)" → "Working directory (CRITICAL)"
+**Solution**: Use `test-environment` skill which handles correct working directory automatically. For manual execution details, see Test Execution Guide, section "E2E Tests (Playwright)" → "Working directory (CRITICAL)"
 
-**Critical Rule**: ALWAYS run from project root `/home/chad/repos/witchcityrope/apps/web`, NEVER from test subdirectories
-
-**Verification**: Use test-catalog-updater skill to verify full test suite discovered (~855 tests)
+**Prevention**: Always use the `test-environment` skill instead of running test commands directly.
 
 ---
 
@@ -230,9 +229,7 @@ This lessons learned file contains ONLY:
 
 **Symptoms**: `test-results/` directory empty or missing HTML files
 
-**Solution**: See Test Execution Guide, section "Viewing Playwright Reports"
-
-**Command**: `npx playwright show-report test-results/playwright-report`
+**Solution**: Use `test-environment` skill which includes report generation. For viewing reports manually, see Test Execution Guide, section "Viewing Playwright Reports"
 
 **Auto-opens**: Browser with detailed test results, screenshots, traces
 

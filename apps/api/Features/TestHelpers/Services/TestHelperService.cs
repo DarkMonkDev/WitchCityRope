@@ -400,4 +400,511 @@ public class TestHelperService : ITestHelperService
             .OrderBy(tt => tt.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    // ====================================================================
+    // EVENT OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test event with specified properties
+    /// </summary>
+    public async Task<(bool Success, TestEventResponse? Data, string? Error)> CreateTestEventAsync(
+        CreateTestEventRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating test event: {Title}", request.Title);
+
+            var eventEntity = new Event
+            {
+                Id = Guid.NewGuid(),
+                Title = request.Title,
+                ShortDescription = request.ShortDescription ?? $"Test event: {request.Title}",
+                Description = request.Description ?? $"Test event description for {request.Title}",
+                StartDate = request.StartDate,
+                EndDate = request.EndDate,
+                EventType = (Enums.EventType)request.EventType,
+                IsPublished = request.IsPublished,
+                Capacity = request.Capacity,
+                VenueId = request.VenueId ?? 1, // Default to test venue
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Set<Event>().Add(eventEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("✅ Successfully created test event: {EventId} - {Title}", eventEntity.Id, eventEntity.Title);
+
+            return (true, new TestEventResponse
+            {
+                Id = eventEntity.Id,
+                Title = eventEntity.Title,
+                StartDate = eventEntity.StartDate,
+                EndDate = eventEntity.EndDate,
+                Status = eventEntity.IsPublished ? "Published" : "Draft"
+            }, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create test event: {Title}", request.Title);
+            return (false, null, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Delete a test event by ID
+    /// Also deletes related sessions and ticket types (cascading delete)
+    /// </summary>
+    public async Task<(bool Success, string? Error)> DeleteTestEventAsync(
+        Guid eventId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting test event: {EventId}", eventId);
+
+            var eventEntity = await _context.Set<Event>()
+                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                _logger.LogWarning("Test event not found for deletion: {EventId}", eventId);
+                return (false, $"Event not found: {eventId}");
+            }
+
+            // Delete related entities (sessions, ticket types, volunteer positions)
+            var sessions = await _context.Set<Session>()
+                .Where(s => s.EventId == eventId)
+                .ToListAsync(cancellationToken);
+
+            var ticketTypes = await _context.Set<TicketType>()
+                .Where(t => t.EventId == eventId)
+                .ToListAsync(cancellationToken);
+
+            var volunteerPositions = await _context.Set<VolunteerPosition>()
+                .Where(v => v.EventId == eventId)
+                .ToListAsync(cancellationToken);
+
+            _context.Set<Session>().RemoveRange(sessions);
+            _context.Set<TicketType>().RemoveRange(ticketTypes);
+            _context.Set<VolunteerPosition>().RemoveRange(volunteerPositions);
+            _context.Set<Event>().Remove(eventEntity);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("🗑️ Successfully deleted test event: {EventId} (with {SessionCount} sessions, {TicketTypeCount} ticket types, {VolunteerCount} positions)",
+                eventId, sessions.Count, ticketTypes.Count, volunteerPositions.Count);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete test event: {EventId}", eventId);
+            return (false, ex.Message);
+        }
+    }
+
+    // ====================================================================
+    // SESSION OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test session with specified properties
+    /// </summary>
+    public async Task<(bool Success, TestSessionResponse? Data, string? Error)> CreateTestSessionAsync(
+        CreateTestSessionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating test session: {Name} for event {EventId}", request.Name, request.EventId);
+
+            // Verify parent event exists
+            var eventExists = await _context.Set<Event>()
+                .AnyAsync(e => e.Id == request.EventId, cancellationToken);
+
+            if (!eventExists)
+            {
+                return (false, null, $"Parent event not found: {request.EventId}");
+            }
+
+            var sessionEntity = new Session
+            {
+                Id = Guid.NewGuid(),
+                EventId = request.EventId,
+                SessionCode = request.SessionCode ?? $"S{Guid.NewGuid().ToString()[..4].ToUpper()}",
+                Name = request.Name,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime,
+                Capacity = request.Capacity,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Set<Session>().Add(sessionEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("✅ Successfully created test session: {SessionId} - {Name}", sessionEntity.Id, sessionEntity.Name);
+
+            return (true, new TestSessionResponse
+            {
+                Id = sessionEntity.Id,
+                EventId = sessionEntity.EventId,
+                Name = sessionEntity.Name,
+                StartTime = sessionEntity.StartTime,
+                EndTime = sessionEntity.EndTime
+            }, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create test session: {Name}", request.Name);
+            return (false, null, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Delete a test session by ID
+    /// </summary>
+    public async Task<(bool Success, string? Error)> DeleteTestSessionAsync(
+        Guid sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting test session: {SessionId}", sessionId);
+
+            var sessionEntity = await _context.Set<Session>()
+                .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
+
+            if (sessionEntity == null)
+            {
+                _logger.LogWarning("Test session not found for deletion: {SessionId}", sessionId);
+                return (false, $"Session not found: {sessionId}");
+            }
+
+            _context.Set<Session>().Remove(sessionEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("🗑️ Successfully deleted test session: {SessionId}", sessionId);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete test session: {SessionId}", sessionId);
+            return (false, ex.Message);
+        }
+    }
+
+    // ====================================================================
+    // TICKET TYPE OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test ticket type with specified properties
+    /// </summary>
+    public async Task<(bool Success, TestTicketTypeResponse? Data, string? Error)> CreateTestTicketTypeAsync(
+        CreateTestTicketTypeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating test ticket type: {Name} for event {EventId}", request.Name, request.EventId);
+
+            // Verify parent event exists
+            var eventEntity = await _context.Set<Event>()
+                .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                return (false, null, $"Parent event not found: {request.EventId}");
+            }
+
+            var ticketTypeEntity = new TicketType
+            {
+                Id = Guid.NewGuid(),
+                EventId = request.EventId,
+                Name = request.Name,
+                Description = request.Description ?? $"Test ticket type: {request.Name}",
+                PricingType = (WitchCityRope.Models.PricingType)request.PricingType,
+                Price = request.Price,
+                Available = request.Available,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            // Add session associations if provided
+            if (request.SessionIds?.Any() == true)
+            {
+                var sessions = await _context.Set<Session>()
+                    .Where(s => request.SessionIds.Contains(s.Id))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var session in sessions)
+                {
+                    ticketTypeEntity.Sessions.Add(session);
+                }
+            }
+
+            _context.Set<TicketType>().Add(ticketTypeEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("✅ Successfully created test ticket type: {TicketTypeId} - {Name}", ticketTypeEntity.Id, ticketTypeEntity.Name);
+
+            return (true, new TestTicketTypeResponse
+            {
+                Id = ticketTypeEntity.Id,
+                EventId = ticketTypeEntity.EventId,
+                Name = ticketTypeEntity.Name,
+                Price = ticketTypeEntity.Price ?? 0,
+                Available = ticketTypeEntity.Available
+            }, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create test ticket type: {Name}", request.Name);
+            return (false, null, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Delete a test ticket type by ID
+    /// </summary>
+    public async Task<(bool Success, string? Error)> DeleteTestTicketTypeAsync(
+        Guid ticketTypeId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting test ticket type: {TicketTypeId}", ticketTypeId);
+
+            var ticketTypeEntity = await _context.Set<TicketType>()
+                .FirstOrDefaultAsync(t => t.Id == ticketTypeId, cancellationToken);
+
+            if (ticketTypeEntity == null)
+            {
+                _logger.LogWarning("Test ticket type not found for deletion: {TicketTypeId}", ticketTypeId);
+                return (false, $"Ticket type not found: {ticketTypeId}");
+            }
+
+            _context.Set<TicketType>().Remove(ticketTypeEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("🗑️ Successfully deleted test ticket type: {TicketTypeId}", ticketTypeId);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete test ticket type: {TicketTypeId}", ticketTypeId);
+            return (false, ex.Message);
+        }
+    }
+
+    // ====================================================================
+    // VOLUNTEER POSITION OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test volunteer position with specified properties
+    /// </summary>
+    public async Task<(bool Success, TestVolunteerPositionResponse? Data, string? Error)> CreateTestVolunteerPositionAsync(
+        CreateTestVolunteerPositionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating test volunteer position: {Title} for event {EventId}", request.Title, request.EventId);
+
+            // Verify parent event exists
+            var eventExists = await _context.Set<Event>()
+                .AnyAsync(e => e.Id == request.EventId, cancellationToken);
+
+            if (!eventExists)
+            {
+                return (false, null, $"Parent event not found: {request.EventId}");
+            }
+
+            // Verify session exists if provided
+            if (request.SessionId.HasValue)
+            {
+                var sessionExists = await _context.Set<Session>()
+                    .AnyAsync(s => s.Id == request.SessionId.Value, cancellationToken);
+
+                if (!sessionExists)
+                {
+                    return (false, null, $"Session not found: {request.SessionId}");
+                }
+            }
+
+            var positionEntity = new VolunteerPosition
+            {
+                Id = Guid.NewGuid(),
+                EventId = request.EventId,
+                SessionId = request.SessionId,
+                Title = request.Title,
+                Description = request.Description ?? $"Test volunteer position: {request.Title}",
+                SlotsNeeded = request.SlotsNeeded,
+                SlotsFilled = request.SlotsFilled,
+                IsPublicFacing = request.IsPublicFacing,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Set<VolunteerPosition>().Add(positionEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("✅ Successfully created test volunteer position: {PositionId} - {Title}", positionEntity.Id, positionEntity.Title);
+
+            return (true, new TestVolunteerPositionResponse
+            {
+                Id = positionEntity.Id,
+                EventId = positionEntity.EventId,
+                Title = positionEntity.Title,
+                SlotsNeeded = positionEntity.SlotsNeeded,
+                SlotsFilled = positionEntity.SlotsFilled
+            }, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create test volunteer position: {Title}", request.Title);
+            return (false, null, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Delete a test volunteer position by ID
+    /// </summary>
+    public async Task<(bool Success, string? Error)> DeleteTestVolunteerPositionAsync(
+        Guid positionId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting test volunteer position: {PositionId}", positionId);
+
+            var positionEntity = await _context.Set<VolunteerPosition>()
+                .FirstOrDefaultAsync(v => v.Id == positionId, cancellationToken);
+
+            if (positionEntity == null)
+            {
+                _logger.LogWarning("Test volunteer position not found for deletion: {PositionId}", positionId);
+                return (false, $"Volunteer position not found: {positionId}");
+            }
+
+            _context.Set<VolunteerPosition>().Remove(positionEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("🗑️ Successfully deleted test volunteer position: {PositionId}", positionId);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete test volunteer position: {PositionId}", positionId);
+            return (false, ex.Message);
+        }
+    }
+
+    // ====================================================================
+    // VETTING APPLICATION OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test vetting application with specified properties
+    /// </summary>
+    public async Task<(bool Success, TestVettingApplicationResponse? Data, string? Error)> CreateTestVettingApplicationAsync(
+        CreateTestVettingApplicationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating test vetting application for user: {UserId}", request.UserId);
+
+            // Verify user exists
+            if (!Guid.TryParse(request.UserId, out var userGuid))
+            {
+                return (false, null, "Invalid user ID format");
+            }
+
+            var user = await _userManager.FindByIdAsync(request.UserId);
+            if (user == null)
+            {
+                return (false, null, $"User not found: {request.UserId}");
+            }
+
+            var applicationEntity = new Features.Vetting.Entities.VettingApplication
+            {
+                Id = Guid.NewGuid(),
+                UserId = userGuid,
+                SceneName = user.SceneName ?? "Test Applicant",
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email ?? string.Empty,
+                Pronouns = user.Pronouns,
+                WorkflowStatus = (Features.Vetting.Entities.VettingStatus)request.WorkflowStatus,
+                ExperienceDescription = request.ExperienceDescription ?? "Test experience description",
+                WhyJoinCommunity = request.WhyJoinCommunity ?? "Test reason to join",
+                HowDidYouHearAboutUs = request.HowDidYouHearAboutUs ?? "Test referral",
+                AgreesToGuidelines = true,
+                AgreesToTerms = true,
+                ConsentToContact = true,
+                ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                StatusToken = Guid.NewGuid().ToString(),
+                SubmittedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Set<Features.Vetting.Entities.VettingApplication>().Add(applicationEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("✅ Successfully created test vetting application: {ApplicationId} for user {UserId}",
+                applicationEntity.Id, request.UserId);
+
+            return (true, new TestVettingApplicationResponse
+            {
+                Id = applicationEntity.Id,
+                UserId = request.UserId,
+                Status = applicationEntity.WorkflowStatus.ToString(),
+                SubmittedAt = applicationEntity.SubmittedAt
+            }, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create test vetting application for user: {UserId}", request.UserId);
+            return (false, null, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Delete a test vetting application by ID
+    /// </summary>
+    public async Task<(bool Success, string? Error)> DeleteTestVettingApplicationAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting test vetting application: {ApplicationId}", applicationId);
+
+            var applicationEntity = await _context.Set<Features.Vetting.Entities.VettingApplication>()
+                .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken);
+
+            if (applicationEntity == null)
+            {
+                _logger.LogWarning("Test vetting application not found for deletion: {ApplicationId}", applicationId);
+                return (false, $"Vetting application not found: {applicationId}");
+            }
+
+            _context.Set<Features.Vetting.Entities.VettingApplication>().Remove(applicationEntity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("🗑️ Successfully deleted test vetting application: {ApplicationId}", applicationId);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete test vetting application: {ApplicationId}", applicationId);
+            return (false, ex.Message);
+        }
+    }
 }

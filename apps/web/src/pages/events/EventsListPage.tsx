@@ -397,7 +397,8 @@ export const EventsListPage: React.FC = () => {
               </Group>
 
               <Group gap="md" align="center">
-                <SegmentedControl
+{/* View toggle hidden for initial release - card view only */}
+                {/* <SegmentedControl
                   data-testid="button-view-toggle"
                   value={viewMode}
                   onChange={(value) => setViewMode(value as 'cards' | 'list')}
@@ -418,7 +419,7 @@ export const EventsListPage: React.FC = () => {
                       fontWeight: 600,
                     },
                   }}
-                />
+                /> */}
 
                 <TextInput
                   data-testid="input-search"
@@ -477,8 +478,8 @@ export const EventsListPage: React.FC = () => {
             className="filter-bar-mobile"
           >
             <Stack gap="md">
-              {/* Row 1: Show Past Classes Switch + View Toggle */}
-              <Group justify="space-between" align="center" wrap="nowrap" gap="sm">
+              {/* Row 1: Show Past Classes Switch (View Toggle hidden for initial release) */}
+              <Group justify="flex-start" align="center" wrap="nowrap" gap="sm">
                 <Switch
                   label="Show Past Classes"
                   checked={showPastClasses}
@@ -494,7 +495,8 @@ export const EventsListPage: React.FC = () => {
                   }}
                 />
 
-                <SegmentedControl
+                {/* View toggle hidden for initial release - card view only */}
+                {/* <SegmentedControl
                   data-testid="button-view-toggle"
                   value={viewMode}
                   onChange={(value) => setViewMode(value as 'cards' | 'list')}
@@ -516,7 +518,7 @@ export const EventsListPage: React.FC = () => {
                       fontWeight: 600,
                     },
                   }}
-                />
+                /> */}
               </Group>
 
               {/* Row 2: Search Input + Sort Select */}

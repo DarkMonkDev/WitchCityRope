@@ -1,10 +1,9 @@
-import { test, expect, Page, APIRequestContext } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 // Environment-aware URLs for container/host compatibility
 const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
-const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
-
 
 /**
  * E2E Tests for Complete Vetting Workflow Integration
@@ -16,65 +15,22 @@ const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
  */
 
 test.describe('Vetting Workflow Integration', () => {
-  let page: Page;
-  let apiContext: APIRequestContext;
-
-  test.beforeAll(async ({ playwright }) => {
-    // Create API context for test data setup
-    apiContext = await playwright.request.newContext({
-      baseURL: API_BASE_URL,
-    });
-  });
-
-  test.beforeEach(async ({ browser }) => {
-    page = await browser.newPage();
-    await AuthHelpers.clearAuthState(page);
-  });
-
-  test.afterEach(async () => {
-    await page.close();
-  });
-
-  test.afterAll(async () => {
-    await apiContext.dispose();
-  });
-
-  /**
-   * Helper to create test vetting application via API
-   */
-  async function createTestApplication(sceneName: string, email: string) {
-    const timestamp = Date.now();
-    const uniqueSceneName = `${sceneName}-${timestamp}`;
-    const uniqueEmail = `${email.split('@')[0]}-${timestamp}@${email.split('@')[1]}`;
-
-    const response = await apiContext.post('/api/vetting/public/applications', {
-      data: {
-        sceneName: uniqueSceneName,
-        firstName: 'Test',
-        lastName: `User${timestamp}`,
-        email: uniqueEmail,
-        phoneNumber: '555-1234',
-        experience: 'Beginner',
-        interests: 'Learning rope bondage',
-        references: 'Community member referral',
-        agreeToRules: true,
-        consentToBackground: true,
-      },
-    });
-
-    expect(response.ok()).toBeTruthy();
-    const data = await response.json();
-    return data;
-  }
 
   /**
    * TEST 1: Complete approval workflow (submit → review → approve → verify role)
    * Validates: Full workflow, status transitions, role grant
    */
-  test('complete approval workflow from submission to role grant', async () => {
-    // Arrange - Create test application
-    const application = await createTestApplication('ApprovalTest', 'approval@test.com');
-    const applicationId = application.data?.id || application.id;
+  test('complete approval workflow from submission to role grant', async ({ page, df }) => {
+    // Arrange - Create test application using DataFactory
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `approval-test-${timestamp}@test.com`,
+      firstName: 'Test',
+      lastName: `User${timestamp}`,
+    });
+
+    const application = await df.vetting.createPending(user.id);
+    const applicationId = application.id;
 
     expect(applicationId).toBeTruthy();
 
@@ -85,16 +41,16 @@ test.describe('Vetting Workflow Integration', () => {
     // Find the new application
     await expect(page.locator('table, [data-testid="vetting-grid"]')).toBeVisible();
 
-    // Search for our test application
+    // Search for our test application using email
     const searchInput = page.locator('[data-testid="search-input"], input[type="text"], input[type="search"]').first();
     if (await searchInput.count() > 0) {
-      await searchInput.fill('ApprovalTest');
+      await searchInput.fill(user.email);
       await page.waitForTimeout(500);
     }
 
     // Navigate to application detail
     const applicationRow = page.locator('table tbody tr, [data-testid="application-row"]')
-      .filter({ hasText: /ApprovalTest/i })
+      .filter({ hasText: new RegExp(user.email, 'i') })
       .first();
 
     if (await applicationRow.count() > 0) {
@@ -147,10 +103,17 @@ test.describe('Vetting Workflow Integration', () => {
    * TEST 2: Complete denial workflow (submit → review → deny → verify email)
    * Validates: Denial flow, required reason, email notification
    */
-  test('complete denial workflow sends notification', async () => {
-    // Arrange - Create test application
-    const application = await createTestApplication('DenialTest', 'denial@test.com');
-    const applicationId = application.data?.id || application.id;
+  test('complete denial workflow sends notification', async ({ page, df }) => {
+    // Arrange - Create test application using DataFactory
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `denial-test-${timestamp}@test.com`,
+      firstName: 'Test',
+      lastName: `User${timestamp}`,
+    });
+
+    const application = await df.vetting.createPending(user.id);
+    const applicationId = application.id;
 
     expect(applicationId).toBeTruthy();
 
@@ -204,7 +167,7 @@ test.describe('Vetting Workflow Integration', () => {
    * TEST 3: Status transition validation (can't go Approved → Denied)
    * Validates: Terminal state protection, invalid transition blocking
    */
-  test('cannot change status from approved to denied', async () => {
+  test('cannot change status from approved to denied', async ({ page }) => {
     // Arrange - Navigate to an approved application
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto('/admin/vetting');
@@ -242,10 +205,17 @@ test.describe('Vetting Workflow Integration', () => {
    * Validates: Email logging, notification system
    * Note: Email validation requires backend mock mode verification or email log inspection
    */
-  test('status changes trigger email notifications', async () => {
-    // Arrange - Create test application
-    const application = await createTestApplication('EmailTest', 'emailtest@test.com');
-    const applicationId = application.data?.id || application.id;
+  test('status changes trigger email notifications', async ({ page, df }) => {
+    // Arrange - Create test application using DataFactory
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `emailtest-${timestamp}@test.com`,
+      firstName: 'Test',
+      lastName: `User${timestamp}`,
+    });
+
+    const application = await df.vetting.createPending(user.id);
+    const applicationId = application.id;
 
     // Act - Change status via admin UI
     await AuthHelpers.loginAs(page, 'admin');
@@ -294,7 +264,7 @@ test.describe('Vetting Workflow Integration', () => {
    * TEST 5: Access control blocks vetted content before approval
    * Validates: Access restrictions, RSVP blocking, content gating
    */
-  test('users with pending applications cannot access vetted content', async () => {
+  test('users with pending applications cannot access vetted content', async ({ page }) => {
     // Note: This test would require:
     // 1. Creating a user account
     // 2. Submitting vetting application as that user
@@ -341,7 +311,7 @@ test.describe('Vetting Workflow Integration', () => {
    * Validates: Reminder modal, custom message, email trigger
    * NOTE: Status filter updated to use FinalReview instead of InterviewCompleted
    */
-  test('admin can send reminder email to applicant', async () => {
+  test('admin can send reminder email to applicant', async ({ page }) => {
     // Arrange - Navigate to application in FinalReview or OnHold status
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto('/admin/vetting');

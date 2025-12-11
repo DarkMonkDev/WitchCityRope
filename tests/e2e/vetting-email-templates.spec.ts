@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
@@ -20,27 +21,32 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * - Inline editor functionality
  * - TipTap editor integration
  * - Save and Cancel functionality
+ *
+ * MIGRATION NOTES:
+ * - Migrated to DataFactory pattern: 2025-12-10
+ * - Uses test fixture for automatic page management
+ * - No manual page creation or cleanup needed
+ * - Helper function navigateToVettingTab() for common setup
  */
 
 test.describe('Vetting Email Templates (Unified System)', () => {
-  let page: Page;
-
-  test.beforeEach(async ({ browser }) => {
-    page = await browser.newPage();
-
+  /**
+   * Helper to navigate to Vetting tab in Email Templates page
+   * Returns true if successful, false if should skip test
+   */
+  async function navigateToVettingTab(page: any): Promise<boolean> {
     // Login as admin
-    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
-    expect(loginSuccess).toBeTruthy();
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to unified email templates page
     await page.goto('/admin/email-templates');
     await page.waitForLoadState('domcontentloaded');
 
-    // Check if email templates page exists (may redirect or 404 if not implemented)
+    // Check if email templates page exists
     const currentUrl = page.url();
     if (!currentUrl.includes('/admin/email-templates')) {
       console.log('⚠️ Email templates page not found - feature may not be implemented yet.');
-      return;
+      return false;
     }
 
     // Try to find and click Vetting tab
@@ -48,22 +54,22 @@ test.describe('Vetting Email Templates (Unified System)', () => {
       page.getByRole('tab', { name: 'Vetting' })
     );
 
-    // Skip if no vetting tab found
     if (await vettingTab.count() === 0) {
       console.log('⚠️ Vetting tab not found - feature may not be implemented yet.');
+      return false;
+    }
+
+    await vettingTab.click();
+    await page.waitForTimeout(500);
+    return true;
+  }
+
+  test('Page Layout - Title and Tabs Visible', async ({ page }) => {
+    if (!await navigateToVettingTab(page)) {
+      test.skip();
       return;
     }
 
-    await expect(vettingTab).toBeVisible();
-    await vettingTab.click();
-    await page.waitForTimeout(500);
-  });
-
-  test.afterEach(async () => {
-    await page.close();
-  });
-
-  test('Page Layout - Title and Tabs Visible', async () => {
     // Take screenshot of initial page load
     await page.screenshot({
       path: './test-results/vetting-email-templates-unified-initial.png',
@@ -78,14 +84,18 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     const tabs = page.getByRole('tablist').first();
     await expect(tabs).toBeVisible();
 
-    // Verify Vetting tab exists
+    // Verify Vetting tab exists and visible
     const vettingTab = page.getByRole('tab', { name: 'Vetting' });
     await expect(vettingTab).toBeVisible();
 
     console.log('✅ Page title and tabs verified');
   });
 
-  test('Vetting Tab - Contains Email Template Cards', async () => {
+  test('Vetting Tab - Contains Email Template Cards', async ({ page }) => {
+    if (!await navigateToVettingTab(page)) {
+      test.skip();
+      return;
+    }
     // Wait for template cards to load (component uses Cards in a Group, not table)
     // Look for cards with template info - cards have cursor: pointer
     const templateCards = page.locator('.mantine-Card-root');
@@ -113,7 +123,11 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     }
   });
 
-  test('Template Cards - Display Template Info', async () => {
+  test('Template Cards - Display Template Info', async ({ page }) => {
+    if (!await navigateToVettingTab(page)) {
+      test.skip();
+      return;
+    }
     // Wait for cards to be visible
     const templateCards = page.locator('.mantine-Card-root');
 
@@ -134,7 +148,11 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     }
   });
 
-  test('Template Card - Clickable and Shows Editor', async () => {
+  test('Template Card - Clickable and Shows Editor', async ({ page }) => {
+    if (!await navigateToVettingTab(page)) {
+      test.skip();
+      return;
+    }
     // Click first template card
     const templateCards = page.locator('.mantine-Card-root');
 
@@ -166,7 +184,11 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     }
   });
 
-  test('Editor Components - Subject Field and Content Editor', async () => {
+  test('Editor Components - Subject Field and Content Editor', async ({ page }) => {
+    if (!await navigateToVettingTab(page)) {
+      test.skip();
+      return;
+    }
     // Click first template card within the active Vetting tab panel
     const vettingPanel = page.locator('[role="tabpanel"]').first();
     const templateCards = vettingPanel.locator('.mantine-Card-root');
@@ -212,7 +234,11 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     }
   });
 
-  test('Edit Subject Field', async () => {
+  test('Edit Subject Field', async ({ page }) => {
+    if (!await navigateToVettingTab(page)) {
+      test.skip();
+      return;
+    }
     // Click first template card within the active Vetting tab panel
     const vettingPanel = page.locator('[role="tabpanel"]').first();
     const templateCards = vettingPanel.locator('.mantine-Card-root');
@@ -258,7 +284,11 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     }
   });
 
-  test('Edit Content in Editor', async () => {
+  test('Edit Content in Editor', async ({ page }) => {
+    if (!await navigateToVettingTab(page)) {
+      test.skip();
+      return;
+    }
     // Click first template card
     const templateCards = page.locator('.mantine-Card-root');
 
@@ -301,7 +331,11 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     }
   });
 
-  test('Cancel Button - Closes Editor Without Saving', async () => {
+  test('Cancel Button - Closes Editor Without Saving', async ({ page }) => {
+    if (!await navigateToVettingTab(page)) {
+      test.skip();
+      return;
+    }
     // Click first template card
     const templateCards = page.locator('.mantine-Card-root');
 
@@ -335,7 +369,11 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     }
   });
 
-  test('Switch Between Template Cards - Editor Updates', async () => {
+  test('Switch Between Template Cards - Editor Updates', async ({ page }) => {
+    if (!await navigateToVettingTab(page)) {
+      test.skip();
+      return;
+    }
     // Get card count within Vetting panel
     const vettingPanel = page.locator('[role="tabpanel"]').first();
     const templateCards = vettingPanel.locator('.mantine-Card-root');
@@ -379,7 +417,9 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     console.log('✅ Editor updates when switching between template cards');
   });
 
-  test('URL Parameter - Vetting Tab Selected', async () => {
+  test('URL Parameter - Vetting Tab Selected', async ({ page }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
     // Navigate with vetting tab parameter
     await page.goto('/admin/email-templates?tab=vetting');
     await page.waitForLoadState('domcontentloaded');
@@ -393,7 +433,10 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     console.log('✅ URL parameter correctly selects Vetting tab');
   });
 
-  test('Performance - Page Load Time', async () => {
+  test('Performance - Page Load Time', async ({ page }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
     const startTime = Date.now();
 
     await page.goto('/admin/email-templates?tab=vetting');

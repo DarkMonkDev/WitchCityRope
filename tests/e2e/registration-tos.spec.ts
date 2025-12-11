@@ -1,19 +1,6 @@
-import { test, expect, Page, APIRequestContext } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
-
-/**
- * Helper function to verify user email via test helper endpoint
- * ONLY works in Development/Test environments (endpoint is disabled in Production)
- */
-async function verifyUserEmail(request: APIRequestContext, email: string): Promise<void> {
-  const response = await request.post('/api/test-helpers/verify-email', {
-    data: { email }
-  });
-  if (!response.ok()) {
-    throw new Error(`Failed to verify email: ${await response.text()}`);
-  }
-  console.log(`✅ Email verified via test helper: ${email}`);
-}
 
 /**
  * E2E TESTS: Registration Terms of Service Compliance
@@ -52,7 +39,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     await page.waitForSelector('[data-testid="register-form"]', { timeout: 10000 });
   });
 
-  test('Positive: User can register when Terms of Service checkbox is checked', async ({ page, request }) => {
+  test('Positive: User can register when Terms of Service checkbox is checked', async ({ page, df }) => {
     // Fill in registration form
     await page.locator('[data-testid="email-input"]').fill(testEmail);
     await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
@@ -97,7 +84,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     expect(page.url()).toContain('/login');
 
     // Verify email via test helper (required before login - email verification is enforced)
-    await verifyUserEmail(request, testEmail);
+    await df.users.verifyEmail(testEmail);
 
     // Now login with the newly created credentials using AuthHelpers
     await AuthHelpers.loginWith(page, { email: testEmail, password: 'Test123!' });
@@ -112,7 +99,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     });
   });
 
-  test('Positive: Database shows TermsOfServiceAccepted=true and timestamp after registration', async ({ page, request }) => {
+  test('Positive: Database shows TermsOfServiceAccepted=true and timestamp after registration', async ({ page, df, request }) => {
     // Fill in registration form
     await page.locator('[data-testid="email-input"]').fill(testEmail);
     await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
@@ -130,7 +117,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     console.log('✅ Registration successful - navigated to login page');
 
     // Verify email via test helper (required before login - email verification is enforced)
-    await verifyUserEmail(request, testEmail);
+    await df.users.verifyEmail(testEmail);
 
     // Login with newly created credentials using AuthHelpers
     await AuthHelpers.loginWith(page, { email: testEmail, password: 'Test123!' });
@@ -166,7 +153,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     }
   });
 
-  test('Positive: Newly registered user can successfully log in', async ({ page, request }) => {
+  test('Positive: Newly registered user can successfully log in', async ({ page, df }) => {
     // First, register the user
     await page.locator('[data-testid="email-input"]').fill(testEmail);
     await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
@@ -179,7 +166,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     console.log('✅ Registration successful - navigated to login page');
 
     // Verify email via test helper (required before login - email verification is enforced)
-    await verifyUserEmail(request, testEmail);
+    await df.users.verifyEmail(testEmail);
 
     // Now log in with the same credentials using AuthHelpers
     await AuthHelpers.loginWith(page, { email: testEmail, password: 'Test123!' });

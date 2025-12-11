@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import {
   createTestUser,
   generateUniqueTestEmail,
@@ -27,7 +28,7 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  */
 
 test.describe('Profile Update Persistence', () => {
-  test('should persist profile changes after save and page refresh', async ({ page }) => {
+  test('should persist profile changes after save and page refresh', async ({ page, df }) => {
     console.log('🚀 Starting profile update persistence test...');
 
     // Create unique test user to prevent race conditions
@@ -216,7 +217,7 @@ test.describe('Profile Update Persistence', () => {
     }
   });
 
-  test('should verify database was actually updated', async ({ page, request }) => {
+  test('should verify database was actually updated', async ({ page, request, df }) => {
     console.log('🚀 Starting database update verification test...');
 
     // Create unique test user to prevent race conditions

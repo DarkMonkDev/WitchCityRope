@@ -14,13 +14,30 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 3. **When re-running tests**: Update failure reasons if they changed
 
 ## Test Run Info
-- **Date**: December 10, 2025 (Last Updated - Phase 6 Complete)
-- **Total Tests**: 785+ (includes newly fixed tests)
-- **Passed**: 705+ (24 more tests now passing)
-- **Failed**: ~76 (reduced from ~100)
-- **Skipped**: 1 (token revocation only)
-- **Pass Rate**: **~89%** (up from 87%)
-- **Run Time**: ~10 minutes
+- **Date**: December 11, 2025 (Last Updated - Post DataFactory Migration)
+- **Total Tests**: ~822
+- **Passed**: 589
+- **Failed**: 206
+- **Skipped**: 27
+- **Pass Rate**: **74%** (REGRESSION from 89%)
+- **Run Time**: ~27 minutes
+
+### ⚠️ MAJOR REGRESSION: DataFactory Migration (December 11, 2025)
+
+**Impact**: 41 E2E test files migrated to use DataFactory pattern. This migration introduced ~130 new failures.
+
+| Metric | Dec 10 (Before) | Dec 11 (After) | Change |
+|--------|-----------------|----------------|--------|
+| Passed | ~705 | 589 | **-116** |
+| Failed | ~76 | 206 | **+130** |
+| Skipped | 1 | 27 | **+26** |
+| Pass Rate | ~89% | 74% | **-15%** |
+
+**Root Cause**: Tests now create their own data via DataFactory API endpoints, but many tests have issues with:
+1. Session/event creation timing
+2. Token generation and authentication flows
+3. UI element waits after data creation
+4. Cleanup conflicts between parallel tests
 
 ### ✅ Phase 6 Complete: API Endpoint & CSRF Fixes (December 10, 2025)
 
@@ -52,14 +69,75 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 - `test.fail()` marks tests as "expected failures" - they show in results but don't break CI
 
 ### Progress Comparison
-| Metric | Dec 2 | Dec 7 | Dec 9 | Dec 10 (Phase 5) | Dec 10 (Phase 6) |
-|--------|-------|-------|-------|------------------|------------------|
-| Passed | 622 | 643 | 688 | 681 | **705+** |
-| Failed | 111 | 92 | 38 | ~100 | **~76** |
-| Skipped | 74 | 72 | 83 | 1 | **1** |
-| Pass Rate | 84.9% | 87.4% | 85.0% | ~87% | **~89%** |
+| Metric | Dec 2 | Dec 7 | Dec 9 | Dec 10 (Phase 5) | Dec 10 (Phase 6) | Dec 11 (DataFactory) |
+|--------|-------|-------|-------|------------------|------------------|----------------------|
+| Passed | 622 | 643 | 688 | 681 | 705+ | **589** |
+| Failed | 111 | 92 | 38 | ~100 | ~76 | **206** |
+| Skipped | 74 | 72 | 83 | 1 | 1 | **27** |
+| Pass Rate | 84.9% | 87.4% | 85.0% | ~87% | ~89% | **74%** |
 
-**Note**: Phase 6 fixed 24 tests by correcting API endpoints and adding CSRF token support.
+**Note**: Phase 6 fixed 24 tests by correcting API endpoints and adding CSRF token support. Dec 11 shows regression from DataFactory migration.
+
+---
+
+## 🚨 DATAFACTORY MIGRATION FAILURES (December 11, 2025)
+
+### Top Failing Files (206 total failures across 54 files)
+
+| File | Failures | Primary Issue |
+|------|----------|---------------|
+| `profile-update-full-persistence.spec.ts` | 14 | Profile persistence after data creation |
+| `comprehensive-timing-tests.spec.ts` | 12 | Timing/session validation issues |
+| `events/admin-event-copy.spec.ts` | 9 | Event copy with DataFactory data |
+| `vetting-application-detail.spec.ts` | 8 | Vetting application lookup |
+| `venue-display.spec.ts` | 7 | Venue data association |
+| `session-based-volunteer-timing.spec.ts` | 7 | Volunteer timing with created sessions |
+| `session-based-ticket-timing.spec.ts` | 7 | Ticket timing with created sessions |
+| `checkin-staff-authentication.spec.ts` | 7 | Token generation for created events |
+| `admin-events-workflow.spec.ts` | 7 | Admin workflow after event creation |
+| `admin-events-volunteers.spec.ts` | 7 | Volunteer position creation |
+| `admin-events-dependencies.spec.ts` | 6 | Event dependency validation |
+| `admin-checkin-sessions.spec.ts` | 6 | Check-in session lookup |
+| `vetting-email-templates.spec.ts` | 5 | Email template with vetting data |
+| `admin-email-templates-triggers.spec.ts` | 5 | Email triggers after data setup |
+| `session-availability-counts.spec.ts` | 5 | Session counts from created data |
+| Other 39 files | ~94 | Various issues |
+
+### Common Failure Patterns
+
+1. **Token Generation Failures** (checkin tests)
+   - Events created via DataFactory but token generation fails
+   - Session not found errors
+
+2. **Element Not Found** (most tests)
+   - UI elements not appearing after data creation
+   - Need longer waits after DataFactory API calls
+
+3. **Data Association** (venue, volunteer tests)
+   - Created entities not properly associated
+   - Foreign key / relationship issues
+
+4. **Timing Windows** (session-based tests)
+   - Created sessions have timing window issues
+   - Sales open/close calculations incorrect
+
+### Recommended Fix Priority
+
+1. **HIGH**: Fix checkin-staff-authentication.spec.ts (7 failures)
+   - Token generation depends on session existence
+   - Sessions must be created correctly via DataFactory
+
+2. **HIGH**: Fix admin-events-workflow.spec.ts (7 failures)
+   - Core admin functionality
+   - May reveal patterns for other admin tests
+
+3. **MEDIUM**: Fix session-based timing tests (14 failures)
+   - session-based-ticket-timing.spec.ts
+   - session-based-volunteer-timing.spec.ts
+
+4. **LOW**: Fix persistence tests after core fixes
+   - profile-update-full-persistence.spec.ts
+   - venue-display.spec.ts
 
 ---
 

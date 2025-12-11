@@ -26,205 +26,78 @@
  * - Sessions start 7+ days in future
  *
  * Created: 2025-12-09
+ * Migrated to DataFactory: 2025-12-10
  */
 
-import { test, expect, Page, APIRequestContext } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Helper to get CSRF token from cookies, fetching it if not present
-async function getCsrfToken(page: Page): Promise<string | null> {
-  let cookies = await page.context().cookies();
-  let csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
-
-  // If CSRF token not found, fetch it from the API
-  if (!csrfCookie) {
-    await page.request.get('/api/antiforgery/token');
-    cookies = await page.context().cookies();
-    csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
-  }
-
-  return csrfCookie?.value || null;
-}
-
-// Helper to make authenticated API request with CSRF token support
-async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
-  const headers: Record<string, string> = {};
-
-  // Get CSRF token for state-changing requests
-  if (method !== 'GET') {
-    const csrfToken = await getCsrfToken(page);
-    if (csrfToken) {
-      headers['X-CSRF-TOKEN'] = csrfToken;
-    }
-  }
-
-  if (data) {
-    headers['Content-Type'] = 'application/json';
-  }
-
-  const options: Parameters<typeof page.request.fetch>[1] = {
-    method,
-    headers,
-  };
-
-  if (data) {
-    options.data = data;
-  }
-
-  const response = await page.request.fetch(url, options);
-  const text = await response.text();
-
-  try {
-    return { status: response.status(), data: JSON.parse(text) };
-  } catch {
-    return { status: response.status(), data: text };
-  }
-}
-
 test.describe('Multi-Ticket Purchase Flow', () => {
-  let testEventId: string | null = null;
-  let session1Id: string | null = null;
-  let session2Id: string | null = null;
-  let ticketTypeDay1Id: string | null = null;
-  let ticketTypeDay2Id: string | null = null;
-  let ticketTypeBothId: string | null = null;
+  test('user can purchase Day 1 Only and Day 2 Only tickets together', async ({ page, df }) => {
+    // Create test event with 2 sessions
+    const event = await df.events.createPublished(`Multi-Ticket Test Event ${Date.now()}`);
 
-  test.beforeAll(async ({ browser }) => {
-    // Create test event with multi-session configuration
-    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
-    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
-    const context = await browser.newContext({ baseURL });
-    const page = await context.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
+    // Calculate session times - 7 days in future
+    const session1Start = new Date();
+    session1Start.setDate(session1Start.getDate() + 7);
+    session1Start.setHours(18, 0, 0, 0);
+    const session1End = new Date(session1Start.getTime() + 3 * 60 * 60 * 1000);
 
-    // Get first venue ID for event creation
-    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
-    const venueId = venuesResponse.data[0]?.id;
-
-    if (!venueId) {
-      console.error('No venues found - cannot create test event');
-      await page.close();
-      return;
-    }
-
-    // Create event with 2 sessions
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() + 7); // 7 days in future
-
-    const session1Start = new Date(startDate);
-    session1Start.setHours(18, 0, 0, 0); // 6 PM
-
-    const session2Start = new Date(startDate);
+    const session2Start = new Date(session1Start);
     session2Start.setDate(session2Start.getDate() + 1); // Next day
-    session2Start.setHours(18, 0, 0, 0); // 6 PM
+    session2Start.setHours(18, 0, 0, 0);
+    const session2End = new Date(session2Start.getTime() + 3 * 60 * 60 * 1000);
 
-    // Create event with sessions AND ticket types in one request
-    const eventData = {
-      title: `Multi-Ticket Test Event ${Date.now()}`,
-      shortDescription: 'Test event for multi-ticket purchase',
-      description: 'This event tests purchasing multiple separate tickets in one transaction.',
-      eventType: 'Class',
-      startDate: session1Start.toISOString(),
-      endDate: session2Start.toISOString(),
-      venueId: venueId,
-      capacity: 20,
-      isPublished: true,
-      // CRITICAL: Timing controls to avoid business logic failures
-      registrationOpenHours: null, // No open restriction
-      registrationCloseHours: 0,   // Doesn't close before session
-      cancellationCloseHours: 0,   // Cancellation always allowed
-      volunteerRegistrationCloseHours: 0,
-      volunteerCancellationCloseHours: 0,
-      sessions: [
-        {
-          sessionIdentifier: 'DAY1',
-          name: 'Day 1',
-          startTime: session1Start.toISOString(),
-          endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000).toISOString(), // 3 hours
-          capacity: 20,
-        },
-        {
-          sessionIdentifier: 'DAY2',
-          name: 'Day 2',
-          startTime: session2Start.toISOString(),
-          endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000).toISOString(), // 3 hours
-          capacity: 20,
-        },
-      ],
-      // Include ticket types in event creation
-      ticketTypes: [
-        {
-          name: 'Day 1 Only',
-          pricingType: 'Fixed',
-          price: 25.00,
-          sessionIdentifiers: ['DAY1'],
-        },
-        {
-          name: 'Day 2 Only',
-          pricingType: 'Fixed',
-          price: 25.00,
-          sessionIdentifiers: ['DAY2'],
-        },
-        {
-          name: 'Both Days',
-          pricingType: 'Fixed',
-          price: 40.00,
-          sessionIdentifiers: ['DAY1', 'DAY2'],
-        },
-      ],
-    };
+    // Create sessions
+    const session1 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1',
+      startTime: session1Start,
+      endTime: session1End,
+      maxCapacity: 20,
+    });
 
-    console.log('Creating test event with 2 sessions and 3 ticket types...');
-    const createResponse = await apiRequest(page, 'POST', '/api/events', eventData);
+    const session2 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 2',
+      startTime: session2Start,
+      endTime: session2End,
+      maxCapacity: 20,
+    });
 
-    if (createResponse.status !== 201 && createResponse.status !== 200) {
-      console.error('Failed to create test event:', createResponse);
-      await page.close();
-      return;
-    }
+    // Create ticket types
+    const ticketTypeDay1 = await df.ticketTypes.create({
+      sessionId: session1.id,
+      name: 'Day 1 Only',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
 
-    testEventId = createResponse.data.id;
-    console.log(`✅ Created test event: ${testEventId}`);
+    const ticketTypeDay2 = await df.ticketTypes.create({
+      sessionId: session2.id,
+      name: 'Day 2 Only',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
 
-    // Get session and ticket type IDs from the created event
-    const sessions = createResponse.data.sessions || [];
-    session1Id = sessions.find((s: any) => s.sessionIdentifier === 'DAY1')?.id;
-    session2Id = sessions.find((s: any) => s.sessionIdentifier === 'DAY2')?.id;
+    const ticketTypeBoth = await df.ticketTypes.create({
+      sessionId: session1.id,
+      name: 'Both Days',
+      price: 40.0,
+      quantityAvailable: 20,
+    });
 
-    console.log(`Session 1 ID: ${session1Id}`);
-    console.log(`Session 2 ID: ${session2Id}`);
-
-    // Get ticket type IDs from the created event
-    const ticketTypes = createResponse.data.ticketTypes || [];
-    ticketTypeDay1Id = ticketTypes.find((t: any) => t.name === 'Day 1 Only')?.id;
-    ticketTypeDay2Id = ticketTypes.find((t: any) => t.name === 'Day 2 Only')?.id;
-    ticketTypeBothId = ticketTypes.find((t: any) => t.name === 'Both Days')?.id;
-
-    console.log(`✅ Day 1 Only ticket: ${ticketTypeDay1Id}`);
-    console.log(`✅ Day 2 Only ticket: ${ticketTypeDay2Id}`);
-    console.log(`✅ Both Days ticket: ${ticketTypeBothId}`);
-
-    await page.close();
-  });
-
-  test.afterAll(async () => {
-    // Note: No DELETE endpoint for events exists currently
-    // Test events are created with unique timestamps so cleanup is not critical
-    if (testEventId) {
-      console.log(`Test event ${testEventId} was created - no cleanup endpoint available`);
-    }
-  });
-
-  test('user can purchase Day 1 Only and Day 2 Only tickets together', async ({ page }) => {
-    expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
-    expect(ticketTypeDay1Id, 'Day 1 ticket type should exist').toBeTruthy();
-    expect(ticketTypeDay2Id, 'Day 2 ticket type should exist').toBeTruthy();
+    console.log(`✅ Created test event: ${event.id}`);
+    console.log(`✅ Day 1 Only ticket: ${ticketTypeDay1.id}`);
+    console.log(`✅ Day 2 Only ticket: ${ticketTypeDay2.id}`);
+    console.log(`✅ Both Days ticket: ${ticketTypeBoth.id}`);
 
     // Login as member
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to checkout page
-    await page.goto(`/checkout/${testEventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/checkout/${event.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     // Verify we're on checkout page
@@ -235,7 +108,9 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     await page.waitForTimeout(1000);
 
     // Select Day 1 Only ticket
-    const day1Checkbox = page.locator(`input[type="checkbox"][value="${ticketTypeDay1Id}"]`).last();
+    const day1Checkbox = page
+      .locator(`input[type="checkbox"][value="${ticketTypeDay1.id}"]`)
+      .last();
     if (await day1Checkbox.isVisible({ timeout: 5000 })) {
       await day1Checkbox.check();
       console.log('✅ Selected Day 1 Only ticket');
@@ -249,7 +124,9 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     }
 
     // Select Day 2 Only ticket
-    const day2Checkbox = page.locator(`input[type="checkbox"][value="${ticketTypeDay2Id}"]`).last();
+    const day2Checkbox = page
+      .locator(`input[type="checkbox"][value="${ticketTypeDay2.id}"]`)
+      .last();
     if (await day2Checkbox.isVisible({ timeout: 5000 })) {
       await day2Checkbox.check();
       console.log('✅ Selected Day 2 Only ticket');
@@ -263,7 +140,9 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     }
 
     // Ensure Both Days is NOT selected
-    const bothCheckbox = page.locator(`input[type="checkbox"][value="${ticketTypeBothId}"]`).last();
+    const bothCheckbox = page
+      .locator(`input[type="checkbox"][value="${ticketTypeBoth.id}"]`)
+      .last();
     if (await bothCheckbox.isVisible({ timeout: 2000 }).catch(() => false)) {
       const isChecked = await bothCheckbox.isChecked();
       if (isChecked) {
@@ -276,7 +155,10 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     await page.screenshot({ path: './test-results/multi-ticket-selection.png' });
 
     // Click Continue to Payment
-    const continueButton = page.locator('button').filter({ hasText: /continue|next/i }).last();
+    const continueButton = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
     if (await continueButton.isVisible({ timeout: 5000 })) {
       await continueButton.click();
       await page.waitForTimeout(1000);
@@ -309,7 +191,9 @@ test.describe('Multi-Ticket Purchase Flow', () => {
 
     // Verify confirmation - look for visible confirmation content
     // The page shows "Your registration is confirmed" when payment succeeds
-    const confirmationText = page.locator('text=/Your registration is confirmed|Payment Successful/i').first();
+    const confirmationText = page
+      .locator('text=/Your registration is confirmed|Payment Successful/i')
+      .first();
     await expect(confirmationText).toBeVisible({ timeout: 10000 });
     console.log('✅ Payment completed successfully');
 
@@ -325,11 +209,108 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     expect(hasDay1 || hasDay2).toBeTruthy(); // At least one should be visible
   });
 
-  test('dashboard shows user has both tickets', async ({ page }) => {
-    expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
+  test('dashboard shows user has both tickets', async ({ page, df }) => {
+    // Create test event with 2 sessions
+    const event = await df.events.createPublished(`Dashboard Multi-Ticket Test ${Date.now()}`);
 
-    // Login as member
+    // Calculate session times - 7 days in future
+    const session1Start = new Date();
+    session1Start.setDate(session1Start.getDate() + 7);
+    session1Start.setHours(18, 0, 0, 0);
+    const session1End = new Date(session1Start.getTime() + 3 * 60 * 60 * 1000);
+
+    const session2Start = new Date(session1Start);
+    session2Start.setDate(session2Start.getDate() + 1);
+    session2Start.setHours(18, 0, 0, 0);
+    const session2End = new Date(session2Start.getTime() + 3 * 60 * 60 * 1000);
+
+    // Create sessions
+    const session1 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1',
+      startTime: session1Start,
+      endTime: session1End,
+      maxCapacity: 20,
+    });
+
+    const session2 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 2',
+      startTime: session2Start,
+      endTime: session2End,
+      maxCapacity: 20,
+    });
+
+    // Create ticket types
+    const ticketTypeDay1 = await df.ticketTypes.create({
+      sessionId: session1.id,
+      name: 'Day 1 Only',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
+
+    const ticketTypeDay2 = await df.ticketTypes.create({
+      sessionId: session2.id,
+      name: 'Day 2 Only',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
+
+    // Login as member and purchase both tickets
     await AuthHelpers.loginAs(page, 'member');
+
+    // Purchase Day 1 ticket
+    await page.goto(`/checkout/${event.id}?ticketTypeId=${ticketTypeDay1.id}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForLoadState('networkidle');
+
+    const continueButton1 = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
+    if (await continueButton1.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await continueButton1.click();
+      await page.waitForTimeout(500);
+    }
+
+    const termsCheckbox1 = page.getByRole('checkbox', { name: /agree.*waiver/i });
+    await termsCheckbox1.waitFor({ state: 'visible', timeout: 5000 });
+    await termsCheckbox1.click({ force: true });
+    await page.waitForTimeout(500);
+
+    const payButton1 = page.getByRole('button', { name: /pay with credit card/i });
+    await payButton1.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(payButton1).toBeEnabled({ timeout: 3000 });
+    await payButton1.click();
+    await page.waitForTimeout(3000);
+
+    // Purchase Day 2 ticket
+    await page.goto(`/checkout/${event.id}?ticketTypeId=${ticketTypeDay2.id}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForLoadState('networkidle');
+
+    const continueButton2 = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
+    if (await continueButton2.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await continueButton2.click();
+      await page.waitForTimeout(500);
+    }
+
+    const termsCheckbox2 = page.getByRole('checkbox', { name: /agree.*waiver/i });
+    await termsCheckbox2.waitFor({ state: 'visible', timeout: 5000 });
+    await termsCheckbox2.click({ force: true });
+    await page.waitForTimeout(500);
+
+    const payButton2 = page.getByRole('button', { name: /pay with credit card/i });
+    await payButton2.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(payButton2).toBeEnabled({ timeout: 3000 });
+    await payButton2.click();
+    await page.waitForTimeout(3000);
+    console.log('✅ Purchased both tickets');
 
     // Navigate to dashboard/participations
     await page.goto('/dashboard/registrations', { waitUntil: 'domcontentloaded' });
@@ -339,7 +320,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     await page.waitForTimeout(1000);
 
     // Look for the event in participations list
-    const eventTitle = await page.locator('text=/Multi-Ticket Test Event/i').first();
+    const eventTitle = await page.locator('text=/Dashboard Multi-Ticket Test/i').first();
 
     if (await eventTitle.isVisible({ timeout: 5000 }).catch(() => false)) {
       console.log('✅ Test event visible in dashboard');
@@ -355,14 +336,110 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     }
   });
 
-  test('event details page shows both ticket types purchased', async ({ page }) => {
-    expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
+  test('event details page shows both ticket types purchased', async ({ page, df }) => {
+    // Create test event with 2 sessions
+    const event = await df.events.createPublished(`Event Details Multi-Ticket Test ${Date.now()}`);
 
-    // Login as member
+    // Calculate session times - 7 days in future
+    const session1Start = new Date();
+    session1Start.setDate(session1Start.getDate() + 7);
+    session1Start.setHours(18, 0, 0, 0);
+    const session1End = new Date(session1Start.getTime() + 3 * 60 * 60 * 1000);
+
+    const session2Start = new Date(session1Start);
+    session2Start.setDate(session2Start.getDate() + 1);
+    session2Start.setHours(18, 0, 0, 0);
+    const session2End = new Date(session2Start.getTime() + 3 * 60 * 60 * 1000);
+
+    // Create sessions
+    const session1 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1',
+      startTime: session1Start,
+      endTime: session1End,
+      maxCapacity: 20,
+    });
+
+    const session2 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 2',
+      startTime: session2Start,
+      endTime: session2End,
+      maxCapacity: 20,
+    });
+
+    // Create ticket types
+    const ticketTypeDay1 = await df.ticketTypes.create({
+      sessionId: session1.id,
+      name: 'Day 1 Only',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
+
+    const ticketTypeDay2 = await df.ticketTypes.create({
+      sessionId: session2.id,
+      name: 'Day 2 Only',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
+
+    // Login as member and purchase both tickets
     await AuthHelpers.loginAs(page, 'member');
 
+    // Purchase Day 1 ticket
+    await page.goto(`/checkout/${event.id}?ticketTypeId=${ticketTypeDay1.id}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForLoadState('networkidle');
+
+    const continueButton1 = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
+    if (await continueButton1.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await continueButton1.click();
+      await page.waitForTimeout(500);
+    }
+
+    const termsCheckbox1 = page.getByRole('checkbox', { name: /agree.*waiver/i });
+    await termsCheckbox1.waitFor({ state: 'visible', timeout: 5000 });
+    await termsCheckbox1.click({ force: true });
+    await page.waitForTimeout(500);
+
+    const payButton1 = page.getByRole('button', { name: /pay with credit card/i });
+    await payButton1.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(payButton1).toBeEnabled({ timeout: 3000 });
+    await payButton1.click();
+    await page.waitForTimeout(3000);
+
+    // Purchase Day 2 ticket
+    await page.goto(`/checkout/${event.id}?ticketTypeId=${ticketTypeDay2.id}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForLoadState('networkidle');
+
+    const continueButton2 = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
+    if (await continueButton2.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await continueButton2.click();
+      await page.waitForTimeout(500);
+    }
+
+    const termsCheckbox2 = page.getByRole('checkbox', { name: /agree.*waiver/i });
+    await termsCheckbox2.waitFor({ state: 'visible', timeout: 5000 });
+    await termsCheckbox2.click({ force: true });
+    await page.waitForTimeout(500);
+
+    const payButton2 = page.getByRole('button', { name: /pay with credit card/i });
+    await payButton2.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(payButton2).toBeEnabled({ timeout: 3000 });
+    await payButton2.click();
+    await page.waitForTimeout(3000);
+
     // Navigate to event details
-    await page.goto(`/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/events/${event.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     await page.waitForTimeout(1000);
@@ -373,15 +450,16 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     // Look for indication that user has purchased tickets
     // This could be "Already Registered", "You have tickets", or ticket types marked as purchased
     const pageText = await page.locator('body').textContent();
-    const hasRegistered = pageText?.includes('registered') ||
-                          pageText?.includes('Registered') ||
-                          pageText?.includes('Already') ||
-                          pageText?.includes('purchased');
+    const hasRegistered =
+      pageText?.includes('registered') ||
+      pageText?.includes('Registered') ||
+      pageText?.includes('Already') ||
+      pageText?.includes('purchased');
 
     console.log(`Event details shows registration: ${hasRegistered}`);
 
     // Verify event details page loaded
-    const eventTitle = page.locator('text=/Multi-Ticket Test Event/i').first();
+    const eventTitle = page.locator('text=/Event Details Multi-Ticket Test/i').first();
     await expect(eventTitle).toBeVisible({ timeout: 5000 });
     console.log('✅ Event details page loaded');
   });

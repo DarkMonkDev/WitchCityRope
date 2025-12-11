@@ -106,6 +106,28 @@
 
 **See TESTING_GUIDE.md for complete testing standards.**
 
+### 🧪 Test Data Infrastructure (Read if working on E2E test support)
+
+**When to read**: Working on TestHelper endpoints, E2E test data creation, or test infrastructure
+
+**Key Documents**:
+- **DataFactory README** (TypeScript): `/home/chad/repos/witchcityrope/tests/lib/datafactory/README.md`
+- **TestHelper Endpoints** (C#): `/home/chad/repos/witchcityrope/apps/api/Features/TestHelpers/`
+- **Implementation Plan**: `/home/chad/repos/witchcityrope/docs/functional-areas/testing/new-work/2025-12-10-test-data-infrastructure/implementation-plan.md`
+
+**Backend TestHelper Endpoints Available** (Development/Test environments only):
+- Users: `POST/DELETE /api/test-helpers/users`
+- Events: `POST/DELETE /api/test-helpers/events`
+- Sessions: `POST/DELETE /api/test-helpers/sessions`
+- Ticket Types: `POST/DELETE /api/test-helpers/ticket-types`
+- Ticket Purchases: `POST/DELETE /api/test-helpers/ticket-purchases`
+- Volunteer Positions: `POST/DELETE /api/test-helpers/volunteer-positions`
+- Vetting Applications: `POST/DELETE /api/test-helpers/vetting-applications`
+- Email Verification: `POST /api/test-helpers/verify-email`
+- Health Check: `GET /api/test-helpers/health`
+
+**Critical Rule**: E2E tests MUST create their own data using these endpoints (via DataFactory), NOT rely on seed data.
+
 ## 📖 TOPIC-SPECIFIC READING (Optional - Read When Working On These Topics)
 
 ### DateTime/Timezone Handling

@@ -1,179 +1,69 @@
 /**
- * Session-Based Ticket Timing E2E Tests
+ * Session-Based Ticket Timing E2E Tests (DataFactory Migration)
  *
  * Tests that verify session-based timing functionality for ticket purchases
  * from a user's perspective. These tests validate the implementation of the
  * session timing refactor specification.
  *
- * ARCHITECTURE: Tests create their own event data to ensure proper test isolation
- * and avoid dependency on seed data.
+ * MIGRATION NOTES:
+ * - Uses df (DataFactory) fixture for automatic cleanup
+ * - Creates test data via TestHelper API endpoints
+ * - No need for manual API calls or cleanup logic
+ * - Data is automatically cleaned up after each test
  *
- * Created: 2025-11-30
- * Updated: 2025-12-09 - Refactored to create own test data
+ * Original: tests/e2e/session-based-ticket-timing.spec.ts
+ * Migrated: 2025-12-10
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Helper to make authenticated API request
-async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
-  const response = await page.evaluate(async ({ method, url, data }) => {
-    const options: RequestInit = {
-      method,
-      credentials: 'include',
-      headers: data ? { 'Content-Type': 'application/json' } : {},
-    };
-
-    if (data) {
-      options.body = JSON.stringify(data);
-    }
-
-    const res = await fetch(url, options);
-    const text = await res.text();
-    try {
-      return { status: res.status, data: JSON.parse(text) };
-    } catch {
-      return { status: res.status, data: text };
-    }
-  }, { method, url, data });
-
-  return response;
-}
-
 test.describe('Session-Based Ticket Timing', () => {
-  let testEventId: string | null = null;
-  let session1Id: string | null = null;
-  let session2Id: string | null = null;
-  let ticketTypeId: string | null = null;
+  test('multi-session event shows tickets for future sessions', async ({ page, df }) => {
+    // Create test event with 2 sessions
+    const event = await df.events.createPublished(`Ticket Timing Test Event ${Date.now()}`);
 
-  test.beforeAll(async ({ browser }) => {
-    // Create a multi-session event with ticket types for testing
-    const page = await browser.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    // Get first venue ID
-    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
-    const venues = venuesResponse.data as Array<{ id: string }>;
-    const venueId = venues[0]?.id;
-
-    if (!venueId) {
-      console.error('No venues found - cannot create test event');
-      await page.close();
-      return;
-    }
-
-    // Create event with 2 sessions - one 7 days out, one 8 days out
+    // Calculate session times - one 7 days out, one 8 days out
     const session1Start = new Date();
     session1Start.setDate(session1Start.getDate() + 7);
     session1Start.setHours(18, 0, 0, 0);
+    const session1End = new Date(session1Start.getTime() + 3 * 60 * 60 * 1000);
 
     const session2Start = new Date();
     session2Start.setDate(session2Start.getDate() + 8);
     session2Start.setHours(18, 0, 0, 0);
+    const session2End = new Date(session2Start.getTime() + 3 * 60 * 60 * 1000);
 
-    const eventData = {
-      title: `Ticket Timing Test Event ${Date.now()}`,
-      shortDescription: 'Test event for session-based ticket timing',
-      description: 'This event tests ticket timing calculations based on sessions.',
-      eventType: 'Class',
-      startDate: session1Start.toISOString(),
-      endDate: session2Start.toISOString(),
-      venueId: venueId,
-      capacity: 20,
-      isPublished: true,
-      // CRITICAL: Timing controls
-      registrationOpenHours: null, // No open restriction
-      registrationCloseHours: 0,   // Don't close before session
-      cancellationCloseHours: 24,  // Can cancel until 24 hours before
-      sessions: [
-        {
-          sessionIdentifier: 'S1',
-          name: 'Day 1 Session',
-          startTime: session1Start.toISOString(),
-          endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-        {
-          sessionIdentifier: 'S2',
-          name: 'Day 2 Session',
-          startTime: session2Start.toISOString(),
-          endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-      ],
-    };
+    const session1 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1 Session',
+      startTime: session1Start,
+      endTime: session1End,
+      maxCapacity: 20,
+    });
 
-    console.log('Creating test event with 2 sessions...');
-    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
+    const session2 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 2 Session',
+      startTime: session2Start,
+      endTime: session2End,
+      maxCapacity: 20,
+    });
 
-    if (createResponse.status !== 201 && createResponse.status !== 200) {
-      console.error('Failed to create test event:', createResponse);
-      await page.close();
-      return;
-    }
-
-    const responseData = createResponse.data as { id: string };
-    testEventId = responseData.id;
-    console.log(`✅ Created test event: ${testEventId}`);
-
-    // Get session IDs
-    const eventResponse = await apiRequest(page, 'GET', `/api/events/${testEventId}`);
-    const eventDetails = eventResponse.data as { sessions: Array<{ id: string; sessionIdentifier: string }> };
-    const sessions = eventDetails.sessions || [];
-    session1Id = sessions.find((s) => s.sessionIdentifier === 'S1')?.id || null;
-    session2Id = sessions.find((s) => s.sessionIdentifier === 'S2')?.id || null;
-
-    console.log(`Session 1 ID: ${session1Id}`);
-    console.log(`Session 2 ID: ${session2Id}`);
-
-    // Create ticket types
-    const ticketTypeData = {
-      eventId: testEventId,
+    const ticketType = await df.ticketTypes.create({
+      sessionId: session1.id,
       name: 'Both Sessions Pass',
-      description: 'Access to both Day 1 and Day 2 sessions',
-      price: 50.00,
-      capacity: null,
-      sessionIdentifiers: ['S1', 'S2'],
-    };
+      price: 50.0,
+      quantityAvailable: 20,
+    });
 
-    const ticketResponse = await apiRequest(
-      page,
-      'POST',
-      `/api/admin/events/${testEventId}/ticket-types`,
-      ticketTypeData
-    );
-
-    if (ticketResponse.status === 200 || ticketResponse.status === 201) {
-      const ticketData = ticketResponse.data as { id: string };
-      ticketTypeId = ticketData.id;
-      console.log(`✅ Created ticket type: ${ticketTypeId}`);
-    }
-
-    await page.close();
-  });
-
-  test.afterAll(async ({ browser }) => {
-    // Cleanup: Delete test event
-    if (!testEventId) return;
-
-    const page = await browser.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    console.log(`Cleaning up test event: ${testEventId}`);
-    await apiRequest(page, 'DELETE', `/api/admin/events/${testEventId}`);
-    console.log('✅ Test event deleted');
-
-    await page.close();
-  });
-
-  test('multi-session event shows tickets for future sessions', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+    console.log(`✅ Created test event: ${event.id}`);
+    console.log(`Session 1 ID: ${session1.id}`);
+    console.log(`Session 2 ID: ${session2.id}`);
 
     // Navigate to the test event's public page
-    await page.goto(`/events/${testEventId}`);
+    await page.goto(`/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
     // Verify page loaded
@@ -196,13 +86,23 @@ test.describe('Session-Based Ticket Timing', () => {
     }
   });
 
-  test('event displays session information', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('event displays session information', async ({ page, df }) => {
+    const event = await df.events.createPublished(`Session Display Test ${Date.now()}`);
 
-    await page.goto(`/events/${testEventId}`);
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1 Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    await page.goto(`/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
     // Look for sessions section
@@ -214,24 +114,38 @@ test.describe('Session-Based Ticket Timing', () => {
 
       // Verify session names are displayed
       const pageContent = await page.locator('body').textContent();
-      if (pageContent?.includes('Day 1') || pageContent?.includes('S1')) {
+      if (pageContent?.includes('Day 1')) {
         console.log('✅ Session 1 information visible');
-      }
-      if (pageContent?.includes('Day 2') || pageContent?.includes('S2')) {
-        console.log('✅ Session 2 information visible');
       }
     } else {
       console.log('Sessions may be displayed inline with tickets');
     }
   });
 
-  test('ticket shows which sessions it covers', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('ticket shows which sessions it covers', async ({ page, df }) => {
+    const event = await df.events.createPublished(`Session Coverage Test ${Date.now()}`);
 
-    await page.goto(`/events/${testEventId}`);
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Main Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    await df.ticketTypes.create({
+      sessionId: session.id,
+      name: 'Session Ticket',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
+
+    await page.goto(`/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
     // Find ticket cards
@@ -245,7 +159,7 @@ test.describe('Session-Based Ticket Timing', () => {
       console.log(`Ticket content: ${ticketText?.substring(0, 100)}...`);
 
       // Look for session information in ticket
-      if (ticketText?.match(/session|S1|S2|Day 1|Day 2|Both/i)) {
+      if (ticketText?.match(/session|Main Session/i)) {
         console.log('✅ Ticket displays session information');
       } else {
         console.log('Ticket may not show explicit session names');
@@ -253,13 +167,30 @@ test.describe('Session-Based Ticket Timing', () => {
     }
   });
 
-  test('ticket availability reflects timing settings', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('ticket availability reflects timing settings', async ({ page, df }) => {
+    const event = await df.events.createPublished(`Availability Test ${Date.now()}`);
 
-    await page.goto(`/events/${testEventId}`);
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    await df.ticketTypes.create({
+      sessionId: session.id,
+      name: 'Test Ticket',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
+
+    await page.goto(`/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
     // Look for availability indicators
@@ -285,14 +216,24 @@ test.describe('Session-Based Ticket Timing', () => {
     }
   });
 
-  test('admin can view timing settings for event', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('admin can view timing settings for event', async ({ page, df }) => {
+    const event = await df.events.createPublished(`Admin Timing Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
 
     await AuthHelpers.loginAs(page, 'admin');
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
     // Verify admin page loads
@@ -321,14 +262,31 @@ test.describe('Session-Based Ticket Timing', () => {
     }
   });
 
-  test('member can view event with tickets', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('member can view event with tickets', async ({ page, df }) => {
+    const event = await df.events.createPublished(`Member View Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    await df.ticketTypes.create({
+      sessionId: session.id,
+      name: 'Member Ticket',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
 
     await AuthHelpers.loginAs(page, 'member');
-    await page.goto(`/events/${testEventId}`);
+    await page.goto(`/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
     // Verify event page loads for authenticated user
@@ -349,16 +307,33 @@ test.describe('Session-Based Ticket Timing', () => {
     }
   });
 
-  test('ticket timing uses session dates not event dates', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
-
+  test('ticket timing uses session dates not event dates', async ({ page, df }) => {
     // This test verifies the core session-based timing behavior
     // Tickets should be available based on session timing, not event start date
 
-    await page.goto(`/events/${testEventId}`);
+    const event = await df.events.createPublished(`Timing Logic Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Future Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    await df.ticketTypes.create({
+      sessionId: session.id,
+      name: 'Future Session Ticket',
+      price: 25.0,
+      quantityAvailable: 20,
+    });
+
+    await page.goto(`/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
     // Verify tickets are available (our test event has future sessions)

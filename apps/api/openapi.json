@@ -4527,6 +4527,376 @@
         }
       }
     },
+    "/api/test-helpers/events": {
+      "post": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Create test event for E2E testing",
+        "description": "Programmatically create an event with specific properties for testing. ONLY available in Development/Test.",
+        "operationId": "CreateTestEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/events/{eventId}": {
+      "delete": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Delete test event for cleanup",
+        "description": "Delete a test event by ID. Also deletes related sessions and ticket types. ONLY available in Development/Test.",
+        "operationId": "DeleteTestEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/sessions": {
+      "post": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Create test session for E2E testing",
+        "description": "Programmatically create a session with specific properties for testing. ONLY available in Development/Test.",
+        "operationId": "CreateTestSession",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/sessions/{sessionId}": {
+      "delete": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Delete test session for cleanup",
+        "description": "Delete a test session by ID. ONLY available in Development/Test.",
+        "operationId": "DeleteTestSession",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/ticket-types": {
+      "post": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Create test ticket type for E2E testing",
+        "description": "Programmatically create a ticket type with specific properties for testing. ONLY available in Development/Test.",
+        "operationId": "CreateTestTicketType",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestTicketTypeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/ticket-types/{ticketTypeId}": {
+      "delete": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Delete test ticket type for cleanup",
+        "description": "Delete a test ticket type by ID. ONLY available in Development/Test.",
+        "operationId": "DeleteTestTicketType",
+        "parameters": [
+          {
+            "name": "ticketTypeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/volunteer-positions": {
+      "post": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Create test volunteer position for E2E testing",
+        "description": "Programmatically create a volunteer position with specific properties for testing. ONLY available in Development/Test.",
+        "operationId": "CreateTestVolunteerPosition",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestVolunteerPositionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/volunteer-positions/{positionId}": {
+      "delete": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Delete test volunteer position for cleanup",
+        "description": "Delete a test volunteer position by ID. ONLY available in Development/Test.",
+        "operationId": "DeleteTestVolunteerPosition",
+        "parameters": [
+          {
+            "name": "positionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/vetting-applications": {
+      "post": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Create test vetting application for E2E testing",
+        "description": "Programmatically create a vetting application with specific properties for testing. ONLY available in Development/Test.",
+        "operationId": "CreateTestVettingApplication",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestVettingApplicationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/vetting-applications/{applicationId}": {
+      "delete": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Delete test vetting application for cleanup",
+        "description": "Delete a test vetting application by ID. ONLY available in Development/Test.",
+        "operationId": "DeleteTestVettingApplication",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
     "/test-email": {
       "get": {
         "tags": [
@@ -11871,6 +12241,89 @@
           }
         }
       },
+      "CreateTestEventRequest": {
+        "required": [
+          "title",
+          "startDate",
+          "endDate"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "shortDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "eventType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "venueId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
+      "CreateTestSessionRequest": {
+        "required": [
+          "eventId",
+          "name",
+          "startTime",
+          "endTime"
+        ],
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sessionCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "CreateTestTicketPurchaseRequest": {
         "required": [
           "totalPrice"
@@ -11923,6 +12376,47 @@
           }
         }
       },
+      "CreateTestTicketTypeRequest": {
+        "required": [
+          "eventId",
+          "name",
+          "price"
+        ],
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "pricingType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sessionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          }
+        }
+      },
       "CreateTestUserRequest": {
         "required": [
           "email",
@@ -11967,6 +12461,69 @@
           },
           "pronouns": {
             "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CreateTestVettingApplicationRequest": {
+        "required": [
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "workflowStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "experienceDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "whyJoinCommunity": {
+            "type": "string",
+            "nullable": true
+          },
+          "howDidYouHearAboutUs": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CreateTestVolunteerPositionRequest": {
+        "required": [
+          "eventId",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "slotsNeeded": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slotsFilled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isPublicFacing": {
+            "type": "boolean"
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
             "nullable": true
           }
         }
@@ -15786,7 +16343,7 @@
           "sceneName": {
             "type": "string"
           },
-          "realName": {
+          "fullName": {
             "type": "string"
           },
           "role": {
@@ -16150,7 +16707,7 @@
             "type": "string",
             "nullable": true
           },
-          "realName": {
+          "fullName": {
             "type": "string",
             "nullable": true
           }

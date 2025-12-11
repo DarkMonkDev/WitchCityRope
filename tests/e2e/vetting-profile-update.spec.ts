@@ -1,52 +1,6 @@
-import { test, expect, APIRequestContext, Page, Browser } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
-
-/**
- * Helper function to verify user email via test helper endpoint
- * ONLY works in Development/Test environments
- */
-async function verifyUserEmail(request: APIRequestContext, email: string): Promise<void> {
-  const response = await request.post('/api/test-helpers/verify-email', {
-    data: { email }
-  });
-  if (!response.ok()) {
-    throw new Error(`Failed to verify email: ${await response.text()}`);
-  }
-  console.log(`✅ Email verified via test helper: ${email}`);
-}
-
-/**
- * Helper to create a new test user and return credentials
- */
-async function createTestUser(page: Page, request: APIRequestContext, prefix: string): Promise<{
-  email: string;
-  sceneName: string;
-  password: string;
-}> {
-  const timestamp = Date.now();
-  const randomId = Math.floor(Math.random() * 10000);
-  const testEmail = `${prefix}-${timestamp}-${randomId}@example.com`;
-  const testSceneName = `${prefix}Test ${timestamp}`;
-  const testPassword = 'Test123!';
-
-  // Register new user
-  await page.goto('/register', { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('[data-testid="register-form"]', { timeout: 10000 });
-
-  await page.locator('[data-testid="email-input"]').fill(testEmail);
-  await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
-  await page.locator('[data-testid="password-input"]').fill(testPassword);
-  await page.locator('[data-testid="terms-checkbox"]').check();
-  await page.locator('[data-testid="register-button"]').click();
-
-  await page.waitForURL(/\/login/, { timeout: 15000 });
-  console.log(`✅ Registered new user: ${testEmail}`);
-
-  // Verify email
-  await verifyUserEmail(request, testEmail);
-
-  return { email: testEmail, sceneName: testSceneName, password: testPassword };
-}
 
 /**
  * Helper to submit a vetting application for a user
@@ -130,14 +84,17 @@ test.describe('Vetting Application Profile Updates', () => {
   /**
    * TEST 1: User submits application with all fields - profile fully updated
    */
-  test('user submits application with all fields - profile fully updated', async ({ page, request }) => {
+  test('user submits application with all fields - profile fully updated', async ({ page, df }) => {
     const timestamp = Date.now();
 
-    // Create a fresh user
-    const user = await createTestUser(page, request, 'profile-all');
+    // Create a fresh user using DataFactory
+    const user = await df.users.createVerified({
+      email: `profile-all-${timestamp}@example.com`,
+      password: 'Test123!',
+    });
 
     // Login
-    await AuthHelpers.loginWith(page, { email: user.email, password: user.password });
+    await AuthHelpers.loginWith(page, { email: user.email, password: 'Test123!' });
     console.log('✅ Logged in as new user');
 
     // Submit application with all fields
@@ -180,14 +137,17 @@ test.describe('Vetting Application Profile Updates', () => {
    * This test creates a user, sets their profile with pronouns via API,
    * then submits vetting application WITHOUT pronouns to verify they aren't overwritten.
    */
-  test('user submits application with minimal fields - existing optional fields preserved', async ({ page, request }) => {
+  test('user submits application with minimal fields - existing optional fields preserved', async ({ page, df }) => {
     const timestamp = Date.now();
 
-    // Create a fresh user
-    const user = await createTestUser(page, request, 'profile-minimal');
+    // Create a fresh user using DataFactory
+    const user = await df.users.createVerified({
+      email: `profile-minimal-${timestamp}@example.com`,
+      password: 'Test123!',
+    });
 
     // Login
-    await AuthHelpers.loginWith(page, { email: user.email, password: user.password });
+    await AuthHelpers.loginWith(page, { email: user.email, password: 'Test123!' });
     console.log('✅ Logged in as new user');
 
     // Set pronouns via profile settings BEFORE submitting vetting application
@@ -251,14 +211,17 @@ test.describe('Vetting Application Profile Updates', () => {
   /**
    * TEST 3: Profile updates are visible in user dashboard after submission
    */
-  test('profile updates are visible in user dashboard after submission', async ({ page, request }) => {
+  test('profile updates are visible in user dashboard after submission', async ({ page, df }) => {
     const timestamp = Date.now();
 
-    // Create a fresh user
-    const user = await createTestUser(page, request, 'dashboard-profile');
+    // Create a fresh user using DataFactory
+    const user = await df.users.createVerified({
+      email: `dashboard-profile-${timestamp}@example.com`,
+      password: 'Test123!',
+    });
 
     // Login
-    await AuthHelpers.loginWith(page, { email: user.email, password: user.password });
+    await AuthHelpers.loginWith(page, { email: user.email, password: 'Test123!' });
     console.log('✅ Logged in as new user');
 
     // Submit application
@@ -292,18 +255,21 @@ test.describe('Vetting Application Profile Updates', () => {
    *
    * Uses two browser contexts: one for user, one for admin
    */
-  test('admin can see updated profile after user submits vetting application', async ({ browser, request }) => {
+  test('admin can see updated profile after user submits vetting application', async ({ browser, df }) => {
     const timestamp = Date.now();
+
+    // Create a fresh user using DataFactory
+    const user = await df.users.createVerified({
+      email: `admin-view-${timestamp}@example.com`,
+      password: 'Test123!',
+    });
 
     // === USER CONTEXT: Create user and submit application ===
     const userContext = await browser.newContext();
     const userPage = await userContext.newPage();
 
-    // Create a fresh user
-    const user = await createTestUser(userPage, request, 'admin-view');
-
     // Login as user
-    await AuthHelpers.loginWith(userPage, { email: user.email, password: user.password });
+    await AuthHelpers.loginWith(userPage, { email: user.email, password: 'Test123!' });
     console.log('✅ User logged in');
 
     // Submit vetting application

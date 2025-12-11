@@ -1,58 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
-import { AuthHelpers } from './test-utils/helpers/auth.helpers';
-
-// Helper to get CSRF token from cookies, fetching it if not present
-async function getCsrfToken(page: Page): Promise<string | null> {
-  let cookies = await page.context().cookies();
-  let csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
-
-  // If CSRF token not found, fetch it from the API
-  if (!csrfCookie) {
-    await page.request.get('/api/antiforgery/token');
-    cookies = await page.context().cookies();
-    csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
-  }
-
-  return csrfCookie?.value || null;
-}
-
-// Helper to make authenticated API request with CSRF token support
-async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
-  const headers: Record<string, string> = {};
-
-  // Get CSRF token for state-changing requests
-  if (method !== 'GET') {
-    const csrfToken = await getCsrfToken(page);
-    if (csrfToken) {
-      headers['X-CSRF-TOKEN'] = csrfToken;
-    }
-  }
-
-  if (data) {
-    headers['Content-Type'] = 'application/json';
-  }
-
-  const options: Parameters<typeof page.request.fetch>[1] = {
-    method,
-    headers,
-  };
-
-  if (data) {
-    options.data = data;
-  }
-
-  const response = await page.request.fetch(url, options);
-  const text = await response.text();
-
-  try {
-    return { status: response.status(), data: JSON.parse(text) };
-  } catch {
-    return { status: response.status(), data: text };
-  }
-}
-
 /**
- * Admin Events Workflow Tests
+ * Admin Events Workflow Tests (DataFactory Migration)
  *
  * PURPOSE: Test complete admin event management workflows (not UI design)
  * SCOPE: End-to-end workflows for creating, editing, and managing events
@@ -69,75 +16,23 @@ async function apiRequest(page: Page, method: string, url: string, data?: unknow
  * - Verify form submission and database updates
  * - Test modal interactions where applicable (sessions, tickets)
  *
- * KNOWN ISSUES:
- * - Modal popups may have inconsistent patterns (document any issues)
+ * MIGRATION NOTES:
+ * - Uses df (DataFactory) fixture for automatic cleanup
+ * - Creates test data via TestHelper API endpoints
+ * - No need for manual API calls or cleanup logic
+ * - Data is automatically cleaned up after each test
  *
+ * Original: tests/e2e/admin-events-workflow.spec.ts
+ * Migrated: 2025-12-10
  * Created: 2025-11-30
  * Phase: 3.4 - Admin Events Workflow Tests
  */
 
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
+
 test.describe('Admin Events - Complete Workflow Tests', () => {
-  let testEventId: string | null = null;
-
-  test.beforeAll(async ({ browser }) => {
-    // Create a test event for tests that need an existing event
-    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
-    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
-    const context = await browser.newContext({ baseURL });
-    const page = await context.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    // Get first venue ID
-    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
-    const venues = venuesResponse.data as Array<{ id: string }>;
-    const venueId = venues[0]?.id;
-
-    if (!venueId) {
-      console.error('No venues found - cannot create test event');
-      await page.close();
-      return;
-    }
-
-    const sessionStart = new Date();
-    sessionStart.setDate(sessionStart.getDate() + 7);
-    sessionStart.setHours(18, 0, 0, 0);
-
-    const eventData = {
-      title: `Admin Workflow Test ${Date.now()}`,
-      shortDescription: 'Test event for admin workflow tests',
-      description: 'This event tests admin workflow functionality.',
-      eventType: 'Class',
-      startDate: sessionStart.toISOString(),
-      endDate: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-      venueId: venueId,
-      capacity: 20,
-      isPublished: true,
-      registrationOpenHours: null,
-      registrationCloseHours: 0,
-    };
-
-    console.log('Creating test event for admin workflow tests...');
-    const createResponse = await apiRequest(page, 'POST', '/api/events', eventData);
-
-    if (createResponse.status === 200 || createResponse.status === 201) {
-      const responseData = createResponse.data as { id: string };
-      testEventId = responseData.id;
-      console.log(`✅ Created test event: ${testEventId}`);
-    } else {
-      console.error('Failed to create test event:', createResponse);
-    }
-
-    await page.close();
-  });
-
-  test.afterAll(async () => {
-    // Note: No DELETE endpoint for events exists currently
-    // Test events are created with unique timestamps so cleanup is not critical
-    if (testEventId) {
-      console.log(`Test event ${testEventId} was created - no cleanup endpoint available`);
-    }
-  });
-
   test.beforeEach(async ({ page }) => {
     // Login as admin using AuthHelpers (MANDATORY pattern)
     await AuthHelpers.loginAs(page, 'admin');
@@ -306,11 +201,12 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
   });
 
   test.describe('3. Edit Event Flow', () => {
-    test('should navigate to event edit page via row click', async ({ page }) => {
-      expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
+    test('should navigate to event edit page via row click', async ({ page, df }) => {
+      // Create test event using DataFactory
+      const event = await df.events.createPublished(`Edit Nav Test ${Date.now()}`);
 
       // Navigate directly to the test event
-      await page.goto(`/admin/events/${testEventId}`);
+      await page.goto(`/admin/events/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
 
       // VERIFY: Navigation to /admin/events/:id (NOT a modal)
@@ -324,37 +220,17 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
       console.log(`✅ Navigated to event detail page: ${currentUrl}`);
     });
 
-    test('should edit event title and verify persistence', async ({ page }) => {
-      // First, create an event to edit
-      await page.goto('/admin/events/new');
+    test('should edit event title and verify persistence', async ({ page, df }) => {
+      // Create test event using DataFactory
+      const event = await df.events.createPublished(`Edit Test Event ${Date.now()}`);
+
+      await page.goto(`/admin/events/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
 
-      const originalTitle = `Edit Test Event ${Date.now()}`;
+      // Get original title
+      const originalTitle = await page.getByLabel('Event Title').inputValue();
 
-      // Fill and save event
-      await page.getByLabel('Event Title').fill(originalTitle);
-      await page.getByLabel(/Short Description/i).first().fill('Original description');
-
-      // Full Description
-      const fullDescEditor = page.locator('.tiptap.ProseMirror').first();
-      await fullDescEditor.click();
-      await fullDescEditor.fill('Original full description text.');
-
-      const venueSelect = page.getByLabel('Venue').first();
-      await venueSelect.click();
-      await page.getByRole('option').first().click();
-
-      // Wait for form dirty state
-      await page.waitForTimeout(500);
-
-      const saveButton = page.getByRole('button', { name: 'Save' });
-      await expect(saveButton).not.toBeDisabled({ timeout: 5000 });
-      await saveButton.click();
-
-      // Wait for redirect to detail page
-      await page.waitForURL('**/admin/events/**', { timeout: 10000 });
-
-      // Now edit the title
+      // Edit the title
       const updatedTitle = `${originalTitle} - UPDATED`;
 
       // Clear and fill title field
@@ -381,43 +257,12 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
   });
 
   test.describe('4. Session Management (Modal Interactions)', () => {
-    let eventId: string;
+    test('should open session management tab', async ({ page, df }) => {
+      const event = await df.events.createPublished(`Session Tab Test ${Date.now()}`);
 
-    test.beforeEach(async ({ page }) => {
-      // Create event for session tests
-      await page.goto('/admin/events/new');
+      await page.goto(`/admin/events/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
 
-      await page.getByLabel('Event Title').fill(`Session Test Event ${Date.now()}`);
-      await page.getByLabel(/Short Description/i).first().fill('Test event for sessions');
-
-      // Full Description
-      const fullDescEditor = page.locator('.tiptap.ProseMirror').first();
-      await fullDescEditor.click();
-      await fullDescEditor.fill('Full description for session test event.');
-
-      const venueSelect = page.getByLabel('Venue').first();
-      await venueSelect.click();
-      await page.getByRole('option').first().click();
-
-      // Wait for form dirty state
-      await page.waitForTimeout(500);
-
-      const saveButton = page.getByRole('button', { name: 'Save' });
-      await expect(saveButton).not.toBeDisabled({ timeout: 5000 });
-      await saveButton.click();
-
-      // Wait for redirect and extract event ID from URL
-      await page.waitForURL('**/admin/events/**', { timeout: 10000 });
-      const url = page.url();
-      const match = url.match(/\/admin\/events\/([a-f0-9-]+)$/);
-      eventId = match ? match[1] : '';
-
-      expect(eventId).toBeTruthy();
-      console.log(`✅ Created event for session tests: ${eventId}`);
-    });
-
-    test('should open session management tab', async ({ page }) => {
       // Navigate to Sessions/Ticket Types tab
       const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
       await expect(setupTab).toBeVisible({ timeout: 5000 });
@@ -430,7 +275,12 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
       console.log('✅ Session management tab accessible');
     });
 
-    test('should display add session button', async ({ page }) => {
+    test('should display add session button', async ({ page, df }) => {
+      const event = await df.events.createPublished(`Add Session Button Test ${Date.now()}`);
+
+      await page.goto(`/admin/events/${event.id}`);
+      await page.waitForLoadState('domcontentloaded');
+
       // Navigate to Sessions tab
       const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
       await setupTab.click();
@@ -450,7 +300,12 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
       }
     });
 
-    test('should open session modal when clicking add session', async ({ page }) => {
+    test('should open session modal when clicking add session', async ({ page, df }) => {
+      const event = await df.events.createPublished(`Session Modal Test ${Date.now()}`);
+
+      await page.goto(`/admin/events/${event.id}`);
+      await page.waitForLoadState('domcontentloaded');
+
       // Navigate to Sessions tab
       const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
       await setupTab.click();
@@ -493,30 +348,11 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
   });
 
   test.describe('5. Ticket Configuration', () => {
-    test('should access ticket types section', async ({ page }) => {
-      // Create event first
-      await page.goto('/admin/events/new');
+    test('should access ticket types section', async ({ page, df }) => {
+      const event = await df.events.createPublished(`Ticket Section Test ${Date.now()}`);
+
+      await page.goto(`/admin/events/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
-
-      await page.getByLabel('Event Title').fill(`Ticket Test Event ${Date.now()}`);
-      await page.getByLabel(/Short Description/i).first().fill('Test event for tickets');
-
-      // Full Description
-      const fullDescEditor = page.locator('.tiptap.ProseMirror').first();
-      await fullDescEditor.click();
-      await fullDescEditor.fill('Full description for ticket test event.');
-
-      const venueSelect = page.getByLabel('Venue').first();
-      await venueSelect.click();
-      await page.getByRole('option').first().click();
-
-      // Wait for form dirty state
-      await page.waitForTimeout(500);
-
-      const saveButton = page.getByRole('button', { name: 'Save' });
-      await expect(saveButton).not.toBeDisabled({ timeout: 5000 });
-      await saveButton.click();
-      await page.waitForURL('**/admin/events/**', { timeout: 10000 });
 
       // Navigate to Sessions/Ticket Types tab
       const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
@@ -544,37 +380,18 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
   });
 
   test.describe('6. Event Publishing', () => {
-    test('should toggle event between draft and published', async ({ page }) => {
-      // Create event
-      await page.goto('/admin/events/new');
+    test('should toggle event between draft and published', async ({ page, df }) => {
+      const event = await df.events.createPublished(`Publish Toggle Test ${Date.now()}`);
+
+      await page.goto(`/admin/events/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
-
-      await page.getByLabel('Event Title').fill(`Publish Test Event ${Date.now()}`);
-      await page.getByLabel(/Short Description/i).first().fill('Test event for publishing');
-
-      // Full Description
-      const fullDescEditor = page.locator('.tiptap.ProseMirror').first();
-      await fullDescEditor.click();
-      await fullDescEditor.fill('Full description for publish test event.');
-
-      const venueSelect = page.getByLabel('Venue').first();
-      await venueSelect.click();
-      await page.getByRole('option').first().click();
-
-      // Wait for form dirty state
-      await page.waitForTimeout(500);
-
-      const saveButton = page.getByRole('button', { name: 'Save' });
-      await expect(saveButton).not.toBeDisabled({ timeout: 5000 });
-      await saveButton.click();
-      await page.waitForURL('**/admin/events/**', { timeout: 10000 });
 
       // Look for publish status toggle (SegmentedControl in AdminEventDetailsPage)
       const draftOption = page.getByRole('radio', { name: 'DRAFT' });
       const publishedOption = page.getByRole('radio', { name: 'PUBLISHED' });
 
       if (await draftOption.count() > 0 && await publishedOption.count() > 0) {
-        // Event starts as published by default - toggle to draft
+        // Event starts as published - toggle to draft
         if (await publishedOption.isChecked()) {
           await draftOption.click();
 

@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
@@ -13,11 +14,10 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  */
 
 test.describe('Email Template Trigger Enhancements - Events Tab', () => {
-  let page: Page;
-
-  test.beforeEach(async ({ browser }) => {
-    page = await browser.newPage();
-
+  /**
+   * Test 1: Verify Events tab displays enhanced template cards with trigger badges
+   */
+  test('Events tab - should display enhanced template cards with trigger badges', async ({ page }) => {
     // Login as admin
     const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
@@ -46,16 +46,6 @@ test.describe('Email Template Trigger Enhancements - Events Tab', () => {
     await expect(eventsTab).toBeVisible();
     await eventsTab.click();
     await page.waitForTimeout(500);
-  });
-
-  test.afterEach(async () => {
-    await page.close();
-  });
-
-  /**
-   * Test 1: Verify Events tab displays enhanced template cards with trigger badges
-   */
-  test('Events tab - should display enhanced template cards with trigger badges', async () => {
     // Wait for template cards to load
     const templateCards = page.locator('.mantine-Card-root');
 
@@ -83,7 +73,28 @@ test.describe('Email Template Trigger Enhancements - Events Tab', () => {
   /**
    * Test 2: Verify template card shows trigger configuration details
    */
-  test('Events tab - should show trigger type and timing display', async () => {
+  test('Events tab - should show trigger type and timing display', async ({ page }) => {
+    // Login as admin
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
+
+    // Navigate to email templates page
+    await page.goto('/admin/email-templates');
+    await page.waitForLoadState('domcontentloaded');
+
+    // Click Events tab
+    const eventsTab = page.locator('[data-testid="tab-events"]').or(
+      page.getByRole('tab', { name: 'Events' })
+    );
+
+    if (await eventsTab.count() === 0) {
+      console.log('⚠️ Events tab not found - feature may not be implemented yet.');
+      return;
+    }
+
+    await expect(eventsTab).toBeVisible();
+    await eventsTab.click();
+    await page.waitForTimeout(500);
     const templateCards = page.locator('.mantine-Card-root');
 
     if (await templateCards.count() === 0) {
@@ -104,7 +115,28 @@ test.describe('Email Template Trigger Enhancements - Events Tab', () => {
   /**
    * Test 3: Verify Edit Trigger button opens trigger config modal
    */
-  test('Events tab - should open trigger config modal on Edit Trigger click', async () => {
+  test('Events tab - should open trigger config modal on Edit Trigger click', async ({ page }) => {
+    // Login as admin
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
+
+    // Navigate to email templates page
+    await page.goto('/admin/email-templates');
+    await page.waitForLoadState('domcontentloaded');
+
+    // Click Events tab
+    const eventsTab = page.locator('[data-testid="tab-events"]').or(
+      page.getByRole('tab', { name: 'Events' })
+    );
+
+    if (await eventsTab.count() === 0) {
+      console.log('⚠️ Events tab not found - feature may not be implemented yet.');
+      return;
+    }
+
+    await expect(eventsTab).toBeVisible();
+    await eventsTab.click();
+    await page.waitForTimeout(500);
     const templateCards = page.locator('.mantine-Card-root');
 
     if (await templateCards.count() === 0) {
@@ -150,7 +182,28 @@ test.describe('Email Template Trigger Enhancements - Events Tab', () => {
   /**
    * Test 4: Verify trigger config modal has all required fields
    */
-  test('Events tab - trigger config modal should have trigger type, timing, and recipient fields', async () => {
+  test('Events tab - trigger config modal should have trigger type, timing, and recipient fields', async ({ page }) => {
+    // Login as admin
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
+
+    // Navigate to email templates page
+    await page.goto('/admin/email-templates');
+    await page.waitForLoadState('domcontentloaded');
+
+    // Click Events tab
+    const eventsTab = page.locator('[data-testid="tab-events"]').or(
+      page.getByRole('tab', { name: 'Events' })
+    );
+
+    if (await eventsTab.count() === 0) {
+      console.log('⚠️ Events tab not found - feature may not be implemented yet.');
+      return;
+    }
+
+    await expect(eventsTab).toBeVisible();
+    await eventsTab.click();
+    await page.waitForTimeout(500);
     const templateCards = page.locator('.mantine-Card-root');
 
     if (await templateCards.count() === 0) {
@@ -200,7 +253,28 @@ test.describe('Email Template Trigger Enhancements - Events Tab', () => {
   /**
    * Test 5: Verify updating trigger configuration
    */
-  test('Events tab - should update trigger configuration', async () => {
+  test('Events tab - should update trigger configuration', async ({ page }) => {
+    // Login as admin
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
+
+    // Navigate to email templates page
+    await page.goto('/admin/email-templates');
+    await page.waitForLoadState('domcontentloaded');
+
+    // Click Events tab
+    const eventsTab = page.locator('[data-testid="tab-events"]').or(
+      page.getByRole('tab', { name: 'Events' })
+    );
+
+    if (await eventsTab.count() === 0) {
+      console.log('⚠️ Events tab not found - feature may not be implemented yet.');
+      return;
+    }
+
+    await expect(eventsTab).toBeVisible();
+    await eventsTab.click();
+    await page.waitForTimeout(500);
     const templateCards = page.locator('.mantine-Card-root');
 
     if (await templateCards.count() === 0) {

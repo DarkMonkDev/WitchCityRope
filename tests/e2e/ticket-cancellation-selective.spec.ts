@@ -30,215 +30,61 @@
  * - Sessions start 7+ days in future
  *
  * Created: 2025-12-09
+ * Migrated to DataFactory: 2025-12-10
  */
 
-import { test, expect, Page, APIRequestContext } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Helper to get CSRF token from cookies, fetching it if not present
-async function getCsrfToken(page: Page): Promise<string | null> {
-  let cookies = await page.context().cookies();
-  let csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
-
-  // If CSRF token not found, fetch it from the API
-  if (!csrfCookie) {
-    await page.request.get('/api/antiforgery/token');
-    cookies = await page.context().cookies();
-    csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
-  }
-
-  return csrfCookie?.value || null;
-}
-
-// Helper to make authenticated API request using Playwright's request API
-async function apiRequest(page: Page, method: string, url: string, data?: any): Promise<any> {
-  const headers: Record<string, string> = {};
-
-  // Get CSRF token for state-changing requests
-  if (method !== 'GET') {
-    const csrfToken = await getCsrfToken(page);
-    if (csrfToken) {
-      headers['X-CSRF-TOKEN'] = csrfToken;
-    }
-  }
-
-  let response;
-  if (method === 'GET') {
-    response = await page.request.get(url, { headers });
-  } else if (method === 'POST') {
-    response = await page.request.post(url, { headers, data });
-  } else if (method === 'PUT') {
-    response = await page.request.put(url, { headers, data });
-  } else if (method === 'DELETE') {
-    response = await page.request.delete(url, { headers });
-  } else {
-    throw new Error(`Unsupported method: ${method}`);
-  }
-
-  const text = await response.text();
-  try {
-    return { status: response.status(), data: JSON.parse(text) };
-  } catch {
-    return { status: response.status(), data: text };
-  }
-}
-
 test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
-  let testEventId: string | null = null;
-  let session1Id: string | null = null;
-  let session2Id: string | null = null;
-  let ticketTypeSession1Id: string | null = null;
-  let ticketTypeSession2Id: string | null = null;
-  let testUserId: string | null = null;
-  let testUserEmail: string = '';
-
-  test.beforeAll(async ({ browser }) => {
+  test('Test A: Single ticket cancellation pre-selects checkbox', async ({ page, df }) => {
     // Create test user
-    const page = await browser.newPage();
-
     const timestamp = Date.now();
-    const createUserResponse = await apiRequest(page, 'POST', '/api/test-helpers/users', {
-      email: `cancel-test-${timestamp}@test.local`,
-      password: 'Test123!',
-      sceneName: `CancelTest${timestamp}`,
-      firstName: 'Cancel',
-      lastName: 'Test',
-      role: 'Member',
+    const user = await df.users.createWithRole(`cancel-test-${timestamp}@test.local`, 'Member');
+    console.log(`✅ Created test user: ${user.email}`);
+
+    // Create event with 1 session
+    const event = await df.events.createPublished(`Single Ticket Cancel Test ${timestamp}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 2 * 60 * 60 * 1000);
+
+    const session1 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Session 1',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
     });
 
-    testUserId = createUserResponse.data.id;
-    testUserEmail = createUserResponse.data.email;
-    console.log(`✅ Created test user: ${testUserEmail}`);
+    const ticketType = await df.ticketTypes.create({
+      sessionId: session1.id,
+      name: 'Session 1 Ticket',
+      price: 20.0,
+      quantityAvailable: 20,
+    });
 
-    // Login as admin to create event
-    await AuthHelpers.loginAs(page, 'admin');
-
-    // Get first venue ID
-    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
-    const venueId = venuesResponse.data[0]?.id;
-
-    if (!venueId) {
-      console.error('No venues found - cannot create test event');
-      await page.close();
-      return;
-    }
-
-    // Create event with 2 sessions
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() + 7); // 7 days in future
-
-    const session1Start = new Date(startDate);
-    session1Start.setHours(18, 0, 0, 0);
-
-    const session2Start = new Date(startDate);
-    session2Start.setDate(session2Start.getDate() + 1);
-    session2Start.setHours(18, 0, 0, 0);
-
-    // Create event with sessions AND ticket types in one request
-    const eventData = {
-      title: `Cancel Test Event ${timestamp}`,
-      shortDescription: 'Test event for selective cancellation',
-      description: 'Tests cancellation with multiple tickets.',
-      eventType: 'Class',
-      startDate: session1Start.toISOString(),
-      endDate: session2Start.toISOString(),
-      venueId: venueId,
-      capacity: 20,
-      isPublished: true,
-      // CRITICAL: Timing controls
-      registrationOpenHours: null,
-      registrationCloseHours: 0,
-      cancellationCloseHours: 0,
-      volunteerRegistrationCloseHours: 0,
-      volunteerCancellationCloseHours: 0,
-      sessions: [
-        {
-          sessionIdentifier: 'S1',
-          name: 'Session 1',
-          startTime: session1Start.toISOString(),
-          endTime: new Date(session1Start.getTime() + 2 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-        {
-          sessionIdentifier: 'S2',
-          name: 'Session 2',
-          startTime: session2Start.toISOString(),
-          endTime: new Date(session2Start.getTime() + 2 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-      ],
-      // Include ticket types in event creation
-      ticketTypes: [
-        {
-          name: 'Session 1 Ticket',
-          pricingType: 'Fixed',
-          price: 20.00,
-          sessionIdentifiers: ['S1'],
-        },
-        {
-          name: 'Session 2 Ticket',
-          pricingType: 'Fixed',
-          price: 20.00,
-          sessionIdentifiers: ['S2'],
-        },
-      ],
-    };
-
-    const createResponse = await apiRequest(page, 'POST', '/api/events', eventData);
-    testEventId = createResponse.data.id;
-    console.log(`✅ Created test event: ${testEventId}`);
-
-    // Get session and ticket type IDs from the created event
-    const sessions = createResponse.data.sessions || [];
-    session1Id = sessions.find((s: any) => s.sessionIdentifier === 'S1')?.id;
-    session2Id = sessions.find((s: any) => s.sessionIdentifier === 'S2')?.id;
-
-    const ticketTypes = createResponse.data.ticketTypes || [];
-    ticketTypeSession1Id = ticketTypes.find((t: any) => t.name === 'Session 1 Ticket')?.id;
-    ticketTypeSession2Id = ticketTypes.find((t: any) => t.name === 'Session 2 Ticket')?.id;
-
-    console.log(`✅ Session 1 ticket: ${ticketTypeSession1Id}`);
-    console.log(`✅ Session 2 ticket: ${ticketTypeSession2Id}`);
-
-    await page.close();
-  });
-
-  test.afterAll(async ({ browser }) => {
-    // Cleanup
-    if (!testEventId) return;
-
-    const page = await browser.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    console.log(`Cleaning up test event: ${testEventId}`);
-    await apiRequest(page, 'DELETE', `/api/events/${testEventId}`);
-
-    if (testUserId) {
-      console.log(`Cleaning up test user: ${testUserId}`);
-      await apiRequest(page, 'DELETE', `/api/test-helpers/users/${testUserId}`);
-    }
-
-    await page.close();
-  });
-
-  test('Test A: Single ticket cancellation pre-selects checkbox', async ({ page }) => {
-    if (!testEventId || !ticketTypeSession1Id || !testUserEmail) {
-      test.fail(true, 'Test setup incomplete in beforeAll - check event/ticket creation');
-      return;
-    }
+    console.log(`✅ Created event: ${event.id}`);
+    console.log(`✅ Session 1 ticket: ${ticketType.id}`);
 
     // Login as test user
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await AuthHelpers.loginWith(page, { email: testUserEmail, password: 'Test123!' });
+    await AuthHelpers.loginWith(page, { email: user.email, password: 'Test123!' });
 
     // Purchase Session 1 ticket
-    await page.goto(`/checkout/${testEventId}?ticketTypeId=${ticketTypeSession1Id}`, {
+    await page.goto(`/checkout/${event.id}?ticketTypeId=${ticketType.id}`, {
       waitUntil: 'domcontentloaded',
     });
     await page.waitForLoadState('networkidle');
 
     // Accept terms and complete purchase
-    const continueButton = page.locator('button').filter({ hasText: /continue|next/i }).last();
+    const continueButton = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
     if (await continueButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await continueButton.click();
       await page.waitForTimeout(500);
@@ -266,8 +112,11 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     await page.waitForTimeout(1000);
 
     // Find the event and click Cancel
-    const cancelButton = page.locator('button').filter({ hasText: /cancel/i }).first();
-    if (!await cancelButton.isVisible({ timeout: 5000 })) {
+    const cancelButton = page
+      .locator('button')
+      .filter({ hasText: /cancel/i })
+      .first();
+    if (!(await cancelButton.isVisible({ timeout: 5000 }))) {
       console.log('⚠️ Cancel button not visible - ticket may not show yet');
       await page.screenshot({ path: './test-results/cancel-single-no-button.png' });
       test.fail(true, 'Cancel button not visible - feature exists but button not visible');
@@ -297,69 +146,105 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     }
   });
 
-  test('Test B: Multiple tickets no pre-selection', async ({ page }) => {
-    if (!testEventId || !ticketTypeSession1Id || !ticketTypeSession2Id || !testUserEmail) {
-      test.fail(true, 'Test setup incomplete in beforeAll - check event/ticket creation');
-      return;
-    }
+  test('Test B: Multiple tickets no pre-selection', async ({ page, df }) => {
+    // Create test user
+    const timestamp = Date.now();
+    const user = await df.users.createWithRole(`multi-cancel-test-${timestamp}@test.local`, 'Member');
+    console.log(`✅ Created test user: ${user.email}`);
+
+    // Create event with 2 sessions
+    const event = await df.events.createPublished(`Multi Ticket Cancel Test ${timestamp}`);
+
+    const session1Start = new Date();
+    session1Start.setDate(session1Start.getDate() + 7);
+    session1Start.setHours(18, 0, 0, 0);
+    const session1End = new Date(session1Start.getTime() + 2 * 60 * 60 * 1000);
+
+    const session2Start = new Date(session1Start);
+    session2Start.setDate(session2Start.getDate() + 1);
+    session2Start.setHours(18, 0, 0, 0);
+    const session2End = new Date(session2Start.getTime() + 2 * 60 * 60 * 1000);
+
+    const session1 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Session 1',
+      startTime: session1Start,
+      endTime: session1End,
+      maxCapacity: 20,
+    });
+
+    const session2 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Session 2',
+      startTime: session2Start,
+      endTime: session2End,
+      maxCapacity: 20,
+    });
+
+    const ticketType1 = await df.ticketTypes.create({
+      sessionId: session1.id,
+      name: 'Session 1 Ticket',
+      price: 20.0,
+      quantityAvailable: 20,
+    });
+
+    const ticketType2 = await df.ticketTypes.create({
+      sessionId: session2.id,
+      name: 'Session 2 Ticket',
+      price: 20.0,
+      quantityAvailable: 20,
+    });
+
+    console.log(`✅ Created event: ${event.id}`);
 
     // Login as test user
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await AuthHelpers.loginWith(page, { email: testUserEmail, password: 'Test123!' });
+    await AuthHelpers.loginWith(page, { email: user.email, password: 'Test123!' });
 
-    // Purchase BOTH tickets if not already purchased
-    // First, check if user already has tickets
-    const participationsResponse = await apiRequest(page, 'GET', '/api/user/participations');
-    const hasSession1 = participationsResponse.data?.some((p: any) =>
-      p.eventId === testEventId && p.status === 'Active'
-    );
-
-    if (!hasSession1) {
-      // Purchase Session 1 ticket
-      await page.goto(`/checkout/${testEventId}?ticketTypeId=${ticketTypeSession1Id}`, {
-        waitUntil: 'domcontentloaded',
-      });
-      await page.waitForLoadState('networkidle');
-
-      const continueButton = page.locator('button').filter({ hasText: /continue|next/i }).last();
-      if (await continueButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await continueButton.click();
-        await page.waitForTimeout(500);
-      }
-
-      // Check the terms checkbox - use click on the checkbox element (Mantine checkbox)
-      const innerTermsCheckbox = page.getByRole('checkbox', { name: /agree.*waiver/i });
-      await innerTermsCheckbox.waitFor({ state: 'visible', timeout: 5000 });
-      await innerTermsCheckbox.click({ force: true });
-
-      // Wait for React state to update and button to become enabled
-      await page.waitForTimeout(500);
-
-      const innerPayButton = page.getByRole('button', { name: /pay with credit card/i });
-      await innerPayButton.waitFor({ state: 'visible', timeout: 5000 });
-      await expect(innerPayButton).toBeEnabled({ timeout: 3000 });
-      await innerPayButton.click();
-      await page.waitForTimeout(3000);
-    }
-
-    // Purchase Session 2 ticket
-    await page.goto(`/checkout/${testEventId}?ticketTypeId=${ticketTypeSession2Id}`, {
+    // Purchase Session 1 ticket
+    await page.goto(`/checkout/${event.id}?ticketTypeId=${ticketType1.id}`, {
       waitUntil: 'domcontentloaded',
     });
     await page.waitForLoadState('networkidle');
 
-    const continueButton2 = page.locator('button').filter({ hasText: /continue|next/i }).last();
+    const continueButton1 = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
+    if (await continueButton1.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await continueButton1.click();
+      await page.waitForTimeout(500);
+    }
+
+    const termsCheckbox1 = page.getByRole('checkbox', { name: /agree.*waiver/i });
+    await termsCheckbox1.waitFor({ state: 'visible', timeout: 5000 });
+    await termsCheckbox1.click({ force: true });
+    await page.waitForTimeout(500);
+
+    const payButton1 = page.getByRole('button', { name: /pay with credit card/i });
+    await payButton1.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(payButton1).toBeEnabled({ timeout: 3000 });
+    await payButton1.click();
+    await page.waitForTimeout(3000);
+
+    // Purchase Session 2 ticket
+    await page.goto(`/checkout/${event.id}?ticketTypeId=${ticketType2.id}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForLoadState('networkidle');
+
+    const continueButton2 = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
     if (await continueButton2.isVisible({ timeout: 3000 }).catch(() => false)) {
       await continueButton2.click();
       await page.waitForTimeout(500);
     }
 
-    // Check the terms checkbox - use click on the checkbox element (Mantine checkbox)
     const termsCheckbox2 = page.getByRole('checkbox', { name: /agree.*waiver/i });
     await termsCheckbox2.waitFor({ state: 'visible', timeout: 5000 });
     await termsCheckbox2.click({ force: true });
-
-    // Wait for React state to update and button to become enabled
     await page.waitForTimeout(500);
 
     const payButton2 = page.getByRole('button', { name: /pay with credit card/i });
@@ -375,8 +260,11 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     await page.waitForTimeout(1000);
 
     // Find the event and click Cancel
-    const cancelButton = page.locator('button').filter({ hasText: /cancel/i }).first();
-    if (!await cancelButton.isVisible({ timeout: 5000 })) {
+    const cancelButton = page
+      .locator('button')
+      .filter({ hasText: /cancel/i })
+      .first();
+    if (!(await cancelButton.isVisible({ timeout: 5000 }))) {
       console.log('⚠️ Cancel button not visible');
       test.fail(true, 'Cancel button not visible - feature exists but button not visible');
       return;
@@ -418,21 +306,122 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     }
   });
 
-  test('Test C: Selective cancellation preserves other tickets', async ({ page }) => {
-    if (!testEventId || !testUserEmail) {
-      test.fail(true, 'Test setup incomplete in beforeAll - check event/ticket creation');
-      return;
-    }
+  test('Test C: Selective cancellation preserves other tickets', async ({ page, df }) => {
+    // Create test user
+    const timestamp = Date.now();
+    const user = await df.users.createWithRole(
+      `selective-cancel-test-${timestamp}@test.local`,
+      'Member'
+    );
+    console.log(`✅ Created test user: ${user.email}`);
+
+    // Create event with 2 sessions
+    const event = await df.events.createPublished(`Selective Cancel Test ${timestamp}`);
+
+    const session1Start = new Date();
+    session1Start.setDate(session1Start.getDate() + 7);
+    session1Start.setHours(18, 0, 0, 0);
+    const session1End = new Date(session1Start.getTime() + 2 * 60 * 60 * 1000);
+
+    const session2Start = new Date(session1Start);
+    session2Start.setDate(session2Start.getDate() + 1);
+    session2Start.setHours(18, 0, 0, 0);
+    const session2End = new Date(session2Start.getTime() + 2 * 60 * 60 * 1000);
+
+    const session1 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Session 1',
+      startTime: session1Start,
+      endTime: session1End,
+      maxCapacity: 20,
+    });
+
+    const session2 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Session 2',
+      startTime: session2Start,
+      endTime: session2End,
+      maxCapacity: 20,
+    });
+
+    const ticketType1 = await df.ticketTypes.create({
+      sessionId: session1.id,
+      name: 'Session 1 Ticket',
+      price: 20.0,
+      quantityAvailable: 20,
+    });
+
+    const ticketType2 = await df.ticketTypes.create({
+      sessionId: session2.id,
+      name: 'Session 2 Ticket',
+      price: 20.0,
+      quantityAvailable: 20,
+    });
+
+    console.log(`✅ Created event: ${event.id}`);
 
     // Login as test user
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await AuthHelpers.loginWith(page, { email: testUserEmail, password: 'Test123!' });
+    await AuthHelpers.loginWith(page, { email: user.email, password: 'Test123!' });
 
-    // Get current participations
-    const beforeResponse = await apiRequest(page, 'GET', '/api/user/participations');
-    const beforeCount = beforeResponse.data?.filter((p: any) =>
-      p.eventId === testEventId && p.status === 'Active'
-    ).length || 0;
+    // Purchase Session 1 ticket
+    await page.goto(`/checkout/${event.id}?ticketTypeId=${ticketType1.id}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForLoadState('networkidle');
+
+    const continueButton1 = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
+    if (await continueButton1.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await continueButton1.click();
+      await page.waitForTimeout(500);
+    }
+
+    const termsCheckbox1 = page.getByRole('checkbox', { name: /agree.*waiver/i });
+    await termsCheckbox1.waitFor({ state: 'visible', timeout: 5000 });
+    await termsCheckbox1.click({ force: true });
+    await page.waitForTimeout(500);
+
+    const payButton1 = page.getByRole('button', { name: /pay with credit card/i });
+    await payButton1.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(payButton1).toBeEnabled({ timeout: 3000 });
+    await payButton1.click();
+    await page.waitForTimeout(3000);
+
+    // Purchase Session 2 ticket
+    await page.goto(`/checkout/${event.id}?ticketTypeId=${ticketType2.id}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForLoadState('networkidle');
+
+    const continueButton2 = page
+      .locator('button')
+      .filter({ hasText: /continue|next/i })
+      .last();
+    if (await continueButton2.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await continueButton2.click();
+      await page.waitForTimeout(500);
+    }
+
+    const termsCheckbox2 = page.getByRole('checkbox', { name: /agree.*waiver/i });
+    await termsCheckbox2.waitFor({ state: 'visible', timeout: 5000 });
+    await termsCheckbox2.click({ force: true });
+    await page.waitForTimeout(500);
+
+    const payButton2 = page.getByRole('button', { name: /pay with credit card/i });
+    await payButton2.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(payButton2).toBeEnabled({ timeout: 3000 });
+    await payButton2.click();
+    await page.waitForTimeout(3000);
+    console.log('✅ Purchased both tickets');
+
+    // Get current participations count
+    const beforeResponse = await page.request.get('/api/user/participations');
+    const beforeData = await beforeResponse.json();
+    const beforeCount =
+      beforeData?.filter((p: any) => p.eventId === event.id && p.status === 'Active').length || 0;
 
     console.log(`User has ${beforeCount} active tickets before cancellation`);
 
@@ -448,8 +437,11 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     await page.waitForTimeout(1000);
 
     // Find the event and click Cancel
-    const cancelButton = page.locator('button').filter({ hasText: /cancel/i }).first();
-    if (!await cancelButton.isVisible({ timeout: 5000 })) {
+    const cancelButton = page
+      .locator('button')
+      .filter({ hasText: /cancel/i })
+      .first();
+    if (!(await cancelButton.isVisible({ timeout: 5000 }))) {
       console.log('⚠️ Cancel button not visible');
       test.fail(true, 'Cancel button not visible - feature exists but button not visible');
       return;
@@ -468,7 +460,10 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     await page.screenshot({ path: './test-results/cancel-selective-selected.png' });
 
     // Confirm cancellation
-    const confirmButton = page.locator('button').filter({ hasText: /confirm|yes|cancel ticket/i }).last();
+    const confirmButton = page
+      .locator('button')
+      .filter({ hasText: /confirm|yes|cancel ticket/i })
+      .last();
     if (await confirmButton.isVisible({ timeout: 3000 })) {
       await confirmButton.click();
       await page.waitForTimeout(2000);
@@ -476,10 +471,10 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     }
 
     // Verify result
-    const afterResponse = await apiRequest(page, 'GET', '/api/user/participations');
-    const afterCount = afterResponse.data?.filter((p: any) =>
-      p.eventId === testEventId && p.status === 'Active'
-    ).length || 0;
+    const afterResponse = await page.request.get('/api/user/participations');
+    const afterData = await afterResponse.json();
+    const afterCount =
+      afterData?.filter((p: any) => p.eventId === event.id && p.status === 'Active').length || 0;
 
     console.log(`User has ${afterCount} active tickets after cancellation`);
     console.log(`Cancelled ${beforeCount - afterCount} ticket(s)`);
@@ -489,7 +484,7 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     console.log('✅ Selective cancellation preserved other ticket');
 
     // Navigate to event details to verify
-    await page.goto(`/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/events/${event.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -497,7 +492,8 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
 
     // Verify event page reflects the change (still shows as registered)
     const pageText = await page.locator('body').textContent();
-    const stillRegistered = pageText?.includes('registered') || pageText?.includes('Registered');
+    const stillRegistered =
+      pageText?.includes('registered') || pageText?.includes('Registered');
 
     console.log(`Event page shows user still registered: ${stillRegistered}`);
     expect(stillRegistered).toBeTruthy();

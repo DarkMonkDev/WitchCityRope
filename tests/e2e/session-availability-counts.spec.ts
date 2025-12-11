@@ -5,173 +5,74 @@
  * This test was added after discovering that the counts were not being reported correctly
  * due to tickets without SessionId needing to be traced through TicketPurchase -> TicketType -> TicketTypeSessions.
  *
+ * Migrated to DataFactory: 2025-12-10
+ *
  * @see /docs/functional-areas/payments/new-work/2025-12-07-session-based-ticketing/README.md
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Helper to get CSRF token from cookies, fetching it if not present
-async function getCsrfToken(page: Page): Promise<string | null> {
-  let cookies = await page.context().cookies();
-  let csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
-
-  // If CSRF token not found, fetch it from the API
-  if (!csrfCookie) {
-    await page.request.get('/api/antiforgery/token');
-    cookies = await page.context().cookies();
-    csrfCookie = cookies.find((c) => c.name === 'XSRF-TOKEN');
-  }
-
-  return csrfCookie?.value || null;
-}
-
-// Helper to make authenticated API request with CSRF token support
-async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
-  const headers: Record<string, string> = {};
-
-  // Get CSRF token for state-changing requests
-  if (method !== 'GET') {
-    const csrfToken = await getCsrfToken(page);
-    if (csrfToken) {
-      headers['X-CSRF-TOKEN'] = csrfToken;
-    }
-  }
-
-  if (data) {
-    headers['Content-Type'] = 'application/json';
-  }
-
-  const options: Parameters<typeof page.request.fetch>[1] = {
-    method,
-    headers,
-  };
-
-  if (data) {
-    options.data = data;
-  }
-
-  const response = await page.request.fetch(url, options);
-  const text = await response.text();
-
-  try {
-    return { status: response.status(), data: JSON.parse(text) };
-  } catch {
-    return { status: response.status(), data: text };
-  }
-}
-
 test.describe('Session Availability Counts', () => {
-  let testEventId: string | null = null;
-
-  test.beforeAll(async ({ browser }) => {
-    // Create a multi-session event for testing
-    // CRITICAL: Must create context with baseURL for page.goto to work with relative URLs
-    const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173';
-    const context = await browser.newContext({ baseURL });
-    const page = await context.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    // Get first venue ID
-    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
-    const venues = venuesResponse.data as Array<{ id: string }>;
-    const venueId = venues[0]?.id;
-
-    if (!venueId) {
-      console.error('No venues found - cannot create test event');
-      await page.close();
-      return;
-    }
-
-    // Create event with 2 sessions
-    const session1Start = new Date();
-    session1Start.setDate(session1Start.getDate() + 7);
-    session1Start.setHours(18, 0, 0, 0);
-
-    const session2Start = new Date();
-    session2Start.setDate(session2Start.getDate() + 8);
-    session2Start.setHours(18, 0, 0, 0);
-
-    const eventData = {
-      title: `Session Availability Test ${Date.now()}`,
-      shortDescription: 'Test event for session availability counts',
-      description: 'This event tests session availability calculations.',
-      eventType: 'Class',
-      startDate: session1Start.toISOString(),
-      endDate: session2Start.toISOString(),
-      venueId: venueId,
-      capacity: 20,
-      isPublished: true,
-      registrationOpenHours: null,
-      registrationCloseHours: 0,
-      cancellationCloseHours: 0,
-      sessions: [
-        {
-          sessionIdentifier: 'S1',
-          name: 'Session 1',
-          startTime: session1Start.toISOString(),
-          endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-        {
-          sessionIdentifier: 'S2',
-          name: 'Session 2',
-          startTime: session2Start.toISOString(),
-          endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-      ],
-      ticketTypes: [
-        {
-          name: 'Both Sessions Pass',
-          pricingType: 'Fixed',
-          price: 0,
-          sessionIdentifiers: ['S1', 'S2'],
-        },
-      ],
-    };
-
-    console.log('Creating multi-session test event...');
-    const createResponse = await apiRequest(page, 'POST', '/api/events', eventData);
-
-    if (createResponse.status === 200 || createResponse.status === 201) {
-      const responseData = createResponse.data as { id: string };
-      testEventId = responseData.id;
-      console.log(`✅ Created test event: ${testEventId}`);
-    } else {
-      console.error('Failed to create test event:', createResponse);
-    }
-
-    await page.close();
-  });
-
-  test.afterAll(async () => {
-    // Note: No DELETE endpoint for events exists currently
-    // Test events are created with unique timestamps so cleanup is not critical
-    if (testEventId) {
-      console.log(`Test event ${testEventId} was created - no cleanup endpoint available`);
-    }
-  });
-
   test.describe('API Tests', () => {
+    test('should return correct session soldCount and availableCount from events API', async ({
+      page,
+      df,
+    }) => {
+      // Create a multi-session event
+      const event = await df.events.createPublished(`Session Availability Test ${Date.now()}`);
 
-    test('should return correct session soldCount and availableCount from events API', async ({ page }) => {
+      // Calculate session times
+      const session1Start = new Date();
+      session1Start.setDate(session1Start.getDate() + 7);
+      session1Start.setHours(18, 0, 0, 0);
+      const session1End = new Date(session1Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session2Start = new Date();
+      session2Start.setDate(session2Start.getDate() + 8);
+      session2Start.setHours(18, 0, 0, 0);
+      const session2End = new Date(session2Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session1 = await df.sessions.create({
+        eventId: event.id,
+        title: 'Session 1',
+        startTime: session1Start,
+        endTime: session1End,
+        maxCapacity: 20,
+      });
+
+      const session2 = await df.sessions.create({
+        eventId: event.id,
+        title: 'Session 2',
+        startTime: session2Start,
+        endTime: session2End,
+        maxCapacity: 20,
+      });
+
+      await df.ticketTypes.create({
+        sessionId: session1.id,
+        name: 'Both Sessions Pass',
+        price: 0,
+        quantityAvailable: 20,
+      });
+
+      console.log(`✅ Created test event: ${event.id}`);
+
       // Get events list using page.request (uses baseURL automatically)
       const response = await page.request.get('/api/events');
       expect(response.ok()).toBeTruthy();
 
       const events = await response.json();
 
-      // Find a multi-session event
-      const multiSessionEvent = events.find((e: any) =>
-        e.sessions && e.sessions.length > 1
-      );
+      // Find our test event
+      const testEvent = events.find((e: any) => e.id === event.id);
 
-      expect(multiSessionEvent).toBeDefined();
-      expect(multiSessionEvent.sessions.length).toBeGreaterThan(1);
+      expect(testEvent).toBeDefined();
+      expect(testEvent.sessions.length).toBeGreaterThan(1);
 
       // Verify each session has the required count fields
-      for (const session of multiSessionEvent.sessions) {
+      for (const session of testEvent.sessions) {
         expect(session).toHaveProperty('registrationCount');
         expect(session).toHaveProperty('capacity');
         expect(typeof session.registrationCount).toBe('number');
@@ -181,22 +82,55 @@ test.describe('Session Availability Counts', () => {
       }
     });
 
-    test('should return correct sessionAvailability from participation API', async ({ page }) => {
+    test('should return correct sessionAvailability from participation API', async ({
+      page,
+      df,
+    }) => {
+      // Create a multi-session event
+      const event = await df.events.createPublished(
+        `Participation Availability Test ${Date.now()}`
+      );
+
+      // Calculate session times
+      const session1Start = new Date();
+      session1Start.setDate(session1Start.getDate() + 7);
+      session1Start.setHours(18, 0, 0, 0);
+      const session1End = new Date(session1Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session2Start = new Date();
+      session2Start.setDate(session2Start.getDate() + 8);
+      session2Start.setHours(18, 0, 0, 0);
+      const session2End = new Date(session2Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session1 = await df.sessions.create({
+        eventId: event.id,
+        title: 'Session 1',
+        startTime: session1Start,
+        endTime: session1End,
+        maxCapacity: 20,
+      });
+
+      const session2 = await df.sessions.create({
+        eventId: event.id,
+        title: 'Session 2',
+        startTime: session2Start,
+        endTime: session2End,
+        maxCapacity: 20,
+      });
+
+      await df.ticketTypes.create({
+        sessionId: session1.id,
+        name: 'Both Sessions Pass',
+        price: 0,
+        quantityAvailable: 20,
+      });
+
       // Login using AuthHelpers (MANDATORY)
       await AuthHelpers.loginAs(page, 'vetted');
 
-      // Get events to find a multi-session event ID
-      const eventsResponse = await page.request.get('/api/events');
-      const events = await eventsResponse.json();
-
-      const multiSessionEvent = events.find((e: any) =>
-        e.sessions && e.sessions.length > 1
-      );
-      expect(multiSessionEvent).toBeDefined();
-
       // Get participation status for this event
       const participationResponse = await page.request.get(
-        `/api/events/${multiSessionEvent.id}/participation`
+        `/api/events/${event.id}/participation`
       );
       expect(participationResponse.ok()).toBeTruthy();
 
@@ -221,30 +155,66 @@ test.describe('Session Availability Counts', () => {
         expect(typeof session.capacity).toBe('number');
 
         // Verify math: availableCount = capacity - soldCount
-        expect(session.availableCount).toBe(
-          Math.max(0, session.capacity - session.soldCount)
-        );
+        expect(session.availableCount).toBe(Math.max(0, session.capacity - session.soldCount));
       }
     });
 
-    test('should have consistent counts between events API and participation API', async ({ page }) => {
-      expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
+    test('should have consistent counts between events API and participation API', async ({
+      page,
+      df,
+    }) => {
+      // Create a multi-session event
+      const event = await df.events.createPublished(`Consistency Test ${Date.now()}`);
+
+      // Calculate session times
+      const session1Start = new Date();
+      session1Start.setDate(session1Start.getDate() + 7);
+      session1Start.setHours(18, 0, 0, 0);
+      const session1End = new Date(session1Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session2Start = new Date();
+      session2Start.setDate(session2Start.getDate() + 8);
+      session2Start.setHours(18, 0, 0, 0);
+      const session2End = new Date(session2Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session1 = await df.sessions.create({
+        eventId: event.id,
+        title: 'Session 1',
+        startTime: session1Start,
+        endTime: session1End,
+        maxCapacity: 20,
+      });
+
+      const session2 = await df.sessions.create({
+        eventId: event.id,
+        title: 'Session 2',
+        startTime: session2Start,
+        endTime: session2End,
+        maxCapacity: 20,
+      });
+
+      await df.ticketTypes.create({
+        sessionId: session1.id,
+        name: 'Both Sessions Pass',
+        price: 0,
+        quantityAvailable: 20,
+      });
 
       // Login using AuthHelpers (MANDATORY)
       await AuthHelpers.loginAs(page, 'vetted');
 
       // Get the test event
-      const eventResponse = await page.request.get(`/api/events/${testEventId}`);
-      const multiSessionEvent = await eventResponse.json();
+      const eventResponse = await page.request.get(`/api/events/${event.id}`);
+      const eventData = await eventResponse.json();
 
       // Get participation status
       const participationResponse = await page.request.get(
-        `/api/events/${multiSessionEvent.id}/participation`
+        `/api/events/${event.id}/participation`
       );
       const participation = await participationResponse.json();
 
       // Compare counts between APIs
-      for (const eventSession of multiSessionEvent.sessions) {
+      for (const eventSession of eventData.sessions) {
         const participationSession = participation.sessionAvailability?.find(
           (s: any) => s.sessionId === eventSession.id
         );
@@ -258,15 +228,49 @@ test.describe('Session Availability Counts', () => {
   });
 
   test.describe('UI Tests', () => {
+    test('should display session availability on event details page', async ({ page, df }) => {
+      // Create a multi-session event
+      const event = await df.events.createPublished(`UI Availability Test ${Date.now()}`);
 
-    test('should display session availability on event details page', async ({ page }) => {
-      expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
+      // Calculate session times
+      const session1Start = new Date();
+      session1Start.setDate(session1Start.getDate() + 7);
+      session1Start.setHours(18, 0, 0, 0);
+      const session1End = new Date(session1Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session2Start = new Date();
+      session2Start.setDate(session2Start.getDate() + 8);
+      session2Start.setHours(18, 0, 0, 0);
+      const session2End = new Date(session2Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session1 = await df.sessions.create({
+        eventId: event.id,
+        title: 'Session 1',
+        startTime: session1Start,
+        endTime: session1End,
+        maxCapacity: 20,
+      });
+
+      const session2 = await df.sessions.create({
+        eventId: event.id,
+        title: 'Session 2',
+        startTime: session2Start,
+        endTime: session2End,
+        maxCapacity: 20,
+      });
+
+      await df.ticketTypes.create({
+        sessionId: session1.id,
+        name: 'Both Sessions Pass',
+        price: 0,
+        quantityAvailable: 20,
+      });
 
       // Login using AuthHelpers (MANDATORY)
       await AuthHelpers.loginAs(page, 'vetted');
 
       // Navigate directly to the test event
-      await page.goto(`/events/${testEventId}`);
+      await page.goto(`/events/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
 
       // Check for "Event Dates / Times" section (renamed from "Session Availability")
@@ -316,7 +320,9 @@ test.describe('Session Availability Counts', () => {
       }
     });
 
-    test('should show additional sessions purchase option when user has partial tickets', async ({ page }) => {
+    test('should show additional sessions purchase option when user has partial tickets', async ({
+      page,
+    }) => {
       // This test verifies that users with tickets for some sessions
       // can see the option to purchase tickets for remaining sessions
 
@@ -328,7 +334,9 @@ test.describe('Session Availability Counts', () => {
       await page.waitForLoadState('domcontentloaded');
 
       // Look for "Purchase Additional Sessions" button if visible
-      const additionalSessionsButton = page.getByText('Purchase Additional Sessions', { exact: false });
+      const additionalSessionsButton = page.getByText('Purchase Additional Sessions', {
+        exact: false,
+      });
 
       // This test just verifies the button renders correctly when conditions are met
       // The actual visibility depends on user having partial session ownership
@@ -339,24 +347,59 @@ test.describe('Session Availability Counts', () => {
   });
 
   test.describe('Data Integrity Tests', () => {
-
-    test('should correctly count tickets via TicketPurchase -> TicketType -> TicketTypeSessions chain', async ({ page }) => {
-      expect(testEventId, 'Test event should be created in beforeAll').toBeTruthy();
-
+    test('should correctly count tickets via TicketPurchase -> TicketType -> TicketTypeSessions chain', async ({
+      page,
+      df,
+    }) => {
       // This test verifies the fix for legacy tickets without SessionId
       // which need to be counted via the TicketPurchase relationship
+
+      // Create a multi-session event
+      const event = await df.events.createPublished(`Data Integrity Test ${Date.now()}`);
+
+      // Calculate session times
+      const session1Start = new Date();
+      session1Start.setDate(session1Start.getDate() + 7);
+      session1Start.setHours(18, 0, 0, 0);
+      const session1End = new Date(session1Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session2Start = new Date();
+      session2Start.setDate(session2Start.getDate() + 8);
+      session2Start.setHours(18, 0, 0, 0);
+      const session2End = new Date(session2Start.getTime() + 3 * 60 * 60 * 1000);
+
+      const session1 = await df.sessions.create({
+        eventId: event.id,
+        title: 'S1',
+        startTime: session1Start,
+        endTime: session1End,
+        maxCapacity: 20,
+      });
+
+      const session2 = await df.sessions.create({
+        eventId: event.id,
+        title: 'S2',
+        startTime: session2Start,
+        endTime: session2End,
+        maxCapacity: 20,
+      });
+
+      await df.ticketTypes.create({
+        sessionId: session1.id,
+        name: 'Both Sessions Pass',
+        price: 0,
+        quantityAvailable: 20,
+      });
 
       // Login using AuthHelpers (MANDATORY)
       await AuthHelpers.loginAs(page, 'admin');
 
       // Get the test event details
-      const eventResponse = await page.request.get(`/api/events/${testEventId}`);
+      const eventResponse = await page.request.get(`/api/events/${event.id}`);
       const testEvent = await eventResponse.json();
 
       // Get participation status
-      const participationResponse = await page.request.get(
-        `/api/events/${testEventId}/participation`
-      );
+      const participationResponse = await page.request.get(`/api/events/${event.id}/participation`);
       const participation = await participationResponse.json();
 
       // Verify we have session availability data
@@ -364,22 +407,26 @@ test.describe('Session Availability Counts', () => {
       expect(participation.sessionAvailability.length).toBe(2); // Test event has 2 sessions
 
       // Session 1 (S1) should have tickets (based on seed data)
-      const session1 = participation.sessionAvailability.find(
+      const sessionData1 = participation.sessionAvailability.find(
         (s: any) => s.sessionIdentifier === 'S1'
       );
-      expect(session1).toBeDefined();
-      expect(session1.soldCount).toBeGreaterThanOrEqual(0);
+      expect(sessionData1).toBeDefined();
+      expect(sessionData1.soldCount).toBeGreaterThanOrEqual(0);
 
       // Session 2 (S2)
-      const session2 = participation.sessionAvailability.find(
+      const sessionData2 = participation.sessionAvailability.find(
         (s: any) => s.sessionIdentifier === 'S2'
       );
-      expect(session2).toBeDefined();
-      expect(session2.soldCount).toBeGreaterThanOrEqual(0);
+      expect(sessionData2).toBeDefined();
+      expect(sessionData2.soldCount).toBeGreaterThanOrEqual(0);
 
       // Log actual counts for debugging
-      console.log(`Session 1 (S1): soldCount=${session1.soldCount}, availableCount=${session1.availableCount}, capacity=${session1.capacity}`);
-      console.log(`Session 2 (S2): soldCount=${session2.soldCount}, availableCount=${session2.availableCount}, capacity=${session2.capacity}`);
+      console.log(
+        `Session 1 (S1): soldCount=${sessionData1.soldCount}, availableCount=${sessionData1.availableCount}, capacity=${sessionData1.capacity}`
+      );
+      console.log(
+        `Session 2 (S2): soldCount=${sessionData2.soldCount}, availableCount=${sessionData2.availableCount}, capacity=${sessionData2.capacity}`
+      );
     });
   });
 });

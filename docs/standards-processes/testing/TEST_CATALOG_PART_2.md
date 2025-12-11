@@ -348,6 +348,7 @@
 - Design System v7 button styles not applied uniformly
 
 #### 4. **Data Dependencies Tests** - `/tests/e2e/admin-events-dependencies.spec.ts`
+**MIGRATION STATUS**: ✅ **MIGRATED TO DATAFACTORY** (2025-12-10)
 **Purpose**: Test data relationships, validation, and cascade operations between sessions, tickets, and positions
 **Test Cases**:
 - ✅ `should only allow ticket creation when sessions exist` - Tests session prerequisite for tickets
@@ -364,6 +365,18 @@
 - Capacity validation not implemented
 - Cascade delete operations not handled
 - Data integrity constraints not enforced
+
+**MIGRATION NOTES**:
+- Migrated from seed data to DataFactory pattern on 2025-12-10
+- Removed `getFirstEventId` helper function - tests now create their own events
+- Each test creates isolated test data using `df` fixture
+- Tests create events with `df.events.createPublished()`
+- Tests create sessions with `df.sessions.create()`
+- Tests create tickets with `df.ticketTypes.create()`
+- Tests create ticket purchases with `df.ticketPurchases.create()` for sales tests
+- Tests create volunteers with `df.volunteers.create()`
+- Automatic cleanup via DataFactory fixture after each test
+- No manual cleanup or database state management needed
 
 **KEY TESTING PATTERNS ESTABLISHED**:
 ```typescript
@@ -433,26 +446,8 @@ await expect(page.locator('[data-testid="alert-session-error"]')).toBeVisible();
 - **Screenshot Capture**: Automatic screenshots for debugging each tab state
 - **Docker Environment Testing**: Tests against port 5173 Docker container exclusively
 
-**RUN COMMAND**:
-```bash
-# Run comprehensive admin event editing tests
-npm run test:e2e:playwright admin-event-editing-comprehensive.spec.ts
-```
-
-**EXECUTION COMMANDS**:
-```bash
-# Run all admin events edit screen tests
-cd tests/e2e && npm test admin-events-*.spec.ts
-
-# Run specific test categories
-cd tests/e2e && npm test admin-events-sessions.spec.ts
-cd tests/e2e && npm test admin-events-volunteers.spec.ts  
-cd tests/e2e && npm test admin-events-ui-consistency.spec.ts
-cd tests/e2e && npm test admin-events-dependencies.spec.ts
-
-# Run with UI mode for debugging
-cd tests/e2e && npm test admin-events-sessions.spec.ts -- --ui
-```
+**HOW TO RUN**:
+Use `test-environment` skill to run these tests in isolated containers. See [Test Execution Guide](TEST-EXECUTION-GUIDE.md) for detailed execution options.
 
 **NEXT STEPS**:
 1. Run tests to confirm they all FAIL (Red phase) ✅
@@ -684,17 +679,8 @@ page.on('request', request => {
 })
 ```
 
-**TEST EXECUTION COMMANDS**:
-```bash
-# API Unit Tests
-dotnet test apps/api/Tests/EventUpdateAuthenticationTests.cs
-
-# Frontend Integration Tests  
-npm test tests/integration/event-update-auth-integration.test.ts
-
-# E2E Complete Flow Tests
-npx playwright test tests/e2e/event-update-complete-flow.spec.ts
-```
+**HOW TO RUN**:
+Use `test-environment` skill to run these tests in isolated containers. See [Test Execution Guide](TEST-EXECUTION-GUIDE.md) for detailed execution options.
 
 **FOCUS AREAS TESTED**:
 - **JWT Token Validation**: Is the token being properly sent and validated?

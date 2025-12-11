@@ -70,14 +70,18 @@ These tests skip at runtime based on environment conditions. This is VALID defen
 
 **Action**: Remove skip conditions once email templates feature is fully implemented.
 
-### 2. Admin Event Copy (`events/admin-event-copy.spec.ts`)
+### 2. Admin Event Copy (`events/admin-event-copy.spec.ts`) - ✅ MIGRATED TO DATAFACTORY
 
-**Skip Conditions**:
+**Previous Skip Conditions** (REMOVED 2025-12-10):
 - Line 29: `if (eventRowCount === 0)` - No events in database
 
-**Reason**: Tests can't run without seed data. Defensive skip prevents false failures.
+**Migration Status**: ✅ **MIGRATED TO DATAFACTORY PATTERN**
+- **Date**: 2025-12-10
+- **Status**: NO LONGER SKIPS - Creates its own test data
+- **Pattern**: Uses `df` fixture from DataFactory for automatic test data creation and cleanup
+- **Benefits**: Tests are now fully isolated, repeatable, and never skip due to missing seed data
 
-**Action**: Ensure database is seeded before E2E tests run.
+**Action**: None needed - tests are now self-contained.
 
 ### 3. Venue Display (`venue-display.spec.ts`)
 

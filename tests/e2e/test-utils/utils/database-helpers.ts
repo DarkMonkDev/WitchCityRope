@@ -9,13 +9,13 @@
  * bugs would have been caught by these database verification helpers.
  */
 
-import pkg from 'pg';
+import * as pg from 'pg';
 
 // Environment-aware URLs for container/host compatibility
 const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
 
-const { Pool } = pkg;
+const { Pool } = pg;
 
 /**
  * Parse .NET-style connection string into pg Pool config

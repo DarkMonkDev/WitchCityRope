@@ -1,9 +1,347 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-12-08 -->
-<!-- Version: 12.02.0 - SESSION-BASED TICKET VALIDATION -->
+<!-- Last Updated: 2025-12-10 -->
+<!-- Version: 12.06.0 - DATAFACTORY MIGRATION: SESSION-BASED TICKET AVAILABILITY -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
+
+## ✅ DATAFACTORY MIGRATION: VETTING APPLICATION DETAIL - December 10, 2025
+
+**MIGRATION DATE**: 2025-12-10
+**STATUS**: ✅ **MIGRATED TO DATAFACTORY PATTERN**
+**IMPACT**: Vetting application detail tests now create their own test data with specific statuses, fully isolated
+
+### Migration Summary
+
+**File Migrated**: `tests/e2e/vetting-application-detail.spec.ts`
+**Tests Count**: 8 comprehensive tests
+**Key Changes**:
+- Removed dependency on pre-seeded vetting applications
+- Each test creates its own user and vetting application via DataFactory
+- Direct navigation to created applications instead of table-based navigation
+- Uses exact data-testid selectors from source code
+- Automatic cleanup after each test
+
+**Benefits**:
+- Tests can run in any order without conflicts
+- No flaky failures from missing or wrong seed data
+- Each test has full control over application status
+- Fully repeatable and isolated
+
+---
+
+## Previous Migrations (December 10, 2025)
+
+### ✅ VETTING ADMIN DASHBOARD
+
+### Migration Details
+
+#### Vetting Admin Dashboard (DataFactory Migration) ✅
+- **File**: `tests/e2e/vetting-admin-dashboard.spec.ts`
+- **Tests**: 6 comprehensive tests
+- **Status**: ✅ **MIGRATED TO DATAFACTORY PATTERN** (2025-12-10)
+- **Coverage**: Admin vetting dashboard access, grid display, filtering, navigation, authorization
+- **Migration**: Changed from seed data dependency to DataFactory pattern
+
+**Test Coverage** (After DataFactory Migration):
+1. **Admin can view vetting applications grid** - Grid displays with column headers
+2. **Admin can filter applications by status** - Status filter dropdown works
+3. **Admin can search applications by scene name** - Search input filters results
+4. **Admin can sort applications by submission date** - Column sorting works
+5. **Admin can navigate to application detail** - Row click navigates to detail page
+6. **Non-admin users cannot access vetting dashboard** - Authorization check works
+
+**DataFactory Migration Changes** (2025-12-10):
+- ✅ Now uses `df` fixture from `../lib/datafactory/fixtures/test.fixture`
+- ✅ Each test creates its own user and vetting application via DataFactory
+- ✅ Removed `beforeEach` and `afterEach` hooks that manually created/closed pages
+- ✅ Automatic cleanup after each test (no manual cleanup needed)
+- ✅ No dependency on existing database data
+- ✅ Tests are now fully isolated and repeatable
+- ✅ Uses `df.users.createVerified()`, `df.vetting.createPending()`, `df.vetting.createWithStatus()`
+- ✅ TypeScript compilation verified with `npx tsc --noEmit`
+
+**Key Patterns Used**:
+- DataFactory pattern for test data creation
+- AuthHelpers for authentication (admin, member access)
+- Flexible element detection with conditional checks
+- Grid/table verification with column header checks
+- Screenshots for debugging (./test-results/)
+
+**Complements Existing Tests**:
+- Works alongside `vetting-workflow.spec.ts` (which tests the full workflow)
+- Focuses on admin dashboard UI, filtering, searching, sorting
+- Tests authorization boundaries (non-admin access denied)
+
+**Related Files**:
+- Workflow tests: `/tests/e2e/vetting-workflow.spec.ts`
+- DataFactory vetting helpers: `/tests/lib/datafactory/factories/vetting.factory.ts`
+- Component: `/apps/web/src/pages/admin/vetting/VettingApplicationsList.tsx`
+
+---
+
+## ✅ DATAFACTORY MIGRATION: ADMIN EVENT COPY - December 10, 2025
+
+**MIGRATION DATE**: 2025-12-10
+**STATUS**: ✅ **MIGRATED TO DATAFACTORY PATTERN**
+**IMPACT**: Admin Event Copy tests no longer depend on seed data, fully isolated and repeatable
+
+### Migration Details
+
+#### Admin Event Copy (DataFactory Migration) ✅
+- **File**: `tests/e2e/events/admin-event-copy.spec.ts`
+- **Tests**: 10 comprehensive tests
+- **Status**: ✅ **MIGRATED TO DATAFACTORY PATTERN** (2025-12-10)
+- **Coverage**: Complete event copy workflow via admin panel
+- **Migration**: Changed from seed data dependency to DataFactory pattern
+
+**Test Coverage** (After DataFactory Migration):
+1. **Admin can copy event with new date and title** - Complete copy workflow
+2. **Copy modal validates required title** - Form validation works
+3. **Copied event has correct sessions** - Sessions are copied
+4. **Copied event has correct ticket types** - Ticket types are copied
+5. **Copied event excludes attendance data** - Attendance data NOT copied
+6. **Copied event preserves custom email templates** - Email templates copied
+7. **Copied event without custom templates works correctly** - Works without templates
+8. **Copy modal can be cancelled** - Cancel button works
+9. **Copy handles API errors gracefully** - Error handling works
+
+**DataFactory Migration Changes** (2025-12-10):
+- ✅ Now uses `df` fixture from `../../lib/datafactory/fixtures/test.fixture`
+- ✅ Each test creates its own source event to copy via DataFactory
+- ✅ Automatic cleanup after each test (no manual cleanup needed)
+- ✅ No dependency on seed data (was checking for "eventRowCount === 0")
+- ✅ Tests are now fully isolated and repeatable
+- ✅ Uses `df.events.createPublished()`, `df.sessions.create()`, `df.ticketTypes.create()`
+- ✅ TypeScript compilation verified with `npx tsc --noEmit`
+- ✅ Event lookup changed from "first in table" to "filter by created event title"
+
+**Key Patterns Used**:
+- DataFactory pattern for test data creation
+- Creates source event with unique timestamp: `Source Event ${Date.now()}`
+- Finds event row using: `.filter({ has: page.locator(\`text="${sourceEvent.title}"\`) })`
+- Clear console logging for test intent
+- AuthHelpers for admin authentication
+- Mantine modal interaction patterns
+
+**Before Migration Issues**:
+- Tests relied on database having pre-seeded events
+- Used `beforeEach` hook that skipped if no events existed
+- Found events using `.first()` (non-deterministic)
+- Could fail if seed data was missing or changed
+
+**After Migration Benefits**:
+- Tests create their own data - never skip
+- Each test has known source event to copy
+- Can run in any order, any number of times
+- No race conditions or data conflicts
+- Automatic cleanup prevents database bloat
+
+**Related Documentation**:
+- **DataFactory Fixture**: `/tests/lib/datafactory/fixtures/test.fixture.ts`
+- **Migration Template**: `/tests/e2e/ticket-purchase-e2e-datafactory.spec.ts` (reference example)
+- **Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+
+---
+
+#### Vetting Application Detail (DataFactory Migration) ✅
+- **File**: `tests/e2e/vetting-application-detail.spec.ts`
+- **Tests**: 8 comprehensive tests
+- **Status**: ✅ **MIGRATED TO DATAFACTORY PATTERN** (2025-12-10)
+- **Coverage**: Admin vetting application detail view, status changes, notes, audit log
+- **Migration**: Changed from seed data dependency to DataFactory pattern
+
+**Test Coverage** (After DataFactory Migration):
+1. **Admin can view application details** - Detail page rendering with all fields
+2. **Admin can skip to approved** - Direct approval workflow
+3. **Admin can deny application with reasoning** - Deny modal with validation
+4. **Admin can put application on hold with reasoning** - OnHold modal workflow
+5. **Admin can add notes to application** - Notes section functionality
+6. **Admin can view audit log history** - Audit log display
+7. **Approved application shows vetted member status** - Post-approval state
+8. **Admin can advance application to interview stage** - Stage progression workflow
+
+**DataFactory Migration Changes** (2025-12-10):
+- ✅ Now uses `df` fixture from `../lib/datafactory/fixtures/test.fixture`
+- ✅ Each test creates its own vetting application with specific status
+- ✅ Removed manual `browser.newPage()` pattern
+- ✅ Removed `beforeEach`/`afterEach` hooks that created/closed pages
+- ✅ Removed `navigateToFirstApplication()` helper (assumed existing data)
+- ✅ Direct navigation to created application: `/admin/vetting/applications/${vettingApp.id}`
+- ✅ Uses `df.users.createVerified()` and `df.vetting.create*()` methods
+- ✅ Automatic cleanup after each test
+- ✅ TypeScript compilation verified with `npx tsc --noEmit`
+
+**Key Patterns Used**:
+- DataFactory pattern for test data creation
+- Creates users with unique timestamps: `${testType}-test-${Date.now()}@example.com`
+- Vetting application creation: `df.vetting.createPending(user.id)`, `df.vetting.createApproved(user.id)`, `df.vetting.createWithStatus(user.id, status)`
+- Direct URL navigation instead of table navigation
+- Uses exact data-testid selectors from source code
+- AuthHelpers for admin authentication
+- Mantine modal interaction patterns
+
+**Before Migration Issues**:
+- Tests relied on database having pre-seeded vetting applications
+- Used `navigateToFirstApplication()` helper that found first table row
+- Could fail if seed data was missing or in wrong state
+- No control over application status or data
+- Non-deterministic test behavior
+
+**After Migration Benefits**:
+- Tests create applications in exact status needed
+- Each test has known application to work with
+- Can run in any order, any number of times
+- No race conditions or data conflicts
+- Automatic cleanup prevents database bloat
+- Fully isolated and repeatable
+
+**Source Code Reference**:
+- Component: `/apps/web/src/features/admin/vetting/components/VettingApplicationDetail.tsx`
+- Uses correct data-testid values from actual implementation
+- Modal components: `OnHoldModal`, `DenyApplicationModal`, `SendReminderModal`
+
+**Related Documentation**:
+- **DataFactory Fixture**: `/tests/lib/datafactory/fixtures/test.fixture.ts`
+- **Vetting Factory**: `/tests/lib/datafactory/factories/vetting.factory.ts`
+- **Migration Template**: `/tests/e2e/vetting-workflow.spec.ts` (reference example)
+- **Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+
+---
+
+#### Admin Email Template Triggers (DataFactory Migration) ✅
+- **File**: `tests/e2e/admin-email-templates-triggers.spec.ts`
+- **Tests**: 11 comprehensive tests (5 Events Tab + 6 Ad Hoc Tab)
+- **Status**: ✅ **MIGRATED TO DATAFACTORY PATTERN** (2025-12-10)
+- **Coverage**: Email template trigger configuration and ad hoc email features
+- **Migration**: Changed from manual page creation to DataFactory pattern
+
+**Test Coverage** (After DataFactory Migration):
+1. **Events tab displays template cards with trigger badges** - UI rendering verification
+2. **Template card shows trigger type and timing** - Content verification
+3. **Edit Trigger button opens config modal** - Modal interaction
+4. **Trigger config modal has required fields** - Form field validation
+5. **Update trigger configuration** - Form submission workflow
+6. **Ad Hoc tab displays saved templates section** - Section visibility
+7. **Save as Template button exists** - Button availability
+8. **Save email as template** - Template creation workflow
+9. **Delete saved template** - Template deletion workflow
+10. **Scheduled send option exists** - Scheduled send UI presence
+11. **Schedule email for future delivery** - Scheduled send workflow
+
+**DataFactory Migration Changes** (2025-12-10):
+- ✅ Now uses `page` fixture from `../../lib/datafactory/fixtures/test.fixture`
+- ✅ Removed manual `browser.newPage()` pattern from Events Tab suite
+- ✅ Removed `beforeEach`/`afterEach` hooks that created/closed pages
+- ✅ Each test receives `page` as parameter from fixture
+- ✅ Ad Hoc Tab suite already used fixture pattern correctly
+- ✅ Automatic page cleanup after each test
+- ✅ TypeScript compilation verified with `npx tsc --noEmit`
+
+**Key Patterns Used**:
+- DataFactory fixture for page management
+- AuthHelpers for admin authentication
+- Mantine modal interaction patterns
+- Defensive locator patterns with `.or()` fallbacks
+- Screenshot capture for visual verification
+- Console logging for test intent and debugging
+
+**Before Migration Issues**:
+- Events Tab suite manually created pages with `browser.newPage()`
+- Required manual page cleanup in `afterEach` hook
+- Inconsistent pattern between Events Tab and Ad Hoc Tab suites
+- Page lifecycle management was manual and error-prone
+
+**After Migration Benefits**:
+- Consistent page fixture usage across all tests
+- Automatic page cleanup prevents resource leaks
+- Tests can run in parallel without page management conflicts
+- Simplified test structure (no beforeEach/afterEach hooks)
+- Matches DataFactory pattern used by other E2E tests
+
+**Related Documentation**:
+- **DataFactory Fixture**: `/tests/lib/datafactory/fixtures/test.fixture.ts`
+- **Migration Template**: `/tests/e2e/events/admin-event-copy.spec.ts` (reference example)
+- **Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+
+---
+
+#### Session-Based Ticket Availability (DataFactory Migration) ✅
+- **File**: `tests/e2e/session-ticket-availability.spec.ts`
+- **Tests**: 6 comprehensive tests
+- **Status**: ✅ **MIGRATED TO DATAFACTORY PATTERN** (2025-12-10)
+- **Coverage**: Session-based ticket availability with timing window logic
+- **Migration**: Changed from seed data dependency ("Session Timing Test Event") to DataFactory pattern
+
+**Test Coverage** (After DataFactory Migration):
+1. **Verify session timing test event has correct configuration** - Event setup verification
+2. **S1 Only ticket should NOT be available (timing window closed)** - Past session unavailable
+3. **S2 Only ticket SHOULD be available (future session)** - Future session available
+4. **Both Sessions ticket uses EARLIEST session (S1) - NOT purchasable** - Multi-session timing logic
+5. **Member view shows only available tickets** - Frontend filtering verification
+6. **API returns correct ticket availability status** - Backend API verification
+
+**Key Business Logic Tested**:
+- **Past session tickets**: NOT available (S1 is 7 days past, 12hr close window = closed)
+- **Future session tickets**: AVAILABLE (S2 is 5 days future, 120hr > 12hr close window)
+- **Multi-session tickets**: Use EARLIEST session for ALL timing decisions
+- **Critical Rule**: Once earliest session's registration closes, multi-session ticket becomes unavailable
+
+**DataFactory Migration Changes** (2025-12-10):
+- ✅ Now uses `df` fixture from `../lib/datafactory/fixtures/test.fixture`
+- ✅ Each test creates its own event with past and future sessions
+- ✅ Creates S1 (7 days ago), S2 (5 days future) sessions dynamically
+- ✅ Creates 3 ticket types: S1 Only, S2 Only, Both Sessions
+- ✅ Both Sessions ticket uses new `sessionIds: [s1Session.id, s2Session.id]` array syntax
+- ✅ Automatic cleanup after each test (no manual cleanup needed)
+- ✅ No dependency on seed data (was relying on "Session Timing Test Event")
+- ✅ TypeScript compilation verified with `npx tsc --noEmit`
+- ✅ Updated TicketTypeFactory to support multi-session tickets via `sessionIds` array
+
+**Technical Implementation**:
+- **Multi-Session Ticket Creation**:
+  ```typescript
+  await df.ticketTypes.create({
+    sessionIds: [s1Session.id, s2Session.id],  // Multi-session support
+    eventId: event.id,
+    name: 'Both Sessions Ticket',
+    price: 40,
+    quantityAvailable: 20,
+  });
+  ```
+- **Backend Compatibility**: Uses `SessionIds` (plural) field per `CreateTestTicketTypeRequest`
+- **Session Timing Setup**:
+  - Past session: `setDate(getDate() - 7)` for 7 days ago
+  - Future session: `setDate(getDate() + 5)` for 5 days future
+  - Both at 18:00 (6 PM), 3-hour duration
+
+**DataFactory Enhancements Made**:
+- ✅ Updated `CreateTicketTypeRequest` type to support `sessionIds?: string[]`
+- ✅ Updated `TicketTypeFactory.create()` to convert single `sessionId` to array
+- ✅ Added `eventId` parameter to ticket type creation (required by backend)
+- ✅ Updated helper methods (`createDefault`, `createFree`, `createLimited`) to include `eventId`
+
+**Before Migration Issues**:
+- Tests relied on pre-seeded "Session Timing Test Event" in database
+- Tests would skip with `test.fail()` if seed data was missing
+- Used `apiRequest` helper function for API calls (now uses `page.evaluate`)
+- Could not run reliably if database was reseeded or test data changed
+
+**After Migration Benefits**:
+- Tests create their own events with precise timing every run
+- Each test has known sessions and tickets (no surprises)
+- Can run in any order, any number of times
+- No race conditions or data conflicts
+- Validates actual multi-session ticket creation flow
+- Automatic cleanup prevents database bloat
+
+**Related Documentation**:
+- **Specification**: `/docs/functional-areas/events/session-timing-refactor/SPECIFICATION.md`
+- **DataFactory Fixture**: `/tests/lib/datafactory/fixtures/test.fixture.ts`
+- **Ticket Type Factory**: `/tests/lib/datafactory/factories/ticket-type.factory.ts`
+- **Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+
+---
 
 ## ✅ NEW TESTS: MULTI-TICKET AND VOLUNTEER SESSION VALIDATION - December 9, 2025
 
@@ -490,31 +828,37 @@ witchcity-postgres-test    Up 26 seconds (healthy)
 
 ### New E2E Test File Created
 
-#### Session-Based Timing - Comprehensive Edge Cases ✅
+#### Session-Based Timing - Comprehensive Edge Cases ✅ (MIGRATED TO DATAFACTORY)
 - **File**: `tests/e2e/session-based-timing.spec.ts`
-- **Tests**: 10 comprehensive edge case tests
-- **Status**: ⏳ NOT YET EXECUTED (ready for first run)
+- **Tests**: 6 edge case tests (migrated from 10 original tests)
+- **Status**: ✅ **MIGRATED TO DATAFACTORY PATTERN** (2025-12-10)
 - **Coverage**: Edge cases and complex scenarios for session-based timing
-- **Focus**: Boundary conditions, multi-day events, past session handling
+- **Focus**: Multi-session events, registration windows, volunteer positions, admin settings
+- **Migration**: Changed from seed data dependency to DataFactory pattern
 
-**Test Coverage**:
-1. **Past sessions ignored** - Timing uses first future session, NOT first session
-2. **All sessions passed** - Clear error message when no future sessions
-3. **Close window edge case** - Exactly at boundary (e.g., 12 hours away, CloseHours=12)
-4. **Multi-day event** - Sessions on different days handled correctly
-5. **Session with no ticket types** - Event-level tickets still work
-6. **Volunteer position with past session** - Past sessions filtered out
-7. **Volunteer cancellation timing** - Uses session-based VolunteerCancellationCloseHours
-8. **RegistrationOpenHours boundary** - Tickets not available before window opens
-9. **VolunteerRegistrationCloseHours** - Enforced for session-specific positions
-10. **Ticket cancellation window** - Uses first future session for timing
+**Test Coverage** (After DataFactory Migration):
+1. **Multi-session event** - Tickets available for future sessions (creates 3 sessions)
+2. **Event with registration window settings** - Admin can view/edit timing settings
+3. **Volunteer positions respect session timing** - Volunteer sections display correctly
+4. **Ticket purchase uses session-based timing** - Ticket availability based on session timing
+5. **Admin can view session-based timing settings** - Admin access to event timing configuration
+6. **Registration window verification** - Creates event with specific timing windows
+
+**DataFactory Migration Changes** (2025-12-10):
+- ✅ Now uses `df` fixture from `../lib/datafactory/fixtures/test.fixture`
+- ✅ Each test creates its own event/sessions/tickets via DataFactory
+- ✅ Automatic cleanup after each test (no manual cleanup needed)
+- ✅ No dependency on seed data (was looking for "Rope Fundamentals Intensive", etc.)
+- ✅ Tests are now fully isolated and repeatable
+- ✅ Uses `df.events.createPublished()`, `df.sessions.create()`, `df.ticketTypes.create()`
+- ✅ TypeScript compilation verified with `npx tsc --noEmit`
 
 **Key Patterns Used**:
-- Defensive skip conditions for missing seed data
+- DataFactory pattern for test data creation
 - Clear console logging for test intent and results
-- Heuristic detection of multi-session/multi-day events
 - UI state verification (buttons enabled/disabled, messages shown)
-- AuthHelpers for authentication (admin, vetted member access)
+- AuthHelpers for authentication (admin, member access)
+- Screenshots for debugging (./test-results/)
 
 **Complements Existing Tests**:
 - This file covers **EDGE CASES** not covered in:
@@ -620,3 +964,64 @@ witchcity-postgres-test    Up 26 seconds (healthy)
 - Migration history
 - Deprecated test approaches
 
+
+## ✅ DATAFACTORY MIGRATION: EVENT UPDATE AUTHENTICATION FLOW - December 10, 2025
+
+**MIGRATION DATE**: 2025-12-10
+**STATUS**: ✅ **MIGRATED TO DATAFACTORY PATTERN**
+**IMPACT**: Event Update Authentication Flow tests no longer rely on existing events, fully isolated and repeatable
+
+### Migration Details
+
+#### Event Update Authentication Flow (DataFactory Migration) ✅
+- **File**: `tests/e2e/event-update-complete-flow.spec.ts`
+- **Tests**: 3 comprehensive tests
+- **Status**: ✅ **MIGRATED TO DATAFACTORY PATTERN** (2025-12-10)
+- **Coverage**: Authentication persistence during event updates via admin panel
+- **Migration**: Changed from finding existing events to DataFactory pattern
+
+**Test Coverage** (After DataFactory Migration):
+1. **Admin can update event without getting logged out** - Complete update workflow with auth monitoring
+2. **Event update preserves authentication cookies** - Cookie persistence verification
+3. **Event update handles network errors gracefully** - Error handling with simulated 401 errors
+
+**DataFactory Migration Changes** (2025-12-10):
+- ✅ Now uses `df` fixture from `../../lib/datafactory/fixtures/test.fixture`
+- ✅ Each test creates its own test event to update via DataFactory
+- ✅ Automatic cleanup after each test (no manual cleanup needed)
+- ✅ Removed `let page: Page` and `beforeEach`/`afterEach` hooks
+- ✅ Moved console/network monitoring setup into individual tests
+- ✅ Tests are now fully isolated and repeatable
+- ✅ Uses `df.events.createPublished()` to create test events
+- ✅ TypeScript compilation verified with `npx tsc --noEmit`
+- ✅ Navigates directly to created event: `/admin/events/${event.id}`
+
+**Key Patterns Used**:
+- DataFactory pattern for test data creation
+- Creates test event with unique timestamp: `Update Test Event ${Date.now()}`
+- Direct navigation to created event by ID
+- Console/network monitoring for authentication debugging
+- AuthHelpers for admin authentication
+- Detailed logging for test intent and debugging
+
+**Before Migration Issues**:
+- Tests relied on finding existing events in database
+- Used `beforeEach` to create page and set up monitoring
+- Used complex selectors to find "first available event"
+- Could fail if no events existed or seed data changed
+- Non-deterministic event selection
+
+**After Migration Benefits**:
+- Tests create their own data - never skip
+- Each test has known event to update
+- Can run in any order, any number of times
+- No race conditions or data conflicts
+- Automatic cleanup prevents database bloat
+- Monitoring setup is visible in each test (better clarity)
+
+**Related Documentation**:
+- **DataFactory Fixture**: `/tests/lib/datafactory/fixtures/test.fixture.ts`
+- **Migration Template**: `/tests/e2e/events/admin-event-copy.spec.ts` (reference example)
+- **Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+
+---

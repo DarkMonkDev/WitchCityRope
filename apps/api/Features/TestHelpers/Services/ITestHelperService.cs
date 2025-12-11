@@ -62,4 +62,130 @@ public interface ITestHelperService
     Task<(bool Success, string? Error)> VerifyUserEmailAsync(
         string email,
         CancellationToken cancellationToken = default);
+
+    // ====================================================================
+    // EVENT OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test event with specified properties
+    /// Bypasses event creation validation for testing purposes
+    /// </summary>
+    /// <param name="request">Event creation parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Created event information with ID for cleanup</returns>
+    Task<(bool Success, TestEventResponse? Data, string? Error)> CreateTestEventAsync(
+        CreateTestEventRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a test event by ID
+    /// Used for test cleanup - also deletes related sessions and ticket types
+    /// </summary>
+    /// <param name="eventId">Event ID to delete</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    Task<(bool Success, string? Error)> DeleteTestEventAsync(
+        Guid eventId,
+        CancellationToken cancellationToken = default);
+
+    // ====================================================================
+    // SESSION OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test session with specified properties
+    /// </summary>
+    /// <param name="request">Session creation parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Created session information with ID for cleanup</returns>
+    Task<(bool Success, TestSessionResponse? Data, string? Error)> CreateTestSessionAsync(
+        CreateTestSessionRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a test session by ID
+    /// Used for test cleanup
+    /// </summary>
+    /// <param name="sessionId">Session ID to delete</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    Task<(bool Success, string? Error)> DeleteTestSessionAsync(
+        Guid sessionId,
+        CancellationToken cancellationToken = default);
+
+    // ====================================================================
+    // TICKET TYPE OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test ticket type with specified properties
+    /// </summary>
+    /// <param name="request">Ticket type creation parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Created ticket type information with ID for cleanup</returns>
+    Task<(bool Success, TestTicketTypeResponse? Data, string? Error)> CreateTestTicketTypeAsync(
+        CreateTestTicketTypeRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a test ticket type by ID
+    /// Used for test cleanup
+    /// </summary>
+    /// <param name="ticketTypeId">Ticket type ID to delete</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    Task<(bool Success, string? Error)> DeleteTestTicketTypeAsync(
+        Guid ticketTypeId,
+        CancellationToken cancellationToken = default);
+
+    // ====================================================================
+    // VOLUNTEER POSITION OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test volunteer position with specified properties
+    /// </summary>
+    /// <param name="request">Volunteer position creation parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Created position information with ID for cleanup</returns>
+    Task<(bool Success, TestVolunteerPositionResponse? Data, string? Error)> CreateTestVolunteerPositionAsync(
+        CreateTestVolunteerPositionRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a test volunteer position by ID
+    /// Used for test cleanup
+    /// </summary>
+    /// <param name="positionId">Position ID to delete</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    Task<(bool Success, string? Error)> DeleteTestVolunteerPositionAsync(
+        Guid positionId,
+        CancellationToken cancellationToken = default);
+
+    // ====================================================================
+    // VETTING APPLICATION OPERATIONS
+    // ====================================================================
+
+    /// <summary>
+    /// Create a test vetting application with specified properties
+    /// </summary>
+    /// <param name="request">Vetting application creation parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Created application information with ID for cleanup</returns>
+    Task<(bool Success, TestVettingApplicationResponse? Data, string? Error)> CreateTestVettingApplicationAsync(
+        CreateTestVettingApplicationRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a test vetting application by ID
+    /// Used for test cleanup
+    /// </summary>
+    /// <param name="applicationId">Application ID to delete</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    Task<(bool Success, string? Error)> DeleteTestVettingApplicationAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken = default);
 }

@@ -1,6 +1,3 @@
-import { test, expect, Page } from '@playwright/test';
-import { AuthHelpers } from './test-utils/helpers/auth.helpers';
-
 /**
  * E2E Tests for Admin Events Edit Screen - Volunteer Position Management
  *
@@ -11,50 +8,37 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * - Inline editing: Click "Add New Position" opens form below grid
  * - Click position row to edit existing position
  * - Browser confirm() dialog for delete confirmation (not custom modal)
+ *
+ * MIGRATED: Uses DataFactory pattern for automatic cleanup
  */
 
-/**
- * Helper to get a valid event ID from the admin events list
- */
-async function getFirstEventId(page: Page): Promise<string> {
-  await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('domcontentloaded');
-
-  // Wait for the events table to load
-  const eventsTable = page.locator('[data-testid="events-table"]');
-  await expect(eventsTable).toBeVisible({ timeout: 10000 });
-
-  // Click on the first event row
-  const firstEventRow = page.locator('[data-testid="event-row"]').first();
-  await expect(firstEventRow).toBeVisible();
-  await firstEventRow.click();
-
-  // Extract event ID from the URL
-  await page.waitForURL(/\/admin\/events\/[a-f0-9-]+/);
-  const url = page.url();
-  const eventId = url.split('/admin/events/')[1]?.split('?')[0];
-
-  if (!eventId) {
-    throw new Error('Could not extract event ID from URL');
-  }
-
-  return eventId;
-}
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Admin Events Edit Screen - Volunteer Position Management', () => {
-  let testEventId: string;
-
-  test.beforeEach(async ({ page }) => {
-    // Login as admin user using established pattern from lessons learned
+  test('should show only current event sessions in dropdown', async ({ page, df }) => {
+    // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Get a valid event ID dynamically
-    testEventId = await getFirstEventId(page);
-  });
+    // Create event with session
+    const event = await df.events.createPublished(`Volunteer Test ${Date.now()}`);
 
-  test('should show only current event sessions in dropdown', async ({ page }) => {
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
 
     // Wait for page to load
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -90,18 +74,36 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     const optionCount = await dropdownOptions.count();
     expect(optionCount).toBeGreaterThan(0); // At least one option
 
-    // Verify at least one option contains session identifier (DAY1, DAY2, S1, S2, etc.)
-    // Session format from seed data: "DAY1 - Day 1", "DAY2 - Day 2"
+    // Verify at least one option contains session identifier
     const allOptionsText = await dropdownOptions.allTextContents();
     const hasSessionPattern = allOptionsText.some(text =>
-      text.match(/(DAY\d+|S\d+)\s*-/i) // Matches DAY1 -, DAY2 -, S1 -, etc.
+      text.match(/(DAY\d+|S\d+|Test Session)\s*-?/i)
     );
-    expect(hasSessionPattern).toBe(true);
+    expect(hasSessionPattern).toBeTruthy();
   });
 
-  test('should add volunteer position via inline form', async ({ page }) => {
+  test('should add volunteer position via inline form', async ({ page, df }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Create event with session
+    const event = await df.events.createPublished(`Volunteer Add Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Main Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/admin/events/${event.id}`, { waitUntil: 'domcontentloaded' });
 
     // Navigate to Volunteers tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -124,7 +126,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     const inlineForm = page.locator('[data-testid="volunteer-position-inline-form"]');
     await expect(inlineForm).toBeVisible();
 
-    // Fill position form fields (note: testids use "title" not "name", "slots-needed" not "volunteers-needed")
+    // Fill position form fields
     const titleInput = page.locator('[data-testid="input-position-title"]');
     await titleInput.fill('Safety Monitor');
     await page.locator('[data-testid="textarea-position-description"]').fill('Monitor event safety and intervene if needed');
@@ -157,19 +159,19 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     // Wait for form to close (indicates successful save) or check for validation errors
     try {
       await expect(inlineForm).toBeHidden({ timeout: 5000 });
-      console.log('✅ Form closed successfully after save');
+      console.log('Form closed successfully after save');
     } catch {
       // Form didn't close - check for validation errors
       const validationErrors = page.locator('[data-error="true"], .mantine-InputWrapper-error');
       const errorCount = await validationErrors.count();
       if (errorCount > 0) {
-        console.log(`⚠️ Form has ${errorCount} validation error(s):`);
+        console.log(`Form has ${errorCount} validation error(s):`);
         for (let i = 0; i < errorCount; i++) {
           const errorText = await validationErrors.nth(i).textContent();
           console.log(`  - ${errorText}`);
         }
       } else {
-        console.log('⚠️ Form did not close but no visible validation errors');
+        console.log('Form did not close but no visible validation errors');
       }
       await page.screenshot({ path: './test-results/volunteer-form-validation-error.png', fullPage: true });
     }
@@ -186,7 +188,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
     // If count didn't increase, the save may have failed - log but don't fail immediately
     if (newCount === initialCount) {
-      console.log('⚠️ Position count unchanged - save may have failed');
+      console.log('Position count unchanged - save may have failed');
       // Check if form is still visible (indicating validation failure)
       const formStillVisible = await inlineForm.isVisible();
       if (formStillVisible) {
@@ -196,14 +198,40 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
     await expect(positionsGrid.locator('[data-testid="position-row"]')).toHaveCount(initialCount + 1);
 
-    // Verify new position data in grid (note: grid uses "position-title" not "position-name")
+    // Verify new position data in grid
     const newPositionRow = positionsGrid.locator('[data-testid="position-row"]').last();
     await expect(newPositionRow.locator('[data-testid="position-title"]')).toHaveText('Safety Monitor');
   });
 
-  test('should edit volunteer position via inline form', async ({ page }) => {
+  test('should edit volunteer position via inline form', async ({ page, df }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Create event with session and volunteer position
+    const event = await df.events.createPublished(`Volunteer Edit Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Main Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    // Create volunteer position
+    await df.volunteers.create({
+      eventId: event.id,
+      title: 'Original Position',
+      slotsAvailable: 2,
+    });
+
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
 
     // Navigate to Volunteers tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -248,9 +276,35 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     await expect(firstPositionRow.locator('[data-testid="position-title"]')).toHaveText('Updated Safety Monitor');
   });
 
-  test('should delete volunteer position with confirmation', async ({ page }) => {
+  test('should delete volunteer position with confirmation', async ({ page, df }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Create event with session and volunteer position
+    const event = await df.events.createPublished(`Volunteer Delete Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Main Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    // Create volunteer position
+    await df.volunteers.create({
+      eventId: event.id,
+      title: 'Position to Delete',
+      slotsAvailable: 2,
+    });
+
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
 
     // Navigate to Volunteers tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -292,9 +346,28 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     await expect(positionsGrid.locator('[data-testid="position-row"]')).toHaveCount(initialCount - 1);
   });
 
-  test('should validate volunteer position form fields', async ({ page }) => {
+  test('should validate volunteer position form fields', async ({ page, df }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Create event with session
+    const event = await df.events.createPublished(`Volunteer Validation Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Main Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Navigate to admin event edit page and volunteers tab
-    await page.goto(`/admin/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/admin/events/${event.id}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     await page.locator('[data-testid="tab-volunteers"]').click();
 
@@ -345,7 +418,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
     // Wait for form to close (indicates successful save)
     await expect(inlineForm).toBeHidden({ timeout: 5000 }).catch(() => {
-      console.log('⚠️ Form did not close after save - check for validation errors');
+      console.log('Form did not close after save - check for validation errors');
     });
 
     // Wait for grid to update after save
@@ -361,9 +434,35 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     await expect(newRow.locator('[data-testid="position-title"]')).toHaveText('Validation Test Position');
   });
 
-  test('should display sessions in day format in position assignments', async ({ page }) => {
+  test('should display sessions in day format in position assignments', async ({ page, df }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Create event with session and volunteer position
+    const event = await df.events.createPublished(`Volunteer Session Display Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Main Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    // Create volunteer position
+    await df.volunteers.create({
+      eventId: event.id,
+      title: 'Test Position',
+      slotsAvailable: 2,
+    });
+
     // Navigate to admin event edit page and volunteers tab
-    await page.goto(`/admin/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/admin/events/${event.id}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     await page.locator('[data-testid="tab-volunteers"]').click();
 
@@ -397,19 +496,32 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
       expect(isValidSessionFormat).toBeTruthy();
       console.log(`Session display format: ${sessionsText}`);
     } else {
-      console.log('⚠️ No positions in grid to verify session format');
+      console.log('No positions in grid to verify session format');
     }
   });
 
-  test('should handle API errors gracefully', async ({ page }) => {
-    // SKIP: This test requires backend API integration
-    // The current implementation uses local form state, not API calls during form editing
-    // API errors would be handled during event save, not during volunteer position form submission
-  });
+  test('should show "Add New Position" button below volunteer grid for UI consistency', async ({ page, df }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
 
-  test('should show "Add New Position" button below volunteer grid for UI consistency', async ({ page }) => {
+    // Create event with session
+    const event = await df.events.createPublished(`Volunteer UI Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Main Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Navigate to admin event edit page and volunteers tab (fresh navigation to ensure clean state)
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     await page.locator('[data-testid="tab-volunteers"]').click();
 

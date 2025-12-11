@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
@@ -8,27 +9,25 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * Based on test plan: /docs/functional-areas/vetting-system/new-work/2025-10-04-complete-vetting-workflow/testing/test-plan.md
  *
  * CRITICAL: All tests run against Docker on port 5173 ONLY
+ * Uses DataFactory pattern for test data creation
  */
 
 test.describe('Admin Vetting Dashboard', () => {
-  let page: Page;
-
-  test.beforeEach(async ({ browser }) => {
-    page = await browser.newPage();
-    // Clear auth state before each test
-    await AuthHelpers.clearAuthState(page);
-  });
-
-  test.afterEach(async () => {
-    await page.close();
-  });
-
   /**
    * TEST 1: Admin can view vetting applications grid
    * Validates: Admin authentication, navigation, grid rendering
    */
-  test('admin can view vetting applications grid', async () => {
-    // Arrange - Login as admin
+  test('admin can view vetting applications grid', async ({ page, df }) => {
+    // Arrange - Create a vetting application so there's data to view
+    const user = await df.users.createVerified({
+      email: `grid-test-${Date.now()}@example.com`,
+      firstName: 'Grid',
+      lastName: 'Test',
+    });
+
+    await df.vetting.createPending(user.id);
+
+    // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
     // Act - Navigate to vetting dashboard
@@ -62,8 +61,16 @@ test.describe('Admin Vetting Dashboard', () => {
    * TEST 2: Admin can filter by status
    * Validates: Filter dropdown, grid updates, filter persistence
    */
-  test('admin can filter applications by status', async () => {
-    // Arrange
+  test('admin can filter applications by status', async ({ page, df }) => {
+    // Arrange - Create vetting applications with specific status
+    const user = await df.users.createVerified({
+      email: `filter-test-${Date.now()}@example.com`,
+      firstName: 'Filter',
+      lastName: 'Test',
+    });
+
+    await df.vetting.createWithStatus(user.id, 'InReview');
+
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto('/admin/vetting');
 
@@ -103,8 +110,17 @@ test.describe('Admin Vetting Dashboard', () => {
    * TEST 3: Admin can search by name
    * Validates: Search input, search functionality, result filtering
    */
-  test('admin can search applications by scene name', async () => {
-    // Arrange
+  test('admin can search applications by scene name', async ({ page, df }) => {
+    // Arrange - Create application with known scene name
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `search-test-${timestamp}@example.com`,
+      firstName: 'SearchTest',
+      lastName: 'User',
+    });
+
+    await df.vetting.createPending(user.id);
+
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto('/admin/vetting');
 
@@ -116,7 +132,7 @@ test.describe('Admin Vetting Dashboard', () => {
 
     if (await searchInput.count() > 0) {
       // Enter search term
-      await searchInput.fill('Test');
+      await searchInput.fill('SearchTest');
 
       // Wait for search results
       await page.waitForTimeout(500);
@@ -143,8 +159,16 @@ test.describe('Admin Vetting Dashboard', () => {
    * TEST 4: Admin can sort by submission date
    * Validates: Column sorting, sort indicators, data reordering
    */
-  test('admin can sort applications by submission date', async () => {
-    // Arrange
+  test('admin can sort applications by submission date', async ({ page, df }) => {
+    // Arrange - Create applications
+    const user = await df.users.createVerified({
+      email: `sort-test-${Date.now()}@example.com`,
+      firstName: 'Sort',
+      lastName: 'Test',
+    });
+
+    await df.vetting.createPending(user.id);
+
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto('/admin/vetting');
 
@@ -183,8 +207,16 @@ test.describe('Admin Vetting Dashboard', () => {
    * TEST 5: Admin can navigate to application detail
    * Validates: Row click navigation, detail page routing
    */
-  test('admin can navigate to application detail', async () => {
-    // Arrange
+  test('admin can navigate to application detail', async ({ page, df }) => {
+    // Arrange - Create application to navigate to
+    const user = await df.users.createVerified({
+      email: `nav-test-${Date.now()}@example.com`,
+      firstName: 'Navigation',
+      lastName: 'Test',
+    });
+
+    await df.vetting.createPending(user.id);
+
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto('/admin/vetting');
 
@@ -213,7 +245,7 @@ test.describe('Admin Vetting Dashboard', () => {
       const applicationTitle = page.locator('[data-testid="application-title"]');
       await expect(applicationTitle).toBeVisible({ timeout: 5000 });
     } else {
-      console.log('No applications to test navigation - creating test data needed');
+      console.log('No applications to test navigation - data creation may have failed');
     }
   });
 
@@ -221,7 +253,7 @@ test.describe('Admin Vetting Dashboard', () => {
    * TEST 6: Non-admin users see access denied
    * Validates: Authorization, access control, error messaging
    */
-  test('non-admin users cannot access vetting dashboard', async () => {
+  test('non-admin users cannot access vetting dashboard', async ({ page }) => {
     // Arrange - Login as regular member
     await AuthHelpers.loginAs(page, 'member');
 

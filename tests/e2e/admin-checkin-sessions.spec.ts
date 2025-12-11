@@ -1,6 +1,6 @@
-import { test, expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
-import { updateSessionStartTime, getEventSessions, closeDatabaseConnections } from './test-utils/utils/database-helpers';
 
 /**
  * E2E Tests for Session-Aware Check-In Functionality
@@ -12,178 +12,47 @@ import { updateSessionStartTime, getEventSessions, closeDatabaseConnections } fr
  * - Generated tokens are scoped to specific sessions
  * - Attendees tab displays "Sessions Attended" column with session badges
  *
- * ARCHITECTURE: Tests create their own event data to ensure proper test isolation
- * and avoid dependency on seed data. Uses direct database access for session time
- * manipulation to ensure sessions are within ±12h window for check-in modal.
+ * ARCHITECTURE: Uses DataFactory for test data creation with automatic cleanup.
+ * Sessions are created within ±12h window for check-in modal testing.
  *
  * Created: 2025-12-01
- * Updated: 2025-12-09 - Refactored to create own test data
+ * Updated: 2025-12-10 - Migrated to DataFactory pattern
  */
 
-// Helper to make authenticated API request
-async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
-  const response = await page.evaluate(async ({ method, url, data }) => {
-    const options: RequestInit = {
-      method,
-      credentials: 'include',
-      headers: data ? { 'Content-Type': 'application/json' } : {},
-    };
-
-    if (data) {
-      options.body = JSON.stringify(data);
-    }
-
-    const res = await fetch(url, options);
-    const text = await res.text();
-    try {
-      return { status: res.status, data: JSON.parse(text) };
-    } catch {
-      return { status: res.status, data: text };
-    }
-  }, { method, url, data });
-
-  return response;
-}
-
 test.describe('Session-Aware Check-In - Token Generation', () => {
-  let testEventId: string | null = null;
-  let session1Id: string | null = null;
-  let session2Id: string | null = null;
-
-  test.beforeAll(async ({ browser }) => {
-    // Create a multi-session event for check-in testing
-    const page = await browser.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    // Get first venue ID
-    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
-    const venues = venuesResponse.data as Array<{ id: string }>;
-    const venueId = venues[0]?.id;
-
-    if (!venueId) {
-      console.error('No venues found - cannot create test event');
-      await page.close();
-      return;
-    }
-
-    // Create event with 2 sessions - within ±12h window for check-in modal
-    // Session 1: +2 hours from now
-    // Session 2: +4 hours from now
+  test('should show session selector in token generation modal for multi-session events', async ({ page, df }) => {
+    // Create test event with 2 sessions - within ±12h window for check-in modal
     const now = new Date();
     const session1Start = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     const session2Start = new Date(now.getTime() + 4 * 60 * 60 * 1000);
 
-    const eventData = {
-      title: `Check-In Test Event ${Date.now()}`,
-      shortDescription: 'Test event for session-aware check-in',
-      description: 'This event tests check-in functionality with session selection.',
-      eventType: 'Class',
-      startDate: session1Start.toISOString(),
-      endDate: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-      venueId: venueId,
-      capacity: 20,
-      isPublished: true,
-      // CRITICAL: Timing controls
-      registrationOpenHours: null,
-      registrationCloseHours: 0,
-      cancellationCloseHours: 0,
-      sessions: [
-        {
-          sessionIdentifier: 'S1',
-          name: 'Day 1 Morning',
-          startTime: session1Start.toISOString(),
-          endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-        {
-          sessionIdentifier: 'S2',
-          name: 'Day 1 Afternoon',
-          startTime: session2Start.toISOString(),
-          endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-      ],
-    };
+    const event = await df.events.createPublished(`Check-In Test ${Date.now()}`);
 
-    console.log('Creating multi-session event for check-in testing...');
-    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
+    const session1 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1 Morning',
+      startTime: session1Start,
+      endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
 
-    if (createResponse.status !== 201 && createResponse.status !== 200) {
-      console.error('Failed to create test event:', createResponse);
-      await page.close();
-      return;
-    }
+    const session2 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1 Afternoon',
+      startTime: session2Start,
+      endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
 
-    const responseData = createResponse.data as { id: string };
-    testEventId = responseData.id;
-    console.log(`✅ Created test event: ${testEventId}`);
+    console.log(`✅ Created test event: ${event.id}`);
+    console.log(`Session 1 ID: ${session1.id}`);
+    console.log(`Session 2 ID: ${session2.id}`);
 
-    // Get session IDs
-    const eventResponse = await apiRequest(page, 'GET', `/api/events/${testEventId}`);
-    const eventDetails = eventResponse.data as { sessions: Array<{ id: string; sessionIdentifier: string }> };
-    const sessions = eventDetails.sessions || [];
-    session1Id = sessions.find((s) => s.sessionIdentifier === 'S1')?.id || null;
-    session2Id = sessions.find((s) => s.sessionIdentifier === 'S2')?.id || null;
-
-    console.log(`Session 1 ID: ${session1Id}`);
-    console.log(`Session 2 ID: ${session2Id}`);
-
-    // Update session times via database to be within ±12h window (in case API doesn't allow past dates)
-    if (session1Id && session2Id) {
-      await updateSessionStartTime(session1Id, session1Start);
-      await updateSessionStartTime(session2Id, session2Start);
-      console.log('✅ Updated session times to be within ±12h check-in window');
-    }
-
-    // Create a ticket type so people can register
-    const ticketTypeData = {
-      eventId: testEventId,
-      name: 'General Admission',
-      description: 'Access to both sessions',
-      price: 0, // Free event for testing
-      capacity: null,
-      sessionIdentifiers: ['S1', 'S2'],
-    };
-
-    await apiRequest(page, 'POST', `/api/admin/events/${testEventId}/ticket-types`, ticketTypeData);
-    console.log('✅ Created ticket type');
-
-    await page.close();
-  });
-
-  test.afterAll(async ({ browser }) => {
-    // Cleanup: Delete test event
-    if (testEventId) {
-      const page = await browser.newPage();
-      await AuthHelpers.loginAs(page, 'admin');
-
-      console.log(`Cleaning up test event: ${testEventId}`);
-      await apiRequest(page, 'DELETE', `/api/admin/events/${testEventId}`);
-      console.log('✅ Test event deleted');
-
-      await page.close();
-    }
-
-    // Close database connections
-    await closeDatabaseConnections();
-  });
-
-  test.beforeEach(async ({ page }) => {
-    // MANDATORY: Clear auth state before login
-    await AuthHelpers.clearAuthState(page);
-
-    // Login as admin using helper (MANDATORY pattern from lessons learned)
+    // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
-  });
-
-  test('should show session selector in token generation modal for multi-session events', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
 
     // Navigate to the event's admin page
-    await page.goto(`/admin/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/admin/events/${event.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     // Wait for page to fully render
@@ -262,13 +131,34 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
     console.log('✅ TEST PASSED: Session selector works correctly for multi-session event');
   });
 
-  test('should require session selection before generating token (multi-session event)', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('should require session selection before generating token (multi-session event)', async ({ page, df }) => {
+    // Create test event with 2 sessions
+    const now = new Date();
+    const session1Start = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    const session2Start = new Date(now.getTime() + 4 * 60 * 60 * 1000);
 
-    await page.goto(`/admin/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
+    const event = await df.events.createPublished(`Check-In Test ${Date.now()}`);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1 Morning',
+      startTime: session1Start,
+      endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1 Afternoon',
+      startTime: session2Start,
+      endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
+
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    await page.goto(`/admin/events/${event.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -334,13 +224,34 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
     console.log('✅ TEST PASSED: Multi-session event correctly shows session selector with auto-selection');
   });
 
-  test('should display session name in generated token list', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('should display session name in generated token list', async ({ page, df }) => {
+    // Create test event with 2 sessions
+    const now = new Date();
+    const session1Start = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    const session2Start = new Date(now.getTime() + 4 * 60 * 60 * 1000);
 
-    await page.goto(`/admin/events/${testEventId}`, { waitUntil: 'domcontentloaded' });
+    const event = await df.events.createPublished(`Check-In Test ${Date.now()}`);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1 Morning',
+      startTime: session1Start,
+      endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Day 1 Afternoon',
+      startTime: session2Start,
+      endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
+
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    await page.goto(`/admin/events/${event.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -411,90 +322,27 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
 });
 
 test.describe('Session-Aware Check-In - Single Session Event', () => {
-  let singleSessionEventId: string | null = null;
-
-  test.beforeAll(async ({ browser }) => {
-    // Create a SINGLE-session event for auto-select testing
-    const page = await browser.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    // Get first venue ID
-    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
-    const venues = venuesResponse.data as Array<{ id: string }>;
-    const venueId = venues[0]?.id;
-
-    if (!venueId) {
-      console.error('No venues found');
-      await page.close();
-      return;
-    }
-
+  test('should auto-select session for single-session events', async ({ page, df }) => {
+    // Create single-session event
     const now = new Date();
     const sessionStart = new Date(now.getTime() + 3 * 60 * 60 * 1000);
 
-    const eventData = {
-      title: `Single Session Check-In Test ${Date.now()}`,
-      shortDescription: 'Test event for single-session auto-select',
-      description: 'This event tests check-in auto-selection for single-session events.',
-      eventType: 'Social',
-      startDate: sessionStart.toISOString(),
-      endDate: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-      venueId: venueId,
-      capacity: 20,
-      isPublished: true,
-      registrationOpenHours: null,
-      registrationCloseHours: 0,
-      cancellationCloseHours: 0,
-      sessions: [
-        {
-          sessionIdentifier: 'S1',
-          name: 'Single Session',
-          startTime: sessionStart.toISOString(),
-          endTime: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-      ],
-    };
+    const event = await df.events.createPublished(`Single Session Check-In ${Date.now()}`);
 
-    console.log('Creating single-session event...');
-    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Single Session',
+      startTime: sessionStart,
+      endTime: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
 
-    if (createResponse.status !== 201 && createResponse.status !== 200) {
-      console.error('Failed to create single-session event:', createResponse);
-      await page.close();
-      return;
-    }
+    console.log(`✅ Created single-session event: ${event.id}`);
 
-    const responseData = createResponse.data as { id: string };
-    singleSessionEventId = responseData.id;
-    console.log(`✅ Created single-session event: ${singleSessionEventId}`);
-
-    await page.close();
-  });
-
-  test.afterAll(async ({ browser }) => {
-    if (singleSessionEventId) {
-      const page = await browser.newPage();
-      await AuthHelpers.loginAs(page, 'admin');
-      await apiRequest(page, 'DELETE', `/api/admin/events/${singleSessionEventId}`);
-      console.log('✅ Single-session test event deleted');
-      await page.close();
-    }
-    await closeDatabaseConnections();
-  });
-
-  test.beforeEach(async ({ page }) => {
-    await AuthHelpers.clearAuthState(page);
+    // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
-  });
 
-  test('should auto-select session for single-session events', async ({ page }) => {
-    if (!singleSessionEventId) {
-      test.fail(true, 'Single-session event not created in beforeAll');
-      return;
-    }
-
-    await page.goto(`/admin/events/${singleSessionEventId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/admin/events/${event.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -552,91 +400,35 @@ test.describe('Session-Aware Check-In - Single Session Event', () => {
 });
 
 test.describe('Session-Aware Check-In - Attendees Tab', () => {
-  let testEventId: string | null = null;
-
-  test.beforeAll(async ({ browser }) => {
+  test('should show "Sessions Attended" column in Attendees tab', async ({ page, df }) => {
     // Create event with sessions for attendees tab testing
-    const page = await browser.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
-    const venues = venuesResponse.data as Array<{ id: string }>;
-    const venueId = venues[0]?.id;
-
-    if (!venueId) {
-      console.error('No venues found');
-      await page.close();
-      return;
-    }
-
     const now = new Date();
     const sessionStart = new Date(now.getTime() + 24 * 60 * 60 * 1000); // Tomorrow
 
-    const eventData = {
-      title: `Attendees Tab Test Event ${Date.now()}`,
-      shortDescription: 'Test event for attendees tab',
-      description: 'Testing Sessions Attended column.',
-      eventType: 'Class',
-      startDate: sessionStart.toISOString(),
-      endDate: new Date(sessionStart.getTime() + 6 * 60 * 60 * 1000).toISOString(),
-      venueId: venueId,
-      capacity: 20,
-      isPublished: true,
-      registrationOpenHours: null,
-      registrationCloseHours: 0,
-      cancellationCloseHours: 0,
-      sessions: [
-        {
-          sessionIdentifier: 'S1',
-          name: 'Morning Session',
-          startTime: sessionStart.toISOString(),
-          endTime: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-        {
-          sessionIdentifier: 'S2',
-          name: 'Afternoon Session',
-          startTime: new Date(sessionStart.getTime() + 4 * 60 * 60 * 1000).toISOString(),
-          endTime: new Date(sessionStart.getTime() + 7 * 60 * 60 * 1000).toISOString(),
-          capacity: 20,
-        },
-      ],
-    };
+    const event = await df.events.createPublished(`Attendees Tab Test ${Date.now()}`);
 
-    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Morning Session',
+      startTime: sessionStart,
+      endTime: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
 
-    if (createResponse.status === 200 || createResponse.status === 201) {
-      const responseData = createResponse.data as { id: string };
-      testEventId = responseData.id;
-      console.log(`✅ Created attendees tab test event: ${testEventId}`);
-    }
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Afternoon Session',
+      startTime: new Date(sessionStart.getTime() + 4 * 60 * 60 * 1000),
+      endTime: new Date(sessionStart.getTime() + 7 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
 
-    await page.close();
-  });
+    console.log(`✅ Created attendees tab test event: ${event.id}`);
 
-  test.afterAll(async ({ browser }) => {
-    if (testEventId) {
-      const page = await browser.newPage();
-      await AuthHelpers.loginAs(page, 'admin');
-      await apiRequest(page, 'DELETE', `/api/admin/events/${testEventId}`);
-      console.log('✅ Attendees tab test event deleted');
-      await page.close();
-    }
-    await closeDatabaseConnections();
-  });
-
-  test.beforeEach(async ({ page }) => {
-    await AuthHelpers.clearAuthState(page);
+    // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
-  });
 
-  test('should show "Sessions Attended" column in Attendees tab', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
-
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -678,13 +470,33 @@ test.describe('Session-Aware Check-In - Attendees Tab', () => {
     console.log('✅ TEST PASSED: Sessions Attended column is visible');
   });
 
-  test('should display session badges for checked-in attendees (if any exist)', async ({ page }) => {
-    if (!testEventId) {
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('should display session badges for checked-in attendees (if any exist)', async ({ page, df }) => {
+    // Create event with sessions
+    const now = new Date();
+    const sessionStart = new Date(now.getTime() + 24 * 60 * 60 * 1000); // Tomorrow
 
-    await page.goto(`/admin/events/${testEventId}`);
+    const event = await df.events.createPublished(`Attendees Tab Test ${Date.now()}`);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Morning Session',
+      startTime: sessionStart,
+      endTime: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Afternoon Session',
+      startTime: new Date(sessionStart.getTime() + 4 * 60 * 60 * 1000),
+      endTime: new Date(sessionStart.getTime() + 7 * 60 * 60 * 1000),
+      maxCapacity: 20,
+    });
+
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    await page.goto(`/admin/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });

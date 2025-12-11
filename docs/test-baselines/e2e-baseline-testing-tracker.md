@@ -3,18 +3,30 @@
 ## Purpose
 Track E2E test suite health over time, documenting baseline results, improvements, and remaining issues. Originally started as a parity investigation between dev/test containers (Nov 2025), now serves as ongoing test health tracker.
 
-## Current Status: ~89% Pass Rate (Dec 10, 2025 - Phase 6 Complete)
+## Current Status: 74% Pass Rate (Dec 11, 2025 - POST DATAFACTORY MIGRATION)
 
-### Full Test Suite Results (December 10, 2025 - Phase 6)
+### ⚠️ MAJOR REGRESSION: DataFactory Migration Introduced ~130 New Failures
+
+### Full Test Suite Results (December 11, 2025 - Post DataFactory Migration)
 
 | Metric | Value |
 |--------|-------|
-| **Passed** | ~705 |
-| **Failed** | ~76 |
-| **Skipped** | 1 |
-| **Total** | ~782 |
-| **Pass Rate** | **~89%** |
-| **Run Time** | ~10 minutes |
+| **Passed** | 589 |
+| **Failed** | 206 |
+| **Skipped** | 27 |
+| **Total** | ~822 |
+| **Pass Rate** | **74%** |
+| **Run Time** | ~27 minutes |
+
+### Regression Analysis
+
+| Metric | Dec 10 (Before) | Dec 11 (After) | Change |
+|--------|-----------------|----------------|--------|
+| Passed | ~705 | 589 | **-116** |
+| Failed | ~76 | 206 | **+130** |
+| Pass Rate | ~89% | 74% | **-15%** |
+
+**Root Cause**: DataFactory migration (41 E2E files migrated) introduced regressions. Many tests that previously worked now fail.
 
 ### Improvement Summary
 
@@ -22,7 +34,8 @@ Track E2E test suite health over time, documenting baseline results, improvement
 |------|--------|--------|---------|-----------|-------------|
 | Dec 9 (corrected) | 688 | 89 | 32 | ~77% | Before skipped test fixes |
 | Dec 10 (Phase 5) | 681 | ~100 | 1 | ~87% | Converted skips to fails |
-| **Dec 10 (Phase 6)** | **~705** | **~76** | **1** | **~89%** | Fixed 24 tests (CSRF + endpoint) |
+| Dec 10 (Phase 6) | ~705 | ~76 | 1 | ~89% | Fixed 24 tests (CSRF + endpoint) |
+| **Dec 11 (DataFactory)** | **589** | **206** | **27** | **74%** | ⚠️ DataFactory migration regression |
 
 **Note:** Total test count decreased from 809 to 785 because 11 obsolete tests were deleted (payment and UI consistency tests that were TDD stubs for features never implemented).
 

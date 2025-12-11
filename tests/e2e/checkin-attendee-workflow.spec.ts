@@ -20,15 +20,15 @@
  * - POST /api/checkin/events/{eventId}/checkin (requires X-CheckIn-Token)
  * - GET /api/checkin/events/{eventId}/attendees (requires X-CheckIn-Token)
  *
- * Note: This test requires pre-registered attendees in the database.
- * If no attendees exist, some tests may be skipped gracefully.
+ * MIGRATION NOTE: Uses DataFactory for test data creation, but keeps token generation logic
+ * as it's specific to check-in workflow and not general test data.
  */
 
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import {
   loginAsAdmin,
   generateSessionToken,
-  getTestEventId,
   navigateToCheckIn,
   getAttendees
 } from './checkin/helpers/tokenHelpers';
@@ -44,57 +44,64 @@ test.describe('Check-In Attendee Workflow', () => {
   let testEventId: string;
   let sessionToken: string;
 
-  test.beforeAll(async ({ browser }) => {
-    // Admin context for token generation
+  test('Check in a registered attendee', async ({ page, df, browser }) => {
+    // Create test data using DataFactory
+    const event = await df.events.createPublished(`Check-In Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() + 2);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    const ticketType = await df.ticketTypes.create({
+      sessionId: session.id,
+      name: 'General Admission',
+      price: 0,
+      quantityAvailable: 20,
+    });
+
+    // Create a user with a ticket purchase
+    const user = await df.users.createVerified({
+      email: `attendee-${Date.now()}@test.com`,
+    });
+
+    await df.ticketPurchases.create({
+      userId: user.id,
+      ticketTypeId: ticketType.id,
+      quantity: 1,
+    });
+
+    // Generate session token for check-in (keep token helpers)
     const adminContext = await browser.newContext();
     const adminPage = await adminContext.newPage();
-
     await loginAsAdmin(adminPage);
-    testEventId = await getTestEventId(adminPage);
-
+    sessionToken = await generateSessionToken(adminPage, event.id, session.id, 24);
     await adminContext.close();
-  });
 
-  test.beforeEach(async ({ page, browser }) => {
-    // Generate fresh token for each test with extended expiration (24 hours)
-    // This prevents token expiration during test execution
-    const adminContext = await browser.newContext();
-    const adminPage = await adminContext.newPage();
-    await loginAsAdmin(adminPage);
-    sessionToken = await generateSessionToken(adminPage, testEventId, 24); // 24 hours
-    await adminContext.close();
+    testEventId = event.id;
 
     // NO login - clear cookies to simulate kiosk mode
     await page.context().clearCookies();
 
     // Navigate with fresh token
     await navigateToCheckIn(page, testEventId, sessionToken);
-  });
-
-  test('Check in a registered attendee', async ({ page }) => {
     // Get attendees from API using session token (NO auth cookie)
     const attendeesData = await getAttendees(page, testEventId, sessionToken);
 
-    // Skip test if no attendees or all are checked in
-    if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test.fail(true, 'No attendees found - test should create own data');
-      return;
-    }
+    // We created a test user, so attendees should exist
+    expect(attendeesData).toBeTruthy();
+    expect(attendeesData.attendees).toBeTruthy();
+    expect(attendeesData.attendees.length).toBeGreaterThan(0);
 
-    // Find an attendee who is NOT checked in
-    const uncheckedAttendee = attendeesData.attendees.find(
-      (a: any) => a.registrationStatus !== 'checked-in' && a.registrationStatus !== 'CheckedIn'
-    );
-
-    if (!uncheckedAttendee) {
-      // All attendees are already checked in - create a test registration first
-      test.fail(true, 'All attendees already checked in - need unchecked attendee');
-      return;
-    }
-
-    // Find the attendee row by sceneName (UI displays sceneName, not email)
-    const sceneName = uncheckedAttendee.sceneName || uncheckedAttendee.email;
-    const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
+    // Find the attendee row by email (test user won't have sceneName)
+    const attendeeRow = page.locator('tr').filter({ hasText: user.email }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
     // Click "Covid Test" button first (initial state for unchecked attendees)
@@ -114,27 +121,57 @@ test.describe('Check-In Attendee Workflow', () => {
     await expect(checkedInText).toBeVisible({ timeout: 5000 });
   });
 
-  test('Cannot check in same attendee twice', async ({ page }) => {
-    // Get attendees from API using session token
-    const attendeesData = await getAttendees(page, testEventId, sessionToken);
+  test('Cannot check in same attendee twice', async ({ page, df, browser }) => {
+    // Create test data using DataFactory
+    const event = await df.events.createPublished(`Check-In Duplicate Test ${Date.now()}`);
 
-    // Need attendees to test
-    if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      throw new Error('No attendees found - test data is missing');
-    }
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() + 2);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
 
-    // Find an attendee who is NOT checked in - we'll check them in first
-    const uncheckedAttendee = attendeesData.attendees.find(
-      (a: any) => a.registrationStatus !== 'checked-in' && a.registrationStatus !== 'CheckedIn'
-    );
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
 
-    if (!uncheckedAttendee) {
-      throw new Error('All attendees are already checked in - need unchecked attendee for test');
-    }
+    const ticketType = await df.ticketTypes.create({
+      sessionId: session.id,
+      name: 'General Admission',
+      price: 0,
+      quantityAvailable: 20,
+    });
 
-    // Find the attendee row by sceneName (UI displays sceneName, not email)
-    const sceneName = uncheckedAttendee.sceneName || uncheckedAttendee.email;
-    const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
+    // Create a user with a ticket purchase
+    const user = await df.users.createVerified({
+      email: `attendee-duplicate-${Date.now()}@test.com`,
+    });
+
+    await df.ticketPurchases.create({
+      userId: user.id,
+      ticketTypeId: ticketType.id,
+      quantity: 1,
+    });
+
+    // Generate session token for check-in
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+    await loginAsAdmin(adminPage);
+    sessionToken = await generateSessionToken(adminPage, event.id, session.id, 24);
+    await adminContext.close();
+
+    testEventId = event.id;
+
+    // NO login - clear cookies to simulate kiosk mode
+    await page.context().clearCookies();
+
+    // Navigate with fresh token
+    await navigateToCheckIn(page, testEventId, sessionToken);
+
+    // Find the attendee row by email (test user won't have sceneName)
+    const attendeeRow = page.locator('tr').filter({ hasText: user.email }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
     // STEP 1: Check in the attendee (Covid Test → Check In)
@@ -163,37 +200,66 @@ test.describe('Check-In Attendee Workflow', () => {
     // The checked-in state shows text, not buttons - this prevents duplicate check-ins
   });
 
-  test('Two-step check-in workflow (Covid Test → Check In)', async ({ page }) => {
+  test('Two-step check-in workflow (Covid Test → Check In)', async ({ page, df, browser }) => {
     // This test verifies the streamlined check-in workflow:
     // 1. Click "Covid Test" button (purple) - marks COVID test complete
     // 2. Click "Check In" button (green) - completes the check-in
     // No confirmation modal - direct button workflow for kiosk efficiency
 
-    // Get attendees from API using session token
-    const attendeesData = await getAttendees(page, testEventId, sessionToken);
+    // Create test data using DataFactory
+    const event = await df.events.createPublished(`Check-In Workflow Test ${Date.now()}`);
 
-    // Skip if no unchecked attendees
-    if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test.fail(true, 'No attendees found - test should create own data');
-      return;
-    }
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() + 2);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
 
-    const uncheckedAttendee = attendeesData.attendees.find(
-      (a: any) => a.registrationStatus !== 'checked-in' && a.registrationStatus !== 'CheckedIn'
-    );
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
 
-    if (!uncheckedAttendee) {
-      test.fail(true, 'All attendees already checked in - need unchecked attendee');
-      return;
-    }
+    const ticketType = await df.ticketTypes.create({
+      sessionId: session.id,
+      name: 'General Admission',
+      price: 0,
+      quantityAvailable: 20,
+    });
 
-    // Find attendee row by sceneName (UI displays sceneName, not email)
-    const sceneName = uncheckedAttendee.sceneName || uncheckedAttendee.email;
-    const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
+    // Create a user with a ticket purchase
+    const user = await df.users.createVerified({
+      email: `attendee-workflow-${Date.now()}@test.com`,
+    });
+
+    await df.ticketPurchases.create({
+      userId: user.id,
+      ticketTypeId: ticketType.id,
+      quantity: 1,
+    });
+
+    // Generate session token for check-in
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+    await loginAsAdmin(adminPage);
+    sessionToken = await generateSessionToken(adminPage, event.id, session.id, 24);
+    await adminContext.close();
+
+    testEventId = event.id;
+
+    // NO login - clear cookies to simulate kiosk mode
+    await page.context().clearCookies();
+
+    // Navigate with fresh token
+    await navigateToCheckIn(page, testEventId, sessionToken);
+
+    // Find attendee row by email (test user won't have sceneName)
+    const attendeeRow = page.locator('tr').filter({ hasText: user.email }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
-    // Verify the attendee name is displayed correctly
-    const nameDisplay = attendeeRow.locator(`text=${sceneName}`);
+    // Verify the attendee email is displayed correctly
+    const nameDisplay = attendeeRow.locator(`text=${user.email}`);
     await expect(nameDisplay).toBeVisible({ timeout: 3000 });
 
     // Step 1: Verify "Covid Test" button is visible (initial state)
@@ -215,13 +281,28 @@ test.describe('Check-In Attendee Workflow', () => {
     await expect(checkedInText).toBeVisible({ timeout: 5000 });
   });
 
-  test('Token validation fails for expired token during check-in', async ({ browser }) => {
+  test('Token validation fails for expired token during check-in', async ({ browser, df }) => {
+    // Create test data using DataFactory
+    const event = await df.events.createPublished(`Token Expiry Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() + 2);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Generate token with very short expiration
     const adminContext = await browser.newContext();
     const adminPage = await adminContext.newPage();
 
     await loginAsAdmin(adminPage);
-    const shortLivedToken = await generateSessionToken(adminPage, testEventId, 0.001); // 3.6 seconds
+    const shortLivedToken = await generateSessionToken(adminPage, event.id, session.id, 0.001); // 3.6 seconds
 
     await adminContext.close();
 
@@ -246,7 +327,7 @@ test.describe('Check-In Attendee Workflow', () => {
         }
       });
       return { status: response.status };
-    }, { eventId: testEventId, token: shortLivedToken });
+    }, { eventId: event.id, token: shortLivedToken });
 
     // Verify 401 Unauthorized (token expired)
     expect(apiResponse.status).toBe(401);

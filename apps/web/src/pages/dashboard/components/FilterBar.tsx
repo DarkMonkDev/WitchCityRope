@@ -1,5 +1,6 @@
 import React from 'react';
-import { Group, Checkbox, SegmentedControl, TextInput, Box } from '@mantine/core';
+import { Group, Checkbox, TextInput, Box } from '@mantine/core';
+// SegmentedControl import removed - view toggle hidden for initial release
 import { IconSearch } from '@tabler/icons-react';
 
 interface FilterBarProps {
@@ -55,8 +56,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             }}
           />
 
-          {/* View Toggle */}
-          <SegmentedControl
+          {/* View Toggle - hidden for initial release, card view only */}
+          {/* <SegmentedControl
             value={viewMode}
             onChange={(value) => onViewModeChange(value as 'grid' | 'table')}
             data={[
@@ -76,7 +77,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 fontWeight: 600,
               },
             }}
-          />
+          /> */}
         </Group>
 
         {/* Search Input */}

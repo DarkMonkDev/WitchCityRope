@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2025-12-09 -->
-<!-- Version: 4.542 -->
+<!-- Last Updated: 2025-12-10 -->
+<!-- Version: 4.545 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,44 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-12-10 | /tests/e2e/vetting-admin-dashboard.spec.ts | MODIFIED | Migrated from seed data dependency to DataFactory pattern - Removed beforeEach/afterEach hooks, now creates own test users/applications | Test Developer: DataFactory Migration | ACTIVE | Never |
+| 2025-12-10 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Added vetting-admin-dashboard test migration entry (Version 12.04.0) | Test Developer: DataFactory Migration | ACTIVE | Never |
+| 2025-12-10 | /tests/e2e/session-based-timing.spec.ts | MODIFIED | Migrated from seed data dependency to DataFactory pattern - Now creates own test data with df fixture | Test Developer: DataFactory Migration | ACTIVE | Never |
+| 2025-12-10 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Updated session-based-timing test entry to reflect DataFactory migration (6 tests, no seed data dependency) | Test Developer: DataFactory Migration | ACTIVE | Never |
+| 2025-12-10 | /docs/functional-areas/testing/new-work/2025-12-10-test-data-infrastructure/ | CREATED | New folder for test data infrastructure implementation | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /docs/functional-areas/testing/new-work/2025-12-10-test-data-infrastructure/implementation-plan.md | CREATED | Implementation plan for DataFactory pattern and backend endpoints | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /docs/functional-areas/testing/new-work/2025-12-10-test-data-infrastructure/backend-developer-instructions.md | CREATED | Detailed instructions for backend-developer agent to implement TestHelper endpoints | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /docs/functional-areas/testing/new-work/2025-12-10-test-data-infrastructure/datafactory-implementation-instructions.md | CREATED | Detailed instructions for DataFactory TypeScript implementation | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/ | CREATED | DataFactory test data infrastructure - centralized, AI-discoverable test data creation for E2E tests | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/index.ts | CREATED | Main DataFactory export - provides DataFactory class with all factories for test data creation | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/types.ts | CREATED | TypeScript types for all test data entities (users, events, sessions, tickets, etc.) | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/api-client.ts | CREATED | HTTP client for test helper API endpoints | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/factories/user.factory.ts | CREATED | User factory for creating/deleting test users | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/factories/event.factory.ts | CREATED | Event factory for creating/deleting test events | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/factories/session.factory.ts | CREATED | Session factory for creating/deleting test sessions | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/factories/ticket-type.factory.ts | CREATED | Ticket type factory for creating/deleting test ticket types | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/factories/ticket-purchase.factory.ts | CREATED | Ticket purchase factory for creating/deleting test purchases | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/factories/volunteer.factory.ts | CREATED | Volunteer position factory for creating/deleting test volunteer positions | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/factories/vetting.factory.ts | CREATED | Vetting application factory for creating/deleting test vetting applications | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/factories/index.ts | CREATED | Re-export all factory classes | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/scenarios/complete-event.scenario.ts | CREATED | Scenario factory for creating complete events with sessions and tickets | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/scenarios/index.ts | CREATED | Re-export all scenario functions | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /tests/lib/datafactory/README.md | CREATED | Documentation for DataFactory usage - AI-friendly with quick start, API reference, migration guide | Main Agent: Test Data Infrastructure | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/CreateTestEventRequest.cs | CREATED | Request model for test event creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/TestEventResponse.cs | CREATED | Response model for test event creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/CreateTestSessionRequest.cs | CREATED | Request model for test session creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/TestSessionResponse.cs | CREATED | Response model for test session creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/CreateTestTicketTypeRequest.cs | CREATED | Request model for test ticket type creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/TestTicketTypeResponse.cs | CREATED | Response model for test ticket type creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/CreateTestVolunteerPositionRequest.cs | CREATED | Request model for test volunteer position creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/TestVolunteerPositionResponse.cs | CREATED | Response model for test volunteer position creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/CreateTestVettingApplicationRequest.cs | CREATED | Request model for test vetting application creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Models/TestVettingApplicationResponse.cs | CREATED | Response model for test vetting application creation | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Services/ITestHelperService.cs | MODIFIED | Added 10 new method signatures for events, sessions, ticket types, volunteer positions, vetting applications | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Services/TestHelperService.cs | MODIFIED | Implemented 10 new methods with cascading deletes for events, sessions, ticket types, volunteer positions, vetting applications | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /apps/api/Features/TestHelpers/Endpoints/TestHelperEndpoints.cs | MODIFIED | Added 10 new endpoints (5 POST, 5 DELETE) for test data creation/cleanup | Backend Developer: Test Helper Endpoints | ACTIVE | Never |
+| 2025-12-10 | /tests/e2e/utils/database-helpers.ts | MODIFIED | Converted to re-export from canonical location (test-utils/utils/database-helpers.ts) - backwards compatibility shim | Main Agent: Database Helpers Consolidation | ACTIVE | Review for deletion after all imports updated |
+| 2025-12-10 | /docs/functional-areas/platform-overview/research/2025-12-10-test-data-creation-patterns-research.md | CREATED | Comprehensive research on test data creation patterns for automated testing - Evaluates DataFactory, Builder, Fixtures, Fishery patterns. Recommends DataFactory + Fixtures hybrid (85% confidence). Covers Playwright E2E and .NET integration tests, AI agent discoverability, test isolation strategies, parallel execution safety. Includes implementation guide, migration plan, code templates, risk assessment. Ready for architectural decision. | Technology Researcher: Test Data Patterns Research | ACTIVE | Never |
 | 2025-12-09 | /docs/standards-processes/frontend/api-error-handling-standard.md | CREATED | Complete API error handling standard - Defines single canonical apiClient, RFC 9457 error extraction, useApiMutation hook, correct/incorrect patterns, migration guide. MANDATORY for all frontend API work. | Main Agent: API Error Handling Standardization | ACTIVE | Never |
 | 2025-12-09 | /apps/web/src/lib/api/hooks/useApiMutation.ts | CREATED | Standardized TanStack Query mutation wrapper with automatic error notifications - Uses apiClient interceptor for RFC 9457 message extraction, supports success messages, error notifications, callbacks. | Main Agent: API Error Handling Standardization | ACTIVE | Never |
 | 2025-12-09 | /apps/web/src/api/client.ts | DELETED | Duplicate API client removed - Single source of truth is now /lib/api/client.ts. Old file caused confusion with two different clients. | Main Agent: API Error Handling Standardization | DELETED | N/A |
@@ -98,4 +136,3 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 - Use descriptive purposes
 - Set realistic cleanup dates
 - Review registry before session end
-- Clean up temporary files promptly

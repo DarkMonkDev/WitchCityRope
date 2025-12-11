@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test'
+import { expect, Page } from '@playwright/test'
+import { test } from '../lib/datafactory/fixtures/test.fixture'
 import { AuthHelpers } from './test-utils/helpers/auth.helpers'
 
 // Environment-aware URLs for container/host compatibility

@@ -1,9 +1,3 @@
-import { test, expect, Page } from '@playwright/test';
-import { AuthHelpers } from './test-utils/helpers/auth.helpers';
-
-// Environment-aware URLs for container/host compatibility
-const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
-
 /**
  * E2E Tests for Admin Events Edit Screen - Session Management
  *
@@ -13,123 +7,23 @@ const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
  * - Automatic S# ID assignment (format: S1, S2, S3, etc.)
  * - Form validation
  *
- * ARCHITECTURE: Tests create their own event data to ensure clean slate
- * for session operations. This avoids issues with seed data having all
- * session slots already filled.
+ * MIGRATED: Uses DataFactory pattern for automatic cleanup
  */
 
-// Helper to make authenticated API request
-async function apiRequest(page: Page, method: string, url: string, data?: unknown): Promise<{ status: number; data: unknown }> {
-  const response = await page.evaluate(async ({ method, url, data }) => {
-    const options: RequestInit = {
-      method,
-      credentials: 'include',
-      headers: data ? { 'Content-Type': 'application/json' } : {},
-    };
-
-    if (data) {
-      options.body = JSON.stringify(data);
-    }
-
-    const res = await fetch(url, options);
-    const text = await res.text();
-    try {
-      return { status: res.status, data: JSON.parse(text) };
-    } catch {
-      return { status: res.status, data: text };
-    }
-  }, { method, url, data });
-
-  return response;
-}
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Admin Events Edit Screen - Session Management', () => {
-  let testEventId: string | null = null;
-  let venueId: string | null = null;
-
-  test.beforeAll(async ({ browser }) => {
-    // Create a fresh event with NO sessions for testing session operations
-    const page = await browser.newPage();
+  test('should add a new session via modal without page refresh', async ({ page, df }) => {
+    // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
-
-    // Get first venue ID
-    const venuesResponse = await apiRequest(page, 'GET', '/api/venues');
-    const venues = venuesResponse.data as Array<{ id: string }>;
-    venueId = venues[0]?.id;
-
-    if (!venueId) {
-      console.error('No venues found - cannot create test event');
-      await page.close();
-      return;
-    }
 
     // Create event with NO sessions - this gives us clean slate for session tests
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() + 14); // 2 weeks in future
-    startDate.setHours(18, 0, 0, 0);
-
-    const eventData = {
-      title: `Session Test Event ${Date.now()}`,
-      shortDescription: 'Test event for session management E2E tests',
-      description: 'This event is used to test session CRUD operations.',
-      eventType: 'Class',
-      startDate: startDate.toISOString(),
-      endDate: new Date(startDate.getTime() + 3 * 60 * 60 * 1000).toISOString(),
-      venueId: venueId,
-      capacity: 20,
-      isPublished: false, // Keep unpublished for testing
-      // CRITICAL: Timing controls to avoid business logic failures
-      registrationOpenHours: null,
-      registrationCloseHours: 0,
-      cancellationCloseHours: 0,
-      // NO sessions - we'll add them in tests
-      sessions: [],
-    };
-
-    console.log('Creating test event with NO sessions...');
-    const createResponse = await apiRequest(page, 'POST', '/api/admin/events', eventData);
-
-    if (createResponse.status !== 201 && createResponse.status !== 200) {
-      console.error('Failed to create test event:', createResponse);
-      await page.close();
-      return;
-    }
-
-    const responseData = createResponse.data as { id: string };
-    testEventId = responseData.id;
-    console.log(`✅ Created test event: ${testEventId}`);
-
-    await page.close();
-  });
-
-  test.afterAll(async ({ browser }) => {
-    // Cleanup: Delete test event
-    if (!testEventId) return;
-
-    const page = await browser.newPage();
-    await AuthHelpers.loginAs(page, 'admin');
-
-    console.log(`Cleaning up test event: ${testEventId}`);
-    await apiRequest(page, 'DELETE', `/api/admin/events/${testEventId}`);
-    console.log('✅ Test event deleted');
-
-    await page.close();
-  });
-
-  test.beforeEach(async ({ page }) => {
-    // Login as admin user
-    await AuthHelpers.loginAs(page, 'admin');
-  });
-
-  test('should add a new session via modal without page refresh', async ({ page }) => {
-    if (!testEventId) {
-      console.log('Test event not created - skipping');
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+    const event = await df.events.createDefault(`Session Add Test ${Date.now()}`);
 
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
 
     // Wait for page to load
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -189,32 +83,31 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
     const newSessionRow = sessionGrid.locator('tr').filter({ hasText: 'Morning Workshop' });
     await expect(newSessionRow).toBeVisible({ timeout: 5000 });
 
-    console.log('✅ Session added successfully via modal');
+    console.log('Session added successfully via modal');
   });
 
-  test('should edit existing session via modal', async ({ page }) => {
-    if (!testEventId) {
-      console.log('Test event not created - skipping');
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('should edit existing session via modal', async ({ page, df }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
 
-    // First, ensure we have a session to edit by adding one via API
-    const sessionData = {
-      sessionIdentifier: 'S2',
-      name: 'Original Session Name',
-      startTime: '14:00',
-      endTime: '17:00',
-      capacity: 15,
-    };
+    // Create event with one session to edit
+    const event = await df.events.createDefault(`Session Edit Test ${Date.now()}`);
 
-    // Add session via API for this test
-    await apiRequest(page, 'PUT', `/api/admin/events/${testEventId}`, {
-      sessions: [sessionData],
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(14, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Original Session Name',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 15,
     });
 
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
 
     // Wait for page to load and navigate to Setup tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -257,18 +150,18 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
     const updatedRow = sessionGrid.locator('tr').filter({ hasText: 'Updated Session Name' });
     await expect(updatedRow).toBeVisible({ timeout: 5000 });
 
-    console.log('✅ Session edited successfully via modal');
+    console.log('Session edited successfully via modal');
   });
 
-  test('should assign S# IDs sequentially to new sessions', async ({ page }) => {
-    if (!testEventId) {
-      console.log('Test event not created - skipping');
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('should assign S# IDs sequentially to new sessions', async ({ page, df }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Create event with NO sessions
+    const event = await df.events.createDefault(`Sequential ID Test ${Date.now()}`);
 
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
 
     // Navigate to Setup tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -346,18 +239,18 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
     const finalSessionCount = await sessionGrid.locator('[data-testid="session-row"]').count();
     expect(finalSessionCount).toBeGreaterThan(initialSessionCount);
 
-    console.log(`✅ Sessions added: ${initialSessionCount} → ${finalSessionCount}`);
+    console.log(`Sessions added: ${initialSessionCount} → ${finalSessionCount}`);
   });
 
-  test('should validate session form fields', async ({ page }) => {
-    if (!testEventId) {
-      console.log('Test event not created - skipping');
-      test.fail(true, 'Test event not created in beforeAll');
-      return;
-    }
+  test('should validate session form fields', async ({ page, df }) => {
+    // Login as admin
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Create event
+    const event = await df.events.createDefault(`Validation Test ${Date.now()}`);
 
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`/admin/events/${event.id}`);
 
     // Navigate to Setup tab and open add modal
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -411,6 +304,6 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
     // Modal should close on successful save
     await page.waitForSelector('[role="dialog"]', { state: 'detached', timeout: 10000 });
 
-    console.log('✅ Form validation working correctly');
+    console.log('Form validation working correctly');
   });
 });

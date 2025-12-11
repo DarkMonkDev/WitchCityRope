@@ -1,66 +1,29 @@
-import { test, expect, APIRequestContext } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-/**
- * Helper function to verify user email via test helper endpoint
- * ONLY works in Development/Test environments
- */
-async function verifyUserEmail(request: APIRequestContext, email: string): Promise<void> {
-  const response = await request.post('/api/test-helpers/verify-email', {
-    data: { email }
-  });
-  if (!response.ok()) {
-    throw new Error(`Failed to verify email: ${await response.text()}`);
-  }
-  console.log(`✅ Email verified via test helper: ${email}`);
-}
-
 test.describe('Vetting Application Complete Flow', () => {
-  const timestamp = Date.now();
-  const randomId = Math.floor(Math.random() * 10000);
-  const testEmail = `test-vetting-${timestamp}-${randomId}@example.com`;
-  // Scene name can only contain letters, numbers, and spaces (no hyphens)
-  const testSceneName = `TestUser ${timestamp}`;
-  const testPassword = 'Test123!';
-
-  test('Complete vetting application with registration and login', async ({ page, request }) => {
+  test('Complete vetting application with registration and login', async ({ page, df }) => {
+    const timestamp = Date.now();
     const screenshotDir = `./test-results/vetting-success-final-${timestamp}`;
 
-    // Step 1: Register new user
-    console.log('Step 1: Registering new user...');
-    await page.goto('/register', { waitUntil: 'domcontentloaded' });
+    // Step 1: Create user using DataFactory
+    console.log('Step 1: Creating test user...');
+    const user = await df.users.createVerified({
+      email: `test-vetting-${timestamp}@example.com`,
+      password: 'Test123!',
+    });
+    console.log(`✅ User created: ${user.email}`);
 
-    // Wait for registration form to be ready
-    await page.waitForSelector('[data-testid="register-form"]', { timeout: 10000 });
-
-    // Fill registration form using correct data-testid selectors
-    await page.locator('[data-testid="email-input"]').fill(testEmail);
-    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
-    await page.locator('[data-testid="password-input"]').fill(testPassword);
-
-    // Check Terms of Service checkbox (required)
-    await page.locator('[data-testid="terms-checkbox"]').check();
-
-    // Submit registration
-    await page.locator('[data-testid="register-button"]').click();
-    await page.waitForLoadState('domcontentloaded');
-
-    // Wait for registration to complete and redirect to login
-    await page.waitForURL(/\/login/, { timeout: 15000 });
-    console.log(`✅ Registration completed for ${testEmail}`);
-
-    // Step 2: Verify email via test helper (required before login)
-    await verifyUserEmail(request, testEmail);
-
-    // Step 3: Login with newly created credentials
-    console.log('Step 3: Logging in with new credentials...');
-    await AuthHelpers.loginWith(page, { email: testEmail, password: testPassword });
+    // Step 2: Login with newly created credentials
+    console.log('Step 2: Logging in with new credentials...');
+    await AuthHelpers.loginWith(page, { email: user.email, password: 'Test123!' });
 
     await page.screenshot({ path: `${screenshotDir}/02-dashboard-after-login.png`, fullPage: true });
     console.log('✅ Login successful, redirected to dashboard');
 
-    // Step 4: Navigate to vetting application
-    console.log('Step 4: Navigating to vetting application...');
+    // Step 3: Navigate to vetting application
+    console.log('Step 3: Navigating to vetting application...');
     await page.goto('/join', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
@@ -71,8 +34,8 @@ test.describe('Vetting Application Complete Flow', () => {
     expect(pageContent).not.toContain('Login Required');
     expect(pageContent).not.toContain('Please log in');
 
-    // Step 5: Fill out vetting application with actual form fields
-    console.log('Step 5: Filling out vetting application...');
+    // Step 4: Fill out vetting application with actual form fields
+    console.log('Step 4: Filling out vetting application...');
 
     // First Name (required)
     const firstNameInput = page.locator('[data-testid="first-name-input"]');
@@ -116,8 +79,8 @@ test.describe('Vetting Application Complete Flow', () => {
 
     await page.screenshot({ path: `${screenshotDir}/04-vetting-form-filled.png`, fullPage: true });
 
-    // Step 6: Submit the form
-    console.log('Step 6: Submitting vetting application...');
+    // Step 5: Submit the form
+    console.log('Step 5: Submitting vetting application...');
     const submitButton = page.locator('[data-testid="submit-application-button"]');
     await submitButton.scrollIntoViewIfNeeded();
 
@@ -133,8 +96,8 @@ test.describe('Vetting Application Complete Flow', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(3000);
 
-    // Step 7: CRITICAL - Verify success screen
-    console.log('Step 7: Verifying success screen...');
+    // Step 6: CRITICAL - Verify success screen
+    console.log('Step 6: Verifying success screen...');
     await page.screenshot({ path: `${screenshotDir}/05-success-screen-CRITICAL.png`, fullPage: true });
 
     // Get full page content for detailed analysis
@@ -184,8 +147,8 @@ test.describe('Vetting Application Complete Flow', () => {
     // Verify buttons - Note: The buttons might be in the Paper component, not necessarily at bottom
     // According to the code, there should be navigation buttons but let me check what's actually rendered
 
-    // Step 8: Navigate back to dashboard to verify vetting status
-    console.log('Step 8: Navigating to dashboard to verify vetting status...');
+    // Step 7: Navigate back to dashboard to verify vetting status
+    console.log('Step 7: Navigating to dashboard to verify vetting status...');
     await page.goto('/dashboard');
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
@@ -206,8 +169,7 @@ test.describe('Vetting Application Complete Flow', () => {
 
     // Summary report
     console.log('\n=== VETTING APPLICATION TEST SUMMARY ===');
-    console.log(`Test Email: ${testEmail}`);
-    console.log(`Scene Name: ${testSceneName}`);
+    console.log(`Test Email: ${user.email}`);
     console.log(`Screenshots saved to: ${screenshotDir}`);
     console.log(`\n✅ SUCCESS CRITERIA:`);
     console.log(`  - Title: "Application Submitted Successfully!" - ${hasTitleCorrect ? 'PASS' : 'FAIL'}`);

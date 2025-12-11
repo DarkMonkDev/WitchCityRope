@@ -16,55 +16,13 @@
  *
  * UPDATED: 2025-11-28 - Fixed to match actual component behavior
  * All tests now fill refund amount (required field that was missing in TDD tests)
+ *
+ * MIGRATION NOTE: Uses DataFactory for test data creation
  */
 
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
-import { DatabaseHelpers } from './test-utils/utils/database-helpers';
-
-// Environment-aware URLs for container/host compatibility
-const WEB_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
-const API_BASE_URL = process.env.API_URL || 'http://localhost:5655';
-
-
-// Test data
-let PAID_TICKET_EVENT_ID: string;
-let TEST_PAYMENT_ID: string;
-
-test.beforeAll(async () => {
-  console.log('🔍 Setting up test data for ticket refund workflow...');
-
-  // Find a paid ticket event for testing
-  const ticketEvent = await DatabaseHelpers.getFirstTicketEvent();
-
-  if (!ticketEvent) {
-    throw new Error(
-      'No paid ticket events found in database.\n' +
-      '\n' +
-      'These tests require at least one published event with paid tickets (Price > 0).\n' +
-      '\n' +
-      'To fix this:\n' +
-      '1. Ensure Docker containers are running: ./dev.sh\n' +
-      '2. Check if database has events: curl http://localhost:5655/api/events\n' +
-      '3. Verify event has paid ticket type (Price > 0) in TicketTypes table\n'
-    );
-  }
-
-  PAID_TICKET_EVENT_ID = ticketEvent.id;
-  console.log(`✅ Found paid ticket event: "${ticketEvent.title}" (ID: ${PAID_TICKET_EVENT_ID})`);
-  console.log(`   Event Type: ${ticketEvent.eventType}`);
-  console.log(`   Start Date: ${ticketEvent.startDate}`);
-  console.log(`   Capacity: ${ticketEvent.capacity}`);
-
-  // Find or create a test payment for refund testing
-  // In real implementation, this would find an existing payment from seeded data
-  // For now, we'll query for existing payments in the test
-});
-
-test.afterAll(async () => {
-  console.log('🧹 Cleaning up test connections...');
-  await DatabaseHelpers.closeDatabaseConnections();
-});
 
 test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
 

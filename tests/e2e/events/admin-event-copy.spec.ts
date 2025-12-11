@@ -1,13 +1,19 @@
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from '../test-utils/helpers/auth.helpers';
 
 /**
- * E2E tests for Event Copy feature
+ * E2E tests for Event Copy feature (DataFactory Migration)
  * Tests the complete user workflow for copying events via admin panel
+ *
+ * MIGRATION NOTES:
+ * - Uses df (DataFactory) fixture for automatic cleanup
+ * - Creates test data via TestHelper API endpoints
+ * - No dependency on seeded events
+ * - Data is automatically cleaned up after each test
  *
  * Prerequisites:
  * - Docker containers running (web on 5173, API on 5655)
- * - Database seeded with test events
  * - Admin user: admin@witchcityrope.com / Test123!
  *
  * Note: CopyEventModal uses Mantine DatePickerInput which renders as a button.
@@ -16,9 +22,40 @@ import { AuthHelpers } from '../test-utils/helpers/auth.helpers';
  * default date rather than trying to interact with the calendar picker.
  */
 
-test.describe('Event Copy - Admin Workflow', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login as admin using helper
+test.describe('Event Copy - Admin Workflow (DataFactory)', () => {
+  /**
+   * Test 1: Complete copy workflow with new date and title
+   * Note: CopyEventModal defaults to 7 days from original date, so no need to change date
+   */
+  test('Admin can copy event with new date and title', async ({ page, df }) => {
+    // Create a published event to copy
+    const sourceEvent = await df.events.createPublished(`Source Event ${Date.now()}`);
+
+    // Create session with proper timing
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: sourceEvent.id,
+      title: 'Workshop Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    // Create ticket type for completeness
+    await df.ticketTypes.create({
+      sessionId: session.id,
+      name: 'General Admission',
+      price: 25,
+      quantityAvailable: 20,
+    });
+
+    console.log(`✅ Created source event to copy: ${sourceEvent.id}`);
+
+    // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events page
@@ -28,28 +65,16 @@ test.describe('Event Copy - Admin Workflow', () => {
     // Wait for events table to load
     await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
 
-    // Skip if no events exist in database
-    const eventRowCount = await page.locator('[data-testid="event-row"]').count();
-    if (eventRowCount === 0) {
-      console.log('⚠️  No events in database - skipping test');
-    }
-  });
+    // Find our event row by navigating directly to it
+    const eventRow = page.locator(`[data-testid="event-row"]`).filter({ has: page.locator(`text="${sourceEvent.title}"`) }).first();
+    await eventRow.waitFor({ state: 'visible' });
 
-  /**
-   * Test 1: Complete copy workflow with new date and title
-   * Note: CopyEventModal defaults to 7 days from original date, so no need to change date
-   */
-  test('Admin can copy event with new date and title', async ({ page }) => {
-    // Find first event in table using data-testid
-    const firstEventRow = page.locator('[data-testid="event-row"]').first();
-    await firstEventRow.waitFor({ state: 'visible' });
-
-    // Get original event title - column index 2 (Date=0, Type=1, Title=2)
-    const originalTitle = await firstEventRow.locator('td').nth(2).textContent();
+    // Get original event title from our created event
+    const originalTitle = sourceEvent.title;
     expect(originalTitle).toBeTruthy();
 
     // Click Copy button
-    const copyButton = firstEventRow.locator('button[data-testid="button-copy-event"]');
+    const copyButton = eventRow.locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -85,9 +110,24 @@ test.describe('Event Copy - Admin Workflow', () => {
   /**
    * Test 2: Copy modal validates required title
    */
-  test('Copy modal validates required title', async ({ page }) => {
-    // Click Copy on first event using data-testid
-    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
+  test('Copy modal validates required title', async ({ page, df }) => {
+    // Create a published event to copy
+    const sourceEvent = await df.events.createPublished(`Validation Test Event ${Date.now()}`);
+
+    console.log(`✅ Created source event: ${sourceEvent.id}`);
+
+    // Login as admin and navigate to admin events page
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto('/admin/events');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Find our event row
+    const eventRow = page.locator(`[data-testid="event-row"]`).filter({ has: page.locator(`text="${sourceEvent.title}"`) }).first();
+    await eventRow.waitFor({ state: 'visible' });
+
+    // Click Copy on our event using data-testid
+    const copyButton = eventRow.locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -133,13 +173,38 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Note: This assumes event details page shows sessions
    * Note: CopyEventModal defaults to 7 days from original date, so no need to change date
    */
-  test('Copied event has correct sessions', async ({ page }) => {
-    // Use first event using data-testid
-    const firstEventRow = page.locator('[data-testid="event-row"]').first();
-    await firstEventRow.waitFor({ state: 'visible', timeout: 10000 });
+  test('Copied event has correct sessions', async ({ page, df }) => {
+    // Create a published event with session
+    const sourceEvent = await df.events.createPublished(`Sessions Copy Test ${Date.now()}`);
+
+    // Create session
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    await df.sessions.create({
+      eventId: sourceEvent.id,
+      title: 'Test Session to Copy',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    console.log(`✅ Created source event with session: ${sourceEvent.id}`);
+
+    // Login as admin and navigate
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto('/admin/events');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Find our event row
+    const eventRow = page.locator(`[data-testid="event-row"]`).filter({ has: page.locator(`text="${sourceEvent.title}"`) }).first();
+    await eventRow.waitFor({ state: 'visible', timeout: 10000 });
 
     // Copy event
-    const copyButton = firstEventRow.locator('button[data-testid="button-copy-event"]');
+    const copyButton = eventRow.locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -174,9 +239,44 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Test 5: Copied event has correct ticket types
    * Note: CopyEventModal defaults to 7 days from original date, so no need to change date
    */
-  test('Copied event has correct ticket types', async ({ page }) => {
-    // Copy first event using data-testid
-    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
+  test('Copied event has correct ticket types', async ({ page, df }) => {
+    // Create event with session and ticket type
+    const sourceEvent = await df.events.createPublished(`Ticket Types Copy Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: sourceEvent.id,
+      title: 'Session with Tickets',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    await df.ticketTypes.create({
+      sessionId: session.id,
+      name: 'VIP Ticket',
+      price: 50,
+      quantityAvailable: 10,
+    });
+
+    console.log(`✅ Created source event with ticket types: ${sourceEvent.id}`);
+
+    // Login as admin and navigate
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto('/admin/events');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Find our event row
+    const eventRow = page.locator(`[data-testid="event-row"]`).filter({ has: page.locator(`text="${sourceEvent.title}"`) }).first();
+    await eventRow.waitFor({ state: 'visible' });
+
+    // Copy event using data-testid
+    const copyButton = eventRow.locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -205,9 +305,24 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Note: Verification would require checking database or admin panel showing attendee count
    * Note: CopyEventModal defaults to 7 days from original date, so no need to change date
    */
-  test('Copied event excludes attendance data', async ({ page }) => {
+  test('Copied event excludes attendance data', async ({ page, df }) => {
+    // Create event
+    const sourceEvent = await df.events.createPublished(`Attendance Test Event ${Date.now()}`);
+
+    console.log(`✅ Created source event: ${sourceEvent.id}`);
+
+    // Login as admin and navigate
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto('/admin/events');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Find our event row
+    const eventRow = page.locator(`[data-testid="event-row"]`).filter({ has: page.locator(`text="${sourceEvent.title}"`) }).first();
+    await eventRow.waitFor({ state: 'visible' });
+
     // Copy event using data-testid
-    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
+    const copyButton = eventRow.locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -234,9 +349,24 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Note: Requires checking if email templates section exists on event details
    * Note: CopyEventModal defaults to 7 days from original date, so no need to change date
    */
-  test('Copied event preserves custom email templates', async ({ page }) => {
+  test('Copied event preserves custom email templates', async ({ page, df }) => {
+    // Create event
+    const sourceEvent = await df.events.createPublished(`Email Templates Test ${Date.now()}`);
+
+    console.log(`✅ Created source event: ${sourceEvent.id}`);
+
+    // Login as admin and navigate
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto('/admin/events');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Find our event row
+    const eventRow = page.locator(`[data-testid="event-row"]`).filter({ has: page.locator(`text="${sourceEvent.title}"`) }).first();
+    await eventRow.waitFor({ state: 'visible' });
+
     // Copy event using data-testid
-    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
+    const copyButton = eventRow.locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -263,9 +393,24 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Test 8: Copied event without custom templates works correctly
    * Note: CopyEventModal defaults to 7 days from original date, so no need to change date
    */
-  test('Copied event without custom templates works correctly', async ({ page }) => {
+  test('Copied event without custom templates works correctly', async ({ page, df }) => {
+    // Create event
+    const sourceEvent = await df.events.createPublished(`No Templates Test ${Date.now()}`);
+
+    console.log(`✅ Created source event: ${sourceEvent.id}`);
+
+    // Login as admin and navigate
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto('/admin/events');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Find our event row
+    const eventRow = page.locator(`[data-testid="event-row"]`).filter({ has: page.locator(`text="${sourceEvent.title}"`) }).first();
+    await eventRow.waitFor({ state: 'visible' });
+
     // Copy event using data-testid
-    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
+    const copyButton = eventRow.locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -273,7 +418,7 @@ test.describe('Event Copy - Admin Workflow', () => {
     const modal = page.locator('[role="dialog"]').last();
     await expect(modal).toBeVisible();
 
-    // Date already defaults to 7 days after original (handled by CopyEventModal)
+    // Date already defaults to 7 days from original (handled by CopyEventModal)
     // No need to interact with the date picker - default is valid future date
 
     // Submit
@@ -287,9 +432,24 @@ test.describe('Event Copy - Admin Workflow', () => {
   /**
    * Test 9: Copy modal can be cancelled
    */
-  test('Copy modal can be cancelled', async ({ page }) => {
+  test('Copy modal can be cancelled', async ({ page, df }) => {
+    // Create event
+    const sourceEvent = await df.events.createPublished(`Cancel Test Event ${Date.now()}`);
+
+    console.log(`✅ Created source event: ${sourceEvent.id}`);
+
+    // Login as admin and navigate
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto('/admin/events');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Find our event row
+    const eventRow = page.locator(`[data-testid="event-row"]`).filter({ has: page.locator(`text="${sourceEvent.title}"`) }).first();
+    await eventRow.waitFor({ state: 'visible' });
+
     // Click Copy using data-testid
-    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
+    const copyButton = eventRow.locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -311,9 +471,14 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Test 10: Copy handles API errors gracefully
    * Note: CopyEventModal defaults to 7 days from original date, so no need to change date
    */
-  test('Copy handles API errors gracefully', async ({ page }) => {
-    // Mock API error
-    await page.route('**/api/events/*/copy', route => {
+  test('Copy handles API errors gracefully', async ({ page, df }) => {
+    // Create event
+    const sourceEvent = await df.events.createPublished(`API Error Test ${Date.now()}`);
+
+    console.log(`✅ Created source event: ${sourceEvent.id}`);
+
+    // Mock API error for this specific event's copy endpoint
+    await page.route(`**/api/events/${sourceEvent.id}/copy`, route => {
       route.fulfill({
         status: 500,
         contentType: 'application/json',
@@ -321,8 +486,18 @@ test.describe('Event Copy - Admin Workflow', () => {
       });
     });
 
+    // Login as admin and navigate
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto('/admin/events');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Find our event row
+    const eventRow = page.locator(`[data-testid="event-row"]`).filter({ has: page.locator(`text="${sourceEvent.title}"`) }).first();
+    await eventRow.waitFor({ state: 'visible' });
+
     // Click Copy using data-testid
-    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
+    const copyButton = eventRow.locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 

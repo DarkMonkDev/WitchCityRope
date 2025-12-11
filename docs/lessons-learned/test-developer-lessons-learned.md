@@ -13,13 +13,18 @@
 `/home/chad/repos/witchcityrope/docs/standards-processes/testing/browser-automation/playwright-guide.md`
 ⚠️ **IF WRITING E2E TESTS**: You MUST read BOTH Test Creation Guide AND Playwright Guide
 
-3. **Test Execution Guide** - **HOW TO RUN TESTS**
+3. **DataFactory README** - **E2E TEST DATA CREATION (MANDATORY FOR E2E)**
+`/home/chad/repos/witchcityrope/tests/lib/datafactory/README.md`
+⚠️ **CRITICAL**: E2E tests MUST create their own data using DataFactory, NOT rely on seed data!
+Use `DataFactory` class for all test data creation - see README for usage.
+
+4. **Test Execution Guide** - **HOW TO RUN TESTS**
 `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST-EXECUTION-GUIDE.md`
 
-4. **Test Catalog** - **ALL EXISTING TESTS**
+5. **Test Catalog** - **ALL EXISTING TESTS**
 `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md`
 
-5. **Docker-Only Testing Standard** - **ENVIRONMENT REQUIREMENTS**
+6. **Docker-Only Testing Standard** - **ENVIRONMENT REQUIREMENTS**
 `/home/chad/repos/witchcityrope/docs/standards-processes/testing/docker-only-testing-standard.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
@@ -36,6 +41,7 @@
 - [ ] **Read Test Creation Guide FIRST** - How to write tests
 - [ ] Review Test Catalog to avoid duplicating tests
 - [ ] Check Playwright Guide for E2E patterns
+- [ ] **Read DataFactory README for E2E tests** - How to create test data programmatically
 - [ ] Verify Docker containers running:
   - For running tests: use `test-environment` skill (PREFERRED - isolated containers)
   - For test container issues only: use `restart-test-containers` skill
@@ -199,16 +205,15 @@ If you cannot read ANY part of these lessons learned:
 
 ## Prevention Pattern: Running Playwright from Wrong Directory
 
-**Problem Discovered**: Running `npx playwright test` from `/tests/` subdirectory only executed 8 of 855 tests.
+**Problem Discovered**: Running Playwright from `/tests/` subdirectory only executed 8 of 855 tests.
 
 **When**: 2025-11-24 (test structure simplification)
 
 **Symptoms**: "All tests pass" but 99% of tests silently skipped
 
-**Solution**: See Test Execution Guide, section "E2E Tests (Playwright)" → "Working directory (CRITICAL)"
+**Solution**: Use `test-environment` skill which handles correct working directory automatically. For manual execution details, see Test Execution Guide, section "E2E Tests (Playwright)" → "Working directory (CRITICAL)"
 
-**Correct**: Run from `/home/chad/repos/witchcityrope/apps/web`
-**Wrong**: Run from `/home/chad/repos/witchcityrope/apps/web/tests` (misses tests)
+**Prevention**: Always use the `test-environment` skill instead of running test commands directly.
 
 ---
 

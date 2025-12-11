@@ -322,12 +322,17 @@ public class EventService : IEventService
                 return (false, null, "Event not found");
             }
 
-            // Business rule: Cannot update events that started more than 48 hours ago (grace period for corrections)
-            if (eventEntity.StartDate <= DateTime.UtcNow.AddHours(-48))
+            // Business rule: Cannot update events where ALL sessions have ended more than 48 hours ago
+            // For multi-session events, use the LATEST session's end time
+            var latestSessionEndTime = eventEntity.Sessions.Any()
+                ? eventEntity.Sessions.Max(s => s.EndTime)
+                : eventEntity.EndDate;  // Fallback for events without sessions
+
+            if (latestSessionEndTime <= DateTime.UtcNow.AddHours(-48))
             {
-                _logger.LogWarning("Attempted to update past event outside grace period: {EventId} (StartDate: {StartDate}, Grace Period: 48 hours)",
-                    eventId, eventEntity.StartDate);
-                return (false, null, "Cannot update events that started more than 48 hours ago");
+                _logger.LogWarning("Attempted to update past event outside grace period: {EventId} (LatestSessionEndTime: {LatestSessionEndTime}, Grace Period: 48 hours)",
+                    eventId, latestSessionEndTime);
+                return (false, null, "Cannot update events that ended more than 48 hours ago");
             }
 
             // Validate capacity changes

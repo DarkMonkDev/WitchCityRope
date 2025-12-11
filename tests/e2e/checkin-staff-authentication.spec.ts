@@ -26,12 +26,12 @@
  * - GET /api/checkin/events/{eventId}/attendees (requires X-CheckIn-Token header)
  */
 
-import { test, expect, Page, Browser } from '@playwright/test';
+import { expect, Page, Browser } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import {
   loginAsAdmin,
   generateSessionToken,
   revokeSessionToken,
-  getTestEventId,
   navigateToCheckIn,
   getAttendees
 } from './checkin/helpers/tokenHelpers';
@@ -43,23 +43,30 @@ import {
 // Routes: /events/:eventId/checkin and /events/:eventId/checkin/dashboard
 // Uses session tokens for access control - NO user login required
 test.describe('Check-In Token Validation', () => {
-  let testEventId: string;
 
-  test.beforeAll(async ({ browser }) => {
-    // Get test event ID (no auth required for public events endpoint)
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    testEventId = await getTestEventId(page);
-    await context.close();
-  });
+  test('Valid token allows access to check-in interface', async ({ page, browser, df }) => {
+    // Create test event with session
+    const event = await df.events.createPublished(`Check-in Token Test ${Date.now()}`);
 
-  test('Valid token allows access to check-in interface', async ({ page, browser }) => {
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Check-in Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Step 1: Generate token as admin (separate context)
     const adminContext = await browser.newContext();
     const adminPage = await adminContext.newPage();
 
     await loginAsAdmin(adminPage);
-    const sessionToken = await generateSessionToken(adminPage, testEventId);
+    const sessionToken = await generateSessionToken(adminPage, event.id);
 
     await adminContext.close();
 
@@ -68,7 +75,7 @@ test.describe('Check-In Token Validation', () => {
     await page.context().clearCookies();
 
     // Navigate to check-in with token
-    await navigateToCheckIn(page, testEventId, sessionToken);
+    await navigateToCheckIn(page, event.id, sessionToken);
 
     // Step 3: Verify interface loads successfully
     await expect(page).not.toHaveURL(/unauthorized/);
@@ -80,20 +87,36 @@ test.describe('Check-In Token Validation', () => {
 
     // Verify we're on the correct page (not redirected)
     const currentUrl = page.url();
-    expect(currentUrl).toContain(`/events/${testEventId}/checkin`);
+    expect(currentUrl).toContain(`/events/${event.id}/checkin`);
 
     // Verify attendee table or check-in functionality visible
     const attendeeTable = page.locator('table, [role="grid"]').first();
     await expect(attendeeTable).toBeVisible({ timeout: 10000 });
   });
 
-  test('Invalid token shows error message', async ({ page }) => {
+  test('Invalid token shows error message', async ({ page, df }) => {
+    // Create test event with session
+    const event = await df.events.createPublished(`Invalid Token Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Check-in Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Clear cookies (no user auth)
     await page.context().clearCookies();
 
     // Navigate with fake/invalid token - use relative URL for container compatibility
     const fakeToken = 'invalid-token-12345';
-    await page.goto(`/events/${testEventId}/checkin?token=${fakeToken}&event=${testEventId}`);
+    await page.goto(`/events/${event.id}/checkin?token=${fakeToken}&event=${event.id}`);
     await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded, not networkidle
 
     // The page loads but API calls with invalid token will fail
@@ -117,18 +140,34 @@ test.describe('Check-In Token Validation', () => {
         }
       });
       return { status: response.status };
-    }, { eventId: testEventId, token: fakeToken });
+    }, { eventId: event.id, token: fakeToken });
 
     // Verify 401 Unauthorized response
     expect(apiResponse.status).toBe(401);
   });
 
-  test('Missing token shows error message', async ({ page }) => {
+  test('Missing token shows error message', async ({ page, df }) => {
+    // Create test event with session
+    const event = await df.events.createPublished(`Missing Token Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Check-in Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Clear cookies
     await page.context().clearCookies();
 
     // Navigate to check-in URL without token parameter
-    await page.goto(`/events/${testEventId}/checkin`);
+    await page.goto(`/events/${event.id}/checkin`);
     await page.waitForLoadState('domcontentloaded');
 
     // Verify "Invalid Check-In Link" or similar error
@@ -140,13 +179,29 @@ test.describe('Check-In Token Validation', () => {
     await expect(checkInButton).not.toBeVisible();
   });
 
-  test('Token for wrong event returns error', async ({ page, browser }) => {
+  test('Token for wrong event returns error', async ({ page, browser, df }) => {
+    // Create test event with session
+    const event = await df.events.createPublished(`Wrong Event Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Check-in Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Generate token for event A
     const adminContext = await browser.newContext();
     const adminPage = await adminContext.newPage();
 
     await loginAsAdmin(adminPage);
-    const sessionToken = await generateSessionToken(adminPage, testEventId);
+    const sessionToken = await generateSessionToken(adminPage, event.id);
 
     await adminContext.close();
 
@@ -175,13 +230,29 @@ test.describe('Check-In Token Validation', () => {
     expect(apiResponse.status).toBe(400);
   });
 
-  test('Revoked token cannot be used', async ({ page, browser }) => {
+  test('Revoked token cannot be used', async ({ page, browser, df }) => {
+    // Create test event with session
+    const event = await df.events.createPublished(`Revoked Token Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Check-in Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Step 1: Generate token
     const adminContext = await browser.newContext();
     const adminPage = await adminContext.newPage();
 
     await loginAsAdmin(adminPage);
-    const sessionToken = await generateSessionToken(adminPage, testEventId);
+    const sessionToken = await generateSessionToken(adminPage, event.id);
 
     // Step 2: Try to revoke token - API may not support this yet
     let revokeSucceeded = false;
@@ -213,19 +284,35 @@ test.describe('Check-In Token Validation', () => {
         }
       });
       return { status: response.status };
-    }, { eventId: testEventId, token: sessionToken });
+    }, { eventId: event.id, token: sessionToken });
 
     // Verify 401 Unauthorized (token revoked)
     expect(apiResponse.status).toBe(401);
   });
 
-  test('No authentication required for valid token', async ({ page, browser }) => {
+  test('No authentication required for valid token', async ({ page, browser, df }) => {
+    // Create test event with session
+    const event = await df.events.createPublished(`No Auth Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Check-in Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Step 1: Generate token
     const adminContext = await browser.newContext();
     const adminPage = await adminContext.newPage();
 
     await loginAsAdmin(adminPage);
-    const sessionToken = await generateSessionToken(adminPage, testEventId);
+    const sessionToken = await generateSessionToken(adminPage, event.id);
 
     await adminContext.close();
 
@@ -233,7 +320,7 @@ test.describe('Check-In Token Validation', () => {
     await page.context().clearCookies();
 
     // Navigate with token
-    await navigateToCheckIn(page, testEventId, sessionToken);
+    await navigateToCheckIn(page, event.id, sessionToken);
 
     // Step 3: Verify check-in interface loads (look for event title or attendee table)
     const eventTitle = page.locator('h1, h2, [class*="title"]').filter({ hasText: /.+/ }).first();
@@ -241,7 +328,7 @@ test.describe('Check-In Token Validation', () => {
 
     // Verify we're on the check-in page (not redirected)
     const currentUrl = page.url();
-    expect(currentUrl).toContain(`/events/${testEventId}/checkin`);
+    expect(currentUrl).toContain(`/events/${event.id}/checkin`);
 
     // Step 4: Verify NO user profile/auth UI elements visible
     const userProfileMenu = page.locator('[data-testid="user-menu"], [data-testid="user-profile"]');
@@ -251,17 +338,33 @@ test.describe('Check-In Token Validation', () => {
     await expect(logoutButton).not.toBeVisible();
 
     // Step 5: Verify API calls work with token (no auth cookie)
-    const attendeesData = await getAttendees(page, testEventId, sessionToken);
+    const attendeesData = await getAttendees(page, event.id, sessionToken);
     expect(attendeesData).toBeTruthy();
   });
 
-  test('Expired token shows error message', async ({ page, browser }) => {
+  test('Expired token shows error message', async ({ page, browser, df }) => {
+    // Create test event with session
+    const event = await df.events.createPublished(`Expired Token Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setDate(sessionStart.getDate() + 7);
+    sessionStart.setHours(18, 0, 0, 0);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Check-in Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
     // Generate token with very short expiration (0.001 hours = 3.6 seconds)
     const adminContext = await browser.newContext();
     const adminPage = await adminContext.newPage();
 
     await loginAsAdmin(adminPage);
-    const sessionToken = await generateSessionToken(adminPage, testEventId, 0.001);
+    const sessionToken = await generateSessionToken(adminPage, event.id, 0.001);
 
     await adminContext.close();
 
@@ -283,7 +386,7 @@ test.describe('Check-In Token Validation', () => {
         }
       });
       return { status: response.status };
-    }, { eventId: testEventId, token: sessionToken });
+    }, { eventId: event.id, token: sessionToken });
 
     // Verify 401 Unauthorized (token expired)
     expect(apiResponse.status).toBe(401);

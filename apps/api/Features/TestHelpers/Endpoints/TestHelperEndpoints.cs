@@ -175,5 +175,285 @@ public static class TestHelperEndpoints
             .WithDescription("Returns 200 if test helper endpoints are enabled (Development/Test only)")
             .WithTags("Testing", "TestHelpers")
             .Produces<object>(200);
+
+        // ====================================================================
+        // EVENT ENDPOINTS
+        // ====================================================================
+
+        // Create test event endpoint
+        app.MapPost("/api/test-helpers/events", async (
+            CreateTestEventRequest request,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, data, error) = await testHelperService.CreateTestEventAsync(request, cancellationToken);
+
+                if (success && data != null)
+                {
+                    return Results.Created($"/api/test-helpers/events/{data.Id}", data);
+                }
+
+                return Results.Problem(
+                    title: "Failed to create test event",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("CreateTestEvent")
+            .WithSummary("Create test event for E2E testing")
+            .WithDescription("Programmatically create an event with specific properties for testing. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces<object>(201)
+            .Produces<object>(400);
+
+        // Delete test event endpoint
+        app.MapDelete("/api/test-helpers/events/{eventId:guid}", async (
+            Guid eventId,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await testHelperService.DeleteTestEventAsync(eventId, cancellationToken);
+
+                if (success)
+                {
+                    return Results.NoContent();
+                }
+
+                return Results.Problem(
+                    title: "Failed to delete test event",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("DeleteTestEvent")
+            .WithSummary("Delete test event for cleanup")
+            .WithDescription("Delete a test event by ID. Also deletes related sessions and ticket types. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces(204)
+            .Produces<object>(400);
+
+        // ====================================================================
+        // SESSION ENDPOINTS
+        // ====================================================================
+
+        // Create test session endpoint
+        app.MapPost("/api/test-helpers/sessions", async (
+            CreateTestSessionRequest request,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, data, error) = await testHelperService.CreateTestSessionAsync(request, cancellationToken);
+
+                if (success && data != null)
+                {
+                    return Results.Created($"/api/test-helpers/sessions/{data.Id}", data);
+                }
+
+                return Results.Problem(
+                    title: "Failed to create test session",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("CreateTestSession")
+            .WithSummary("Create test session for E2E testing")
+            .WithDescription("Programmatically create a session with specific properties for testing. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces<object>(201)
+            .Produces<object>(400);
+
+        // Delete test session endpoint
+        app.MapDelete("/api/test-helpers/sessions/{sessionId:guid}", async (
+            Guid sessionId,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await testHelperService.DeleteTestSessionAsync(sessionId, cancellationToken);
+
+                if (success)
+                {
+                    return Results.NoContent();
+                }
+
+                return Results.Problem(
+                    title: "Failed to delete test session",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("DeleteTestSession")
+            .WithSummary("Delete test session for cleanup")
+            .WithDescription("Delete a test session by ID. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces(204)
+            .Produces<object>(400);
+
+        // ====================================================================
+        // TICKET TYPE ENDPOINTS
+        // ====================================================================
+
+        // Create test ticket type endpoint
+        app.MapPost("/api/test-helpers/ticket-types", async (
+            CreateTestTicketTypeRequest request,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, data, error) = await testHelperService.CreateTestTicketTypeAsync(request, cancellationToken);
+
+                if (success && data != null)
+                {
+                    return Results.Created($"/api/test-helpers/ticket-types/{data.Id}", data);
+                }
+
+                return Results.Problem(
+                    title: "Failed to create test ticket type",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("CreateTestTicketType")
+            .WithSummary("Create test ticket type for E2E testing")
+            .WithDescription("Programmatically create a ticket type with specific properties for testing. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces<object>(201)
+            .Produces<object>(400);
+
+        // Delete test ticket type endpoint
+        app.MapDelete("/api/test-helpers/ticket-types/{ticketTypeId:guid}", async (
+            Guid ticketTypeId,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await testHelperService.DeleteTestTicketTypeAsync(ticketTypeId, cancellationToken);
+
+                if (success)
+                {
+                    return Results.NoContent();
+                }
+
+                return Results.Problem(
+                    title: "Failed to delete test ticket type",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("DeleteTestTicketType")
+            .WithSummary("Delete test ticket type for cleanup")
+            .WithDescription("Delete a test ticket type by ID. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces(204)
+            .Produces<object>(400);
+
+        // ====================================================================
+        // VOLUNTEER POSITION ENDPOINTS
+        // ====================================================================
+
+        // Create test volunteer position endpoint
+        app.MapPost("/api/test-helpers/volunteer-positions", async (
+            CreateTestVolunteerPositionRequest request,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, data, error) = await testHelperService.CreateTestVolunteerPositionAsync(request, cancellationToken);
+
+                if (success && data != null)
+                {
+                    return Results.Created($"/api/test-helpers/volunteer-positions/{data.Id}", data);
+                }
+
+                return Results.Problem(
+                    title: "Failed to create test volunteer position",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("CreateTestVolunteerPosition")
+            .WithSummary("Create test volunteer position for E2E testing")
+            .WithDescription("Programmatically create a volunteer position with specific properties for testing. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces<object>(201)
+            .Produces<object>(400);
+
+        // Delete test volunteer position endpoint
+        app.MapDelete("/api/test-helpers/volunteer-positions/{positionId:guid}", async (
+            Guid positionId,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await testHelperService.DeleteTestVolunteerPositionAsync(positionId, cancellationToken);
+
+                if (success)
+                {
+                    return Results.NoContent();
+                }
+
+                return Results.Problem(
+                    title: "Failed to delete test volunteer position",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("DeleteTestVolunteerPosition")
+            .WithSummary("Delete test volunteer position for cleanup")
+            .WithDescription("Delete a test volunteer position by ID. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces(204)
+            .Produces<object>(400);
+
+        // ====================================================================
+        // VETTING APPLICATION ENDPOINTS
+        // ====================================================================
+
+        // Create test vetting application endpoint
+        app.MapPost("/api/test-helpers/vetting-applications", async (
+            CreateTestVettingApplicationRequest request,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, data, error) = await testHelperService.CreateTestVettingApplicationAsync(request, cancellationToken);
+
+                if (success && data != null)
+                {
+                    return Results.Created($"/api/test-helpers/vetting-applications/{data.Id}", data);
+                }
+
+                return Results.Problem(
+                    title: "Failed to create test vetting application",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("CreateTestVettingApplication")
+            .WithSummary("Create test vetting application for E2E testing")
+            .WithDescription("Programmatically create a vetting application with specific properties for testing. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces<object>(201)
+            .Produces<object>(400);
+
+        // Delete test vetting application endpoint
+        app.MapDelete("/api/test-helpers/vetting-applications/{applicationId:guid}", async (
+            Guid applicationId,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await testHelperService.DeleteTestVettingApplicationAsync(applicationId, cancellationToken);
+
+                if (success)
+                {
+                    return Results.NoContent();
+                }
+
+                return Results.Problem(
+                    title: "Failed to delete test vetting application",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("DeleteTestVettingApplication")
+            .WithSummary("Delete test vetting application for cleanup")
+            .WithDescription("Delete a test vetting application by ID. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces(204)
+            .Produces<object>(400);
     }
 }

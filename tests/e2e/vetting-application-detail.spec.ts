@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
@@ -8,50 +9,31 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * Based on test plan: /docs/functional-areas/vetting-system/new-work/2025-10-04-complete-vetting-workflow/testing/test-plan.md
  *
  * CRITICAL: All tests run against Docker on port 5173 ONLY
+ * USES: DataFactory pattern for test data creation
  */
 
 test.describe('Admin Vetting Application Detail', () => {
-  let page: Page;
-
-  test.beforeEach(async ({ browser }) => {
-    page = await browser.newPage();
-    await AuthHelpers.clearAuthState(page);
-  });
-
-  test.afterEach(async () => {
-    await page.close();
-  });
-
-  /**
-   * Helper to navigate to first available application detail
-   */
-  async function navigateToFirstApplication() {
-    await AuthHelpers.loginAs(page, 'admin');
-    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('table, [data-testid="vetting-grid"]').last()).toBeVisible();
-
-    const firstRow = page.locator('table tbody tr, [data-testid="application-row"]').last();
-    const viewButton = firstRow.locator('[data-testid="view-button"], button').filter({ hasText: /view|details/i }).last();
-
-    if (await viewButton.count() > 0) {
-      await viewButton.click();
-    } else {
-      await firstRow.click();
-    }
-
-    await page.waitForURL(/\/admin\/vetting\/applications\/[a-f0-9-]+/i, { timeout: 5000 });
-  }
 
   /**
    * TEST 1: Admin can view application details
    * Validates: Detail page rendering, data display, field visibility
    */
-  test('admin can view application details', async () => {
-    // Arrange & Act
-    await navigateToFirstApplication();
+  test('admin can view application details', async ({ page, df }) => {
+    // Arrange - Create a vetting application to view
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `view-detail-${timestamp}@example.com`,
+      firstName: 'TestFirst',
+      lastName: 'TestLast',
+    });
+
+    const vettingApp = await df.vetting.createPending(user.id);
+
+    // Act - Login and navigate directly to the application
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto(`/admin/vetting/applications/${vettingApp.id}`, { waitUntil: 'domcontentloaded' });
 
     // Assert - Verify detail page has loaded using data-testid
-    // The page has: data-testid="application-title" for the scene name header
     const applicationTitle = page.locator('[data-testid="application-title"]');
     await expect(applicationTitle).toBeVisible({ timeout: 10000 });
     console.log('✅ Application title visible');
@@ -87,173 +69,204 @@ test.describe('Admin Vetting Application Detail', () => {
     }
 
     // Take screenshot
-    await page.screenshot({ path: 'test-results/application-detail.png', fullPage: true });
+    await page.screenshot({ path: './test-results/application-detail.png', fullPage: true });
   });
 
   /**
    * TEST 2: Admin can approve application with reasoning
-   * Validates: Approve modal, form submission, status update
+   * Validates: Skip to Approved action, status update
    */
-  test('admin can approve application with reasoning', async () => {
-    // Arrange
-    await navigateToFirstApplication();
+  test('admin can skip to approved', async ({ page, df }) => {
+    // Arrange - Create a vetting application in Pending status
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `skip-approved-${timestamp}@example.com`,
+      firstName: 'SkipTest',
+      lastName: 'User',
+    });
 
-    // Act - Click approve button
-    const approveButton = page.locator('button, [data-testid="approve-button"]').filter({ hasText: /approve/i }).first();
+    const vettingApp = await df.vetting.createPending(user.id);
 
-    if (await approveButton.count() > 0) {
-      await approveButton.click();
+    // Act - Navigate to application detail
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto(`/admin/vetting/applications/${vettingApp.id}`, { waitUntil: 'domcontentloaded' });
 
-      // Wait for modal to appear
-      const modal = page.locator('[role="dialog"], .modal, [data-testid="approve-modal"]');
-      await expect(modal).toBeVisible({ timeout: 2000 });
+    // Wait for page to load
+    await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
 
-      // Fill optional notes
-      const notesInput = modal.locator('textarea, [data-testid="notes-input"]').first();
-      if (await notesInput.count() > 0) {
-        await notesInput.fill('Interview completed successfully. Applicant demonstrates strong knowledge.');
-      }
+    // Click Skip to Approved button
+    const skipButton = page.locator('[data-testid="skip-to-approved-button"]');
+    await expect(skipButton).toBeVisible({ timeout: 5000 });
+    await skipButton.click();
 
-      // Submit approval
-      const submitButton = modal.locator('button').filter({ hasText: /approve|confirm|submit/i }).first();
-      await submitButton.click();
-
-      // Assert - Verify success
-      // Modal should close
-      await expect(modal).not.toBeVisible({ timeout: 3000 });
-
-      // Success notification should appear
-      const successToast = page.locator('[data-testid="success-toast"], .notification, .toast').filter({ hasText: /success|approved/i });
-      if (await successToast.count() > 0) {
-        await expect(successToast).toBeVisible();
-      }
-
-      // Status badge should update to "Approved"
-      // Updated to use the actual data-testid from implementation
-      const statusBadge = page.locator('[data-testid="application-status-badge"]').filter({ hasText: /approved/i });
-      await expect(statusBadge).toBeVisible({ timeout: 3000 });
-    } else {
-      console.log('Approve button not found - application may not be in correct status');
+    // Assert - Verify success
+    // Success notification should appear (Mantine notifications)
+    const successNotification = page.locator('.mantine-Notification-title').filter({ hasText: /approved/i });
+    if (await successNotification.count() > 0) {
+      await expect(successNotification).toBeVisible({ timeout: 10000 });
     }
+
+    // Status badge should update to "Approved"
+    const statusBadge = page.locator('[data-testid="status-badge"]').filter({ hasText: /approved/i });
+    await expect(statusBadge).toBeVisible({ timeout: 5000 });
   });
 
   /**
    * TEST 3: Admin can deny application with reasoning
    * Validates: Deny modal, required notes validation, status update
    */
-  test('admin can deny application with reasoning', async () => {
-    // Arrange
-    await navigateToFirstApplication();
+  test('admin can deny application with reasoning', async ({ page, df }) => {
+    // Arrange - Create a vetting application
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `deny-test-${timestamp}@example.com`,
+      firstName: 'DenyTest',
+      lastName: 'User',
+    });
 
-    // Act - Click deny button
-    const denyButton = page.locator('button, [data-testid="deny-button"]').filter({ hasText: /deny|reject/i }).first();
+    const vettingApp = await df.vetting.createPending(user.id);
 
-    if (await denyButton.count() > 0) {
-      await denyButton.click();
+    // Act - Navigate to application detail
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto(`/admin/vetting/applications/${vettingApp.id}`, { waitUntil: 'domcontentloaded' });
 
-      // Wait for modal
-      const modal = page.locator('[role="dialog"], .modal, [data-testid="deny-modal"]');
-      await expect(modal).toBeVisible({ timeout: 2000 });
+    // Wait for detail page to fully load
+    await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
 
-      // Fill required reason
-      const reasonInput = modal.locator('textarea, [data-testid="reason-input"], [data-testid="notes-input"]').first();
-      await reasonInput.fill('Application does not meet safety requirements. Insufficient experience demonstrated.');
+    // Click Deny button
+    const denyButton = page.locator('[data-testid="deny-application-button"]');
+    await expect(denyButton).toBeVisible({ timeout: 5000 });
+    await denyButton.click();
 
-      // Submit denial
-      const submitButton = modal.locator('button').filter({ hasText: /deny|confirm|submit/i }).first();
-      await submitButton.click();
+    // Wait for modal to open
+    await page.waitForTimeout(500);
 
-      // Assert - Verify success
-      await expect(modal).not.toBeVisible({ timeout: 3000 });
+    // Assert - Modal opens
+    const modal = page.locator('[data-testid="deny-application-modal"]');
+    await expect(modal).toBeVisible({ timeout: 5000 });
 
-      // Status should update to "Denied"
-      // Updated to use the actual data-testid from implementation
-      const statusBadge = page.locator('[data-testid="application-status-badge"]').filter({ hasText: /denied/i });
-      await expect(statusBadge).toBeVisible({ timeout: 3000 });
-    } else {
-      console.log('Deny button not found - application may not be in correct status');
+    // Fill required reason
+    const reasonInput = page.locator('[data-testid="deny-reason-textarea"]');
+    await expect(reasonInput).toBeVisible({ timeout: 5000 });
+    await reasonInput.fill('Application does not meet safety requirements. Insufficient experience demonstrated.');
+
+    // Screenshot modal
+    await page.screenshot({
+      path: './test-results/vetting-deny-modal.png',
+      fullPage: true
+    });
+
+    // Submit denial
+    const submitButton = page.locator('[data-testid="deny-submit-button"]');
+    await expect(submitButton).toBeVisible({ timeout: 3000 });
+    await submitButton.click();
+
+    // Wait for modal to close
+    await page.waitForTimeout(2000);
+
+    // Assert - Verify success
+    const modalStillVisible = await modal.isVisible().catch(() => false);
+    if (!modalStillVisible) {
+      console.log('✅ Deny modal closed - action completed');
     }
+
+    // Status should update to "Denied"
+    const statusBadge = page.locator('[data-testid="status-badge"]').filter({ hasText: /denied/i });
+    await expect(statusBadge).toBeVisible({ timeout: 5000 });
   });
 
   /**
    * TEST 4: Admin can put application on hold with reasoning
    * Validates: OnHold modal, required fields, status update
    */
-  test('admin can put application on hold with reasoning', async () => {
-    // Arrange
-    await navigateToFirstApplication();
+  test('admin can put application on hold with reasoning', async ({ page, df }) => {
+    // Arrange - Create a vetting application
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `hold-test-${timestamp}@example.com`,
+      firstName: 'HoldTest',
+      lastName: 'User',
+    });
 
-    // Act - Click put on hold button
-    const holdButton = page.locator('button, [data-testid="hold-button"]').filter({ hasText: /hold|pause/i }).last();
+    const vettingApp = await df.vetting.createPending(user.id);
 
-    if (await holdButton.count() > 0) {
-      await holdButton.click();
+    // Act - Navigate to application detail
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto(`/admin/vetting/applications/${vettingApp.id}`, { waitUntil: 'domcontentloaded' });
 
-      // Wait for modal
-      const modal = page.locator('[role="dialog"], .modal, [data-testid="hold-modal"]').last();
-      await expect(modal).toBeVisible({ timeout: 5000 });
+    // Wait for page to load
+    await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
 
-      // Fill reason
-      const reasonInput = modal.locator('textarea, input, [data-testid="reason-input"]').filter({ hasText: /reason/i }).last();
-      if (await reasonInput.count() === 0) {
-        // Try generic textarea
-        await modal.locator('textarea').last().fill('Missing required references');
-      } else {
-        await reasonInput.fill('Missing required references');
-      }
+    // Click On Hold button
+    const holdButton = page.locator('[data-testid="hold-button"]');
+    await expect(holdButton).toBeVisible({ timeout: 5000 });
+    await holdButton.click();
 
-      // Fill required actions
-      const actionsInput = modal.locator('textarea, input').filter({ hasText: /action|required/i }).last();
-      if (await actionsInput.count() === 0) {
-        // Try second textarea if exists
-        const textareas = modal.locator('textarea');
-        if (await textareas.count() > 1) {
-          await textareas.nth(1).fill('Please submit 2 references from community members');
-        }
-      } else {
-        await actionsInput.fill('Please submit 2 references from community members');
-      }
+    // Wait for modal animation
+    await page.waitForTimeout(1000);
 
-      // Submit
-      const submitButton = modal.locator('button').filter({ hasText: /hold|submit|confirm/i }).last();
-      await submitButton.click();
+    // Assert - Modal opens - look for modal content
+    const modalContent = page.locator('text=/put.*on hold/i, text=/reason.*hold/i').first();
+    await expect(modalContent).toBeVisible({ timeout: 10000 });
 
-      // Assert - Verify success
-      await expect(modal).not.toBeVisible({ timeout: 5000 });
+    // Verify reason field exists
+    const reasonField = page.locator('[data-testid="on-hold-reason-textarea"]')
+      .or(page.locator('textarea'))
+      .first();
+    await expect(reasonField).toBeVisible();
 
-      // Status should update to "OnHold"
-      // Use correct data-testid from VettingApplicationDetail.tsx (line 311)
-      const statusBadge = page.locator('[data-testid="status-badge"]').filter({ hasText: /hold/i });
-      const statusBadgeVisible = await statusBadge.isVisible({ timeout: 5000 }).catch(() => false);
+    // Fill reason
+    const testReason = 'Missing required references';
+    await reasonField.fill(testReason);
 
-      if (statusBadgeVisible) {
-        console.log('✅ Status badge shows "On Hold"');
-      } else {
-        // Also check page text for "On Hold" status
-        const pageText = await page.textContent('body');
-        const hasOnHoldText = pageText?.includes('On Hold') || pageText?.includes('OnHold');
-        console.log(`Status badge visibility: ${statusBadgeVisible}, Page contains OnHold: ${hasOnHoldText}`);
+    // Screenshot modal
+    await page.screenshot({
+      path: './test-results/vetting-on-hold-modal.png',
+      fullPage: true
+    });
 
-        if (hasOnHoldText) {
-          console.log('✅ Application status shows On Hold in page content');
-        } else {
-          console.log('⚠️ Could not verify On Hold status - hold action may not have completed');
-        }
-      }
-    } else {
-      console.log('Hold button not found - application may not be in correct status');
-    }
+    // Submit
+    const submitButton = page.locator('[data-testid="on-hold-submit-button"]')
+      .or(page.locator('button').filter({ hasText: /put on hold/i }))
+      .first();
+    await submitButton.click();
+
+    // Assert - Success notification
+    const notification = page.locator('[class*="mantine-Notification"]').filter({
+      hasText: /on hold/i
+    });
+    await expect(notification).toBeVisible({ timeout: 10000 });
+
+    // Modal should close
+    const modal = page.locator('[role="dialog"]').first();
+    await expect(modal).not.toBeVisible({ timeout: 5000 });
+
+    console.log('✅ Application put on hold - email notification sent with reason');
   });
 
   /**
    * TEST 5: Admin can add notes to application
    * Validates: Notes section, add note functionality, note persistence
    */
-  test('admin can add notes to application', async () => {
-    // Arrange
-    await navigateToFirstApplication();
+  test('admin can add notes to application', async ({ page, df }) => {
+    // Arrange - Create a vetting application
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `notes-test-${timestamp}@example.com`,
+      firstName: 'NotesTest',
+      lastName: 'User',
+    });
 
-    // Act - Find notes section
+    const vettingApp = await df.vetting.createPending(user.id);
+
+    // Act - Navigate to application detail
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto(`/admin/vetting/applications/${vettingApp.id}`, { waitUntil: 'domcontentloaded' });
+
+    // Wait for page to load
+    await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
+
+    // Find notes section
     const notesSection = page.locator('[data-testid="notes-section"], section').filter({ hasText: /notes|comments/i });
 
     if (await notesSection.count() > 0) {
@@ -291,11 +304,25 @@ test.describe('Admin Vetting Application Detail', () => {
    * TEST 6: Admin can view audit log history
    * Validates: Audit log section, history display, chronological order
    */
-  test('admin can view audit log history', async () => {
-    // Arrange
-    await navigateToFirstApplication();
+  test('admin can view audit log history', async ({ page, df }) => {
+    // Arrange - Create a vetting application
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `audit-test-${timestamp}@example.com`,
+      firstName: 'AuditTest',
+      lastName: 'User',
+    });
 
-    // Act - Scroll to find audit log section
+    const vettingApp = await df.vetting.createPending(user.id);
+
+    // Act - Navigate to application detail
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto(`/admin/vetting/applications/${vettingApp.id}`, { waitUntil: 'domcontentloaded' });
+
+    // Wait for page to load
+    await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
+
+    // Scroll to find audit log section
     const auditSection = page.locator('[data-testid="audit-log"], [data-testid="history"], section').filter({
       hasText: /audit|history|activity/i
     });
@@ -327,50 +354,88 @@ test.describe('Admin Vetting Application Detail', () => {
   });
 
   /**
-   * TEST 7: Role is granted after approval
-   * Validates: Post-approval verification, role update (requires API or separate test)
-   * Note: This is best validated through integration tests, but we can check UI indicators
+   * TEST 7: Approved application shows vetted member status
+   * Validates: Post-approval verification, role update
    */
-  test('approved application shows vetted member status', async () => {
-    // Arrange - Navigate to an approved application
-    await AuthHelpers.loginAs(page, 'admin');
-    await page.goto('/admin/vetting');
-    await expect(page.locator('table, [data-testid="vetting-grid"]')).toBeVisible();
+  test('approved application shows vetted member status', async ({ page, df }) => {
+    // Arrange - Create an approved vetting application
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `approved-test-${timestamp}@example.com`,
+      firstName: 'ApprovedTest',
+      lastName: 'User',
+    });
 
-    // Find an approved application
-    const approvedRow = page.locator('table tbody tr, [data-testid="application-row"]')
-      .filter({ has: page.locator('text=/approved/i') })
+    const vettingApp = await df.vetting.createApproved(user.id);
+
+    // Act - Navigate to approved application
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto(`/admin/vetting/applications/${vettingApp.id}`, { waitUntil: 'domcontentloaded' });
+
+    // Wait for page to load
+    await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
+
+    // Assert - Verify approved status is displayed
+    const statusBadge = page.locator('[data-testid="status-badge"]').filter({ hasText: /approved/i });
+    await expect(statusBadge).toBeVisible();
+
+    // Look for role indicator if displayed
+    const roleIndicator = page.locator('text=/vetted.*member|member.*role/i');
+    if (await roleIndicator.count() > 0) {
+      await expect(roleIndicator).toBeVisible();
+    }
+
+    // Verify approval timestamp exists
+    const approvalDate = page.locator('text=/approved.*on|decision.*made|approved.*date/i');
+    if (await approvalDate.count() > 0) {
+      await expect(approvalDate).toBeVisible();
+    }
+  });
+
+  /**
+   * TEST 8: Admin can advance application to interview stage
+   * Validates: Advance Stage button, status progression
+   */
+  test('admin can advance application to interview stage', async ({ page, df }) => {
+    // Arrange - Create a vetting application in InReview status
+    const timestamp = Date.now();
+    const user = await df.users.createVerified({
+      email: `advance-test-${timestamp}@example.com`,
+      firstName: 'AdvanceTest',
+      lastName: 'User',
+    });
+
+    const vettingApp = await df.vetting.createWithStatus(user.id, 'InReview');
+
+    // Act - Navigate to application detail
+    await AuthHelpers.loginAs(page, 'admin');
+    await page.goto(`/admin/vetting/applications/${vettingApp.id}`, { waitUntil: 'domcontentloaded' });
+
+    // Wait for page to load
+    await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
+
+    // Click Advance Stage button (should show "Approve for Interview" for InReview status)
+    const advanceButton = page.locator('[data-testid="advance-stage-button"]');
+    await expect(advanceButton).toBeVisible({ timeout: 5000 });
+    await advanceButton.click();
+
+    // Assert - Verify success
+    // Success notification should appear
+    const notification = page.locator('[class*="mantine-Notification"]').filter({
+      hasText: /approved|interview/i
+    });
+    await expect(notification).toBeVisible({ timeout: 10000 });
+
+    // Status badge should update
+    const statusBadge = page.locator('[data-testid="status-badge"]')
+      .or(page.locator('.badge, .mantine-Badge-root').filter({ hasText: /interview/i }))
       .first();
 
-    if (await approvedRow.count() > 0) {
-      // Click to view details
-      const viewButton = approvedRow.locator('button').filter({ hasText: /view|details/i }).first();
-      if (await viewButton.count() > 0) {
-        await viewButton.click();
-      } else {
-        await approvedRow.click();
-      }
-
-      await page.waitForURL(/\/admin\/vetting\/applications\/[a-f0-9-]+/i, { timeout: 5000 });
-
-      // Assert - Verify approved status is displayed
-      // Updated to use the actual data-testid from implementation
-      const statusBadge = page.locator('[data-testid="application-status-badge"]').filter({ hasText: /approved/i });
+    if (await statusBadge.count() > 0) {
       await expect(statusBadge).toBeVisible();
-
-      // Look for role indicator if displayed
-      const roleIndicator = page.locator('text=/vetted.*member|member.*role/i');
-      if (await roleIndicator.count() > 0) {
-        await expect(roleIndicator).toBeVisible();
-      }
-
-      // Verify approval timestamp exists
-      const approvalDate = page.locator('text=/approved.*on|decision.*made|approved.*date/i');
-      if (await approvalDate.count() > 0) {
-        await expect(approvalDate).toBeVisible();
-      }
-    } else {
-      console.log('No approved applications found - create test data with approved status');
+      console.log('✅ Status badge updated after approval');
     }
+
+    console.log('✅ Application advanced to interview stage');
   });
 });

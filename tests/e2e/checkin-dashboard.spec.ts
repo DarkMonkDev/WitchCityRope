@@ -22,13 +22,16 @@
  *
  * Routes:
  * - Dashboard: /events/{eventId}/checkin/dashboard?token={token}&event={eventId}
+ *
+ * MIGRATION NOTE: Uses DataFactory for test data creation, but keeps token generation logic
+ * as it's specific to check-in workflow and not general test data.
  */
 
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import {
   loginAsAdmin,
   generateSessionToken,
-  getTestEventId,
   navigateToCheckIn,
   navigateToCheckInDashboard
 } from './checkin/helpers/tokenHelpers';
@@ -39,29 +42,35 @@ import {
 test.describe('Check-In Dashboard', () => {
   // Dashboard is at /events/{eventId}/checkin/dashboard
   // Uses kiosk mode with session tokens (NO user authentication required)
-  let testEventId: string;
-  let sessionToken: string;
 
-  test.beforeAll(async ({ browser }) => {
-    // Admin context for token generation
+  test('Dashboard displays correct statistics', async ({ page, df, browser }) => {
+    // Create test data using DataFactory
+    const event = await df.events.createPublished(`Dashboard Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() + 2);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    // Generate session token for check-in
     const adminContext = await browser.newContext();
     const adminPage = await adminContext.newPage();
-
     await loginAsAdmin(adminPage);
-    testEventId = await getTestEventId(adminPage);
-    sessionToken = await generateSessionToken(adminPage, testEventId);
-
+    const sessionToken = await generateSessionToken(adminPage, event.id, session.id, 24);
     await adminContext.close();
-  });
 
-  test.beforeEach(async ({ page }) => {
     // NO login - clear cookies to simulate kiosk mode
     await page.context().clearCookies();
-  });
 
-  test('Dashboard displays correct statistics', async ({ page }) => {
     // Navigate to check-in dashboard with token
-    await navigateToCheckInDashboard(page, testEventId, sessionToken);
+    await navigateToCheckInDashboard(page, event.id, sessionToken);
     await page.waitForLoadState('domcontentloaded');
 
     // Verify dashboard elements are visible
@@ -89,9 +98,34 @@ test.describe('Check-In Dashboard', () => {
     await expect(progressBar).toBeVisible({ timeout: 5000 });
   });
 
-  test('Dashboard shows event information', async ({ page }) => {
+  test('Dashboard shows event information', async ({ page, df, browser }) => {
+    // Create test data using DataFactory
+    const event = await df.events.createPublished(`Event Info Test ${Date.now()}`);
+
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() + 2);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    // Generate session token for check-in
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+    await loginAsAdmin(adminPage);
+    const sessionToken = await generateSessionToken(adminPage, event.id, session.id, 24);
+    await adminContext.close();
+
+    // NO login - clear cookies to simulate kiosk mode
+    await page.context().clearCookies();
+
     // Navigate to dashboard with token
-    await navigateToCheckInDashboard(page, testEventId, sessionToken);
+    await navigateToCheckInDashboard(page, event.id, sessionToken);
     await page.waitForLoadState('domcontentloaded');
 
     // Event info card shows event title (line 143) and status badge (line 154-160)
@@ -107,9 +141,29 @@ test.describe('Check-In Dashboard', () => {
     await expect(eventDateTime).toBeVisible({ timeout: 5000 });
   });
 
-  test('Recent check-ins section displays', async ({ page }) => {
-    // Navigate to dashboard with token
-    await navigateToCheckInDashboard(page, testEventId, sessionToken);
+  test('Recent check-ins section displays', async ({ page, df, browser }) => {
+    // Create test data
+    const event = await df.events.createPublished(`Recent Checkins Test ${Date.now()}`);
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() + 2);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    // Generate token
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+    await loginAsAdmin(adminPage);
+    const sessionToken = await generateSessionToken(adminPage, event.id, session.id, 24);
+    await adminContext.close();
+
+    await page.context().clearCookies();
+    await navigateToCheckInDashboard(page, event.id, sessionToken);
     await page.waitForLoadState('domcontentloaded');
 
     // Look for "Recent Check-Ins" heading (CheckInDashboard.tsx line 199-201)
@@ -124,9 +178,29 @@ test.describe('Check-In Dashboard', () => {
     await expect(recentSection).toBeVisible({ timeout: 5000 });
   });
 
-  test('Sync status displays', async ({ page }) => {
-    // Navigate to dashboard with token
-    await navigateToCheckInDashboard(page, testEventId, sessionToken);
+  test('Sync status displays', async ({ page, df, browser }) => {
+    // Create test data
+    const event = await df.events.createPublished(`Sync Status Test ${Date.now()}`);
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() + 2);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    // Generate token
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+    await loginAsAdmin(adminPage);
+    const sessionToken = await generateSessionToken(adminPage, event.id, session.id, 24);
+    await adminContext.close();
+
+    await page.context().clearCookies();
+    await navigateToCheckInDashboard(page, event.id, sessionToken);
     await page.waitForLoadState('domcontentloaded');
 
     // SyncStatusCard displays "Online" or "Offline" text (line 267)
@@ -142,9 +216,31 @@ test.describe('Check-In Dashboard', () => {
     // No need to check specific icons as they're implementation details
   });
 
-  test('Dashboard navigation from check-in interface', async ({ page }) => {
+  test('Dashboard navigation from check-in interface', async ({ page, df, browser }) => {
+    // Create test data
+    const event = await df.events.createPublished(`Dashboard Nav Test ${Date.now()}`);
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() + 2);
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    });
+
+    // Generate token
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+    await loginAsAdmin(adminPage);
+    const sessionToken = await generateSessionToken(adminPage, event.id, session.id, 24);
+    await adminContext.close();
+
+    await page.context().clearCookies();
+
     // Navigate to check-in interface with token
-    await navigateToCheckIn(page, testEventId, sessionToken);
+    await navigateToCheckIn(page, event.id, sessionToken);
     await page.waitForLoadState('domcontentloaded');
 
     // Look for dashboard navigation button/link
@@ -155,7 +251,7 @@ test.describe('Check-In Dashboard', () => {
       await dashboardButton.click();
 
       // Verify navigation to dashboard
-      await page.waitForURL(`**/events/${testEventId}/checkin/dashboard`, { timeout: 10000 });
+      await page.waitForURL(`**/events/${event.id}/checkin/dashboard`, { timeout: 10000 });
       await page.waitForLoadState('domcontentloaded');
 
       // Verify dashboard loaded - CheckInDashboard shows "Event Dashboard" text (line 343)
@@ -163,7 +259,7 @@ test.describe('Check-In Dashboard', () => {
       await expect(dashboardHeading).toBeVisible({ timeout: 5000 });
     } else {
       // Dashboard button not found - may need direct URL navigation with token
-      await navigateToCheckInDashboard(page, testEventId, sessionToken);
+      await navigateToCheckInDashboard(page, event.id, sessionToken);
       await page.waitForLoadState('domcontentloaded');
 
       const dashboardHeading = page.getByText('Event Dashboard', { exact: false });
