@@ -82,7 +82,8 @@ export function convertEventFormDataToUpdateDto(
       slotsFilled: position.slotsFilled || 0,
       requiresExperience: (position as any).requiresExperience || false,
       requirements: (position as any).requirements || '',
-      sessionId: (position as any).sessionId
+      sessionId: (position as any).sessionId,
+      isPublicFacing: position.isPublicFacing ?? true // Default to public-facing
     }));
   }
 
@@ -262,7 +263,8 @@ export function getChangedEventFields(
       slotsFilled: position.slotsFilled || 0,
       requiresExperience: (position as any).requiresExperience || false,
       requirements: (position as any).requirements || '',
-      sessionId: (position as any).sessionId
+      sessionId: (position as any).sessionId,
+      isPublicFacing: position.isPublicFacing ?? true // Default to public-facing
     }));
   }
 

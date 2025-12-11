@@ -305,42 +305,55 @@ public class AttendanceService : IAttendanceService
             var canCancelTicket = ticketAttendance != null && hasAnyCancelableTicket;
 
             // Check if ticket purchase is allowed based on timing rules
-            // User must not have a ticket AND event must not be at capacity AND timing window must be open
+            // For multi-session events, use per-ticket-type session-based timing
+            // User CAN purchase tickets for different sessions even if they already have a ticket for other sessions
             bool canPurchaseTicket = false;
             string? ticketPurchaseMessage = null;
 
-            if (ticketAttendance == null && activeAttendancesCount < eventEntity.Capacity)
-            {
-                // Basic conditions met (no existing ticket, event has space)
-                // Now check timing window
-                bool isTimingAllowed = await _timeZoneService.IsActionAllowedAsync(
-                    eventEntity,
-                    EventActionType.GetTicket,
-                    cancellationToken);
+            // Get sessions user already owns (to exclude from purchase options)
+            var ownedSessionIds = userTicketAttendances.ToHashSet();
 
-                if (isTimingAllowed)
+            // Check each ticket type to see if ANY are purchasable
+            // A ticket type is purchasable if:
+            // 1. It has availability (Available > 0)
+            // 2. Its sessions are not all already owned by the user
+            // 3. The timing window is open (based on reference session)
+            foreach (var ticketType in eventEntity.TicketTypes)
+            {
+                if (ticketType.Available <= 0)
+                    continue; // No availability
+
+                // Check if user already owns ALL sessions in this ticket type
+                var ticketTypeSessionIds = ticketType.Sessions.Select(s => s.Id).ToHashSet();
+                if (ticketTypeSessionIds.Count > 0 && ticketTypeSessionIds.All(sid => ownedSessionIds.Contains(sid)))
+                    continue; // User already owns all sessions in this ticket type
+
+                // Check timing window using the reference session for this ticket type
+                var referenceSession = _timeZoneService.GetReferenceSessionForTicketType(
+                    ticketType,
+                    eventEntity.Sessions);
+
+                if (referenceSession != null)
                 {
-                    canPurchaseTicket = true;
-                    ticketPurchaseMessage = null; // No message needed when purchase is allowed
-                }
-                else
-                {
-                    canPurchaseTicket = false;
-                    // Generate helpful message based on timing state
-                    ticketPurchaseMessage = GetTicketPurchaseTimingMessage(eventEntity);
+                    var isTimingAllowed = _timeZoneService.IsActionAllowedForSession(
+                        referenceSession,
+                        eventEntity.RegistrationOpenHours,
+                        eventEntity.RegistrationCloseHours);
+
+                    if (isTimingAllowed)
+                    {
+                        canPurchaseTicket = true;
+                        ticketPurchaseMessage = null;
+                        break; // At least one ticket type is purchasable
+                    }
                 }
             }
-            else if (ticketAttendance != null)
+
+            // If no ticket types are purchasable, set appropriate message
+            if (!canPurchaseTicket && eventEntity.TicketTypes.Any(tt => tt.Available > 0))
             {
-                // User already has a ticket
-                canPurchaseTicket = false;
-                ticketPurchaseMessage = null; // No timing message needed
-            }
-            else
-            {
-                // Event is at capacity
-                canPurchaseTicket = false;
-                ticketPurchaseMessage = null; // Capacity issue, not timing
+                // There are ticket types with availability, but timing windows are closed
+                ticketPurchaseMessage = GetTicketPurchaseTimingMessage(eventEntity);
             }
 
             // Build enhanced DTO with nested structure
@@ -422,6 +435,7 @@ public class AttendanceService : IAttendanceService
 
                 // Calculate CanPurchaseAdditionalSessions:
                 // True if there are sessions user doesn't own AND there are purchasable ticket types for those sessions
+                // Uses session-based timing (not event-level timing)
                 var unownedSessionIds = eventEntity.Sessions
                     .Where(s => !userTicketAttendances.Contains(s.Id))
                     .Select(s => s.Id)
@@ -429,20 +443,33 @@ public class AttendanceService : IAttendanceService
 
                 if (unownedSessionIds.Any())
                 {
-                    // Check if any ticket types cover unowned sessions and have availability
-                    // Note: Using Available > 0 as a simple check; actual capacity is validated at purchase time
-                    var hasPurchasableTickets = eventEntity.TicketTypes.Any(tt =>
-                        tt.Sessions.Any(s => unownedSessionIds.Contains(s.Id)) &&
-                        tt.Available > 0);
-
-                    // Also check timing window
-                    if (hasPurchasableTickets)
+                    // Check each ticket type that covers unowned sessions
+                    foreach (var ticketType in eventEntity.TicketTypes)
                     {
-                        var isTimingAllowed = await _timeZoneService.IsActionAllowedAsync(
-                            eventEntity,
-                            EventActionType.GetTicket,
-                            cancellationToken);
-                        dto.CanPurchaseAdditionalSessions = isTimingAllowed;
+                        // Skip if no availability or doesn't cover any unowned sessions
+                        if (ticketType.Available <= 0)
+                            continue;
+                        if (!ticketType.Sessions.Any(s => unownedSessionIds.Contains(s.Id)))
+                            continue;
+
+                        // Check timing window using session-based timing
+                        var referenceSession = _timeZoneService.GetReferenceSessionForTicketType(
+                            ticketType,
+                            eventEntity.Sessions);
+
+                        if (referenceSession != null)
+                        {
+                            var isTimingAllowed = _timeZoneService.IsActionAllowedForSession(
+                                referenceSession,
+                                eventEntity.RegistrationOpenHours,
+                                eventEntity.RegistrationCloseHours);
+
+                            if (isTimingAllowed)
+                            {
+                                dto.CanPurchaseAdditionalSessions = true;
+                                break; // At least one ticket type is purchasable
+                            }
+                        }
                     }
                 }
             }
@@ -1378,8 +1405,10 @@ public class AttendanceService : IAttendanceService
             }
 
             // SECURITY: Verify all ticket purchases belong to this user
+            // IMPORTANT: Must include TicketType.Sessions for GetReferenceSessionForTicketType to work correctly
             var ticketPurchases = await _context.TicketPurchases
                 .Include(tp => tp.TicketType)
+                    .ThenInclude(tt => tt.Sessions)
                 .Where(tp => ticketPurchaseIds.Contains(tp.Id))
                 .ToListAsync(cancellationToken);
 
