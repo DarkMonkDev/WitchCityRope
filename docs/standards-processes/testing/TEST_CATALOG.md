@@ -1,9 +1,88 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-12-10 -->
-<!-- Version: 12.06.0 - DATAFACTORY MIGRATION: SESSION-BASED TICKET AVAILABILITY -->
+<!-- Last Updated: 2025-12-11 -->
+<!-- Version: 12.07.0 - NEW INTEGRATION TESTS: PER-TICKET CANCELLATION FLAGS -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
+
+## ✅ NEW INTEGRATION TESTS: PER-TICKET CANCELLATION FLAGS - December 11, 2025
+
+**CREATION DATE**: 2025-12-11
+**STATUS**: ✅ **INTEGRATION TESTS CREATED**
+**IMPACT**: 5 new comprehensive integration tests for per-ticket cancellation eligibility feature
+
+### Test File Created
+
+**File**: `/tests/integration/api/Features/Participation/AttendanceServiceCancellationTests.cs`
+**Tests**: 5 comprehensive integration tests
+**Status**: ✅ **CREATED** (not yet executed)
+**Coverage**: Per-ticket-purchase cancellation eligibility based on session timing
+**Feature Documentation**: `/docs/functional-areas/payments/new-work/2025-12-11-per-ticket-cancellation-flags/implementation-plan.md`
+
+### Test Coverage
+
+Tests verify `AttendanceService.GetParticipationStatusAsync` calculates per-purchase `CanCancel` flags correctly:
+
+1. **Multi-session event with mixed cancellation eligibility**
+   - Event with 2 sessions: Session A (12h away), Session B (3 days away)
+   - Cancellation window: 24 hours
+   - User has separate tickets for each session
+   - **Verify**: Session A ticket has `CanCancel = false` (within 24h window)
+   - **Verify**: Session B ticket has `CanCancel = true` (outside 24h window)
+   - **Verify**: Overall `CanCancelTicket = true` (at least one is cancelable)
+
+2. **All sessions far in future - all tickets cancelable**
+   - Both sessions > 3 days away
+   - **Verify**: Both tickets have `CanCancel = true`
+   - **Verify**: Overall `CanCancelTicket = true`
+
+3. **All sessions within cancellation window - no tickets cancelable**
+   - Both sessions < 24h away
+   - **Verify**: Both tickets have `CanCancel = false` with `CancellationMessage`
+   - **Verify**: Overall `CanCancelTicket = false`
+
+4. **Single-session event**
+   - Session 3 days away, 24h cancellation window
+   - **Verify**: Ticket has `CanCancel = true`
+
+5. **Session already passed**
+   - Session in the past
+   - **Verify**: Ticket has `CanCancel = false`
+   - **Verify**: `CancellationMessage = "All sessions for this ticket have passed"`
+
+### Key Features Tested
+
+- **Per-purchase cancellation calculation**: Each `TicketPurchaseInfoDto` has its own `CanCancel` flag
+- **Reference session timing**: Uses earliest session in ticket for timing calculations
+- **Overall cancellation flag**: `CanCancelTicket` is true if ANY purchase is cancelable
+- **Cancellation messages**: Appropriate messages when cancellation is blocked
+- **Real database integration**: Uses actual DbContext and AttendanceService with all dependencies
+
+### Test Infrastructure
+
+- **Base Class**: `IntegrationTestBase` with database fixture
+- **Dependencies**: Creates all required services (TimeZoneService, RefundService, VolunteerAssignmentService)
+- **Test Data Helpers**: Creates users, events, sessions, ticket types, ticket purchases, and event attendances
+- **Isolation**: Uses database reset between tests for clean state
+
+### Business Logic Verified
+
+The tests verify the cancellation calculation logic from `AttendanceService`:
+1. Load TicketPurchase entities with TicketType navigation
+2. Call `TimeZoneService.GetReferenceSessionForTicketType()` to get earliest session
+3. Call `TimeZoneService.IsActionAllowedForSession()` with event's `CancellationCloseHours`
+4. Set `CanCancel = false` with message "All sessions for this ticket have passed" if no future sessions
+5. Set `CanCancel = false` with message "Cancellation window has closed" if within timing window
+6. Set overall `CanCancelTicket = true` if ANY ticket purchase is cancelable
+
+### Related Files
+
+- **Service Under Test**: `/apps/api/Features/Participation/Services/AttendanceService.cs`
+- **DTO Modified**: `/apps/api/Features/Participation/Models/EnhancedParticipationStatusDto.cs`
+- **Implementation Plan**: `/docs/functional-areas/payments/new-work/2025-12-11-per-ticket-cancellation-flags/implementation-plan.md`
+- **Related Tests**: `/tests/integration/Features/Attendance/SessionBasedTicketTimingTests.cs`
+
+---
 
 ## ✅ DATAFACTORY MIGRATION: VETTING APPLICATION DETAIL - December 10, 2025
 
