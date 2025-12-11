@@ -62,6 +62,13 @@ public class VolunteerPositionDto
     /// False when timing window closed, position full, or user already signed up
     /// </summary>
     public bool CanSignUp { get; set; }
+
+    /// <summary>
+    /// Reason why signup is blocked (null if CanSignUp is true)
+    /// Possible values: "TimingClosed", "PositionFull", "AlreadySignedUp", "NoTicketForSession"
+    /// Used by frontend to display appropriate messaging to users
+    /// </summary>
+    public string? SignupBlockedReason { get; set; }
 }
 
 /// <summary>

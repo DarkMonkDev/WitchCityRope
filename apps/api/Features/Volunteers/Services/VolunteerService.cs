@@ -130,31 +130,56 @@ public class VolunteerService : IVolunteerService
 
                 var userSignup = userSignups?.FirstOrDefault(us => us.VolunteerPositionId == vp.Id);
 
-                // Check if within signup window using session-based timing
-                var canSignUp = _timeZoneService.IsActionAllowedForSession(
+                // Determine signup eligibility and reason for blocking
+                var canSignUp = true;
+                string? signupBlockedReason = null;
+
+                // Check 1: Timing window
+                var timingAllowed = _timeZoneService.IsActionAllowedForSession(
                     referenceSession,
                     null, // No open restriction for volunteer signup
                     eventEntity.VolunteerRegistrationCloseHours);
 
-                // Additional constraints: position must have available slots and user not already signed up
-                if (canSignUp)
+                if (!timingAllowed)
                 {
-                    canSignUp = vp.SlotsRemaining > 0 && userSignup == null;
+                    canSignUp = false;
+                    signupBlockedReason = "TimingClosed";
                 }
 
-                // TICKET VALIDATION FOR CLASS/WORKSHOP EVENTS
+                // Check 2: Already signed up
+                if (canSignUp && userSignup != null)
+                {
+                    canSignUp = false;
+                    signupBlockedReason = "AlreadySignedUp";
+                }
+
+                // Check 3: Position full
+                if (canSignUp && vp.SlotsRemaining <= 0)
+                {
+                    canSignUp = false;
+                    signupBlockedReason = "PositionFull";
+                }
+
+                // Check 4: TICKET VALIDATION FOR CLASS/WORKSHOP EVENTS
                 // User must have a ticket for the specific session (or any ticket for event-wide positions)
                 if (canSignUp && userTicketSessionIds != null)
                 {
+                    bool hasRequiredTicket;
                     if (vp.SessionId.HasValue)
                     {
                         // Session-specific position - user needs ticket for THIS session
-                        canSignUp = userTicketSessionIds.Contains(vp.SessionId.Value);
+                        hasRequiredTicket = userTicketSessionIds.Contains(vp.SessionId.Value);
                     }
                     else
                     {
                         // Event-wide position - user needs at least one ticket
-                        canSignUp = userHasAnyTicket;
+                        hasRequiredTicket = userHasAnyTicket;
+                    }
+
+                    if (!hasRequiredTicket)
+                    {
+                        canSignUp = false;
+                        signupBlockedReason = "NoTicketForSession";
                     }
                 }
 
@@ -187,7 +212,8 @@ public class VolunteerService : IVolunteerService
                     HasUserSignedUp = userSignup != null,
                     UserSignupId = userSignup?.Id,
                     CanCancel = canCancel,
-                    CanSignUp = canSignUp
+                    CanSignUp = canSignUp,
+                    SignupBlockedReason = signupBlockedReason
                 });
             }
 

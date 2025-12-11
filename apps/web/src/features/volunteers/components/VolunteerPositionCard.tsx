@@ -233,10 +233,12 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               </Button>
             )}
 
-            {/* Show signup closed message if signup window has closed */}
+            {/* Show appropriate message when signup is blocked */}
             {!position.hasUserSignedUp && !position.isFullyStaffed && !position.canSignUp && (
               <Text size="sm" c="dimmed" style={{ textAlign: 'right', flexShrink: 0 }}>
-                Signup closed
+                {position.signupBlockedReason === 'NoTicketForSession'
+                  ? 'Purchase a ticket to volunteer'
+                  : 'Signup closed'}
               </Text>
             )}
           </Group>

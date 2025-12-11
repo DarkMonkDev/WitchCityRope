@@ -629,16 +629,6 @@ export const EventDetailPage: React.FC = () => {
                         hasExistingParticipation={participation?.hasRSVP || participation?.hasTicket || false}
                       />
                     ))}
-
-                    {/* Show message if all positions are filled or signup closed */}
-                    {volunteerPositions.every((p) => p.isFullyStaffed || !p.canSignUp) &&
-                     !volunteerPositions.some((p) => p.hasUserSignedUp) && (
-                      <Alert color="gray" variant="light">
-                        <Text size="sm">
-                          All volunteer positions are either full or signup has closed.
-                        </Text>
-                      </Alert>
-                    )}
                   </Stack>
                 </div>
               </ContentSection>

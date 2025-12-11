@@ -37,6 +37,11 @@ export function usePurchaseTicket() {
         queryKey: ['checkin', 'dashboard', variables.eventId]
       });
 
+      // Invalidate volunteer positions - ticket purchase affects canSignUp eligibility
+      queryClient.invalidateQueries({
+        queryKey: ['volunteerPositions', variables.eventId]
+      });
+
       // Show success notification
       notifications.show({
         title: 'Ticket Purchased Successfully!',
@@ -118,6 +123,11 @@ export function useConfirmPayPalPayment() {
         });
         queryClient.invalidateQueries({
           queryKey: ['checkin', 'dashboard', eventId]
+        });
+
+        // Invalidate volunteer positions - ticket purchase affects canSignUp eligibility
+        queryClient.invalidateQueries({
+          queryKey: ['volunteerPositions', eventId]
         });
       }
 

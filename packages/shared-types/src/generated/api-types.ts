@@ -4574,9 +4574,6 @@ export interface components {
             canPurchaseAdditionalSessions?: boolean;
             sessionAvailability?: components["schemas"]["SessionAvailabilityDto"][];
         };
-        ErrorResponse: {
-            error?: string;
-        };
         EventDto: {
             id?: string;
             title?: string;
@@ -6109,6 +6106,7 @@ export interface components {
             userSignupId?: string | null;
             canCancel?: boolean;
             canSignUp?: boolean;
+            signupBlockedReason?: string | null;
         };
         VolunteerSignupDto: {
             /** Format: uuid */
@@ -14220,7 +14218,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -14243,7 +14241,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -14288,7 +14286,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -14321,7 +14319,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -14344,7 +14342,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -14353,7 +14351,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -14398,7 +14396,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -14407,7 +14405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -14452,7 +14450,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -14461,7 +14459,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -14506,7 +14504,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -14549,7 +14547,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -14578,7 +14576,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -14601,7 +14599,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
