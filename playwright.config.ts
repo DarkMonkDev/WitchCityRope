@@ -17,11 +17,14 @@ export default defineConfig({
   retries: 0, // No retries - we want to see ALL failures immediately
   workers: process.env.PW_WORKERS ? parseInt(process.env.PW_WORKERS, 10) : 6, // Always use 6 parallel workers for faster E2E testing (CI or local)
   // globalSetup: './tests/e2e/global-setup.ts', // Verify Docker services before tests
+
   reporter: [
-    ['list'],
-    // JSON reporter with detailed error output
+    // Custom concise reporter: "Passed - #num - test name" / "Failed - #num - test name"
+    // Shows readable output with test numbers for easy reference
+    ['./tests/e2e/reporters/concise-reporter.ts'],
+    // JSON reporter - CRITICAL for automated result parsing
     ['json', { outputFile: './test-results/test-results.json' }],
-    // HTML report with all failure details
+    // HTML report with all failure details (view with: npx playwright show-report)
     ['html', { outputFolder: './test-results/html-report', open: 'never' }]
   ],
   // Output directory for test artifacts (screenshots, videos, traces)

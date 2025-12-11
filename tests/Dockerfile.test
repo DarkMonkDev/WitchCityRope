@@ -43,22 +43,23 @@ FROM base AS test-runner
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 
-# Copy root package.json and configs
+# Copy root package.json and configs (needed for playwright install)
 COPY package*.json ./
 COPY tsconfig*.json ./
 COPY playwright.config.ts ./
 
-# Copy test files
-COPY tests/ ./tests/
-
-# Install Playwright browsers
+# Install Playwright browsers BEFORE copying tests
+# This ensures browser cache is preserved when only test files change
 RUN npx playwright install chromium --with-deps
 
-# Create output directories
+# Create output directories (before COPY tests/ so this is also cached)
 RUN mkdir -p \
     /app/test-results \
     /app/playwright-results \
     /app/playwright-results/html-report
+
+# Copy test files LAST - changes to tests won't trigger browser reinstall
+COPY tests/ ./tests/
 
 # Environment configuration
 ENV NODE_ENV=test

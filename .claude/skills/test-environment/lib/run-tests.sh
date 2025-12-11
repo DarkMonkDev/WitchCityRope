@@ -18,47 +18,21 @@ if [ -z "$PROJECT_ROOT" ]; then
     PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 fi
 
-# Extract and summarize test results from container BEFORE cleanup
+# Extract and summarize test results
+# NOTE: With volume mount, test-results.json is written directly to host
+# This function now just verifies the file exists and copies additional artifacts
 extract_test_results() {
     local container_name="witchcity-test-runner"
     local results_dir="$PROJECT_ROOT/test-results"
-    local timestamp=$(date +%Y%m%d_%H%M%S)
 
-    echo -e "${BLUE}📋 Extracting test results from container...${NC}"
+    echo -e "${BLUE}📋 Checking test results...${NC}"
 
-    # Ensure results directory exists
-    mkdir -p "$results_dir"
-
-    # Copy ALL test artifacts from container
-    echo "  Copying test-results.json..."
-    docker cp "$container_name:/app/test-results/test-results.json" "$results_dir/test-results.json" 2>/dev/null && \
-        echo -e "  ${GREEN}✓${NC} test-results.json copied" || \
-        echo -e "  ${YELLOW}⚠${NC} test-results.json not found"
-
-    echo "  Copying .last-run.json..."
-    docker cp "$container_name:/app/test-results/.last-run.json" "$results_dir/.last-run.json" 2>/dev/null && \
-        echo -e "  ${GREEN}✓${NC} .last-run.json copied" || \
-        echo -e "  ${YELLOW}⚠${NC} .last-run.json not found"
-
-    echo "  Copying HTML report..."
-    docker cp "$container_name:/app/test-results/html-report" "$results_dir/html-report" 2>/dev/null && \
-        echo -e "  ${GREEN}✓${NC} html-report/ copied" || \
-        echo -e "  ${YELLOW}⚠${NC} html-report/ not found"
-
-    echo "  Copying traces and screenshots..."
-    # Copy any trace files
-    docker exec "$container_name" find /app/test-results -name "*.zip" -type f 2>/dev/null | while read trace; do
-        local basename=$(basename "$trace")
-        docker cp "$container_name:$trace" "$results_dir/$basename" 2>/dev/null && \
-            echo -e "  ${GREEN}✓${NC} $basename copied"
-    done
-
-    # Copy any screenshots
-    docker exec "$container_name" find /app/test-results -name "*.png" -type f 2>/dev/null | while read screenshot; do
-        local basename=$(basename "$screenshot")
-        docker cp "$container_name:$screenshot" "$results_dir/$basename" 2>/dev/null && \
-            echo -e "  ${GREEN}✓${NC} $basename copied"
-    done
+    # With volume mount, test-results.json should already be on host
+    if [ -f "$results_dir/test-results.json" ]; then
+        echo -e "  ${GREEN}✓${NC} test-results.json available (via volume mount)"
+    else
+        echo -e "  ${YELLOW}⚠${NC} test-results.json not found - tests may have failed to complete"
+    fi
 
     echo ""
 }
@@ -185,7 +159,30 @@ EOF
             fi
 
             echo -e "${GREEN}Summary saved to: $summary_file${NC}"
+
+            # Write small quick-summary JSON file for easy parsing
+            local quick_summary_file="$results_dir/quick-summary.json"
+            cat > "$quick_summary_file" << QSEOF
+{
+  "timestamp": "$timestamp",
+  "total": $total,
+  "passed": $passed,
+  "failed": $failed,
+  "skipped": $skipped,
+  "flaky": $flaky,
+  "pass_rate": "$pass_rate",
+  "status": "$([ "$failed" -eq 0 ] && echo "passed" || echo "failed")"
+}
+QSEOF
             echo ""
+
+            # Output structured JSON for automated parsing
+            # This block appears at the END of all output for easy extraction
+            echo "=== TEST_RESULTS_JSON ==="
+            cat "$quick_summary_file"
+            echo "=== END_TEST_RESULTS_JSON ==="
+            echo ""
+
             return 0
         fi
     fi

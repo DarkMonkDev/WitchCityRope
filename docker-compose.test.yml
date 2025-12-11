@@ -243,11 +243,14 @@ services:
       NPM_CONFIG_CACHE: /app/.npm
     
     volumes:
-      # Test output volumes
+      # CRITICAL: Mount host test-results directory for immediate access to results
+      # This allows the skill to read test-results.json directly without docker cp
+      - ./test-results:/app/test-results
+      # Test output volumes (legacy - keeping for backward compatibility)
       - test_reports:/app/reports
       - test_coverage:/app/coverage
       - playwright_screenshots:/app/screenshots
-    
+
     working_dir: /app
 
     # Wait for manual test execution (tests run via docker exec from skill)
