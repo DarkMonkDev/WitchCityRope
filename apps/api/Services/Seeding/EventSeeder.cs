@@ -221,8 +221,11 @@ public class EventSeeder
 <li>Violation of policies may result in permanent ban from all community events</li>
 </ul>
 
-<p><strong>By attending, you agree to abide by all policies and accept responsibility for your own safety and well-being.</strong></p>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+<p><strong>By attending, you agree to abide by all policies and accept responsibility for your own safety and well-being.</strong></p>",
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Upcoming Class Event #2: Very strict timing (advanced class)
@@ -344,7 +347,10 @@ public class EventSeeder
 <li>By attending, you acknowledge these risks and accept responsibility for your participation</li>
 <li>You agree to follow all safety protocols and instructor guidance</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Upcoming Class Event #3: Medium timing (balanced approach)
@@ -473,7 +479,10 @@ public class EventSeeder
 <li>You agree to practice safely and follow all instructor guidance</li>
 <li>Nerve damage, bruising, rope burns, and other injuries are possible</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Upcoming Social Event #1: Very lenient (allows post-event timing)
@@ -621,7 +630,10 @@ public class EventSeeder
 <li>Practice within your abilities and knowledge</li>
 <li>Ask for help when needed</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Upcoming Social Event #2: Moderate timing
@@ -773,7 +785,10 @@ public class EventSeeder
 <li>Let organizers know if someone seems in distress</li>
 <li>This is a community space - we all contribute to making it safe and welcoming</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Upcoming Social Event #3: Lenient timing (welcoming to new members)
@@ -932,7 +947,10 @@ public class EventSeeder
 <li>Support for learning and growth</li>
 <li>Building authentic connections and friendships</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Past Social Event: Demonstrates historical data
@@ -967,7 +985,10 @@ public class EventSeeder
 <li>Respectful conduct expected</li>
 <li>Zero tolerance for harassment</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Past Class Event: Demonstrates historical workshop
@@ -1005,7 +1026,10 @@ public class EventSeeder
 <li>No photography without permission</li>
 <li>Professional conduct required</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Historical Event 1: Advanced Suspension Techniques Workshop
@@ -1039,7 +1063,10 @@ public class EventSeeder
 <li>Medical waiver mandatory</li>
 <li>Professional conduct expected</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Historical Event 2: Rope Fundamentals Intensive
@@ -1073,7 +1100,10 @@ public class EventSeeder
 <li>Safety protocols mandatory</li>
 <li>Respectful conduct expected</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Historical Event 3: Monthly Rope Practice Night
@@ -1107,7 +1137,10 @@ public class EventSeeder
 <li>Practice safely within your abilities</li>
 <li>Respect all boundaries and consent</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Historical Event 4: New Member Welcome Mixer
@@ -1141,7 +1174,10 @@ public class EventSeeder
 <li>Respectful interaction required</li>
 <li>No experience necessary</li>
 </ul>"
-                // TIMING: Use system defaults (null) - only timing test events have explicit values
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // E2E TEST EVENT: Session Timing Test
@@ -1184,12 +1220,10 @@ public class EventSeeder
 <li>This is a test event for E2E testing</li>
 <li>Standard event policies apply</li>
 </ul>",
-                // TIMING: Test event - 12 hours registration close
-                registrationOpenHours: 336m,      // 14 days before
-                registrationCloseHours: 12m,      // 12 hours before session (standard)
-                cancellationCloseHours: 24m,      // 24 hours before
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
-                volunteerCancellationCloseHours: 48m
+                volunteerCancellationCloseHours: 24m
             ),
 
             // ====================================================================================
@@ -1251,11 +1285,10 @@ public class EventSeeder
 <h3>Business Rule Tested</h3>
 <p>With a 6-hour close window, both sessions are well within the registration window, so all tickets should be purchasable.</p>",
                 policies: @"<h2>Test Event</h2><p>Standard policies apply.</p>",
-                registrationOpenHours: 500m,      // Opens 500 hours before (plenty early)
-                registrationCloseHours: 6m,       // KEY: 6 hours before session
-                cancellationCloseHours: 4m,       // 4 hours before (less than registration)
-                volunteerRegistrationCloseHours: 6m,
-                volunteerCancellationCloseHours: 4m
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // TIMING TEST EVENT 2: 48-hour close window (medium restrictive)
@@ -1295,10 +1328,9 @@ public class EventSeeder
 <li>This demonstrates that multi-session tickets close earlier than single-session S2 tickets</li>
 </ul>",
                 policies: @"<h2>Test Event</h2><p>Standard policies apply.</p>",
-                registrationOpenHours: 500m,
-                registrationCloseHours: 48m,      // KEY: 48 hours before session
-                cancellationCloseHours: 24m,
-                volunteerRegistrationCloseHours: 48m,
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
                 volunteerCancellationCloseHours: 24m
             ),
 
@@ -1335,11 +1367,10 @@ public class EventSeeder
 <h3>Business Rule Tested</h3>
 <p>With a very early close window (300 hours = 12.5 days), no tickets are available because we're within the close window for all sessions.</p>",
                 policies: @"<h2>Test Event</h2><p>Standard policies apply.</p>",
-                registrationOpenHours: 500m,
-                registrationCloseHours: 300m,     // KEY: 300 hours before session (12.5 days)
-                cancellationCloseHours: 200m,
-                volunteerRegistrationCloseHours: 300m,
-                volunteerCancellationCloseHours: 200m
+                registrationCloseHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // ====================================================================================
@@ -1390,11 +1421,10 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
 <p>Should be CLOSED when hoursUntilSession < 12</p>
 <p>If server has UTC bug, client and server calculations will differ.</p>",
                 policies: @"<h2>Test Event</h2><p>Standard policies apply.</p>",
-                registrationOpenHours: 500m,
-                registrationCloseHours: 12m,      // KEY: 12 hours before session - tight margin
-                cancellationCloseHours: 10m,      // 10 hours - even tighter for cancel
-                volunteerRegistrationCloseHours: 12m,
-                volunteerCancellationCloseHours: 10m
+                registrationOpenHours: -8m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 24m,
+                volunteerCancellationCloseHours: 24m
             )
         };
 
