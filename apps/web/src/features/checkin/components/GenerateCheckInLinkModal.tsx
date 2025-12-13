@@ -3,7 +3,6 @@ import {
   Modal,
   Button,
   Stack,
-  TextInput,
   Text,
   Group,
   ActionIcon,
@@ -13,17 +12,15 @@ import {
   Box,
   Badge,
   Tooltip,
-  Select,
+  Checkbox,
 } from '@mantine/core';
 import {
-  IconLink,
   IconCopy,
   IconCheck,
   IconTrash,
   IconAlertCircle,
-  IconClock,
-  IconCalendar,
   IconExternalLink,
+  IconLink,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import {
@@ -64,6 +61,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   const [expiresInHours, setExpiresInHours] = useState<number>(12);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   const generateMutation = useGenerateSessionToken();
   const revokeMutation = useRevokeSessionToken();
@@ -123,36 +121,33 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   }, [sessions]);
 
   // Get only available sessions for validation
-  const availableSessions = sessionsWithStatus.filter(s => s.status === 'available');
+  // Memoize available sessions to prevent infinite re-renders
+  const availableSessions = React.useMemo(
+    () => sessionsWithStatus.filter(s => s.status === 'available'),
+    [sessionsWithStatus]
+  );
 
-  // Auto-select all available sessions when modal opens
+  // Get stable list of available session IDs
+  const availableSessionIds = React.useMemo(
+    () => availableSessions.map(s => s.id),
+    [availableSessions]
+  );
+
+  // Auto-select all available sessions when modal opens (only on initial open)
   React.useEffect(() => {
-    if (opened && availableSessions.length > 0 && selectedSessionIds.length === 0) {
-      setSelectedSessionIds(availableSessions.map(s => s.id));
+    if (opened && availableSessionIds.length > 0 && !hasUserInteracted) {
+      setSelectedSessionIds(availableSessionIds);
     }
-  }, [opened, availableSessions, selectedSessionIds.length]);
+  }, [opened, availableSessionIds, hasUserInteracted]);
 
   // Toggle session selection
   const handleSessionToggle = (sessionId: string) => {
+    setHasUserInteracted(true);
     setSelectedSessionIds(prev =>
       prev.includes(sessionId)
         ? prev.filter(id => id !== sessionId)
         : [...prev, sessionId]
     );
-  };
-
-  // Select/deselect all available sessions
-  const handleSelectAllAvailable = () => {
-    const allAvailableIds = availableSessions.map(s => s.id);
-    const allSelected = allAvailableIds.every(id => selectedSessionIds.includes(id));
-
-    if (allSelected) {
-      // Deselect all
-      setSelectedSessionIds([]);
-    } else {
-      // Select all available
-      setSelectedSessionIds(allAvailableIds);
-    }
   };
 
   const handleGenerate = async () => {
@@ -266,6 +261,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
     setGeneratedToken(null);
     setCopiedToken(null);
     setSelectedSessionIds([]);
+    setHasUserInteracted(false);
     onClose();
   };
 
@@ -274,31 +270,19 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
       opened={opened}
       onClose={handleClose}
       title={
-        <Group gap="xs">
-          <IconLink size={20} />
-          <Text fw={600}>Generate Check-In Link for {eventTitle}</Text>
-        </Group>
+        <Text size="xl" fw={600}>Generate Check-In Link for {eventTitle}</Text>
       }
       size="xl"
+      padding="xl"
+      styles={{
+        header: { paddingBottom: 18 },
+      }}
     >
-      <Stack gap="lg">
+      <Stack gap="md">
         {/* Session Selection Table */}
         {sessionsWithStatus.length > 0 && (
           <Box>
-            <Group justify="space-between" mb="xs">
-              <Text size="sm" fw={700}>Select Sessions</Text>
-              {availableSessions.length > 1 && (
-                <Button
-                  variant="subtle"
-                  size="xs"
-                  onClick={handleSelectAllAvailable}
-                >
-                  {availableSessions.every(s => selectedSessionIds.includes(s.id))
-                    ? 'Deselect All'
-                    : 'Select All Available'}
-                </Button>
-              )}
-            </Group>
+            <Text fw={600} style={{ marginBottom: 0, paddingBottom: 0 }}>Select Sessions</Text>
             <Table striped withTableBorder>
               <Table.Thead style={{ backgroundColor: 'var(--mantine-color-wcr-7)' }}>
                 <Table.Tr>
@@ -318,13 +302,13 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                       key={session.id}
                       style={{
                         opacity: isAvailable ? 1 : 0.6,
-                        cursor: isAvailable ? 'pointer' : 'not-allowed'
+                        cursor: isAvailable ? 'pointer' : 'not-allowed',
+                        backgroundColor: isSelected ? 'var(--mantine-color-blue-1)' : undefined,
                       }}
                       onClick={() => isAvailable && handleSessionToggle(session.id)}
                     >
                       <Table.Td>
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={isSelected}
                           disabled={!isAvailable}
                           onChange={() => handleSessionToggle(session.id)}
@@ -382,17 +366,17 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
         )}
 
         {/* Token Generation Controls */}
-        <Group align="flex-end">
+        <Group align="center" justify="flex-end" mt={8}>
+          <Text fw={600}>Expires in</Text>
           <NumberInput
-            label="Expires in (hours)"
-            description="Token will automatically expire after this time"
             value={expiresInHours}
             onChange={(value) => setExpiresInHours(Number(value) || 12)}
             min={1}
             max={168} // 7 days max
             step={1}
-            style={{ flex: 1 }}
-            leftSection={<IconClock size={16} />}
+            style={{ width: 80 }}
+            rightSection={<Text size="sm" c="dimmed" pr="xs">hours</Text>}
+            rightSectionWidth={50}
           />
           <Button
             onClick={handleGenerate}
@@ -403,11 +387,8 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
             styles={{
               root: {
                 fontWeight: 600,
-                height: '44px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
+                height: '36px',
                 fontSize: '14px',
-                lineHeight: '1.2',
               },
             }}
             disabled={availableSessions.length > 0 && selectedSessionIds.length === 0}
@@ -418,71 +399,53 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
 
         {/* Generated Token Display */}
         {generatedToken && (
-          <Alert variant="light" color="green" icon={<IconCheck />}>
-            <Stack gap="sm">
-              <Text size="sm" fw={600}>
-                Link Generated Successfully
-              </Text>
-              {/* Show session names if available */}
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {((generatedToken as any)?.sessionNames && (generatedToken as any).sessionNames.length > 0) ? (
-                <Text size="sm" c="dimmed">
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  <strong>Sessions:</strong> {(generatedToken as any).sessionNames.join(', ')}
+          <Alert
+            variant="light"
+            color="green"
+            icon={<IconCheck />}
+            p="lg"
+            mt="md"
+            styles={{
+              icon: { alignSelf: 'center' },
+              wrapper: { alignItems: 'center' },
+            }}
+          >
+            <Group justify="space-between" align="center" wrap="nowrap">
+              <Stack gap={2}>
+                <Text size="sm" fw={600}>
+                  Link Generated Successfully
                 </Text>
-              ) : (generatedToken as any)?.sessionName ? (
-                <Text size="sm" c="dimmed">
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  <strong>Session:</strong> {(generatedToken as any).sessionName}
-                </Text>
-              ) : null}
-              <TextInput
-                label="Check-In URL"
-                value={generatedToken.checkInUrl}
-                readOnly
-                rightSection={
-                  <ActionIcon
-                    variant="subtle"
-                    color={copiedToken === generatedToken.token ? 'green' : 'blue'}
-                    onClick={() => handleCopy(generatedToken.checkInUrl, generatedToken.token)}
-                  >
-                    {copiedToken === generatedToken.token ? <IconCheck size={16} /> : <IconCopy size={16} />}
-                  </ActionIcon>
-                }
-              />
-              <Button
-                variant="outline"
-                leftSection={<IconExternalLink size={16} />}
-                onClick={() => window.open(generatedToken.checkInUrl, '_blank')}
-                data-testid="open-checkin-link"
-                styles={{
-                  root: {
-                    fontWeight: 600,
-                    height: '44px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    fontSize: '14px',
-                    lineHeight: '1.2',
-                  },
-                }}
-              >
-                Open
-              </Button>
-              <Group gap="md">
                 <Text size="xs" c="dimmed">
                   Expires: {formatDate(generatedToken.expiresAt)}
                 </Text>
-                <Badge variant="light" color="green">
-                  Active
-                </Badge>
+              </Stack>
+              <Group gap="sm">
+                <Button
+                  variant="outline"
+                  size="xs"
+                  leftSection={copiedToken === generatedToken.token ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                  color={copiedToken === generatedToken.token ? 'green' : 'blue'}
+                  onClick={() => handleCopy(generatedToken.checkInUrl, generatedToken.token)}
+                >
+                  Copy URL
+                </Button>
+                <Button
+                  variant="outline"
+                  size="xs"
+                  leftSection={<IconExternalLink size={14} />}
+                  onClick={() => window.open(generatedToken.checkInUrl, '_blank')}
+                  data-testid="open-checkin-link"
+                >
+                  Open
+                </Button>
               </Group>
-            </Stack>
+            </Group>
           </Alert>
         )}
 
         {/* Active Tokens List */}
         <Box>
-          <Text fw={600} mb="md">
+          <Text fw={600} style={{ marginBottom: 0, paddingBottom: 0 }}>
             Active Tokens
           </Text>
 
@@ -497,14 +460,13 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
               </Text>
             </Alert>
           ) : (
-            <Table striped highlightOnHover>
-              <Table.Thead>
+            <Table striped highlightOnHover withTableBorder>
+              <Table.Thead style={{ backgroundColor: 'var(--mantine-color-wcr-7)' }}>
                 <Table.Tr>
-                  <Table.Th>Token</Table.Th>
-                  <Table.Th>Session</Table.Th>
-                  <Table.Th>Created</Table.Th>
-                  <Table.Th>Expires</Table.Th>
-                  <Table.Th>Actions</Table.Th>
+                  <Table.Th style={{ color: 'white', fontWeight: 600, backgroundColor: 'var(--mantine-color-wcr-7)' }}>Token</Table.Th>
+                  <Table.Th style={{ color: 'white', fontWeight: 600, backgroundColor: 'var(--mantine-color-wcr-7)' }}>Session</Table.Th>
+                  <Table.Th style={{ color: 'white', fontWeight: 600, backgroundColor: 'var(--mantine-color-wcr-7)' }}>Expires</Table.Th>
+                  <Table.Th style={{ color: 'white', fontWeight: 600, backgroundColor: 'var(--mantine-color-wcr-7)' }}>Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -530,11 +492,6 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                       ) : (
                         <Text size="sm" c="dimmed">All Sessions</Text>
                       )}
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm" c="dimmed">
-                        {formatDate(token.createdAt)}
-                      </Text>
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm" c="dimmed">

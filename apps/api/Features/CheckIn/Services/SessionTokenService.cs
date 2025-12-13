@@ -323,14 +323,31 @@ public class SessionTokenService : ISessionTokenService
         Guid adminUserId,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            _logger.LogWarning("RevokeTokenAsync called with empty token");
+            return Result.Failure("Token is required");
+        }
+
+        CheckInSessionToken? sessionToken = null;
+
         try
         {
-            var sessionToken = await _context.CheckInSessionTokens
+            sessionToken = await _context.CheckInSessionTokens
                 .FirstOrDefaultAsync(t => t.Token == token, cancellationToken);
 
             if (sessionToken == null)
             {
+                _logger.LogWarning("RevokeTokenAsync: Token not found in database. Token prefix: {TokenPrefix}",
+                    token.Length > 10 ? token.Substring(0, 10) : token);
                 return Result.Failure("Token not found");
+            }
+
+            // Check if already revoked
+            if (sessionToken.IsRevoked)
+            {
+                _logger.LogInformation("RevokeTokenAsync: Token {TokenId} already revoked", sessionToken.Id);
+                return Result.Failure("Token has already been revoked");
             }
 
             // Revoke token
@@ -340,32 +357,56 @@ public class SessionTokenService : ISessionTokenService
 
             // Explicitly mark as modified (EF Core change tracking pattern)
             _context.CheckInSessionTokens.Update(sessionToken);
-            await _context.SaveChangesAsync(cancellationToken);
 
-            // Remove from cache
-            var cacheKey = $"{TOKEN_CACHE_PREFIX}{token}";
-            _cache.Remove(cacheKey);
+            try
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception dbEx)
+            {
+                _logger.LogError(dbEx, "Failed to save token revocation for token {TokenId}", sessionToken.Id);
+                return Result.Failure("Database error while revoking token");
+            }
+
+            // Remove from cache (non-critical, log but don't fail)
+            try
+            {
+                var cacheKey = $"{TOKEN_CACHE_PREFIX}{token}";
+                _cache.Remove(cacheKey);
+            }
+            catch (Exception cacheEx)
+            {
+                _logger.LogWarning(cacheEx, "Failed to remove token from cache, continuing");
+            }
 
             _logger.LogInformation(
                 "Session token {TokenId} revoked for event {EventId} by admin {AdminId}",
                 sessionToken.Id, sessionToken.EventId, adminUserId);
 
-            // Create audit log entry for revocation
-            var auditLog = new CheckInAuditLog(
-                sessionToken.EventId,
-                "token-revoked",
-                $"Check-in session token revoked by admin",
-                adminUserId);
+            // Create audit log entry for revocation (non-critical, log but don't fail revocation)
+            try
+            {
+                var auditLog = new CheckInAuditLog(
+                    sessionToken.EventId,
+                    "token-revoked",
+                    $"Check-in session token revoked by admin",
+                    adminUserId);
 
-            _context.CheckInAuditLogs.Add(auditLog);
-            await _context.SaveChangesAsync(cancellationToken);
+                _context.CheckInAuditLogs.Add(auditLog);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception auditEx)
+            {
+                _logger.LogWarning(auditEx, "Failed to create audit log for token revocation, but revocation succeeded");
+            }
 
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error revoking session token");
-            return Result.Failure("Failed to revoke token");
+            _logger.LogError(ex, "Unexpected error revoking session token {TokenId}",
+                sessionToken?.Id.ToString() ?? "unknown");
+            return Result.Failure($"Failed to revoke token: {ex.Message}");
         }
     }
 
