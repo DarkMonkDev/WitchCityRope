@@ -14,7 +14,8 @@ import {
   Radio,
   Alert,
   Checkbox,
-  List
+  List,
+  Anchor
 } from '@mantine/core';
 import { TimeInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
@@ -452,7 +453,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
                 {!agreementChecked && Object.keys(form.errors).length === 0 && (
                   <Alert variant="light" color="orange" mb="md">
                     <Text size="sm">
-                      You must agree to the privacy statement before submitting
+                      You must agree to the Incident Reporting Policy before submitting
                     </Text>
                   </Alert>
                 )}
@@ -460,7 +461,14 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
                 <Checkbox
                   checked={agreementChecked}
                   onChange={(event) => setAgreementChecked(event.currentTarget.checked)}
-                  label="I understand this report may trigger safety team investigation"
+                  label={
+                    <Text size="sm" component="span">
+                      I have read and agree to the{' '}
+                      <Anchor href="/cms/incident-reporting-policy" target="_blank">
+                        Incident Reporting Policy & Procedures
+                      </Anchor>
+                    </Text>
+                  }
                   mb="md"
                 />
 

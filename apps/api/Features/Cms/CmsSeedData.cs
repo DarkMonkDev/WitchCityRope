@@ -1943,6 +1943,115 @@ namespace WitchCityRope.Api.Features.Cms
                     CreatedBy = adminUser.Id,
                     LastModifiedBy = adminUser.Id,
                     IsPublished = true
+                },
+
+                // Incident Reporting Policy & Procedures
+                new ContentPage
+                {
+                    Slug = "incident-reporting-policy",
+                    Title = "Incident Reporting Policy & Procedures",
+                    Content = @"<h1>Incident Reporting Policy & Procedures</h1>
+
+<p><strong>Last Updated:</strong> December 2024</p>
+
+<p>WitchCityRope is committed to maintaining a safe, respectful community. Our incident reporting system allows community members to report safety concerns, consent violations, code of conduct breaches, and other issues. This document explains how we handle reports and what you can expect from the process.</p>
+
+<h2>Purpose of Incident Reporting</h2>
+
+<p>Our incident reporting system exists to:</p>
+<ul>
+<li>Document safety concerns and patterns of behavior</li>
+<li>Enable the safety team to investigate potential issues</li>
+<li>Protect community members from harm</li>
+<li>Maintain accountability within our community</li>
+<li>Inform decisions about membership and event access</li>
+</ul>
+
+<h2>How Reports Are Handled</h2>
+
+<h3>Receipt and Initial Review</h3>
+<p>When you submit a report:</p>
+<ul>
+<li>Your report is encrypted and stored securely</li>
+<li>Only designated safety team members can access report details</li>
+<li>You will receive a reference number for tracking (if you provide contact information)</li>
+<li>The safety team will review your report within 48-72 hours for non-emergencies</li>
+</ul>
+
+<h3>Investigation Process</h3>
+<p>Depending on the nature of the report, the safety team may:</p>
+<ul>
+<li>Document the incident for records without further action</li>
+<li>Reach out to you for additional information (if contact was provided)</li>
+<li>Speak with witnesses or other involved parties</li>
+<li>Review relevant event records or prior reports</li>
+<li>Consult with event organizers or leadership</li>
+</ul>
+
+<h3>Possible Outcomes</h3>
+<p>Based on investigation findings, possible outcomes include:</p>
+<ul>
+<li>Documentation only (no further action at this time)</li>
+<li>Informal conversation with involved parties</li>
+<li>Formal warning</li>
+<li>Mandatory education or training requirements</li>
+<li>Temporary suspension from events</li>
+<li>Permanent removal from the community</li>
+<li>Referral to law enforcement (in cases involving illegal activity)</li>
+</ul>
+
+<h2>What We Cannot Guarantee</h2>
+
+<p>While we take every report seriously, please understand:</p>
+<ul>
+<li><strong>No guaranteed outcome:</strong> We cannot promise any specific action will be taken as a result of your report</li>
+<li><strong>Investigation limitations:</strong> Some situations cannot be fully investigated due to lack of evidence, conflicting accounts, or other factors</li>
+<li><strong>Confidentiality limits:</strong> In some cases, we may need to share limited information to conduct a proper investigation or protect community safety</li>
+<li><strong>Not a substitute for legal action:</strong> Our process is separate from law enforcement; we encourage you to contact authorities for criminal matters</li>
+</ul>
+
+<h2>Your Rights as a Reporter</h2>
+
+<ul>
+<li><strong>Anonymous reporting:</strong> You may submit reports anonymously. Anonymous reports are taken seriously, though they may limit our ability to follow up or investigate fully.</li>
+<li><strong>Confidentiality preferences:</strong> You can specify whether you wish to remain anonymous during the investigation and/or in any final documentation.</li>
+<li><strong>No retaliation:</strong> WitchCityRope prohibits retaliation against anyone who makes a good-faith report. Retaliation is itself a violation of our code of conduct.</li>
+<li><strong>Updates (if identified):</strong> If you provide contact information and request follow-up, we will keep you informed of general progress where appropriate.</li>
+</ul>
+
+<h2>How We Use Your Information</h2>
+
+<p>Information from your report will be used to:</p>
+<ul>
+<li>Assess and investigate the reported incident</li>
+<li>Document patterns of behavior across multiple reports</li>
+<li>Make decisions about community membership and event access</li>
+<li>Improve our safety practices and policies</li>
+</ul>
+
+<p>Your report information is governed by our <a href=""/cms/privacy-policy"">Privacy Policy</a>. Report data is retained according to our data retention policies and may be referenced in future investigations if relevant.</p>
+
+<h2>Emergency Situations</h2>
+
+<p>This reporting system is <strong>not for emergencies</strong>. If you or someone else is in immediate danger:</p>
+<ul>
+<li><strong>At an event:</strong> Alert event staff or safety monitors immediately</li>
+<li><strong>Medical emergency:</strong> Call 911</li>
+<li><strong>Immediate threat:</strong> Remove yourself from the situation and contact authorities</li>
+</ul>
+
+<h2>Questions</h2>
+
+<p>If you have questions about this policy or the reporting process, contact us at <a href=""mailto:safety@witchcityrope.com"">safety@witchcityrope.com</a>.</p>
+
+<hr>
+
+<p><em>By submitting an incident report, you acknowledge that you have read and understood this policy.</em></p>",
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    CreatedBy = adminUser.Id,
+                    LastModifiedBy = adminUser.Id,
+                    IsPublished = true
                 }
             };
 
