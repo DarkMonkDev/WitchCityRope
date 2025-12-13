@@ -621,20 +621,25 @@ export const EventDetailPage: React.FC = () => {
           {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && isAuthenticated && canVolunteerBasedOnEventType && (
             <div id="volunteer-opportunities-section">
               <ContentSection title="Volunteer Opportunities">
-                <div className="html-content">
-                  <p>
-                    Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
-                  </p>
-                  <Stack gap="md" mt="md">
-                    {volunteerPositions.map((position) => (
+                <p>
+                  Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
+                </p>
+                <Stack gap="md" mt="md">
+                  {[...volunteerPositions]
+                    .sort((a, b) => {
+                      // Sort by sessionStartTime, soonest first
+                      const timeA = a.sessionStartTime ? new Date(a.sessionStartTime).getTime() : Infinity;
+                      const timeB = b.sessionStartTime ? new Date(b.sessionStartTime).getTime() : Infinity;
+                      return timeA - timeB;
+                    })
+                    .map((position) => (
                       <VolunteerPositionCard
                         key={position.id}
                         position={position}
                         hasExistingParticipation={participation?.hasRSVP || participation?.hasTicket || false}
                       />
                     ))}
-                  </Stack>
-                </div>
+                </Stack>
               </ContentSection>
             </div>
           )}
@@ -742,22 +747,10 @@ const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
       border: '1px solid rgba(183, 109, 117, 0.1)'
     }}
   >
-    {title && (
-      <Title
-        order={2}
-        mb={{ base: 'xs', md: 'md' }}
-        style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 'var(--font-size-h2)', // 24px mobile → 36px desktop
-          lineHeight: 'var(--line-height-h2)',
-          fontWeight: 700,
-          color: 'var(--color-burgundy)'
-        }}
-      >
-        {title}
-      </Title>
-    )}
-    {children}
+    <div className="html-content">
+      {title && <h2>{title}</h2>}
+      {children}
+    </div>
   </Paper>
 );
 
