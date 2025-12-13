@@ -1307,7 +1307,8 @@ public class TicketPurchaseSeeder
 
     /// <summary>
     /// Creates ticket purchases for Suspension Basics event with multiple ticket types.
-    /// Creates 2 "All 2 Days" tickets and 4 "Day 1 Only" tickets using different users.
+    /// Creates a mix of "Both Days", "Day One", and "Day Two" tickets including one refunded ticket.
+    /// Total: 6 tickets (2 Both Days, 2 Day One, 2 Day Two) + 1 refunded ticket.
     /// </summary>
     private async Task CreateSuspensionBasicsTicketsAsync(
         Event eventItem,
@@ -1318,35 +1319,58 @@ public class TicketPurchaseSeeder
         Dictionary<Guid, int> ticketCountersByEvent,
         CancellationToken cancellationToken)
     {
-        // Create 2 "All 2 Days" tickets
-        var all2DaysTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "All 2 Days");
-        if (all2DaysTicket != null)
+        var usedUserIndices = new HashSet<int>();
+
+        // Helper to get next available user
+        int GetNextUserIndex(int startFrom = 0)
         {
-            for (int i = 0; i < 2 && i < users.Count; i++)
+            for (int i = startFrom; i < users.Count; i++)
             {
-                var user = users[i];
+                if (!usedUserIndices.Contains(i))
+                {
+                    usedUserIndices.Add(i);
+                    return i;
+                }
+            }
+            return -1; // No more users available
+        }
 
-                // Check if user already has ticket for this event
-                var existingTicket = await _context.TicketPurchases
-                    .Include(tp => tp.TicketType)
-                    .FirstOrDefaultAsync(tp =>
-                        tp.UserId == user.Id &&
-                        tp.TicketType.EventId == eventItem.Id,
-                        cancellationToken);
+        // Helper to check if user already has ticket for this event
+        async Task<bool> UserHasExistingTicketAsync(ApplicationUser user)
+        {
+            var existingTicket = await _context.TicketPurchases
+                .Include(tp => tp.TicketType)
+                .FirstOrDefaultAsync(tp =>
+                    tp.UserId == user.Id &&
+                    tp.TicketType.EventId == eventItem.Id,
+                    cancellationToken);
+            return existingTicket != null;
+        }
 
-                if (existingTicket != null)
+        // Create 2 "Both Days" tickets
+        var bothDaysTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "Both Days");
+        if (bothDaysTicket != null)
+        {
+            for (int count = 0; count < 2; count++)
+            {
+                var userIndex = GetNextUserIndex();
+                if (userIndex < 0) break;
+
+                var user = users[userIndex];
+
+                if (await UserHasExistingTicketAsync(user))
                 {
                     _logger.LogDebug("User {UserId} already has ticket for Suspension Basics, skipping", user.Id);
                     continue;
                 }
 
                 var purchaseAmount = (decimal)Random.Shared.Next(40, 80);
-                var purchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
+                var purchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(5, 20));
 
                 var ticketPurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
-                    TicketTypeId = all2DaysTicket.Id,
+                    TicketTypeId = bothDaysTicket.Id,
                     UserId = user.Id,
                     Quantity = 1,
                     TotalPrice = purchaseAmount,
@@ -1363,51 +1387,45 @@ public class TicketPurchaseSeeder
 
                 purchasesToAdd.Add(ticketPurchase);
 
-                // Create EventAttendance and EventAttendee
                 CreateAttendanceAndAttendee(
                     ticketPurchase,
                     eventItem.Id,
                     user.Id,
-                    all2DaysTicket,
+                    bothDaysTicket,
                     "Completed",
                     "PayPal",
                     attendancesToAdd,
                     attendeesToAdd,
                     ticketCountersByEvent, "CLASS");
 
-                _logger.LogDebug("Created 'All 2 Days' ticket for user {UserId}", user.Id);
+                _logger.LogDebug("Created 'Both Days' ticket for user {UserId}", user.Id);
             }
         }
 
-        // Create 4 "Day 1 Only" tickets (using different users)
-        var day1OnlyTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "Day 1 Only");
-        if (day1OnlyTicket != null)
+        // Create 2 "Day One" tickets
+        var dayOneTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "Day One");
+        if (dayOneTicket != null)
         {
-            for (int i = 2; i < 6 && i < users.Count; i++) // Start at index 2 to use different users
+            for (int count = 0; count < 2; count++)
             {
-                var user = users[i];
+                var userIndex = GetNextUserIndex();
+                if (userIndex < 0) break;
 
-                // Check if user already has ticket for this event
-                var existingTicket = await _context.TicketPurchases
-                    .Include(tp => tp.TicketType)
-                    .FirstOrDefaultAsync(tp =>
-                        tp.UserId == user.Id &&
-                        tp.TicketType.EventId == eventItem.Id,
-                        cancellationToken);
+                var user = users[userIndex];
 
-                if (existingTicket != null)
+                if (await UserHasExistingTicketAsync(user))
                 {
                     _logger.LogDebug("User {UserId} already has ticket for Suspension Basics, skipping", user.Id);
                     continue;
                 }
 
-                var purchaseAmount = (decimal)Random.Shared.Next(20, 50);
-                var purchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
+                var purchaseAmount = (decimal)Random.Shared.Next(20, 35);
+                var purchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(3, 15));
 
                 var ticketPurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
-                    TicketTypeId = day1OnlyTicket.Id,
+                    TicketTypeId = dayOneTicket.Id,
                     UserId = user.Id,
                     Quantity = 1,
                     TotalPrice = purchaseAmount,
@@ -1419,7 +1437,6 @@ public class TicketPurchaseSeeder
                     UpdatedAt = purchaseDate
                 };
 
-                // Add PayPal fields if PayPal payment
                 if (ticketPurchase.PaymentMethod == "PayPal")
                 {
                     ticketPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId());
@@ -1429,23 +1446,233 @@ public class TicketPurchaseSeeder
 
                 purchasesToAdd.Add(ticketPurchase);
 
-                // Create EventAttendance and EventAttendee
                 CreateAttendanceAndAttendee(
                     ticketPurchase,
                     eventItem.Id,
                     user.Id,
-                    day1OnlyTicket,
+                    dayOneTicket,
                     "Completed",
                     ticketPurchase.PaymentMethod,
                     attendancesToAdd,
                     attendeesToAdd,
                     ticketCountersByEvent, "CLASS");
 
-                _logger.LogDebug("Created 'Day 1 Only' ticket for user {UserId}", user.Id);
+                _logger.LogDebug("Created 'Day One' ticket for user {UserId}", user.Id);
             }
         }
 
-        _logger.LogInformation("Created Suspension Basics tickets");
+        // Create 2 "Day Two" tickets
+        var dayTwoTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "Day Two");
+        if (dayTwoTicket != null)
+        {
+            for (int count = 0; count < 2; count++)
+            {
+                var userIndex = GetNextUserIndex();
+                if (userIndex < 0) break;
+
+                var user = users[userIndex];
+
+                if (await UserHasExistingTicketAsync(user))
+                {
+                    _logger.LogDebug("User {UserId} already has ticket for Suspension Basics, skipping", user.Id);
+                    continue;
+                }
+
+                var purchaseAmount = (decimal)Random.Shared.Next(20, 35);
+                var purchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(3, 15));
+
+                var ticketPurchase = new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    TicketTypeId = dayTwoTicket.Id,
+                    UserId = user.Id,
+                    Quantity = 1,
+                    TotalPrice = purchaseAmount,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = SeedingHelpers.GetRandomPaymentMethod(),
+                    PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                    PurchaseDate = purchaseDate,
+                    CreatedAt = purchaseDate,
+                    UpdatedAt = purchaseDate
+                };
+
+                if (ticketPurchase.PaymentMethod == "PayPal")
+                {
+                    ticketPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId());
+                    ticketPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId());
+                    ticketPurchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId());
+                }
+
+                purchasesToAdd.Add(ticketPurchase);
+
+                CreateAttendanceAndAttendee(
+                    ticketPurchase,
+                    eventItem.Id,
+                    user.Id,
+                    dayTwoTicket,
+                    "Completed",
+                    ticketPurchase.PaymentMethod,
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent, "CLASS");
+
+                _logger.LogDebug("Created 'Day Two' ticket for user {UserId}", user.Id);
+            }
+        }
+
+        // Special case: Give RopeEnthusiast both Day One AND Day Two tickets separately
+        // This demonstrates a user who purchased both days separately instead of "Both Days" bundle
+        if (dayOneTicket != null && dayTwoTicket != null)
+        {
+            var ropeEnthusiast = users.FirstOrDefault(u => u.SceneName == "RopeEnthusiast");
+            if (ropeEnthusiast != null)
+            {
+                // Check if RopeEnthusiast already has any ticket for this event from the loops above
+                var hasExistingTicket = purchasesToAdd.Any(p =>
+                    p.UserId == ropeEnthusiast.Id && p.TicketTypeId == dayOneTicket.Id);
+                var hasExistingAttendee = attendeesToAdd.Any(a =>
+                    a.EventId == eventItem.Id && a.UserId == ropeEnthusiast.Id);
+
+                // Step 1: Ensure RopeEnthusiast has a Day One ticket
+                if (!hasExistingTicket)
+                {
+                    var dayOnePurchaseDate = DateTime.UtcNow.AddDays(-12); // Purchased 12 days ago
+                    var dayOnePurchase = new TicketPurchase
+                    {
+                        Id = Guid.NewGuid(),
+                        TicketTypeId = dayOneTicket.Id,
+                        UserId = ropeEnthusiast.Id,
+                        Quantity = 1,
+                        TotalPrice = 25.00m,
+                        PaymentStatus = "Completed",
+                        PaymentMethod = "PayPal",
+                        PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                        PurchaseDate = dayOnePurchaseDate,
+                        CreatedAt = dayOnePurchaseDate,
+                        UpdatedAt = dayOnePurchaseDate,
+                        Notes = "Day One ticket - will purchase Day Two separately",
+                        EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId()),
+                        EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId()),
+                        EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId())
+                    };
+                    purchasesToAdd.Add(dayOnePurchase);
+
+                    // Create EventAttendance and EventAttendee for Day One
+                    CreateAttendanceAndAttendee(
+                        dayOnePurchase,
+                        eventItem.Id,
+                        ropeEnthusiast.Id,
+                        dayOneTicket,
+                        "Completed",
+                        "PayPal",
+                        attendancesToAdd,
+                        attendeesToAdd,
+                        ticketCountersByEvent, "CLASS");
+
+                    hasExistingAttendee = true; // Now they have an attendee record
+                    _logger.LogDebug("Created 'Day One' ticket for RopeEnthusiast");
+                }
+
+                // Step 2: Add Day Two ticket (they already have EventAttendee from Day One)
+                var dayTwoPurchaseDate = DateTime.UtcNow.AddDays(-8); // Purchased 8 days ago (after Day One)
+                var dayTwoPurchase = new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    TicketTypeId = dayTwoTicket.Id,
+                    UserId = ropeEnthusiast.Id,
+                    Quantity = 1,
+                    TotalPrice = 28.00m,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = "PayPal",
+                    PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                    PurchaseDate = dayTwoPurchaseDate,
+                    CreatedAt = dayTwoPurchaseDate,
+                    UpdatedAt = dayTwoPurchaseDate,
+                    Notes = "Purchased Day Two separately after attending Day One",
+                    EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId()),
+                    EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId()),
+                    EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId())
+                };
+                purchasesToAdd.Add(dayTwoPurchase);
+
+                // User has EventAttendee from Day One - only create EventAttendance for Day Two sessions
+                // (no duplicate EventAttendee - unique constraint UQ_EventAttendees_EventUser)
+                if (dayTwoTicket.Sessions != null && dayTwoTicket.Sessions.Any())
+                {
+                    foreach (var session in dayTwoTicket.Sessions)
+                    {
+                        var attendance = new EventAttendance(eventItem.Id, ropeEnthusiast.Id, AttendanceType.Ticket)
+                        {
+                            Id = Guid.NewGuid(),
+                            SessionId = session.Id,
+                            Status = AttendanceStatus.Active,
+                            TicketPurchaseId = dayTwoPurchase.Id,
+                            CreatedAt = dayTwoPurchaseDate,
+                            UpdatedAt = dayTwoPurchaseDate,
+                            CreatedBy = ropeEnthusiast.Id,
+                            UpdatedBy = ropeEnthusiast.Id,
+                            Metadata = $"{{\"ticketType\":\"{dayTwoTicket.Name}\",\"price\":28.00,\"paymentMethod\":\"PayPal\"}}"
+                        };
+                        attendancesToAdd.Add(attendance);
+                    }
+                }
+                _logger.LogDebug("Created 'Day Two' ticket for RopeEnthusiast (has both days separately)");
+            }
+        }
+
+        // Create 1 refunded "Both Days" ticket
+        if (bothDaysTicket != null)
+        {
+            var userIndex = GetNextUserIndex();
+            if (userIndex >= 0)
+            {
+                var user = users[userIndex];
+
+                if (!await UserHasExistingTicketAsync(user))
+                {
+                    var purchaseAmount = 55.00m; // Fixed amount for clarity
+                    var purchaseDate = DateTime.UtcNow.AddDays(-25); // Purchased 25 days ago
+                    var refundDate = DateTime.UtcNow.AddDays(-10); // Refunded 10 days ago
+
+                    var ticketPurchase = new TicketPurchase
+                    {
+                        Id = Guid.NewGuid(),
+                        TicketTypeId = bothDaysTicket.Id,
+                        UserId = user.Id,
+                        Quantity = 1,
+                        TotalPrice = purchaseAmount,
+                        PaymentStatus = "Refunded",
+                        PaymentMethod = "PayPal",
+                        PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                        PurchaseDate = purchaseDate,
+                        CreatedAt = purchaseDate,
+                        UpdatedAt = refundDate,
+                        Notes = "Refund reason: Schedule conflict - unable to attend",
+                        EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId()),
+                        EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId()),
+                        EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId())
+                    };
+
+                    purchasesToAdd.Add(ticketPurchase);
+
+                    // Create EventAttendance with Cancelled status for refunded ticket
+                    CreateAttendanceAndAttendee(
+                        ticketPurchase,
+                        eventItem.Id,
+                        user.Id,
+                        bothDaysTicket,
+                        "Refunded",
+                        "PayPal",
+                        attendancesToAdd,
+                        attendeesToAdd,
+                        ticketCountersByEvent, "CLASS");
+
+                    _logger.LogDebug("Created refunded 'Both Days' ticket for user {UserId}", user.Id);
+                }
+            }
+        }
+
+        _logger.LogInformation("Created Suspension Basics tickets: 2 Both Days, 2 Day One, 2 Day Two, 1 Refunded");
     }
 
     /// <summary>
