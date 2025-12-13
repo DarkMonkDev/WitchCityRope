@@ -34,6 +34,7 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
       startTime: session1Start,
       endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S1',
     });
 
     const session2 = await df.sessions.create({
@@ -42,6 +43,7 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
       startTime: session2Start,
       endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S2',
     });
 
     console.log(`✅ Created test event: ${event.id}`);
@@ -145,6 +147,7 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
       startTime: session1Start,
       endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S1',
     });
 
     await df.sessions.create({
@@ -153,6 +156,7 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
       startTime: session2Start,
       endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S2',
     });
 
     // Login as admin
@@ -238,6 +242,7 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
       startTime: session1Start,
       endTime: new Date(session1Start.getTime() + 3 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S1',
     });
 
     await df.sessions.create({
@@ -246,6 +251,7 @@ test.describe('Session-Aware Check-In - Token Generation', () => {
       startTime: session2Start,
       endTime: new Date(session2Start.getTime() + 3 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S2',
     });
 
     // Login as admin
@@ -335,6 +341,7 @@ test.describe('Session-Aware Check-In - Single Session Event', () => {
       startTime: sessionStart,
       endTime: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S1',
     });
 
     console.log(`✅ Created single-session event: ${event.id}`);
@@ -413,6 +420,7 @@ test.describe('Session-Aware Check-In - Attendees Tab', () => {
       startTime: sessionStart,
       endTime: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S1',
     });
 
     await df.sessions.create({
@@ -421,6 +429,7 @@ test.describe('Session-Aware Check-In - Attendees Tab', () => {
       startTime: new Date(sessionStart.getTime() + 4 * 60 * 60 * 1000),
       endTime: new Date(sessionStart.getTime() + 7 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S2',
     });
 
     console.log(`✅ Created attendees tab test event: ${event.id}`);
@@ -483,6 +492,7 @@ test.describe('Session-Aware Check-In - Attendees Tab', () => {
       startTime: sessionStart,
       endTime: new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S1',
     });
 
     await df.sessions.create({
@@ -491,6 +501,7 @@ test.describe('Session-Aware Check-In - Attendees Tab', () => {
       startTime: new Date(sessionStart.getTime() + 4 * 60 * 60 * 1000),
       endTime: new Date(sessionStart.getTime() + 7 * 60 * 60 * 1000),
       maxCapacity: 20,
+      sessionIdentifier: 'S2',
     });
 
     // Login as admin
