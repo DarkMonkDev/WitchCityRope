@@ -47,6 +47,9 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
   const [errors, setErrors] = useState<{ amount?: string; reason?: string }>({});
   const eventTimeZone = useEventTimeZone();
 
+  // Check if this is a $0 ticket (cancellation only, no refund needed)
+  const isZeroAmountTicket = payment.remainingRefundableAmount === 0 && payment.amount === 0;
+
   // Reset state when modal closes
   useEffect(() => {
     if (!opened) {
@@ -60,16 +63,19 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
   const validate = () => {
     const newErrors: { amount?: string; reason?: string } = {};
 
-    if (!refundAmount || refundAmount <= 0) {
-      newErrors.amount = 'Refund amount must be greater than $0';
-    }
+    // For $0 tickets, skip amount validation (it's a cancellation, not a refund)
+    if (!isZeroAmountTicket) {
+      if (!refundAmount || refundAmount <= 0) {
+        newErrors.amount = 'Refund amount must be greater than $0';
+      }
 
-    if (refundAmount > payment.remainingRefundableAmount) {
-      newErrors.amount = `Amount exceeds remaining refundable amount of $${payment.remainingRefundableAmount.toFixed(2)}`;
+      if (refundAmount > payment.remainingRefundableAmount) {
+        newErrors.amount = `Amount exceeds remaining refundable amount of $${payment.remainingRefundableAmount.toFixed(2)}`;
+      }
     }
 
     if (!refundReason || refundReason.trim().length < 10) {
-      newErrors.reason = 'Refund reason must be at least 10 characters';
+      newErrors.reason = 'Cancellation reason must be at least 10 characters';
     }
 
     setErrors(newErrors);
@@ -128,7 +134,7 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
       onClose={handleClose}
       title={
         <Title order={3} style={{ color: '#880124' }}>
-          Process Variable Refund
+          {isZeroAmountTicket ? 'Cancel Ticket' : 'Process Variable Refund'}
         </Title>
       }
       centered
@@ -138,7 +144,9 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
       <Stack gap="md">
         {/* Payment Info */}
         <Text size="sm">
-          You are about to process a variable refund for:
+          {isZeroAmountTicket
+            ? 'You are about to cancel the ticket for:'
+            : 'You are about to process a variable refund for:'}
         </Text>
         <List size="sm" spacing="xs" withPadding>
           <List.Item>
@@ -157,63 +165,85 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
           )}
         </List>
 
-        {/* Transaction Summary */}
-        <Box
-          style={{
-            padding: '12px',
-            backgroundColor: '#FAF6F2',
-            borderRadius: '8px'
-          }}
-        >
-          <Group justify="space-between" mb={8}>
-            <Text size="sm" c="dimmed">Transaction Amount:</Text>
-            <Text size="sm" fw={600}>${payment.amount.toFixed(2)}</Text>
-          </Group>
-          <Group justify="space-between" mb={8}>
-            <Text size="sm" c="dimmed">Already Refunded:</Text>
-            <Text size="sm" fw={600}>${(payment.amount - payment.remainingRefundableAmount).toFixed(2)}</Text>
-          </Group>
-          <Divider my={8} />
-          <Group justify="space-between">
-            <Text size="sm" fw={600}>Remaining Refundable:</Text>
-            <Text size="lg" fw={700} c="wcr.7">${payment.remainingRefundableAmount.toFixed(2)}</Text>
-          </Group>
-        </Box>
+        {/* Transaction Summary - Only show for paid tickets */}
+        {!isZeroAmountTicket && (
+          <Box
+            style={{
+              padding: '12px',
+              backgroundColor: '#FAF6F2',
+              borderRadius: '8px'
+            }}
+          >
+            <Group justify="space-between" mb={8}>
+              <Text size="sm" c="dimmed">Transaction Amount:</Text>
+              <Text size="sm" fw={600}>${payment.amount.toFixed(2)}</Text>
+            </Group>
+            <Group justify="space-between" mb={8}>
+              <Text size="sm" c="dimmed">Already Refunded:</Text>
+              <Text size="sm" fw={600}>${(payment.amount - payment.remainingRefundableAmount).toFixed(2)}</Text>
+            </Group>
+            <Divider my={8} />
+            <Group justify="space-between">
+              <Text size="sm" fw={600}>Remaining Refundable:</Text>
+              <Text size="lg" fw={700} c="wcr.7">${payment.remainingRefundableAmount.toFixed(2)}</Text>
+            </Group>
+          </Box>
+        )}
 
-        {/* Refund Amount Input */}
-        <NumberInput
-          label="Refund Amount"
-          placeholder="Enter amount to refund"
-          value={refundAmount}
-          onChange={(value) => {
-            setRefundAmount(typeof value === 'number' ? value : 0);
-            // Clear amount error when user changes value
-            if (errors.amount) {
-              setErrors({ ...errors, amount: undefined });
-            }
-          }}
-          min={0}
-          max={payment.remainingRefundableAmount}
-          decimalScale={2}
-          fixedDecimalScale
-          prefix="$"
-          error={errors.amount}
-          required
-          data-testid="refund-amount-input"
-          styles={{
-            label: {
-              fontSize: '14px',
-              fontWeight: 600,
-              marginBottom: '8px'
-            }
-          }}
-        />
+        {/* Zero Amount Info Box - Only for $0 tickets */}
+        {isZeroAmountTicket && (
+          <Box
+            style={{
+              padding: '12px',
+              backgroundColor: '#FAF6F2',
+              borderRadius: '8px',
+              textAlign: 'center'
+            }}
+          >
+            <Text size="sm" c="dimmed" mb={4}>Ticket Amount</Text>
+            <Text size="lg" fw={700} c="charcoal">$0.00 (Free Ticket)</Text>
+            <Text size="xs" c="dimmed" mt={4}>No refund required - this will cancel the ticket only</Text>
+          </Box>
+        )}
 
-        {/* Refund Reason - Required Field */}
+        {/* Refund Amount Input - Only show for paid tickets */}
+        {!isZeroAmountTicket && (
+          <NumberInput
+            label="Refund Amount"
+            placeholder="Enter amount to refund"
+            value={refundAmount}
+            onChange={(value) => {
+              setRefundAmount(typeof value === 'number' ? value : 0);
+              // Clear amount error when user changes value
+              if (errors.amount) {
+                setErrors({ ...errors, amount: undefined });
+              }
+            }}
+            min={0}
+            max={payment.remainingRefundableAmount}
+            decimalScale={2}
+            fixedDecimalScale
+            prefix="$"
+            error={errors.amount}
+            required
+            data-testid="refund-amount-input"
+            styles={{
+              label: {
+                fontSize: '14px',
+                fontWeight: 600,
+                marginBottom: '8px'
+              }
+            }}
+          />
+        )}
+
+        {/* Reason - Required Field */}
         <Box>
           <Textarea
-            label="Refund Reason"
-            placeholder="Explain why this refund is being processed (minimum 10 characters)..."
+            label={isZeroAmountTicket ? 'Cancellation Reason' : 'Refund Reason'}
+            placeholder={isZeroAmountTicket
+              ? 'Explain why this ticket is being cancelled (minimum 10 characters)...'
+              : 'Explain why this refund is being processed (minimum 10 characters)...'}
             value={refundReason}
             onChange={(event) => {
               setRefundReason(event.currentTarget.value);
@@ -243,14 +273,27 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
           </Text>
         </Box>
 
-        {/* RSVP Warning Alert */}
-        <Alert icon={<IconAlertCircle size={16} />} color="blue" variant="light">
-          <Text size="sm" fw={500}>
-            ⚠️ RSVP/Ticket will NOT be cancelled
-          </Text>
-          <Text size="xs" c="dimmed">
-            This is a financial refund only. The member will retain their event access.
-          </Text>
+        {/* Warning Alert */}
+        <Alert icon={<IconAlertCircle size={16} />} color={isZeroAmountTicket ? 'yellow' : 'blue'} variant="light">
+          {isZeroAmountTicket ? (
+            <>
+              <Text size="sm" fw={500}>
+                ⚠️ Ticket will be cancelled
+              </Text>
+              <Text size="xs" c="dimmed">
+                The member will lose access to this event. Their RSVP (if any) will also be removed.
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text size="sm" fw={500}>
+                ⚠️ RSVP/Ticket will NOT be cancelled
+              </Text>
+              <Text size="xs" c="dimmed">
+                This is a financial refund only. The member will retain their event access.
+              </Text>
+            </>
+          )}
         </Alert>
 
         {/* Cannot Undo Warning */}
@@ -262,7 +305,9 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
         <Checkbox
           checked={confirmed}
           onChange={(event) => setConfirmed(event.currentTarget.checked)}
-          label="I understand this will process the refund and cannot be undone"
+          label={isZeroAmountTicket
+            ? 'I understand this will cancel the ticket and cannot be undone'
+            : 'I understand this will process the refund and cannot be undone'}
           data-testid="refund-confirmation-checkbox"
           styles={{
             label: {
@@ -296,7 +341,12 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
             color="red"
             onClick={handleSubmit}
             loading={isSubmitting}
-            disabled={!confirmed || !refundAmount || refundAmount <= 0 || !refundReason || refundReason.trim().length < 10}
+            disabled={
+              !confirmed ||
+              !refundReason ||
+              refundReason.trim().length < 10 ||
+              (!isZeroAmountTicket && (!refundAmount || refundAmount <= 0))
+            }
             data-testid="refund-confirm-button"
             styles={{
               root: {
@@ -309,7 +359,7 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
               }
             }}
           >
-            Process Refund
+            {isZeroAmountTicket ? 'Cancel Ticket' : 'Process Refund'}
           </Button>
         </Group>
       </Stack>
