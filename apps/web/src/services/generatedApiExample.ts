@@ -45,7 +45,10 @@ export async function createEventExample(eventData: {
   startDateTime: Date;
   endDateTime: Date;
   capacity: number;
-  eventType: 'Workshop' | 'Performance' | 'Social' | 'Private';
+  // Boolean flags replace eventType enum
+  allowRsvps?: boolean;
+  requireTicketPurchase?: boolean;
+  vettedMembersOnly?: boolean;
 }): Promise<EventDto> {
   try {
     // Transform Date objects to ISO strings as expected by API
@@ -55,7 +58,9 @@ export async function createEventExample(eventData: {
       startDateTime: eventData.startDateTime.toISOString(),
       endDateTime: eventData.endDateTime.toISOString(),
       capacity: eventData.capacity,
-      eventType: eventData.eventType
+      allowRsvps: eventData.allowRsvps ?? false,
+      requireTicketPurchase: eventData.requireTicketPurchase ?? true,
+      vettedMembersOnly: eventData.vettedMembersOnly ?? false
     };
 
     // TypeScript will enforce the correct request/response types
@@ -96,18 +101,17 @@ export function isValidUser(data: any): data is UserDto {
          data.email.includes('@');
 }
 
-// Example 5: Working with enums from generated types
-export function getEventTypeDisplay(eventType: EventDto['eventType']): string {
-  switch (eventType) {
-    case 'Workshop':
-      return '🎓 Workshop';
-    case 'Performance':
-      return '🎭 Performance';
-    case 'Social':
-      return '🎉 Social Event';
-    case 'Private':
-      return '🔒 Private Session';
-    default:
+// Example 5: Working with boolean flags to determine event type display
+export function getEventTypeDisplay(event: { allowRsvps?: boolean; requireTicketPurchase?: boolean }): string {
+  const allowRsvps = event.allowRsvps ?? false;
+  const requireTicketPurchase = event.requireTicketPurchase ?? true;
+
+  // Derive event type from boolean flags
+  if (allowRsvps && !requireTicketPurchase) {
+    return '🎉 Social Event (RSVP)';
+  } else if (requireTicketPurchase) {
+    return '🎓 Class (Ticket Required)';
+  } else {
       return '📅 Event';
   }
 }

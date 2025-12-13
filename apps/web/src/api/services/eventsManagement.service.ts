@@ -31,8 +31,10 @@ export class EventsManagementService {
    */
   async getEvents(filters: EventsFilters = {}): Promise<EventSummaryDto[]> {
     const searchParams = new URLSearchParams();
-    
-    if (filters.eventType) searchParams.set('eventType', filters.eventType);
+
+    // TODO: Update backend to support filtering by boolean flags (allowRsvps, requireTicketPurchase, vettedMembersOnly)
+    // eventType filter removed - backend now uses boolean flags instead
+    // if (filters.eventType) searchParams.set('eventType', filters.eventType);
     if (filters.showPast !== undefined) searchParams.set('showPast', filters.showPast.toString());
     if (filters.organizerId) searchParams.set('organizerId', filters.organizerId);
     

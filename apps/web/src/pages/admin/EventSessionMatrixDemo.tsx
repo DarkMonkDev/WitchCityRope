@@ -77,7 +77,9 @@ const mockTicketTypes: EventTicketType[] = [
 ];
 
 const mockInitialData: Partial<EventFormData> = {
-  eventType: 'class',
+  allowRsvps: false,
+  requireTicketPurchase: true,
+  vettedMembersOnly: false,
   title: 'Rope Bondage Intensive: 3-Day Series',
   shortDescription: 'Comprehensive rope bondage workshop covering fundamentals through advanced techniques',
   fullDescription: '<p><strong>Join us for an intensive 3-day rope bondage series!</strong></p><p>This comprehensive workshop will take you from the basics through advanced techniques.</p>',
