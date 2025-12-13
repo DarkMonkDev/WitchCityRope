@@ -1925,13 +1925,13 @@ public class TicketPurchaseSeeder
             new Dictionary<string, int>
             {
                 { "Full Workshop Pass", 6 },
-                { "Single Session Ticket", 3 },
+                { "Afternoon Ticket", 3 },
                 { "Early Bird Full Pass", 1 }
             },
             new Dictionary<string, int>
             {
                 { "Full Workshop Pass", 5 }, // 5 checked in, 1 no-show
-                { "Single Session Ticket", 2 }, // 2 checked in, 1 no-show
+                { "Afternoon Ticket", 2 }, // 2 checked in, 1 no-show
                 { "Early Bird Full Pass", 1 } // 1 checked in
             },
             "guest@witchcityrope.com", // canceled user

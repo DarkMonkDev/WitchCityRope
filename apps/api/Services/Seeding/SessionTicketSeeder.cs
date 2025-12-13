@@ -464,7 +464,7 @@ public class SessionTicketSeeder
 
     /// <summary>
     /// Creates ticket types for Advanced Suspension Techniques historical event.
-    /// Full Workshop Pass ($80), Single Session Ticket ($45), Early Bird Full Pass ($65).
+    /// Full Workshop Pass ($80), Afternoon Ticket ($45), Early Bird Full Pass ($65).
     /// </summary>
     private void CreateAdvancedSuspensionTicketTypes(Event eventItem, List<Session> sessions, List<TicketType> ticketTypesToAdd)
     {
@@ -480,13 +480,13 @@ public class SessionTicketSeeder
             PricingType = PricingType.Fixed
         });
 
-        // Single Session Ticket - $45 (can be used for either session)
+        // Afternoon Ticket - $45 (afternoon session only)
         ticketTypesToAdd.Add(new TicketType
         {
             EventId = eventItem.Id,
-            Sessions = sessions.ToList(), // Can be used for either session
-            Name = "Single Session Ticket",
-            Description = "Access to one session (morning or afternoon)",
+            Sessions = new List<Session> { sessions[1] }, // Afternoon session only
+            Name = "Afternoon Ticket",
+            Description = "Access to afternoon session only",
             Price = 45.00m,
             Available = 10,
             PricingType = PricingType.Fixed
