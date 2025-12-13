@@ -54,9 +54,8 @@ export const CheckInHeader: React.FC<CheckInHeaderProps> = ({
     }
 
     updateCountdown()
-    // Update every 60 seconds instead of 1 second to reduce memory usage
-    // Users don't need second-by-second precision for event countdowns
-    const interval = setInterval(updateCountdown, 60000)
+    // Update every second for real-time countdown
+    const interval = setInterval(updateCountdown, 1000)
 
     return () => clearInterval(interval)
   }, [eventDate])
