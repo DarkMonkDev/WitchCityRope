@@ -25,6 +25,12 @@ public class AttendeeResponse
     /// "paid" = Has ticket purchase, show "Covid Test" button
     /// </summary>
     public string PaymentStatus { get; set; } = "rsvp";
+
+    /// <summary>
+    /// Session names this attendee is registered for (for multi-session display)
+    /// Example: ["Session 1", "Session 2"] for multi-session tickets
+    /// </summary>
+    public List<string>? SessionNames { get; set; }
 }
 
 /// <summary>
