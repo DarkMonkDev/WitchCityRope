@@ -73,6 +73,28 @@ limitation, not an application bug. Manual testing confirms the policies field w
 
 ## 🔴 REMAINING FAILURES TO INVESTIGATE
 
+### Vetting Workflows (6 failures out of 91 tests)
+- **Root Cause**: Modal visibility timing issues and DataFactory cleanup failures
+- **Specific Issues**:
+  - Deny/Hold modals exist in DOM but are "hidden" - likely animation or timing
+  - DataFactory duplicate user errors (cleanup not working between tests)
+  - Notification elements not appearing after actions
+  - Status badge timeouts
+
+### Check-in Tests (6 failures out of 22 tests)
+- **Root Cause**: DataFactory cleanup failures and selector timing
+- **Specific Issues**:
+  - Sessions can't be deleted due to cascading relationships (400 errors)
+  - Tests failing very quickly (<300ms) - likely missing elements
+  - DataFactory events can't be cleaned up after tests
+
+### Common DataFactory Issues
+These tests all suffer from similar DataFactory problems:
+1. Sessions can't be deleted when tickets exist
+2. Events can't be deleted when sessions exist
+3. Users can't be created when email already exists
+4. Need proper cascade delete support in test helper endpoints
+
 ---
 
 ## Key Mantine v7 Testing Patterns
