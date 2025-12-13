@@ -34,7 +34,10 @@ interface ApiEvent {
   venueId?: number | null // Venue reference (preferred)
   venueLocation?: string | null // Public location (city, state) for privacy-aware display
   location: string // DEPRECATED: Legacy location string
-  eventType?: string
+  // Boolean flags replace eventType enum
+  allowRsvps?: boolean
+  requireTicketPurchase?: boolean
+  vettedMembersOnly?: boolean
   capacity?: number
   registrationCount?: number
   // Optional fields that may be added later
@@ -141,7 +144,10 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     endDate: apiEvent.endDate || null,
     venueId: apiEvent.venueId || null,
     venueLocation: apiEvent.venueLocation || null,
-    eventType: apiEvent.eventType,
+    // Map boolean flags from API
+    allowRsvps: apiEvent.allowRsvps ?? false,
+    requireTicketPurchase: apiEvent.requireTicketPurchase ?? true,
+    vettedMembersOnly: apiEvent.vettedMembersOnly ?? false,
     capacity: apiEvent.capacity || apiEvent.maxAttendees || 20, // Use capacity first, then maxAttendees
     registrationCount: apiEvent.registrationCount || apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
     // Map new fields from API response with proper transformation
@@ -273,9 +279,10 @@ export function useUpdateEvent() {
         queryClient.setQueryData(eventKeys.detail(updatedEvent.id), context.previousEvent)
       }
     },
-    onSettled: (_data, _error, updatedEvent) => {
-      // Invalidate related queries (event lists) to trigger refetch
-      cacheUtils.invalidateEvents(queryClient, updatedEvent.id)
+    onSettled: () => {
+      // Only invalidate event lists, not the specific event detail
+      // The event detail is already updated via setQueryData in onSuccess
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
     },
   })
 }

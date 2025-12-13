@@ -31,10 +31,15 @@ export function convertEventFormDataToUpdateDto(
     updateDto.venueId = parseInt(formData.venueId.trim(), 10);
   }
 
-  // Include eventType mapping
-  if (formData.eventType) {
-    // Map frontend eventType to backend format
-    updateDto.eventType = formData.eventType === 'class' ? 'Class' : 'Social';
+  // Include boolean flags (replace eventType)
+  if (formData.allowRsvps !== undefined) {
+    updateDto.allowRsvps = formData.allowRsvps;
+  }
+  if (formData.requireTicketPurchase !== undefined) {
+    updateDto.requireTicketPurchase = formData.requireTicketPurchase;
+  }
+  if (formData.vettedMembersOnly !== undefined) {
+    updateDto.vettedMembersOnly = formData.vettedMembersOnly;
   }
 
   // Include sessions data (always include even if empty to allow clearing)
@@ -142,11 +147,13 @@ export function hasEventFormDataChanged(
 ): boolean {
   const fieldsToCheck: (keyof EventFormData)[] = [
     'title',
-    'shortDescription', 
+    'shortDescription',
     'fullDescription',
     'policies',
     'venueId',
-    'eventType',
+    'allowRsvps',
+    'requireTicketPurchase',
+    'vettedMembersOnly',
     'teacherIds',
     'sessions',
     'ticketTypes',
@@ -202,8 +209,17 @@ export function getChangedEventFields(
     changes.venueId = parseInt(current.venueId?.trim() || '0', 10);
   }
 
-  if (current.eventType !== initial.eventType) {
-    changes.eventType = current.eventType === 'class' ? 'Class' : 'Social';
+  // Check boolean flags for changes
+  if (current.allowRsvps !== initial.allowRsvps) {
+    changes.allowRsvps = current.allowRsvps;
+  }
+
+  if (current.requireTicketPurchase !== initial.requireTicketPurchase) {
+    changes.requireTicketPurchase = current.requireTicketPurchase;
+  }
+
+  if (current.vettedMembersOnly !== initial.vettedMembersOnly) {
+    changes.vettedMembersOnly = current.vettedMembersOnly;
   }
 
   if (current.policies?.trim() !== initial.policies?.trim()) {

@@ -88,9 +88,14 @@ export const useAdminEventFilters = () => {
           if (filterState.activeTypes.length === 0) {
             return false; // No filters selected = no events shown
           }
-          if (filterState.activeTypes.length > 0 && event.eventType) {
+          if (filterState.activeTypes.length > 0) {
+            // Derive event type from boolean flags
+            const allowRsvps = (event as any)?.allowRsvps ?? false;
+            const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true;
+            const derivedEventType = allowRsvps && !requireTicketPurchase ? 'Social' : 'Class';
+
             // Check if event type matches any selected filter
-            if (!filterState.activeTypes.includes(event.eventType)) {
+            if (!filterState.activeTypes.includes(derivedEventType)) {
               return false;
             }
           }
