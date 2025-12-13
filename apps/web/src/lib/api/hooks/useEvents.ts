@@ -280,9 +280,9 @@ export function useUpdateEvent() {
       }
     },
     onSettled: () => {
-      // Only invalidate event lists, not the specific event detail
-      // The event detail is already updated via setQueryData in onSuccess
-      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
+      // Invalidate ALL event queries to ensure consistency across different query key patterns
+      // This covers both eventKeys.lists() and queryKeys.events() patterns used in the app
+      queryClient.invalidateQueries({ queryKey: ['events'] })
     },
   })
 }
