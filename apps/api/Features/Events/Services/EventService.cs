@@ -75,11 +75,11 @@ public class EventService : IEventService
             if (includeUnpublished)
             {
                 // Admin access: Show all events (both published and draft), including future and past
-                // Filter based on sessions: show events with sessions in last 30 days OR with future sessions
+                // Filter based on sessions: show events with sessions in last 365 days OR with future sessions
                 query = query.Where(e =>
-                    e.Sessions.Any(s => s.EndTime > now.AddDays(-30)) || // Has session that ended within last 30 days
+                    e.Sessions.Any(s => s.EndTime > now.AddDays(-365)) || // Has session that ended within last year
                     e.Sessions.Any(s => s.StartTime > now) || // Has upcoming session
-                    e.StartDate > now.AddDays(-30)); // Fallback to StartDate for events without sessions
+                    e.StartDate > now.AddDays(-365)); // Fallback to StartDate for events without sessions
             }
             else
             {
