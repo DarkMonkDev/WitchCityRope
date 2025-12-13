@@ -62,9 +62,13 @@ public static class CheckInEndpoints
             }
 
             // TOKEN IS VALID - Proceed with check-in operation
-            // Pass sessionId from validated token to filter attendees for this session only
+            // Pass sessionIds from validated token to filter attendees for these sessions
+            // Support both multi-session tokens (SessionIds list) and legacy single-session tokens (SessionId)
+            var sessionIds = tokenData.SessionIds ??
+                (tokenData.SessionId != default ? new List<Guid> { tokenData.SessionId } : new List<Guid>());
+
             var result = await checkInService.GetEventAttendeesAsync(
-                eventId, tokenData.SessionId, search, status, page, pageSize, cancellationToken);
+                eventId, sessionIds, search, status, page, pageSize, cancellationToken);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
