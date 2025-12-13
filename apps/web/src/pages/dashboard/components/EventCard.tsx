@@ -330,13 +330,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
                 const showSessionName = shift.sessionName && !shift.sessionName.includes('Main Session');
 
                 return (
-                  <Group key={shift.id} justify="space-between">
+                  <Group key={shift.id} justify="space-between" wrap="nowrap">
                     <Text size="sm" fw={500} c="var(--color-charcoal)">
                       {shift.positionTitle}
                       {showSessionName && ` • ${shift.sessionName}`}
                     </Text>
                     {shift.sessionStartTime && shift.sessionEndTime && (
-                      <Text size="sm" fw={500} c="var(--color-charcoal)">
+                      <Text size="sm" fw={500} c="var(--color-charcoal)" style={{ flexShrink: 0 }}>
                         {formatShiftTime(shift.sessionStartTime)} - {formatShiftTime(shift.sessionEndTime)}
                       </Text>
                     )}
