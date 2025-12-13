@@ -14,12 +14,12 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 3. **When re-running tests**: Update failure reasons if they changed
 
 ## Test Run Info
-- **Date**: December 12, 2025 (Last Updated - Post DataFactory Fixes)
+- **Date**: December 13, 2025 (Last Updated)
 - **Total Tests**: 795
-- **Passed**: 704
-- **Failed**: 63
+- **Passed**: 699
+- **Failed**: 68
 - **Skipped**: 28
-- **Pass Rate**: **88.6%**
+- **Pass Rate**: **87.9%**
 - **Run Time**: ~27 minutes
 
 ### ✅ DataFactory Fixes Applied (December 12, 2025)
@@ -30,12 +30,12 @@ Major improvements to test data creation infrastructure:
 3. **Test File Updates** - Updated 18 test files to include eventId in ticketTypes.create calls
 4. **Home Page Test Fix** - Fixed date detection logic for multi-session events
 
-| Metric | Dec 11 | Dec 12 | Change |
-|--------|--------|--------|--------|
-| Passed | 617 | 704 | **+87** |
-| Failed | 146 | 63 | **-83** |
-| Skipped | 27 | 28 | +1 |
-| Pass Rate | 78.1% | 88.6% | **+10.5%** |
+| Metric | Dec 11 | Dec 12 | Dec 13 | Change (Dec 12→13) |
+|--------|--------|--------|--------|---------------------|
+| Passed | 617 | 704 | 699 | **-5** |
+| Failed | 146 | 63 | 68 | **+5** |
+| Skipped | 27 | 28 | 28 | 0 |
+| Pass Rate | 78.1% | 88.6% | 87.9% | **-0.7%** |
 
 ### Previous: Infrastructure Fixes (December 11, 2025)
 
@@ -82,18 +82,18 @@ Major improvements to test data creation infrastructure:
 - `test.fail()` marks tests as "expected failures" - they show in results but don't break CI
 
 ### Progress Comparison
-| Metric | Dec 2 | Dec 7 | Dec 9 | Dec 10 (Phase 5) | Dec 10 (Phase 6) | Dec 11 | **Dec 12** |
-|--------|-------|-------|-------|------------------|------------------|--------|------------|
-| Passed | 622 | 643 | 688 | 681 | 705+ | 617 | **704** |
-| Failed | 111 | 92 | 38 | ~100 | ~76 | 146 | **63** |
-| Skipped | 74 | 72 | 83 | 1 | 1 | 27 | **28** |
-| Pass Rate | 84.9% | 87.4% | 85.0% | ~87% | ~89% | 78.1% | **88.6%** |
+| Metric | Dec 2 | Dec 7 | Dec 9 | Dec 10 (Phase 5) | Dec 10 (Phase 6) | Dec 11 | Dec 12 | **Dec 13** |
+|--------|-------|-------|-------|------------------|------------------|--------|--------|------------|
+| Passed | 622 | 643 | 688 | 681 | 705+ | 617 | 704 | **699** |
+| Failed | 111 | 92 | 38 | ~100 | ~76 | 146 | 63 | **68** |
+| Skipped | 74 | 72 | 83 | 1 | 1 | 27 | 28 | **28** |
+| Pass Rate | 84.9% | 87.4% | 85.0% | ~87% | ~89% | 78.1% | 88.6% | **87.9%** |
 
-**Note**: Dec 12 DataFactory fixes resolved regression issues. 63 tests still failing - categorized below.
+**Note**: Dec 13 shows slight regression (-5 tests). Session form tests still have timing issues with Mantine Select components. 68 tests still failing - categorized below.
 
 ---
 
-## Current Failing Tests - Complete List (63 total - December 12, 2025)
+## Current Failing Tests - Complete List (68 total - December 13, 2025)
 
 ### Summary by Category
 
@@ -118,7 +118,7 @@ Major improvements to test data creation infrastructure:
 
 ---
 
-## Complete Failing Tests by File (December 11, 2025)
+## Complete Failing Tests by File (December 13, 2025)
 
 ### Admin Dashboard (2 tests)
 | Test | File |

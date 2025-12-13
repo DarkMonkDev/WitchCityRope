@@ -3,7 +3,20 @@
 ## Purpose
 Track E2E test suite health over time, documenting baseline results, improvements, and remaining issues. Originally started as a parity investigation between dev/test containers (Nov 2025), now serves as ongoing test health tracker.
 
-## Current Status: 88.6% Pass Rate (Dec 12, 2025 - POST DATAFACTORY FIXES)
+## Current Status: 87.9% Pass Rate (Dec 13, 2025)
+
+### Full Test Suite Results (December 13, 2025)
+
+| Metric | Value |
+|--------|-------|
+| **Passed** | 699 |
+| **Failed** | 68 |
+| **Skipped** | 28 |
+| **Total** | 795 |
+| **Pass Rate** | **87.9%** |
+| **Run Time** | ~27 minutes |
+
+### Previous Status: 88.6% Pass Rate (Dec 12, 2025 - POST DATAFACTORY FIXES)
 
 ### ✅ DataFactory Fixes Applied (December 12, 2025)
 
@@ -12,17 +25,6 @@ Major improvements to test data creation infrastructure:
 2. **TicketType Factory Fix** - Made `eventId` required (matches backend API)
 3. **Test File Updates** - Updated 18 test files to include eventId in ticketTypes.create calls
 4. **Home Page Test Fix** - Fixed date detection logic for multi-session events
-
-### Full Test Suite Results (December 12, 2025 - Post DataFactory Fixes)
-
-| Metric | Value |
-|--------|-------|
-| **Passed** | 704 |
-| **Failed** | 63 |
-| **Skipped** | 28 |
-| **Total** | 795 |
-| **Pass Rate** | **88.6%** |
-| **Run Time** | ~27 minutes |
 
 ### Previous Status: 78.1% Pass Rate (Dec 11, 2025)
 
@@ -51,9 +53,10 @@ All test artifacts in `/test-results/`:
 | Dec 10 (Phase 6) | ~705 | ~76 | 1 | ~89% | Fixed 24 tests (CSRF + endpoint) |
 | Dec 11 (DataFactory) | 589 | 206 | 27 | 74% | DataFactory migration regression |
 | Dec 11 (Infrastructure) | 617 | 146 | 27 | 78.1% | Infrastructure fixes + test stabilization |
-| **Dec 12 (DataFactory Fix)** | **704** | **63** | **28** | **88.6%** | User/TicketType factory fixes, 18 test files updated |
+| Dec 12 (DataFactory Fix) | 704 | 63 | 28 | 88.6% | User/TicketType factory fixes, 18 test files updated |
+| **Dec 13** | **699** | **68** | **28** | **87.9%** | Session form helper functions added |
 
-**Note:** Pass rate improved from 78.1% to 88.6% after DataFactory fixes (+87 passing tests, -83 failing tests).
+**Note:** Slight regression from 88.6% to 87.9% (-5 passing tests). Session form tests still have timing issues with Mantine Select components.
 
 ### Key Fixes Applied (Dec 9-10)
 
