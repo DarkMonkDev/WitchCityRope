@@ -1070,43 +1070,40 @@ public class TicketPurchaseSeeder
                 };
                 _context.EventAttendees.Add(attendee);
 
-                // Create CheckIn record if they attended
+                // Create CheckIn records for all sessions the ticket covers
                 if (shouldCheckIn)
                 {
-                    // Determine which session to check in to:
-                    // - If ticket has specific session(s), use the first one
-                    // - If ticket is multi-session (no Sessions), use first session of event
-                    Guid sessionId;
-                    if (ticketType.Sessions.Any())
+                    // Determine which sessions to check in to:
+                    // - If ticket has specific session(s), check in to all of them
+                    // - If ticket is multi-session (no Sessions), check in to all sessions of event
+                    var sessionsToCheckIn = ticketType.Sessions.Any()
+                        ? ticketType.Sessions.OrderBy(s => s.StartTime).ToList()
+                        : evt.Sessions.OrderBy(s => s.StartTime).ToList();
+
+                    if (!sessionsToCheckIn.Any())
                     {
-                        sessionId = ticketType.Sessions.OrderBy(s => s.StartTime).First().Id;
-                    }
-                    else
-                    {
-                        // Multi-session ticket - use first session
-                        var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
-                        if (firstSession == null)
-                        {
-                            _logger.LogWarning("Event {EventId} has no sessions - cannot create CheckIn for user {UserId}", evt.Id, user.Id);
-                            continue; // Skip check-in creation if no sessions exist
-                        }
-                        sessionId = firstSession.Id;
+                        _logger.LogWarning("Event {EventId} has no sessions - cannot create CheckIn for user {UserId}", evt.Id, user.Id);
+                        continue; // Skip check-in creation if no sessions exist
                     }
 
-                    var checkInTime = evt.StartDate.AddMinutes(-15); // 15 min before start
                     var staffMemberId = adminUser?.Id ?? user.Id; // Use admin as staff, fallback to user if admin not found
-                    var checkIn = new CheckIn(attendee.Id, evt.Id, sessionId, staffMemberId)
-                    {
-                        Id = Guid.NewGuid(),
-                        CheckInTime = checkInTime,
-                        CreatedAt = checkInTime,
-                        CreatedBy = staffMemberId,
-                        Notes = $"Checked in for {ticketTypeName}"
-                    };
-                    _context.CheckIns.Add(checkIn);
 
-                    _logger.LogDebug("Created check-in for user {UserId} at event {EventId} session {SessionId} ({TicketType}) by staff {StaffId}",
-                        user.Id, evt.Id, sessionId, ticketTypeName, staffMemberId);
+                    foreach (var session in sessionsToCheckIn)
+                    {
+                        var checkInTime = session.StartTime.AddMinutes(-15); // 15 min before session start
+                        var checkIn = new CheckIn(attendee.Id, evt.Id, session.Id, staffMemberId)
+                        {
+                            Id = Guid.NewGuid(),
+                            CheckInTime = checkInTime,
+                            CreatedAt = checkInTime,
+                            CreatedBy = staffMemberId,
+                            Notes = $"Checked in for {ticketTypeName} - {session.Name}"
+                        };
+                        _context.CheckIns.Add(checkIn);
+
+                        _logger.LogDebug("Created check-in for user {UserId} at event {EventId} session {SessionId} ({SessionName}) ({TicketType}) by staff {StaffId}",
+                            user.Id, evt.Id, session.Id, session.Name, ticketTypeName, staffMemberId);
+                    }
                 }
 
                 globalTicketCounter++; // Increment for every ticket created
