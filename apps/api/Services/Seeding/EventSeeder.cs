@@ -1465,12 +1465,41 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
     }
 
     /// <summary>
+    /// Helper method to convert local Eastern time to TRUE UTC.
+    /// Used for seed data creation to ensure dates are stored correctly.
+    ///
+    /// Example: 6:00 PM Eastern (EST = UTC-5) → 11:00 PM UTC
+    /// NOT: 6:00 PM stored as 6:00 PM UTC (naive UTC)
+    ///
+    /// See: /docs/guides-setup/datetime-handling-guide.md
+    /// </summary>
+    private DateTime ConvertLocalToUtc(int daysFromNow, int localHour)
+    {
+        // Get the America/New_York timezone (handles EST/EDT automatically)
+        var easternZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+
+        // Create local datetime for the target day at the specified hour
+        // CRITICAL: Must use DateTimeKind.Unspecified for ConvertTimeToUtc to work correctly
+        // DateTime.UtcNow creates a UTC kind, but we're treating these values as local Eastern time
+        var baseDate = DateTime.UtcNow.AddDays(daysFromNow).Date;
+        var localDateTime = DateTime.SpecifyKind(baseDate.AddHours(localHour), DateTimeKind.Unspecified);
+
+        // Convert local Eastern time to TRUE UTC
+        var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(localDateTime, easternZone);
+
+        return utcDateTime;
+    }
+
+    /// <summary>
     /// Helper method to create sample events with proper UTC DateTime handling and granular timing controls.
     /// Follows ApplicationDbContext patterns for UTC date storage and audit fields.
     ///
     /// Creates realistic event data with proper scheduling, capacity, pricing information,
     /// complete descriptive fields (short description, long description, policies), and
     /// REALISTIC TIMING VALUES that demonstrate system flexibility.
+    ///
+    /// CRITICAL: Uses TRUE UTC conversion (not naive UTC).
+    /// All times are converted from America/New_York timezone to UTC before storage.
     /// </summary>
     private Event CreateSeedEvent(
         string title,
@@ -1491,8 +1520,9 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
         decimal volunteerRegistrationCloseHours,
         decimal volunteerCancellationCloseHours)
     {
-        // Calculate UTC dates following ApplicationDbContext patterns
-        var startDate = DateTime.UtcNow.AddDays(daysFromNow).Date.AddHours(startHour);
+        // Convert local Eastern time to TRUE UTC
+        // Example: 6 PM Eastern → 11 PM UTC (EST) or 10 PM UTC (EDT)
+        var startDate = ConvertLocalToUtc(daysFromNow, startHour);
         var endDate = startDate.AddHours(allowRsvps && !requireTicketPurchase ? 2 : 3); // Social events 2hrs, classes 3hrs
 
         return new Event
@@ -1523,6 +1553,9 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
     /// <summary>
     /// Helper method to create historical events with specific ID capture for cross-seeder references.
     /// Used for historical events that need comprehensive attendance data across multiple seeders.
+    ///
+    /// CRITICAL: Uses TRUE UTC conversion (not naive UTC).
+    /// All times are converted from America/New_York timezone to UTC before storage.
     /// </summary>
     private Event CreateHistoricalEvent(
         out Guid id,
@@ -1545,7 +1578,9 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
         decimal volunteerCancellationCloseHours)
     {
         id = Guid.NewGuid();
-        var startDate = DateTime.UtcNow.AddDays(daysFromNow).Date.AddHours(startHour);
+
+        // Convert local Eastern time to TRUE UTC
+        var startDate = ConvertLocalToUtc(daysFromNow, startHour);
         var endDate = startDate.AddHours((double)duration);
 
         return new Event
