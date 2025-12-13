@@ -32,6 +32,21 @@ public class VolunteerPositionDto
     public string? SessionId { get; set; }
 
     /// <summary>
+    /// Session start time (UTC) - populated from associated Session if session-specific
+    /// </summary>
+    public DateTime? SessionStartTime { get; set; }
+
+    /// <summary>
+    /// Session end time (UTC) - populated from associated Session if session-specific
+    /// </summary>
+    public DateTime? SessionEndTime { get; set; }
+
+    /// <summary>
+    /// Whether this position is visible on the public event page
+    /// </summary>
+    public bool IsPublicFacing { get; set; }
+
+    /// <summary>
     /// Constructor to map from VolunteerPosition entity
     /// </summary>
     public VolunteerPositionDto() { }
@@ -47,6 +62,9 @@ public class VolunteerPositionDto
         SlotsNeeded = volunteerPosition.SlotsNeeded;
         SlotsFilled = volunteerPosition.SlotsFilled;
         SessionId = volunteerPosition.SessionId?.ToString();
+        SessionStartTime = volunteerPosition.Session?.StartTime;
+        SessionEndTime = volunteerPosition.Session?.EndTime;
+        IsPublicFacing = volunteerPosition.IsPublicFacing;
     }
 
     /// <summary>

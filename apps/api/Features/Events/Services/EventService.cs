@@ -62,6 +62,7 @@ public class EventService : IEventService
                     .ThenInclude(tt => tt.Purchases) // Include purchases for dynamic QuantitySold calculation
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
+                    .ThenInclude(vp => vp.Session) // Load Session for volunteer position start/end times
                 .Include(e => e.Organizers)
                 .Include(e => e.Venue) // Load venue for location name
                 .Include(e => e.EventAttendances) // Load all attendances for the event
@@ -188,6 +189,7 @@ public class EventService : IEventService
                     .ThenInclude(tt => tt.Purchases)
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
+                    .ThenInclude(vp => vp.Session) // Load Session for volunteer position start/end times
                 .Include(e => e.Organizers)
                 .Include(e => e.Venue) // Load venue for location name
                 .Include(e => e.EventAttendances) // Load all attendances for the event
@@ -315,6 +317,7 @@ public class EventService : IEventService
                 .Include(e => e.TicketTypes)
                     .ThenInclude(tt => tt.Sessions)  // Load TicketType->Session links for differential updates
                 .Include(e => e.VolunteerPositions)
+                    .ThenInclude(vp => vp.Session) // Load Session for volunteer position start/end times
                 .Include(e => e.Organizers)
                 .Include(e => e.Venue) // Load venue for location name
                 .Include(e => e.EventAttendances) // Include attendances for capacity validation
@@ -1171,6 +1174,7 @@ public class EventService : IEventService
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
                 .Include(e => e.VolunteerPositions)
+                    .ThenInclude(vp => vp.Session) // Load Session for volunteer position start/end times
                 .Include(e => e.Organizers)
                 .Include(e => e.Venue)
                 .Include(e => e.EventAttendances) // Needed for computed properties in DTO
@@ -1371,6 +1375,7 @@ public class EventService : IEventService
                     .Include(e => e.Sessions)
                     .Include(e => e.TicketTypes)
                     .Include(e => e.VolunteerPositions)
+                        .ThenInclude(vp => vp.Session) // Load Session for volunteer position start/end times
                     .Include(e => e.Organizers)
                     .Include(e => e.Venue)
                     .Include(e => e.EventAttendances)
@@ -1667,6 +1672,7 @@ public class EventService : IEventService
                     .Include(e => e.TicketTypes)
                         .ThenInclude(tt => tt.Sessions)
                     .Include(e => e.VolunteerPositions)
+                        .ThenInclude(vp => vp.Session) // Load Session for volunteer position start/end times
                     .Include(e => e.Organizers)
                     .Include(e => e.Venue)
                     .Include(e => e.EventAttendances)
