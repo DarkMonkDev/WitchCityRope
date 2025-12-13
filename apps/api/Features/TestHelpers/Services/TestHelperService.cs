@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Safety.Services;
@@ -535,6 +536,13 @@ public class TestHelperService : ITestHelperService
             _context.Set<EventAttendance>().RemoveRange(eventAttendances);
             _logger.LogDebug("Removed {Count} event attendances", eventAttendances.Count);
 
+            // 2.5. Delete CheckInSessionTokens for this event
+            var eventTokens = await _context.Set<CheckInSessionToken>()
+                .Where(t => t.EventId == eventId)
+                .ToListAsync(cancellationToken);
+            _context.Set<CheckInSessionToken>().RemoveRange(eventTokens);
+            _logger.LogDebug("Removed {Count} check-in session tokens", eventTokens.Count);
+
             // 3. Delete TicketPurchases for ticket types in this event
             var ticketTypes = await _context.Set<TicketType>()
                 .Where(t => t.EventId == eventId)
@@ -670,6 +678,13 @@ public class TestHelperService : ITestHelperService
                 _logger.LogWarning("Test session not found for deletion: {SessionId}", sessionId);
                 return (false, $"Session not found: {sessionId}");
             }
+
+            // 0. Delete CheckInSessionTokens referencing this session
+            var sessionTokens = await _context.Set<CheckInSessionToken>()
+                .Where(t => t.SessionId == sessionId)
+                .ToListAsync(cancellationToken);
+            _context.Set<CheckInSessionToken>().RemoveRange(sessionTokens);
+            _logger.LogDebug("Removed {Count} check-in session tokens", sessionTokens.Count);
 
             // 1. Delete VolunteerSignups for positions linked to this session
             var sessionVolunteerPositions = await _context.Set<VolunteerPosition>()
