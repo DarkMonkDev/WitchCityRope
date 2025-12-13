@@ -648,6 +648,17 @@ export function CheckInInterface({
             </Box>
           </Table.Th>
           <Table.Th
+            style={{
+              color: 'white',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              textAlign: 'left'
+            }}
+          >
+            Sessions
+          </Table.Th>
+          <Table.Th
             onClick={() => handleSort('status')}
             style={{
               color: 'white',
@@ -706,6 +717,11 @@ export function CheckInInterface({
             <Table.Td style={{ padding: '8px 8px 8px 16px' }}>
               <Text fw={600} size="16px">
                 {attendee.sceneName || attendee.email}
+              </Text>
+            </Table.Td>
+            <Table.Td style={{ padding: '8px 8px 8px 16px' }}>
+              <Text size="sm" c="dimmed">
+                {attendee.sessionNames?.join(', ') || '—'}
               </Text>
             </Table.Td>
             {/* Status column - Streamlined check-in button (COVID + Check-In only) */}

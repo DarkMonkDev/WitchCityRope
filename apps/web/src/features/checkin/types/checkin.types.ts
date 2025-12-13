@@ -148,6 +148,7 @@ export interface CheckInAttendee {
   waitlistPosition?: number;
   paymentStatus?: 'ticket' | 'rsvp' | 'paidAtDoor';  // Added for streamlined workflow
   hasTicketPurchase?: boolean;  // Added for functional spec v2.0
+  sessionNames?: string[];  // Session names for multi-session display
 }
 
 /**
