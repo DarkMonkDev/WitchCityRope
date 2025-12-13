@@ -3,7 +3,6 @@ import { useDebounce } from './useDebounce';
 import type { EventDto } from '@witchcityrope/shared-types';
 
 export interface AdminEventFiltersState {
-  activeTypes: string[];
   searchTerm: string;
   showPastEvents: boolean;
   sortColumn: 'date' | 'title' | null;
@@ -11,7 +10,6 @@ export interface AdminEventFiltersState {
 }
 
 const initialFilterState: AdminEventFiltersState = {
-  activeTypes: ['Social', 'Class'], // Start with both types selected (using current database values)
   searchTerm: '',
   showPastEvents: false,
   sortColumn: 'date', // Default sort by date
@@ -84,22 +82,6 @@ export const useAdminEventFilters = () => {
 
       return events
         .filter(event => {
-          // Type filtering - show events that match selected types
-          if (filterState.activeTypes.length === 0) {
-            return false; // No filters selected = no events shown
-          }
-          if (filterState.activeTypes.length > 0) {
-            // Derive event type from boolean flags
-            const allowRsvps = (event as any)?.allowRsvps ?? false;
-            const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true;
-            const derivedEventType = allowRsvps && !requireTicketPurchase ? 'Social' : 'Class';
-
-            // Check if event type matches any selected filter
-            if (!filterState.activeTypes.includes(derivedEventType)) {
-              return false;
-            }
-          }
-
           // Search filtering (case-insensitive, searches title and description)
           if (debouncedSearchTerm) {
             const searchLower = debouncedSearchTerm.toLowerCase();
@@ -145,7 +127,7 @@ export const useAdminEventFilters = () => {
           return filterState.sortDirection === 'asc' ? comparison : -comparison;
         });
     };
-  }, [filterState.activeTypes, debouncedSearchTerm, filterState.showPastEvents, filterState.sortColumn, filterState.sortDirection]);
+  }, [debouncedSearchTerm, filterState.showPastEvents, filterState.sortColumn, filterState.sortDirection]);
 
   return {
     filterState: {

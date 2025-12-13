@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Table, ActionIcon, Button, Text, Group, Skeleton, Badge } from '@mantine/core'
+import { Table, ActionIcon, Button, Text, Group, Skeleton } from '@mantine/core'
 import { IconCaretUp, IconCaretDown, IconSelector } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { useNavigate } from 'react-router-dom'
@@ -112,22 +112,6 @@ const getCorrectCurrentCount = (event: EventDto): number => {
   return isSocialEvent ? event.currentRSVPs || 0 : event.currentTickets || 0
 }
 
-// Helper function to get event type badge color
-const getEventTypeBadgeColor = (eventType?: string | null): string => {
-  if (!eventType) return 'gray'
-
-  switch (eventType.toLowerCase()) {
-    case 'workshop':
-      return 'blue'
-    case 'social':
-      return 'green'
-    case 'performance':
-      return 'purple'
-    default:
-      return 'gray'
-  }
-}
-
 // Helper function to check if event has any sessions within ±12 hours of current time
 const isWithinCheckInWindow = (event: EventDto): boolean => {
   if (!event.sessions || event.sessions.length === 0) {
@@ -170,9 +154,6 @@ const EventsTableSkeleton: React.FC = () => (
         <Table.Th c="white" style={{ width: '160px' }}>
           Date
         </Table.Th>
-        <Table.Th c="white" style={{ width: '120px', textAlign: 'center' }}>
-          Type
-        </Table.Th>
         <Table.Th c="white" style={{ minWidth: '200px' }}>
           Event Title
         </Table.Th>
@@ -192,9 +173,6 @@ const EventsTableSkeleton: React.FC = () => (
         <Table.Tr key={index}>
           <Table.Td style={{ width: '160px' }}>
             <Skeleton height={20} width="80%" />
-          </Table.Td>
-          <Table.Td style={{ width: '120px', textAlign: 'center' }}>
-            <Skeleton height={20} width="70%" />
           </Table.Td>
           <Table.Td style={{ minWidth: '200px' }}>
             <Skeleton height={20} width="90%" />
@@ -284,9 +262,6 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             <Table.Th c="white" style={{ width: '160px' }}>
               Date
             </Table.Th>
-            <Table.Th c="white" style={{ width: '120px', textAlign: 'center' }}>
-              Type
-            </Table.Th>
             <Table.Th c="white" style={{ minWidth: '200px' }}>
               Event Title
             </Table.Th>
@@ -303,7 +278,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
         </Table.Thead>
         <Table.Tbody>
           <Table.Tr>
-            <Table.Td colSpan={6} ta="center" py="xl">
+            <Table.Td colSpan={5} ta="center" py="xl">
               <Text c="dimmed" size="lg">
                 No events found matching your filters
               </Text>
@@ -332,11 +307,6 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
                 {getSortIcon('date', sortState)}
               </ActionIcon>
             </Group>
-          </Table.Th>
-
-          {/* Type Column */}
-          <Table.Th c="white" style={{ width: '120px', textAlign: 'center' }}>
-            Type
           </Table.Th>
 
           {/* Sortable Title Column - Takes most space */}
@@ -380,20 +350,6 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
               <Text fw={500} size="md">
                 {formatEventDate(event)}
               </Text>
-            </Table.Td>
-
-            {/* Type Column */}
-            <Table.Td style={{ width: '120px', textAlign: 'center' }}>
-              {(() => {
-                const allowRsvps = (event as any)?.allowRsvps ?? false
-                const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true
-                const eventTypeDisplay = allowRsvps && !requireTicketPurchase ? 'Social' : 'Class'
-                return (
-                  <Badge color={getEventTypeBadgeColor(eventTypeDisplay)} variant="filled" size="sm">
-                    {eventTypeDisplay}
-                  </Badge>
-                )
-              })()}
             </Table.Td>
 
             {/* Title Column - Takes most space */}

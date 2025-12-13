@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stack, Group, Text, Chip, TextInput, Switch } from '@mantine/core';
+import { Group, TextInput, Switch } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 import type { AdminEventFiltersState } from '../../hooks/useAdminEventFilters';
 
@@ -18,44 +18,6 @@ export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
     <Group mb="lg" justify="space-between" align="center" wrap="nowrap">
       {/* Left side: Filter controls */}
       <Group align="center" gap="md">
-        <Text size="sm" fw={500} c="dimmed">Filter:</Text>
-        <Chip.Group
-          multiple
-          value={filterState.activeTypes}
-          onChange={(types) => onFilterChange({ activeTypes: types as string[] })}
-        >
-          <Group gap="xs">
-            <Chip 
-              value="Social" 
-              variant="filled" 
-              color="wcr"
-              data-testid="filter-social"
-              styles={{
-                label: {
-                  fontWeight: 600,
-                  fontSize: '14px'
-                }
-              }}
-            >
-              Social
-            </Chip>
-            <Chip
-              value="Class"
-              variant="filled"
-              color="wcr"
-              data-testid="filter-class"
-              styles={{
-                label: {
-                  fontWeight: 600,
-                  fontSize: '14px'
-                }
-              }}
-            >
-              Class
-            </Chip>
-          </Group>
-        </Chip.Group>
-        
         <Switch
           label="Show Past Events"
           labelPosition="left"

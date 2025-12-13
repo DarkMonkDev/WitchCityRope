@@ -161,11 +161,6 @@ export const AdminEventsPage: React.FC = () => {
             <span style={{ fontSize: '14px', color: 'var(--mantine-color-gray-6)' }}>
               Showing {filteredAndSortedEvents.length} of {events.length} events
             </span>
-            {filterState.activeTypes.length > 0 && (
-              <span style={{ fontSize: '14px', color: 'var(--mantine-color-gray-6)' }}>
-                Filtered by: {filterState.activeTypes.join(', ')}
-              </span>
-            )}
             {filterState.searchTerm && (
               <span style={{ fontSize: '14px', color: 'var(--mantine-color-gray-6)' }}>
                 Search: "{filterState.searchTerm}"
