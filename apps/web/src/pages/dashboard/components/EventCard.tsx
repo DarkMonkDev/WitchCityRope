@@ -296,14 +296,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
             size="sm"
             style={{ marginTop: '4px', alignSelf: 'flex-start' }}
           >
-            {(event as any).additionalSessionsAvailable} more available
+            {(event as any).additionalSessionsAvailable} additional {(event as any).additionalSessionsAvailable === 1 ? 'session' : 'sessions'} available
           </Badge>
         )}
 
-        {/* Location - Shows venue location for dashboard (user already has access) */}
-        <Text size="sm" c="dimmed">
-          📍 {event.location || 'Location TBD'}
-        </Text>
 
         {/* Description */}
         {event.description && (
