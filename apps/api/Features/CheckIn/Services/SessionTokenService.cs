@@ -204,14 +204,25 @@ public class SessionTokenService : ISessionTokenService
                 // Validate other rules (revoked, etc.)
                 if (IsTokenValid(cachedToken))
                 {
-                    // For multi-session tokens, use first session from join table, otherwise use SessionId
-                    var validationSessionId = cachedToken.SessionId ?? cachedToken.TokenSessions?.FirstOrDefault()?.SessionId ?? Guid.Empty;
+                    // Build SessionIds list from TokenSessions join table
+                    var sessionIds = cachedToken.TokenSessions?.Select(ts => ts.SessionId).ToList()
+                        ?? new List<Guid>();
+
+                    // If no TokenSessions but has legacy SessionId, use that
+                    if (sessionIds.Count == 0 && cachedToken.SessionId.HasValue)
+                    {
+                        sessionIds.Add(cachedToken.SessionId.Value);
+                    }
+
+                    // For backwards compatibility, set SessionId to first session
+                    var validationSessionId = sessionIds.FirstOrDefault();
 
                     _logger.LogDebug("Token {Token} validated from cache for session {SessionId}", token.Substring(0, 10), validationSessionId);
                     return Result<TokenValidationResult>.Success(new TokenValidationResult
                     {
                         EventId = cachedToken.EventId,
                         SessionId = validationSessionId,
+                        SessionIds = sessionIds,
                         CreatedByStaffId = cachedToken.CreatedByUserId
                     });
                 }
@@ -271,28 +282,27 @@ public class SessionTokenService : ISessionTokenService
 
             // For multi-session tokens, we need to load TokenSessions for validation
             // This is only needed for database path (cache already has it)
-            Guid validationSessionId;
-            if (sessionToken.SessionId.HasValue)
-            {
-                validationSessionId = sessionToken.SessionId.Value;
-            }
-            else
-            {
-                // Multi-session token - load from join table
-                var firstSession = await _context.CheckInSessionTokenSessions
-                    .AsNoTracking()
-                    .Where(ts => ts.TokenId == sessionToken.Id)
-                    .Select(ts => ts.SessionId)
-                    .FirstOrDefaultAsync(cancellationToken);
+            var sessionIds = await _context.CheckInSessionTokenSessions
+                .AsNoTracking()
+                .Where(ts => ts.TokenId == sessionToken.Id)
+                .Select(ts => ts.SessionId)
+                .ToListAsync(cancellationToken);
 
-                validationSessionId = firstSession != Guid.Empty ? firstSession : Guid.Empty;
+            // If no TokenSessions but has legacy SessionId, use that
+            if (sessionIds.Count == 0 && sessionToken.SessionId.HasValue)
+            {
+                sessionIds.Add(sessionToken.SessionId.Value);
             }
+
+            // For backwards compatibility, set SessionId to first session
+            var validationSessionId = sessionIds.FirstOrDefault();
 
             _logger.LogDebug("Token {Token} validated from database for session {SessionId}", token.Substring(0, 10), validationSessionId);
             return Result<TokenValidationResult>.Success(new TokenValidationResult
             {
                 EventId = sessionToken.EventId,
                 SessionId = validationSessionId,
+                SessionIds = sessionIds,
                 CreatedByStaffId = sessionToken.CreatedByUserId
             });
         }
