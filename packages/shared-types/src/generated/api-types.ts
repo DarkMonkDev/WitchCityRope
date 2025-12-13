@@ -4106,6 +4106,7 @@ export interface components {
             /** Format: int32 */
             waitlistPosition?: number | null;
             paymentStatus?: string;
+            sessionNames?: string[] | null;
         };
         AuditLogDto: {
             /** Format: uuid */
@@ -4330,10 +4331,12 @@ export interface components {
             endDate: string;
             /** Format: int32 */
             venueId: number;
-            eventType: string;
             /** Format: int32 */
             capacity: number;
             isPublished?: boolean;
+            allowRsvps: boolean;
+            requireTicketPurchase: boolean;
+            vettedMembersOnly: boolean;
             sessions?: components["schemas"]["SessionDto"][] | null;
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
@@ -4393,8 +4396,9 @@ export interface components {
             startDate: string;
             /** Format: date-time */
             endDate: string;
-            /** Format: int32 */
-            eventType?: number;
+            allowRsvps?: boolean;
+            requireTicketPurchase?: boolean;
+            vettedMembersOnly?: boolean;
             /** Format: int32 */
             status?: number;
             isPublished?: boolean;
@@ -4587,10 +4591,12 @@ export interface components {
             /** Format: int32 */
             venueId?: number;
             venueLocation?: string | null;
-            eventType?: string;
             /** Format: int32 */
             capacity?: number;
             isPublished?: boolean;
+            allowRsvps?: boolean;
+            requireTicketPurchase?: boolean;
+            vettedMembersOnly?: boolean;
             /** Format: int32 */
             registrationCount?: number;
             /** Format: int32 */
@@ -4638,7 +4644,9 @@ export interface components {
             /** Format: uuid */
             eventId?: string;
             eventTitle?: string;
-            eventType?: string;
+            allowRsvps?: boolean;
+            requireTicketPurchase?: boolean;
+            vettedMembersOnly?: boolean;
             /** Format: date-time */
             eventDate?: string;
             registrationType?: string;
@@ -4693,7 +4701,8 @@ export interface components {
             /** Format: uuid */
             eventId?: string;
             /** Format: uuid */
-            sessionId?: string;
+            sessionId?: string | null;
+            sessionIds?: string[] | null;
             /** Format: double */
             expirationHours?: number | null;
         };
@@ -5492,8 +5501,10 @@ export interface components {
             eventId?: string;
             eventTitle?: string;
             /** Format: uuid */
-            sessionId?: string;
-            sessionName?: string;
+            sessionId?: string | null;
+            sessionName?: string | null;
+            sessionIds?: string[] | null;
+            sessionNames?: string[] | null;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -5668,6 +5679,9 @@ export interface components {
             /** Format: int32 */
             capacity?: number | null;
             isPublished?: boolean | null;
+            allowRsvps?: boolean | null;
+            requireTicketPurchase?: boolean | null;
+            vettedMembersOnly?: boolean | null;
             sessions?: components["schemas"]["SessionDto"][] | null;
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
             teacherIds?: string[] | null;
