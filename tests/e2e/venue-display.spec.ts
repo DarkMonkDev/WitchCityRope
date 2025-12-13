@@ -59,19 +59,23 @@ test.describe('Venue Display on Event Page - DataFactory Migration', () => {
     // Verify we're on the event detail page
     await expect(page).toHaveURL(new RegExp(`/events/${event.id}`));
 
-    // Venue section should NOT be visible
-    const venueSection = page.locator('[data-testid="venue-section"], text="Directions To"');
+    // Venue section should NOT be visible - use separate locators
+    const venueByTestId = page.locator('[data-testid="venue-section"]');
+    const venueByText = page.locator('text="Directions To"');
 
-    if (await venueSection.count() > 0) {
-      // If venue section exists, it should not be visible
-      await expect(venueSection.first()).not.toBeVisible();
+    // Check that neither selector finds a visible venue section
+    const venueTestIdCount = await venueByTestId.count();
+    const venueTextCount = await venueByText.count();
+
+    if (venueTestIdCount > 0) {
+      await expect(venueByTestId.first()).not.toBeVisible();
+    }
+    if (venueTextCount > 0) {
+      await expect(venueByText.first()).not.toBeVisible();
     }
 
-    // Alternatively, venue content should not be present at all
-    const venueDirections = page
-      .locator('text=/turn left/i, text=/address/i, text=/location/i')
-      .filter({ hasText: /venue|directions/i });
-    expect(await venueDirections.count()).toBe(0);
+    // Alternatively, verify no venue content is present
+    expect(venueTestIdCount + venueTextCount).toBe(0);
   });
 
   test('should NOT display venue to authenticated users WITHOUT RSVP or ticket', async ({
@@ -406,12 +410,17 @@ test.describe('Venue Display on Event Page - DataFactory Migration', () => {
     }
 
     // Even if venue is visible, Notes field should NOT be displayed
-    const notesSection = page.locator('[data-testid="venue-notes"], text="Notes"');
-    expect(await notesSection.count()).toBe(0);
+    // Use separate locators to avoid CSS selector syntax errors
+    const notesByTestId = page.locator('[data-testid="venue-notes"]');
+    const notesByText = page.locator('text="Notes"');
+    expect(await notesByTestId.count()).toBe(0);
+    expect(await notesByText.count()).toBe(0);
 
     // Admin-only note content should not be visible
-    const adminContent = page.locator('text=/admin.*only/i, text=/internal.*notes/i');
-    expect(await adminContent.count()).toBe(0);
+    const adminOnlyContent = page.locator('text=/admin.*only/i');
+    const internalNotes = page.locator('text=/internal.*notes/i');
+    expect(await adminOnlyContent.count()).toBe(0);
+    expect(await internalNotes.count()).toBe(0);
   });
 
   test('should hide venue when user cancels RSVP', async ({ page, df }) => {
