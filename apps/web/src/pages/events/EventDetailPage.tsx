@@ -192,11 +192,11 @@ export const EventDetailPage: React.FC = () => {
   }
 
   // Allow volunteering if:
-  // - For events that allow RSVPs: User is vetted (no ticket required)
-  // - For events that require tickets: User must have a ticket purchased
+  // - For social events (RSVP only, no ticket required): User must be vetted
+  // - For classes (ticket required): User must have a ticket purchased (any ticket holder can volunteer)
   const canVolunteerBasedOnEventType = (allowRsvps && !requireTicketPurchase)
     ? isVetted
-    : (isVetted && participation?.hasTicket);
+    : participation?.hasTicket;
 
   // Check if ANY volunteer position has signup window open
   // If ALL positions have canSignUp === false, don't show encouragement box
