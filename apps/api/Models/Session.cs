@@ -119,12 +119,20 @@ public class Session
         {
             if (Event?.EventAttendances == null) return 0;
 
-            return Event.EventAttendances.Count(ea =>
-                ea.Status == AttendanceStatus.Active &&
-                ea.AttendanceType == AttendanceType.Ticket &&
-                ea.TicketPurchase != null &&
-                // Ticket includes this session (many-to-many relationship)
-                ea.TicketPurchase.TicketType.Sessions.Any(s => s.Id == Id));
+            // Count unique ticket purchases (by TicketPurchaseId) that include this session
+            // Multi-session tickets create multiple EventAttendance records (one per session),
+            // so we must count distinct TicketPurchaseIds to avoid double-counting
+            return Event.EventAttendances
+                .Where(ea =>
+                    ea.Status == AttendanceStatus.Active &&
+                    ea.AttendanceType == AttendanceType.Ticket &&
+                    ea.TicketPurchase != null &&
+                    ea.TicketPurchaseId != null &&
+                    // Ticket includes this session (many-to-many relationship)
+                    ea.TicketPurchase.TicketType.Sessions.Any(s => s.Id == Id))
+                .Select(ea => ea.TicketPurchaseId)
+                .Distinct()
+                .Count();
         }
     }
 
