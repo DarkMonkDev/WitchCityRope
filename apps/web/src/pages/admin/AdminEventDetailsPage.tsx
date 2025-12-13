@@ -106,24 +106,13 @@ export const AdminEventDetailsPage: React.FC = () => {
         }
       }
 
-      // Convert UTC session times to local HH:MM format for display
-      // The API returns sessionStartTime/sessionEndTime in UTC ISO format
-      const formatTimeFromUtc = (utcTimeString: string | null | undefined): string => {
-        if (!utcTimeString) return '18:00'; // Default fallback
-        const date = new Date(utcTimeString);
-        // Convert to local time and format as HH:MM
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        return `${hours}:${minutes}`;
-      };
-
       return {
         id: vp.id || '',
         title: vp.title || '',
         description: vp.description || '',
         sessions: sessionDisplay,
-        startTime: formatTimeFromUtc(vp.sessionStartTime),
-        endTime: formatTimeFromUtc(vp.sessionEndTime),
+        startTime: vp.startTime || '18:00',
+        endTime: vp.endTime || '21:00',
         slotsNeeded: vp.slotsNeeded || 0,
         slotsFilled: vp.slotsFilled || 0,
         isPublicFacing: vp.isPublicFacing ?? true,

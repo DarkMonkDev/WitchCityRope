@@ -16,6 +16,7 @@ public class VolunteerSeeder
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly EventSeeder _eventSeeder;
     private readonly ILogger<VolunteerSeeder> _logger;
+    private static readonly TimeZoneInfo _easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
 
     public VolunteerSeeder(
         ApplicationDbContext context,
@@ -318,6 +319,14 @@ public class VolunteerSeeder
             return positions;
         }
 
+        // Calculate times based on session
+        var sessionStartLocal = TimeZoneInfo.ConvertTimeFromUtc(mainSession.StartTime, _easternTimeZone);
+        var sessionEndLocal = TimeZoneInfo.ConvertTimeFromUtc(mainSession.EndTime, _easternTimeZone);
+        var sessionStartTimeStr = sessionStartLocal.ToString("HH:mm");
+        var sessionEndTimeStr = sessionEndLocal.ToString("HH:mm");
+        var setupStartTimeStr = sessionStartLocal.AddMinutes(-30).ToString("HH:mm");
+        var cleanupEndTimeStr = sessionEndLocal.AddMinutes(30).ToString("HH:mm");
+
         // Common volunteer positions for all events - associated with main session
         positions.Add(new VolunteerPosition
         {
@@ -327,7 +336,9 @@ public class VolunteerSeeder
             Description = "Check attendees in, verify tickets/RSVPs, and welcome newcomers",
             SlotsNeeded = 2,
             SlotsFilled = 0, // Will be set by actual signups
-            IsPublicFacing = true // Public can sign up
+            IsPublicFacing = true, // Public can sign up
+            StartTime = sessionStartTimeStr,
+            EndTime = sessionEndTimeStr
         });
 
         positions.Add(new VolunteerPosition
@@ -338,7 +349,9 @@ public class VolunteerSeeder
             Description = "Help set up equipment before the event and clean up afterwards",
             SlotsNeeded = 3,
             SlotsFilled = 0, // Will be set by actual signups
-            IsPublicFacing = true // Public can sign up
+            IsPublicFacing = true, // Public can sign up
+            StartTime = setupStartTimeStr,
+            EndTime = cleanupEndTimeStr
         });
 
         // Additional positions for classes
@@ -352,7 +365,9 @@ public class VolunteerSeeder
                 Description = "Help instructor with demonstrations and assist students",
                 SlotsNeeded = 1,
                 SlotsFilled = 0, // Will be set by actual signups
-                IsPublicFacing = false // Admin-only assignment
+                IsPublicFacing = false, // Admin-only assignment
+                StartTime = sessionStartTimeStr,
+                EndTime = sessionEndTimeStr
             });
         }
 
@@ -370,6 +385,12 @@ public class VolunteerSeeder
         // Session-specific positions only for multi-day events
         if (session.SessionCode != "S1" || session.Name.Contains("Day"))
         {
+            // Calculate times based on session
+            var sessionStartLocal = TimeZoneInfo.ConvertTimeFromUtc(session.StartTime, _easternTimeZone);
+            var sessionEndLocal = TimeZoneInfo.ConvertTimeFromUtc(session.EndTime, _easternTimeZone);
+            var sessionStartTimeStr = sessionStartLocal.ToString("HH:mm");
+            var sessionEndTimeStr = sessionEndLocal.ToString("HH:mm");
+
             positions.Add(new VolunteerPosition
             {
                 EventId = eventItem.Id,
@@ -378,7 +399,9 @@ public class VolunteerSeeder
                 Description = $"Monitor safety and assist during {session.Name}",
                 SlotsNeeded = 1,
                 SlotsFilled = 0, // Will be set by actual signups
-                IsPublicFacing = false // Admin-only assignment (requires safety expertise)
+                IsPublicFacing = false, // Admin-only assignment (requires safety expertise)
+                StartTime = sessionStartTimeStr,
+                EndTime = sessionEndTimeStr
             });
         }
 
@@ -399,6 +422,14 @@ public class VolunteerSeeder
         {
             var dayLabel = session.SessionCode == "DAY1" ? "Day One" : "Day Two";
 
+            // Get session times for volunteer shift times
+            var sessionStartLocal = TimeZoneInfo.ConvertTimeFromUtc(session.StartTime, _easternTimeZone);
+            var sessionEndLocal = TimeZoneInfo.ConvertTimeFromUtc(session.EndTime, _easternTimeZone);
+            var sessionStartTimeStr = sessionStartLocal.ToString("HH:mm");
+            var sessionEndTimeStr = sessionEndLocal.ToString("HH:mm");
+            // Setup starts 30 minutes before session
+            var setupStartTimeStr = sessionStartLocal.AddMinutes(-30).ToString("HH:mm");
+
             // Check-in Monitor: 1 slot per session
             positions.Add(new VolunteerPosition
             {
@@ -408,7 +439,9 @@ public class VolunteerSeeder
                 Description = $"Check attendees in, verify tickets, and welcome participants for {dayLabel}",
                 SlotsNeeded = 1,
                 SlotsFilled = 0,
-                IsPublicFacing = true
+                IsPublicFacing = true,
+                StartTime = sessionStartTimeStr,
+                EndTime = sessionEndTimeStr
             });
 
             // Event Setup: 2 slots per session
@@ -420,7 +453,9 @@ public class VolunteerSeeder
                 Description = $"Help set up equipment and prepare the space before {dayLabel} begins",
                 SlotsNeeded = 2,
                 SlotsFilled = 0,
-                IsPublicFacing = true
+                IsPublicFacing = true,
+                StartTime = setupStartTimeStr,
+                EndTime = sessionStartTimeStr
             });
         }
 
@@ -464,6 +499,17 @@ public class VolunteerSeeder
 
         var closeHours = eventItem.VolunteerRegistrationCloseHours ?? 0;
 
+        // Calculate times for each session
+        var s1StartLocal = TimeZoneInfo.ConvertTimeFromUtc(s1Session.StartTime, _easternTimeZone);
+        var s1EndLocal = TimeZoneInfo.ConvertTimeFromUtc(s1Session.EndTime, _easternTimeZone);
+        var s2StartLocal = TimeZoneInfo.ConvertTimeFromUtc(s2Session.StartTime, _easternTimeZone);
+        var s2EndLocal = TimeZoneInfo.ConvertTimeFromUtc(s2Session.EndTime, _easternTimeZone);
+        var s1StartTimeStr = s1StartLocal.ToString("HH:mm");
+        var s1EndTimeStr = s1EndLocal.ToString("HH:mm");
+        var s2StartTimeStr = s2StartLocal.ToString("HH:mm");
+        var s2EndTimeStr = s2EndLocal.ToString("HH:mm");
+        var s1SetupStartStr = s1StartLocal.AddMinutes(-30).ToString("HH:mm");
+
         // Position 1: S1-specific (uses S1 @ 24hr for timing)
         // Available if: 24 >= volunteerRegistrationCloseHours
         positions.Add(new VolunteerPosition
@@ -474,7 +520,9 @@ public class VolunteerSeeder
             Description = $"Help with Session 1 setup (24hr future). Close window: {closeHours}hr. Expected: {(24 >= (double)closeHours ? "OPEN" : "CLOSED")}",
             SlotsNeeded = 2,
             SlotsFilled = 0,
-            IsPublicFacing = true
+            IsPublicFacing = true,
+            StartTime = s1SetupStartStr,
+            EndTime = s1StartTimeStr
         });
 
         // Position 2: S2-specific (uses S2 @ 120hr for timing)
@@ -487,7 +535,9 @@ public class VolunteerSeeder
             Description = $"Monitor safety during Session 2 (120hr future). Close window: {closeHours}hr. Expected: {(120 >= (double)closeHours ? "OPEN" : "CLOSED")}",
             SlotsNeeded = 2,
             SlotsFilled = 0,
-            IsPublicFacing = true
+            IsPublicFacing = true,
+            StartTime = s2StartTimeStr,
+            EndTime = s2EndTimeStr
         });
 
         // Position 3: Event-wide (no SessionId, uses EARLIEST session = S1 @ 24hr)
@@ -500,7 +550,9 @@ public class VolunteerSeeder
             Description = $"Coordinate across both sessions. Uses EARLIEST session (S1 @ 24hr) for timing. Close window: {closeHours}hr. Expected: {(24 >= (double)closeHours ? "OPEN" : "CLOSED")}",
             SlotsNeeded = 1,
             SlotsFilled = 0,
-            IsPublicFacing = true
+            IsPublicFacing = true,
+            StartTime = s1StartTimeStr,
+            EndTime = s2EndTimeStr  // Coordinator covers both sessions
         });
 
         _logger.LogInformation(

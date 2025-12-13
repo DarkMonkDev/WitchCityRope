@@ -57,6 +57,18 @@ public class VolunteerPosition
     public bool IsPublicFacing { get; set; } = true;
 
     /// <summary>
+    /// Start time for this volunteer shift (stored as time-only string in HH:mm format)
+    /// </summary>
+    [MaxLength(5)]
+    public string? StartTime { get; set; }
+
+    /// <summary>
+    /// End time for this volunteer shift (stored as time-only string in HH:mm format)
+    /// </summary>
+    [MaxLength(5)]
+    public string? EndTime { get; set; }
+
+    /// <summary>
     /// Navigation property to parent event
     /// </summary>
     public Event? Event { get; set; }

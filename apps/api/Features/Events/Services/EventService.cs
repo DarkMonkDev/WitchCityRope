@@ -1099,6 +1099,9 @@ public class EventService : IEventService
                 existingPosition.Description = positionDto.Description;
                 existingPosition.SlotsNeeded = positionDto.SlotsNeeded;
                 existingPosition.SlotsFilled = positionDto.SlotsFilled;
+                existingPosition.StartTime = positionDto.StartTime;
+                existingPosition.EndTime = positionDto.EndTime;
+                existingPosition.IsPublicFacing = positionDto.IsPublicFacing;
 
                 // Update session linkage if provided
                 if (!string.IsNullOrEmpty(positionDto.SessionId) && Guid.TryParse(positionDto.SessionId, out var sessionId))
@@ -1122,7 +1125,10 @@ public class EventService : IEventService
                     Title = positionDto.Title,
                     Description = positionDto.Description,
                     SlotsNeeded = positionDto.SlotsNeeded,
-                    SlotsFilled = positionDto.SlotsFilled
+                    SlotsFilled = positionDto.SlotsFilled,
+                    StartTime = positionDto.StartTime,
+                    EndTime = positionDto.EndTime,
+                    IsPublicFacing = positionDto.IsPublicFacing
                 };
 
                 // Set session linkage if provided

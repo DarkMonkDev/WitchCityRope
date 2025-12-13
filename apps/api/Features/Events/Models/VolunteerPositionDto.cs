@@ -32,14 +32,14 @@ public class VolunteerPositionDto
     public string? SessionId { get; set; }
 
     /// <summary>
-    /// Session start time (UTC) - populated from associated Session if session-specific
+    /// Start time for this volunteer shift (HH:mm format)
     /// </summary>
-    public DateTime? SessionStartTime { get; set; }
+    public string? StartTime { get; set; }
 
     /// <summary>
-    /// Session end time (UTC) - populated from associated Session if session-specific
+    /// End time for this volunteer shift (HH:mm format)
     /// </summary>
-    public DateTime? SessionEndTime { get; set; }
+    public string? EndTime { get; set; }
 
     /// <summary>
     /// Whether this position is visible on the public event page
@@ -62,8 +62,8 @@ public class VolunteerPositionDto
         SlotsNeeded = volunteerPosition.SlotsNeeded;
         SlotsFilled = volunteerPosition.SlotsFilled;
         SessionId = volunteerPosition.SessionId?.ToString();
-        SessionStartTime = volunteerPosition.Session?.StartTime;
-        SessionEndTime = volunteerPosition.Session?.EndTime;
+        StartTime = volunteerPosition.StartTime;
+        EndTime = volunteerPosition.EndTime;
         IsPublicFacing = volunteerPosition.IsPublicFacing;
     }
 
