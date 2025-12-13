@@ -601,7 +601,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           {isAtCapacity && (
             <Alert color="red" title="Event Full">
               <Text size="sm">
-                This event has reached capacity. Join the waitlist to be notified if spots become available.
+                This event has reached capacity.
               </Text>
             </Alert>
           )}
@@ -1215,10 +1215,10 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             </Stack>
           )}
 
-          {/* Waitlist Option */}
-          {isAtCapacity && (
+          {/* Waitlist Option - Hidden until waitlist feature is implemented */}
+          {/* {isAtCapacity && (
             <Button
-              onClick={() => {/* TODO: Implement waitlist */}}
+              onClick={() => {}}
               fullWidth
               variant="outline"
               color="gray"
@@ -1234,7 +1234,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             >
               Join Waitlist
             </Button>
-          )}
+          )} */}
         </Stack>
       </ParticipationCardShell>
 

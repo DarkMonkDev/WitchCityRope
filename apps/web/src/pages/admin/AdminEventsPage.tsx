@@ -45,7 +45,9 @@ import { CopyEventModal } from '../../components/events/CopyEventModal';
  */
 export const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { data: events, isLoading, error } = useEvents({ includeUnpublished: true });
+  // Fetch ALL events including unpublished and past events
+  // Frontend filtering (useAdminEventFilters) handles show/hide past events toggle
+  const { data: events, isLoading, error } = useEvents({ includeUnpublished: true, includePastEvents: true });
 
   // Modal state for event copying
   const [copyModalOpened, setCopyModalOpened] = useState(false);

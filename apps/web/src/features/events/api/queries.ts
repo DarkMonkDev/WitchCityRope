@@ -18,13 +18,16 @@ export function useEvent(eventId: string) {
   })
 }
 
-export function useEvents(options: { includeUnpublished?: boolean } = {}) {
+export function useEvents(options: { includeUnpublished?: boolean; includePastEvents?: boolean } = {}) {
   return useQuery<EventDto[]>({
     queryKey: queryKeys.events(options),
     queryFn: async (): Promise<EventDto[]> => {
       const params: Record<string, any> = {}
       if (options.includeUnpublished) {
         params.includeUnpublished = true
+      }
+      if (options.includePastEvents) {
+        params.includePastEvents = true
       }
 
       const response = await apiClient.get('/api/events', { params })
