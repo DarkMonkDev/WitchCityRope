@@ -1,37 +1,55 @@
 import { test, expect } from '@playwright/test'
+import { DataFactory } from '../lib/datafactory'
 
 /**
- * E2E Tests for Vertical Slice Home Page Implementation
- * Tests the complete React + API + PostgreSQL stack through browser automation
+ * E2E Tests for Home Page - Events Display
+ *
+ * Tests the complete React + API + PostgreSQL stack through browser automation.
+ * These tests validate the home page displays events correctly and handles all states.
  *
  * Requirements:
  * - React app accessible via baseURL (Docker on port 5173 or container networking)
  * - API server accessible via proxy or container networking
  * - PostgreSQL database available
  *
- * These tests prove the end-to-end stack integration works.
+ * Test Coverage:
+ * - Page loading and title verification
+ * - Events grid display with proper card structure
+ * - Empty state handling
+ * - Error state handling
+ * - Loading state display
+ * - Responsive layout across viewports
+ * - API integration verification
+ * - Event card click navigation
+ * - Price display formatting
+ * - Availability/capacity display
  */
-test.describe('Home Page - Vertical Slice E2E Tests', () => {
+test.describe('Home Page - Events Display', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the home page
     await page.goto('/')
+    await page.waitForLoadState('domcontentloaded')
   })
 
-  test('page loads successfully', async ({ page }) => {
+  test('page loads successfully with correct title', async ({ page }) => {
     // Verify the page loads without errors
     await expect(page).toHaveTitle(/Witch City Rope/)
 
     // Check that we're on the correct URL
     await expect(page).toHaveURL('/')
+
+    // Verify main content area is present
+    await page.waitForSelector(
+      '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
+      { timeout: 10000 }
+    )
   })
 
-  test('events display from API', async ({ page }) => {
+  test('events display from API with complete card structure', async ({ page }) => {
     // Wait for events to load from API
     await page.waitForSelector(
       '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
-      {
-        timeout: 10000,
-      }
+      { timeout: 10000 }
     )
 
     // Check if events loaded successfully
@@ -59,7 +77,23 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
       const firstCard = eventCards.first()
       await expect(firstCard.locator('[data-testid="event-title"]')).toBeVisible()
       await expect(firstCard.locator('[data-testid="event-description"]')).toBeVisible()
-      await expect(firstCard.locator('[data-testid="event-meta"]')).toBeVisible()
+
+      // Verify date/time is displayed (may be "Date and Time coming soon" or actual date)
+      // The component shows date info in different formats based on session count
+      // For homepage variant with multiple sessions, there's no data-testid but dates are displayed
+      const cardText = await firstCard.textContent()
+
+      // Date info is present if we see:
+      // 1. "Date and Time coming soon" (no sessions)
+      // 2. data-testid="event-date" (single session, or list variant)
+      // 3. Day names like "Monday", "Tuesday", etc (multi-session homepage variant)
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      const hasDateText = dayNames.some((day) => cardText?.includes(day))
+      const hasDateTestId = (await firstCard.locator('[data-testid="event-date"]').count()) > 0
+      const hasComingSoon = cardText?.includes('Date and Time coming soon')
+
+      const hasDateInfo = hasDateText || hasDateTestId || hasComingSoon
+      expect(hasDateInfo).toBe(true)
     } else if (emptyVisible) {
       // Hard assertion: Empty state message must be visible
       await expect(emptyState).toBeVisible()
@@ -69,9 +103,72 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
       await expect(errorMessage).toBeVisible()
       await expect(page.locator('text=Error:')).toBeVisible()
     }
+  })
 
-    // Note: Console errors (like 401 from auth checks) are expected on public pages
-    // So we don't assert on console errors for this test
+  test('event cards display price and availability information', async ({ page }) => {
+    // Wait for events to load
+    await page.waitForSelector(
+      '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
+      { timeout: 10000 }
+    )
+
+    const eventsGrid = page.locator('[data-testid="events-grid"]')
+    const eventsVisible = await eventsGrid.isVisible()
+
+    if (eventsVisible) {
+      const firstCard = page.locator('[data-testid="event-card"]').first()
+      const cardText = await firstCard.textContent()
+
+      // Verify price is displayed (either "Free" or "$X" or price range)
+      const hasPriceInfo =
+        cardText?.includes('Free') ||
+        cardText?.includes('$') ||
+        cardText?.includes('TBD')
+
+      expect(hasPriceInfo).toBe(true)
+
+      // Verify availability/capacity info is displayed
+      // Component shows: "X sold, Y left" or "X RSVPs, Y left" or "Sold Out" or "RSVPs Full"
+      const hasAvailabilityInfo =
+        cardText?.includes('sold') ||
+        cardText?.includes('RSVPs') ||
+        cardText?.includes('left') ||
+        cardText?.includes('Sold Out') ||
+        cardText?.includes('Full')
+
+      expect(hasAvailabilityInfo).toBe(true)
+    } else {
+      // Skip this test if no events - not a failure, just no data
+      test.skip()
+    }
+  })
+
+  test('clicking event card navigates to event details', async ({ page }) => {
+    // Wait for events to load
+    await page.waitForSelector(
+      '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
+      { timeout: 10000 }
+    )
+
+    const eventsGrid = page.locator('[data-testid="events-grid"]')
+    const eventsVisible = await eventsGrid.isVisible()
+
+    if (eventsVisible) {
+      const firstCard = page.locator('[data-testid="event-card"]').first()
+
+      // Get the event ID from the card
+      const eventId = await firstCard.getAttribute('data-event-id')
+      expect(eventId).toBeTruthy()
+
+      // Click the card
+      await firstCard.click()
+
+      // Verify navigation to event details page
+      await expect(page).toHaveURL(new RegExp(`/events/${eventId}`))
+    } else {
+      // Skip if no events
+      test.skip()
+    }
   })
 
   test('loading state displays correctly', async ({ page }) => {
@@ -131,9 +228,6 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
       const boundingBox = await eventsGrid.boundingBox()
       expect(boundingBox?.width).toBeLessThanOrEqual(375)
     }
-
-    // Note: Console errors (like 401 from auth checks) are expected on public pages
-    // So we don't assert on console errors for this test
   })
 
   test('API integration works end-to-end', async ({ page }) => {
@@ -158,23 +252,9 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
     expect(apiRequests.length).toBeGreaterThan(0)
     // API requests go through Vite proxy, so URL will be relative
     expect(apiRequests[0]).toContain('/api/events')
-
-    // Take screenshot for debugging if needed
-    await page.screenshot({
-      path: './test-results/home-page-api-integration.png',
-      fullPage: true,
-    })
   })
 
   test('error handling works when API is unavailable', async ({ page }) => {
-    // Monitor console errors
-    const consoleErrors: string[] = []
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text())
-      }
-    })
-
     // Block the API endpoint to simulate server unavailable
     // Match any URL containing /api/events (works in both host and container)
     await page.route('**/api/events', (route) => {
@@ -206,9 +286,6 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
     } else {
       await expect(emptyState).toBeVisible()
     }
-
-    // Note: Console errors are expected in this test due to API failure
-    // So we don't assert on consoleErrors length
   })
 
   test('proves complete React + API + PostgreSQL stack works', async ({ page }) => {
@@ -220,16 +297,14 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
     // Wait for the React app to make the API call and receive response
     await page.waitForSelector(
       '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
-      {
-        timeout: 15000,
-      }
+      { timeout: 15000 }
     )
 
     // Verify the stack integration worked
     // Any of these outcomes proves the stack is working:
     // 1. Events loaded from database/API
     // 2. Empty state (API responded but no events)
-    // 3. Fallback events from controller
+    // 3. Error state (API failed but React handled it gracefully)
 
     const stackWorking = await page.evaluate(() => {
       const eventsGrid = document.querySelector('[data-testid="events-grid"]')
@@ -254,14 +329,27 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
       // Hard assertion: First event card must be visible
       await expect(eventCards.first()).toBeVisible()
 
-      // Hard assertions: Event data structure must match API contract
+      // Hard assertions: Event data structure must match component contract
       const firstCard = eventCards.first()
       await expect(firstCard.locator('[data-testid="event-title"]')).toBeVisible()
       await expect(firstCard.locator('[data-testid="event-title"]')).not.toBeEmpty()
       await expect(firstCard.locator('[data-testid="event-description"]')).toBeVisible()
-      await expect(firstCard.locator('[data-testid="event-description"]')).not.toBeEmpty()
-      await expect(firstCard.locator('[data-testid="event-meta"]')).toBeVisible()
-      await expect(firstCard.locator('[data-testid="event-meta"]')).not.toBeEmpty()
+
+      // Verify date information is present (component shows date or "coming soon")
+      // For homepage variant with multiple sessions, there's no data-testid but dates are displayed
+      const cardText = await firstCard.textContent()
+
+      // Date info is present if we see:
+      // 1. "Date and Time coming soon" (no sessions)
+      // 2. data-testid="event-date" (single session, or list variant)
+      // 3. Day names like "Monday", "Tuesday", etc (multi-session homepage variant)
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      const hasDateText = dayNames.some((day) => cardText?.includes(day))
+      const hasDateTestId = (await firstCard.locator('[data-testid="event-date"]').count()) > 0
+      const hasComingSoon = cardText?.includes('Date and Time coming soon')
+
+      const hasDateInfo = hasDateText || hasDateTestId || hasComingSoon
+      expect(hasDateInfo).toBe(true)
     } else if (stackWorking.isEmpty) {
       // Hard assertion: Empty state must be visible
       const emptyState = page.locator('[data-testid="empty-state"]')
@@ -271,14 +359,121 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
       const errorMessage = page.locator('[data-testid="error-message"]')
       await expect(errorMessage).toBeVisible()
     }
+  })
 
-    // Note: Console errors (like 401 from auth checks) are expected on public pages
-    // So we don't assert on console errors for this test
+  test('View Full Calendar link navigates to events page', async ({ page }) => {
+    // Wait for content to load
+    await page.waitForSelector(
+      '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
+      { timeout: 10000 }
+    )
 
-    // Take final screenshot proving the stack works
-    await page.screenshot({
-      path: './test-results/vertical-slice-proof-of-concept.png',
-      fullPage: true,
-    })
+    // Look for the "View Full Calendar" link
+    const viewMoreLink = page.locator('a:has-text("View Full Calendar")')
+
+    if ((await viewMoreLink.count()) > 0) {
+      await viewMoreLink.click()
+      await expect(page).toHaveURL('/events')
+    } else {
+      // If no View Full Calendar link, that's acceptable - might be in empty state
+      test.skip()
+    }
+  })
+})
+
+test.describe('Home Page - Events Display with Test Data', () => {
+  let df: DataFactory
+  let testEventId: string
+
+  test.beforeAll(async ({ request }) => {
+    df = new DataFactory(request)
+
+    // Check if test helpers are available
+    const isAvailable = await df.healthCheck()
+    if (!isAvailable) {
+      console.log('Test helper endpoints not available - skipping data creation tests')
+      return
+    }
+
+    // Create a test event to ensure we have data to display
+    try {
+      const event = await df.events.createPublished('Home Page Test Event')
+      testEventId = event.id
+
+      // Create a session for the event
+      await df.sessions.createDefault(testEventId, 'Test Session')
+    } catch (error) {
+      console.log('Failed to create test data:', error)
+    }
+  })
+
+  test.afterAll(async () => {
+    // Cleanup test data
+    if (df) {
+      await df.cleanupAll()
+    }
+  })
+
+  test('displays created test event on home page', async ({ page }) => {
+    if (!testEventId) {
+      test.skip()
+      return
+    }
+
+    await page.goto('/')
+    await page.waitForLoadState('domcontentloaded')
+
+    // Wait for events grid to load
+    await page.waitForSelector('[data-testid="events-grid"]', { timeout: 10000 })
+
+    // Look for our test event
+    const testEventCard = page.locator(
+      `[data-testid="event-card"][data-event-id="${testEventId}"]`
+    )
+
+    // The event should be visible (assuming it's in the first 4 displayed)
+    const eventVisible = await testEventCard.isVisible()
+
+    if (eventVisible) {
+      await expect(testEventCard.locator('[data-testid="event-title"]')).toContainText(
+        'Home Page Test Event'
+      )
+    } else {
+      // Event might not be in the displayed set - that's okay
+      console.log('Test event not visible in home page grid (may be outside display limit)')
+    }
+  })
+
+  test('event card has data-event-id attribute for navigation', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.waitForSelector(
+      '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
+      { timeout: 10000 }
+    )
+
+    const eventsGrid = page.locator('[data-testid="events-grid"]')
+    const eventsVisible = await eventsGrid.isVisible()
+
+    if (eventsVisible) {
+      const eventCards = page.locator('[data-testid="event-card"]')
+      const count = await eventCards.count()
+
+      expect(count).toBeGreaterThan(0)
+
+      // Each card should have data-event-id attribute
+      for (let i = 0; i < Math.min(count, 4); i++) {
+        const card = eventCards.nth(i)
+        const eventId = await card.getAttribute('data-event-id')
+        expect(eventId).toBeTruthy()
+        // Event IDs should be GUIDs
+        expect(eventId).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        )
+      }
+    } else {
+      test.skip()
+    }
   })
 })

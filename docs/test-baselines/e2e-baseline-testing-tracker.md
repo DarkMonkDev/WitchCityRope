@@ -3,18 +3,28 @@
 ## Purpose
 Track E2E test suite health over time, documenting baseline results, improvements, and remaining issues. Originally started as a parity investigation between dev/test containers (Nov 2025), now serves as ongoing test health tracker.
 
-## Current Status: 78.1% Pass Rate (Dec 11, 2025 - POST INFRASTRUCTURE FIXES)
+## Current Status: 88.6% Pass Rate (Dec 12, 2025 - POST DATAFACTORY FIXES)
 
-### ✅ Infrastructure Improvements Applied (December 11, 2025)
+### ✅ DataFactory Fixes Applied (December 12, 2025)
 
-Test reporting infrastructure has been stabilized with the following improvements:
-1. **Custom Playwright Reporter** - Shows `Passed - #num - test name` format for easy reading
-2. **Fixed Dockerfile.test Layer Ordering** - Playwright install cached BEFORE tests copied (no more 93MB re-download on every test change)
-3. **Volume Mount for Results** - test-results.json immediately available on host
-4. **Structured JSON Output** - quick-summary.json for automated parsing
-5. **Comprehensive Test Summary** - test-summary.txt with all failed test names
+Major improvements to test data creation infrastructure:
+1. **User Factory Fix** - Added required `SceneName` field, fixed `role` vs `roles` field mismatch
+2. **TicketType Factory Fix** - Made `eventId` required (matches backend API)
+3. **Test File Updates** - Updated 18 test files to include eventId in ticketTypes.create calls
+4. **Home Page Test Fix** - Fixed date detection logic for multi-session events
 
-### Full Test Suite Results (December 11, 2025 - Post Infrastructure Fixes)
+### Full Test Suite Results (December 12, 2025 - Post DataFactory Fixes)
+
+| Metric | Value |
+|--------|-------|
+| **Passed** | 704 |
+| **Failed** | 63 |
+| **Skipped** | 28 |
+| **Total** | 795 |
+| **Pass Rate** | **88.6%** |
+| **Run Time** | ~27 minutes |
+
+### Previous Status: 78.1% Pass Rate (Dec 11, 2025)
 
 | Metric | Value |
 |--------|-------|
@@ -23,7 +33,6 @@ Test reporting infrastructure has been stabilized with the following improvement
 | **Skipped** | 27 |
 | **Total** | 790 |
 | **Pass Rate** | **78.1%** |
-| **Run Time** | ~27 minutes |
 
 ### Test Result Files
 
@@ -41,9 +50,10 @@ All test artifacts in `/test-results/`:
 | Dec 10 (Phase 5) | 681 | ~100 | 1 | ~87% | Converted skips to fails |
 | Dec 10 (Phase 6) | ~705 | ~76 | 1 | ~89% | Fixed 24 tests (CSRF + endpoint) |
 | Dec 11 (DataFactory) | 589 | 206 | 27 | 74% | DataFactory migration regression |
-| **Dec 11 (Infrastructure)** | **617** | **146** | **27** | **78.1%** | Infrastructure fixes + test stabilization |
+| Dec 11 (Infrastructure) | 617 | 146 | 27 | 78.1% | Infrastructure fixes + test stabilization |
+| **Dec 12 (DataFactory Fix)** | **704** | **63** | **28** | **88.6%** | User/TicketType factory fixes, 18 test files updated |
 
-**Note:** Pass rate improved from 74% to 78.1% after infrastructure stabilization. Test count standardized at 790.
+**Note:** Pass rate improved from 78.1% to 88.6% after DataFactory fixes (+87 passing tests, -83 failing tests).
 
 ### Key Fixes Applied (Dec 9-10)
 

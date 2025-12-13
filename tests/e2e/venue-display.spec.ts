@@ -134,6 +134,7 @@ test.describe('Venue Display on Event Page - DataFactory Migration', () => {
 
     // Create free RSVP ticket
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -200,6 +201,7 @@ test.describe('Venue Display on Event Page - DataFactory Migration', () => {
 
     // Create paid ticket
     const paidTicket = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Paid Ticket',
       price: 25.0,
@@ -313,6 +315,7 @@ test.describe('Venue Display on Event Page - DataFactory Migration', () => {
 
     // Create free RSVP ticket
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -377,6 +380,7 @@ test.describe('Venue Display on Event Page - DataFactory Migration', () => {
 
     // Create free RSVP ticket
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -430,6 +434,7 @@ test.describe('Venue Display on Event Page - DataFactory Migration', () => {
 
     // Create free RSVP ticket
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,

@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-11-23 - CSRF Protection Documentation Added -->
-<!-- Version: 3.3 -->
+<!-- Last Updated: 2025-12-12 - Event Simplification Functional Area Added -->
+<!-- Version: 3.4 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -26,6 +26,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **E2E Test Stabilization** | `/docs/functional-areas/testing/` | `/docs/functional-areas/testing/new-work/2025-10-07-e2e-stabilization/` | **✅ COMPLETE** - 100% pass rate (6/6) on launch-critical tests achieved through systematic 4-phase approach - **CRITICAL AUTH FIX**: Cross-origin cookie issue resolved via Vite proxy implementation (commit 6aa3c530) - **READY FOR DEPLOYMENT** - 13 tests properly marked with .skip() for unimplemented features - Comprehensive documentation: 1,275+ lines across 5 documents - Session handoff complete | **COMPLETE - READY FOR PRODUCTION** | 2025-10-08 |
 | **Email Templates** | `/docs/functional-areas/email-templates/` | `/docs/functional-areas/email-templates/new-work/2025-11-09-admin-management/` | **NEW FEATURE** - Centralized admin UI for managing global email templates across all categories (Vetting, Events, Admin, Incident, Ad Hoc) with event-specific template override capability. Features: Template CRUD operations, variable substitution system, template preview, event-level customization overrides. Similar patterns to CMS admin interface. | **Phase 1 - Requirements (Just Initialized)** | 2025-11-09 |
 | **Enhancements** | `/docs/functional-areas/enhancements/` | N/A | User interface enhancements and feature improvements | Active | 2025-08-22 |
+| **Event Simplification** | `/docs/functional-areas/event-simplification/` | `/docs/functional-areas/event-simplification/research/` | **NEW RESEARCH PROJECT** - Architectural research for unifying Workshop and Social Event concepts into single configurable event type. Evaluates potential simplification of event management system by consolidating two distinct event types (Workshop, SocialEvent) into unified Event entity with configuration-driven behavior. Research includes: current system analysis, architectural impact assessment, migration strategy, risk evaluation, implementation recommendations. | **Phase 0 - Research (Initialized)** | 2025-12-12 |
 | **Events Management** | `/docs/functional-areas/events/` | `/docs/functional-areas/events/new-work/2025-08-24-events-management/` | **ACTIVE DEVELOPMENT** - React migration from Blazor implementation - Event creation, RSVP, ticketing, admin management | **Phase 1 - Requirements** | 2025-08-24 |
 | **Events - Granular Timing Controls** | `/docs/functional-areas/events/admin/granular-timing-controls/` | `/docs/functional-areas/events/admin/granular-timing-controls/` | **NEW FEATURE (Phase 1 Complete)** - Per-event timing controls for RSVP, Ticket, and Volunteer registration/cancellation windows. Replaces global PreStartBufferMinutes with 6 granular timing fields (RegistrationOpen/Close, CancellationOpen/Close, VolunteerRegistration/CancellationClose). Features: NULL=no restriction, decimal hours (0.5=30min), -24 max post-event timing, complete implementation plan + 6 handoff documents created. Ready for Phase 2 (Database Design). | **Phase 1 - Requirements & Planning (COMPLETE)** | 2025-11-18 |
 | **Frontend Debugging Research** | `/docs/functional-areas/frontend-debugging-research/` | `/docs/functional-areas/frontend-debugging-research/new-work/2025-11-04-layout-debugging-agent-research/` | **NEW RESEARCH PROJECT** - Research to solve persistent frontend layout/styling debugging issues with Claude Code agents. Focus: MCP tools evaluation (Chrome DevTools), agent knowledge base design, debugging patterns documentation. Deliverables: Problem analysis, MCP tools evaluation, knowledge base architecture, agent improvement recommendations. Research only - no implementation | **Phase 1 - Research (Started)** | 2025-11-04 |
@@ -314,6 +315,23 @@ This master index is maintained by the librarian agent to provide quick lookups 
   - Backend API endpoints
   - React admin interface
   - Comprehensive test suite
+
+### 🔬 ACTIVE: Event Simplification Research (December 2025)
+- **Current Work**: `/docs/functional-areas/event-simplification/research/`
+- **Status**: Phase 0 - Research (Initialized)
+- **Objective**: Research architectural approach for unifying Workshop and Social Event concepts into single configurable event type
+- **Scope**: Evaluate current system complexity, assess consolidation benefits, analyze migration risks, recommend implementation strategy
+- **Approach**: Architectural research and analysis (NO implementation in this phase)
+- **Work Type**: Research & Architecture Analysis
+- **Timeline**: 2025-12-12 to TBD (research phase only)
+- **Session**: 2025-12-12 (Initialized)
+- **Key Deliverables**:
+  - Current system analysis (Workshop vs SocialEvent differences)
+  - Architectural impact assessment
+  - Database consolidation strategy
+  - Migration complexity evaluation
+  - Risk assessment and mitigation
+  - Implementation recommendations (if feasible)
 
 ### ✅ COMPLETE: Test Suite Updates (November 2025)
 - **Work Completed**: `/docs/functional-areas/testing/new-work/2025-11-09-test-suite-updates/`

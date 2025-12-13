@@ -93,6 +93,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     // Create S1 Only ticket type
     const s1Ticket = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: s1Session.id,
       eventId: event.id,
       name: 'S1 Only Ticket',
@@ -106,6 +107,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     // Create S2 Only ticket type
     const s2Ticket = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: s2Session.id,
       eventId: event.id,
       name: 'S2 Only Ticket',
@@ -119,6 +121,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     // Create Both Sessions ticket type
     const bothTicket = await df.ticketTypes.create({
+      eventId: event.id,
       sessionIds: [s1Session.id, s2Session.id],
       eventId: event.id,
       name: 'Both Sessions Ticket',
@@ -206,6 +209,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     // Create S1 Only ticket
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: s1Session.id,
       eventId: event.id,
       name: 'S1 Only Ticket',
@@ -279,6 +283,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     // Create S2 Only ticket
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: s2Session.id,
       eventId: event.id,
       name: 'S2 Only Ticket',
@@ -359,6 +364,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     // Create Both Sessions ticket
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionIds: [s1Session.id, s2Session.id],
       eventId: event.id,
       name: 'Both Sessions Ticket',
@@ -443,6 +449,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     // Create tickets
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: s1Session.id,
       eventId: event.id,
       name: 'S1 Only Ticket',
@@ -451,6 +458,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: s2Session.id,
       eventId: event.id,
       name: 'S2 Only Ticket',
@@ -459,6 +467,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionIds: [s1Session.id, s2Session.id],
       eventId: event.id,
       name: 'Both Sessions Ticket',
@@ -567,6 +576,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
 
     // Create tickets
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: s1Session.id,
       eventId: event.id,
       name: 'S1 Only Ticket',
@@ -575,6 +585,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: s2Session.id,
       eventId: event.id,
       name: 'S2 Only Ticket',
@@ -583,6 +594,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionIds: [s1Session.id, s2Session.id],
       eventId: event.id,
       name: 'Both Sessions Ticket',

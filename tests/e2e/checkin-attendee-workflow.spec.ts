@@ -61,6 +61,7 @@ test.describe('Check-In Attendee Workflow', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'General Admission',
       price: 0,
@@ -138,6 +139,7 @@ test.describe('Check-In Attendee Workflow', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'General Admission',
       price: 0,
@@ -222,6 +224,7 @@ test.describe('Check-In Attendee Workflow', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'General Admission',
       price: 0,

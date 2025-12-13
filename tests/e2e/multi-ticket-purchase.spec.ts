@@ -68,6 +68,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
 
     // Create ticket types
     const ticketTypeDay1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Day 1 Only',
       price: 25.0,
@@ -75,6 +76,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     });
 
     const ticketTypeDay2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Day 2 Only',
       price: 25.0,
@@ -82,6 +84,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     });
 
     const ticketTypeBoth = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Both Days',
       price: 40.0,
@@ -243,6 +246,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
 
     // Create ticket types
     const ticketTypeDay1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Day 1 Only',
       price: 25.0,
@@ -250,6 +254,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     });
 
     const ticketTypeDay2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Day 2 Only',
       price: 25.0,
@@ -370,6 +375,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
 
     // Create ticket types
     const ticketTypeDay1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Day 1 Only',
       price: 25.0,
@@ -377,6 +383,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     });
 
     const ticketTypeDay2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Day 2 Only',
       price: 25.0,

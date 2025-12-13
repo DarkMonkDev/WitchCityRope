@@ -45,6 +45,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0, // Free
@@ -80,6 +81,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -132,6 +134,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -168,6 +171,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -219,6 +223,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -270,6 +275,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -332,6 +338,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -396,6 +403,7 @@ test.describe.serial('RSVP Persistence Edge Cases', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,
@@ -440,6 +448,7 @@ test.describe.serial('RSVP Persistence Edge Cases', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,

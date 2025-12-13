@@ -41,6 +41,7 @@ test.describe('Ticket Purchase - DataFactory Migration', () => {
     });
 
     const paidTicket = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Paid Ticket',
       price: 25.0,
@@ -160,6 +161,7 @@ test.describe('Ticket Purchase - DataFactory Migration', () => {
     });
 
     const freeTicket = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Free RSVP',
       price: 0,

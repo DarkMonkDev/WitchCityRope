@@ -52,6 +52,7 @@ test.describe('Session-Based Ticket Timing', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Both Sessions Pass',
       price: 50.0,
@@ -139,6 +140,7 @@ test.describe('Session-Based Ticket Timing', () => {
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Session Ticket',
       price: 25.0,
@@ -184,6 +186,7 @@ test.describe('Session-Based Ticket Timing', () => {
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Test Ticket',
       price: 25.0,
@@ -279,6 +282,7 @@ test.describe('Session-Based Ticket Timing', () => {
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Member Ticket',
       price: 25.0,
@@ -327,6 +331,7 @@ test.describe('Session-Based Ticket Timing', () => {
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Future Session Ticket',
       price: 25.0,

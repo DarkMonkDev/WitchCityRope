@@ -71,32 +71,36 @@ export class TicketTypeFactory {
   /**
    * Create a ticket type with sensible defaults
    *
-   * @param sessionId - Parent session ID
-   * @param eventId - Parent event ID
+   * @param eventId - Parent event ID (REQUIRED)
+   * @param sessionId - Parent session ID (optional - for session-specific tickets)
    * @param name - Ticket name (optional)
    * @param price - Ticket price (optional, defaults to 20)
    */
   async createDefault(
-    sessionId: string,
     eventId: string,
+    sessionId?: string,
     name?: string,
     price?: number
   ): Promise<TicketTypeResponse> {
     return this.create({
-      sessionId,
       eventId,
+      sessionId,
       name: name ?? 'General Admission',
       price: price ?? 20,
     });
   }
 
   /**
-   * Create a free ticket type
+   * Create a free ticket type (RSVP-style)
+   *
+   * @param eventId - Parent event ID (REQUIRED)
+   * @param sessionId - Parent session ID (optional)
+   * @param name - Ticket name (optional)
    */
-  async createFree(sessionId: string, eventId: string, name?: string): Promise<TicketTypeResponse> {
+  async createFree(eventId: string, sessionId?: string, name?: string): Promise<TicketTypeResponse> {
     return this.create({
-      sessionId,
       eventId,
+      sessionId,
       name: name ?? 'Free Admission',
       price: 0,
     });
@@ -104,16 +108,21 @@ export class TicketTypeFactory {
 
   /**
    * Create a limited availability ticket
+   *
+   * @param eventId - Parent event ID (REQUIRED)
+   * @param quantity - Number of tickets available
+   * @param sessionId - Parent session ID (optional)
+   * @param name - Ticket name (optional)
    */
   async createLimited(
-    sessionId: string,
     eventId: string,
     quantity: number,
+    sessionId?: string,
     name?: string
   ): Promise<TicketTypeResponse> {
     return this.create({
-      sessionId,
       eventId,
+      sessionId,
       name: name ?? 'Limited Ticket',
       price: 30,
       quantityAvailable: quantity,

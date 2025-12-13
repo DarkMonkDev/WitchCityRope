@@ -230,6 +230,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Dependent Ticket',
       price: 25,
@@ -297,6 +298,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Sold Ticket',
       price: 25,
@@ -418,6 +420,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Integrity Test Ticket',
       price: 40,

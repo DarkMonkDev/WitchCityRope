@@ -12,17 +12,23 @@
 export interface CreateUserRequest {
   email: string;
   password?: string; // Defaults to Test123!
+  sceneName?: string; // Display name in community (required by backend, defaults to firstName)
   firstName?: string;
   lastName?: string;
-  roles?: string[]; // e.g., ['Admin', 'VettedMember']
+  role?: string; // Single role: 'Guest', 'Member', 'VettedMember', 'Teacher', 'Admin'
+  dateOfBirth?: string; // Format: YYYY-MM-DD
+  vettingStatus?: number; // 0=UnderReview, 3=Approved
+  bio?: string;
+  pronouns?: string;
 }
 
 export interface UserResponse {
   id: string;
   email: string;
+  sceneName: string;
   firstName: string;
   lastName: string;
-  roles: string[];
+  role: string;
 }
 
 // ============================================
@@ -83,8 +89,8 @@ export interface CreateTicketTypeRequest {
   sessionId?: string;
   /** Multiple session IDs for multi-session tickets */
   sessionIds?: string[];
-  /** Event ID (required for backend) */
-  eventId?: string;
+  /** Event ID (REQUIRED by backend) */
+  eventId: string;
   name: string;
   description?: string;
   price: number;

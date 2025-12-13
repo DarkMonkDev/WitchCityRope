@@ -71,6 +71,7 @@ test.describe('Volunteer Session Validation', () => {
 
     // Create ticket types for each session
     const ticketSession1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Session 1 Ticket',
       price: 15.00,
@@ -78,6 +79,7 @@ test.describe('Volunteer Session Validation', () => {
     });
 
     const ticketSession2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Session 2 Ticket',
       price: 15.00,
@@ -183,6 +185,7 @@ test.describe('Volunteer Session Validation', () => {
 
     // Create ticket types for each session
     const ticketSession1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Session 1 Ticket',
       price: 15.00,
@@ -190,6 +193,7 @@ test.describe('Volunteer Session Validation', () => {
     });
 
     const ticketSession2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Session 2 Ticket',
       price: 15.00,

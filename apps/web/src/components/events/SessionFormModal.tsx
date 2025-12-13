@@ -21,6 +21,13 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
   session,
   existingSessions,
 }) => {
+  // Create a single default date reference to use for both date and endDate
+  // This prevents the bug where date has current time but endDate is midnight
+  const getDefaultDate = () => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Midnight local time
+  };
+
   const form = useForm({
     initialValues: {
       sessionIdentifier: session?.sessionIdentifier || '',
@@ -31,7 +38,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
         const datePart = session.startDate.split('T')[0]; // Extract YYYY-MM-DD
         const [year, month, day] = datePart.split('-').map(Number);
         return new Date(year, month - 1, day); // Create local date
-      })() : new Date(),
+      })() : getDefaultDate(),
       // Parse end date from ISO string as local date (defaults to same as date)
       endDate: session?.endDate ? (() => {
         const datePart = session.endDate.split('T')[0]; // Extract YYYY-MM-DD

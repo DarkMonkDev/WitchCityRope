@@ -51,7 +51,8 @@ test.describe('Session Availability Counts', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session1.id,
+        eventId: event.id,
+      sessionId: session1.id,
         name: 'Both Sessions Pass',
         price: 0,
         quantityAvailable: 20,
@@ -119,7 +120,8 @@ test.describe('Session Availability Counts', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session1.id,
+        eventId: event.id,
+      sessionId: session1.id,
         name: 'Both Sessions Pass',
         price: 0,
         quantityAvailable: 20,
@@ -194,7 +196,8 @@ test.describe('Session Availability Counts', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session1.id,
+        eventId: event.id,
+      sessionId: session1.id,
         name: 'Both Sessions Pass',
         price: 0,
         quantityAvailable: 20,
@@ -260,7 +263,8 @@ test.describe('Session Availability Counts', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session1.id,
+        eventId: event.id,
+      sessionId: session1.id,
         name: 'Both Sessions Pass',
         price: 0,
         quantityAvailable: 20,
@@ -385,7 +389,8 @@ test.describe('Session Availability Counts', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session1.id,
+        eventId: event.id,
+      sessionId: session1.id,
         name: 'Both Sessions Pass',
         price: 0,
         quantityAvailable: 20,

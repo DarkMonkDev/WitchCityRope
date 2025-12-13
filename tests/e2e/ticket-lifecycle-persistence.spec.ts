@@ -80,6 +80,7 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Paid Ticket',
       price: 25.0,
@@ -151,6 +152,7 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Paid Ticket',
       price: 25.0,
@@ -218,6 +220,7 @@ test.describe('Ticket Persistence Edge Cases', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Paid Ticket',
       price: 25.0,

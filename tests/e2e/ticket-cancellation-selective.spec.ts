@@ -61,6 +61,7 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Session 1 Ticket',
       price: 20.0,
@@ -182,6 +183,7 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     });
 
     const ticketType1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Session 1 Ticket',
       price: 20.0,
@@ -189,6 +191,7 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     });
 
     const ticketType2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Session 2 Ticket',
       price: 20.0,
@@ -345,6 +348,7 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     });
 
     const ticketType1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Session 1 Ticket',
       price: 20.0,
@@ -352,6 +356,7 @@ test.describe('Ticket Cancellation - Selective Checkbox Behavior', () => {
     });
 
     const ticketType2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Session 2 Ticket',
       price: 20.0,

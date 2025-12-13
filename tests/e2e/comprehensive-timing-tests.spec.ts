@@ -112,14 +112,16 @@ test.describe('Comprehensive Timing Tests', () => {
 
       // Create ticket types
       const s1Ticket = await df.ticketTypes.create({
-        sessionId: session1.id,
+        eventId: event.id,
+      sessionId: session1.id,
         name: 'S1 Only Ticket',
         price: 25.0,
         quantityAvailable: 20,
       });
 
       const s2Ticket = await df.ticketTypes.create({
-        sessionId: session2.id,
+        eventId: event.id,
+      sessionId: session2.id,
         name: 'S2 Only Ticket',
         price: 25.0,
         quantityAvailable: 20,
@@ -235,14 +237,16 @@ test.describe('Comprehensive Timing Tests', () => {
 
       // Create ticket types
       await df.ticketTypes.create({
-        sessionId: session1.id,
+        eventId: event.id,
+      sessionId: session1.id,
         name: 'S1 Only Ticket',
         price: 25.0,
         quantityAvailable: 20,
       });
 
       await df.ticketTypes.create({
-        sessionId: session2.id,
+        eventId: event.id,
+      sessionId: session2.id,
         name: 'S2 Only Ticket',
         price: 25.0,
         quantityAvailable: 20,
@@ -292,7 +296,8 @@ test.describe('Comprehensive Timing Tests', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session.id,
+        eventId: event.id,
+      sessionId: session.id,
         name: 'Tight Margin Ticket',
         price: 25.0,
         quantityAvailable: 20,
@@ -349,7 +354,8 @@ test.describe('Comprehensive Timing Tests', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session.id,
+        eventId: event.id,
+      sessionId: session.id,
         name: 'Tight Margin Ticket',
         price: 25.0,
         quantityAvailable: 20,
@@ -402,7 +408,8 @@ test.describe('Comprehensive Timing Tests', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session.id,
+        eventId: event.id,
+      sessionId: session.id,
         name: 'Boundary Ticket',
         price: 25.0,
         quantityAvailable: 20,
@@ -493,7 +500,8 @@ test.describe('Comprehensive Timing Tests', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session.id,
+        eventId: event.id,
+      sessionId: session.id,
         name: 'UTC Test Ticket',
         price: 25.0,
         quantityAvailable: 20,
@@ -652,7 +660,8 @@ test.describe('Comprehensive Timing Tests', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session.id,
+        eventId: event.id,
+      sessionId: session.id,
         name: 'Near Session Ticket',
         price: 25.0,
         quantityAvailable: 20,
@@ -698,7 +707,8 @@ test.describe('Comprehensive Timing Tests', () => {
       });
 
       await df.ticketTypes.create({
-        sessionId: session.id,
+        eventId: event.id,
+      sessionId: session.id,
         name: 'Imminent Session Ticket',
         price: 25.0,
         quantityAvailable: 20,

@@ -23,16 +23,27 @@ export class UserFactory {
    * @example
    * const user = await userFactory.create({
    *   email: 'test@example.com',
-   *   roles: ['VettedMember']
+   *   role: 'VettedMember'
    * });
    */
   async create(options: CreateUserRequest): Promise<UserResponse> {
+    const firstName = options.firstName ?? 'Test';
+    const lastName = options.lastName ?? 'User';
+
+    // SceneName is required by backend - default to firstName if not provided
+    const sceneName = options.sceneName ?? firstName;
+
     const request = {
       email: options.email,
       password: options.password ?? 'Test123!',
-      firstName: options.firstName ?? 'Test',
-      lastName: options.lastName ?? 'User',
-      roles: options.roles ?? [],
+      sceneName: sceneName,
+      firstName: firstName,
+      lastName: lastName,
+      role: options.role ?? 'Member',
+      dateOfBirth: options.dateOfBirth ?? '1990-01-01',
+      vettingStatus: options.vettingStatus ?? 0,
+      bio: options.bio,
+      pronouns: options.pronouns,
     };
 
     const response = await this.client.post<typeof request, UserResponse>(
@@ -68,7 +79,7 @@ export class UserFactory {
   async createWithRole(email: string, role: string): Promise<UserResponse> {
     return this.createVerified({
       email,
-      roles: [role],
+      role: role,
     });
   }
 

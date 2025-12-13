@@ -118,6 +118,7 @@ test.describe('Admin Session Deletion', () => {
 
     // Create paid ticket type for first session
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Paid Ticket',
       price: 25.0,

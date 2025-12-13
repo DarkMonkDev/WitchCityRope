@@ -38,6 +38,7 @@ test.describe('Admin Ticket Type Deletion', () => {
 
     // Create 2 ticket types
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Ticket Type 1',
       price: 25.0,
@@ -45,6 +46,7 @@ test.describe('Admin Ticket Type Deletion', () => {
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Ticket Type 2',
       price: 30.0,
@@ -108,6 +110,7 @@ test.describe('Admin Ticket Type Deletion', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Paid Ticket',
       price: 25.0,
@@ -185,7 +188,8 @@ test.describe('Admin Ticket Type Deletion', () => {
     // Create 3 ticket types
     for (let i = 1; i <= 3; i++) {
       await df.ticketTypes.create({
-        sessionId: session.id,
+        eventId: event.id,
+      sessionId: session.id,
         name: `Ticket Type ${i}`,
         price: 20.0 + i * 5,
         quantityAvailable: 20,
@@ -258,7 +262,8 @@ test.describe('Admin Ticket Type Deletion', () => {
     // Create 2 ticket types
     for (let i = 1; i <= 2; i++) {
       await df.ticketTypes.create({
-        sessionId: session.id,
+        eventId: event.id,
+      sessionId: session.id,
         name: `Ticket Type ${i}`,
         price: 25.0,
         quantityAvailable: 20,
@@ -322,6 +327,7 @@ test.describe('Admin Ticket Type Deletion', () => {
     });
 
     const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'Ticket with Sales',
       price: 25.0,

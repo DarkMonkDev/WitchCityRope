@@ -95,6 +95,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     });
 
     const ticketTypeSession1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Session 1 Ticket',
       price: 15.0,
@@ -102,6 +103,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     });
 
     const ticketTypeSession2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Session 2 Ticket',
       price: 15.0,
@@ -212,6 +214,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     });
 
     const ticketTypeSession1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Session 1 Ticket',
       price: 15.0,
@@ -219,6 +222,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     });
 
     const ticketTypeSession2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Session 2 Ticket',
       price: 15.0,
@@ -324,6 +328,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     });
 
     const ticketTypeSession1 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session1.id,
       name: 'Session 1 Ticket',
       price: 15.0,
@@ -331,6 +336,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     });
 
     const ticketTypeSession2 = await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session2.id,
       name: 'Session 2 Ticket',
       price: 15.0,

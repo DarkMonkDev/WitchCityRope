@@ -14,21 +14,30 @@ This file tracks all E2E tests currently failing, their failure reasons, and fix
 3. **When re-running tests**: Update failure reasons if they changed
 
 ## Test Run Info
-- **Date**: December 11, 2025 (Last Updated - Post Infrastructure Fixes)
-- **Total Tests**: 790
-- **Passed**: 617
-- **Failed**: 146
-- **Skipped**: 27
-- **Pass Rate**: **78.1%**
+- **Date**: December 12, 2025 (Last Updated - Post DataFactory Fixes)
+- **Total Tests**: 795
+- **Passed**: 704
+- **Failed**: 63
+- **Skipped**: 28
+- **Pass Rate**: **88.6%**
 - **Run Time**: ~27 minutes
 
-### ✅ Infrastructure Fixes Applied (December 11, 2025)
+### ✅ DataFactory Fixes Applied (December 12, 2025)
 
-Test infrastructure improvements stabilized the test suite:
-1. Custom Playwright reporter with readable output format
-2. Dockerfile layer optimization (Playwright cached before tests)
-3. Volume mount for immediate test result access
-4. Structured JSON output (quick-summary.json)
+Major improvements to test data creation infrastructure:
+1. **User Factory Fix** - Added required `SceneName` field, fixed `role` vs `roles` field mismatch
+2. **TicketType Factory Fix** - Made `eventId` required (matches backend API)
+3. **Test File Updates** - Updated 18 test files to include eventId in ticketTypes.create calls
+4. **Home Page Test Fix** - Fixed date detection logic for multi-session events
+
+| Metric | Dec 11 | Dec 12 | Change |
+|--------|--------|--------|--------|
+| Passed | 617 | 704 | **+87** |
+| Failed | 146 | 63 | **-83** |
+| Skipped | 27 | 28 | +1 |
+| Pass Rate | 78.1% | 88.6% | **+10.5%** |
+
+### Previous: Infrastructure Fixes (December 11, 2025)
 
 | Metric | Dec 11 (Before) | Dec 11 (After) | Change |
 |--------|-----------------|----------------|--------|
@@ -73,41 +82,38 @@ Test infrastructure improvements stabilized the test suite:
 - `test.fail()` marks tests as "expected failures" - they show in results but don't break CI
 
 ### Progress Comparison
-| Metric | Dec 2 | Dec 7 | Dec 9 | Dec 10 (Phase 5) | Dec 10 (Phase 6) | Dec 11 (Infrastructure) |
-|--------|-------|-------|-------|------------------|------------------|-------------------------|
-| Passed | 622 | 643 | 688 | 681 | 705+ | **617** |
-| Failed | 111 | 92 | 38 | ~100 | ~76 | **146** |
-| Skipped | 74 | 72 | 83 | 1 | 1 | **27** |
-| Pass Rate | 84.9% | 87.4% | 85.0% | ~87% | ~89% | **78.1%** |
+| Metric | Dec 2 | Dec 7 | Dec 9 | Dec 10 (Phase 5) | Dec 10 (Phase 6) | Dec 11 | **Dec 12** |
+|--------|-------|-------|-------|------------------|------------------|--------|------------|
+| Passed | 622 | 643 | 688 | 681 | 705+ | 617 | **704** |
+| Failed | 111 | 92 | 38 | ~100 | ~76 | 146 | **63** |
+| Skipped | 74 | 72 | 83 | 1 | 1 | 27 | **28** |
+| Pass Rate | 84.9% | 87.4% | 85.0% | ~87% | ~89% | 78.1% | **88.6%** |
 
-**Note**: Dec 11 infrastructure improvements stabilized reporting. 146 tests still failing - categorized below.
+**Note**: Dec 12 DataFactory fixes resolved regression issues. 63 tests still failing - categorized below.
 
 ---
 
-## Current Failing Tests - Complete List (146 total - December 11, 2025)
+## Current Failing Tests - Complete List (63 total - December 12, 2025)
 
 ### Summary by Category
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| Vetting Workflows | 25 | Admin dashboard, application detail, workflow integration |
-| Profile/Persistence | 16 | Profile updates, persistence validation |
-| Events Admin | 14 | Event sessions, policies, volunteers, workflows |
-| Session Timing | 13 | Session-based timing, ticket availability |
-| Ticket Operations | 11 | Ticket cancellation, purchase, lifecycle |
-| Venue | 8 | Venue creation, editing, display permissions |
+| Vetting Workflows | 8 | Application detail, workflow submission |
+| Events Admin | 11 | Event sessions, policies, volunteers, workflows, copy |
+| Session Timing | 8 | Session-based timing, ticket availability |
 | Check-in | 4 | Check-in staff and attendee workflows |
-| Volunteer | 5 | Volunteer auto-cancel, session validation |
-| RSVP | 4 | RSVP lifecycle, comprehensive tests |
-| Home/Basic | 4 | Home page, events basic validation |
-| Other | 42 | Anonymous reports, notifications, CSRF, etc. |
+| Venue | 4 | Venue creation, editing, display |
+| RSVP/Profile | 4 | RSVP lifecycle, profile persistence |
+| Tiptap Editors | 2 | Email content editor rendering |
+| Other | 22 | Anonymous reports, CSRF, environment, etc. |
 
 ### Recommended Fix Priority
 
-1. **HIGH**: Vetting System (25 failures) - Missing email service, workflow API issues
-2. **HIGH**: Profile Persistence (16 failures) - API success but not saving
-3. **MEDIUM**: Events Admin (14 failures) - Session CRUD, volunteers
-4. **MEDIUM**: Session Timing (13 failures) - Business logic for availability
+1. **HIGH**: Events Admin (11 failures) - Session CRUD, volunteers, policies
+2. **HIGH**: Session Timing (8 failures) - Business logic for ticket availability
+3. **MEDIUM**: Vetting Workflows (8 failures) - Requires backend endpoint or test data fixes
+4. **MEDIUM**: Check-in (4 failures) - Attendee workflow issues
 5. **LOW**: Infrastructure tests - wireframe, health checks
 
 ---

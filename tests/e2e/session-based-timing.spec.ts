@@ -38,7 +38,8 @@ test.describe('Session-Based Timing - Edge Cases', () => {
     // Add tickets to each session
     for (const session of sessions) {
       await df.ticketTypes.create({
-        sessionId: session.id,
+        eventId: event.id,
+      sessionId: session.id,
         name: 'General Admission',
         price: 25,
         quantityAvailable: 20,
@@ -97,6 +98,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
     });
 
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'General Admission',
       price: 20,
@@ -214,6 +216,7 @@ test.describe('Session-Based Timing - Edge Cases', () => {
 
     // Create paid ticket
     await df.ticketTypes.create({
+      eventId: event.id,
       sessionId: session.id,
       name: 'General Admission',
       price: 25,
