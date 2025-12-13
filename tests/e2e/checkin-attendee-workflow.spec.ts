@@ -68,9 +68,12 @@ test.describe('Check-In Attendee Workflow', () => {
       quantityAvailable: 20,
     });
 
-    // Create a user with a ticket purchase
+    // Create a user with a ticket purchase (use unique sceneName for UI search)
+    const uniqueId = Date.now();
+    const sceneName = `Attendee-${uniqueId}`;
     const user = await df.users.createVerified({
-      email: `attendee-${Date.now()}@test.com`,
+      email: `attendee-${uniqueId}@test.com`,
+      sceneName: sceneName,
     });
 
     await df.ticketPurchases.create({
@@ -101,8 +104,8 @@ test.describe('Check-In Attendee Workflow', () => {
     expect(attendeesData.attendees).toBeTruthy();
     expect(attendeesData.attendees.length).toBeGreaterThan(0);
 
-    // Find the attendee row by email (test user won't have sceneName)
-    const attendeeRow = page.locator('tr').filter({ hasText: user.email }).first();
+    // Find the attendee row by sceneName (kiosk displays sceneName, not email)
+    const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
     // Click "Covid Test" button first (initial state for unchecked attendees)
@@ -146,9 +149,12 @@ test.describe('Check-In Attendee Workflow', () => {
       quantityAvailable: 20,
     });
 
-    // Create a user with a ticket purchase
+    // Create a user with a ticket purchase (use unique sceneName for UI search)
+    const uniqueId = Date.now();
+    const sceneName = `Duplicate-${uniqueId}`;
     const user = await df.users.createVerified({
-      email: `attendee-duplicate-${Date.now()}@test.com`,
+      email: `attendee-duplicate-${uniqueId}@test.com`,
+      sceneName: sceneName,
     });
 
     await df.ticketPurchases.create({
@@ -172,8 +178,8 @@ test.describe('Check-In Attendee Workflow', () => {
     // Navigate with fresh token
     await navigateToCheckIn(page, testEventId, sessionToken);
 
-    // Find the attendee row by email (test user won't have sceneName)
-    const attendeeRow = page.locator('tr').filter({ hasText: user.email }).first();
+    // Find the attendee row by sceneName (kiosk displays sceneName, not email)
+    const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
     // STEP 1: Check in the attendee (Covid Test → Check In)
@@ -231,9 +237,12 @@ test.describe('Check-In Attendee Workflow', () => {
       quantityAvailable: 20,
     });
 
-    // Create a user with a ticket purchase
+    // Create a user with a ticket purchase (use unique sceneName for UI search)
+    const uniqueId = Date.now();
+    const sceneName = `Workflow-${uniqueId}`;
     const user = await df.users.createVerified({
-      email: `attendee-workflow-${Date.now()}@test.com`,
+      email: `attendee-workflow-${uniqueId}@test.com`,
+      sceneName: sceneName,
     });
 
     await df.ticketPurchases.create({
@@ -257,12 +266,12 @@ test.describe('Check-In Attendee Workflow', () => {
     // Navigate with fresh token
     await navigateToCheckIn(page, testEventId, sessionToken);
 
-    // Find attendee row by email (test user won't have sceneName)
-    const attendeeRow = page.locator('tr').filter({ hasText: user.email }).first();
+    // Find attendee row by sceneName (kiosk displays sceneName, not email)
+    const attendeeRow = page.locator('tr').filter({ hasText: sceneName }).first();
     await expect(attendeeRow).toBeVisible({ timeout: 10000 });
 
-    // Verify the attendee email is displayed correctly
-    const nameDisplay = attendeeRow.locator(`text=${user.email}`);
+    // Verify the attendee sceneName is displayed correctly
+    const nameDisplay = attendeeRow.locator(`text=${sceneName}`);
     await expect(nameDisplay).toBeVisible({ timeout: 3000 });
 
     // Step 1: Verify "Covid Test" button is visible (initial state)

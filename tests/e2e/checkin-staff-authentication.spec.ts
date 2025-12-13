@@ -48,9 +48,9 @@ test.describe('Check-In Token Validation', () => {
     // Create test event with session
     const event = await df.events.createPublished(`Check-in Token Test ${Date.now()}`);
 
+    // Session must be within ±12 hours for check-in to work
     const sessionStart = new Date();
-    sessionStart.setDate(sessionStart.getDate() + 7);
-    sessionStart.setHours(18, 0, 0, 0);
+    sessionStart.setHours(sessionStart.getHours() + 2);
     const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
 
     const session = await df.sessions.create({
@@ -61,12 +61,33 @@ test.describe('Check-In Token Validation', () => {
       maxCapacity: 20,
     });
 
+    // Create a ticket type and attendee so the table shows up
+    const ticketType = await df.ticketTypes.create({
+      eventId: event.id,
+      sessionId: session.id,
+      name: 'General Admission',
+      price: 0,
+      quantityAvailable: 20,
+    });
+
+    const uniqueId = Date.now();
+    const user = await df.users.createVerified({
+      email: `token-test-${uniqueId}@test.com`,
+      sceneName: `TokenTest-${uniqueId}`,
+    });
+
+    await df.ticketPurchases.create({
+      userId: user.id,
+      ticketTypeId: ticketType.id,
+      quantity: 1,
+    });
+
     // Step 1: Generate token as admin (separate context)
     const adminContext = await browser.newContext();
     const adminPage = await adminContext.newPage();
 
     await loginAsAdmin(adminPage);
-    const sessionToken = await generateSessionToken(adminPage, event.id);
+    const sessionToken = await generateSessionToken(adminPage, event.id, session.id, 24);
 
     await adminContext.close();
 
@@ -89,7 +110,7 @@ test.describe('Check-In Token Validation', () => {
     const currentUrl = page.url();
     expect(currentUrl).toContain(`/events/${event.id}/checkin`);
 
-    // Verify attendee table or check-in functionality visible
+    // Verify attendee table is visible (we created an attendee)
     const attendeeTable = page.locator('table, [role="grid"]').first();
     await expect(attendeeTable).toBeVisible({ timeout: 10000 });
   });
@@ -274,6 +295,9 @@ test.describe('Check-In Token Validation', () => {
 
     // Step 3: Clear cookies to simulate kiosk mode
     await page.context().clearCookies();
+
+    // Navigate to establish base URL for fetch calls
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Verify API calls with revoked token fail
     // Use page.evaluate() for container compatibility

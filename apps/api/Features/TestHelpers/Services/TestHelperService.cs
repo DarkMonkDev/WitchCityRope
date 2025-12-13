@@ -285,8 +285,23 @@ public class TestHelperService : ITestHelperService
             _context.Set<EventAttendance>().Add(attendance);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("✅ Successfully created test ticket purchase: {Id} - {Reference} with EventAttendance: {AttendanceId}",
-                ticketPurchase.Id, paymentReference, attendance.Id);
+            // CRITICAL: Also create EventAttendee record for check-in display
+            // EventAttendance links user to event for eligibility
+            // EventAttendee is what shows in the check-in attendees list
+            var eventAttendee = new EventAttendee(eventId, userId, "confirmed")
+            {
+                TicketNumber = $"TKT-{DateTime.UtcNow:yyyyMMddHHmmss}-{ticketPurchase.Id.ToString()[..8].ToUpper()}",
+                HasCompletedWaiver = true, // Assume waiver completed for test data
+                IsFirstTime = false,
+                CreatedBy = userId,
+                UpdatedBy = userId
+            };
+
+            _context.Set<EventAttendee>().Add(eventAttendee);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("✅ Successfully created test ticket purchase: {Id} - {Reference} with EventAttendance: {AttendanceId} and EventAttendee: {EventAttendeeId}",
+                ticketPurchase.Id, paymentReference, attendance.Id, eventAttendee.Id);
 
             // Return response for test assertions
             var response = new TestTicketPurchaseResponse
