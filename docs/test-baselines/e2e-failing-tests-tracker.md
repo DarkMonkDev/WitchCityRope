@@ -4,106 +4,130 @@
 
 Track currently failing E2E tests, their root causes, and fix instructions for the next agent.
 
-## Current Test Run (December 13, 2025 - Session Timing Fixed)
+## Current Test Run (December 13, 2025 - DataFactory Session Fixes)
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | 795 |
-| **Passed** | ~730 |
-| **Failed** | ~35 |
-| **Skipped** | 30 |
-| **Pass Rate** | **~92%** |
+| **Total Tests** | 794 |
+| **Passed** | 690 → ~710 (estimated with session fixes) |
+| **Failed** | 75 → ~55 (estimated) |
+| **Skipped** | 29 |
+| **Pass Rate** | **86.9% → ~89%** |
 
-*Note: Numbers approximate after session timing test fixes*
+### Session Fix Verification (8 files, 41 tests)
+| Metric | Value |
+|--------|-------|
+| **Tests Run** | 41 |
+| **Passed** | 38 |
+| **Failed** | 3 |
+| **Pass Rate** | **92.7%** |
 
 ---
 
-## 🟢 RECENTLY FIXED (December 13, 2025)
+## RECENTLY FIXED (December 13, 2025)
 
-### 1. admin-events-sessions.spec.ts - **ALL 4 TESTS PASSING** ✅
+### Check-In Tests - ALL 28 PASSING
 
-**Root Cause Found**: `crypto.randomUUID is not a function` in browser context
+**Root Causes Found & Fixed**:
+
+1. **EventAttendee not created with ticket purchases**
+   - `CreateTestTicketPurchaseAsync` only created `EventAttendance`, not `EventAttendee`
+   - Attendees didn't appear in check-in kiosk
+   - **Fix**: Added `EventAttendee` creation to `TestHelperService.cs`
+
+2. **Tests searching by email but UI shows sceneName**
+   - Kiosk displays user's sceneName, not email
+   - **Fix**: Updated tests to use unique sceneName and search by that
+
+3. **Missing navigation before page.evaluate() fetch calls**
+   - Relative URLs don't work without a page context
+   - **Fix**: Added `await page.goto('/')` before API calls in tests
+
+**Commits**:
+- `052a5e5f` test: fix check-in E2E test failures
+- `d9319d37` test: update admin-checkin-sessions tests for checkbox UI
+- `749096ef` test: fix duplicate SessionCode errors in admin-checkin-sessions tests
+
+---
+
+## CURRENT FAILURES BY CATEGORY
+
+### 1. DataFactory Session Creation (400 Errors) - ✅ FIXED
+
+**Root Cause**: Tests creating multiple sessions without unique `sessionIdentifier`
+
+**Status**: **FIXED** on 2025-12-13
+
+**Files Fixed** (8 files, ~25 tests):
+- ✅ `admin-session-deletion.spec.ts` (5 tests) - PASSING
+- ✅ `comprehensive-timing-tests.spec.ts` (12 tests) - PASSING
+- ✅ `multi-ticket-purchase.spec.ts` (3 tests) - PASSING
+- ✅ `session-availability-counts.spec.ts` (7 tests) - PASSING
+- ✅ `session-ticket-availability.spec.ts` (7 tests) - 4 passing, 3 failing (unrelated business logic issues)
+- ✅ `ticket-cancellation-selective.spec.ts` (3 tests) - PASSING
+- ✅ `volunteer-auto-cancel.spec.ts` (3 tests) - PASSING
+- ✅ `volunteer-session-validation.spec.ts` (2 tests) - PASSING
 
 **Fix Applied**:
-- Added `generateUUID()` fallback function in `/apps/web/src/components/events/EventForm.tsx`
-- Uses `crypto.randomUUID()` when available, falls back to Math.random-based UUID
-- Updated `selectSessionId()` helper to use proper Mantine Select interaction
+Added unique `sessionIdentifier: 'S1'`, `'S2'`, etc. to all `df.sessions.create()` calls.
 
-**Commit**: `fix: resolve E2E test failures for sessions and policies`
-
----
-
-### 2. admin-events-volunteers.spec.ts - **ALL 7 TESTS PASSING** ✅
-
-**Fix Applied**: The UUID fallback fix in EventForm.tsx resolved these tests as well.
+**Remaining Issues** (3 tests in session-ticket-availability.spec.ts):
+These failures are **NOT** sessionIdentifier issues - they're business logic assertion failures
+where tests expect `canPurchase: false` for past sessions but API returns differently.
 
 ---
 
-### 3. events-policies-field-comprehensive.spec.ts - **2 PASS, 2 SKIPPED** ⚠️
+### 2. Vetting Modal Visibility (UI Timing) - 6 failures
 
-**Tests Passing**:
-- `should display policies field in event form` ✅
-- `should verify policies field in API response matches frontend` ✅
+**Root Cause**: Deny/Hold/Interview modals exist in DOM but not visible due to animation timing
 
-**Tests Skipped (Known Limitation)**:
-- `should save policies field and persist after page refresh` - SKIPPED
-- `should handle empty policies field gracefully` - SKIPPED
+**Affected Tests**:
+- `vetting-application-detail.spec.ts`:
+  - admin can deny application with reasoning
+  - admin can put application on hold with reasoning
+  - admin can advance application to interview stage
+- `vetting-workflow.spec.ts`:
+  - admin can deny application with reason
 
-**Root Cause**: TipTap/ProseMirror contenteditable doesn't trigger React form dirty state
-detection when modified via Playwright automation. This is a Playwright<->TipTap interaction
-limitation, not an application bug. Manual testing confirms the policies field works correctly.
-
----
-
-### 4. Session Timing Tests (3 files) - **ALL 19 TESTS PASSING** ✅
-
-**Files Fixed**:
-- `session-based-timing.spec.ts` - 5 tests passing
-- `session-based-ticket-timing.spec.ts` - 7 tests passing
-- `session-based-volunteer-timing.spec.ts` - 7 tests passing
-
-**Issues Found & Fixed**:
-1. **Missing unique sessionIdentifier**: Tests creating multiple sessions didn't specify unique `sessionIdentifier` (S1, S2, etc.), causing duplicate key errors (400 from API)
-2. **Invalid RegExp syntax**: Comma-separated locators interpreted as RegExp flags - fixed with `.or()` chaining
-3. **Not logging in**: Tests accessing event detail pages without login saw "Login Required" instead of ticket options
-4. **Outdated selectors**: Tests looked for `[data-testid="ticket-section"]` but UI uses "Available Sessions", "Class Fee", "Purchase Ticket"
-5. **Timing issues**: Tests checked elements before page fully rendered - added `networkidle` wait and timeouts
+**Fix Required**: Add wait for modal animation or use `force: true` for hidden elements
 
 ---
 
-## 🔴 REMAINING FAILURES TO INVESTIGATE
+### 3. UI Selector/Element Issues - ~15 failures
 
-### Vetting Workflows (6 failures out of 91 tests)
-- **Root Cause**: Modal visibility timing issues and DataFactory cleanup failures
-- **Specific Issues**:
-  - Deny/Hold modals exist in DOM but are "hidden" - likely animation or timing
-  - DataFactory duplicate user errors (cleanup not working between tests)
-  - Notification elements not appearing after actions
-  - Status badge timeouts
+**Affected Tests**:
+- `admin-events-workflow.spec.ts` (2 tests) - strict mode violation, multiple Save buttons
+- `admin-dashboard-workflow.spec.ts` (2 tests) - Google Drive links, investigation notes
+- `anonymous-report-submission.spec.ts` (2 tests) - form visibility
+- `tiptap-editors.spec.ts` (2 tests) - Email tab editor not visible
+- `venue-display.spec.ts` (2 tests) - CSS selector syntax error
+- `venue-creation.spec.ts`, `venue-editing.spec.ts` - timeout issues
 
-### Check-in Tests (6 failures out of 22 tests)
-- **Root Cause**: DataFactory cleanup failures and selector timing
-- **Specific Issues**:
-  - Sessions can't be deleted due to cascading relationships (400 errors)
-  - Tests failing very quickly (<300ms) - likely missing elements
-  - DataFactory events can't be cleaned up after tests
+---
 
-### Common DataFactory Issues - **FIXED (December 13, 2025)**
-~~These tests all suffer from similar DataFactory problems:~~
-~~1. Sessions can't be deleted when tickets exist~~
-~~2. Events can't be deleted when sessions exist~~
-~~3. Users can't be created when email already exists~~
-~~4. Need proper cascade delete support in test helper endpoints~~
+### 4. API/Data Issues - ~10 failures
 
-**FIX IMPLEMENTED**: Backend TestHelper endpoints now support cascade delete:
-- `DeleteTestSessionAsync` - Deletes VolunteerSignups, EventAttendances, TicketPurchases, clears m2m relationships
-- `DeleteTestEventAsync` - Full cascade deletion of all child entities in correct order
-- `DeleteTestTicketTypeAsync` - Deletes EventAttendances, TicketPurchases, clears m2m
-- `DeleteTestVolunteerPositionAsync` - Deletes VolunteerSignups first
-- **NEW**: `GetOrCreateTestUserAsync` - Returns existing user or creates new (avoids duplicate email errors)
-- **NEW**: `POST /api/test-helpers/users/get-or-create` endpoint
+- `csrf-token-validation.spec.ts` - CSRF token expectations mismatch
+- `events-basic-validation.spec.ts` - API response format
+- `public-events-anonymous.spec.ts` - EventDto structure mismatch
+- `ticket-lifecycle-persistence.spec.ts` - participation record not found
+- `profile-update-persistence.spec.ts` - persistence verification failing
 
-**Commit**: `fix: implement cascade delete for TestHelper endpoints`
+---
+
+### 5. Test Environment/Infrastructure - ~5 failures
+
+- `compare-wireframe.spec.ts` - localhost:8080 connection refused (docs server not running)
+- `e2e-events-full-journey.spec.ts` - environment health check expectations
+- `events-comprehensive.spec.ts` - performance test with large events
+
+---
+
+### 6. RSVP/Ticket Workflow Issues - ~5 failures
+
+- `rsvp-lifecycle-persistence.spec.ts` (2 tests) - RSVP visibility issues
+- `session-based-ticket-timing.spec.ts` - ticket availability UI
+- `events-comprehensive.spec.ts` - RSVP AND ticket purchase parallel actions
 
 ---
 
@@ -116,7 +140,6 @@ limitation, not an application bug. Manual testing confirms the policies field w
 
 ### Select (searchable)
 - Does NOT have simple nested `input` element
-- Need to investigate actual DOM structure with DevTools
 - May need `getByRole('combobox')` or click wrapper directly
 
 ### React Strict Mode
@@ -125,20 +148,11 @@ limitation, not an application bug. Manual testing confirms the policies field w
 
 ### TipTap/ProseMirror
 - Don't use `.fill()` on contenteditable divs
-- Use `click()` → `keyboard.press('Control+a')` → `keyboard.type(text)`
+- Use `click()` -> `keyboard.press('Control+a')` -> `keyboard.type(text)`
 
----
-
-## Other Failing Tests by Category (~35 remaining)
-
-| Category | Count | Notes |
-|----------|-------|-------|
-| Vetting Workflows | 8 | Requires backend endpoint for test data |
-| Check-in | 4 | Check-in staff and attendee workflows |
-| Venue | 4 | Venue CRUD operations |
-| RSVP/Profile | 4 | Persistence issues |
-| Tiptap Editors | 2 | Email content editor rendering |
-| Other | ~13 | Various - see test-results.json for details |
+### DataFactory Sessions
+- **ALWAYS** specify unique `sessionIdentifier` when creating multiple sessions per event
+- Format: 'S1', 'S2', 'S3', etc.
 
 ---
 
@@ -150,13 +164,25 @@ limitation, not an application bug. Manual testing confirms the policies field w
 
 ---
 
-## Next Steps for Next Agent
+## Priority Fixes for Next Agent
 
-1. **HIGH PRIORITY**: Investigate Vetting Workflows tests (8 failures)
-   - May require backend endpoint for test data setup
+1. **HIGH**: Fix DataFactory session tests (~25 failures)
+   - Add unique sessionIdentifier to all multi-session test files
+   - Pattern established in `admin-checkin-sessions.spec.ts`
 
-2. **MEDIUM**: Debug Check-in tests (4 failures)
-   - Check-in staff and attendee workflows
+2. **MEDIUM**: Fix vetting modal tests (6 failures)
+   - Debug modal visibility timing
+   - May need wait for animation
 
-3. **MEDIUM**: Venue CRUD tests (4 failures)
-   - Verify data-testid selectors match actual UI
+3. **MEDIUM**: Fix venue tests (4 failures)
+   - CSS selector syntax errors
+   - Timeout issues
+
+4. **LOW**: Fix infrastructure tests (5 failures)
+   - Some tests expect specific environment configurations
+
+---
+
+**Last Updated**: 2025-12-13T21:10:00Z
+**Test Run By**: test-environment skill
+**Git SHA**: 052a5e5f
