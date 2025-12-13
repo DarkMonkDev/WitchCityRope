@@ -85,13 +85,13 @@ export const AdminEventDetailsPage: React.FC = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const venueId = (event as any)?.venueId?.toString() || ''
 
-    // Map eventType from API response
-    const eventType =
-      event.eventType === 'Class'
-        ? ('class' as const)
-        : event.eventType === 'Social'
-          ? ('social' as const)
-          : ('class' as const) // Default fallback
+    // Extract boolean flags from API response
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allowRsvps = (event as any)?.allowRsvps ?? false
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const vettedMembersOnly = (event as any)?.vettedMembersOnly ?? false
 
     // Map volunteer positions from API response - now using consistent field names
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -163,7 +163,9 @@ export const AdminEventDetailsPage: React.FC = () => {
     });
 
     return {
-      eventType,
+      allowRsvps,
+      requireTicketPurchase,
+      vettedMembersOnly,
       title: event.title || '',
       shortDescription: event.shortDescription || '',
       fullDescription: event.description || '',

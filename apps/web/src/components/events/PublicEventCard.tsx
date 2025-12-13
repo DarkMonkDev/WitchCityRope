@@ -50,7 +50,10 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
 
   // Calculate available spots and status
   const capacity = event.capacity || 20
-  const isSocialEvent = event.eventType?.toLowerCase() === 'social'
+  // Determine event type from boolean flags
+  const allowRsvps = (event as any)?.allowRsvps ?? false
+  const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true
+  const isSocialEvent = allowRsvps && !requireTicketPurchase
   const currentCount = isSocialEvent
     ? (event as any).currentRSVPs || event.registrationCount || 0
     : (event as any).currentTickets || event.registrationCount || 0

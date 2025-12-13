@@ -104,9 +104,11 @@ const formatTimeRange = (event: EventDto, timeZone: string): string => {
   return formatUtcTimeRange(displaySession.startTime, displaySession.endTime, timeZone);
 }
 
-// Helper function to get the correct current count based on event type
+// Helper function to get the correct current count based on event flags
 const getCorrectCurrentCount = (event: EventDto): number => {
-  const isSocialEvent = event.eventType?.toLowerCase() === 'social'
+  const allowRsvps = (event as any)?.allowRsvps ?? false
+  const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true
+  const isSocialEvent = allowRsvps && !requireTicketPurchase
   return isSocialEvent ? event.currentRSVPs || 0 : event.currentTickets || 0
 }
 
@@ -382,9 +384,16 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
 
             {/* Type Column */}
             <Table.Td style={{ width: '120px', textAlign: 'center' }}>
-              <Badge color={getEventTypeBadgeColor(event.eventType)} variant="filled" size="sm">
-                {event.eventType || 'Other'}
-              </Badge>
+              {(() => {
+                const allowRsvps = (event as any)?.allowRsvps ?? false
+                const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true
+                const eventTypeDisplay = allowRsvps && !requireTicketPurchase ? 'Social' : 'Class'
+                return (
+                  <Badge color={getEventTypeBadgeColor(eventTypeDisplay)} variant="filled" size="sm">
+                    {eventTypeDisplay}
+                  </Badge>
+                )
+              })()}
             </Table.Td>
 
             {/* Title Column - Takes most space */}

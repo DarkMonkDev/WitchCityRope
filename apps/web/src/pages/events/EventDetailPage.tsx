@@ -112,8 +112,10 @@ export const EventDetailPage: React.FC = () => {
     }
   };
 
-  // Determine event type based on event data
-  const eventType = (event as any)?.eventType?.toLowerCase() === 'social' ? 'social' : 'class';
+  // Extract boolean flags from event data
+  const allowRsvps = (event as any)?.allowRsvps ?? false;
+  const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true;
+  const vettedMembersOnly = (event as any)?.vettedMembersOnly ?? false;
 
   // Calculate ticket price display based on all available ticket types
   const getTicketPriceDisplay = (): { min: number; max: number; isSinglePrice: boolean } => {
@@ -190,9 +192,9 @@ export const EventDetailPage: React.FC = () => {
   }
 
   // Allow volunteering if:
-  // - For social events: User is vetted (no ticket required)
-  // - For class events: User must have a ticket purchased
-  const canVolunteerBasedOnEventType = eventType === 'social'
+  // - For events that allow RSVPs: User is vetted (no ticket required)
+  // - For events that require tickets: User must have a ticket purchased
+  const canVolunteerBasedOnEventType = (allowRsvps && !requireTicketPurchase)
     ? isVetted
     : (isVetted && participation?.hasTicket);
 
@@ -228,7 +230,9 @@ export const EventDetailPage: React.FC = () => {
   const participationCardProps = {
     eventId: id!,
     eventTitle: (event as any)?.title || 'Event',
-    eventType: eventType as 'social' | 'class',
+    allowRsvps,
+    requireTicketPurchase,
+    vettedMembersOnly,
     participation,
     isLoading: participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending || cancelTicketMutation.isPending,
     ticketTypeId: (event as any)?.ticketTypes?.[0]?.id,

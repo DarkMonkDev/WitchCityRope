@@ -93,10 +93,12 @@ export const NewEventPage: React.FC = () => {
         policies: formData.policies || null,
         startDate: firstSessionDate,
         endDate: endDate, // Must be AFTER startDate (validation requirement)
-        // ✅ CRITICAL: venueId must be number, eventType is required
+        // ✅ CRITICAL: venueId must be number, boolean flags for event registration options
         venueId: parseInt(formData.venueId) || 1,
-        // Capitalize first letter: 'class' -> 'Class', 'social' -> 'Social'
-        eventType: (formData.eventType?.charAt(0).toUpperCase() + formData.eventType?.slice(1)) || 'Class',
+        // Boolean flags replace eventType enum
+        allowRsvps: formData.allowRsvps ?? false,
+        requireTicketPurchase: formData.requireTicketPurchase ?? true,
+        vettedMembersOnly: formData.vettedMembersOnly ?? false,
         capacity: totalCapacity,
         isPublished: isPublished,
         // Send sessions - backend will create them with the event

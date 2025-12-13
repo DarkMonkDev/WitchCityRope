@@ -77,7 +77,10 @@ interface TicketPriceRange {
 interface ParticipationCardProps {
   eventId: string;
   eventTitle: string;
-  eventType: 'social' | 'class';
+  // Replaced eventType with boolean flags
+  allowRsvps: boolean;
+  requireTicketPurchase: boolean;
+  vettedMembersOnly: boolean;
   participation: EnhancedParticipationStatusDto | null;
   isLoading?: boolean;
   ticketTypeId?: string;
@@ -102,7 +105,9 @@ interface ParticipationCardProps {
 export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   eventId,
   eventTitle,
-  eventType,
+  allowRsvps,
+  requireTicketPurchase,
+  vettedMembersOnly,
   participation,
   isLoading = false,
   ticketTypeId,
@@ -134,7 +139,9 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
 
   // DEBUG: Log all relevant data for RSVP button troubleshooting
   debugLog('🔍 ParticipationCard DEBUG DATA:');
-  debugLog('  - eventType:', eventType);
+  debugLog('  - allowRsvps:', allowRsvps);
+  debugLog('  - requireTicketPurchase:', requireTicketPurchase);
+  debugLog('  - vettedMembersOnly:', vettedMembersOnly);
   debugLog('  - user (full object):', user);
   debugLog('  - isAuthenticated:', isAuthenticated);
   debugLog('  - participation:', participation);
@@ -297,7 +304,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
     debugLog('🔍 Converted participation:', validParticipation);
   }
 
-  if (eventType === 'social' && !isVetted) {
+  // Check if event requires vetting (vettedMembersOnly flag)
+  if (vettedMembersOnly && !isVetted) {
     return (
       <ParticipationCardShell>
         <Box style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
@@ -495,7 +503,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
               {(() => {
                 const available = validParticipation.capacity.available;
                 const current = validParticipation.capacity.current;
-                const isSocialEvent = eventType === 'social';
+                const isSocialEvent = allowRsvps && !requireTicketPurchase;
 
                 // Color logic: >10 = success, >3 = warning, ≤3 = error
                 const getSpotColor = () => {
@@ -1012,7 +1020,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           {!isAtCapacity && (
             <Stack gap="md">
               {/* Social Event Pattern: RSVP first, then optional ticket */}
-              {eventType === 'social' && (
+              {allowRsvps && !requireTicketPurchase && (
                 <>
                   {/* Check if we should show "sales not open" message */}
                   {!validParticipation?.canPurchaseTicket && (validParticipation as any)?.ticketPurchaseMessage ? (
@@ -1137,7 +1145,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
               )}
 
               {/* Class Pattern: Ticket purchase required */}
-              {eventType === 'class' && !validParticipation?.hasTicket && (
+              {requireTicketPurchase && !validParticipation?.hasTicket && (
                 <Box>
                   {/* Check if we should show "sales not open" message */}
                   {!validParticipation?.canPurchaseTicket && (validParticipation as any)?.ticketPurchaseMessage ? (
