@@ -7,9 +7,9 @@ namespace WitchCityRope.Api.Services.Seeding;
 /// <summary>
 /// Handles seeding of default venues for development and testing.
 /// Creates 3 standard venues based on business requirements:
-/// - Main Studio
-/// - Community Space
-/// - Outdoor Space
+/// - Witch City Rope (Salem, MA)
+/// - DOINK (Northampton, MA)
+/// - Boston Shibari Soiree (Cambridge, MA)
 /// </summary>
 public class VenueSeeder
 {
@@ -29,9 +29,9 @@ public class VenueSeeder
     /// Idempotent operation - skips if venues already exist.
     ///
     /// Creates:
-    /// - Main Studio: Primary workshop and class space
-    /// - Community Space: Large capacity social event space
-    /// - Outdoor Space: Weather-dependent events with backup plan
+    /// - Witch City Rope: Primary workshop and class space in Salem
+    /// - DOINK: Partner organization space in Northampton
+    /// - Boston Shibari Soiree: Partner organization space in Cambridge
     ///
     /// Each venue includes directions, notes, and is active by default.
     /// </summary>
@@ -52,30 +52,30 @@ public class VenueSeeder
         {
             new Venue
             {
-                Name = "Main Studio",
+                Name = "Witch City Rope",
                 Location = "Salem, MA",
-                Directions = "Enter through main entrance, studio is on the second floor. Elevator available. Street parking on Washington St.",
-                VenueInformation = "Maximum capacity: 30 people. Please remove shoes before entering.",
+                Directions = "Enter through main entrance on Essex Street, studio is on the second floor. Elevator available. Street parking on Washington St or use the MBTA Commuter Rail to Salem Station.",
+                VenueInformation = "Maximum capacity: 30 people. Please remove shoes before entering the practice space.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             },
             new Venue
             {
-                Name = "Community Space",
-                Location = "Newton, MA",
-                Directions = "Located at 123 Salem Street, Salem MA. Use side entrance after 6pm. Free parking in rear lot.",
-                VenueInformation = "Large open space suitable for social events and large classes. Capacity: 50 people.",
+                Name = "DOINK",
+                Location = "Northampton, MA",
+                Directions = "Located on Main Street in downtown Northampton. Take I-91 to Exit 20, follow Route 5 north into downtown. Street parking available on Main St and in the parking garage on Hampton Ave. Enter through the green door next to the coffee shop.",
+                VenueInformation = "Partner organization space in the Pioneer Valley. Capacity: 40 people. Accessible entrance available.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             },
             new Venue
             {
-                Name = "Outdoor Space",
-                Location = "Providence, RI",
-                Directions = "Weather-dependent location will be announced via email 24 hours before event.",
-                VenueInformation = "Backup indoor location: Main Studio. Bring sun protection and bug spray in summer months.",
+                Name = "Boston Shibari Soiree",
+                Location = "Cambridge, MA",
+                Directions = "Located near Central Square. Take the Red Line to Central Square station, walk 5 minutes down Massachusetts Ave. Metered street parking available or use the Green St parking garage.",
+                VenueInformation = "Partner organization space in Cambridge. Capacity: 35 people. Close to restaurants and bars for post-event socializing.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
