@@ -148,11 +148,11 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
             {/* Title and Signed Up badge on first line */}
             <Group gap="xs" mb={0} align="baseline">
               <h4 style={{ marginBlockStart: 0 }}>
+                {position.title}
                 {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
                 {position.sessionName && !position.sessionName.includes('Main Session') && (
-                  <>{position.sessionName} </>
+                  <> - {position.sessionName}</>
                 )}
-                {position.title}
               </h4>
               {position.hasUserSignedUp && (
                 <Badge
