@@ -1477,22 +1477,24 @@ export const EventForm: React.FC<EventFormProps> = ({
           <Tabs.Panel value="basic-info" pt="xl" data-testid="panel-basic-info">
             <Stack gap="xl">
               {/* Event Registration Options - Moved above Event Details */}
-              <SimpleGrid cols={3} spacing="md" mb={0}>
-                <Checkbox
-                  label="Allow RSVPs"
-                  description="Members can RSVP to this event without purchasing a ticket"
-                  {...form.getInputProps('allowRsvps', { type: 'checkbox' })}
-                />
-                <Checkbox
-                  label="Require Ticket Purchase"
-                  description="Members must purchase a ticket to attend this event"
-                  {...form.getInputProps('requireTicketPurchase', { type: 'checkbox' })}
-                />
+              <SimpleGrid cols={form.values.allowRsvps ? 3 : 2} spacing="md" mb={0}>
                 <Checkbox
                   label="Vetted Members Only"
                   description="Restrict attendance to vetted members only"
                   {...form.getInputProps('vettedMembersOnly', { type: 'checkbox' })}
                 />
+                <Checkbox
+                  label="Allow RSVPs"
+                  description="Enable free RSVPs for this event. When checked, you can choose whether payment is required or optional."
+                  {...form.getInputProps('allowRsvps', { type: 'checkbox' })}
+                />
+                {form.values.allowRsvps && (
+                  <Checkbox
+                    label="Require Payment to Attend"
+                    description="When checked, attendees must purchase a ticket to enter (online ahead of time or at the door). When unchecked, this is a free event — an RSVP is all that's needed to attend."
+                    {...form.getInputProps('requireTicketPurchase', { type: 'checkbox' })}
+                  />
+                )}
               </SimpleGrid>
 
               {/* Event Details Section */}
