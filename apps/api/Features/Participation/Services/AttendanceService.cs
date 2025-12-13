@@ -1740,17 +1740,20 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogInformation("Getting attendances for event {EventId}", eventId);
 
-            // Join with EventAttendees to get check-in status
-            // An attendee has checked in if they have a record with RegistrationStatus = 'checked-in' or 'confirmed'
+            // Join with EventAttendees to get check-in status from CheckIns table
+            // FILTER: Only include Active attendances (exclude cancelled)
             var attendances = await _context.EventAttendances
                 .AsNoTracking()
                 .Include(ea => ea.User)
                 .Include(ea => ea.TicketPurchase)
                     .ThenInclude(tp => tp.TicketType)
                         .ThenInclude(tt => tt.Sessions)
-                .Where(ea => ea.EventId == eventId)
+                .Where(ea => ea.EventId == eventId && ea.Status == AttendanceStatus.Active)
                 .GroupJoin(
-                    _context.EventAttendees.Where(ea => ea.EventId == eventId),
+                    _context.EventAttendees
+                        .Include(attendee => attendee.CheckIns)
+                            .ThenInclude(checkin => checkin.Session)
+                        .Where(ea => ea.EventId == eventId),
                     ea => ea.UserId,
                     ea => ea.UserId,
                     (ea, attendees) => new { Attendance = ea, Attendees = attendees })
@@ -1770,12 +1773,11 @@ public class AttendanceService : IAttendanceService
                     Notes = x.Attendance.Notes,
                     CanCancel = x.Attendance.Status == AttendanceStatus.Active,
                     Metadata = x.Attendance.Metadata,
-                    // Check-in status: true ONLY if EventAttendees record exists with 'checked-in' status
-                    // NOTE: 'confirmed' means they bought tickets/registered, NOT that they checked in
-                    HasCheckedIn = x.Attendee != null && x.Attendee.RegistrationStatus == "checked-in",
-                    // Check-in time from UpdatedAt when status changed to checked-in
-                    CheckInTime = x.Attendee != null && x.Attendee.RegistrationStatus == "checked-in"
-                                  ? x.Attendee.UpdatedAt
+                    // Check-in status: true if EventAttendee has ANY CheckIn records
+                    HasCheckedIn = x.Attendee != null && x.Attendee.CheckIns.Any(),
+                    // Check-in time from most recent CheckIn record
+                    CheckInTime = x.Attendee != null && x.Attendee.CheckIns.Any()
+                                  ? x.Attendee.CheckIns.OrderByDescending(c => c.CheckInTime).First().CheckInTime
                                   : (DateTime?)null,
                     // Ticket type name from TicketPurchase navigation (null for RSVPs)
                     TicketTypeName = x.Attendance.TicketPurchase != null
@@ -1794,7 +1796,14 @@ public class AttendanceService : IAttendanceService
                     // Payment method (generic for paid tickets, null for free RSVPs)
                     PaymentMethod = x.Attendance.TicketPurchase != null && x.Attendance.TicketPurchase.TotalPrice > 0
                                     ? "PayPal/Venmo/Cash"
-                                    : null
+                                    : null,
+                    // List of session names user has checked into
+                    CheckedInSessions = x.Attendee != null
+                                        ? x.Attendee.CheckIns
+                                            .Where(c => c.Session != null)
+                                            .Select(c => c.Session.Name)
+                                            .ToList()
+                                        : new List<string>()
                 })
                 .ToListAsync(cancellationToken);
 

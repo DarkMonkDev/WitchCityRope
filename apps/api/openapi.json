@@ -11430,6 +11430,13 @@
           },
           "paymentStatus": {
             "type": "string"
+          },
+          "sessionNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         }
       },
@@ -12018,8 +12025,10 @@
           "startDate",
           "endDate",
           "venueId",
-          "eventType",
-          "capacity"
+          "capacity",
+          "allowRsvps",
+          "requireTicketPurchase",
+          "vettedMembersOnly"
         ],
         "type": "object",
         "properties": {
@@ -12051,9 +12060,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "eventType": {
-            "type": "string"
-          },
           "capacity": {
             "maximum": 2147483647,
             "minimum": 1,
@@ -12061,6 +12067,15 @@
             "format": "int32"
           },
           "isPublished": {
+            "type": "boolean"
+          },
+          "allowRsvps": {
+            "type": "boolean"
+          },
+          "requireTicketPurchase": {
+            "type": "boolean"
+          },
+          "vettedMembersOnly": {
             "type": "boolean"
           },
           "sessions": {
@@ -12268,9 +12283,14 @@
             "type": "string",
             "format": "date-time"
           },
-          "eventType": {
-            "type": "integer",
-            "format": "int32"
+          "allowRsvps": {
+            "type": "boolean"
+          },
+          "requireTicketPurchase": {
+            "type": "boolean"
+          },
+          "vettedMembersOnly": {
+            "type": "boolean"
           },
           "status": {
             "type": "integer",
@@ -12863,14 +12883,20 @@
             "type": "string",
             "nullable": true
           },
-          "eventType": {
-            "type": "string"
-          },
           "capacity": {
             "type": "integer",
             "format": "int32"
           },
           "isPublished": {
+            "type": "boolean"
+          },
+          "allowRsvps": {
+            "type": "boolean"
+          },
+          "requireTicketPurchase": {
+            "type": "boolean"
+          },
+          "vettedMembersOnly": {
             "type": "boolean"
           },
           "registrationCount": {
@@ -13002,8 +13028,14 @@
           "eventTitle": {
             "type": "string"
           },
-          "eventType": {
-            "type": "string"
+          "allowRsvps": {
+            "type": "boolean"
+          },
+          "requireTicketPurchase": {
+            "type": "boolean"
+          },
+          "vettedMembersOnly": {
+            "type": "boolean"
           },
           "eventDate": {
             "type": "string",
@@ -13126,6 +13158,13 @@
           "paymentMethod": {
             "type": "string",
             "nullable": true
+          },
+          "checkedInSessions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         }
       },
@@ -13149,7 +13188,16 @@
           },
           "sessionId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
+          },
+          "sessionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
           },
           "expirationHours": {
             "type": "number",
@@ -15401,10 +15449,27 @@
           },
           "sessionId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
           },
           "sessionName": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
+          },
+          "sessionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "sessionNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           },
           "createdAt": {
             "type": "string",
@@ -15948,6 +16013,18 @@
             "nullable": true
           },
           "isPublished": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "allowRsvps": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "requireTicketPurchase": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "vettedMembersOnly": {
             "type": "boolean",
             "nullable": true
           },
@@ -17278,6 +17355,10 @@
           },
           "canSignUp": {
             "type": "boolean"
+          },
+          "signupBlockedReason": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

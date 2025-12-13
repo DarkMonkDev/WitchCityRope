@@ -4693,6 +4693,7 @@ export interface components {
             /** Format: uuid */
             ticketId?: string | null;
             paymentMethod?: string | null;
+            checkedInSessions?: string[];
         };
         ForgotPasswordRequest: {
             email: string;

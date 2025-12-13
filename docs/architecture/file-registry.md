@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2025-12-12 -->
-<!-- Version: 4.549 -->
+<!-- Last Updated: 2025-12-13 -->
+<!-- Version: 4.550 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,8 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-12-13 | /apps/api/Features/Participation/Models/EventParticipationDto.cs | MODIFIED | Added CheckedInSessions property to list session names user has checked into | Backend Developer: Fix Event Attendees Tab Issues | ACTIVE | Never |
+| 2025-12-13 | /apps/api/Features/Participation/Services/AttendanceService.cs | MODIFIED | Fixed GetEventParticipationsAsync to filter cancelled attendees, use CheckIns table for HasCheckedIn and CheckInTime, and populate CheckedInSessions from CheckIn records | Backend Developer: Fix Event Attendees Tab Issues | ACTIVE | Never |
 | 2025-12-12 | /apps/api/Migrations/20251212000000_RemoveEventTypeAddEventFlags.cs | CREATED | Database migration to remove EventType enum column and replace with three boolean flags (AllowRsvps, RequireTicketPurchase, VettedMembersOnly) - Implements event simplification architecture by removing rigid event type categorization in favor of flexible configuration | Database Designer: Event Type Simplification Migration | PENDING | Never |
 | 2025-12-12 | /apps/web/src/lib/api/hooks/useEvents.ts | MODIFIED | Fixed cache invalidation race condition in useUpdateEvent hook - Changed onSettled to only invalidate event lists, not detail queries, preventing stale data after ticket additions | React Developer: Fix Event Cache Invalidation Bug | ACTIVE | Never |
 | 2025-12-12 | /docs/functional-areas/event-simplification/ | CREATED | New functional area folder for event simplification research - Stores research documentation for architectural change to unify Workshop and Social Event concepts into single configurable event type | Librarian: Create Event Simplification Folder | ACTIVE | Never |

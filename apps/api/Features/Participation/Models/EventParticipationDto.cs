@@ -102,4 +102,10 @@ public class EventParticipationDto
     /// Null for free RSVPs
     /// </summary>
     public string? PaymentMethod { get; set; }
+
+    /// <summary>
+    /// List of session names the attendee has checked into
+    /// Empty list if not checked into any sessions
+    /// </summary>
+    public List<string> CheckedInSessions { get; set; } = new List<string>();
 }
