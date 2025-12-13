@@ -40,11 +40,12 @@ public class CheckInService : ICheckInService
 
     /// <summary>
     /// Get attendees with optimized queries for mobile performance
-    /// Filters attendees to only show those eligible for the specific session
+    /// Supports multi-session tokens by accepting list of session IDs
+    /// Filters attendees to only show those eligible for the specified sessions
     /// </summary>
     public async Task<Result<CheckInAttendeesResponse>> GetEventAttendeesAsync(
         Guid eventId,
-        Guid sessionId,
+        List<Guid> sessionIds,
         string? search = null,
         string? status = null,
         int page = 1,
@@ -57,11 +58,20 @@ public class CheckInService : ICheckInService
             if (pageSize > 100) pageSize = 100;
             if (page < 1) page = 1;
 
+            // Get session names for display (multi-session support)
+            var sessions = await _context.Sessions
+                .AsNoTracking()
+                .Where(s => sessionIds.Contains(s.Id))
+                .Select(s => new { s.Id, s.Name })
+                .ToListAsync(cancellationToken);
+
+            var sessionNameMap = sessions.ToDictionary(s => s.Id, s => s.Name);
+
             // SERVER-SIDE PROJECTION: Build query without includes
-            // CRITICAL: Filter to only show attendees eligible for THIS session
+            // CRITICAL: Filter to only show attendees eligible for THESE sessions
             // Eligibility rules:
             // - RSVP attendees (via EventAttendance) can check into ANY session (no ticket required)
-            // - Ticket holders: ticket must include THIS session (via Sessions collection)
+            // - Ticket holders: ticket must include ANY OF THESE sessions (via Sessions collection)
             // Since EventAttendee doesn't have direct attendance info, we join with EventAttendance
             var eligibleUserIds = await _context.EventAttendances
                 .Include(ea => ea.TicketPurchase)
@@ -71,7 +81,7 @@ public class CheckInService : ICheckInService
                             ea.Status == AttendanceStatus.Active &&
                             (ea.AttendanceType == AttendanceType.RSVP ||
                              ea.TicketPurchase == null ||
-                             ea.TicketPurchase.TicketType!.Sessions.Any(s => s.Id == sessionId)))
+                             ea.TicketPurchase.TicketType!.Sessions.Any(s => sessionIds.Contains(s.Id))))
                 .Select(ea => ea.UserId)
                 .Distinct()
                 .ToListAsync(cancellationToken);
@@ -160,7 +170,58 @@ public class CheckInService : ICheckInService
                 })
                 .ToListAsync(cancellationToken);
 
-            // Convert to DTOs in memory with enum parsing
+            // Build user-to-sessions mapping for multi-session display
+            // Group EventAttendance records by user and collect their session names
+            var userSessionsMap = await _context.EventAttendances
+                .Include(ea => ea.Session)
+                .Include(ea => ea.TicketPurchase)
+                    .ThenInclude(tp => tp != null ? tp.TicketType : null)
+                        .ThenInclude(tt => tt != null ? tt.Sessions : null!)
+                .Where(ea => ea.EventId == eventId &&
+                            ea.Status == AttendanceStatus.Active &&
+                            eligibleUserIds.Contains(ea.UserId))
+                .ToListAsync(cancellationToken);
+
+            // Build dictionary of UserId -> List of session names
+            var userSessionNames = new Dictionary<Guid, List<string>>();
+            foreach (var attendance in userSessionsMap)
+            {
+                List<string> sessionsForUser;
+                if (!userSessionNames.ContainsKey(attendance.UserId))
+                {
+                    userSessionNames[attendance.UserId] = new List<string>();
+                }
+                sessionsForUser = userSessionNames[attendance.UserId];
+
+                // For RSVP attendees, use their direct SessionId
+                if (attendance.AttendanceType == AttendanceType.RSVP && attendance.SessionId.HasValue)
+                {
+                    if (sessionNameMap.TryGetValue(attendance.SessionId.Value, out var sessionName))
+                    {
+                        if (!sessionsForUser.Contains(sessionName))
+                        {
+                            sessionsForUser.Add(sessionName);
+                        }
+                    }
+                }
+                // For ticket holders, use all sessions from their ticket type
+                else if (attendance.AttendanceType == AttendanceType.Ticket &&
+                        attendance.TicketPurchase?.TicketType?.Sessions != null)
+                {
+                    foreach (var session in attendance.TicketPurchase.TicketType.Sessions)
+                    {
+                        if (sessionIds.Contains(session.Id) && sessionNameMap.TryGetValue(session.Id, out var sessionName))
+                        {
+                            if (!sessionsForUser.Contains(sessionName))
+                            {
+                                sessionsForUser.Add(sessionName);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Convert to DTOs in memory with enum parsing and session names
             var attendeeResponses = rawAttendees.Select(ea => new AttendeeResponse
             {
                 AttendeeId = ea.Id.ToString(),
@@ -179,7 +240,9 @@ public class CheckInService : ICheckInService
                 // Set payment status based on ticket purchase
                 // "rsvp" = No ticket, show "Paid at Door" button
                 // "paid" = Has ticket, show "Covid Test Complete" button
-                PaymentStatus = ea.HasTicket ? "paid" : "rsvp"
+                PaymentStatus = ea.HasTicket ? "paid" : "rsvp",
+                // Add session names for multi-session display
+                SessionNames = userSessionNames.TryGetValue(ea.UserId, out var sessions) ? sessions : null
             }).ToList();
 
             var response = new CheckInAttendeesResponse
