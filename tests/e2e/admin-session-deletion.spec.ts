@@ -31,6 +31,7 @@ test.describe('Admin Session Deletion', () => {
     await df.sessions.create({
       eventId: event.id,
       title: 'Session 1',
+      sessionIdentifier: 'S1',
       startTime: sessionStart,
       endTime: sessionEnd,
       maxCapacity: 20,
@@ -43,6 +44,7 @@ test.describe('Admin Session Deletion', () => {
     await df.sessions.create({
       eventId: event.id,
       title: 'Session 2',
+      sessionIdentifier: 'S2',
       startTime: sessionStart2,
       endTime: sessionEnd2,
       maxCapacity: 20,
@@ -99,6 +101,7 @@ test.describe('Admin Session Deletion', () => {
     const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 1',
+      sessionIdentifier: 'S1',
       startTime: sessionStart,
       endTime: sessionEnd,
       maxCapacity: 20,
@@ -111,6 +114,7 @@ test.describe('Admin Session Deletion', () => {
     await df.sessions.create({
       eventId: event.id,
       title: 'Session 2',
+      sessionIdentifier: 'S2',
       startTime: sessionStart2,
       endTime: sessionEnd2,
       maxCapacity: 20,
@@ -184,6 +188,7 @@ test.describe('Admin Session Deletion', () => {
     await df.sessions.create({
       eventId: event.id,
       title: 'Only Session',
+      sessionIdentifier: 'S1',
       startTime: sessionStart,
       endTime: sessionEnd,
       maxCapacity: 20,
@@ -245,6 +250,7 @@ test.describe('Admin Session Deletion', () => {
       await df.sessions.create({
         eventId: event.id,
         title: `Session ${i + 1}`,
+        sessionIdentifier: `S${i + 1}`,
         startTime: start,
         endTime: end,
         maxCapacity: 20,
@@ -314,6 +320,7 @@ test.describe('Admin Session Deletion', () => {
       await df.sessions.create({
         eventId: event.id,
         title: `Session ${i + 1}`,
+        sessionIdentifier: `S${i + 1}`,
         startTime: start,
         endTime: end,
         maxCapacity: 20,

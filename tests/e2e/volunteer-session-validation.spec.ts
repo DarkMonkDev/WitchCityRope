@@ -54,6 +54,7 @@ test.describe('Volunteer Session Validation', () => {
     const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 1',
+      sessionIdentifier: 'S1',
       startTime: sessionStart,
       endTime: new Date(sessionStart.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,
@@ -64,6 +65,7 @@ test.describe('Volunteer Session Validation', () => {
     const session2 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 2',
+      sessionIdentifier: 'S2',
       startTime: session2Start,
       endTime: new Date(session2Start.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,
@@ -168,6 +170,7 @@ test.describe('Volunteer Session Validation', () => {
     const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 1',
+      sessionIdentifier: 'S1',
       startTime: sessionStart,
       endTime: new Date(sessionStart.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,
@@ -178,6 +181,7 @@ test.describe('Volunteer Session Validation', () => {
     const session2 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 2',
+      sessionIdentifier: 'S2',
       startTime: session2Start,
       endTime: new Date(session2Start.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,

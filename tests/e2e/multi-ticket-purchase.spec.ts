@@ -53,6 +53,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Day 1',
+      sessionIdentifier: 'S1',
       startTime: session1Start,
       endTime: session1End,
       maxCapacity: 20,
@@ -61,6 +62,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     const session2 = await df.sessions.create({
       eventId: event.id,
       title: 'Day 2',
+      sessionIdentifier: 'S2',
       startTime: session2Start,
       endTime: session2End,
       maxCapacity: 20,
@@ -231,6 +233,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Day 1',
+      sessionIdentifier: 'S1',
       startTime: session1Start,
       endTime: session1End,
       maxCapacity: 20,
@@ -239,6 +242,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     const session2 = await df.sessions.create({
       eventId: event.id,
       title: 'Day 2',
+      sessionIdentifier: 'S2',
       startTime: session2Start,
       endTime: session2End,
       maxCapacity: 20,
@@ -360,6 +364,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Day 1',
+      sessionIdentifier: 'S1',
       startTime: session1Start,
       endTime: session1End,
       maxCapacity: 20,
@@ -368,6 +373,7 @@ test.describe('Multi-Ticket Purchase Flow', () => {
     const session2 = await df.sessions.create({
       eventId: event.id,
       title: 'Day 2',
+      sessionIdentifier: 'S2',
       startTime: session2Start,
       endTime: session2End,
       maxCapacity: 20,

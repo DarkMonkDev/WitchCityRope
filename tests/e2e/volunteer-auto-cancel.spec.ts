@@ -81,6 +81,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 1',
+      sessionIdentifier: 'S1',
       startTime: session1Start,
       endTime: new Date(session1Start.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,
@@ -89,6 +90,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     const session2 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 2',
+      sessionIdentifier: 'S2',
       startTime: session2Start,
       endTime: new Date(session2Start.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,
@@ -200,6 +202,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 1',
+      sessionIdentifier: 'S1',
       startTime: session1Start,
       endTime: new Date(session1Start.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,
@@ -208,6 +211,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     const session2 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 2',
+      sessionIdentifier: 'S2',
       startTime: session2Start,
       endTime: new Date(session2Start.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,
@@ -314,6 +318,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 1',
+      sessionIdentifier: 'S1',
       startTime: session1Start,
       endTime: new Date(session1Start.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,
@@ -322,6 +327,7 @@ test.describe('Volunteer Auto-Cancel on Ticket Cancellation', () => {
     const session2 = await df.sessions.create({
       eventId: event.id,
       title: 'Session 2',
+      sessionIdentifier: 'S2',
       startTime: session2Start,
       endTime: new Date(session2Start.getTime() + 2 * 60 * 60 * 1000),
       maxCapacity: 20,

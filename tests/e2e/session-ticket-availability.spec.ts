@@ -62,6 +62,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s1Session = await df.sessions.create({
       eventId: event.id,
       title: 'S1 - Past Session',
+      sessionIdentifier: 'S1',
       startTime: pastSessionStart,
       endTime: pastSessionEnd,
       maxCapacity: 20,
@@ -81,6 +82,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s2Session = await df.sessions.create({
       eventId: event.id,
       title: 'S2 - Future Session',
+      sessionIdentifier: 'S2',
       startTime: futureSessionStart,
       endTime: futureSessionEnd,
       maxCapacity: 20,
@@ -188,6 +190,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s1Session = await df.sessions.create({
       eventId: event.id,
       title: 'S1 - Past Session',
+      sessionIdentifier: 'S1',
       startTime: pastSessionStart,
       endTime: pastSessionEnd,
       maxCapacity: 20,
@@ -202,6 +205,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     await df.sessions.create({
       eventId: event.id,
       title: 'S2 - Future Session',
+      sessionIdentifier: 'S2',
       startTime: futureSessionStart,
       endTime: futureSessionEnd,
       maxCapacity: 20,
@@ -262,6 +266,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     await df.sessions.create({
       eventId: event.id,
       title: 'S1 - Past Session',
+      sessionIdentifier: 'S1',
       startTime: pastSessionStart,
       endTime: pastSessionEnd,
       maxCapacity: 20,
@@ -276,6 +281,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s2Session = await df.sessions.create({
       eventId: event.id,
       title: 'S2 - Future Session',
+      sessionIdentifier: 'S2',
       startTime: futureSessionStart,
       endTime: futureSessionEnd,
       maxCapacity: 20,
@@ -343,6 +349,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s1Session = await df.sessions.create({
       eventId: event.id,
       title: 'S1 - Past Session',
+      sessionIdentifier: 'S1',
       startTime: pastSessionStart,
       endTime: pastSessionEnd,
       maxCapacity: 20,
@@ -357,6 +364,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s2Session = await df.sessions.create({
       eventId: event.id,
       title: 'S2 - Future Session',
+      sessionIdentifier: 'S2',
       startTime: futureSessionStart,
       endTime: futureSessionEnd,
       maxCapacity: 20,
@@ -428,6 +436,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s1Session = await df.sessions.create({
       eventId: event.id,
       title: 'S1 - Past Session',
+      sessionIdentifier: 'S1',
       startTime: pastSessionStart,
       endTime: pastSessionEnd,
       maxCapacity: 20,
@@ -442,6 +451,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s2Session = await df.sessions.create({
       eventId: event.id,
       title: 'S2 - Future Session',
+      sessionIdentifier: 'S2',
       startTime: futureSessionStart,
       endTime: futureSessionEnd,
       maxCapacity: 20,
@@ -555,6 +565,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s1Session = await df.sessions.create({
       eventId: event.id,
       title: 'S1 - Past Session',
+      sessionIdentifier: 'S1',
       startTime: pastSessionStart,
       endTime: pastSessionEnd,
       maxCapacity: 20,
@@ -569,6 +580,7 @@ test.describe('Session-Based Ticket Availability - S1 Passed, S2 Future', () => 
     const s2Session = await df.sessions.create({
       eventId: event.id,
       title: 'S2 - Future Session',
+      sessionIdentifier: 'S2',
       startTime: futureSessionStart,
       endTime: futureSessionEnd,
       maxCapacity: 20,

@@ -95,6 +95,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session1 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 1 - 24hr Future',
+        sessionIdentifier: 'S1',
         startTime: s1Start,
         endTime: s1End,
         maxCapacity: 20,
@@ -105,6 +106,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session2 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 2 - 120hr Future',
+        sessionIdentifier: 'S2',
         startTime: s2Start,
         endTime: s2End,
         maxCapacity: 20,
@@ -172,6 +174,7 @@ test.describe('Comprehensive Timing Tests', () => {
       await df.sessions.create({
         eventId: event.id,
         title: 'Session 1 - 24hr Future',
+        sessionIdentifier: 'S1',
         startTime: s1Start,
         endTime: s1End,
         maxCapacity: 20,
@@ -182,6 +185,7 @@ test.describe('Comprehensive Timing Tests', () => {
       await df.sessions.create({
         eventId: event.id,
         title: 'Session 2 - 120hr Future',
+        sessionIdentifier: 'S2',
         startTime: s2Start,
         endTime: s2End,
         maxCapacity: 20,
@@ -220,6 +224,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session1 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 1 - 24hr Future',
+        sessionIdentifier: 'S1',
         startTime: s1Start,
         endTime: s1End,
         maxCapacity: 20,
@@ -230,6 +235,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session2 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 2 - 120hr Future',
+        sessionIdentifier: 'S2',
         startTime: s2Start,
         endTime: s2End,
         maxCapacity: 20,
@@ -290,6 +296,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session = await df.sessions.create({
         eventId: event.id,
         title: 'Session in 5 hours',
+        sessionIdentifier: 'S1',
         startTime: sessionStart,
         endTime: sessionEnd,
         maxCapacity: 20,
@@ -348,6 +355,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session = await df.sessions.create({
         eventId: event.id,
         title: 'Session in 3 hours',
+        sessionIdentifier: 'S1',
         startTime: sessionStart,
         endTime: sessionEnd,
         maxCapacity: 20,
@@ -402,6 +410,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session = await df.sessions.create({
         eventId: event.id,
         title: 'Session in ~4 hours',
+        sessionIdentifier: 'S1',
         startTime: sessionStart,
         endTime: sessionEnd,
         maxCapacity: 20,
@@ -452,6 +461,7 @@ test.describe('Comprehensive Timing Tests', () => {
       await df.sessions.create({
         eventId: event.id,
         title: 'Test Session',
+        sessionIdentifier: 'S1',
         startTime: sessionStart,
         endTime: sessionEnd,
         maxCapacity: 20,
@@ -494,6 +504,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session = await df.sessions.create({
         eventId: event.id,
         title: 'UTC Test Session',
+        sessionIdentifier: 'S1',
         startTime: sessionStart,
         endTime: sessionEnd,
         maxCapacity: 20,
@@ -554,6 +565,7 @@ test.describe('Comprehensive Timing Tests', () => {
       await df.sessions.create({
         eventId: event.id,
         title: 'Earlier Session',
+        sessionIdentifier: 'S1',
         startTime: s1Start,
         endTime: s1End,
         maxCapacity: 20,
@@ -564,6 +576,7 @@ test.describe('Comprehensive Timing Tests', () => {
       await df.sessions.create({
         eventId: event.id,
         title: 'Later Session',
+        sessionIdentifier: 'S2',
         startTime: s2Start,
         endTime: s2End,
         maxCapacity: 20,
@@ -604,6 +617,7 @@ test.describe('Comprehensive Timing Tests', () => {
       await df.sessions.create({
         eventId: event.id,
         title: 'Session 1 - 24hr Future',
+        sessionIdentifier: 'S1',
         startTime: s1Start,
         endTime: s1End,
         maxCapacity: 20,
@@ -614,6 +628,7 @@ test.describe('Comprehensive Timing Tests', () => {
       await df.sessions.create({
         eventId: event.id,
         title: 'Session 2 - 120hr Future',
+        sessionIdentifier: 'S2',
         startTime: s2Start,
         endTime: s2End,
         maxCapacity: 20,
@@ -654,6 +669,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session = await df.sessions.create({
         eventId: event.id,
         title: 'Session in 1 hour',
+        sessionIdentifier: 'S1',
         startTime: sessionStart,
         endTime: sessionEnd,
         maxCapacity: 20,
@@ -701,6 +717,7 @@ test.describe('Comprehensive Timing Tests', () => {
       const session = await df.sessions.create({
         eventId: event.id,
         title: 'Session in 15 minutes',
+        sessionIdentifier: 'S1',
         startTime: sessionStart,
         endTime: sessionEnd,
         maxCapacity: 20,

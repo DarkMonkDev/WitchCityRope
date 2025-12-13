@@ -37,6 +37,7 @@ test.describe('Session Availability Counts', () => {
       const session1 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 1',
+        sessionIdentifier: 'S1',
         startTime: session1Start,
         endTime: session1End,
         maxCapacity: 20,
@@ -45,6 +46,7 @@ test.describe('Session Availability Counts', () => {
       const session2 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 2',
+        sessionIdentifier: 'S2',
         startTime: session2Start,
         endTime: session2End,
         maxCapacity: 20,
@@ -106,6 +108,7 @@ test.describe('Session Availability Counts', () => {
       const session1 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 1',
+        sessionIdentifier: 'S1',
         startTime: session1Start,
         endTime: session1End,
         maxCapacity: 20,
@@ -114,6 +117,7 @@ test.describe('Session Availability Counts', () => {
       const session2 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 2',
+        sessionIdentifier: 'S2',
         startTime: session2Start,
         endTime: session2End,
         maxCapacity: 20,
@@ -182,6 +186,7 @@ test.describe('Session Availability Counts', () => {
       const session1 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 1',
+        sessionIdentifier: 'S1',
         startTime: session1Start,
         endTime: session1End,
         maxCapacity: 20,
@@ -190,6 +195,7 @@ test.describe('Session Availability Counts', () => {
       const session2 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 2',
+        sessionIdentifier: 'S2',
         startTime: session2Start,
         endTime: session2End,
         maxCapacity: 20,
@@ -249,6 +255,7 @@ test.describe('Session Availability Counts', () => {
       const session1 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 1',
+        sessionIdentifier: 'S1',
         startTime: session1Start,
         endTime: session1End,
         maxCapacity: 20,
@@ -257,6 +264,7 @@ test.describe('Session Availability Counts', () => {
       const session2 = await df.sessions.create({
         eventId: event.id,
         title: 'Session 2',
+        sessionIdentifier: 'S2',
         startTime: session2Start,
         endTime: session2End,
         maxCapacity: 20,
@@ -375,6 +383,7 @@ test.describe('Session Availability Counts', () => {
       const session1 = await df.sessions.create({
         eventId: event.id,
         title: 'S1',
+        sessionIdentifier: 'S1',
         startTime: session1Start,
         endTime: session1End,
         maxCapacity: 20,
@@ -383,6 +392,7 @@ test.describe('Session Availability Counts', () => {
       const session2 = await df.sessions.create({
         eventId: event.id,
         title: 'S2',
+        sessionIdentifier: 'S2',
         startTime: session2Start,
         endTime: session2End,
         maxCapacity: 20,
