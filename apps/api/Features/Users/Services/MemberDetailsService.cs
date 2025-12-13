@@ -295,7 +295,9 @@ public class MemberDetailsService : IMemberDetailsService
                 {
                     EventId = ep.Event.Id,
                     EventTitle = ep.Event.Title,
-                    EventType = ep.Event.EventType.ToString(),
+                    AllowRsvps = ep.Event.AllowRsvps,
+                    RequireTicketPurchase = ep.Event.RequireTicketPurchase,
+                    VettedMembersOnly = ep.Event.VettedMembersOnly,
                     EventDate = ep.Event.StartDate,
                     RegistrationType = registrationType,
                     ParticipationStatus = participationStatus,

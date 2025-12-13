@@ -71,7 +71,22 @@ public class EventHistoryRecord
 {
     public Guid EventId { get; set; }
     public string EventTitle { get; set; } = string.Empty;
-    public string EventType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Whether free RSVPs are enabled for this event
+    /// </summary>
+    public bool AllowRsvps { get; set; }
+
+    /// <summary>
+    /// Whether ticket purchase is mandatory to attend
+    /// </summary>
+    public bool RequireTicketPurchase { get; set; }
+
+    /// <summary>
+    /// Whether only vetted members can attend
+    /// </summary>
+    public bool VettedMembersOnly { get; set; }
+
     public DateTime EventDate { get; set; }
     public string RegistrationType { get; set; } = string.Empty; // "RSVP", "Ticket", "Attended"
     public string? ParticipationStatus { get; set; } // "Active", "Cancelled", etc.

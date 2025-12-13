@@ -62,7 +62,9 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                     ea.Event.EndDate,
                     VenueName = ea.Event.Venue != null ? ea.Event.Venue.Name : string.Empty,
                     ea.Event.ShortDescription,
-                    ea.Event.EventType
+                    ea.Event.AllowRsvps,
+                    ea.Event.RequireTicketPurchase,
+                    ea.Event.VettedMembersOnly
                 })
                 .Select(g => new UserEventDto
                 {
@@ -73,7 +75,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                     EndDate = g.Key.EndDate,
                     Location = g.Key.VenueName,
                     Description = g.Key.ShortDescription,
-                    IsSocialEvent = g.Key.EventType == WitchCityRope.Api.Enums.EventType.Social,
+                    IsSocialEvent = g.Key.AllowRsvps && !g.Key.RequireTicketPurchase,
                     // HasTicket is true if ANY attendance for this event is a Ticket
                     HasTicket = g.Any(ea => ea.AttendanceType == AttendanceType.Ticket),
                     // Calculate registration status at database level
@@ -81,7 +83,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                     RegistrationStatus = g.Key.EndDate < DateTime.UtcNow
                         ? "Attended"
                         : g.Any(ea => ea.AttendanceType == AttendanceType.Ticket)
-                            ? (g.Key.EventType == WitchCityRope.Api.Enums.EventType.Social ? "Ticket Purchased (Social Event)" : "Ticket Purchased")
+                            ? (g.Key.AllowRsvps && !g.Key.RequireTicketPurchase ? "Ticket Purchased (Social Event)" : "Ticket Purchased")
                             : "RSVP Confirmed"
                 })
                 .OrderBy(e => e.StartDate)

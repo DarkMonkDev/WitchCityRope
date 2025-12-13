@@ -44,9 +44,19 @@ public class DashboardEventDto
     public string Location { get; set; } = string.Empty;
 
     /// <summary>
-    /// Type of event (Workshop, SkillShare, Social, Performance)
+    /// Whether free RSVPs are enabled for this event
     /// </summary>
-    public string EventType { get; set; } = string.Empty;
+    public bool AllowRsvps { get; set; }
+
+    /// <summary>
+    /// Whether ticket purchase is mandatory to attend
+    /// </summary>
+    public bool RequireTicketPurchase { get; set; }
+
+    /// <summary>
+    /// Whether only vetted members can attend
+    /// </summary>
+    public bool VettedMembersOnly { get; set; }
 
     /// <summary>
     /// Name of the instructor/organizer
