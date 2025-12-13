@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Services.Seeding;
@@ -88,7 +87,7 @@ public class VolunteerSeeder
                 volunteerPositionsToAdd.AddRange(eventPositions);
 
                 // Add session-specific volunteer positions for multi-day events
-                if (eventItem.Sessions.Any() && eventItem.EventType == EventType.Class)
+                if (eventItem.Sessions.Any() && eventItem.RequireTicketPurchase)
                 {
                     foreach (var session in eventItem.Sessions)
                     {
@@ -343,7 +342,7 @@ public class VolunteerSeeder
         });
 
         // Additional positions for classes
-        if (eventItem.EventType == EventType.Class)
+        if (eventItem.RequireTicketPurchase)
         {
             positions.Add(new VolunteerPosition
             {

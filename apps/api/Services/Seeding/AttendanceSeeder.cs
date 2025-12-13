@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Safety.Services;
@@ -58,7 +57,7 @@ public class AttendanceSeeder
 
         // Get only social events (excluding historical ones that are seeded separately)
         var socialEvents = await _context.Events
-            .Where(e => e.EventType == EventType.Social &&
+            .Where(e => e.AllowRsvps && !e.RequireTicketPurchase &&
                        e.Title != "Monthly Rope Practice Night" &&
                        e.Title != "New Member Welcome Mixer")
             .ToListAsync(cancellationToken);

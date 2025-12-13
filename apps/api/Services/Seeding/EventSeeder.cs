@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Services.Seeding;
@@ -132,7 +131,9 @@ public class EventSeeder
                 daysFromNow: 7,  // Next week
                 startHour: 18,
                 capacity: 20,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 price: 25.00m,
                 shortDescription: "Learn the fundamentals of safe rope bondage practices in this comprehensive beginner workshop.",
@@ -235,7 +236,9 @@ public class EventSeeder
                 daysFromNow: 14,  // 2 weeks from now
                 startHour: 18,
                 capacity: 12,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 price: 65.00m,
                 shortDescription: "Introduction to suspension techniques with emphasis on safety and proper rigging.",
@@ -360,7 +363,9 @@ public class EventSeeder
                 daysFromNow: 21,  // 3 weeks from now
                 startHour: 18,
                 capacity: 10,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 price: 55.00m,
                 shortDescription: "Explore complex floor-based rope bondage techniques for experienced practitioners.",
@@ -492,7 +497,9 @@ public class EventSeeder
                 daysFromNow: 28,  // 4 weeks from now
                 startHour: 19,
                 capacity: 40,
-                eventType: EventType.Social,
+                allowRsvps: true,
+                requireTicketPurchase: false,
+                vettedMembersOnly: false,
                 venue: communitySpace,
                 price: 15.00m,
                 shortDescription: "Casual practice session for all skill levels. Bring your rope and practice with the community.",
@@ -643,7 +650,9 @@ public class EventSeeder
                 daysFromNow: 35,  // 5 weeks from now
                 startHour: 19,
                 capacity: 30,
-                eventType: EventType.Social,
+                allowRsvps: true,
+                requireTicketPurchase: false,
+                vettedMembersOnly: false,
                 venue: communitySpace,
                 price: 10.00m,
                 shortDescription: "Monthly social gathering for community connection and discussion of rope topics.",
@@ -798,7 +807,9 @@ public class EventSeeder
                 daysFromNow: 42,  // 6 weeks from now
                 startHour: 18,
                 capacity: 25,
-                eventType: EventType.Social,
+                allowRsvps: true,
+                requireTicketPurchase: false,
+                vettedMembersOnly: false,
                 venue: communitySpace,
                 price: 5.00m,
                 shortDescription: "Welcome gathering for new community members to meet established practitioners and learn about upcoming events.",
@@ -960,7 +971,9 @@ public class EventSeeder
                 daysFromNow: -7,
                 startHour: 18,
                 capacity: 20,
-                eventType: EventType.Social,
+                allowRsvps: true,
+                requireTicketPurchase: false,
+                vettedMembersOnly: false,
                 venue: communitySpace,
                 price: 10.00m,
                 shortDescription: "Past event: Introductory session for newcomers to rope bondage.",
@@ -998,7 +1011,9 @@ public class EventSeeder
                 daysFromNow: -14,
                 startHour: 17,
                 capacity: 15,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 price: 40.00m,
                 shortDescription: "Past event: Multi-session fundamentals course for serious students.",
@@ -1041,7 +1056,9 @@ public class EventSeeder
                 startHour: 9,
                 duration: 7,
                 capacity: 20,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 shortDescription: "Advanced rope suspension workshop focusing on complex ties and safety protocols.",
                 longDescription: @"<p>This advanced workshop covered sophisticated suspension bondage techniques for experienced practitioners.</p>
@@ -1078,7 +1095,9 @@ public class EventSeeder
                 startHour: 9,
                 duration: 8.5m,
                 capacity: 25,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 shortDescription: "Full-day intensive workshop covering rope bondage fundamentals from basics to practice.",
                 longDescription: @"<p>This full-day intensive provided comprehensive instruction in rope bondage fundamentals.</p>
@@ -1115,7 +1134,9 @@ public class EventSeeder
                 startHour: 19,
                 duration: 4,
                 capacity: 30,
-                eventType: EventType.Social,
+                allowRsvps: true,
+                requireTicketPurchase: false,
+                vettedMembersOnly: false,
                 venue: communitySpace,
                 shortDescription: "Open practice session for all skill levels. Bring your rope and a partner!",
                 longDescription: @"<p>This was our monthly open practice session where rope enthusiasts of all levels gathered to practice and connect.</p>
@@ -1152,7 +1173,9 @@ public class EventSeeder
                 startHour: 18,
                 duration: 3,
                 capacity: 40,
-                eventType: EventType.Social,
+                allowRsvps: true,
+                requireTicketPurchase: false,
+                vettedMembersOnly: false,
                 venue: communitySpace,
                 shortDescription: "Social mixer to welcome new members and connect with the community.",
                 longDescription: @"<p>This welcome mixer provided new members an opportunity to meet the community and learn about upcoming events.</p>
@@ -1193,7 +1216,9 @@ public class EventSeeder
                 startHour: 18,
                 duration: 3,
                 capacity: 20,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 shortDescription: "E2E test event for session-based timing. S1 past, S2 future.",
                 longDescription: @"<p>This is a dedicated test event for E2E testing of session-based ticket timing.</p>
@@ -1262,7 +1287,9 @@ public class EventSeeder
                 startHour: 18,
                 duration: 3,
                 capacity: 30,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 shortDescription: "Timing test: 6hr close. S1=24hrs, S2=120hrs. All tickets OPEN.",
                 longDescription: @"<p>Comprehensive timing test event with 6-hour registration close window.</p>
@@ -1300,7 +1327,9 @@ public class EventSeeder
                 startHour: 18,
                 duration: 3,
                 capacity: 30,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 shortDescription: "Timing test: 48hr close. S1 CLOSED, S2 OPEN, Both CLOSED.",
                 longDescription: @"<p>Comprehensive timing test event with 48-hour registration close window.</p>
@@ -1342,7 +1371,9 @@ public class EventSeeder
                 startHour: 18,
                 duration: 3,
                 capacity: 30,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 shortDescription: "Timing test: 300hr close. All tickets CLOSED.",
                 longDescription: @"<p>Comprehensive timing test event with 300-hour registration close window.</p>
@@ -1395,7 +1426,9 @@ public class EventSeeder
                 startHour: 18,
                 duration: 3,
                 capacity: 20,
-                eventType: EventType.Class,
+                allowRsvps: false,
+                requireTicketPurchase: true,
+                vettedMembersOnly: false,
                 venue: mainStudio,
                 shortDescription: "Tight margin test: 12hr close window. Tests UTC timezone bugs.",
                 longDescription: @"<p>Tight margin UTC bug detection test event.</p>
@@ -1444,7 +1477,9 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
         int daysFromNow,
         int startHour,
         int capacity,
-        EventType eventType,
+        bool allowRsvps,
+        bool requireTicketPurchase,
+        bool vettedMembersOnly,
         Venue? venue,
         decimal price,
         string shortDescription,
@@ -1458,7 +1493,7 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
     {
         // Calculate UTC dates following ApplicationDbContext patterns
         var startDate = DateTime.UtcNow.AddDays(daysFromNow).Date.AddHours(startHour);
-        var endDate = startDate.AddHours(eventType == EventType.Social ? 2 : 3); // Social events 2hrs, classes 3hrs
+        var endDate = startDate.AddHours(allowRsvps && !requireTicketPurchase ? 2 : 3); // Social events 2hrs, classes 3hrs
 
         return new Event
         {
@@ -1470,7 +1505,9 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
             StartDate = DateTime.SpecifyKind(startDate, DateTimeKind.Utc),
             EndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc),
             Capacity = capacity,
-            EventType = eventType,
+            AllowRsvps = allowRsvps,
+            RequireTicketPurchase = requireTicketPurchase,
+            VettedMembersOnly = vettedMembersOnly,
             VenueId = venue?.Id ?? 1,                 // Assign venue if available, default to Main Studio (ID 1)
             IsPublished = true,
             // Granular Timing Controls (NEW)
@@ -1494,7 +1531,9 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
         int startHour,
         decimal duration,
         int capacity,
-        EventType eventType,
+        bool allowRsvps,
+        bool requireTicketPurchase,
+        bool vettedMembersOnly,
         Venue? venue,
         string shortDescription,
         string longDescription,
@@ -1519,7 +1558,9 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
             StartDate = DateTime.SpecifyKind(startDate, DateTimeKind.Utc),
             EndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc),
             Capacity = capacity,
-            EventType = eventType,
+            AllowRsvps = allowRsvps,
+            RequireTicketPurchase = requireTicketPurchase,
+            VettedMembersOnly = vettedMembersOnly,
             VenueId = venue?.Id ?? 1,                 // Assign venue if available, default to Main Studio (ID 1)
             IsPublished = true,
             // Granular Timing Controls (NEW)

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Safety.Services;
@@ -64,7 +63,7 @@ public class TicketPurchaseSeeder
         var ticketTypes = await _context.TicketTypes
             .Include(t => t.Event)
             .Include(t => t.Sessions)
-            .Where(tt => tt.Event.EventType == EventType.Class)
+            .Where(tt => tt.Event.RequireTicketPurchase)
             .ToListAsync(cancellationToken);
 
         var users = await _userManager.Users.ToListAsync(cancellationToken);
@@ -248,7 +247,7 @@ public class TicketPurchaseSeeder
         var upcomingWorkshop = await _context.Events
             .Include(e => e.TicketTypes)
                 .ThenInclude(tt => tt.Sessions)
-            .Where(e => e.EventType == EventType.Class &&
+            .Where(e => e.RequireTicketPurchase &&
                        e.StartDate > DateTime.UtcNow &&
                        e.TicketTypes.Any())
             .OrderBy(e => e.StartDate)
@@ -257,7 +256,7 @@ public class TicketPurchaseSeeder
         var upcomingSocial = await _context.Events
             .Include(e => e.TicketTypes)
                 .ThenInclude(tt => tt.Sessions)
-            .Where(e => e.EventType == EventType.Social &&
+            .Where(e => e.AllowRsvps && !e.RequireTicketPurchase &&
                        e.StartDate > DateTime.UtcNow &&
                        e.TicketTypes.Any())
             .OrderBy(e => e.StartDate)
@@ -452,7 +451,7 @@ public class TicketPurchaseSeeder
 
             if (ticketType != null)
             {
-                var isSocialEvent = additionalEvent.EventType == EventType.Social;
+                var isSocialEvent = additionalEvent.AllowRsvps && !additionalEvent.RequireTicketPurchase;
 
                 // Calculate price based on ticket type
                 decimal price;
@@ -1255,7 +1254,7 @@ public class TicketPurchaseSeeder
         var classEvents = await _context.Events
             .Include(e => e.TicketTypes)
                 .ThenInclude(tt => tt.Sessions)
-            .Where(e => e.EventType == EventType.Class)
+            .Where(e => e.RequireTicketPurchase)
             .ToListAsync(cancellationToken);
 
         foreach (var eventItem in classEvents)
@@ -1552,7 +1551,7 @@ public class TicketPurchaseSeeder
         var socialEvents = await _context.Events
             .Include(e => e.TicketTypes)
                 .ThenInclude(tt => tt.Sessions)
-            .Where(e => e.EventType == EventType.Social &&
+            .Where(e => e.AllowRsvps && !e.RequireTicketPurchase &&
                        e.TicketTypes.Any(tt => tt.Name.Contains("Donation") || tt.Name.Contains("Suggested")))
             .ToListAsync(cancellationToken);
 

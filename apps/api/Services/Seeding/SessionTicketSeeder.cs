@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Models;
 
@@ -148,13 +147,13 @@ public class SessionTicketSeeder
             else if (eventSessions.Count > 1)
             {
                 // Multi-day event - create both individual day tickets and full event tickets
-                var basePrice = eventItem.EventType == EventType.Social ? 0m : 40m; // Multi-day events default to $40
+                var basePrice = eventItem.AllowRsvps && !eventItem.RequireTicketPurchase ? 0m : 40m; // Multi-day events default to $40
                 CreateMultiDayTicketTypes(eventItem, basePrice, eventSessions, ticketTypesToAdd);
             }
             else
             {
                 // Single-day event
-                var price = eventItem.EventType == EventType.Social ? 10m : 25m; // Default pricing for seed data
+                var price = eventItem.AllowRsvps && !eventItem.RequireTicketPurchase ? 10m : 25m; // Default pricing for seed data
                 CreateTicketTypesForSession(eventItem, price, eventSessions.First(), ticketTypesToAdd);
             }
         }
@@ -248,7 +247,7 @@ public class SessionTicketSeeder
     /// </summary>
     private void CreateTicketTypesForSession(Event eventItem, decimal price, Session session, List<TicketType> ticketTypesToAdd)
     {
-        if (eventItem.EventType == EventType.Social)
+        if (eventItem.AllowRsvps && !eventItem.RequireTicketPurchase)
         {
             // Social events: Free RSVP + optional sliding scale donation ticket
             var rsvpTicket = new TicketType
@@ -304,7 +303,7 @@ public class SessionTicketSeeder
     /// </summary>
     private void CreateMultiDayTicketTypes(Event eventItem, decimal basePrice, List<Session> sessions, List<TicketType> ticketTypesToAdd)
     {
-        if (eventItem.EventType == EventType.Social)
+        if (eventItem.AllowRsvps && !eventItem.RequireTicketPurchase)
         {
             // Social events: Free RSVP for each day + sliding scale donation for full event
             for (int i = 0; i < sessions.Count; i++)
