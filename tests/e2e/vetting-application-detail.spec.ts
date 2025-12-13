@@ -133,21 +133,27 @@ test.describe('Admin Vetting Application Detail', () => {
     // Wait for detail page to fully load
     await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
 
-    // Click Deny button
+    // Click Deny button - wait for page to be fully interactive
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500); // Allow React hydration to complete
+
     const denyButton = page.locator('[data-testid="deny-application-button"]');
     await expect(denyButton).toBeVisible({ timeout: 5000 });
+    await expect(denyButton).toBeEnabled({ timeout: 5000 });
+
+    // Take screenshot before click for debugging
+    await page.screenshot({ path: './test-results/deny-before-click.png' });
+
+    // Click the button
     await denyButton.click();
 
-    // Wait for modal to open
-    await page.waitForTimeout(500);
-
-    // Assert - Modal opens
-    const modal = page.locator('[data-testid="deny-application-modal"]');
-    await expect(modal).toBeVisible({ timeout: 5000 });
-
-    // Fill required reason
+    // Wait for modal content to appear (the textarea is inside the modal)
+    // This is more reliable than waiting for modal root visibility
     const reasonInput = page.locator('[data-testid="deny-reason-textarea"]');
-    await expect(reasonInput).toBeVisible({ timeout: 5000 });
+    await expect(reasonInput).toBeVisible({ timeout: 15000 });
+
+    // Take screenshot after modal opens
+    await page.screenshot({ path: './test-results/deny-after-click.png' });
     await reasonInput.fill('Application does not meet safety requirements. Insufficient experience demonstrated.');
 
     // Screenshot modal
@@ -161,14 +167,9 @@ test.describe('Admin Vetting Application Detail', () => {
     await expect(submitButton).toBeVisible({ timeout: 3000 });
     await submitButton.click();
 
-    // Wait for modal to close
-    await page.waitForTimeout(2000);
-
-    // Assert - Verify success
-    const modalStillVisible = await modal.isVisible().catch(() => false);
-    if (!modalStillVisible) {
-      console.log('✅ Deny modal closed - action completed');
-    }
+    // Wait for modal to close (textarea becomes hidden)
+    await expect(reasonInput).not.toBeVisible({ timeout: 10000 });
+    console.log('✅ Deny modal closed - action completed');
 
     // Status should update to "Denied"
     const statusBadge = page.locator('[data-testid="status-badge"]').filter({ hasText: /denied/i });
@@ -197,23 +198,20 @@ test.describe('Admin Vetting Application Detail', () => {
     // Wait for page to load
     await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
 
-    // Click On Hold button
+    // Click On Hold button - wait for page to be fully interactive
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500); // Allow React hydration to complete
+
     const holdButton = page.locator('[data-testid="hold-button"]');
     await expect(holdButton).toBeVisible({ timeout: 5000 });
+    await expect(holdButton).toBeEnabled({ timeout: 5000 });
+
+    // Click the button
     await holdButton.click();
 
-    // Wait for modal animation
-    await page.waitForTimeout(1000);
-
-    // Assert - Modal opens - look for modal content
-    const modalContent = page.locator('text=/put.*on hold/i, text=/reason.*hold/i').first();
-    await expect(modalContent).toBeVisible({ timeout: 10000 });
-
-    // Verify reason field exists
-    const reasonField = page.locator('[data-testid="on-hold-reason-textarea"]')
-      .or(page.locator('textarea'))
-      .first();
-    await expect(reasonField).toBeVisible();
+    // Wait for modal content to appear (the textarea is inside the modal)
+    const reasonField = page.locator('[data-testid="on-hold-reason-textarea"]');
+    await expect(reasonField).toBeVisible({ timeout: 15000 });
 
     // Fill reason
     const testReason = 'Missing required references';
@@ -225,21 +223,19 @@ test.describe('Admin Vetting Application Detail', () => {
       fullPage: true
     });
 
-    // Submit
-    const submitButton = page.locator('[data-testid="on-hold-submit-button"]')
-      .or(page.locator('button').filter({ hasText: /put on hold/i }))
-      .first();
+    // Submit using data-testid
+    const submitButton = page.locator('[data-testid="on-hold-submit-button"]');
+    await expect(submitButton).toBeVisible({ timeout: 3000 });
     await submitButton.click();
 
-    // Assert - Success notification
-    const notification = page.locator('[class*="mantine-Notification"]').filter({
-      hasText: /on hold/i
-    });
-    await expect(notification).toBeVisible({ timeout: 10000 });
+    // Wait for modal to close (textarea becomes hidden)
+    await expect(reasonField).not.toBeVisible({ timeout: 10000 });
 
-    // Modal should close
-    const modal = page.locator('[role="dialog"]').first();
-    await expect(modal).not.toBeVisible({ timeout: 5000 });
+    // Assert - Success notification
+    const notification = page.locator('.mantine-Notification-root').filter({
+      hasText: /on hold/i
+    }).first();
+    await expect(notification).toBeVisible({ timeout: 10000 });
 
     console.log('✅ Application put on hold - email notification sent with reason');
   });
@@ -397,7 +393,9 @@ test.describe('Admin Vetting Application Detail', () => {
    * Validates: Advance Stage button, status progression
    */
   test('admin can advance application to interview stage', async ({ page, df }) => {
-    // Arrange - Create a vetting application in InReview status
+    // Arrange - Create a vetting application in Pending status (maps to UnderReview)
+    // Note: 'Pending' maps to UnderReview (0), which enables "Approve for Interview" button
+    // 'InReview' maps to InterviewApproved (1), which shows "Mark Interview Complete" instead
     const timestamp = Date.now();
     const user = await df.users.createVerified({
       email: `advance-test-${timestamp}@example.com`,
@@ -405,36 +403,33 @@ test.describe('Admin Vetting Application Detail', () => {
       lastName: 'User',
     });
 
-    const vettingApp = await df.vetting.createWithStatus(user.id, 'InReview');
+    const vettingApp = await df.vetting.createPending(user.id);
 
     // Act - Navigate to application detail
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`/admin/vetting/applications/${vettingApp.id}`, { waitUntil: 'domcontentloaded' });
 
-    // Wait for page to load
+    // Wait for page to be fully interactive
     await expect(page.locator('[data-testid="application-title"]')).toBeVisible({ timeout: 10000 });
+    await page.waitForLoadState('networkidle');
 
-    // Click Advance Stage button (should show "Approve for Interview" for InReview status)
+    // Click Advance Stage button (shows "Approve for Interview" for UnderReview/Pending status)
     const advanceButton = page.locator('[data-testid="advance-stage-button"]');
     await expect(advanceButton).toBeVisible({ timeout: 5000 });
-    await advanceButton.click();
+    await expect(advanceButton).toBeEnabled({ timeout: 5000 });
+    await advanceButton.click({ force: true });
 
     // Assert - Verify success
-    // Success notification should appear
-    const notification = page.locator('[class*="mantine-Notification"]').filter({
+    // Success notification should appear - use first() to handle strict mode
+    const notification = page.locator('.mantine-Notification-root').filter({
       hasText: /approved|interview/i
-    });
+    }).first();
     await expect(notification).toBeVisible({ timeout: 10000 });
 
-    // Status badge should update
-    const statusBadge = page.locator('[data-testid="status-badge"]')
-      .or(page.locator('.badge, .mantine-Badge-root').filter({ hasText: /interview/i }))
-      .first();
-
-    if (await statusBadge.count() > 0) {
-      await expect(statusBadge).toBeVisible();
-      console.log('✅ Status badge updated after approval');
-    }
+    // Status badge should update - verify it contains "Interview" text
+    const statusBadge = page.locator('[data-testid="status-badge"]');
+    await expect(statusBadge).toBeVisible({ timeout: 5000 });
+    await expect(statusBadge).toContainText(/interview/i);
 
     console.log('✅ Application advanced to interview stage');
   });

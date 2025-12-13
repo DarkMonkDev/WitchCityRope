@@ -336,25 +336,17 @@ test.describe('Vetting System - Complete Workflows', () => {
       return;
     }
 
+    // Wait for page to be fully interactive before clicking
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500); // Allow React hydration to complete
+    await expect(onHoldButton).toBeEnabled({ timeout: 5000 });
+
+    // Click the button
     await onHoldButton.click();
-    await page.waitForTimeout(1000); // Wait for modal animation
 
-    // Assert - Modal opens - look for modal title or content
-    const modalContent = page.locator('text=/put.*on hold/i, text=/reason.*hold/i').first();
-
-    if (await modalContent.count() === 0) {
-      console.log('⚠️ On Hold modal did not open');
-      test.skip();
-      return;
-    }
-
-    await expect(modalContent).toBeVisible({ timeout: 10000 });
-
-    // Verify reason field exists
-    const reasonField = page.locator('[data-testid="on-hold-reason-textarea"]')
-      .or(page.locator('textarea'))
-      .first();
-    await expect(reasonField).toBeVisible();
+    // Wait for modal content to appear (the textarea is inside the modal)
+    const reasonField = page.locator('[data-testid="on-hold-reason-textarea"]');
+    await expect(reasonField).toBeVisible({ timeout: 15000 });
 
     // Fill reason
     const testReason = 'Need additional references from community members';
@@ -366,21 +358,19 @@ test.describe('Vetting System - Complete Workflows', () => {
       fullPage: true
     });
 
-    // Submit
-    const submitButton = page.locator('[data-testid="on-hold-submit-button"]')
-      .or(page.locator('button').filter({ hasText: /put on hold/i }))
-      .first();
+    // Submit using data-testid
+    const submitButton = page.locator('[data-testid="on-hold-submit-button"]');
+    await expect(submitButton).toBeVisible({ timeout: 3000 });
     await submitButton.click();
 
-    // Assert - Success notification
-    const notification = page.locator('[class*="mantine-Notification"]').filter({
-      hasText: /on hold/i
-    });
-    await expect(notification).toBeVisible({ timeout: 10000 });
+    // Wait for modal to close (textarea becomes hidden)
+    await expect(reasonField).not.toBeVisible({ timeout: 10000 });
 
-    // Modal should close
-    const modal = page.locator('[role="dialog"]').first();
-    await expect(modal).not.toBeVisible({ timeout: 5000 });
+    // Assert - Success notification
+    const notification = page.locator('.mantine-Notification-root').filter({
+      hasText: /on hold/i
+    }).first();
+    await expect(notification).toBeVisible({ timeout: 10000 });
 
     console.log('✅ Application put on hold - email notification sent with reason');
 
@@ -455,19 +445,17 @@ test.describe('Vetting System - Complete Workflows', () => {
       return;
     }
 
-    // Click and wait for modal to open
+    // Wait for page to be fully interactive before clicking
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500); // Allow React hydration to complete
+    await expect(denyButton).toBeEnabled({ timeout: 5000 });
+
+    // Click the button
     await denyButton.click();
 
-    // Wait a moment for React state to update and modal to render
-    await page.waitForTimeout(500);
-
-    // Assert - Modal opens (use the specific deny modal data-testid)
-    const modal = page.locator('[data-testid="deny-application-modal"]');
-    await expect(modal).toBeVisible({ timeout: 5000 });
-
-    // Verify reason field exists (use specific data-testid)
+    // Wait for modal content to appear (the textarea is inside the modal)
     const reasonField = page.locator('[data-testid="deny-reason-textarea"]');
-    await expect(reasonField).toBeVisible({ timeout: 5000 });
+    await expect(reasonField).toBeVisible({ timeout: 15000 });
 
     // Fill reason
     const testReason = 'Application does not meet community guidelines requirements';
@@ -484,15 +472,9 @@ test.describe('Vetting System - Complete Workflows', () => {
     await expect(submitButton).toBeVisible({ timeout: 3000 });
     await submitButton.click();
 
-    // Wait for modal to close or notification to appear
-    await page.waitForTimeout(2000);
-
-    // Assert - Check if modal closed (success) or notification appeared
-    const modalStillVisible = await modal.isVisible().catch(() => false);
-
-    if (!modalStillVisible) {
-      console.log('✅ Deny modal closed - action completed');
-    }
+    // Wait for modal to close (textarea becomes hidden)
+    await expect(reasonField).not.toBeVisible({ timeout: 10000 });
+    console.log('✅ Deny modal closed - action completed');
 
     // Check for success notification (optional - not all implementations show notification)
     const notification = page.locator('[class*="mantine-Notification"]').filter({
