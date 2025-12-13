@@ -174,6 +174,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<CheckInSessionToken> CheckInSessionTokens { get; set; }
 
     /// <summary>
+    /// CheckInSessionTokenSessions join table for multi-session token support
+    /// </summary>
+    public DbSet<CheckInSessionTokenSession> CheckInSessionTokenSessions { get; set; }
+
+    /// <summary>
     /// VettingApplications table for member vetting applications
     /// </summary>
     public DbSet<VettingApplication> VettingApplications { get; set; }
@@ -1083,6 +1088,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new CheckInAuditLogConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineSyncQueueConfiguration());
         modelBuilder.ApplyConfiguration(new CheckInSessionTokenConfiguration());
+        modelBuilder.ApplyConfiguration(new CheckInSessionTokenSessionConfiguration());
 
         // Apply Vetting System configurations
         modelBuilder.ApplyConfiguration(new VettingApplicationConfiguration());

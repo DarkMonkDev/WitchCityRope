@@ -12,10 +12,18 @@ public record GenerateTokenRequest
     public Guid EventId { get; init; }
 
     /// <summary>
-    /// Session ID to generate token for (REQUIRED)
-    /// Tokens are scoped to a specific session for multi-session events
+    /// Session ID to generate token for (backwards compatibility)
+    /// If provided and SessionIds is empty, generates single-session token
+    /// If SessionIds is provided, this field is ignored
     /// </summary>
-    public Guid SessionId { get; init; }
+    public Guid? SessionId { get; init; }
+
+    /// <summary>
+    /// Multiple session IDs for multi-session tokens (preferred)
+    /// If provided, SessionId is ignored
+    /// Allows one token to grant access to multiple sessions (e.g., morning + afternoon)
+    /// </summary>
+    public List<Guid>? SessionIds { get; init; }
 
     /// <summary>
     /// Token expiration time in hours (optional, defaults to 12 if not provided)

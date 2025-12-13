@@ -22,14 +22,26 @@ public class SessionTokenResponse
     public string EventTitle { get; set; } = string.Empty;
 
     /// <summary>
-    /// Session this token grants check-in access to
+    /// Session this token grants check-in access to (backwards compatibility, single session)
+    /// For multi-session tokens, check SessionIds instead
     /// </summary>
-    public Guid SessionId { get; set; }
+    public Guid? SessionId { get; set; }
 
     /// <summary>
-    /// Session name for display
+    /// Session name for display (backwards compatibility, single session)
+    /// For multi-session tokens, check SessionNames instead
     /// </summary>
-    public string SessionName { get; set; } = string.Empty;
+    public string? SessionName { get; set; }
+
+    /// <summary>
+    /// All session IDs this token grants access to (multi-session support)
+    /// </summary>
+    public List<Guid>? SessionIds { get; set; }
+
+    /// <summary>
+    /// All session names for display (multi-session support)
+    /// </summary>
+    public List<string>? SessionNames { get; set; }
 
     /// <summary>
     /// When the token was created (UTC)

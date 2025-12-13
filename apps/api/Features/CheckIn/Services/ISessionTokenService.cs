@@ -13,7 +13,7 @@ namespace WitchCityRope.Api.Features.CheckIn.Services;
 public interface ISessionTokenService
 {
     /// <summary>
-    /// Generate a new check-in session token for an event session
+    /// Generate a new check-in session token for an event session (backwards compatibility)
     /// Only accessible by administrators via authenticated endpoints
     /// </summary>
     /// <param name="eventId">Event to grant access to</param>
@@ -27,6 +27,19 @@ public interface ISessionTokenService
         Guid sessionId,
         Guid adminUserId,
         double expirationHours = 12.0,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Generate session token using request DTO (supports multi-session)
+    /// Preferred method for new implementations - supports both single and multi-session tokens
+    /// </summary>
+    /// <param name="request">Token generation request with SessionId or SessionIds</param>
+    /// <param name="adminUserId">Admin user generating the token</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Session token response with check-in URL and session information</returns>
+    Task<Result<SessionTokenResponse>> GenerateTokenAsync(
+        GenerateTokenRequest request,
+        Guid adminUserId,
         CancellationToken cancellationToken = default);
 
     /// <summary>

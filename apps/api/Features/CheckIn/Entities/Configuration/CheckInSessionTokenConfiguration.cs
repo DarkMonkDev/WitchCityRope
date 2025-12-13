@@ -36,9 +36,9 @@ public class CheckInSessionTokenConfiguration : IEntityTypeConfiguration<CheckIn
         builder.HasIndex(t => t.EventId)
             .HasDatabaseName("IX_CheckInSessionTokens_EventId");
 
-        // SessionId: Required, indexed for lookups
+        // SessionId: Nullable for multi-session support, indexed for lookups
         builder.Property(t => t.SessionId)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.HasIndex(t => t.SessionId)
             .HasDatabaseName("IX_CheckInSessionTokens_SessionId");

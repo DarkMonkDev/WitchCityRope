@@ -31,11 +31,12 @@ public class CheckInSessionToken
     public Guid EventId { get; set; }
 
     /// <summary>
-    /// Specific session this token grants check-in access to (REQUIRED)
-    /// Ensures kiosk can only check in attendees to one session at a time
-    /// For multi-day events, admins generate separate tokens per day
+    /// Specific session this token grants check-in access to (backwards compatibility)
+    /// NULLABLE for multi-session token support
+    /// For single-session tokens, this field is populated
+    /// For multi-session tokens, use TokenSessions collection instead
     /// </summary>
-    public Guid SessionId { get; set; }
+    public Guid? SessionId { get; set; }
 
     /// <summary>
     /// Admin user who generated this token
@@ -79,6 +80,13 @@ public class CheckInSessionToken
     // Navigation properties
     public WitchCityRope.Api.Models.Event? Event { get; set; }
     public WitchCityRope.Api.Models.Session? Session { get; set; }
+
+    /// <summary>
+    /// Sessions this token grants access to (multi-session support)
+    /// For modern multi-session tokens, this collection is populated
+    /// For backwards compatibility single-session tokens, SessionId is used
+    /// </summary>
+    public ICollection<CheckInSessionTokenSession> TokenSessions { get; set; } = new List<CheckInSessionTokenSession>();
 
     /// <summary>
     /// Constructor initializes required fields
