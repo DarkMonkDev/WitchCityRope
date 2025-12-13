@@ -127,7 +127,13 @@ export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) =>
                 <Text size="sm">{new Date(event.eventDate).toLocaleDateString()}</Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm">{event.eventType}</Text>
+                <Text size="sm">
+                  {(() => {
+                    const allowRsvps = (event as any)?.allowRsvps ?? false;
+                    const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true;
+                    return allowRsvps && !requireTicketPurchase ? 'Social' : 'Class';
+                  })()}
+                </Text>
               </Table.Td>
               <Table.Td>
                 <Badge

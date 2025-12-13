@@ -288,13 +288,14 @@ export function CheckInInterface({
   const { data: eventDetails } = useEvent(eventId, true);
 
   // Determine if Door Payment column should be shown
-  // Hide for classes/workshops (attendees already have tickets)
-  // Show for social events (attendees may need to pay at door)
+  // Hide for events requiring ticket purchase (attendees already have tickets)
+  // Show for events with RSVPs (attendees may need to pay at door)
   const showDoorPayment = useMemo(() => {
-    const eventType = (eventDetails as any)?.eventType?.toLowerCase();
-    // Show Door Payment for social events, hide for classes/workshops
-    return eventType === 'social';
-  }, [(eventDetails as any)?.eventType]);
+    const allowRsvps = (eventDetails as any)?.allowRsvps ?? false;
+    const requireTicketPurchase = (eventDetails as any)?.requireTicketPurchase ?? true;
+    // Show Door Payment for RSVP events, hide for ticket-required events
+    return allowRsvps && !requireTicketPurchase;
+  }, [(eventDetails as any)?.allowRsvps, (eventDetails as any)?.requireTicketPurchase]);
 
   // API hooks (pass sessionToken for authentication)
   const {

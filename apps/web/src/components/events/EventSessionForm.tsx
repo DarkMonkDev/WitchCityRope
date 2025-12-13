@@ -10,7 +10,9 @@ interface EventSessionFormProps {
   eventId: string;
   sessions: EventSessionDto[];
   ticketTypes: TicketTypeDto[];
-  eventType?: 'social' | 'class' | 'Workshop' | 'Performance' | 'Social' | 'Private';
+  // Replaced eventType with boolean flags
+  allowRsvps?: boolean;
+  requireTicketPurchase?: boolean;
   onSave: (data: {
     sessions: EventSessionDto[];
     ticketTypes: TicketTypeDto[];
@@ -22,7 +24,8 @@ export const EventSessionForm: React.FC<EventSessionFormProps> = ({
   eventId,
   sessions,
   ticketTypes,
-  eventType,
+  allowRsvps = false,
+  requireTicketPurchase = true,
   onSave,
   onCancel
 }) => {
@@ -75,19 +78,19 @@ export const EventSessionForm: React.FC<EventSessionFormProps> = ({
         </Text>
       )}
 
-      {/* RSVP toggle for social events */}
-      {eventType === 'social' && (
+      {/* RSVP toggle for events that allow RSVPs */}
+      {allowRsvps && !requireTicketPurchase && (
         <Box mt="md">
           <Text size="sm" c="dimmed">
-            Social events can use free RSVP instead of paid tickets
+            Events with RSVPs enabled can use free registration instead of paid tickets
           </Text>
         </Box>
       )}
 
-      {/* Class events require payment */}
-      {eventType === 'class' && (
+      {/* Events that require payment */}
+      {requireTicketPurchase && (
         <Text size="sm" c="dimmed" mt="md">
-          Class events require payment processing
+          Events requiring ticket purchase need payment processing
         </Text>
       )}
 
