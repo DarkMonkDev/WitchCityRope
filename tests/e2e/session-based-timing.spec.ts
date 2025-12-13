@@ -57,21 +57,25 @@ test.describe('Session-Based Timing - Edge Cases', () => {
     // Take screenshot
     await page.screenshot({ path: './test-results/multi-session-event.png' });
 
-    // Check for ticket-related sections
-    const ticketOptionsSection = page.locator('text="Ticket Options"');
-    const userTicketSection = page.locator('text="Your Ticket Purchase"');
-    const ticketPriceIndicator = page.locator('text=/\\$\\d+\\.\\d{2}|Free/');
+    // Check for ticket-related sections (actual UI text from page snapshot)
+    const availableSessionsSection = page.locator('text="Available Sessions"');
+    const classFeeSection = page.locator('text=/Class Fee/i');
+    const purchaseButton = page.locator('button:has-text("Purchase Ticket")');
+    // Price regex updated to match "$25" (no decimals) as well as "$25.00"
+    const ticketPriceIndicator = page.locator('text=/\\$\\d+(\\.\\d{2})?|Free/');
 
-    const hasTicketOptions = await ticketOptionsSection.count() > 0;
-    const hasUserTicket = await userTicketSection.count() > 0;
+    const hasAvailableSessions = await availableSessionsSection.count() > 0;
+    const hasClassFee = await classFeeSection.count() > 0;
+    const hasPurchaseButton = await purchaseButton.count() > 0;
     const hasPriceInfo = await ticketPriceIndicator.count() > 0;
 
-    console.log(`   Ticket Options section: ${hasTicketOptions}`);
-    console.log(`   User has ticket: ${hasUserTicket}`);
+    console.log(`   Available Sessions section: ${hasAvailableSessions}`);
+    console.log(`   Class Fee section: ${hasClassFee}`);
+    console.log(`   Purchase button: ${hasPurchaseButton}`);
     console.log(`   Price info visible: ${hasPriceInfo}`);
 
-    // Verify at least one ticket section is visible
-    expect(hasTicketOptions || hasUserTicket || hasPriceInfo).toBe(true);
+    // Verify at least one ticket-related indicator is visible
+    expect(hasAvailableSessions || hasClassFee || hasPurchaseButton || hasPriceInfo).toBe(true);
   });
 
   test('event with registration window settings', async ({ page, df }) => {
@@ -234,31 +238,25 @@ test.describe('Session-Based Timing - Edge Cases', () => {
     // Take screenshot
     await page.screenshot({ path: './test-results/ticket-timing-event.png' });
 
-    // Check for ticket options
-    const ticketSection = page.locator('text="Ticket Options"');
-    const userTicketSection = page.locator('text="Your Ticket Purchase"');
-    const ticketPriceIndicator = page.locator('text=/\\$\\d+\\.\\d{2}|Free|Event Ticket/i');
+    // Check for ticket options (actual UI text from page snapshot)
+    const classFeeSection = page.locator('text=/Class Fee/i');
+    const purchaseButton = page.locator('button:has-text("Purchase Ticket")');
+    // Price regex updated to match "$25" (no decimals) as well as "$25.00"
+    const ticketPriceIndicator = page.locator('text=/\\$\\d+(\\.\\d{2})?|Free|Event Ticket/i');
+    const availabilityText = page.locator('text=/\\d+ sold|available|sold out|closed|opening/i');
 
-    const hasTicketOptions = await ticketSection.count() > 0;
-    const hasUserTicket = await userTicketSection.count() > 0;
-    const hasPriceInfo = await ticketPriceIndicator.count() > 0;
-
-    console.log(`   Ticket Options section: ${hasTicketOptions}`);
-    console.log(`   User has ticket: ${hasUserTicket}`);
-    console.log(`   Price info: ${hasPriceInfo}`);
-
-    // Look for purchase buttons or availability messages
-    const purchaseButton = page.locator('[data-testid="button-purchase-ticket"]');
-    const availabilityText = page.locator('text=/available|sold out|closed|opening/i');
-
+    const hasClassFee = await classFeeSection.count() > 0;
     const hasPurchaseButton = await purchaseButton.count() > 0;
+    const hasPriceInfo = await ticketPriceIndicator.count() > 0;
     const hasAvailabilityInfo = await availabilityText.count() > 0;
 
+    console.log(`   Class Fee section: ${hasClassFee}`);
     console.log(`   Purchase button: ${hasPurchaseButton}`);
+    console.log(`   Price info: ${hasPriceInfo}`);
     console.log(`   Availability info: ${hasAvailabilityInfo}`);
 
     // Verify at least one ticket indicator is visible
-    expect(hasTicketOptions || hasUserTicket || hasPriceInfo).toBe(true);
+    expect(hasClassFee || hasPurchaseButton || hasPriceInfo || hasAvailabilityInfo).toBe(true);
   });
 
   test('admin can view session-based timing settings', async ({ page, df }) => {

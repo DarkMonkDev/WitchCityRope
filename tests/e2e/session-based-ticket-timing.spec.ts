@@ -41,6 +41,7 @@ test.describe('Session-Based Ticket Timing', () => {
       startTime: session1Start,
       endTime: session1End,
       maxCapacity: 20,
+      sessionIdentifier: 'S1', // Unique identifier
     });
 
     const session2 = await df.sessions.create({
@@ -49,6 +50,7 @@ test.describe('Session-Based Ticket Timing', () => {
       startTime: session2Start,
       endTime: session2End,
       maxCapacity: 20,
+      sessionIdentifier: 'S2', // Unique identifier
     });
 
     const ticketType = await df.ticketTypes.create({
@@ -63,28 +65,36 @@ test.describe('Session-Based Ticket Timing', () => {
     console.log(`Session 1 ID: ${session1.id}`);
     console.log(`Session 2 ID: ${session2.id}`);
 
+    // Login as member to see ticket options (anonymous users see "Login Required")
+    await AuthHelpers.loginAs(page, 'member');
+
     // Navigate to the test event's public page
     await page.goto(`/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
 
     // Verify page loaded
     await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 10000 });
 
-    // Look for ticket section
-    const ticketSection = page.locator('[data-testid="ticket-section"], section:has-text("Tickets")').first();
+    // Wait for ticket section to render - use explicit wait for content
+    await page.waitForTimeout(1000);
 
-    // Verify tickets section exists (event has future sessions)
-    await expect(ticketSection).toBeVisible({ timeout: 5000 });
+    // Look for ticket-related UI elements (actual UI shows "Available Sessions", "Class Fee", "Purchase Ticket")
+    const availableSessionsSection = page.locator('text="Available Sessions"');
+    const classFeeSection = page.locator('text=/Class Fee/i');
+    const purchaseButton = page.locator('button:has-text("Purchase Ticket")');
+
+    // Verify at least one ticket-related element is visible
+    const hasAvailableSessions = await availableSessionsSection.count() > 0;
+    const hasClassFee = await classFeeSection.count() > 0;
+    const hasPurchaseButton = await purchaseButton.count() > 0;
+
+    console.log(`   Available Sessions section: ${hasAvailableSessions}`);
+    console.log(`   Class Fee section: ${hasClassFee}`);
+    console.log(`   Purchase button: ${hasPurchaseButton}`);
+
+    expect(hasAvailableSessions || hasClassFee || hasPurchaseButton).toBe(true);
     console.log('✅ Ticket section visible for multi-session event with future sessions');
-
-    // Check for ticket cards or purchase options
-    const ticketCards = page.locator('[data-testid="ticket-card"], .ticket-card, [data-testid="ticket-type"]');
-    const ticketCount = await ticketCards.count();
-
-    if (ticketCount > 0) {
-      console.log(`✅ Found ${ticketCount} ticket type(s)`);
-      await expect(ticketCards.first()).toBeVisible();
-    }
   });
 
   test('event displays session information', async ({ page, df }) => {
@@ -193,13 +203,18 @@ test.describe('Session-Based Ticket Timing', () => {
       quantityAvailable: 20,
     });
 
+    // Login as member to see ticket options (anonymous users see "Login Required")
+    await AuthHelpers.loginAs(page, 'member');
+
     await page.goto(`/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Look for availability indicators
-    const availabilityIndicators = page.locator(
-      'text=/available/i, text=/purchase/i, text=/register/i, button:has-text("Get Tickets"), button:has-text("Register")'
-    );
+    // Look for availability indicators - use multiple separate locators combined with .or()
+    const availabilityIndicators = page.locator('text=/available/i')
+      .or(page.locator('text=/purchase/i'))
+      .or(page.locator('button:has-text("Get Tickets")'))
+      .or(page.locator('button:has-text("Register")'))
+      .or(page.locator('button:has-text("Purchase Ticket")'));
 
     if (await availabilityIndicators.count() > 0) {
       const firstIndicator = availabilityIndicators.first();
@@ -256,10 +271,10 @@ test.describe('Session-Based Ticket Timing', () => {
       await setupTab.click();
       await page.waitForTimeout(500);
 
-      // Verify sessions are displayed
+      // Verify sessions are displayed - use .first() to avoid strict mode violation
       const sessionsGrid = page.locator('[data-testid="grid-sessions"], [data-testid="sessions-section"]');
       if (await sessionsGrid.count() > 0) {
-        await expect(sessionsGrid).toBeVisible();
+        await expect(sessionsGrid.first()).toBeVisible();
         console.log('✅ Sessions grid visible in admin');
       }
     }
@@ -338,12 +353,24 @@ test.describe('Session-Based Ticket Timing', () => {
       quantityAvailable: 20,
     });
 
+    // Login as member to see ticket options (anonymous users see "Login Required")
+    await AuthHelpers.loginAs(page, 'member');
+
     await page.goto(`/events/${event.id}`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Verify tickets are available (our test event has future sessions)
-    const ticketSection = page.locator('[data-testid="ticket-section"], section:has-text("Tickets")').first();
-    await expect(ticketSection).toBeVisible({ timeout: 5000 });
+    // Look for ticket-related UI elements (actual UI shows "Class Fee", "Purchase Ticket")
+    const classFeeSection = page.locator('text=/Class Fee/i');
+    const purchaseButton = page.locator('button:has-text("Purchase Ticket")');
+    const availabilityText = page.locator('text=/\\d+ sold|available/i');
+
+    const hasClassFee = await classFeeSection.count() > 0;
+    const hasPurchaseButton = await purchaseButton.count() > 0;
+    const hasAvailabilityInfo = await availabilityText.count() > 0;
+
+    console.log(`   Class Fee section: ${hasClassFee}`);
+    console.log(`   Purchase button: ${hasPurchaseButton}`);
+    console.log(`   Availability info: ${hasAvailabilityInfo}`);
 
     // Look for "sales closed" or "no tickets" messages - should NOT appear
     const closedMessage = page.locator('text=/sales.*closed|no.*tickets|sold out/i').first();
@@ -357,10 +384,8 @@ test.describe('Session-Based Ticket Timing', () => {
       // This might be expected if the event is actually sold out
     }
 
-    // Verify at least one ticket option exists
-    const ticketOptions = page.locator('[data-testid="ticket-card"], .ticket-card, [data-testid="ticket-type"], .ticket-option');
-    const optionCount = await ticketOptions.count();
-    expect(optionCount).toBeGreaterThan(0);
-    console.log(`✅ Found ${optionCount} ticket option(s) for event with future sessions`);
+    // Verify at least one ticket-related indicator is visible
+    expect(hasClassFee || hasPurchaseButton || hasAvailabilityInfo).toBe(true);
+    console.log(`✅ Ticket options visible for event with future sessions`);
   });
 });

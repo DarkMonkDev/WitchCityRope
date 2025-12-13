@@ -172,6 +172,7 @@ test.describe('Session-Based Volunteer Timing', () => {
       startTime: session1Start,
       endTime: session1End,
       maxCapacity: 20,
+      sessionIdentifier: 'S1', // Unique identifier
     });
 
     await df.sessions.create({
@@ -180,6 +181,7 @@ test.describe('Session-Based Volunteer Timing', () => {
       startTime: session2Start,
       endTime: session2End,
       maxCapacity: 20,
+      sessionIdentifier: 'S2', // Unique identifier
     });
 
     await AuthHelpers.loginAs(page, 'vetted');
