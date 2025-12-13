@@ -1,5 +1,5 @@
 import React from 'react';
-import { Group, TextInput, Switch } from '@mantine/core';
+import { Group, TextInput, Switch, Text } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 import type { AdminEventFiltersState } from '../../hooks/useAdminEventFilters';
 
@@ -33,6 +33,9 @@ export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
             }
           }}
         />
+        {filterState.showPastEvents && (
+          <Text size="xs" c="dimmed">(last 365 days)</Text>
+        )}
       </Group>
 
       {/* Right side: Search */}
