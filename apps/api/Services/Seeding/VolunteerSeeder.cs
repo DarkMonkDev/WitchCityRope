@@ -388,57 +388,36 @@ public class VolunteerSeeder
     /// <summary>
     /// Creates session-specific volunteer positions for Suspension Basics event.
     /// This demonstrates volunteer positions tied to specific sessions for testing.
-    /// Different positions for Day 1 (Setup Crew, Door Monitor) and Day 2 (Teaching Assistant, Safety Monitor).
+    /// Both Day 1 and Day 2 have the same positions: Check-in Monitor (1 slot) and Event Setup (2 slots).
     /// </summary>
     private List<VolunteerPosition> CreateSuspensionBasicsVolunteerPositions(Event eventItem, Session session)
     {
         var positions = new List<VolunteerPosition>();
 
-        if (session.SessionCode == "DAY1")
+        // Both Day 1 and Day 2 get the same volunteer positions
+        if (session.SessionCode == "DAY1" || session.SessionCode == "DAY2")
         {
-            // Day 1 positions (6:00 PM - 9:00 PM)
+            var dayLabel = session.SessionCode == "DAY1" ? "Day One" : "Day Two";
+
+            // Check-in Monitor: 1 slot per session
             positions.Add(new VolunteerPosition
             {
                 EventId = eventItem.Id,
                 SessionId = session.Id,
-                Title = "Setup Crew",
-                Description = "Help set up equipment and prepare the space before Day 1 begins",
-                SlotsNeeded = 3,
+                Title = "Check-in Monitor",
+                Description = $"Check attendees in, verify tickets, and welcome participants for {dayLabel}",
+                SlotsNeeded = 1,
                 SlotsFilled = 0,
                 IsPublicFacing = true
             });
 
+            // Event Setup: 2 slots per session
             positions.Add(new VolunteerPosition
             {
                 EventId = eventItem.Id,
                 SessionId = session.Id,
-                Title = "Door Monitor",
-                Description = "Check attendees in and welcome participants for Day 1",
-                SlotsNeeded = 2,
-                SlotsFilled = 0,
-                IsPublicFacing = true
-            });
-        }
-        else if (session.SessionCode == "DAY2")
-        {
-            // Day 2 positions (8:00 PM - 10:00 PM)
-            positions.Add(new VolunteerPosition
-            {
-                EventId = eventItem.Id,
-                SessionId = session.Id,
-                Title = "Teaching Assistant",
-                Description = "Assist instructor with advanced suspension demonstrations and provide individual feedback for Day 2",
-                SlotsNeeded = 2,
-                SlotsFilled = 0,
-                IsPublicFacing = true
-            });
-
-            positions.Add(new VolunteerPosition
-            {
-                EventId = eventItem.Id,
-                SessionId = session.Id,
-                Title = "Safety Monitor",
-                Description = "Monitor rigging and ensure safety protocols are followed during Day 2",
+                Title = "Event Setup",
+                Description = $"Help set up equipment and prepare the space before {dayLabel} begins",
                 SlotsNeeded = 2,
                 SlotsFilled = 0,
                 IsPublicFacing = true
