@@ -63,7 +63,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   const [generatedToken, setGeneratedToken] = useState<SessionTokenResponse | null>(null);
   const [expiresInHours, setExpiresInHours] = useState<number>(12);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
 
   const generateMutation = useGenerateSessionToken();
   const revokeMutation = useRevokeSessionToken();
@@ -77,46 +77,90 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   // Type-safe active tokens (API returns SessionTokenResponse[] | undefined)
   const tokens = (activeTokens as SessionTokenResponse[] | undefined) || [];
 
-  // Filter sessions to ±12 hours from current local datetime
-  const filteredSessions = React.useMemo(() => {
+  // Type definition for session status
+  type SessionStatus = 'available' | 'future' | 'past' | 'unavailable';
+
+  interface SessionWithStatus extends SessionDto {
+    status: SessionStatus;
+    statusText: string;
+  }
+
+  // Calculate status for each session
+  const sessionsWithStatus = React.useMemo(() => {
     if (sessions.length === 0) return [];
 
     const now = new Date();
     const twelveHoursInMs = 12 * 60 * 60 * 1000;
 
-    return sessions.filter((session) => {
-      if (!session.startTime) return false;
+    return sessions.map((session) => {
+      if (!session.startTime) {
+        return { ...session, status: 'unavailable' as const, statusText: 'No start time' };
+      }
 
       const sessionStart = new Date(session.startTime);
-      const timeDiff = Math.abs(sessionStart.getTime() - now.getTime());
+      const timeDiff = sessionStart.getTime() - now.getTime();
+      const absTimeDiff = Math.abs(timeDiff);
 
-      return timeDiff <= twelveHoursInMs;
+      if (absTimeDiff <= twelveHoursInMs) {
+        // Within ±12 hours - available
+        return { ...session, status: 'available' as const, statusText: 'Available' };
+      } else if (timeDiff > twelveHoursInMs) {
+        // More than 12 hours in the future
+        const hoursUntilAvailable = Math.ceil((timeDiff - twelveHoursInMs) / (60 * 60 * 1000));
+        const statusText = hoursUntilAvailable > 24
+          ? `Opens in ${Math.ceil(hoursUntilAvailable / 24)} days`
+          : `Opens in ${hoursUntilAvailable} hours`;
+        return { ...session, status: 'future' as const, statusText };
+      } else {
+        // More than 12 hours in the past
+        return { ...session, status: 'past' as const, statusText: 'Past check-in window' };
+      }
+    }).sort((a, b) => {
+      // Sort: available first, then future, then past
+      const statusOrder = { available: 0, future: 1, past: 2, unavailable: 3 };
+      return statusOrder[a.status] - statusOrder[b.status];
     });
   }, [sessions]);
 
-  // Type-safe sessions for Select dropdown
-  const sessionOptions = React.useMemo(() => {
-    if (filteredSessions.length === 0) return [];
+  // Get only available sessions for validation
+  const availableSessions = sessionsWithStatus.filter(s => s.status === 'available');
 
-    return filteredSessions.map((session) => ({
-      value: session.id,
-      label: session.name || 'Unnamed Session',
-    }));
-  }, [filteredSessions]);
-
-  // Auto-select the first filtered session as default
+  // Auto-select all available sessions when modal opens
   React.useEffect(() => {
-    if (opened && filteredSessions.length > 0 && !selectedSessionId) {
-      setSelectedSessionId(filteredSessions[0].id);
+    if (opened && availableSessions.length > 0 && selectedSessionIds.length === 0) {
+      setSelectedSessionIds(availableSessions.map(s => s.id));
     }
-  }, [opened, filteredSessions, selectedSessionId]);
+  }, [opened, availableSessions, selectedSessionIds.length]);
+
+  // Toggle session selection
+  const handleSessionToggle = (sessionId: string) => {
+    setSelectedSessionIds(prev =>
+      prev.includes(sessionId)
+        ? prev.filter(id => id !== sessionId)
+        : [...prev, sessionId]
+    );
+  };
+
+  // Select/deselect all available sessions
+  const handleSelectAllAvailable = () => {
+    const allAvailableIds = availableSessions.map(s => s.id);
+    const allSelected = allAvailableIds.every(id => selectedSessionIds.includes(id));
+
+    if (allSelected) {
+      // Deselect all
+      setSelectedSessionIds([]);
+    } else {
+      // Select all available
+      setSelectedSessionIds(allAvailableIds);
+    }
+  };
 
   const handleGenerate = async () => {
-    // Validate session selection for multi-session events
-    if (sessionOptions.length > 1 && !selectedSessionId) {
+    // Validate at least one session is selected
+    if (availableSessions.length > 0 && selectedSessionIds.length === 0) {
       notifications.show({
         title: 'Session Required',
-        message: 'Please select a session for this check-in token.',
+        message: 'Please select at least one session for this check-in token.',
         color: 'orange',
         icon: <IconAlertCircle />,
       });
@@ -126,17 +170,20 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
     try {
       const result = await generateMutation.mutateAsync({
         eventId,
-        sessionId: selectedSessionId || undefined,
+        sessionIds: selectedSessionIds.length > 0 ? selectedSessionIds : undefined,
         expirationHours: expiresInHours
       });
       setGeneratedToken(result);
 
-      // Get session name for success message
-      const sessionName = sessionOptions.find(s => s.value === selectedSessionId)?.label || 'All Sessions';
+      // Get session names for success message
+      const sessionCount = selectedSessionIds.length;
+      const sessionText = sessionCount === 1
+        ? sessionsWithStatus.find(s => s.id === selectedSessionIds[0])?.name || 'Session'
+        : `${sessionCount} sessions`;
 
       notifications.show({
         title: 'Check-In Link Generated',
-        message: `Session token created successfully for ${sessionName}. Copy the link below.`,
+        message: `Session token created successfully for ${sessionText}. Copy the link below.`,
         color: 'green',
         icon: <IconCheck />,
       });
@@ -218,7 +265,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   const handleClose = () => {
     setGeneratedToken(null);
     setCopiedToken(null);
-    setSelectedSessionId(null);
+    setSelectedSessionIds([]);
     onClose();
   };
 
@@ -251,36 +298,101 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
             Generate New Token
           </Text>
           <Stack gap="md">
-            {/* Session Selector - Show only if multiple sessions */}
-            {sessionOptions.length > 1 && (
-              <Select
-                label="Session"
-                description="Select which session this token is for"
-                placeholder="Choose a session"
-                data={sessionOptions}
-                value={selectedSessionId}
-                onChange={setSelectedSessionId}
-                leftSection={<IconCalendar size={16} />}
-                required
-                disabled={isLoadingSessions}
-                data-testid="session-select"
-              />
+            {/* Session Selection Table */}
+            {sessionsWithStatus.length > 0 && (
+              <Box>
+                <Group justify="space-between" mb="xs">
+                  <Text size="sm" fw={500}>Select Sessions</Text>
+                  {availableSessions.length > 1 && (
+                    <Button
+                      variant="subtle"
+                      size="xs"
+                      onClick={handleSelectAllAvailable}
+                    >
+                      {availableSessions.every(s => selectedSessionIds.includes(s.id))
+                        ? 'Deselect All'
+                        : 'Select All Available'}
+                    </Button>
+                  )}
+                </Group>
+                <Table striped withTableBorder>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th style={{ width: 40 }}></Table.Th>
+                      <Table.Th>Session</Table.Th>
+                      <Table.Th>Date/Time</Table.Th>
+                      <Table.Th>Status</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {sessionsWithStatus.map((session) => {
+                      const isAvailable = session.status === 'available';
+                      const isSelected = selectedSessionIds.includes(session.id);
+
+                      return (
+                        <Table.Tr
+                          key={session.id}
+                          style={{
+                            opacity: isAvailable ? 1 : 0.6,
+                            cursor: isAvailable ? 'pointer' : 'not-allowed'
+                          }}
+                          onClick={() => isAvailable && handleSessionToggle(session.id)}
+                        >
+                          <Table.Td>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              disabled={!isAvailable}
+                              onChange={() => handleSessionToggle(session.id)}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{ cursor: isAvailable ? 'pointer' : 'not-allowed' }}
+                            />
+                          </Table.Td>
+                          <Table.Td>
+                            <Text size="sm" fw={isAvailable ? 500 : 400}>
+                              {session.name || 'Unnamed Session'}
+                            </Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Text size="sm" c="dimmed">
+                              {session.startTime ? formatDate(session.startTime) : 'No date'}
+                            </Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge
+                              variant="light"
+                              color={
+                                session.status === 'available' ? 'green' :
+                                session.status === 'future' ? 'orange' :
+                                'gray'
+                              }
+                            >
+                              {session.statusText}
+                            </Badge>
+                          </Table.Td>
+                        </Table.Tr>
+                      );
+                    })}
+                  </Table.Tbody>
+                </Table>
+              </Box>
             )}
 
-            {/* Auto-selected session indicator for single-session events */}
-            {sessionOptions.length === 1 && (
-              <Alert variant="light" color="blue">
+            {/* No sessions at all */}
+            {!isLoadingSessions && sessions.length === 0 && (
+              <Alert variant="light" color="yellow" icon={<IconAlertCircle />}>
                 <Text size="sm">
-                  <strong>Session:</strong> {sessionOptions[0].label}
+                  This event has no sessions configured. The token will apply to the entire event.
                 </Text>
               </Alert>
             )}
 
-            {/* No sessions warning */}
-            {!isLoadingSessions && sessionOptions.length === 0 && (
+            {/* All sessions outside window */}
+            {!isLoadingSessions && sessions.length > 0 && availableSessions.length === 0 && (
               <Alert variant="light" color="yellow" icon={<IconAlertCircle />}>
                 <Text size="sm">
-                  This event has no sessions configured. Tokens will apply to the entire event.
+                  No sessions are currently within the check-in window (±12 hours from session start).
+                  See the table above for when each session becomes available.
                 </Text>
               </Alert>
             )}
@@ -313,7 +425,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                     lineHeight: '1.2',
                   },
                 }}
-                disabled={sessionOptions.length > 1 && !selectedSessionId}
+                disabled={availableSessions.length > 0 && selectedSessionIds.length === 0}
               >
                 Generate Link
               </Button>
@@ -328,14 +440,19 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
               <Text size="sm" fw={600}>
                 Link Generated Successfully
               </Text>
-              {/* Show session name if available */}
+              {/* Show session names if available */}
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(generatedToken as any)?.sessionName && (
+              {((generatedToken as any)?.sessionNames && (generatedToken as any).sessionNames.length > 0) ? (
+                <Text size="sm" c="dimmed">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  <strong>Sessions:</strong> {(generatedToken as any).sessionNames.join(', ')}
+                </Text>
+              ) : (generatedToken as any)?.sessionName ? (
                 <Text size="sm" c="dimmed">
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   <strong>Session:</strong> {(generatedToken as any).sessionName}
                 </Text>
-              )}
+              ) : null}
               <TextInput
                 label="Check-In URL"
                 value={generatedToken.checkInUrl}
@@ -417,7 +534,12 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                     </Table.Td>
                     <Table.Td>
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {(token as any)?.sessionName ? (
+                      {(token as any)?.sessionNames && (token as any).sessionNames.length > 0 ? (
+                        <Text size="sm">
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {(token as any).sessionNames.join(', ')}
+                        </Text>
+                      ) : (token as any)?.sessionName ? (
                         <Badge variant="light" color="blue">
                           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                           {(token as any).sessionName}
