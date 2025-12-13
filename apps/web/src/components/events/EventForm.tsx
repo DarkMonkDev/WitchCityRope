@@ -172,11 +172,12 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
         if (p.hasCheckedIn) {
           existing.hasCheckedIn = true
         }
-        // Merge checked-in sessions
+        // Merge checked-in sessions (deduplicate to avoid showing same session twice)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pSessions = (p as any)?.checkedInSessions || []
         if (pSessions.length > 0) {
-          existing.checkedInSessions = [...(existing.checkedInSessions || []), ...pSessions]
+          const allSessions = [...(existing.checkedInSessions || []), ...pSessions]
+          existing.checkedInSessions = [...new Set(allSessions)]
         }
       }
     })
