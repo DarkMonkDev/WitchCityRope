@@ -80,6 +80,22 @@ const getApiErrorMessage = (error: unknown, fallbackMessage: string): string => 
   return fallbackMessage;
 }
 
+/**
+ * Generate a UUID with fallback for environments where crypto.randomUUID is not available
+ * (e.g., non-secure contexts, older browsers, some test environments)
+ */
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback implementation
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 // Helper function to extract purchase amount from metadata JSON
 const extractAmountFromMetadata = (metadata?: string): number => {
   if (!metadata) return 0
@@ -861,7 +877,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       // Add new session
       const newSession: EventSession = {
         ...sessionData,
-        id: crypto.randomUUID(),
+        id: generateUUID(),
       }
       updatedSessions = [...form.values.sessions, newSession]
     }
@@ -1018,7 +1034,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       // Add new ticket type
       const newTicketType: EventTicketType = {
         ...gridFormatTicketType,
-        id: crypto.randomUUID(),
+        id: generateUUID(),
       }
       updatedTicketTypes = [...form.values.ticketTypes, newTicketType]
     }
@@ -1134,7 +1150,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       // Add new position
       const newPosition: VolunteerPosition = {
         ...positionData,
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         slotsFilled: 0, // Start with no volunteers filled
       }
       form.setFieldValue('volunteerPositions', [...form.values.volunteerPositions, newPosition])

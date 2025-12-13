@@ -25,18 +25,19 @@ export class SessionFactory {
    *   eventId: event.id,
    *   title: 'Morning Session',
    *   startTime: new Date(),
-   *   endTime: new Date(Date.now() + 3600000)
+   *   endTime: new Date(Date.now() + 3600000),
+   *   sessionIdentifier: 'S1' // Optional, defaults to 'S1'
    * });
    */
   async create(options: CreateSessionRequest): Promise<SessionResponse> {
     // Map frontend field names to backend DTO field names
     // Backend: EventId (Guid), Name (string), SessionCode (optional), StartTime, EndTime, Capacity
-    // CRITICAL: SessionCode has MaxLength(10) in backend - keep it short!
-    const shortCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+    // IMPORTANT: Use valid session identifiers (S1, S2, S3, S4, S5) that match frontend Select options
+    const sessionCode = options.sessionIdentifier ?? 'S1';
     const request = {
       eventId: options.eventId,
       name: options.title, // Backend uses 'name', frontend uses 'title'
-      sessionCode: `S${shortCode}`, // 5-char code like "S4A2B" - must be <= 10 chars
+      sessionCode: sessionCode, // Must be valid identifier like "S1", "S2", etc.
       startTime: options.startTime.toISOString(),
       endTime: options.endTime.toISOString(),
       capacity: options.maxCapacity ?? 20, // Backend uses 'capacity', frontend uses 'maxCapacity'
@@ -73,7 +74,7 @@ export class SessionFactory {
    * Create multiple sessions for an event
    *
    * @param eventId - Parent event ID
-   * @param count - Number of sessions to create
+   * @param count - Number of sessions to create (max 5 due to frontend Select options)
    * @param baseStartTime - Starting time for first session (defaults to tomorrow)
    */
   async createMultiple(
@@ -81,6 +82,11 @@ export class SessionFactory {
     count: number,
     baseStartTime?: Date
   ): Promise<SessionResponse[]> {
+    if (count > 5) {
+      console.warn(`SessionFactory: count ${count} exceeds max of 5. Frontend only supports S1-S5.`);
+      count = 5;
+    }
+
     const sessions: SessionResponse[] = [];
     const startBase = baseStartTime ?? new Date(Date.now() + 24 * 60 * 60 * 1000);
 
@@ -91,6 +97,7 @@ export class SessionFactory {
         title: `Session ${i + 1}`,
         startTime: sessionStart,
         endTime: new Date(sessionStart.getTime() + 90 * 60 * 1000),
+        sessionIdentifier: `S${i + 1}`, // Sequential: S1, S2, S3, etc.
       });
       sessions.push(session);
     }

@@ -70,6 +70,8 @@ export interface CreateSessionRequest {
   endTime: Date;
   maxCapacity?: number;
   requiresRegistration?: boolean;
+  /** Session identifier like "S1", "S2", etc. Must match frontend Select options. Defaults to "S1" */
+  sessionIdentifier?: string;
 }
 
 export interface SessionResponse {

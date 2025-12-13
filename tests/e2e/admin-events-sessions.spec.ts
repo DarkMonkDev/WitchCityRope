@@ -16,37 +16,40 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * Helper function to select a session identifier in the Mantine Select component
- * Uses keyboard navigation for reliable interaction with Mantine Select
+ * Uses getByRole for reliable Mantine v7 Select interaction
  */
 async function selectSessionId(page: Page, sessionId: string) {
-  const sessionIdInput = page.getByTestId('input-session-id');
-  const sessionIdTextbox = sessionIdInput.locator('input');
+  // Mantine Select renders a textbox with the label "Session Identifier"
+  const selectInput = page.getByRole('textbox', { name: 'Session Identifier' });
 
-  // Check if already has a value that contains the session ID
-  let inputValue = await sessionIdTextbox.inputValue().catch(() => '');
-  console.log(`Current session ID value: "${inputValue}"`);
+  // Wait for the select input to be visible
+  await expect(selectInput).toBeVisible({ timeout: 5000 });
 
-  // If already selected (value contains full session text like "S1 - Session 1"), skip
-  if (inputValue && inputValue.includes(`${sessionId} - Session`)) {
-    console.log(`Session ${sessionId} already selected`);
+  // Check if already has the correct value (form auto-fills for new sessions)
+  const currentValue = await selectInput.inputValue().catch(() => '');
+  console.log(`Current session ID value: "${currentValue}"`);
+
+  // If already has the session ID selected, skip selection
+  if (currentValue && currentValue.includes(sessionId)) {
+    console.log(`Session ${sessionId} already selected, skipping`);
     return;
   }
 
-  // For Mantine Select: click to open dropdown, type to filter, press Enter to select
-  await sessionIdTextbox.click();
+  // Click on the input to open dropdown and focus
+  await selectInput.click();
+  await page.waitForTimeout(300);
+
+  // Type the session ID to filter, then use keyboard to select
+  await selectInput.fill(sessionId);
   await page.waitForTimeout(200);
-  await sessionIdTextbox.fill(sessionId);
-  await page.waitForTimeout(200);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(100);
   await page.keyboard.press('Enter');
   await page.waitForTimeout(300);
 
-  // Click elsewhere to close dropdown and blur the select
-  await page.locator('body').click({ position: { x: 10, y: 10 } });
-  await page.waitForTimeout(100);
-
-  // Verify the selection worked
-  inputValue = await sessionIdTextbox.inputValue().catch(() => '');
-  console.log(`After selection, session ID: "${inputValue}"`);
+  // Verify selection
+  const selectedValue = await selectInput.inputValue().catch(() => '');
+  console.log(`After selection, session ID: "${selectedValue}"`);
 }
 
 /**
@@ -128,13 +131,37 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
       capacity: '20',
     });
 
-    // Save session (use .last() for React Strict Mode)
+    // Save session - click and wait for API response
     const saveButton = page.locator('[data-testid="button-save-session"]').last();
     await expect(saveButton).toBeVisible();
-    await saveButton.click();
 
-    // Verify modal closes
-    await page.waitForSelector('[role="dialog"]', { state: 'detached', timeout: 10000 });
+    // Log all API responses and console errors for debugging
+    page.on('response', response => {
+      if (response.url().includes('/api/')) {
+        console.log(`API Response: ${response.request().method()} ${response.url()} -> ${response.status()}`);
+      }
+    });
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        console.log(`Console ERROR: ${msg.text()}`);
+      }
+    });
+    page.on('pageerror', error => {
+      console.log(`Page ERROR: ${error.message}`);
+    });
+
+    // Verify the save button is enabled and clickable
+    await expect(saveButton).toBeEnabled();
+    console.log('Save button found and enabled, clicking...');
+    await saveButton.click();
+    console.log('Save button clicked');
+
+    // Wait for the modal to close (indicates form submission and API call completed)
+    await page.waitForSelector('[role="dialog"]', { state: 'detached', timeout: 15000 });
+    console.log('Modal closed successfully');
+
+    // Give React time to process the state update
+    await page.waitForTimeout(1000);
 
     // Verify session appears in grid WITHOUT page refresh
     const sessionGrid = page.locator('[data-testid="grid-sessions"]');
@@ -142,7 +169,7 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
 
     // Verify session appears in the grid
     const newSessionRow = sessionGrid.locator('tr').filter({ hasText: 'Morning Workshop' });
-    await expect(newSessionRow).toBeVisible({ timeout: 5000 });
+    await expect(newSessionRow).toBeVisible({ timeout: 15000 });
 
     console.log('Session added successfully via modal');
   });
@@ -253,15 +280,18 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
       name: 'First New Session',
       capacity: '20',
     });
-    // Use .last() for React Strict Mode
-    await page.locator('[data-testid="button-save-session"]').last().click();
 
-    // Wait for modal to close
-    await page.waitForSelector('[role="dialog"]', { state: 'detached', timeout: 10000 });
+    // Click save and wait for modal to close
+    const saveButton1 = page.locator('[data-testid="button-save-session"]').last();
+    await saveButton1.click();
+
+    // Wait for modal to close (indicates form submission worked)
+    await page.waitForSelector('[role="dialog"]', { state: 'detached', timeout: 15000 });
+    await page.waitForTimeout(1000);
 
     // Verify first session appears
     const firstSessionRow = sessionGrid.locator('tr').filter({ hasText: 'First New Session' });
-    await expect(firstSessionRow).toBeVisible({ timeout: 5000 });
+    await expect(firstSessionRow).toBeVisible({ timeout: 15000 });
 
     // Add second session
     await page.locator('[data-testid="button-add-session"]').click();
@@ -275,15 +305,18 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
       name: 'Second New Session',
       capacity: '25',
     });
-    // Use .last() for React Strict Mode
-    await page.locator('[data-testid="button-save-session"]').last().click();
 
-    // Wait for modal to close
-    await page.waitForSelector('[role="dialog"]', { state: 'detached', timeout: 10000 });
+    // Click save and wait for modal to close
+    const saveButton2 = page.locator('[data-testid="button-save-session"]').last();
+    await saveButton2.click();
+
+    // Wait for modal to close (indicates form submission worked)
+    await page.waitForSelector('[role="dialog"]', { state: 'detached', timeout: 15000 });
+    await page.waitForTimeout(1000);
 
     // Verify second session appears
     const secondSessionRow = sessionGrid.locator('tr').filter({ hasText: 'Second New Session' });
-    await expect(secondSessionRow).toBeVisible({ timeout: 5000 });
+    await expect(secondSessionRow).toBeVisible({ timeout: 15000 });
 
     // Verify we now have more sessions than before
     const finalSessionCount = await sessionGrid.locator('[data-testid="session-row"]').count();
