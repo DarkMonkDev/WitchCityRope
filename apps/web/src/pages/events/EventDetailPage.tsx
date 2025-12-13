@@ -364,34 +364,6 @@ export const EventDetailPage: React.FC = () => {
                 {(event as any)?.title}
               </Title>
 
-              {/* Separator - hidden on mobile */}
-              <Text visibleFrom="md" style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'clamp(1.75rem, 1.11vw + 1.39rem, 3rem)',
-                fontWeight: 800,
-                color: 'var(--color-ivory)',
-                lineHeight: 1.2
-              }}>
-                -
-              </Text>
-
-              {/* Location - moved to right of title */}
-              <Text size="lg" style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'clamp(1.75rem, 1.11vw + 1.39rem, 3rem)',
-                fontWeight: 800,
-                color: 'var(--color-ivory)',
-                lineHeight: 1.2
-              }}>
-                {(() => {
-                  const hasVenueAccess = isVetted || (participation?.hasRSVP || participation?.hasTicket);
-                  if (hasVenueAccess) {
-                    return venue?.name || (event as any)?.venueLocation || 'Location TBD';
-                  } else {
-                    return (event as any)?.venueLocation || 'Location TBD';
-                  }
-                })()}
-              </Text>
             </Group>
 
             <div className="html-content-light">
@@ -574,18 +546,8 @@ export const EventDetailPage: React.FC = () => {
             } else if (!hasVenueAccess && (event as any)?.venueLocation) {
               // Limited location info for non-vetted non-participants
               return (
-                <ContentSection title="Location">
+                <ContentSection title={`Location - ${(event as any)?.venueLocation}`}>
                   <Stack gap="md">
-                    <Text
-                      style={{
-                        fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)',
-                        lineHeight: 1.8,
-                        color: 'var(--color-charcoal)',
-                      }}
-                    >
-                      {(event as any)?.venueLocation}
-                    </Text>
-
                     <Alert
                       color="blue"
                       variant="light"
@@ -600,7 +562,7 @@ export const EventDetailPage: React.FC = () => {
                       }}
                     >
                       <Text size="sm">
-                        Full venue address and directions will be provided after registration.
+                        Full venue address and directions will be provided once a ticket is purchased or you have RSVPed to the event.
                       </Text>
                     </Alert>
                   </Stack>
