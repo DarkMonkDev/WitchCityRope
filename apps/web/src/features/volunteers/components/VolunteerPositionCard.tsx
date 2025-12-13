@@ -7,7 +7,7 @@ import { notifications } from '@mantine/notifications';
 import type { VolunteerPosition } from '../types/volunteer.types';
 import { signupForVolunteerPosition, cancelVolunteerSignup } from '../api/volunteerApi';
 import { useCurrentUser } from '@/lib/api/hooks/useAuth';
-import { formatUtcToLocalTime } from '../../../utils/eventUtils';
+import { formatUtcToLocalTime, formatUtcToLocalDate } from '../../../utils/eventUtils';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface VolunteerPositionCardProps {
@@ -145,16 +145,14 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         {/* Header */}
         <Group justify="space-between" align="flex-start">
           <div>
-            <Group gap="xs" mb={4} align="baseline">
-              <h4>
+            {/* Title and Signed Up badge on first line */}
+            <Group gap="xs" mb={0} align="baseline">
+              <h4 style={{ marginBlockStart: 0 }}>
                 {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
                 {position.sessionName && !position.sessionName.includes('Main Session') && (
                   <>{position.sessionName} </>
                 )}
                 {position.title}
-                {position.sessionStartTime && position.sessionEndTime && (
-                  <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}</>
-                )}
               </h4>
               {position.hasUserSignedUp && (
                 <Badge
@@ -166,6 +164,12 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                 </Badge>
               )}
             </Group>
+            {/* Date and time on second line */}
+            {position.sessionStartTime && position.sessionEndTime && (
+              <Text size="sm" c="dimmed">
+                {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })} · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}
+              </Text>
+            )}
           </div>
 
           {/* Badge showing spots filled - consistent color */}
@@ -180,7 +184,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
 
         {/* Description, Sign Up Button, and Confirmation - grouped together */}
         <div>
-          <Group align="flex-start" wrap="nowrap" gap="md" mb={0}>
+          <Group align="center" wrap="nowrap" gap="md" mb={0}>
             <p style={{ flex: 1 }}>
               {position.description}
             </p>
