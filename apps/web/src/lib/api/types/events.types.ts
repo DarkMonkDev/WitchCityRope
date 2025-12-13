@@ -72,7 +72,7 @@ export type EventParticipationDto = components['schemas']['EventParticipationDto
  *
  * Field differences from generated UpdateEventRequest:
  * - Added 'id' field (required for update operations)
- * - Added 'eventType' field for event categorization
+ * - Replaced 'eventType' with boolean flags (allowRsvps, requireTicketPurchase, vettedMembersOnly)
  * - TicketTypeDto mapping: frontend uses 'price', backend uses 'minPrice'
  * - VolunteerPositionDto mapping: frontend adds 'requirements', 'requiresExperience'
  *
@@ -82,8 +82,14 @@ export interface UpdateEventDto extends Omit<UpdateEventRequest, 'ticketTypes' |
   /** Event ID (not in generated UpdateEventRequest - passed separately in API) */
   id: string
 
-  /** Event type classification */
-  eventType?: 'Class' | 'Social'
+  /** Allow free RSVPs (replaces eventType === 'social') */
+  allowRsvps?: boolean
+
+  /** Require ticket purchase (replaces eventType === 'class') */
+  requireTicketPurchase?: boolean
+
+  /** Restrict to vetted members only */
+  vettedMembersOnly?: boolean
 
   /** Ticket types with frontend field names */
   ticketTypes?: Array<Omit<EventTicketTypeDto, 'minPrice'> & {

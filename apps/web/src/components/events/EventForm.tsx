@@ -21,6 +21,7 @@ import {
   Collapse,
   Box,
   Flex,
+  Checkbox,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -398,8 +399,10 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
 }
 
 export interface EventFormData {
-  // Basic Info
-  eventType: 'class' | 'social'
+  // Basic Info - Replaced eventType with boolean flags
+  allowRsvps: boolean
+  requireTicketPurchase: boolean
+  vettedMembersOnly: boolean
   title: string
   shortDescription: string
   fullDescription: string
@@ -594,7 +597,10 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Form state management
   const form = useForm<EventFormData>({
     initialValues: {
-      eventType: 'class',
+      // Default to class-like event (requireTicketPurchase = true, allowRsvps = false)
+      allowRsvps: false,
+      requireTicketPurchase: true,
+      vettedMembersOnly: false,
       title: '',
       shortDescription: '',
       fullDescription: '',
@@ -667,7 +673,9 @@ export const EventForm: React.FC<EventFormProps> = ({
         initialDataRef.current = newInitialDataStr
 
         form.setValues({
-          eventType: 'class',
+          allowRsvps: false,
+          requireTicketPurchase: true,
+          vettedMembersOnly: false,
           title: '',
           shortDescription: '',
           fullDescription: '',
@@ -1467,43 +1475,26 @@ export const EventForm: React.FC<EventFormProps> = ({
                 </Title>
 
                 {/* Event Type Toggle - First line in Event Details area */}
-                <Group align="center" mb="lg">
+                <Stack gap="sm" mb="lg">
                   <Text fw={500} size="sm">
-                    Event Type
+                    Event Registration Options
                   </Text>
-                  <Radio.Group {...form.getInputProps('eventType')}>
-                    <Group gap="sm">
-                      <WCRButton
-                        variant={form.values.eventType === 'class' ? 'primary' : 'outline'}
-                        size="sm"
-                        onClick={() => form.setFieldValue('eventType', 'class')}
-                        style={{
-                          borderColor:
-                            form.values.eventType === 'class'
-                              ? 'var(--mantine-color-burgundy-6)'
-                              : 'var(--mantine-color-gray-4)',
-                        }}
-                      >
-                        Class (Ticket Only)
-                      </WCRButton>
-                      <WCRButton
-                        variant={form.values.eventType === 'social' ? 'primary' : 'outline'}
-                        size="sm"
-                        onClick={() => form.setFieldValue('eventType', 'social')}
-                        style={{
-                          borderColor:
-                            form.values.eventType === 'social'
-                              ? 'var(--mantine-color-burgundy-6)'
-                              : 'var(--mantine-color-gray-4)',
-                        }}
-                      >
-                        Social Event (RSVP & Ticket)
-                      </WCRButton>
-                      <Radio value="class" label="" style={{ display: 'none' }} />
-                      <Radio value="social" label="" style={{ display: 'none' }} />
-                    </Group>
-                  </Radio.Group>
-                </Group>
+                  <Checkbox
+                    label="Allow RSVPs (free registration)"
+                    description="Members can RSVP to this event without purchasing a ticket"
+                    {...form.getInputProps('allowRsvps', { type: 'checkbox' })}
+                  />
+                  <Checkbox
+                    label="Require Ticket Purchase"
+                    description="Members must purchase a ticket to attend this event"
+                    {...form.getInputProps('requireTicketPurchase', { type: 'checkbox' })}
+                  />
+                  <Checkbox
+                    label="Vetted Members Only"
+                    description="Restrict attendance to vetted members only"
+                    {...form.getInputProps('vettedMembersOnly', { type: 'checkbox' })}
+                  />
+                </Stack>
 
                 {/* Event Title and Short Description - Two Column Layout */}
                 <Group grow align="flex-start" gap="md" mb="md">
@@ -2254,8 +2245,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </Box>
                 </Box>
               </Box>
-              {/* RSVPs Table - Hidden for CLASS events */}
-              {form.values.eventType === 'social' && (
+              {/* RSVPs Table - Show only if RSVPs are allowed */}
+              {form.values.allowRsvps && (
                 <div data-testid="rsvps-section">
                   <Title
                     order={2}

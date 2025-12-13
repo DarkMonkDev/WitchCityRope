@@ -173,7 +173,10 @@ export interface Event {
   instructorId: string;
   instructor?: UserDto;
   attendees?: UserDto[];
-  eventType?: 'class' | 'social';
+  // Replaced eventType enum with boolean flags
+  allowRsvps?: boolean;
+  requireTicketPurchase?: boolean;
+  vettedMembersOnly?: boolean;
   status?: 'Draft' | 'Published' | 'Cancelled' | 'Completed';
 }
 
@@ -273,8 +276,8 @@ export interface ApiResponse<T = unknown> {
 export type UserRole = 'Administrator' | 'Teacher' | 'SafetyTeam' | '';
 
 /**
- * Event type (Frontend convenience)
- * Note: Backend uses eventType as string field in EventDto
+ * @deprecated Event type replaced with boolean flags (allowRsvps, requireTicketPurchase, vettedMembersOnly)
+ * Backend no longer uses eventType enum - migrated to boolean flags
  */
 export type EventType = 'Workshop' | 'Social' | 'Performance' | 'Other';
 

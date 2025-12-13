@@ -70,7 +70,10 @@ export type AttendanceStatus = components['schemas']['AttendanceStatus']
 // Frontend-specific types for UI components
 export interface ParticipationCardProps {
   eventId: string;
-  eventType: 'social' | 'class';
+  // Replaced eventType with boolean flags
+  allowRsvps: boolean;
+  requireTicketPurchase: boolean;
+  vettedMembersOnly: boolean;
   participation: EnhancedParticipationStatusDto | null;
   isLoading?: boolean;
   onRSVP: () => void;
