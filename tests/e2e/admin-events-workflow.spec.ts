@@ -386,13 +386,15 @@ test.describe('Admin Events - Complete Workflow Tests', () => {
       await page.goto(`/admin/events/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
 
-      // Look for publish status toggle (SegmentedControl in AdminEventDetailsPage)
-      const draftOption = page.getByRole('radio', { name: 'DRAFT' });
-      const publishedOption = page.getByRole('radio', { name: 'PUBLISHED' });
+      // Look for publish status toggle (SegmentedControl renders as buttons, not radio)
+      const draftOption = page.getByRole('button', { name: 'DRAFT' });
+      const publishedOption = page.getByRole('button', { name: 'PUBLISHED' });
 
       if (await draftOption.count() > 0 && await publishedOption.count() > 0) {
         // Event starts as published - toggle to draft
-        if (await publishedOption.isChecked()) {
+        // Check if published button is currently active (SegmentedControl uses data-active attribute)
+        const isPublished = await publishedOption.getAttribute('data-active') === 'true';
+        if (isPublished) {
           await draftOption.click();
 
           // Confirm status change modal

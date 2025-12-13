@@ -265,8 +265,8 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     // Change slots needed
     await slotsNeededInput.fill('3');
 
-    // Save changes
-    const saveButton = page.locator('[data-testid="button-save-volunteer-position"]');
+    // Save changes (use .last() for React Strict Mode)
+    const saveButton = page.locator('[data-testid="button-save-volunteer-position"]').last();
     await saveButton.click();
 
     // Wait for grid to update after save
@@ -382,8 +382,8 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     const inlineForm = page.locator('[data-testid="volunteer-position-inline-form"]');
     await expect(inlineForm).toBeVisible();
 
-    // Try to save empty form - validation should prevent submission
-    await page.locator('[data-testid="button-save-volunteer-position"]').click();
+    // Try to save empty form - validation should prevent submission (use .last() for React Strict Mode)
+    await page.locator('[data-testid="button-save-volunteer-position"]').last().click();
 
     // Wait a moment to see if form tries to close
     await page.waitForTimeout(500);

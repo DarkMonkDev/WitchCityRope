@@ -128,8 +128,8 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
       capacity: '20',
     });
 
-    // Save session
-    const saveButton = page.locator('[data-testid="button-save-session"]');
+    // Save session (use .last() for React Strict Mode)
+    const saveButton = page.locator('[data-testid="button-save-session"]').last();
     await expect(saveButton).toBeVisible();
     await saveButton.click();
 
@@ -200,8 +200,8 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
     // Change session name
     await nameInput.fill('Updated Session Name');
 
-    // Save changes
-    const saveButton = page.locator('[data-testid="button-save-session"]');
+    // Save changes (use .last() for React Strict Mode)
+    const saveButton = page.locator('[data-testid="button-save-session"]').last();
     await saveButton.click();
 
     // Verify modal closes
@@ -253,7 +253,8 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
       name: 'First New Session',
       capacity: '20',
     });
-    await page.locator('[data-testid="button-save-session"]').click();
+    // Use .last() for React Strict Mode
+    await page.locator('[data-testid="button-save-session"]').last().click();
 
     // Wait for modal to close
     await page.waitForSelector('[role="dialog"]', { state: 'detached', timeout: 10000 });
@@ -274,7 +275,8 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
       name: 'Second New Session',
       capacity: '25',
     });
-    await page.locator('[data-testid="button-save-session"]').click();
+    // Use .last() for React Strict Mode
+    await page.locator('[data-testid="button-save-session"]').last().click();
 
     // Wait for modal to close
     await page.waitForSelector('[role="dialog"]', { state: 'detached', timeout: 10000 });
@@ -321,8 +323,8 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
     const nameInput = page.getByTestId('input-session-name');
     await nameInput.fill(''); // Clear the input
 
-    // Click save button to trigger validation
-    const saveButton = page.locator('[data-testid="button-save-session"]');
+    // Click save button to trigger validation (use .last() for React Strict Mode)
+    const saveButton = page.locator('[data-testid="button-save-session"]').last();
     await saveButton.click();
 
     // Verify validation prevents submission - modal should still be open

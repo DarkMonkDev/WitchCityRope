@@ -1,9 +1,74 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-12-11 -->
-<!-- Version: 12.07.0 - NEW INTEGRATION TESTS: PER-TICKET CANCELLATION FLAGS -->
+<!-- Last Updated: 2025-12-13 -->
+<!-- Version: 12.08.0 - E2E TEST SELECTOR FIXES: REACT STRICT MODE & MANTINE COMPONENTS -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
+
+## ✅ E2E TEST SELECTOR FIXES: REACT STRICT MODE & MANTINE COMPONENTS - December 13, 2025
+
+**FIX DATE**: 2025-12-13
+**STATUS**: ✅ **9 FAILING TESTS FIXED**
+**ROOT CAUSES**: React Strict Mode duplicate elements, incorrect Mantine component selectors, ProseMirror interaction patterns
+**IMPACT**: 4 test files updated with correct selectors and interaction patterns
+
+### Tests Fixed
+
+**Files Modified**:
+1. `/tests/e2e/admin-events-sessions.spec.ts` - 4 session tests fixed
+2. `/tests/e2e/admin-events-volunteers.spec.ts` - 2 volunteer tests fixed
+3. `/tests/e2e/admin-events-workflow.spec.ts` - 1 workflow test fixed
+4. `/tests/e2e/events-policies-field-comprehensive.spec.ts` - 2 policies field tests fixed
+
+### Key Fixes Applied
+
+**1. React Strict Mode Duplicates** (7 fixes)
+- **Issue**: React Strict Mode renders components twice in development, creating duplicate buttons
+- **Solution**: Use `.last()` when selecting buttons to get the correct instance
+- **Pattern**: `page.locator('[data-testid="button-save-session"]').last()`
+- **Files**: admin-events-sessions.spec.ts (5 fixes), admin-events-volunteers.spec.ts (2 fixes)
+
+**2. Mantine SegmentedControl** (1 fix)
+- **Issue**: SegmentedControl renders as buttons with `data-active` attribute, not radio inputs
+- **Wrong**: `page.getByRole('radio', { name: 'DRAFT' })`
+- **Correct**: `page.getByRole('button', { name: 'DRAFT' })`
+- **State Check**: Use `getAttribute('data-active')` instead of `isChecked()`
+- **File**: admin-events-workflow.spec.ts
+
+**3. ProseMirror Contenteditable** (1 fix)
+- **Issue**: `.fill()` doesn't work reliably on ProseMirror contenteditable divs
+- **Solution**: Use keyboard input for text entry
+- **Pattern**:
+  ```typescript
+  await policiesField.click();
+  await page.keyboard.press('Control+a');
+  await page.keyboard.type(TEST_POLICIES);
+  ```
+- **File**: events-policies-field-comprehensive.spec.ts
+
+### Components Verified
+
+**UI Components Read**:
+- ✅ `SessionFormModal.tsx` - Confirmed `data-testid="button-save-session"` exists
+- ✅ `VolunteerPositionInlineForm.tsx` - Confirmed `data-testid="button-save-volunteer-position"` exists
+- ✅ `VolunteerPositionsGrid.tsx` - Confirmed `data-testid="button-add-volunteer-position"` exists
+- ✅ `AdminEventDetailsPage.tsx` - Confirmed SegmentedControl usage (buttons, not radios)
+
+### Testing Patterns Documented
+
+**Key Patterns for Future Tests**:
+1. **React Strict Mode**: Always use `.last()` for buttons/elements that may be duplicated
+2. **Mantine SegmentedControl**: Use `getByRole('button')` not `getByRole('radio')`
+3. **ProseMirror/TipTap**: Use keyboard input, not `.fill()` for contenteditable
+4. **Always Read Source**: Verify selectors exist in UI components before writing tests
+
+### Related Documentation
+
+**Summary Document**: `/test-results/e2e-test-selector-fixes-summary.md`
+**Testing Guide**: `/docs/standards-processes/testing/TESTING_GUIDE.md`
+**Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+
+---
 
 ## ✅ NEW INTEGRATION TESTS: PER-TICKET CANCELLATION FLAGS - December 11, 2025
 

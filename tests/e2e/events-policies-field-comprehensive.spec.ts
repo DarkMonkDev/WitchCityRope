@@ -18,7 +18,7 @@
  */
 
 import { expect } from '@playwright/test';
-import { test } from './lib/datafactory/fixtures/test.fixture';
+import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
@@ -121,9 +121,10 @@ test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
 
       expect(policiesField).not.toBeNull();
 
-      // Clear and fill with test content (for contenteditable, fill() clears first)
+      // Clear and fill with test content (use keyboard for ProseMirror contenteditable)
       await policiesField!.click();
-      await policiesField!.fill(TEST_POLICIES);
+      await page.keyboard.press('Control+a'); // Select all
+      await page.keyboard.type(TEST_POLICIES); // Type new content
 
       // Verify text was entered (textContent may differ slightly from input)
       const enteredValue = await policiesField!.textContent();

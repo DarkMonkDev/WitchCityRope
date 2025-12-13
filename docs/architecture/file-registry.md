@@ -11,6 +11,7 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-12-13 | /apps/web/src/features/checkin/components/CheckInHeader.tsx | MODIFIED | Changed countdown timer update interval from 60 seconds to 1 second for real-time countdown display | React Developer: Real-time Countdown Timer | ACTIVE | Never |
 | 2025-12-13 | /apps/api/Features/Participation/Models/EventParticipationDto.cs | MODIFIED | Added CheckedInSessions property to list session names user has checked into | Backend Developer: Fix Event Attendees Tab Issues | ACTIVE | Never |
 | 2025-12-13 | /apps/api/Features/Participation/Services/AttendanceService.cs | MODIFIED | Fixed GetEventParticipationsAsync to filter cancelled attendees, use CheckIns table for HasCheckedIn and CheckInTime, and populate CheckedInSessions from CheckIn records | Backend Developer: Fix Event Attendees Tab Issues | ACTIVE | Never |
 | 2025-12-12 | /apps/api/Migrations/20251212000000_RemoveEventTypeAddEventFlags.cs | CREATED | Database migration to remove EventType enum column and replace with three boolean flags (AllowRsvps, RequireTicketPurchase, VettedMembersOnly) - Implements event simplification architecture by removing rigid event type categorization in favor of flexible configuration | Database Designer: Event Type Simplification Migration | PENDING | Never |
