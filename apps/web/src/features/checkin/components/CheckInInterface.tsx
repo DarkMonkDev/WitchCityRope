@@ -713,6 +713,7 @@ export function CheckInInterface({
         {attendees.map((attendee: CheckInAttendee) => (
           <Table.Tr
             key={attendee.attendeeId}
+            style={{ height: '50px' }}
           >
             <Table.Td style={{ padding: '8px 8px 8px 16px' }}>
               <Text fw={600} size="16px">
@@ -812,6 +813,7 @@ export function CheckInInterface({
         .table-columns-wrapper {
           display: flex;
           gap: 24px;
+          align-items: flex-start;
         }
 
         .table-column {
@@ -830,7 +832,7 @@ export function CheckInInterface({
         eventTitle={dashboard?.eventTitle || eventTitle || 'Event Check-In'}
         eventDate={dashboard?.eventDate ? new Date(dashboard.eventDate) : new Date()}
         onExit={() => window.location.href = '/admin/events'}
-        checkedInCount={dashboard?.capacity.checkedInCount || 0}
+        checkedInCount={((attendeesResponse as any)?.attendees || []).filter((a: CheckInAttendee) => a.registrationStatus === "CheckedIn").length}
         totalCount={((attendeesResponse as any)?.attendees || []).length}
       />
 

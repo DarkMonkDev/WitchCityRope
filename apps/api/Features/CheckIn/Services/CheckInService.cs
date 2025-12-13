@@ -284,8 +284,10 @@ public class CheckInService : ICheckInService
         {
             using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
-            // Get session token entity to retrieve creator's user ID for audit logging
+            // Get session token entity with related sessions (multi-session support)
             var sessionTokenEntity = await _context.CheckInSessionTokens
+                .Include(t => t.TokenSessions)
+                    .ThenInclude(ts => ts.Session)
                 .FirstOrDefaultAsync(t => t.Token == sessionToken, cancellationToken);
 
             if (sessionTokenEntity == null)
@@ -306,12 +308,36 @@ public class CheckInService : ICheckInService
             }
 
             // Get session info for validation and response
-            var session = await _context.Sessions
-                .FirstOrDefaultAsync(s => s.Id == sessionTokenEntity.SessionId, cancellationToken);
+            // Priority: 1) TokenSessions (multi-session), 2) SessionId (backwards compat)
+            WitchCityRope.Api.Models.Session? session = null;
+            Guid? resolvedSessionId = null;
 
-            if (session == null)
+            // Check multi-session token first
+            if (sessionTokenEntity.TokenSessions?.Count > 0)
             {
-                return Result<CheckInResponse>.Failure("Session not found");
+                // For multi-session tokens, use the first available session
+                // Future enhancement: could match based on attendee's ticket
+                var firstTokenSession = sessionTokenEntity.TokenSessions.FirstOrDefault();
+                if (firstTokenSession?.Session != null)
+                {
+                    session = firstTokenSession.Session;
+                    resolvedSessionId = session.Id;
+                }
+            }
+
+            // Fall back to legacy single-session field
+            if (session == null && sessionTokenEntity.SessionId.HasValue)
+            {
+                session = await _context.Sessions
+                    .FirstOrDefaultAsync(s => s.Id == sessionTokenEntity.SessionId.Value, cancellationToken);
+                resolvedSessionId = sessionTokenEntity.SessionId;
+            }
+
+            if (session == null || !resolvedSessionId.HasValue)
+            {
+                _logger.LogWarning("Session not found for token. TokenId={TokenId}, SessionId={SessionId}, TokenSessionsCount={Count}",
+                    sessionTokenEntity.Id, sessionTokenEntity.SessionId, sessionTokenEntity.TokenSessions?.Count ?? 0);
+                return Result<CheckInResponse>.Failure("Session not found. Token may not be configured for any sessions.");
             }
 
             // CRITICAL: Validate that attendee's ticket is valid for THIS session
@@ -322,6 +348,7 @@ public class CheckInService : ICheckInService
             var eventAttendance = await _context.EventAttendances
                 .Include(ea => ea.TicketPurchase)
                     .ThenInclude(tp => tp != null ? tp.TicketType : null)
+                        .ThenInclude(tt => tt != null ? tt.Sessions : null)
                 .FirstOrDefaultAsync(ea => ea.UserId == attendee.UserId &&
                                           ea.EventId == attendee.EventId &&
                                           ea.Status == AttendanceStatus.Active,
@@ -333,7 +360,7 @@ public class CheckInService : ICheckInService
             }
 
             var canCheckIntoSession = eventAttendance.AttendanceType == AttendanceType.RSVP ||
-                                     eventAttendance.TicketPurchase?.TicketType?.Sessions.Any(s => s.Id == sessionTokenEntity.SessionId) == true;
+                                     eventAttendance.TicketPurchase?.TicketType?.Sessions.Any(s => s.Id == resolvedSessionId) == true;
 
             if (!canCheckIntoSession)
             {
@@ -345,7 +372,7 @@ public class CheckInService : ICheckInService
             }
 
             // Check if already checked in to THIS session (attendee can check into different sessions)
-            var alreadyCheckedInToSession = attendee.CheckIns.Any(c => c.SessionId == sessionTokenEntity.SessionId);
+            var alreadyCheckedInToSession = attendee.CheckIns.Any(c => c.SessionId == resolvedSessionId);
             if (alreadyCheckedInToSession)
             {
                 return Result<CheckInResponse>.Failure($"Attendee already checked in to {session.Name}");
