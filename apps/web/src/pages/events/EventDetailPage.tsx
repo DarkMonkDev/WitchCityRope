@@ -7,7 +7,7 @@ import {
 } from '@mantine/core';
 import {
   IconCalendar, IconClock, IconMapPin, IconUsers,
-  IconShare, IconMail, IconBrandX, IconLink, IconCheck
+  IconShare, IconMail, IconBrandX, IconLink, IconCheck, IconExternalLink
 } from '@tabler/icons-react';
 import { formatUtcToLocalDate, formatUtcTimeRange, formatAbbreviatedDate } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
@@ -303,22 +303,15 @@ export const EventDetailPage: React.FC = () => {
             <Link
               to={`/admin/events/${id}`}
               style={{
-                color: 'var(--color-error)',
+                color: 'var(--mantine-color-wcr-7)',
                 textDecoration: 'none',
-                fontWeight: 700,
-                fontSize: '14px',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                transition: 'opacity 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = '0.8';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '1';
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
               }}
             >
-              EDIT
+              Edit <IconExternalLink size={16} />
             </Link>
           )}
         </Group>

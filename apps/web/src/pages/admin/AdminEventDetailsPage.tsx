@@ -13,7 +13,7 @@ import {
   Modal,
   SegmentedControl,
 } from '@mantine/core'
-import { IconArrowLeft, IconLink } from '@tabler/icons-react'
+import { IconArrowLeft, IconLink, IconExternalLink } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { useEvent, useUpdateEvent } from '../../lib/api/hooks/useEvents'
 import { useQueryClient } from '@tanstack/react-query'
@@ -370,68 +370,49 @@ export const AdminEventDetailsPage: React.FC = () => {
 
   return (
     <Container size="xl" py="md" data-testid="page-admin-event-details">
-      {/* Breadcrumbs */}
-      <Breadcrumbs separator="/" mb="md">
+      {/* Breadcrumbs and Preview Link */}
+      <Group justify="space-between" align="center" mb="xs">
+        <Breadcrumbs separator="/">
+          <Anchor
+            onClick={handleGoBack}
+            style={{
+              color: 'var(--mantine-color-wcr-7)',
+              cursor: 'pointer',
+              textDecoration: 'none'
+            }}
+          >
+            Admin Events
+          </Anchor>
+          <Text c="dimmed">{isEditMode ? 'Edit Event' : 'Event Details'}</Text>
+        </Breadcrumbs>
         <Anchor
-          onClick={handleGoBack}
+          href={`/events/${id}`}
+          target="_blank"
           style={{
             color: 'var(--mantine-color-wcr-7)',
-            cursor: 'pointer',
-            textDecoration: 'none'
+            textDecoration: 'none',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
           }}
         >
-          Admin Events
+          Preview <IconExternalLink size={16} />
         </Anchor>
-        <Text c="dimmed">{isEditMode ? 'Edit Event' : 'Event Details'}</Text>
-      </Breadcrumbs>
+      </Group>
 
       {/* Page Header */}
-      <Group justify="space-between" align="center" mb="md">
-        <Title
-          order={1}
-          size="h1"
-          ff="Source Sans 3, sans-serif"
-          c="wcr.7"
-          style={{ fontSize: '2.5rem', fontWeight: 700 }}
-        >
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {(event as any)?.title || 'New Event'}
-        </Title>
-
-        {!isEditMode && (
-          <SegmentedControl
-            value={publishStatus}
-            onChange={handleStatusChange}
-            data={[
-              { label: 'DRAFT', value: 'draft' },
-              { label: 'PUBLISHED', value: 'published' },
-            ]}
-            size="lg"
-            styles={{
-              root: {
-                backgroundColor: 'var(--mantine-color-gray-1)',
-              },
-              control: {
-                fontFamily: 'Source Sans 3, sans-serif',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                padding: '12px 24px',
-                height: 'auto',
-              },
-              label: {
-                fontFamily: 'Source Sans 3, sans-serif',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                color: 'var(--mantine-color-wcr-7)',
-              },
-            }}
-          />
-        )}
-      </Group>
+      <Title
+        order={1}
+        size="h1"
+        ff="Source Sans 3, sans-serif"
+        c="wcr.7"
+        mb="xs"
+        style={{ fontSize: '2.5rem', fontWeight: 700 }}
+      >
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {(event as any)?.title || 'New Event'}
+      </Title>
 
       {/* EventForm Component */}
       {initialFormData ? (
@@ -444,6 +425,34 @@ export const AdminEventDetailsPage: React.FC = () => {
           formDirty={formDirty}
           eventId={id}
           tabsRightSection={
+            !isEditMode && (
+              <SegmentedControl
+                value={publishStatus}
+                onChange={handleStatusChange}
+                color="wcr"
+                data={[
+                  { label: 'Draft', value: 'draft' },
+                  { label: 'Published', value: 'published' },
+                ]}
+                size="lg"
+                radius="md"
+                styles={{
+                  root: {
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                  },
+                  label: {
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                  },
+                  indicator: {
+                    backgroundColor: 'rgb(136, 1, 36)',
+                  },
+                }}
+              />
+            )
+          }
+          attendeesRightSection={
             <WCRButton
               onClick={() => setKioskModalOpen(true)}
               variant="outline"

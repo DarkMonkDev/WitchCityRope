@@ -39,3 +39,8 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Admin tabs active state - matches table header color */
+.wcr-admin-tab[data-active] {
+  background-color: rgb(136, 1, 36) !important;
+}

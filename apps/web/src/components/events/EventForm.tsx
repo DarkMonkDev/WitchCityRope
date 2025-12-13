@@ -129,9 +129,10 @@ const extractTicketNameFromMetadata = (metadata?: string): string => {
 // Attendees Tab Panel Component
 interface AttendeesTabPanelProps {
   eventId?: string
+  rightSection?: React.ReactNode
 }
 
-const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
+const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSection }) => {
   const [sortColumn, setSortColumn] = useState<'name' | 'paid' | 'attended' | 'sessions'>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
@@ -242,17 +243,12 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
   return (
     <Stack gap="xl">
       <div data-testid="attendees-list">
-        <Title
-          order={2}
-          c="burgundy"
-          mb="md"
-          style={{
-            borderBottom: '2px solid var(--mantine-color-burgundy-3)',
-            paddingBottom: '8px',
-          }}
-        >
-          Event Attendees
-        </Title>
+        <Group justify="space-between" align="center" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
+          <Title order={2} c="burgundy">
+            Event Attendees
+          </Title>
+          {rightSection}
+        </Group>
         <Text size="sm" c="dimmed" mb="lg">
           People with tickets (workshops) or RSVPs (social events) for this event.
         </Text>
@@ -454,6 +450,7 @@ interface EventFormProps {
   formDirty?: boolean
   eventId?: string // For fetching participation data
   tabsRightSection?: React.ReactNode // Optional content to display to the right of tabs
+  attendeesRightSection?: React.ReactNode // Optional content to display on Attendees section title row
 }
 
 export const EventForm: React.FC<EventFormProps> = ({
@@ -465,6 +462,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   formDirty = false,
   eventId,
   tabsRightSection,
+  attendeesRightSection,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info')
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string | null>(null)
@@ -1440,6 +1438,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           variant="pills"
           radius="md"
           data-testid="tabs-event-management"
+          classNames={{ tab: 'wcr-admin-tab' }}
         >
           <Tabs.List
             style={{
@@ -1458,14 +1457,14 @@ export const EventForm: React.FC<EventFormProps> = ({
               <Tabs.Tab value="setup" data-testid="setup-tab">
                 Sessions / Ticket Types
               </Tabs.Tab>
+              <Tabs.Tab value="rsvp-tickets" data-testid="rsvp-tickets-tab">
+                RSVP/Tickets
+              </Tabs.Tab>
               <Tabs.Tab value="volunteers" data-testid="tab-volunteers">
                 Volunteers
               </Tabs.Tab>
               <Tabs.Tab value="emails" data-testid="tab-emails">
                 Emails
-              </Tabs.Tab>
-              <Tabs.Tab value="rsvp-tickets" data-testid="rsvp-tickets-tab">
-                RSVP/Tickets
               </Tabs.Tab>
               <Tabs.Tab value="attendees" data-testid="attendees-tab">
                 Attendees
@@ -1478,7 +1477,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           <Tabs.Panel value="basic-info" pt="xl" data-testid="panel-basic-info">
             <Stack gap="xl">
               {/* Event Registration Options - Moved above Event Details */}
-              <SimpleGrid cols={3} spacing="md" mb="md">
+              <SimpleGrid cols={3} spacing="md" mb={0}>
                 <Checkbox
                   label="Allow RSVPs"
                   description="Members can RSVP to this event without purchasing a ticket"
@@ -1498,17 +1497,25 @@ export const EventForm: React.FC<EventFormProps> = ({
 
               {/* Event Details Section */}
               <div>
-                <Title
-                  order={2}
-                  c="burgundy"
-                  mb="md"
-                  style={{
-                    borderBottom: '2px solid var(--mantine-color-burgundy-3)',
-                    paddingBottom: '8px',
-                  }}
-                >
-                  Event Details
-                </Title>
+                <Group justify="space-between" align="center" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
+                  <Title order={2} c="burgundy">
+                    Event Details
+                  </Title>
+                  <Group gap="sm">
+                    <WCRButton variant="outline" onClick={onCancel} size="sm">
+                      Cancel
+                    </WCRButton>
+                    <WCRButton
+                      type="submit"
+                      loading={isSubmitting}
+                      variant="secondary"
+                      size="sm"
+                      disabled={!formDirty}
+                    >
+                      {isSubmitting ? 'Saving...' : 'Save'}
+                    </WCRButton>
+                  </Group>
+                </Group>
 
                 {/* Event Title and Short Description - Two Column Layout */}
                 <Group grow align="flex-start" gap="md" mb="md">
@@ -2729,7 +2736,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
           {/* Attendees Tab - New tab for people who actually attended */}
           <Tabs.Panel value="attendees" pt="xl" data-testid="attendees-tab">
-            <AttendeesTabPanel eventId={eventId} />
+            <AttendeesTabPanel eventId={eventId} rightSection={attendeesRightSection} />
           </Tabs.Panel>
         </Tabs>
       </form>
