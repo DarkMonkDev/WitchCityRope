@@ -22,6 +22,7 @@ import {
   Box,
   Flex,
   Checkbox,
+  SimpleGrid,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -1460,6 +1461,25 @@ export const EventForm: React.FC<EventFormProps> = ({
           {/* Basic Info Tab */}
           <Tabs.Panel value="basic-info" pt="xl" data-testid="panel-basic-info">
             <Stack gap="xl">
+              {/* Event Registration Options - Moved above Event Details */}
+              <SimpleGrid cols={3} spacing="md" mb="md">
+                <Checkbox
+                  label="Allow RSVPs"
+                  description="Members can RSVP to this event without purchasing a ticket"
+                  {...form.getInputProps('allowRsvps', { type: 'checkbox' })}
+                />
+                <Checkbox
+                  label="Require Ticket Purchase"
+                  description="Members must purchase a ticket to attend this event"
+                  {...form.getInputProps('requireTicketPurchase', { type: 'checkbox' })}
+                />
+                <Checkbox
+                  label="Vetted Members Only"
+                  description="Restrict attendance to vetted members only"
+                  {...form.getInputProps('vettedMembersOnly', { type: 'checkbox' })}
+                />
+              </SimpleGrid>
+
               {/* Event Details Section */}
               <div>
                 <Title
@@ -1473,28 +1493,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                 >
                   Event Details
                 </Title>
-
-                {/* Event Type Toggle - First line in Event Details area */}
-                <Stack gap="sm" mb="lg">
-                  <Text fw={500} size="sm">
-                    Event Registration Options
-                  </Text>
-                  <Checkbox
-                    label="Allow RSVPs (free registration)"
-                    description="Members can RSVP to this event without purchasing a ticket"
-                    {...form.getInputProps('allowRsvps', { type: 'checkbox' })}
-                  />
-                  <Checkbox
-                    label="Require Ticket Purchase"
-                    description="Members must purchase a ticket to attend this event"
-                    {...form.getInputProps('requireTicketPurchase', { type: 'checkbox' })}
-                  />
-                  <Checkbox
-                    label="Vetted Members Only"
-                    description="Restrict attendance to vetted members only"
-                    {...form.getInputProps('vettedMembersOnly', { type: 'checkbox' })}
-                  />
-                </Stack>
 
                 {/* Event Title and Short Description - Two Column Layout */}
                 <Group grow align="flex-start" gap="md" mb="md">
