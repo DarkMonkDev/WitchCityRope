@@ -424,7 +424,9 @@ public class TestHelperService : ITestHelperService
                 Description = request.Description ?? $"Test event description for {request.Title}",
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
-                EventType = (Enums.EventType)request.EventType,
+                AllowRsvps = request.AllowRsvps,
+                RequireTicketPurchase = request.RequireTicketPurchase,
+                VettedMembersOnly = request.VettedMembersOnly,
                 IsPublished = request.IsPublished,
                 Capacity = request.Capacity,
                 VenueId = request.VenueId ?? 1, // Default to test venue

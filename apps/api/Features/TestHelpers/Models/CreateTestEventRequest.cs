@@ -32,10 +32,19 @@ public class CreateTestEventRequest
     public required DateTime EndDate { get; set; }
 
     /// <summary>
-    /// Type of event (Class = 1, Social = 2)
-    /// Default: Class
+    /// Whether free RSVPs are enabled (default: false for test events)
     /// </summary>
-    public int EventType { get; set; } = 1;
+    public bool AllowRsvps { get; set; } = false;
+
+    /// <summary>
+    /// Whether ticket purchase is mandatory (default: true for test events)
+    /// </summary>
+    public bool RequireTicketPurchase { get; set; } = true;
+
+    /// <summary>
+    /// Whether only vetted members can attend (default: false)
+    /// </summary>
+    public bool VettedMembersOnly { get; set; } = false;
 
     /// <summary>
     /// Event status (Draft = 0, Published = 1, Cancelled = 2)

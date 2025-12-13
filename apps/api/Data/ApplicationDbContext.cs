@@ -425,9 +425,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(e => e.Capacity)
                   .IsRequired();
 
-            entity.Property(e => e.EventType)
+            // Boolean flags for event access control
+            entity.Property(e => e.AllowRsvps)
                   .IsRequired()
-                  .HasColumnType("text");
+                  .HasDefaultValue(false);
+
+            entity.Property(e => e.RequireTicketPurchase)
+                  .IsRequired()
+                  .HasDefaultValue(true);
+
+            entity.Property(e => e.VettedMembersOnly)
+                  .IsRequired()
+                  .HasDefaultValue(false);
 
             entity.Property(e => e.IsPublished)
                   .IsRequired();
