@@ -80,8 +80,8 @@ public class VolunteerService : IVolunteerService
                     .Where(vs => vs.UserId == userGuid && vs.Status == VolunteerSignupStatus.Confirmed)
                     .ToListAsync(cancellationToken);
 
-                // For Class events (workshops), get the sessions the user has tickets for
-                if (eventEntity.EventType == Enums.EventType.Class)
+                // For events that require ticket purchases, get the sessions the user has tickets for
+                if (eventEntity.RequireTicketPurchase)
                 {
                     var userTicketAttendances = await _context.EventAttendances
                         .AsNoTracking()
@@ -332,11 +332,11 @@ public class VolunteerService : IVolunteerService
             }
 
             // ============================================================================
-            // TICKET VALIDATION FOR CLASS/WORKSHOP EVENTS
+            // TICKET VALIDATION FOR EVENTS REQUIRING TICKETS
             // ============================================================================
-            // For Class events (workshops), users must have a ticket that covers the session
-            // the volunteer position is for. Social events only require RSVP (handled below).
-            if (position.Event?.EventType == Enums.EventType.Class)
+            // For events that require ticket purchases, users must have a ticket that covers the session
+            // the volunteer position is for. Events allowing RSVPs only require RSVP (handled below).
+            if (position.Event?.RequireTicketPurchase == true)
             {
                 if (position.SessionId.HasValue)
                 {
@@ -405,11 +405,11 @@ public class VolunteerService : IVolunteerService
             // Update slots filled count
             position.SlotsFilled++;
 
-            // Auto-RSVP user to the event if it's a social event and they're not already registered
-            // Only social events use RSVPs - class/workshop events require ticket purchases
+            // Auto-RSVP user to the event if it allows RSVPs and they're not already registered
+            // Only events that allow RSVPs use this - events requiring tickets must have purchases
             var eventId = position.EventId;
 
-            if (position.Event?.EventType == Enums.EventType.Social)
+            if (position.Event?.AllowRsvps == true)
             {
                 var existingAttendance = await _context.EventAttendances
                     .FirstOrDefaultAsync(ea => ea.EventId == eventId
@@ -440,8 +440,8 @@ public class VolunteerService : IVolunteerService
             }
             else
             {
-                _logger.LogInformation("Skipping auto-RSVP for user {UserId} - Event {EventId} is not a social event (type: {EventType})",
-                    userId, eventId, position.Event?.EventType);
+                _logger.LogInformation("Skipping auto-RSVP for user {UserId} - Event {EventId} does not allow RSVPs (AllowRsvps: {AllowRsvps})",
+                    userId, eventId, position.Event?.AllowRsvps);
             }
 
             await _context.SaveChangesAsync(cancellationToken);

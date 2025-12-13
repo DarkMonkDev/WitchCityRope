@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Data.Entities;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Vetting.Entities;
@@ -134,14 +133,14 @@ public class VettingHoldService : IVettingHoldService
                     _context.VettingAuditLogs.Add(reasonLog);
                 }
 
-                // 6. Cancel all future social event RSVPs
+                // 6. Cancel all future RSVPs for vetted-only events
                 var now = DateTime.UtcNow;
                 var futureRsvps = await _context.EventAttendances
                     .Include(ea => ea.Event)
                     .Where(ea => ea.UserId == userId &&
                                 ea.Status == AttendanceStatus.Active &&
                                 ea.AttendanceType == AttendanceType.RSVP &&
-                                ea.Event!.EventType == EventType.Social &&
+                                ea.Event!.VettedMembersOnly &&
                                 ea.Event.StartDate > now)
                     .ToListAsync(cancellationToken);
 

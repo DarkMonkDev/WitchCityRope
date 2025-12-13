@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Shared.Models;
@@ -510,9 +509,22 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("Event not found");
             }
 
-            if (eventEntity.EventType != EventType.Social)
+            if (!eventEntity.AllowRsvps)
             {
-                return Result<ParticipationStatusDto>.Failure("RSVPs are only allowed for social events");
+                return Result<ParticipationStatusDto>.Failure("RSVPs are not enabled for this event");
+            }
+
+            // VETTING ENFORCEMENT: Check if event requires vetted members
+            if (eventEntity.VettedMembersOnly)
+            {
+                var userForVetting = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+                if (userForVetting != null && !userForVetting.IsVetted)
+                {
+                    return Result<ParticipationStatusDto>.Failure("This event is limited to vetted members only");
+                }
             }
 
             // TIMING VALIDATION FIRST - Check before all other business rules
@@ -938,8 +950,8 @@ public class AttendanceService : IAttendanceService
                 _context.EventAttendees.Update(existingAttendee);
             }
 
-            // Auto-RSVP for social events
-            if (eventEntity.EventType == EventType.Social)
+            // Auto-RSVP for events that allow RSVPs
+            if (eventEntity.AllowRsvps)
             {
                 var existingRsvp = await _context.EventAttendances
                     .FirstOrDefaultAsync(ea =>
