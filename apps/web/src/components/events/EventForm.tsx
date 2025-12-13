@@ -338,16 +338,6 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
                 >
                   Sessions Attended{getSortIcon('sessions')}
                 </Table.Th>
-                <Table.Th
-                  style={{
-                    color: 'white',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px',
-                  }}
-                >
-                  Status
-                </Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -392,13 +382,6 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
                       ) : (
                         <Text size="sm" c="dimmed">None</Text>
                       )}
-                    </Table.Td>
-                    <Table.Td>
-                      {participation.status === 'Cancelled' ? (
-                        <Badge color="gray" variant="filled">
-                          Cancelled
-                        </Badge>
-                      ) : null}
                     </Table.Td>
                   </Table.Tr>
                 )
