@@ -96,7 +96,10 @@ apiClient.interceptors.response.use(
     // Determine which errors should be suppressed from logging
     const currentPath = window.location.pathname
     const isPublicRoute =
-      currentPath === '/' || currentPath.startsWith('/events') || currentPath.startsWith('/join')
+      currentPath === '/' ||
+      currentPath.startsWith('/events') ||
+      currentPath.startsWith('/join') ||
+      currentPath.startsWith('/safety')  // Safety report must be accessible anonymously
 
     // Check if this is an expected 404 for vetting application check
     // When a user visits /join without an existing application, the API returns 404

@@ -1,20 +1,18 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * E2E Test: Anonymous Incident Report Submission
  * Created: 2025-10-18
  * Updated: 2025-10-19 - Fixed selectors based on actual UI inspection
- * Updated: 2025-12-13 - Added auth login due to route protection in current env
  *
  * User Journey:
- * 1. User navigates to incident reporting page
+ * 1. PUBLIC (unauthenticated) user navigates to incident reporting page
  * 2. User fills out anonymous incident report form
  * 3. User submits report
  * 4. User receives reference number and confirmation
  *
- * Authorization: Currently requires authentication in test environment
- * Note: The route is marked public but test env may redirect to login
+ * Authorization: PUBLIC - NO authentication required
+ * This is a safety-critical feature that must work for anonymous users
  * Environment: Docker containers (port 5173)
  *
  * ACTUAL UI STRUCTURE:
@@ -38,9 +36,7 @@ test.describe('Anonymous Incident Report Submission', () => {
     // Store for test access
     (page as any).consoleErrors = consoleErrors;
 
-    // Login as member since route may be protected in test environment
-    // The form allows users to select "Anonymous Report" even when logged in
-    await AuthHelpers.loginAs(page, 'member');
+    // NO LOGIN - This test verifies anonymous/unauthenticated users can submit reports
   });
 
   test('should submit anonymous incident report and receive reference number', async ({ page }) => {
@@ -148,10 +144,9 @@ test.describe('Anonymous Incident Report Submission', () => {
     await expect(referenceNumberElement).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     console.log(`✅ Reference number visible in UI: ${apiReferenceNumber}`);
 
-    // Check for non-network console errors (401/403 errors are expected for auth checks)
+    // Check for non-network console errors (401 errors are expected for auth checks on public pages)
     const consoleErrors = ((page as any).consoleErrors || []).filter(
-      (err: string) => !err.includes('401') && !err.includes('Unauthorized') &&
-                       !err.includes('403') && !err.includes('Forbidden')
+      (err: string) => !err.includes('401') && !err.includes('Unauthorized')
     );
     expect(consoleErrors).toHaveLength(0);
   });
@@ -206,10 +201,9 @@ test.describe('Anonymous Incident Report Submission', () => {
     await expect(submitButton).toBeEnabled({ timeout: 5000 }); // HARD ASSERTION
     console.log('✅ Submit button enabled after filling required fields');
 
-    // Check for non-network console errors (401/403 errors are expected for auth checks)
+    // Check for non-network console errors (401 errors are expected for auth checks on public pages)
     const consoleErrors = ((page as any).consoleErrors || []).filter(
-      (err: string) => !err.includes('401') && !err.includes('Unauthorized') &&
-                       !err.includes('403') && !err.includes('Forbidden')
+      (err: string) => !err.includes('401') && !err.includes('Unauthorized')
     );
     expect(consoleErrors).toHaveLength(0);
   });
