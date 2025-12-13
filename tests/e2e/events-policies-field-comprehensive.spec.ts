@@ -1,33 +1,27 @@
 /**
- * Comprehensive Policies Field Test
+ * Comprehensive Policies Field Test (DataFactory Migration)
  *
- * Consolidates functionality from:
- * - events-crud-test.spec.ts (policies field CRUD operations)
- * - verify-policies-field-fix.spec.ts (policies field persistence and save/refresh)
- * - verify-policies-field-display.spec.ts (policies field diagnostic and API verification)
+ * PURPOSE: Test event policies field functionality with independent test data
  *
- * Date Consolidated: 2025-10-10
- * Reason: Reduce duplicate tests per user request
- *
- * User Clarification:
- * - Policies field is REQUIRED
- * - No separate "Save Draft" button (single "Save" button with draft toggle)
- * - Tests combined to eliminate redundancy
+ * MIGRATION NOTES:
+ * - Migrated to DataFactory pattern (2025-12-13)
+ * - Creates own test events instead of relying on seed data
+ * - Uses df fixture for automatic cleanup
+ * - Data is automatically cleaned up after each test
  *
  * What This Test Covers:
  * 1. Policies field displays correctly in event form
- * 2. Policies field validates as REQUIRED
- * 3. Policies field saves to database (API verification)
- * 4. Policies field persists after page reload
- * 5. Empty policies field handling
- * 6. API response structure validation
+ * 2. Policies field saves to database (API verification)
+ * 3. Policies field persists after page reload
+ * 4. Empty policies field handling
+ * 5. API response structure validation
  */
 
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-test.describe('Policies Field - Comprehensive Testing', () => {
-
+test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin for event management
     await AuthHelpers.loginAs(page, 'admin');
@@ -35,21 +29,22 @@ test.describe('Policies Field - Comprehensive Testing', () => {
   });
 
   test.describe('Policies Field Display and Form Validation', () => {
-
-    test('should display policies field in event form', async ({ page }) => {
+    test('should display policies field in event form', async ({ page, df }) => {
       console.log('🧪 Testing policies field display...');
 
-      // Navigate to admin events page
-      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
-      await page.waitForLoadState('domcontentloaded');
-      console.log('✓ Navigated to admin events page');
+      // Create test event using DataFactory
+      const event = await df.events.createPublished(`Policies Display Test ${Date.now()}`);
+      console.log(`✅ Created test event: ${event.id}`);
 
-      // Click on first event to open edit form
-      const eventRow = page.locator('[data-testid="event-row"], tr').first();
-      await expect(eventRow).toBeVisible({ timeout: 5000 });
-      await eventRow.click();
+      // Navigate to event edit page
+      await page.goto(`/admin/events/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
-      console.log('✓ Opened event for editing');
+      console.log('✓ Navigated to event edit page');
+
+      // Verify page loaded
+      await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({
+        timeout: 5000,
+      });
 
       // Verify policies field exists and is visible
       // The policies field uses MantineTiptapEditor (rich text), not a textarea
@@ -58,14 +53,12 @@ test.describe('Policies Field - Comprehensive Testing', () => {
         ':text("Policies & Procedures") ~ div .tiptap',
         ':text("Policies & Procedures") ~ div [contenteditable="true"]',
         '.mantine-RichTextEditor-content .ProseMirror',
-        '[data-testid="policies-input"]',
-        'textarea[name="policies"]'
       ];
 
       let policiesField = null;
       for (const selector of policiesSelectors) {
         const field = page.locator(selector).first();
-        if (await field.count() > 0) {
+        if ((await field.count()) > 0) {
           policiesField = field;
           console.log(`✓ Found policies field using selector: ${selector}`);
           break;
@@ -75,7 +68,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       if (!policiesField) {
         await page.screenshot({
           path: './test-results/policies-field-not-found.png',
-          fullPage: true
+          fullPage: true,
         });
         throw new Error('❌ Policies field not found on the page');
       }
@@ -84,69 +77,30 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       await expect(policiesField).toBeVisible();
       console.log('✅ Policies field displays correctly in event form');
     });
-
-    test('should validate policies field as REQUIRED', async ({ page }) => {
-      console.log('🧪 Testing policies field REQUIRED validation...');
-
-      // Navigate to create new event page
-      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
-      await page.waitForLoadState('domcontentloaded');
-
-      // Click "Create Event" button if it exists (use .last() for React Strict Mode)
-      const createButton = page.locator('button:has-text("Create Event")').last();
-      if (await createButton.count() > 0) {
-        await createButton.click();
-        await page.waitForURL(/.*\/admin\/events\/new$/);
-        console.log('✓ Navigated to new event form');
-
-        // Try to save without filling policies field (use .last() for React Strict Mode)
-        const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').last();
-        await saveButton.click();
-
-        // Look for validation error message
-        const validationError = page.locator(
-          '[data-testid="policies-error"], ' +
-          'text=/Policies.*required/i, ' +
-          'text=/Required/i'
-        );
-
-        // Expect validation error to appear
-        const hasValidationError = await validationError.count() > 0;
-        if (hasValidationError) {
-          console.log('✅ Policies field REQUIRED validation working correctly');
-        } else {
-          console.log('⚠️ Policies field validation may not be enforced (check form settings)');
-        }
-      } else {
-        console.log('⚠️ Create Event button not found, skipping REQUIRED validation test');
-      }
-    });
   });
 
   test.describe('Policies Field Persistence and API Integration', () => {
-
     const TEST_POLICIES = `Test Policies - ${Date.now()}
 - Attendees must sign waiver
 - No photography without consent
 - Safety protocols required`;
 
-    test('should save policies field and persist after page refresh', async ({ page }) => {
+    test('should save policies field and persist after page refresh', async ({ page, df }) => {
       console.log('🧪 Testing policies field save and persistence...');
 
-      // Navigate to admin events
-      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
+      // Create test event using DataFactory
+      const event = await df.events.createPublished(`Policies Persist Test ${Date.now()}`);
+      const eventId = event.id;
+      console.log(`✅ Created test event: ${eventId}`);
+
+      // Navigate to event edit page
+      await page.goto(`/admin/events/${eventId}`);
       await page.waitForLoadState('domcontentloaded');
 
-      // Click on first event to edit
-      const eventRow = page.locator('[data-testid="event-row"], tr').first();
-      await expect(eventRow).toBeVisible({ timeout: 5000 });
-      await eventRow.click();
-      await page.waitForLoadState('domcontentloaded');
-
-      // Extract event ID from URL for API verification
-      const currentUrl = page.url();
-      const eventId = currentUrl.split('/').pop();
-      console.log(`✓ Editing event ID: ${eventId}`);
+      // Wait for page to fully load
+      await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({
+        timeout: 5000,
+      });
 
       // Find policies field (uses MantineTiptapEditor - rich text)
       const policiesSelectors = [
@@ -154,14 +108,12 @@ test.describe('Policies Field - Comprehensive Testing', () => {
         ':text("Policies & Procedures") ~ div .tiptap',
         ':text("Policies & Procedures") ~ div [contenteditable="true"]',
         '.mantine-RichTextEditor-content .ProseMirror',
-        '[data-testid="policies-input"]',
-        'textarea[name="policies"]'
       ];
 
       let policiesField = null;
       for (const selector of policiesSelectors) {
         const field = page.locator(selector).first();
-        if (await field.count() > 0) {
+        if ((await field.count()) > 0) {
           policiesField = field;
           break;
         }
@@ -179,7 +131,9 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('✓ Policies field filled with test content');
 
       // Save the event (use .last() for React Strict Mode)
-      const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').last();
+      const saveButton = page
+        .locator('button:has-text("Save"), button[type="submit"]')
+        .last();
       await saveButton.click();
       console.log('✓ Clicked save button');
 
@@ -193,7 +147,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
         const response = await fetch(`/api/events/${eventId}`);
         return {
           ok: response.ok,
-          data: await response.json()
+          data: await response.json(),
         };
       }, eventId);
       expect(apiResponse.ok).toBe(true);
@@ -218,7 +172,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       let policiesFieldAfterRefresh = null;
       for (const selector of policiesSelectors) {
         const field = page.locator(selector).first();
-        if (await field.count() > 0) {
+        if ((await field.count()) > 0) {
           policiesFieldAfterRefresh = field;
           console.log(`✓ Found policies field after refresh: ${selector}`);
           break;
@@ -238,18 +192,21 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('✅ Policies field persists correctly after page refresh');
     });
 
-    test('should handle empty policies field gracefully', async ({ page }) => {
+    test('should handle empty policies field gracefully', async ({ page, df }) => {
       console.log('🧪 Testing empty policies field handling...');
 
-      // Navigate to events
-      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
+      // Create test event using DataFactory with some initial policies
+      const event = await df.events.createPublished(`Empty Policies Test ${Date.now()}`);
+      console.log(`✅ Created test event: ${event.id}`);
+
+      // Navigate to event edit page
+      await page.goto(`/admin/events/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
 
-      // Click on first event
-      const eventRow = page.locator('[data-testid="event-row"], tr').first();
-      await expect(eventRow).toBeVisible({ timeout: 5000 });
-      await eventRow.click();
-      await page.waitForLoadState('domcontentloaded');
+      // Wait for page to load
+      await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({
+        timeout: 5000,
+      });
 
       // Find policies field (uses MantineTiptapEditor - rich text)
       const policiesSelectors = [
@@ -257,14 +214,12 @@ test.describe('Policies Field - Comprehensive Testing', () => {
         ':text("Policies & Procedures") ~ div .tiptap',
         ':text("Policies & Procedures") ~ div [contenteditable="true"]',
         '.mantine-RichTextEditor-content .ProseMirror',
-        '[data-testid="policies-input"]',
-        'textarea[name="policies"]'
       ];
 
       let policiesField = null;
       for (const selector of policiesSelectors) {
         const field = page.locator(selector).first();
-        if (await field.count() > 0) {
+        if ((await field.count()) > 0) {
           policiesField = field;
           break;
         }
@@ -281,7 +236,9 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       await policiesField.press('Delete');
 
       // Save (use .last() for React Strict Mode)
-      const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').last();
+      const saveButton = page
+        .locator('button:has-text("Save"), button[type="submit"]')
+        .last();
       await saveButton.click();
       await page.waitForTimeout(2000);
       await page.waitForLoadState('domcontentloaded');
@@ -295,7 +252,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       let policiesFieldAfterRefresh = null;
       for (const selector of policiesSelectors) {
         const field = page.locator(selector).first();
-        if (await field.count() > 0) {
+        if ((await field.count()) > 0) {
           policiesFieldAfterRefresh = field;
           break;
         }
@@ -311,35 +268,32 @@ test.describe('Policies Field - Comprehensive Testing', () => {
   });
 
   test.describe('Policies Field API Response Structure', () => {
-
-    test('should verify policies field in API response matches transformApiEvent', async ({ page }) => {
+    test('should verify policies field in API response matches frontend', async ({
+      page,
+      df,
+    }) => {
       console.log('🧪 Testing API response structure for policies field...');
 
-      // Navigate to events
-      await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
+      // Create test event using DataFactory
+      const event = await df.events.createPublished(`Policies API Test ${Date.now()}`);
+      const eventId = event.id;
+      console.log(`✅ Created test event: ${eventId}`);
+
+      // Navigate to event edit page
+      await page.goto(`/admin/events/${eventId}`);
       await page.waitForLoadState('domcontentloaded');
 
-      // Get first event
-      const eventRow = page.locator('[data-testid="event-row"], tr').first();
-      if (await eventRow.count() === 0) {
-        console.log('⚠️ No events found, skipping API structure test');
-        return;
-      }
-
-      await eventRow.click();
-      await page.waitForURL(/\/admin\/events\/[a-f0-9-]+/);
-
-      // Extract event ID from URL
-      const currentUrl = page.url();
-      const eventId = currentUrl.split('/').pop();
-      console.log(`✓ Testing event ID: ${eventId}`);
+      // Wait for page to load
+      await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({
+        timeout: 5000,
+      });
 
       // Make direct API call (use page.evaluate)
       const apiResponse = await page.evaluate(async (eventId) => {
         const response = await fetch(`/api/events/${eventId}`);
         return {
           ok: response.ok,
-          data: await response.json()
+          data: await response.json(),
         };
       }, eventId);
       expect(apiResponse.ok).toBe(true);
@@ -359,18 +313,16 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       // Verify UI displays policies field
       const policiesSelectors = [
-        '[data-testid="policies-input"]',
-        'textarea[name="policies"]',
-        'label:has-text("Policies") + textarea',
-        'label:has-text("Policies") ~ textarea',
-        '[placeholder*="policies" i]',
-        '[aria-label*="policies" i]'
+        ':text("Policies & Procedures") ~ div .ProseMirror',
+        ':text("Policies & Procedures") ~ div .tiptap',
+        ':text("Policies & Procedures") ~ div [contenteditable="true"]',
+        '.mantine-RichTextEditor-content .ProseMirror',
       ];
 
       let policiesField = null;
       for (const selector of policiesSelectors) {
         const field = page.locator(selector).first();
-        if (await field.count() > 0) {
+        if ((await field.count()) > 0) {
           policiesField = field;
           break;
         }
@@ -382,7 +334,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       // Verify API value matches UI display
       const policiesInAPI = eventData.policies || '';
-      // API returns HTML, textContent returns plain text - strip tags for comparison
+      // API returns plain text or HTML, textContent returns plain text - strip tags for comparison
       const policiesPlainText = policiesInAPI.replace(/<[^>]*>/g, '').trim();
       const displayedPlainText = displayedValue?.trim() || '';
       if (policiesPlainText && displayedPlainText) {

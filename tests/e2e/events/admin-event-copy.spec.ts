@@ -47,7 +47,7 @@ test.describe('Event Copy - Admin Workflow (DataFactory)', () => {
 
     // Create ticket type for completeness
     await df.ticketTypes.create({
-      eventId: event.id,
+      eventId: sourceEvent.id,
       sessionId: session.id,
       name: 'General Admission',
       price: 25,
@@ -258,7 +258,7 @@ test.describe('Event Copy - Admin Workflow (DataFactory)', () => {
     });
 
     await df.ticketTypes.create({
-      eventId: event.id,
+      eventId: sourceEvent.id,
       sessionId: session.id,
       name: 'VIP Ticket',
       price: 50,

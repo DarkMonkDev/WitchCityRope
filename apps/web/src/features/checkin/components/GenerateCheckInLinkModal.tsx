@@ -276,162 +276,145 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
       title={
         <Group gap="xs">
           <IconLink size={20} />
-          <Text fw={600}>Generate Check-In Link</Text>
+          <Text fw={600}>Generate Check-In Link for {eventTitle}</Text>
         </Group>
       }
       size="xl"
     >
       <Stack gap="lg">
-        {/* Event Info */}
-        <Alert variant="light" color="blue" icon={<IconAlertCircle />}>
-          <Text size="sm" fw={600} mb={4}>
-            Event: {eventTitle}
-          </Text>
-          <Text size="xs" c="dimmed">
-            Generate a kiosk mode link for volunteer check-in staff. No login required on the check-in device.
-          </Text>
-        </Alert>
-
-        {/* Generate New Token Section */}
-        <Box>
-          <Text fw={600} mb="md">
-            Generate New Token
-          </Text>
-          <Stack gap="md">
-            {/* Session Selection Table */}
-            {sessionsWithStatus.length > 0 && (
-              <Box>
-                <Group justify="space-between" mb="xs">
-                  <Text size="sm" fw={500}>Select Sessions</Text>
-                  {availableSessions.length > 1 && (
-                    <Button
-                      variant="subtle"
-                      size="xs"
-                      onClick={handleSelectAllAvailable}
-                    >
-                      {availableSessions.every(s => selectedSessionIds.includes(s.id))
-                        ? 'Deselect All'
-                        : 'Select All Available'}
-                    </Button>
-                  )}
-                </Group>
-                <Table striped withTableBorder>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th style={{ width: 40 }}></Table.Th>
-                      <Table.Th>Session</Table.Th>
-                      <Table.Th>Date/Time</Table.Th>
-                      <Table.Th>Status</Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {sessionsWithStatus.map((session) => {
-                      const isAvailable = session.status === 'available';
-                      const isSelected = selectedSessionIds.includes(session.id);
-
-                      return (
-                        <Table.Tr
-                          key={session.id}
-                          style={{
-                            opacity: isAvailable ? 1 : 0.6,
-                            cursor: isAvailable ? 'pointer' : 'not-allowed'
-                          }}
-                          onClick={() => isAvailable && handleSessionToggle(session.id)}
-                        >
-                          <Table.Td>
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              disabled={!isAvailable}
-                              onChange={() => handleSessionToggle(session.id)}
-                              onClick={(e) => e.stopPropagation()}
-                              style={{ cursor: isAvailable ? 'pointer' : 'not-allowed' }}
-                            />
-                          </Table.Td>
-                          <Table.Td>
-                            <Text size="sm" fw={isAvailable ? 500 : 400}>
-                              {session.name || 'Unnamed Session'}
-                            </Text>
-                          </Table.Td>
-                          <Table.Td>
-                            <Text size="sm" c="dimmed">
-                              {session.startTime ? formatDate(session.startTime) : 'No date'}
-                            </Text>
-                          </Table.Td>
-                          <Table.Td>
-                            <Badge
-                              variant="light"
-                              color={
-                                session.status === 'available' ? 'green' :
-                                session.status === 'future' ? 'orange' :
-                                'gray'
-                              }
-                            >
-                              {session.statusText}
-                            </Badge>
-                          </Table.Td>
-                        </Table.Tr>
-                      );
-                    })}
-                  </Table.Tbody>
-                </Table>
-              </Box>
-            )}
-
-            {/* No sessions at all */}
-            {!isLoadingSessions && sessions.length === 0 && (
-              <Alert variant="light" color="yellow" icon={<IconAlertCircle />}>
-                <Text size="sm">
-                  This event has no sessions configured. The token will apply to the entire event.
-                </Text>
-              </Alert>
-            )}
-
-            {/* All sessions outside window */}
-            {!isLoadingSessions && sessions.length > 0 && availableSessions.length === 0 && (
-              <Alert variant="light" color="yellow" icon={<IconAlertCircle />}>
-                <Text size="sm">
-                  No sessions are currently within the check-in window (±12 hours from session start).
-                  See the table above for when each session becomes available.
-                </Text>
-              </Alert>
-            )}
-
-            <Group align="flex-end">
-              <NumberInput
-                label="Expires in (hours)"
-                description="Token will automatically expire after this time"
-                value={expiresInHours}
-                onChange={(value) => setExpiresInHours(Number(value) || 12)}
-                min={1}
-                max={168} // 7 days max
-                step={1}
-                style={{ flex: 1 }}
-                leftSection={<IconClock size={16} />}
-              />
-              <Button
-                onClick={handleGenerate}
-                loading={generateMutation.isPending}
-                leftSection={<IconLink size={16} />}
-                variant="filled"
-                color="blue"
-                styles={{
-                  root: {
-                    fontWeight: 600,
-                    height: '44px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    fontSize: '14px',
-                    lineHeight: '1.2',
-                  },
-                }}
-                disabled={availableSessions.length > 0 && selectedSessionIds.length === 0}
-              >
-                Generate Link
-              </Button>
+        {/* Session Selection Table */}
+        {sessionsWithStatus.length > 0 && (
+          <Box>
+            <Group justify="space-between" mb="xs">
+              <Text size="sm" fw={700}>Select Sessions</Text>
+              {availableSessions.length > 1 && (
+                <Button
+                  variant="subtle"
+                  size="xs"
+                  onClick={handleSelectAllAvailable}
+                >
+                  {availableSessions.every(s => selectedSessionIds.includes(s.id))
+                    ? 'Deselect All'
+                    : 'Select All Available'}
+                </Button>
+              )}
             </Group>
-          </Stack>
-        </Box>
+            <Table striped withTableBorder>
+              <Table.Thead style={{ backgroundColor: 'var(--mantine-color-wcr-7)' }}>
+                <Table.Tr>
+                  <Table.Th style={{ width: 40, backgroundColor: 'var(--mantine-color-wcr-7)' }}></Table.Th>
+                  <Table.Th style={{ color: 'white', fontWeight: 600, backgroundColor: 'var(--mantine-color-wcr-7)' }}>Session</Table.Th>
+                  <Table.Th style={{ color: 'white', fontWeight: 600, backgroundColor: 'var(--mantine-color-wcr-7)' }}>Date/Time</Table.Th>
+                  <Table.Th style={{ color: 'white', fontWeight: 600, backgroundColor: 'var(--mantine-color-wcr-7)' }}>Status</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {sessionsWithStatus.map((session) => {
+                  const isAvailable = session.status === 'available';
+                  const isSelected = selectedSessionIds.includes(session.id);
+
+                  return (
+                    <Table.Tr
+                      key={session.id}
+                      style={{
+                        opacity: isAvailable ? 1 : 0.6,
+                        cursor: isAvailable ? 'pointer' : 'not-allowed'
+                      }}
+                      onClick={() => isAvailable && handleSessionToggle(session.id)}
+                    >
+                      <Table.Td>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          disabled={!isAvailable}
+                          onChange={() => handleSessionToggle(session.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ cursor: isAvailable ? 'pointer' : 'not-allowed' }}
+                        />
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm" fw={isAvailable ? 500 : 400}>
+                          {session.name || 'Unnamed Session'}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm" c="dimmed">
+                          {session.startTime ? formatDate(session.startTime) : 'No date'}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Badge
+                          variant="light"
+                          color={
+                            session.status === 'available' ? 'green' :
+                            session.status === 'future' ? 'orange' :
+                            'gray'
+                          }
+                        >
+                          {session.statusText}
+                        </Badge>
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+              </Table.Tbody>
+            </Table>
+          </Box>
+        )}
+
+        {/* No sessions at all */}
+        {!isLoadingSessions && sessions.length === 0 && (
+          <Alert variant="light" color="yellow" icon={<IconAlertCircle />}>
+            <Text size="sm">
+              This event has no sessions configured. The token will apply to the entire event.
+            </Text>
+          </Alert>
+        )}
+
+        {/* All sessions outside window */}
+        {!isLoadingSessions && sessions.length > 0 && availableSessions.length === 0 && (
+          <Alert variant="light" color="yellow" icon={<IconAlertCircle />}>
+            <Text size="sm">
+              No sessions are currently within the check-in window (±12 hours from session start).
+              See the table above for when each session becomes available.
+            </Text>
+          </Alert>
+        )}
+
+        {/* Token Generation Controls */}
+        <Group align="flex-end">
+          <NumberInput
+            label="Expires in (hours)"
+            description="Token will automatically expire after this time"
+            value={expiresInHours}
+            onChange={(value) => setExpiresInHours(Number(value) || 12)}
+            min={1}
+            max={168} // 7 days max
+            step={1}
+            style={{ flex: 1 }}
+            leftSection={<IconClock size={16} />}
+          />
+          <Button
+            onClick={handleGenerate}
+            loading={generateMutation.isPending}
+            leftSection={<IconLink size={16} />}
+            variant="filled"
+            color="blue"
+            styles={{
+              root: {
+                fontWeight: 600,
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2',
+              },
+            }}
+            disabled={availableSessions.length > 0 && selectedSessionIds.length === 0}
+          >
+            Generate Link
+          </Button>
+        </Group>
 
         {/* Generated Token Display */}
         {generatedToken && (
