@@ -212,7 +212,7 @@ export const EventsManagementApiDemo: React.FC = () => {
                   <div>
                     <Text fw={500} size="sm" mb="xs">EventSummaryDto:</Text>
                     <Text size="xs" c="dimmed" style={{ fontFamily: 'monospace' }}>
-                      eventId, title, shortDescription, eventType, startDate, endDate, venue, totalCapacity, availableSpots, hasMultipleSessions, sessionCount, lowestPrice, highestPrice, isPublished, createdAt, updatedAt
+                      eventId, title, shortDescription, allowRsvps, requireTicketPurchase, vettedMembersOnly, startDate, endDate, venue, totalCapacity, availableSpots, hasMultipleSessions, sessionCount, lowestPrice, highestPrice, isPublished, createdAt, updatedAt
                     </Text>
                   </div>
                   

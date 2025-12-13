@@ -12,9 +12,14 @@ public class TokenValidationResult
     public Guid EventId { get; set; }
 
     /// <summary>
-    /// Session this token grants check-in access to
+    /// Session this token grants check-in access to (backwards compatibility - single session)
     /// </summary>
     public Guid SessionId { get; set; }
+
+    /// <summary>
+    /// All session IDs this token grants access to (for multi-session tokens)
+    /// </summary>
+    public List<Guid>? SessionIds { get; set; }
 
     /// <summary>
     /// Admin user who generated this token (becomes RecordedByStaffId for operations)
