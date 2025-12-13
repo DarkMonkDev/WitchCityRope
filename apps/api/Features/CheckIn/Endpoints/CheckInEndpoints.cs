@@ -424,10 +424,8 @@ public static class CheckInEndpoints
             }
 
             var result = await tokenService.GenerateTokenAsync(
-                request.EventId,
-                request.SessionId,
+                request,
                 adminUserId,
-                request.ExpirationHours ?? 12.0,
                 cancellationToken);
 
             return result.IsSuccess

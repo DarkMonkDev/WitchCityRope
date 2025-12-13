@@ -185,6 +185,10 @@ public class SessionTokenService : ISessionTokenService
     {
         try
         {
+            // Declare variables once at try block level to avoid duplicate declarations
+            List<Guid> sessionIds;
+            Guid validationSessionId;
+
             // NOTE: Cache key is now token-only (SessionId comes from DB query)
             // We can't include SessionId in cache key because we don't have it yet
             var cacheKey = $"{TOKEN_CACHE_PREFIX}{token}";
@@ -205,7 +209,7 @@ public class SessionTokenService : ISessionTokenService
                 if (IsTokenValid(cachedToken))
                 {
                     // Build SessionIds list from TokenSessions join table
-                    var sessionIds = cachedToken.TokenSessions?.Select(ts => ts.SessionId).ToList()
+                    sessionIds = cachedToken.TokenSessions?.Select(ts => ts.SessionId).ToList()
                         ?? new List<Guid>();
 
                     // If no TokenSessions but has legacy SessionId, use that
@@ -215,7 +219,7 @@ public class SessionTokenService : ISessionTokenService
                     }
 
                     // For backwards compatibility, set SessionId to first session
-                    var validationSessionId = sessionIds.FirstOrDefault();
+                    validationSessionId = sessionIds.FirstOrDefault();
 
                     _logger.LogDebug("Token {Token} validated from cache for session {SessionId}", token.Substring(0, 10), validationSessionId);
                     return Result<TokenValidationResult>.Success(new TokenValidationResult
@@ -282,7 +286,7 @@ public class SessionTokenService : ISessionTokenService
 
             // For multi-session tokens, we need to load TokenSessions for validation
             // This is only needed for database path (cache already has it)
-            var sessionIds = await _context.CheckInSessionTokenSessions
+            sessionIds = await _context.CheckInSessionTokenSessions
                 .AsNoTracking()
                 .Where(ts => ts.TokenId == sessionToken.Id)
                 .Select(ts => ts.SessionId)
@@ -295,7 +299,7 @@ public class SessionTokenService : ISessionTokenService
             }
 
             // For backwards compatibility, set SessionId to first session
-            var validationSessionId = sessionIds.FirstOrDefault();
+            validationSessionId = sessionIds.FirstOrDefault();
 
             _logger.LogDebug("Token {Token} validated from database for session {SessionId}", token.Substring(0, 10), validationSessionId);
             return Result<TokenValidationResult>.Success(new TokenValidationResult

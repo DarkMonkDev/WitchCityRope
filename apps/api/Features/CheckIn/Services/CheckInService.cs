@@ -365,10 +365,11 @@ public class CheckInService : ICheckInService
             }
 
             // Create check-in record - use token creator's user ID for audit trail
+            // Use session.Id (non-nullable) since we already validated the session exists
             var checkIn = new Entities.CheckIn(
                 attendee.Id,
                 attendee.EventId,
-                sessionTokenEntity.SessionId,
+                session.Id,
                 sessionTokenEntity.CreatedByUserId)
             {
                 CheckInTime = DateTime.Parse(request.CheckInTime).ToUniversalTime(),
@@ -551,11 +552,22 @@ public class CheckInService : ICheckInService
 
             // Get session token entity to retrieve creator's user ID for audit logging
             var sessionTokenEntity = await _context.CheckInSessionTokens
+                .Include(t => t.TokenSessions)
                 .FirstOrDefaultAsync(t => t.Token == sessionToken, cancellationToken);
 
             if (sessionTokenEntity == null)
             {
                 return Result<CheckInResponse>.Failure("Invalid session token");
+            }
+
+            // Get the session ID from the token (handle multi-session tokens)
+            var sessionId = sessionTokenEntity.SessionId
+                ?? sessionTokenEntity.TokenSessions?.FirstOrDefault()?.SessionId
+                ?? Guid.Empty;
+
+            if (sessionId == Guid.Empty)
+            {
+                return Result<CheckInResponse>.Failure("No valid session found for token");
             }
 
             // Verify event exists
@@ -648,11 +660,11 @@ public class CheckInService : ICheckInService
 
             _context.EventAttendees.Add(attendee);
 
-            // Create CheckIn record
+            // Create CheckIn record - use the sessionId we extracted earlier
             var checkIn = new Entities.CheckIn(
                 attendee.Id,
                 eventId,
-                sessionTokenEntity.SessionId,
+                sessionId,
                 sessionTokenEntity.CreatedByUserId)
             {
                 CheckInTime = DateTime.UtcNow,
