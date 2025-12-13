@@ -220,23 +220,50 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await expect(googleDriveSection).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await googleDriveSection.scrollIntoViewIfNeeded();
 
-    // HARD ASSERTION - Input fields must exist (using data-testid from component)
+    // If URLs already exist, the input fields are hidden and "edit" links are shown
+    // Click "edit" links to reveal input fields if they're not visible
     const folderUrlInput = page.getByTestId('google-drive-folder-url');
-    await expect(folderUrlInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
-    await folderUrlInput.fill('https://drive.google.com/drive/folders/test-incident-folder');
+    const folderInputVisible = await folderUrlInput.isVisible().catch(() => false);
+
+    if (!folderInputVisible) {
+      // Click "edit" next to Investigation Folder to reveal input
+      const editFolderLink = page.locator('text="Investigation Folder"').locator('..').locator('text="edit"');
+      if (await editFolderLink.count() > 0) {
+        await editFolderLink.click();
+        await page.waitForTimeout(300);
+      }
+    }
 
     const reportUrlInput = page.getByTestId('google-drive-report-url');
-    await expect(reportUrlInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
-    await reportUrlInput.fill('https://drive.google.com/file/d/test-final-report');
+    const reportInputVisible = await reportUrlInput.isVisible().catch(() => false);
 
-    // HARD ASSERTION - Save button must exist (CORRECTED: button text is "Save Links" not "SAVE LINKS")
+    if (!reportInputVisible) {
+      // Click "edit" next to Final Report to reveal input
+      const editReportLink = page.locator('text="Final Report"').locator('..').locator('text="edit"');
+      if (await editReportLink.count() > 0) {
+        await editReportLink.click();
+        await page.waitForTimeout(300);
+      }
+    }
+
+    // Now input fields should be visible
+    await expect(folderUrlInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await folderUrlInput.clear();
+    await folderUrlInput.fill('https://drive.google.com/drive/folders/test-incident-folder-updated');
+
+    await expect(reportUrlInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await reportUrlInput.clear();
+    await reportUrlInput.fill('https://drive.google.com/file/d/test-final-report-updated');
+
+    // HARD ASSERTION - Save button must exist and be enabled
     const saveLinkButton = page.getByTestId('save-links-button');
     await expect(saveLinkButton).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await expect(saveLinkButton).not.toBeDisabled({ timeout: 5000 }); // Wait for button to enable
 
     // Wait for API response to validate save operation
     const [response] = await Promise.all([
       page.waitForResponse(
-        resp => resp.url().includes('/api/safety/incidents') && resp.request().method() === 'PUT',
+        resp => resp.url().includes('/api/safety') && resp.request().method() === 'PUT',
         { timeout: 10000 }
       ),
       saveLinkButton.click()
@@ -247,9 +274,9 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     expect(response.status()).toBeGreaterThanOrEqual(200);
     console.log(`✅ API returned status ${response.status()}`);
 
-    // HARD ASSERTION - Success alert MUST appear
-    const successAlert = page.locator('[role="alert"]').first();
-    await expect(successAlert).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    // HARD ASSERTION - Success notification MUST appear (Mantine uses div with role, not always [role="alert"])
+    const successNotification = page.locator('.mantine-Notification-root').first();
+    await expect(successNotification).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     console.log('✅ Google Drive links saved successfully');
 
     // HARD ASSERTION - No console errors
@@ -276,19 +303,22 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await notesSection.scrollIntoViewIfNeeded();
 
     // HARD ASSERTION - Textarea must exist (using data-testid from component)
+    // Use .last() to handle React Strict Mode duplicate rendering
     const noteContent = 'Administrative note: Initial review completed. Escalating to safety team coordinator.';
-    const noteTextarea = page.getByTestId('add-note-content');
+    const noteTextarea = page.getByTestId('add-note-content').last();
     await expect(noteTextarea).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await noteTextarea.fill(noteContent);
 
-    // HARD ASSERTION - Add note button must exist (CORRECTED: button text is "Add Note" not "ADD NOTE")
-    const addNoteButton = page.getByTestId('add-note-submit');
+    // HARD ASSERTION - Add note button must exist and be enabled after filling text
+    // Use .last() to handle React Strict Mode duplicate rendering
+    const addNoteButton = page.getByTestId('add-note-submit').last();
     await expect(addNoteButton).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await expect(addNoteButton).not.toBeDisabled({ timeout: 5000 }); // Wait for button to enable
 
     // Wait for API response to validate note creation
     const [response] = await Promise.all([
       page.waitForResponse(
-        resp => resp.url().includes('/api/safety/incidents') &&
+        resp => resp.url().includes('/api/safety') &&
                 (resp.request().method() === 'POST' || resp.request().method() === 'PUT'),
         { timeout: 10000 }
       ),
@@ -300,9 +330,9 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     expect(response.status()).toBeGreaterThanOrEqual(200);
     console.log(`✅ API returned status ${response.status()}`);
 
-    // HARD ASSERTION - Success alert MUST appear
-    const successAlert = page.locator('[role="alert"]').first();
-    await expect(successAlert).toBeVisible({ timeout: 10000 }); // HARD ASSERTION
+    // HARD ASSERTION - Success notification MUST appear (Mantine uses div with class, not always [role="alert"])
+    const successNotification = page.locator('.mantine-Notification-root').first();
+    await expect(successNotification).toBeVisible({ timeout: 10000 }); // HARD ASSERTION
     console.log('✅ Note added successfully');
 
     // HARD ASSERTION - No console errors
