@@ -1421,7 +1421,7 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
 <p>Should be CLOSED when hoursUntilSession < 12</p>
 <p>If server has UTC bug, client and server calculations will differ.</p>",
                 policies: @"<h2>Test Event</h2><p>Standard policies apply.</p>",
-                registrationOpenHours: -8m,
+                registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
                 volunteerCancellationCloseHours: 24m
