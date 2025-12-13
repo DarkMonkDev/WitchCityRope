@@ -129,7 +129,9 @@ public class EventService : IEventService
                     EndDate = e.EndDate,
                     VenueId = e.VenueId,
                     VenueLocation = e.Venue?.Location,
-                    EventType = e.EventType.ToString(),
+                    AllowRsvps = e.AllowRsvps,
+                    RequireTicketPurchase = e.RequireTicketPurchase,
+                    VettedMembersOnly = e.VettedMembersOnly,
                     Capacity = e.Capacity,
                     IsPublished = e.IsPublished,
                     RegistrationCount = e.GetCurrentAttendeeCount(),
@@ -241,7 +243,9 @@ public class EventService : IEventService
                 EndDate = eventEntity.EndDate,
                 VenueId = eventEntity.VenueId,
                 VenueLocation = eventEntity.Venue?.Location,
-                EventType = eventEntity.EventType.ToString(),
+                AllowRsvps = eventEntity.AllowRsvps,
+                RequireTicketPurchase = eventEntity.RequireTicketPurchase,
+                VettedMembersOnly = eventEntity.VettedMembersOnly,
                 Capacity = eventEntity.Capacity,
                 IsPublished = eventEntity.IsPublished,
                 RegistrationCount = eventEntity.GetCurrentAttendeeCount(),
@@ -422,6 +426,21 @@ public class EventService : IEventService
                 eventEntity.IsPublished = request.IsPublished.Value;
             }
 
+            if (request.AllowRsvps.HasValue)
+            {
+                eventEntity.AllowRsvps = request.AllowRsvps.Value;
+            }
+
+            if (request.RequireTicketPurchase.HasValue)
+            {
+                eventEntity.RequireTicketPurchase = request.RequireTicketPurchase.Value;
+            }
+
+            if (request.VettedMembersOnly.HasValue)
+            {
+                eventEntity.VettedMembersOnly = request.VettedMembersOnly.Value;
+            }
+
             // CRITICAL: Update timing control fields - NULLABLE DECIMAL UPDATE PATTERN
             // These fields control when registration/cancellation windows open/close
             //
@@ -559,7 +578,9 @@ public class EventService : IEventService
                 EndDate = eventEntity.EndDate,
                 VenueId = eventEntity.VenueId,
                 VenueLocation = eventEntity.Venue?.Location,
-                EventType = eventEntity.EventType.ToString(),
+                AllowRsvps = eventEntity.AllowRsvps,
+                RequireTicketPurchase = eventEntity.RequireTicketPurchase,
+                VettedMembersOnly = eventEntity.VettedMembersOnly,
                 Capacity = eventEntity.Capacity,
                 IsPublished = eventEntity.IsPublished,
                 RegistrationCount = eventEntity.GetCurrentAttendeeCount(),
@@ -1189,7 +1210,9 @@ public class EventService : IEventService
                     Description = sourceEvent.Description,
                     Policies = sourceEvent.Policies,
                     Capacity = sourceEvent.Capacity,
-                    EventType = sourceEvent.EventType,
+                    AllowRsvps = sourceEvent.AllowRsvps,
+                    RequireTicketPurchase = sourceEvent.RequireTicketPurchase,
+                    VettedMembersOnly = sourceEvent.VettedMembersOnly,
                     VenueId = sourceEvent.VenueId,
 
                     // COPY timing controls (5 fields)
@@ -1376,7 +1399,9 @@ public class EventService : IEventService
                     EndDate = copiedEventWithNav.EndDate,
                     VenueId = copiedEventWithNav.VenueId,
                     VenueLocation = copiedEventWithNav.Venue?.Location,
-                    EventType = copiedEventWithNav.EventType.ToString(),
+                    AllowRsvps = copiedEventWithNav.AllowRsvps,
+                    RequireTicketPurchase = copiedEventWithNav.RequireTicketPurchase,
+                    VettedMembersOnly = copiedEventWithNav.VettedMembersOnly,
                     Capacity = copiedEventWithNav.Capacity,
                     IsPublished = copiedEventWithNav.IsPublished,
                     RegistrationCount = copiedEventWithNav.GetCurrentAttendeeCount(),
@@ -1437,15 +1462,8 @@ public class EventService : IEventService
                 return (false, null, "Start date must be before end date");
             }
 
-            // Parse and validate EventType enum
-            if (!Enum.TryParse<WitchCityRope.Api.Enums.EventType>(request.EventType, out var eventType))
-            {
-                _logger.LogWarning("Invalid event type: {EventType}", request.EventType);
-                return (false, null, $"Invalid event type: {request.EventType}");
-            }
-
-            _logger.LogInformation("Creating new event: {Title}, Type: {EventType}, StartDate: {StartDate}",
-                request.Title, request.EventType, request.StartDate);
+            _logger.LogInformation("Creating new event: {Title}, AllowRsvps: {AllowRsvps}, RequireTickets: {RequireTickets}, StartDate: {StartDate}",
+                request.Title, request.AllowRsvps, request.RequireTicketPurchase, request.StartDate);
 
             // 2. Begin transaction for atomic operation
             using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
@@ -1467,7 +1485,9 @@ public class EventService : IEventService
                     StartDate = startDate,
                     EndDate = endDate,
                     VenueId = request.VenueId,
-                    EventType = eventType,
+                    AllowRsvps = request.AllowRsvps,
+                    RequireTicketPurchase = request.RequireTicketPurchase,
+                    VettedMembersOnly = request.VettedMembersOnly,
                     Capacity = request.Capacity,
                     IsPublished = request.IsPublished,
                     CreatedAt = DateTime.UtcNow,
@@ -1676,7 +1696,9 @@ public class EventService : IEventService
                     EndDate = createdEventWithNav.EndDate,
                     VenueId = createdEventWithNav.VenueId,
                     VenueLocation = createdEventWithNav.Venue?.Location,
-                    EventType = createdEventWithNav.EventType.ToString(),
+                    AllowRsvps = createdEventWithNav.AllowRsvps,
+                    RequireTicketPurchase = createdEventWithNav.RequireTicketPurchase,
+                    VettedMembersOnly = createdEventWithNav.VettedMembersOnly,
                     Capacity = createdEventWithNav.Capacity,
                     IsPublished = createdEventWithNav.IsPublished,
                     RegistrationCount = createdEventWithNav.GetCurrentAttendeeCount(),
