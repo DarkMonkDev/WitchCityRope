@@ -109,6 +109,44 @@ public class TestHelperService : ITestHelperService
     }
 
     /// <summary>
+    /// Get an existing user by email, or create a new one if not found.
+    /// Used for E2E tests that may run multiple times with same test data.
+    /// </summary>
+    public async Task<(bool Success, TestUserResponse? Data, string? Error)> GetOrCreateTestUserAsync(
+        CreateTestUserRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("GetOrCreate test user: {Email}", request.Email);
+
+            // Check if user already exists
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+            if (existingUser != null)
+            {
+                _logger.LogInformation("Found existing user: {Email} (ID: {UserId})", request.Email, existingUser.Id);
+
+                return (true, new TestUserResponse
+                {
+                    Id = existingUser.Id.ToString(),
+                    Email = existingUser.Email!,
+                    SceneName = existingUser.SceneName,
+                    Role = existingUser.Role ?? "Member",
+                    CreatedAt = existingUser.CreatedAt
+                }, null);
+            }
+
+            // User doesn't exist, create new one
+            return await CreateTestUserAsync(request, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in GetOrCreate test user: {Email}", request.Email);
+            return (false, null, $"Internal error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Delete a test user by ID
     /// Used for test cleanup in afterEach/afterAll hooks
     /// </summary>
@@ -456,8 +494,7 @@ public class TestHelperService : ITestHelperService
     }
 
     /// <summary>
-    /// Delete a test event by ID
-    /// Also deletes related sessions and ticket types (cascading delete)
+    /// Delete a test event by ID with full cascade deletion of all related entities
     /// </summary>
     public async Task<(bool Success, string? Error)> DeleteTestEventAsync(
         Guid eventId,
@@ -465,7 +502,7 @@ public class TestHelperService : ITestHelperService
     {
         try
         {
-            _logger.LogInformation("Deleting test event: {EventId}", eventId);
+            _logger.LogInformation("Deleting test event with full cascade: {EventId}", eventId);
 
             var eventEntity = await _context.Set<Event>()
                 .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
@@ -476,27 +513,76 @@ public class TestHelperService : ITestHelperService
                 return (false, $"Event not found: {eventId}");
             }
 
-            // Delete related entities (sessions, ticket types, volunteer positions)
-            var sessions = await _context.Set<Session>()
-                .Where(s => s.EventId == eventId)
-                .ToListAsync(cancellationToken);
-
-            var ticketTypes = await _context.Set<TicketType>()
-                .Where(t => t.EventId == eventId)
-                .ToListAsync(cancellationToken);
-
+            // 1. Delete VolunteerSignups for all volunteer positions in this event
             var volunteerPositions = await _context.Set<VolunteerPosition>()
                 .Where(v => v.EventId == eventId)
                 .ToListAsync(cancellationToken);
 
-            _context.Set<Session>().RemoveRange(sessions);
+            var positionIds = volunteerPositions.Select(vp => vp.Id).ToList();
+            if (positionIds.Any())
+            {
+                var volunteerSignups = await _context.Set<VolunteerSignup>()
+                    .Where(vs => positionIds.Contains(vs.VolunteerPositionId))
+                    .ToListAsync(cancellationToken);
+                _context.Set<VolunteerSignup>().RemoveRange(volunteerSignups);
+                _logger.LogDebug("Removed {Count} volunteer signups", volunteerSignups.Count);
+            }
+
+            // 2. Delete EventAttendances for this event
+            var eventAttendances = await _context.Set<EventAttendance>()
+                .Where(ea => ea.EventId == eventId)
+                .ToListAsync(cancellationToken);
+            _context.Set<EventAttendance>().RemoveRange(eventAttendances);
+            _logger.LogDebug("Removed {Count} event attendances", eventAttendances.Count);
+
+            // 3. Delete TicketPurchases for ticket types in this event
+            var ticketTypes = await _context.Set<TicketType>()
+                .Where(t => t.EventId == eventId)
+                .ToListAsync(cancellationToken);
+
+            var ticketTypeIds = ticketTypes.Select(tt => tt.Id).ToList();
+            if (ticketTypeIds.Any())
+            {
+                var ticketPurchases = await _context.Set<TicketPurchase>()
+                    .Where(tp => ticketTypeIds.Contains(tp.TicketTypeId))
+                    .ToListAsync(cancellationToken);
+                _context.Set<TicketPurchase>().RemoveRange(ticketPurchases);
+                _logger.LogDebug("Removed {Count} ticket purchases", ticketPurchases.Count);
+            }
+
+            // 4. Clear TicketType-Session many-to-many relationships
+            // Load ticket types with their sessions
+            var ticketTypesWithSessions = await _context.Set<TicketType>()
+                .Include(tt => tt.Sessions)
+                .Where(t => t.EventId == eventId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var ticketType in ticketTypesWithSessions)
+            {
+                ticketType.Sessions.Clear();
+            }
+
+            // 5. Delete TicketTypes
             _context.Set<TicketType>().RemoveRange(ticketTypes);
+            _logger.LogDebug("Removed {Count} ticket types", ticketTypes.Count);
+
+            // 6. Delete VolunteerPositions
             _context.Set<VolunteerPosition>().RemoveRange(volunteerPositions);
+            _logger.LogDebug("Removed {Count} volunteer positions", volunteerPositions.Count);
+
+            // 7. Delete Sessions
+            var sessions = await _context.Set<Session>()
+                .Where(s => s.EventId == eventId)
+                .ToListAsync(cancellationToken);
+            _context.Set<Session>().RemoveRange(sessions);
+            _logger.LogDebug("Removed {Count} sessions", sessions.Count);
+
+            // 8. Delete the Event itself
             _context.Set<Event>().Remove(eventEntity);
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("🗑️ Successfully deleted test event: {EventId} (with {SessionCount} sessions, {TicketTypeCount} ticket types, {VolunteerCount} positions)",
+            _logger.LogInformation("🗑️ Successfully deleted test event with cascade: {EventId} (sessions: {Sessions}, tickets: {Tickets}, volunteers: {Volunteers})",
                 eventId, sessions.Count, ticketTypes.Count, volunteerPositions.Count);
             return (true, null);
         }
@@ -566,7 +652,7 @@ public class TestHelperService : ITestHelperService
     }
 
     /// <summary>
-    /// Delete a test session by ID
+    /// Delete a test session by ID with cascade deletion of related entities
     /// </summary>
     public async Task<(bool Success, string? Error)> DeleteTestSessionAsync(
         Guid sessionId,
@@ -574,7 +660,7 @@ public class TestHelperService : ITestHelperService
     {
         try
         {
-            _logger.LogInformation("Deleting test session: {SessionId}", sessionId);
+            _logger.LogInformation("Deleting test session with cascade: {SessionId}", sessionId);
 
             var sessionEntity = await _context.Set<Session>()
                 .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
@@ -585,10 +671,75 @@ public class TestHelperService : ITestHelperService
                 return (false, $"Session not found: {sessionId}");
             }
 
+            // 1. Delete VolunteerSignups for positions linked to this session
+            var sessionVolunteerPositions = await _context.Set<VolunteerPosition>()
+                .Where(vp => vp.SessionId == sessionId)
+                .ToListAsync(cancellationToken);
+
+            var positionIds = sessionVolunteerPositions.Select(vp => vp.Id).ToList();
+            if (positionIds.Any())
+            {
+                var volunteerSignups = await _context.Set<VolunteerSignup>()
+                    .Where(vs => positionIds.Contains(vs.VolunteerPositionId))
+                    .ToListAsync(cancellationToken);
+                _context.Set<VolunteerSignup>().RemoveRange(volunteerSignups);
+                _logger.LogDebug("Removed {Count} volunteer signups", volunteerSignups.Count);
+            }
+
+            // 2. Delete EventAttendances referencing this session
+            var sessionAttendances = await _context.Set<EventAttendance>()
+                .Where(ea => ea.SessionId == sessionId)
+                .ToListAsync(cancellationToken);
+            _context.Set<EventAttendance>().RemoveRange(sessionAttendances);
+            _logger.LogDebug("Removed {Count} event attendances", sessionAttendances.Count);
+
+            // 3. Get TicketPurchases that reference TicketTypes linked to this session
+            // First, get ticket types linked to this session via the many-to-many relationship
+            var ticketTypesWithSession = await _context.Set<TicketType>()
+                .Include(tt => tt.Sessions)
+                .Where(tt => tt.Sessions.Any(s => s.Id == sessionId))
+                .ToListAsync(cancellationToken);
+
+            // Delete ticket purchases for these ticket types
+            var ticketTypeIds = ticketTypesWithSession.Select(tt => tt.Id).ToList();
+            if (ticketTypeIds.Any())
+            {
+                // First delete EventAttendances that reference these ticket purchases
+                var ticketPurchases = await _context.Set<TicketPurchase>()
+                    .Where(tp => ticketTypeIds.Contains(tp.TicketTypeId))
+                    .ToListAsync(cancellationToken);
+
+                var purchaseIds = ticketPurchases.Select(tp => tp.Id).ToList();
+                if (purchaseIds.Any())
+                {
+                    var purchaseAttendances = await _context.Set<EventAttendance>()
+                        .Where(ea => ea.TicketPurchaseId.HasValue && purchaseIds.Contains(ea.TicketPurchaseId.Value))
+                        .ToListAsync(cancellationToken);
+                    _context.Set<EventAttendance>().RemoveRange(purchaseAttendances);
+                    _logger.LogDebug("Removed {Count} purchase attendances", purchaseAttendances.Count);
+                }
+
+                _context.Set<TicketPurchase>().RemoveRange(ticketPurchases);
+                _logger.LogDebug("Removed {Count} ticket purchases", ticketPurchases.Count);
+            }
+
+            // 4. Clear the many-to-many relationship (TicketTypeSessions)
+            // This is done automatically when we clear the Sessions collection
+            foreach (var ticketType in ticketTypesWithSession)
+            {
+                ticketType.Sessions.Remove(sessionEntity);
+            }
+
+            // 5. Delete VolunteerPositions linked to this session
+            _context.Set<VolunteerPosition>().RemoveRange(sessionVolunteerPositions);
+            _logger.LogDebug("Removed {Count} volunteer positions", sessionVolunteerPositions.Count);
+
+            // 6. Delete the session itself
             _context.Set<Session>().Remove(sessionEntity);
+
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("🗑️ Successfully deleted test session: {SessionId}", sessionId);
+            _logger.LogInformation("🗑️ Successfully deleted test session with cascade: {SessionId}", sessionId);
             return (true, null);
         }
         catch (Exception ex)
@@ -670,7 +821,7 @@ public class TestHelperService : ITestHelperService
     }
 
     /// <summary>
-    /// Delete a test ticket type by ID
+    /// Delete a test ticket type by ID with cascade deletion of related entities
     /// </summary>
     public async Task<(bool Success, string? Error)> DeleteTestTicketTypeAsync(
         Guid ticketTypeId,
@@ -678,9 +829,10 @@ public class TestHelperService : ITestHelperService
     {
         try
         {
-            _logger.LogInformation("Deleting test ticket type: {TicketTypeId}", ticketTypeId);
+            _logger.LogInformation("Deleting test ticket type with cascade: {TicketTypeId}", ticketTypeId);
 
             var ticketTypeEntity = await _context.Set<TicketType>()
+                .Include(tt => tt.Sessions)
                 .FirstOrDefaultAsync(t => t.Id == ticketTypeId, cancellationToken);
 
             if (ticketTypeEntity == null)
@@ -689,10 +841,34 @@ public class TestHelperService : ITestHelperService
                 return (false, $"Ticket type not found: {ticketTypeId}");
             }
 
+            // 1. Delete TicketPurchases for this ticket type
+            var ticketPurchases = await _context.Set<TicketPurchase>()
+                .Where(tp => tp.TicketTypeId == ticketTypeId)
+                .ToListAsync(cancellationToken);
+
+            // 1a. First delete EventAttendances that reference these purchases
+            var purchaseIds = ticketPurchases.Select(tp => tp.Id).ToList();
+            if (purchaseIds.Any())
+            {
+                var purchaseAttendances = await _context.Set<EventAttendance>()
+                    .Where(ea => ea.TicketPurchaseId.HasValue && purchaseIds.Contains(ea.TicketPurchaseId.Value))
+                    .ToListAsync(cancellationToken);
+                _context.Set<EventAttendance>().RemoveRange(purchaseAttendances);
+                _logger.LogDebug("Removed {Count} purchase attendances", purchaseAttendances.Count);
+            }
+
+            _context.Set<TicketPurchase>().RemoveRange(ticketPurchases);
+            _logger.LogDebug("Removed {Count} ticket purchases", ticketPurchases.Count);
+
+            // 2. Clear the many-to-many relationship (TicketTypeSessions)
+            ticketTypeEntity.Sessions.Clear();
+
+            // 3. Delete the TicketType itself
             _context.Set<TicketType>().Remove(ticketTypeEntity);
+
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("🗑️ Successfully deleted test ticket type: {TicketTypeId}", ticketTypeId);
+            _logger.LogInformation("🗑️ Successfully deleted test ticket type with cascade: {TicketTypeId}", ticketTypeId);
             return (true, null);
         }
         catch (Exception ex)
@@ -774,7 +950,7 @@ public class TestHelperService : ITestHelperService
     }
 
     /// <summary>
-    /// Delete a test volunteer position by ID
+    /// Delete a test volunteer position by ID with cascade deletion of related entities
     /// </summary>
     public async Task<(bool Success, string? Error)> DeleteTestVolunteerPositionAsync(
         Guid positionId,
@@ -782,7 +958,7 @@ public class TestHelperService : ITestHelperService
     {
         try
         {
-            _logger.LogInformation("Deleting test volunteer position: {PositionId}", positionId);
+            _logger.LogInformation("Deleting test volunteer position with cascade: {PositionId}", positionId);
 
             var positionEntity = await _context.Set<VolunteerPosition>()
                 .FirstOrDefaultAsync(v => v.Id == positionId, cancellationToken);
@@ -793,10 +969,19 @@ public class TestHelperService : ITestHelperService
                 return (false, $"Volunteer position not found: {positionId}");
             }
 
+            // 1. Delete VolunteerSignups for this position
+            var volunteerSignups = await _context.Set<VolunteerSignup>()
+                .Where(vs => vs.VolunteerPositionId == positionId)
+                .ToListAsync(cancellationToken);
+            _context.Set<VolunteerSignup>().RemoveRange(volunteerSignups);
+            _logger.LogDebug("Removed {Count} volunteer signups", volunteerSignups.Count);
+
+            // 2. Delete the VolunteerPosition itself
             _context.Set<VolunteerPosition>().Remove(positionEntity);
+
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("🗑️ Successfully deleted test volunteer position: {PositionId}", positionId);
+            _logger.LogInformation("🗑️ Successfully deleted test volunteer position with cascade: {PositionId}", positionId);
             return (true, null);
         }
         catch (Exception ex)

@@ -20,6 +20,17 @@ public interface ITestHelperService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get an existing user by email, or create a new one if not found.
+    /// Used for E2E tests that may run multiple times with same test data.
+    /// </summary>
+    /// <param name="request">User creation parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Existing or newly created user information with ID for cleanup</returns>
+    Task<(bool Success, TestUserResponse? Data, string? Error)> GetOrCreateTestUserAsync(
+        CreateTestUserRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Delete a test user by ID
     /// Used for test cleanup
     /// </summary>

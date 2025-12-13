@@ -78,6 +78,32 @@ public static class TestHelperEndpoints
             .Produces<object>(200)
             .Produces<object>(400);
 
+        // Get or create test user endpoint
+        app.MapPost("/api/test-helpers/users/get-or-create", async (
+            CreateTestUserRequest request,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, data, error) = await testHelperService.GetOrCreateTestUserAsync(request, cancellationToken);
+
+                if (success && data != null)
+                {
+                    return Results.Ok(data);
+                }
+
+                return Results.Problem(
+                    title: "Failed to get or create test user",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("GetOrCreateTestUser")
+            .WithSummary("Get existing user or create new one")
+            .WithDescription("Returns existing user if email exists, otherwise creates new user. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces<object>(200)
+            .Produces<object>(400);
+
         // Create test ticket purchase endpoint
         app.MapPost("/api/test-helpers/ticket-purchases", async (
             CreateTestTicketPurchaseRequest request,

@@ -88,12 +88,22 @@ limitation, not an application bug. Manual testing confirms the policies field w
   - Tests failing very quickly (<300ms) - likely missing elements
   - DataFactory events can't be cleaned up after tests
 
-### Common DataFactory Issues
-These tests all suffer from similar DataFactory problems:
-1. Sessions can't be deleted when tickets exist
-2. Events can't be deleted when sessions exist
-3. Users can't be created when email already exists
-4. Need proper cascade delete support in test helper endpoints
+### Common DataFactory Issues - **FIXED (December 13, 2025)**
+~~These tests all suffer from similar DataFactory problems:~~
+~~1. Sessions can't be deleted when tickets exist~~
+~~2. Events can't be deleted when sessions exist~~
+~~3. Users can't be created when email already exists~~
+~~4. Need proper cascade delete support in test helper endpoints~~
+
+**FIX IMPLEMENTED**: Backend TestHelper endpoints now support cascade delete:
+- `DeleteTestSessionAsync` - Deletes VolunteerSignups, EventAttendances, TicketPurchases, clears m2m relationships
+- `DeleteTestEventAsync` - Full cascade deletion of all child entities in correct order
+- `DeleteTestTicketTypeAsync` - Deletes EventAttendances, TicketPurchases, clears m2m
+- `DeleteTestVolunteerPositionAsync` - Deletes VolunteerSignups first
+- **NEW**: `GetOrCreateTestUserAsync` - Returns existing user or creates new (avoids duplicate email errors)
+- **NEW**: `POST /api/test-helpers/users/get-or-create` endpoint
+
+**Commit**: `fix: implement cascade delete for TestHelper endpoints`
 
 ---
 
