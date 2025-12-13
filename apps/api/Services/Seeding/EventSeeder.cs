@@ -346,7 +346,7 @@ public class EventSeeder
 <li>Suspension bondage carries inherent risks including nerve damage, circulation issues, rope burns, bruising, and injury from falls</li>
 <li>By attending, you acknowledge these risks and accept responsibility for your participation</li>
 <li>You agree to follow all safety protocols and instructor guidance</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -478,7 +478,7 @@ public class EventSeeder
 <li>By participating, you acknowledge these risks and accept responsibility</li>
 <li>You agree to practice safely and follow all instructor guidance</li>
 <li>Nerve damage, bruising, rope burns, and other injuries are possible</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -629,7 +629,7 @@ public class EventSeeder
 <li>You are responsible for your own safety</li>
 <li>Practice within your abilities and knowledge</li>
 <li>Ask for help when needed</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -784,7 +784,7 @@ public class EventSeeder
 <li>Look out for each other</li>
 <li>Let organizers know if someone seems in distress</li>
 <li>This is a community space - we all contribute to making it safe and welcoming</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -946,7 +946,7 @@ public class EventSeeder
 <li>Inclusive and welcoming to all backgrounds</li>
 <li>Support for learning and growth</li>
 <li>Building authentic connections and friendships</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -984,7 +984,7 @@ public class EventSeeder
 <li>No photography without permission</li>
 <li>Respectful conduct expected</li>
 <li>Zero tolerance for harassment</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -1025,7 +1025,7 @@ public class EventSeeder
 <li>Consent protocols mandatory</li>
 <li>No photography without permission</li>
 <li>Professional conduct required</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -1062,7 +1062,7 @@ public class EventSeeder
 <li>Prerequisite: Advanced rope experience required</li>
 <li>Medical waiver mandatory</li>
 <li>Professional conduct expected</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -1099,7 +1099,7 @@ public class EventSeeder
 <li>Beginner-friendly, no experience required</li>
 <li>Safety protocols mandatory</li>
 <li>Respectful conduct expected</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -1136,7 +1136,7 @@ public class EventSeeder
 <li>All skill levels welcome</li>
 <li>Practice safely within your abilities</li>
 <li>Respect all boundaries and consent</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
@@ -1173,7 +1173,7 @@ public class EventSeeder
 <li>Welcoming to all backgrounds</li>
 <li>Respectful interaction required</li>
 <li>No experience necessary</li>
-</ul>"
+</ul>",
                 registrationCloseHours: -8m,
                 cancellationCloseHours: 12m,
                 volunteerRegistrationCloseHours: 24m,
