@@ -327,7 +327,8 @@ export const EventDetailPage: React.FC = () => {
       <Container
         size="xl"
         px={{ base: 'sm', md: 'xl' }}
-        py={{ base: 'sm', md: 'xl' }}
+        pt={{ base: 'xs', md: 'md' }}
+        pb={{ base: 'sm', md: 'xl' }}
       >
         {/* Event Hero Section - FULL WIDTH */}
         <Paper
@@ -739,7 +740,8 @@ const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
   <Paper
     className={styles.contentSection}
     px={{ base: 24, md: 40 }}
-    py={{ base: 18, md: 40 }}
+    pt={{ base: 14, md: 30 }}
+    pb={{ base: 18, md: 40 }}
     style={{
       background: 'var(--color-ivory)',
       borderRadius: '16px',
