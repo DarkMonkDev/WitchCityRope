@@ -5,9 +5,9 @@ namespace WitchCityRope.Api.Features.Events.Models;
 /// Used in the Events feature vertical slice.
 ///
 /// CORRECT Business Logic:
-/// - Social Events: RegistrationCount = CurrentRSVPs (everyone must RSVP, tickets are optional support)
-/// - Class Events: RegistrationCount = CurrentTickets (no RSVPs, only paid tickets)
-/// - Tickets are additional support/donations for Social events, not additional attendees
+/// - RSVP-enabled events: RegistrationCount = CurrentRSVPs (everyone must RSVP, tickets are optional support)
+/// - Ticket-required events: RegistrationCount = CurrentTickets (no RSVPs, only paid tickets)
+/// - Tickets are additional support/donations for RSVP-enabled events, not additional attendees
 /// </summary>
 public class EventDto
 {
@@ -32,7 +32,6 @@ public class EventDto
     /// </summary>
     public string? VenueLocation { get; set; }
 
-    public string EventType { get; set; } = string.Empty;
     public int Capacity { get; set; }
 
     /// <summary>
@@ -41,22 +40,37 @@ public class EventDto
     public bool IsPublished { get; set; }
 
     /// <summary>
+    /// Whether free RSVPs are enabled for this event
+    /// </summary>
+    public bool AllowRsvps { get; set; }
+
+    /// <summary>
+    /// Whether ticket purchase is mandatory to attend
+    /// </summary>
+    public bool RequireTicketPurchase { get; set; }
+
+    /// <summary>
+    /// Whether only vetted members can attend this event
+    /// </summary>
+    public bool VettedMembersOnly { get; set; }
+
+    /// <summary>
     /// Total confirmed registrations/attendees
-    /// - Social Events: equals CurrentRSVPs (primary attendance metric)
-    /// - Class Events: equals CurrentTickets (only paid attendance)
+    /// - RSVP-enabled events: equals CurrentRSVPs (primary attendance metric)
+    /// - Ticket-required events: equals CurrentTickets (only paid attendance)
     /// Frontend expects this field for displaying event capacity/availability
     /// </summary>
     public int RegistrationCount { get; set; }
 
     /// <summary>
-    /// Number of free RSVPs (only for Social events, 0 for Class events)
+    /// Number of free RSVPs (only for RSVP-enabled events, 0 for ticket-required events)
     /// </summary>
     public int CurrentRSVPs { get; set; }
 
     /// <summary>
     /// Number of paid ticket registrations
-    /// - For Class events: equals RegistrationCount (all paid)
-    /// - For Social events: optional paid tickets in addition to free RSVPs
+    /// - For ticket-required events: equals RegistrationCount (all paid)
+    /// - For RSVP-enabled events: optional paid tickets in addition to free RSVPs
     /// </summary>
     public int CurrentTickets { get; set; }
 

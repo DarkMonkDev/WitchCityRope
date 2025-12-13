@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 
 namespace WitchCityRope.Api.Models;
@@ -60,12 +59,6 @@ public class Event
     public int Capacity { get; set; }
 
     /// <summary>
-    /// Type of event (workshop, social, performance, etc.)
-    /// </summary>
-    [Required]
-    public EventType EventType { get; set; }
-
-    /// <summary>
     /// Foreign key to Venue table
     /// All events must have an assigned venue for location information
     /// </summary>
@@ -82,6 +75,24 @@ public class Event
     /// </summary>
     [Required]
     public bool IsPublished { get; set; } = true;
+
+    /// <summary>
+    /// Whether free RSVPs are enabled for this event
+    /// </summary>
+    [Required]
+    public bool AllowRsvps { get; set; }
+
+    /// <summary>
+    /// Whether ticket purchase is mandatory to attend
+    /// </summary>
+    [Required]
+    public bool RequireTicketPurchase { get; set; }
+
+    /// <summary>
+    /// Whether only vetted members can attend this event
+    /// </summary>
+    [Required]
+    public bool VettedMembersOnly { get; set; }
 
     /// <summary>
     /// When record was created
@@ -177,8 +188,8 @@ public class Event
 
     /// <summary>
     /// Gets the current number of confirmed attendees based on CORRECT business logic:
-    /// - Social Events: CurrentAttendees = RSVPs (everyone must RSVP to attend, tickets are optional donations)
-    /// - Class Events: CurrentAttendees = Tickets (only paid tickets, no RSVPs)
+    /// - RSVP-enabled events: CurrentAttendees = RSVPs (everyone must RSVP to attend, tickets are optional donations)
+    /// - Ticket-required events: CurrentAttendees = Tickets (only paid tickets, no RSVPs)
     ///
     /// Returns varied capacity states for frontend testing:
     /// - Some events SOLD OUT (100% capacity) - shows green progress bar
@@ -188,28 +199,28 @@ public class Event
     /// </summary>
     public int GetCurrentAttendeeCount()
     {
-        if (EventType == Enums.EventType.Social)
+        if (AllowRsvps && !RequireTicketPurchase)
         {
-            // Social events: Attendees = RSVPs (primary attendance metric)
+            // RSVP-enabled events: Attendees = RSVPs (primary attendance metric)
             return GetCurrentRSVPCount();
         }
-        else // Class
+        else
         {
-            // Class events: Attendees = Tickets (only paid tickets)
+            // Ticket-required events: Attendees = Tickets (only paid tickets)
             return GetCurrentTicketCount();
         }
     }
 
     /// <summary>
-    /// Gets the current number of RSVPs for Social events (real implementation)
-    /// Social Events: Everyone must RSVP to attend (this is the primary attendance count)
-    /// Class Events: No RSVPs, returns 0
+    /// Gets the current number of RSVPs for RSVP-enabled events (real implementation)
+    /// RSVP-enabled events: Everyone must RSVP to attend (this is the primary attendance count)
+    /// Ticket-required events: No RSVPs, returns 0
     /// Requires EventAttendances navigation property to be loaded
     /// </summary>
     public int GetCurrentRSVPCount()
     {
-        // Only Social events have RSVPs
-        if (EventType != Enums.EventType.Social) return 0;
+        // Only RSVP-enabled events have RSVPs
+        if (!AllowRsvps) return 0;
 
         // Count active RSVP attendances if navigation property is loaded
         if (EventAttendances?.Any() == true)
@@ -225,8 +236,8 @@ public class Event
 
     /// <summary>
     /// Gets the current number of paid ticket registrations (real implementation)
-    /// Social Events: Optional tickets as donations/support (subset of RSVPs)
-    /// Class Events: Required tickets (this is the primary attendance count)
+    /// RSVP-enabled events: Optional tickets as donations/support (subset of RSVPs)
+    /// Ticket-required events: Required tickets (this is the primary attendance count)
     /// Requires EventAttendances navigation property to be loaded
     /// </summary>
     public int GetCurrentTicketCount()

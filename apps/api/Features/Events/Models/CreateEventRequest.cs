@@ -30,9 +30,6 @@ public class CreateEventRequest
     public int VenueId { get; set; }
 
     [Required]
-    public string EventType { get; set; } = string.Empty;
-
-    [Required]
     [Range(1, int.MaxValue)]
     public int Capacity { get; set; }
 
@@ -40,6 +37,24 @@ public class CreateEventRequest
     /// Whether to publish the event immediately (default: false for draft)
     /// </summary>
     public bool IsPublished { get; set; } = false;
+
+    /// <summary>
+    /// Whether free RSVPs are enabled for this event
+    /// </summary>
+    [Required]
+    public bool AllowRsvps { get; set; }
+
+    /// <summary>
+    /// Whether ticket purchase is mandatory to attend
+    /// </summary>
+    [Required]
+    public bool RequireTicketPurchase { get; set; }
+
+    /// <summary>
+    /// Whether only vetted members can attend this event
+    /// </summary>
+    [Required]
+    public bool VettedMembersOnly { get; set; }
 
     /// <summary>
     /// List of sessions within this event (optional)

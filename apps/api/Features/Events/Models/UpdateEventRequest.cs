@@ -56,6 +56,21 @@ public class UpdateEventRequest
     public bool? IsPublished { get; set; }
 
     /// <summary>
+    /// Whether free RSVPs are enabled (null = no change)
+    /// </summary>
+    public bool? AllowRsvps { get; set; }
+
+    /// <summary>
+    /// Whether ticket purchase is mandatory (null = no change)
+    /// </summary>
+    public bool? RequireTicketPurchase { get; set; }
+
+    /// <summary>
+    /// Whether only vetted members can attend (null = no change)
+    /// </summary>
+    public bool? VettedMembersOnly { get; set; }
+
+    /// <summary>
     /// Updated sessions list (optional)
     /// If provided, will replace all existing sessions with these
     /// </summary>
