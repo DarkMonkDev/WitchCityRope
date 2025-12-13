@@ -186,27 +186,27 @@ public class SessionTicketSeeder
 
     /// <summary>
     /// Helper method to add sessions for Suspension Basics event (multi-session example).
-    /// Creates two sessions: Day 1 and Day 2 for testing session-specific volunteers.
+    /// Creates two sessions with realistic names for testing session-specific volunteers.
     /// </summary>
     private void AddSuspensionBasicsSessions(Event eventItem, List<Session> sessionsToAdd)
     {
-        // Day 1: 6:00 PM - 9:00 PM
+        // Day 1: 6:00 PM - 9:00 PM - Intro to Hip Harnesses
         var day1Session = new Session
         {
             EventId = eventItem.Id,
             SessionCode = "DAY1",
-            Name = "Day 1",
+            Name = "Intro to Hip Harnesses",
             StartTime = eventItem.StartDate,
             EndTime = eventItem.StartDate.AddHours(3),
             Capacity = eventItem.Capacity / 2
         };
 
-        // Day 2: 8:00 PM - 10:00 PM
+        // Day 2: 8:00 PM - 10:00 PM - First Partial Suspension
         var day2Session = new Session
         {
             EventId = eventItem.Id,
             SessionCode = "DAY2",
-            Name = "Day 2",
+            Name = "First Partial Suspension",
             StartTime = eventItem.StartDate.AddHours(2),
             EndTime = eventItem.StartDate.AddHours(4),
             Capacity = eventItem.Capacity / 2
@@ -303,18 +303,23 @@ public class SessionTicketSeeder
     /// </summary>
     private void CreateMultiDayTicketTypes(Event eventItem, decimal basePrice, List<Session> sessions, List<TicketType> ticketTypesToAdd)
     {
+        // Day name helper (converts 1 -> "One", 2 -> "Two", etc.)
+        string[] dayNames = { "One", "Two", "Three", "Four", "Five" };
+        string GetDayName(int dayNumber) => dayNumber <= dayNames.Length ? dayNames[dayNumber - 1] : dayNumber.ToString();
+
         if (eventItem.AllowRsvps && !eventItem.RequireTicketPurchase)
         {
             // Social events: Free RSVP for each day + sliding scale donation for full event
             for (int i = 0; i < sessions.Count; i++)
             {
                 var session = sessions[i];
+                var dayName = GetDayName(i + 1);
                 var rsvpTicket = new TicketType
                 {
                     EventId = eventItem.Id,
                     Sessions = new List<Session> { session },
-                    Name = $"Day {i + 1} RSVP",
-                    Description = $"Free RSVP for Day {i + 1} only",
+                    Name = $"Day {dayName} RSVP",
+                    Description = $"Free RSVP for Day {dayName} only",
                     Price = 0,
                     Available = session.Capacity,
                     PricingType = PricingType.Fixed
@@ -324,12 +329,13 @@ public class SessionTicketSeeder
             }
 
             // Full event sliding scale donation (includes all sessions)
+            var fullEventName = sessions.Count == 2 ? "Both Days" : $"All {sessions.Count} Days";
             var fullEventTicket = new TicketType
             {
                 EventId = eventItem.Id,
                 Sessions = sessions.ToList(), // Multi-session ticket includes all sessions
-                Name = $"All {sessions.Count} Days Support",
-                Description = $"Optional sliding scale donation for all {sessions.Count} days - pay what you can!",
+                Name = $"{fullEventName} Support",
+                Description = $"Optional sliding scale donation for {fullEventName.ToLower()} - pay what you can!",
                 Price = null, // Not used for sliding scale
                 MinPrice = 10m,
                 MaxPrice = 40m,
@@ -348,12 +354,13 @@ public class SessionTicketSeeder
             for (int i = 0; i < sessions.Count; i++)
             {
                 var session = sessions[i];
+                var dayName = GetDayName(i + 1);
                 var dayTicket = new TicketType
                 {
                     EventId = eventItem.Id,
                     Sessions = new List<Session> { session },
-                    Name = $"Day {i + 1} Only",
-                    Description = $"Access to Day {i + 1} activities only",
+                    Name = $"Day {dayName}",
+                    Description = $"Access to Day {dayName} activities only",
                     Price = dailyPrice,
                     Available = session.Capacity,
                     PricingType = PricingType.Fixed
@@ -363,12 +370,13 @@ public class SessionTicketSeeder
             }
 
             // Create full event ticket with discount (includes all sessions)
+            var fullEventName = sessions.Count == 2 ? "Both Days" : $"All {sessions.Count} Days";
             var fullEventTicket = new TicketType
             {
                 EventId = eventItem.Id,
                 Sessions = sessions.ToList(), // Multi-session ticket includes all sessions
-                Name = $"All {sessions.Count} Days",
-                Description = $"Full access to all {sessions.Count} days - SAVE ${(dailyPrice * sessions.Count - basePrice):F0}!",
+                Name = fullEventName,
+                Description = $"Full access to {fullEventName.ToLower()} - SAVE ${(dailyPrice * sessions.Count - basePrice):F0}!",
                 Price = basePrice,
                 Available = eventItem.Capacity,
                 PricingType = PricingType.Fixed

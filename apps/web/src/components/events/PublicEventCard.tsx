@@ -133,14 +133,14 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
       {/* Gradient Header with Event Title */}
       <Box
         style={{
-          height: '100px',
+          height: '80px',
           background: 'linear-gradient(135deg, var(--color-plum) 0%, var(--color-burgundy) 100%)',
           position: 'relative',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 'var(--space-md)',
+          padding: '18px',
         }}
       >
         {/* Pattern overlay (homepage only) */}
@@ -235,67 +235,28 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
 
           if (sessions.length === 1) {
             const session = sessions[0]
+            const showSessionName = session.name && !session.name.includes('Main Session')
             return (
-              <Group
-                justify="space-between"
+              <Stack
+                gap={2}
                 style={{ marginBottom: variant === 'homepage' ? 'var(--space-xs)' : undefined }}
                 mb={variant === 'list' ? 'sm' : undefined}
               >
-                <Text
-                  data-testid="event-date"
-                  size={variant === 'list' ? 'sm' : undefined}
-                  fw={variant === 'list' ? 700 : 600}
-                  style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: variant === 'homepage' ? '14px' : undefined,
-                    color: 'var(--color-burgundy)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  {formatUtcToLocalDate(session.startTime, eventTimeZone, {
-                    weekday: 'long',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </Text>
-                <Text
-                  data-testid="event-time"
-                  size={variant === 'list' ? 'sm' : undefined}
-                  fw={variant === 'list' ? 700 : 600}
-                  style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: variant === 'homepage' ? '14px' : undefined,
-                    color: 'var(--color-burgundy)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)
-                    .toLowerCase()}
-                </Text>
-              </Group>
-            )
-          }
-
-          // Multiple sessions
-          return (
-            <Stack
-              gap={4}
-              style={{ marginBottom: variant === 'homepage' ? 'var(--space-xs)' : undefined }}
-              mb={variant === 'list' ? 'sm' : undefined}
-            >
-              {sessions.map((session: any, index: number) => (
-                <Group
-                  key={session.id || index}
-                  justify="space-between"
-                  style={{
-                    marginBottom:
-                      variant === 'homepage' && index < sessions.length - 1 ? '4px' : '0',
-                  }}
-                >
+                {showSessionName && (
                   <Text
-                    data-testid={variant === 'list' && index === 0 ? 'event-date' : undefined}
+                    fw={600}
+                    c="dimmed"
+                    size="sm"
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                    }}
+                  >
+                    {session.name}
+                  </Text>
+                )}
+                <Group justify="space-between">
+                  <Text
+                    data-testid="event-date"
                     size={variant === 'list' ? 'sm' : undefined}
                     fw={variant === 'list' ? 700 : 600}
                     style={{
@@ -307,13 +268,13 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                     }}
                   >
                     {formatUtcToLocalDate(session.startTime, eventTimeZone, {
-                      weekday: 'long',
+                      weekday: 'short',
                       month: 'short',
                       day: 'numeric',
                     })}
                   </Text>
                   <Text
-                    data-testid={variant === 'list' && index === 0 ? 'event-time' : undefined}
+                    data-testid="event-time"
                     size={variant === 'list' ? 'sm' : undefined}
                     fw={variant === 'list' ? 700 : 600}
                     style={{
@@ -328,7 +289,71 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                       .toLowerCase()}
                   </Text>
                 </Group>
-              ))}
+              </Stack>
+            )
+          }
+
+          // Multiple sessions
+          return (
+            <Stack
+              gap={8}
+              style={{ marginBottom: variant === 'homepage' ? 'var(--space-xs)' : undefined }}
+              mb={variant === 'list' ? 'sm' : undefined}
+            >
+              {sessions.map((session: any, index: number) => {
+                const showSessionName = session.name && !session.name.includes('Main Session')
+                return (
+                  <Stack key={session.id || index} gap={2}>
+                    {showSessionName && (
+                      <Text
+                        fw={600}
+                        c="dimmed"
+                        size="sm"
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                        }}
+                      >
+                        {session.name}
+                      </Text>
+                    )}
+                    <Group justify="space-between">
+                      <Text
+                        data-testid={variant === 'list' && index === 0 ? 'event-date' : undefined}
+                        size={variant === 'list' ? 'sm' : undefined}
+                        fw={variant === 'list' ? 700 : 600}
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: variant === 'homepage' ? '14px' : undefined,
+                          color: 'var(--color-burgundy)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </Text>
+                      <Text
+                        data-testid={variant === 'list' && index === 0 ? 'event-time' : undefined}
+                        size={variant === 'list' ? 'sm' : undefined}
+                        fw={variant === 'list' ? 700 : 600}
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: variant === 'homepage' ? '14px' : undefined,
+                          color: 'var(--color-burgundy)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)
+                          .toLowerCase()}
+                      </Text>
+                    </Group>
+                  </Stack>
+                )
+              })}
             </Stack>
           )
         })()}

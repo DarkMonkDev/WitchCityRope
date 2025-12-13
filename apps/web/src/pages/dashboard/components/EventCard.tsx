@@ -127,13 +127,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
     >
       {/* Gradient Header */}
       <Box
-        h={100}
+        h={80}
         style={{
           background: 'linear-gradient(135deg, var(--color-plum) 0%, var(--color-burgundy) 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 'var(--space-md)',
+          padding: '18px',
         }}
       >
         <Text
@@ -183,45 +183,22 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
 
           if (sessions.length === 1) {
             const session = sessions[0];
+            const showSessionName = session.name && !session.name.includes('Main Session');
             return (
-              <Group justify="space-between" style={{ marginBottom: '4px' }}>
-                <Text
-                  fw={700}
-                  c="burgundy"
-                  size="sm"
-                  tt="uppercase"
-                  style={{
-                    fontFamily: 'var(--font-heading)',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  {formatUtcToLocalDate(session.startTime, eventTimeZone, {
-                    weekday: 'long',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </Text>
-                <Text
-                  fw={700}
-                  c="burgundy"
-                  size="sm"
-                  tt="uppercase"
-                  style={{
-                    fontFamily: 'var(--font-heading)',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
-                </Text>
-              </Group>
-            );
-          }
-
-          // Multiple sessions
-          return (
-            <Stack gap={4} style={{ marginBottom: '4px' }}>
-              {sessions.map((session, index) => (
-                <Group key={session.id || index} justify="space-between">
+              <Stack gap={2} style={{ marginBottom: '4px' }}>
+                {showSessionName && (
+                  <Text
+                    fw={600}
+                    c="dimmed"
+                    size="sm"
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                    }}
+                  >
+                    {session.name}
+                  </Text>
+                )}
+                <Group justify="space-between">
                   <Text
                     fw={700}
                     c="burgundy"
@@ -233,7 +210,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
                     }}
                   >
                     {formatUtcToLocalDate(session.startTime, eventTimeZone, {
-                      weekday: 'long',
+                      weekday: 'short',
                       month: 'short',
                       day: 'numeric',
                     })}
@@ -251,7 +228,62 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
                     {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
                   </Text>
                 </Group>
-              ))}
+              </Stack>
+            );
+          }
+
+          // Multiple sessions
+          return (
+            <Stack gap={8} style={{ marginBottom: '4px' }}>
+              {sessions.map((session, index) => {
+                const showSessionName = session.name && !session.name.includes('Main Session');
+                return (
+                  <Stack key={session.id || index} gap={2}>
+                    {showSessionName && (
+                      <Text
+                        fw={600}
+                        c="dimmed"
+                        size="sm"
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                        }}
+                      >
+                        {session.name}
+                      </Text>
+                    )}
+                    <Group justify="space-between">
+                      <Text
+                        fw={700}
+                        c="burgundy"
+                        size="sm"
+                        tt="uppercase"
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </Text>
+                      <Text
+                        fw={700}
+                        c="burgundy"
+                        size="sm"
+                        tt="uppercase"
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
+                      </Text>
+                    </Group>
+                  </Stack>
+                );
+              })}
             </Stack>
           );
         })()}

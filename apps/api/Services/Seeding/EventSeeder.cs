@@ -221,13 +221,8 @@ public class EventSeeder
 <li>Violation of policies may result in permanent ban from all community events</li>
 </ul>
 
-<p><strong>By attending, you agree to abide by all policies and accept responsibility for your own safety and well-being.</strong></p>",
-                // TIMING: Workshop - Strict (early commitment required)
-                registrationOpenHours: 240m,      // 10 days before
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+<p><strong>By attending, you agree to abide by all policies and accept responsibility for your own safety and well-being.</strong></p>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Upcoming Class Event #2: Very strict timing (advanced class)
@@ -348,13 +343,8 @@ public class EventSeeder
 <li>Suspension bondage carries inherent risks including nerve damage, circulation issues, rope burns, bruising, and injury from falls</li>
 <li>By attending, you acknowledge these risks and accept responsibility for your participation</li>
 <li>You agree to follow all safety protocols and instructor guidance</li>
-</ul>",
-                // TIMING: Advanced Suspension - Very Strict (safety critical)
-                registrationOpenHours: 336m,      // 14 days before (2 weeks)
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Upcoming Class Event #3: Medium timing (balanced approach)
@@ -482,13 +472,8 @@ public class EventSeeder
 <li>By participating, you acknowledge these risks and accept responsibility</li>
 <li>You agree to practice safely and follow all instructor guidance</li>
 <li>Nerve damage, bruising, rope burns, and other injuries are possible</li>
-</ul>",
-                // TIMING: Advanced Class - Medium timing (balanced)
-                registrationOpenHours: 168m,      // 7 days before
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Upcoming Social Event #1: Very lenient (allows post-event timing)
@@ -635,13 +620,8 @@ public class EventSeeder
 <li>You are responsible for your own safety</li>
 <li>Practice within your abilities and knowledge</li>
 <li>Ask for help when needed</li>
-</ul>",
-                // TIMING: Social Jam - Very Lenient (includes POST-EVENT timing)
-                registrationOpenHours: 168m,      // 7 days before
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Upcoming Social Event #2: Moderate timing
@@ -792,13 +772,8 @@ public class EventSeeder
 <li>Look out for each other</li>
 <li>Let organizers know if someone seems in distress</li>
 <li>This is a community space - we all contribute to making it safe and welcoming</li>
-</ul>",
-                // TIMING: Social Discussion - Moderate (balanced approach)
-                registrationOpenHours: 120m,      // 5 days before
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Upcoming Social Event #3: Lenient timing (welcoming to new members)
@@ -956,13 +931,8 @@ public class EventSeeder
 <li>Inclusive and welcoming to all backgrounds</li>
 <li>Support for learning and growth</li>
 <li>Building authentic connections and friendships</li>
-</ul>",
-                // TIMING: New Members - Lenient (welcoming, flexible)
-                registrationOpenHours: 336m,      // 14 days before
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Past Social Event: Demonstrates historical data
@@ -996,13 +966,8 @@ public class EventSeeder
 <li>No photography without permission</li>
 <li>Respectful conduct expected</li>
 <li>Zero tolerance for harassment</li>
-</ul>",
-                // TIMING: Past event - Same as New Members (lenient)
-                registrationOpenHours: 168m,
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Past Class Event: Demonstrates historical workshop
@@ -1039,13 +1004,8 @@ public class EventSeeder
 <li>Consent protocols mandatory</li>
 <li>No photography without permission</li>
 <li>Professional conduct required</li>
-</ul>",
-                // TIMING: Past class - Medium timing (balanced)
-                registrationOpenHours: 240m,
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Historical Event 1: Advanced Suspension Techniques Workshop
@@ -1078,13 +1038,8 @@ public class EventSeeder
 <li>Prerequisite: Advanced rope experience required</li>
 <li>Medical waiver mandatory</li>
 <li>Professional conduct expected</li>
-</ul>",
-                // TIMING: Historical event - Very strict (advanced safety)
-                registrationOpenHours: 336m,
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Historical Event 2: Rope Fundamentals Intensive
@@ -1117,13 +1072,8 @@ public class EventSeeder
 <li>Beginner-friendly, no experience required</li>
 <li>Safety protocols mandatory</li>
 <li>Respectful conduct expected</li>
-</ul>",
-                // TIMING: Historical intensive - Strict (full-day commitment)
-                registrationOpenHours: 240m,
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Historical Event 3: Monthly Rope Practice Night
@@ -1156,13 +1106,8 @@ public class EventSeeder
 <li>All skill levels welcome</li>
 <li>Practice safely within your abilities</li>
 <li>Respect all boundaries and consent</li>
-</ul>",
-                // TIMING: Historical practice night - Very lenient (social)
-                registrationOpenHours: 168m,
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // Historical Event 4: New Member Welcome Mixer
@@ -1195,13 +1140,8 @@ public class EventSeeder
 <li>Welcoming to all backgrounds</li>
 <li>Respectful interaction required</li>
 <li>No experience necessary</li>
-</ul>",
-                // TIMING: Historical welcome - Lenient (welcoming)
-                registrationOpenHours: 336m,
-                registrationCloseHours: -12m,     // 12 hours AFTER start
-                cancellationCloseHours: -12m,     // 12 hours AFTER start
-                volunteerRegistrationCloseHours: 24m,   // 24 hours before
-                volunteerCancellationCloseHours: 48m    // 48 hours before
+</ul>"
+                // TIMING: Use system defaults (null) - only timing test events have explicit values
             ),
 
             // E2E TEST EVENT: Session Timing Test
@@ -1500,6 +1440,8 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
     ///
     /// CRITICAL: Uses TRUE UTC conversion (not naive UTC).
     /// All times are converted from America/New_York timezone to UTC before storage.
+    ///
+    /// NOTE: Pass null for timing parameters to use system defaults (only timing test events should have explicit values).
     /// </summary>
     private Event CreateSeedEvent(
         string title,
@@ -1514,11 +1456,11 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
         string shortDescription,
         string longDescription,
         string policies,
-        decimal registrationOpenHours,
-        decimal registrationCloseHours,
-        decimal cancellationCloseHours,
-        decimal volunteerRegistrationCloseHours,
-        decimal volunteerCancellationCloseHours)
+        decimal? registrationOpenHours = null,
+        decimal? registrationCloseHours = null,
+        decimal? cancellationCloseHours = null,
+        decimal? volunteerRegistrationCloseHours = null,
+        decimal? volunteerCancellationCloseHours = null)
     {
         // Convert local Eastern time to TRUE UTC
         // Example: 6 PM Eastern → 11 PM UTC (EST) or 10 PM UTC (EDT)
@@ -1556,6 +1498,8 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
     ///
     /// CRITICAL: Uses TRUE UTC conversion (not naive UTC).
     /// All times are converted from America/New_York timezone to UTC before storage.
+    ///
+    /// NOTE: Pass null for timing parameters to use system defaults (only timing test events should have explicit values).
     /// </summary>
     private Event CreateHistoricalEvent(
         out Guid id,
@@ -1571,11 +1515,11 @@ A 3+ hour timezone offset would cause the calculation to cross the threshold inc
         string shortDescription,
         string longDescription,
         string policies,
-        decimal registrationOpenHours,
-        decimal registrationCloseHours,
-        decimal cancellationCloseHours,
-        decimal volunteerRegistrationCloseHours,
-        decimal volunteerCancellationCloseHours)
+        decimal? registrationOpenHours = null,
+        decimal? registrationCloseHours = null,
+        decimal? cancellationCloseHours = null,
+        decimal? volunteerRegistrationCloseHours = null,
+        decimal? volunteerCancellationCloseHours = null)
     {
         id = Guid.NewGuid();
 
