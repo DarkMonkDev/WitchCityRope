@@ -2620,8 +2620,32 @@ export const EventForm: React.FC<EventFormProps> = ({
                       </Table.Tr>
                     ) : participationsData &&
                       (participationsData as EventParticipationDto[]).length > 0 ? (
-                      (participationsData as EventParticipationDto[])
-                        .filter((p) => p.participationType === 'Ticket')
+                      // Group ticket participations by ticketId to deduplicate multi-session tickets
+                      (() => {
+                        const ticketParticipations = (participationsData as EventParticipationDto[])
+                          .filter((p) => p.participationType === 'Ticket');
+
+                        // Group by ticketId, combining session names
+                        const groupedByTicketId = new Map<string, EventParticipationDto>();
+                        ticketParticipations.forEach((p) => {
+                          const key = p.ticketId ?? p.id; // Use ticketId if available, otherwise id
+                          if (!key) return;
+
+                          const existing = groupedByTicketId.get(key);
+                          if (!existing) {
+                            // First entry for this ticket purchase
+                            groupedByTicketId.set(key, { ...p });
+                          } else {
+                            // Merge session names (avoid duplicates)
+                            const existingSessions = existing.sessionNames?.split(', ') || [];
+                            const newSessions = p.sessionNames?.split(', ') || [];
+                            const allSessions = [...new Set([...existingSessions, ...newSessions])];
+                            existing.sessionNames = allSessions.join(', ');
+                          }
+                        });
+
+                        return Array.from(groupedByTicketId.values());
+                      })()
                         .sort((a, b) => {
                           let aVal: any, bVal: any
                           switch (ticketsSortColumn) {
