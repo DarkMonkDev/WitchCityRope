@@ -258,22 +258,16 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     await approveButton.click();
 
-    // Assert - Success notification appears
-    // Wait for notification (Mantine notifications system)
-    const notification = page.locator('[class*="mantine-Notification"]').filter({
+    // Assert - Success notification appears - use first() to handle strict mode
+    const notification = page.locator('.mantine-Notification-root').filter({
       hasText: /approved|interview/i
-    });
+    }).first();
     await expect(notification).toBeVisible({ timeout: 10000 });
 
     // Verify status badge updates
-    const statusBadge = page.locator('[data-testid="status-badge"]')
-      .or(page.locator('.badge, .mantine-Badge-root').filter({ hasText: /interview/i }))
-      .first();
-
-    if (await statusBadge.count() > 0) {
-      await expect(statusBadge).toBeVisible();
-      console.log('✅ Status badge updated after approval');
-    }
+    const statusBadge = page.locator('[data-testid="status-badge"]');
+    await expect(statusBadge).toBeVisible({ timeout: 5000 });
+    console.log('✅ Status badge updated after approval');
 
     console.log('✅ Application approved for interview - email notification sent by backend');
 
@@ -467,13 +461,17 @@ test.describe('Vetting System - Complete Workflows', () => {
       fullPage: true
     });
 
+    // Wait a moment for React to process the text input
+    await page.waitForTimeout(500);
+
     // Submit (use specific data-testid)
     const submitButton = page.locator('[data-testid="deny-submit-button"]');
     await expect(submitButton).toBeVisible({ timeout: 3000 });
+    await expect(submitButton).toBeEnabled({ timeout: 3000 });
     await submitButton.click();
 
-    // Wait for modal to close (textarea becomes hidden)
-    await expect(reasonField).not.toBeVisible({ timeout: 10000 });
+    // Wait for modal to close (textarea becomes hidden) - increase timeout for API call
+    await expect(reasonField).not.toBeVisible({ timeout: 15000 });
     console.log('✅ Deny modal closed - action completed');
 
     // Check for success notification (optional - not all implementations show notification)
