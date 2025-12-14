@@ -98,11 +98,12 @@ test.describe('Anonymous Incident Report Submission', () => {
     // Wait for form validation to process the input
     await page.waitForTimeout(500);
 
-    // Accept acknowledgment checkbox (required) - HARD ASSERTION
+    // Accept policy agreement checkbox (required) - HARD ASSERTION
     // Use .last() to handle React Strict Mode duplicate rendering
-    const acknowledgmentCheckbox = page.getByRole('checkbox', { name: /understand this report may trigger/i }).last();
-    await expect(acknowledgmentCheckbox).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
-    await acknowledgmentCheckbox.check();
+    // UI text: "I have read and agree to the Incident Reporting Policy & Procedures"
+    const policyCheckbox = page.getByRole('checkbox', { name: /I have read and agree to the Incident Reporting Policy/i }).last();
+    await expect(policyCheckbox).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await policyCheckbox.check();
 
     // Submit report and wait for API response - CORRECTED button text
     // Use .last() to handle React Strict Mode duplicate rendering
@@ -164,11 +165,12 @@ test.describe('Anonymous Incident Report Submission', () => {
     // Verify button is initially disabled (agreement checkbox not checked)
     await expect(submitButton).toBeDisabled({ timeout: 2000 });
 
-    // Check agreement checkbox first
+    // Check policy agreement checkbox first
     // Use .last() to handle React Strict Mode duplicate rendering
-    const acknowledgmentCheckbox = page.getByRole('checkbox', { name: /understand this report may trigger/i }).last();
-    await expect(acknowledgmentCheckbox).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
-    await acknowledgmentCheckbox.check();
+    // UI text: "I have read and agree to the Incident Reporting Policy & Procedures"
+    const policyCheckbox = page.getByRole('checkbox', { name: /I have read and agree to the Incident Reporting Policy/i }).last();
+    await expect(policyCheckbox).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await policyCheckbox.check();
     await page.waitForTimeout(500);
 
     // Try clicking submit with empty form (Mantine form validation should prevent)
