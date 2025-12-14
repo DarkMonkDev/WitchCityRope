@@ -5,6 +5,7 @@ import {
   Anchor, Alert, Button, Box, Group, Paper,
   ActionIcon, List, Avatar, Skeleton, Center, Grid, Badge
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import {
   IconCalendar, IconClock, IconMapPin, IconUsers,
   IconShare, IconMail, IconBrandX, IconLink, IconCheck, IconExternalLink
@@ -31,6 +32,7 @@ type UserProfileDto = components['schemas']['UserProfileDto'];
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string}>();
   const eventTimeZone = useEventTimeZone();
+  const isMobile = useMediaQuery('(max-width: 991px)');
   const [selectedTicket, setSelectedTicket] = useState('single');
 
   // Scroll to top when page loads or event ID changes
@@ -251,7 +253,7 @@ export const EventDetailPage: React.FC = () => {
   return (
     <Box data-testid="event-details" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
       {/* Breadcrumb */}
-      <Container size="xl" pt="md">
+      <Container size="xl" pt={{ base: 'xs', md: 'md' }} pb={{ base: 'xs', md: 0 }} px={{ base: 'sm', md: 'xl' }}>
         <Group justify="space-between" align="center">
           <Breadcrumbs separator="/" mb="md" styles={{
             breadcrumb: {
@@ -319,18 +321,18 @@ export const EventDetailPage: React.FC = () => {
 
       <Container
         size="xl"
-        px={{ base: 'sm', md: 'xl' }}
-        pt={{ base: 'xs', md: 'md' }}
-        pb={{ base: 'sm', md: 'xl' }}
+        px={{ base: 0, md: 'xl' }}
+        pt={{ base: 0, md: 'md' }}
+        pb={{ base: 0, md: 'xl' }}
       >
         {/* Event Hero Section - FULL WIDTH */}
         <Paper
           data-testid="section-hero"
-          px={{ base: 28, md: 48 }}
-          py={{ base: 28, md: 48 }}
+          px={{ base: 16, md: 48 }}
+          py={{ base: 16, md: 48 }}
           style={{
             background: 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)',
-            borderRadius: '24px',
+            borderRadius: isMobile ? 0 : '24px',
             position: 'relative',
             overflow: 'hidden'
           }}
@@ -393,28 +395,29 @@ export const EventDetailPage: React.FC = () => {
         </Paper>
 
         {/* Mobile Participation Card - FULL WIDTH, mobile only */}
-        <Box hiddenFrom="md" mt={{ base: 'sm', md: 'lg' }}>
-          <ParticipationCard {...participationCardProps} />
+        <Box hiddenFrom="md" mt={{ base: 0, md: 'lg' }}>
+          <ParticipationCard {...participationCardProps} isMobile={isMobile} />
         </Box>
 
         {/* Mobile Volunteer Shifts - FULL WIDTH, mobile only */}
         {hasUserVolunteered && userVolunteerPositions.length > 0 && (
-          <Box hiddenFrom="md" mt="sm">
+          <Box hiddenFrom="md" mt={0}>
             <UserVolunteerShifts
               positions={userVolunteerPositions}
               eventId={id!}
+              isMobile={isMobile}
             />
           </Box>
         )}
 
         {/* Main Content Grid - TWO COLUMNS on desktop */}
-        <Grid gutter={{ base: 'xs', md: 'xl' }} mt={{ base: 'sm', md: 'lg' }}>
+        <Grid gutter={{ base: 0, md: 'xl' }} mt={{ base: 0, md: 'lg' }}>
           {/* Left Column - Event Details */}
           <Grid.Col span={{ base: 12, md: 8 }}>
-            <Stack gap="md">
+            <Stack gap={isMobile ? 0 : 'md'}>
 
           {/* About This Event */}
-          <ContentSection>
+          <ContentSection isMobile={isMobile}>
             <div
               className="html-content"
               dangerouslySetInnerHTML={{ __html: (event as any)?.description || '' }}
@@ -423,7 +426,7 @@ export const EventDetailPage: React.FC = () => {
 
           {/* Ticket Options Section - Session-based timing */}
           {displayableTickets.length > 0 && (
-            <ContentSection title="Ticket Options">
+            <ContentSection title="Ticket Options" isMobile={isMobile}>
               <Stack gap="md">
                 {/* Purchasable Tickets */}
                 {purchasableTickets.length > 0 && (
@@ -529,7 +532,7 @@ export const EventDetailPage: React.FC = () => {
             if (hasVenueAccess && venue.directions) {
               // Full venue details for vetted users or participants
               return (
-                <ContentSection>
+                <ContentSection isMobile={isMobile}>
                   <div className="html-content">
                     <h2>{venue.name}</h2>
                     <h3>Directions</h3>
@@ -546,7 +549,7 @@ export const EventDetailPage: React.FC = () => {
             } else if (!hasVenueAccess && (event as any)?.venueLocation) {
               // Limited location info for non-vetted non-participants
               return (
-                <ContentSection title={`Location - ${(event as any)?.venueLocation}`}>
+                <ContentSection title={`Location - ${(event as any)?.venueLocation}`} isMobile={isMobile}>
                   <Stack gap="md">
                     <Alert
                       color="blue"
@@ -576,7 +579,7 @@ export const EventDetailPage: React.FC = () => {
           {/* Volunteer Positions */}
           {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && isAuthenticated && canVolunteerBasedOnEventType && (
             <div id="volunteer-opportunities-section">
-              <ContentSection title="Volunteer Opportunities">
+              <ContentSection title="Volunteer Opportunities" isMobile={isMobile}>
                 <p>
                   Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
                 </p>
@@ -602,7 +605,7 @@ export const EventDetailPage: React.FC = () => {
 
           {/* Teachers Section - Always visible */}
           {teachers && teachers.length > 0 && (
-            <ContentSection title="Teachers">
+            <ContentSection title="Teachers" isMobile={isMobile}>
               <Stack gap="lg">
                 {teachers.map((teacher) => (
                   <Box key={(teacher as any).id}>
@@ -637,7 +640,7 @@ export const EventDetailPage: React.FC = () => {
 
           {/* Policies */}
           {(event as any)?.policies && (
-            <ContentSection>
+            <ContentSection isMobile={isMobile}>
               <div
                 className="html-content"
                 dangerouslySetInnerHTML={{ __html: (event as any)?.policies }}
@@ -689,19 +692,21 @@ export const EventDetailPage: React.FC = () => {
 interface ContentSectionProps {
   title?: string;
   children: React.ReactNode;
+  isMobile?: boolean;
 }
 
-const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
+const ContentSection: React.FC<ContentSectionProps> = ({ title, children, isMobile }) => (
   <Paper
     className={styles.contentSection}
-    px={{ base: 24, md: 40 }}
-    pt={{ base: 14, md: 30 }}
-    pb={{ base: 18, md: 40 }}
+    px={{ base: 0, md: 40 }}
+    pt={{ base: 0, md: 30 }}
+    pb={{ base: 0, md: 40 }}
     style={{
       background: 'var(--color-ivory)',
-      borderRadius: '16px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-      border: '1px solid rgba(183, 109, 117, 0.1)'
+      borderRadius: isMobile ? 0 : '16px',
+      boxShadow: isMobile ? 'none' : '0 4px 12px rgba(0,0,0,0.05)',
+      border: isMobile ? 'none' : '1px solid rgba(183, 109, 117, 0.1)',
+      borderBottom: isMobile ? '1px solid rgba(183, 109, 117, 0.1)' : undefined
     }}
   >
     <div className="html-content">

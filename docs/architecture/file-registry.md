@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2025-12-13 -->
-<!-- Version: 4.550 -->
+<!-- Last Updated: 2025-12-14 -->
+<!-- Version: 4.551 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,8 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2025-12-14 | /docs/functional-areas/member-import/post-import-email-workflow-guide.md | CREATED | Comprehensive guide for post-import email workflow - Documents NewImportedUsers segment, per-user variable replacement ({{user_name}}, {{reset_url}}, {{verification_url}}), step-by-step workflow for sending welcome emails with password reset links after importing vetted members. Includes 8 user segments, troubleshooting, security considerations, performance details, FAQ | Librarian: Document Post-Import Email Workflow | ACTIVE | Never |
+| 2025-12-14 | /docs/functional-areas/member-import/README.md | MODIFIED | Updated member import README with post-import email workflow documentation - Added prominent section about NewImportedUsers segment and email sending, documented all 8 available user segments, updated admin responsibilities with new email workflow, removed legacy manual process, added email templates section with variable documentation | Librarian: Document Post-Import Email Workflow | ACTIVE | Never |
 | 2025-12-13 | /apps/web/src/features/checkin/components/CheckInHeader.tsx | MODIFIED | Changed countdown timer update interval from 60 seconds to 1 second for real-time countdown display | React Developer: Real-time Countdown Timer | ACTIVE | Never |
 | 2025-12-13 | /apps/api/Features/Participation/Models/EventParticipationDto.cs | MODIFIED | Added CheckedInSessions property to list session names user has checked into | Backend Developer: Fix Event Attendees Tab Issues | ACTIVE | Never |
 | 2025-12-13 | /apps/api/Features/Participation/Services/AttendanceService.cs | MODIFIED | Fixed GetEventParticipationsAsync to filter cancelled attendees, use CheckIns table for HasCheckedIn and CheckInTime, and populate CheckedInSessions from CheckIn records | Backend Developer: Fix Event Attendees Tab Issues | ACTIVE | Never |
@@ -89,6 +91,6 @@ Location examples:
 
 ---
 
-**Last Review**: 2025-12-12
+**Last Review**: 2025-12-14
 **Next Scheduled Review**: Weekly with Librarian Agent
 **Registry Owner**: Librarian Agent

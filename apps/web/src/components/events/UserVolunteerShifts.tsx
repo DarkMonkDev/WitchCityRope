@@ -11,6 +11,7 @@ import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 interface UserVolunteerShiftsProps {
   positions: VolunteerPosition[];
   eventId: string;
+  isMobile?: boolean;
 }
 
 /**
@@ -21,7 +22,8 @@ interface UserVolunteerShiftsProps {
  */
 export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
   positions,
-  eventId
+  eventId,
+  isMobile = false
 }) => {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<VolunteerPosition | null>(null);
@@ -99,10 +101,11 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
     <Paper
       style={{
         background: 'var(--color-ivory)',
-        borderRadius: '16px',
-        padding: 'var(--space-lg)',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-        border: '1px solid rgba(34, 139, 34, 0.2)'
+        borderRadius: isMobile ? 0 : '16px',
+        padding: isMobile ? '16px' : 'var(--space-lg)',
+        boxShadow: isMobile ? 'none' : '0 4px 12px rgba(0,0,0,0.05)',
+        border: isMobile ? 'none' : '1px solid rgba(34, 139, 34, 0.2)',
+        borderBottom: isMobile ? '1px solid rgba(183, 109, 117, 0.1)' : undefined
       }}
     >
       <Stack gap="md">

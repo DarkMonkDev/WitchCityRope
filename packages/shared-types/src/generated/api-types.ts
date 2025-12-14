@@ -5064,7 +5064,7 @@ export interface components {
         /** @enum {unknown|null} */
         NullableOfSpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
         /** @enum {unknown|null} */
-        NullableOfUserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | null;
+        NullableOfUserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | "NewImportedUsers" | null;
         PagedResultOfApplicationSummaryDto: {
             items?: components["schemas"]["ApplicationSummaryDto"][];
             /** Format: int32 */
@@ -5970,7 +5970,7 @@ export interface components {
             fullName?: string | null;
         };
         /** @enum {unknown} */
-        UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending";
+        UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | "NewImportedUsers";
         UserSegmentDto: {
             segment?: components["schemas"]["UserSegment"];
             /** Format: int32 */

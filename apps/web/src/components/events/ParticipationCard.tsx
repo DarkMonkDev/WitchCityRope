@@ -100,6 +100,7 @@ interface ParticipationCardProps {
     startTime?: string;
     endTime?: string;
   }>;
+  isMobile?: boolean;
 }
 
 export const ParticipationCard: React.FC<ParticipationCardProps> = ({
@@ -120,7 +121,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   eventEndDateTime,
   eventInstructor,
   eventLocation,
-  eventSessions
+  eventSessions,
+  isMobile = false
 }) => {
   // Format price display string based on range
   const formatPriceDisplay = (): string => {
@@ -167,7 +169,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   // Show login prompt for anonymous users
   if (!isAuthenticated) {
     return (
-      <ParticipationCardShell>
+      <ParticipationCardShell isMobile={isMobile}>
         <Alert
           icon={<IconAlertCircle size={16} />}
           title="Login Required"
@@ -202,7 +204,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   // Check if user is banned (using the isActive property)
   if (user && typeof user === 'object' && 'isActive' in user && user.isActive === false) {
     return (
-      <ParticipationCardShell>
+      <ParticipationCardShell isMobile={isMobile}>
         <Alert
           icon={<IconAlertCircle size={16} />}
           title="Access Denied"
@@ -307,7 +309,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   // Check if event requires vetting (vettedMembersOnly flag)
   if (vettedMembersOnly && !isVetted) {
     return (
-      <ParticipationCardShell>
+      <ParticipationCardShell isMobile={isMobile}>
         <Box style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
           <Alert
             title="Vetting Required"
@@ -494,7 +496,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
 
   return (
     <>
-      <ParticipationCardShell isLoading={isLoading}>
+      <ParticipationCardShell isLoading={isLoading} isMobile={isMobile}>
         <Stack gap="lg">
           {/* Capacity Status - Only show for single-session events or if no session data */}
           {validParticipation?.capacity && (!eventSessions || eventSessions.length <= 1) && (
@@ -1304,15 +1306,17 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
 // Reusable card shell
 const ParticipationCardShell: React.FC<{
   children: React.ReactNode;
-  isLoading?: boolean
-}> = ({ children, isLoading = false }) => (
+  isLoading?: boolean;
+  isMobile?: boolean;
+}> = ({ children, isLoading = false, isMobile = false }) => (
   <Paper
     style={{
       background: 'var(--color-ivory)',
-      borderRadius: '16px',
-      padding: 'var(--space-lg)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-      border: '1px solid rgba(183, 109, 117, 0.1)',
+      borderRadius: isMobile ? 0 : '16px',
+      padding: isMobile ? '16px' : 'var(--space-lg)',
+      boxShadow: isMobile ? 'none' : '0 4px 12px rgba(0,0,0,0.05)',
+      border: isMobile ? 'none' : '1px solid rgba(183, 109, 117, 0.1)',
+      borderBottom: isMobile ? '1px solid rgba(183, 109, 117, 0.1)' : undefined,
       position: 'relative',
       minHeight: '160px'
     }}

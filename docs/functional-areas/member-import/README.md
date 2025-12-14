@@ -1,6 +1,6 @@
 # Member Import Functional Area
-<!-- Last Updated: 2025-11-24 -->
-<!-- Version: 1.0 -->
+<!-- Last Updated: 2025-12-14 -->
+<!-- Version: 1.1 -->
 <!-- Owner: Backend Team -->
 <!-- Status: Active -->
 
@@ -9,6 +9,28 @@
 This functional area contains documentation and resources for importing vetted members from historical Google Sheets data into the WitchCityRope database.
 
 **Purpose**: Enable bulk import of vetted member data while maintaining data integrity and proper vetting workflow status.
+
+## 📧 POST-IMPORT EMAIL WORKFLOW ✨ NEW
+
+**After importing members, send welcome emails with password reset links:**
+
+**Complete Guide**: `/home/chad/repos/witchcityrope/docs/functional-areas/member-import/post-import-email-workflow-guide.md`
+
+**Quick Steps**:
+1. Import members via VettedMemberImport tool
+2. Navigate to Email Templates Admin (`/admin/email-templates`) → Ad-Hoc tab
+3. Select **"NewImportedUsers"** segment (shows users with `EmailConfirmed = false`)
+4. Choose "NewWebsiteUser" template (contains `{{reset_url}}` variable)
+5. Send emails (each user gets unique password reset link)
+
+**Key Features**:
+- ✅ **NewImportedUsers segment**: Automatically targets imported users needing activation
+- ✅ **Per-user variables**: `{{user_name}}`, `{{reset_url}}`, `{{verification_url}}`
+- ✅ **Unique tokens**: Each user gets individual password reset link
+- ✅ **8 user segments available**: AllVettedMembers, AllTeachers, EmailNotVerified, etc.
+- ✅ **Fully functional**: Emails actually sent via SendGrid (or logged in dev mode)
+
+---
 
 ## Import Tool
 
@@ -111,11 +133,13 @@ dotnet run -- --input=pre-vetted.csv --status=interview-approved --environment=P
    - Verify database
    - Notify vetting team
 
-6. **Post-Import**
-   - Send password reset emails
-   - For interview-approved: Send Calendly links
-   - Monitor user activation
-   - Track interview scheduling
+6. **Post-Import Email Workflow** ✨ **NEW**
+   - **Navigate** to Email Templates Admin → Ad-Hoc tab
+   - **Select** "NewImportedUsers" segment
+   - **Choose** "NewWebsiteUser" template
+   - **Send** emails with password reset links
+   - **Monitor** user activation
+   - **Complete Guide**: See `/home/chad/repos/witchcityrope/docs/functional-areas/member-import/post-import-email-workflow-guide.md`
 
 ## Database Schema
 
@@ -139,13 +163,28 @@ dotnet run -- --input=pre-vetted.csv --status=interview-approved --environment=P
 
 ## Admin Responsibilities
 
-### After Fully Vetted Import
-1. Verify import success in vetting dashboard
-2. Send "NewWebsiteUser" emails with password reset links
-3. Monitor user activation and password resets
-4. Assist users with login issues
+### After Fully Vetted Import ✨ **UPDATED**
+
+**NEW - Email Templates Admin Workflow**:
+1. Navigate to `/admin/email-templates` → Ad-Hoc tab
+2. Select "NewImportedUsers" segment (shows imported users with `EmailConfirmed = false`)
+3. Choose "NewWebsiteUser" template (contains `{{reset_url}}` variable)
+4. Send emails (each user gets unique password reset link)
+5. Monitor user activation via segment count decreasing
+
+**Legacy Manual Process** (NO LONGER NEEDED):
+~~1. Verify import success in vetting dashboard~~
+~~2. Manually send "NewWebsiteUser" emails with password reset links~~
+
+**Benefits of New Workflow**:
+- ✅ Automated segment targeting (no manual user selection)
+- ✅ Unique password reset links per user
+- ✅ Real-time recipient count preview
+- ✅ Audit trail of sent emails
+- ✅ Resend capability for unactivated users
 
 ### After Interview-Approved Import
+
 1. Review imported users in vetting dashboard
 2. **Send Calendly interview invitation emails** (CRITICAL)
 3. Monitor interview scheduling rate
@@ -156,17 +195,59 @@ dotnet run -- --input=pre-vetted.csv --status=interview-approved --environment=P
    - Denied → VettingStatus=4, send notification
 7. Send approval/denial notifications
 
-## Email Templates
+## Email Templates ✨ **NEW SECTION**
+
+### Available User Segments for Ad-Hoc Emails
+
+| Segment | Filter | Use Case |
+|---------|--------|----------|
+| **NewImportedUsers** | `VettingStatus == Approved AND EmailConfirmed == false AND IsActive == true` | **Send welcome emails to imported members** |
+| AllVettedMembers | `VettingStatus == Approved` | Announcements to all vetted members |
+| AllPreVettedMembers | `VettingStatus NOT IN (Denied, OnHold) AND IsActive == true` | Updates to members in vetting |
+| AllTeachers | Role contains "Teacher" | Teacher communications |
+| AllDMs | Role contains "DungeonMonitor" | DM communications |
+| AllSafetyTeam | Role contains "SafetyTeam" | Safety team communications |
+| AllAdmins | Role contains "Administrator" | Admin communications |
+| EmailNotVerified | `EmailConfirmed == false` | Resend verification emails |
+| VettingPending | `VettingStatus == UnderReview` | Applicant status updates |
 
 ### NewWebsiteUser Template
-- Sent to all imported users
-- Contains password reset link
-- Instructions for account setup
 
-### Interview Invitation Template
-- Sent to interview-approved users only
-- Contains Calendly scheduling link
-- Explains interview process
+**Category**: Admin
+**Subject**: "Welcome to WitchCityRope - Set Your Password"
+**Purpose**: Welcome message with password reset link for imported users
+
+**Available Variables**:
+- `{{user_name}}` - User's scene name (falls back to email, then "Member")
+- `{{reset_url}}` - Unique password reset link with token (unique per user)
+- `{{verification_url}}` - Unique email verification link (unique per user)
+- `{{system_url}}` - Frontend base URL (hardcoded: `https://witchcityrope.com`)
+
+**Example Body**:
+```html
+<p>Hi {{user_name}},</p>
+<p>Welcome to WitchCityRope! Your vetted member account has been created.</p>
+<p>To complete your account setup, please set your password:</p>
+<p><a href="{{reset_url}}">Set Your Password</a></p>
+<p>This link is valid for 24 hours.</p>
+```
+
+**Sending Behavior**:
+- Emails sent **individually** (one per user) when using `{{reset_url}}` or `{{verification_url}}`
+- Each user receives unique password reset token
+- Tokens valid for 24 hours
+
+### Post-Import Email Workflow
+
+**Complete Documentation**: `/home/chad/repos/witchcityrope/docs/functional-areas/member-import/post-import-email-workflow-guide.md`
+
+**Topics Covered**:
+- Step-by-step sending instructions
+- Variable replacement details
+- Security considerations
+- Troubleshooting common issues
+- Performance considerations
+- FAQ
 
 ## Security & Privacy
 
@@ -187,6 +268,13 @@ dotnet run -- --input=pre-vetted.csv --status=interview-approved --environment=P
 - Users MUST reset via email verification
 - No plain-text passwords stored
 - Email verification required before access
+
+**Email Token Security** ✨ **NEW**:
+- Cryptographically secure random generation
+- Unique per user, per request
+- 24-hour expiration
+- Single-use (consumed on password set)
+- HTTPS required in production
 
 ## Testing
 
@@ -215,7 +303,12 @@ dotnet test
 - Date parsing failures → Check CSV date format
 - "value too long for type character varying(X)" → Fields are auto-truncated (see below)
 
-**Detailed Troubleshooting**: See usage guide linked above
+**Email Issues** ✨ **NEW**:
+- **Segment shows 0 recipients** → Check `VettingStatus`, `EmailConfirmed`, `IsActive` values
+- **Users not receiving emails** → Check SendGrid dashboard or Docker logs (dev mode)
+- **Reset links expired** → Resend emails (generates fresh tokens, valid 24 hours)
+
+**Detailed Troubleshooting**: See usage guide and post-import email workflow guide
 
 ## Critical Implementation Notes (2025-11-30)
 
@@ -288,6 +381,15 @@ dotnet run -- --input=pre-vetted.csv --status=interview-approved --dry-run
 dotnet run -- --input=pre-vetted.csv --status=interview-approved
 ```
 
+**Send Welcome Emails** ✨ **NEW**:
+1. Login as Administrator
+2. Navigate to `/admin/email-templates` → Ad-Hoc tab
+3. Select "NewImportedUsers" segment
+4. Choose "NewWebsiteUser" template
+5. Click "Send Email"
+
+**Complete workflow**: See `/home/chad/repos/witchcityrope/docs/functional-areas/member-import/post-import-email-workflow-guide.md`
+
 ## Related Documentation
 
 **User Management**:
@@ -297,10 +399,26 @@ dotnet run -- --input=pre-vetted.csv --status=interview-approved
 **Implementation Details**:
 - Implementation Plan: `/home/chad/repos/witchcityrope/docs/functional-areas/user-management/new-work/2025-11-24-approved-for-interview-import/implementation-plan.md`
 
+**Email Templates** ✨ **NEW**:
+- **Post-Import Email Workflow Guide**: `/home/chad/repos/witchcityrope/docs/functional-areas/member-import/post-import-email-workflow-guide.md` ⭐ **COMPREHENSIVE**
+- Admin Management: `/home/chad/repos/witchcityrope/docs/functional-areas/email-templates/new-work/2025-11-09-admin-management/`
+- Static Variables: `/home/chad/repos/witchcityrope/docs/functional-areas/email-templates/new-work/2025-11-17-hardcode-static-variables/`
+
+**Member Import & Email Enhancement**:
+- Orchestrator Handoff: `/home/chad/repos/witchcityrope/docs/functional-areas/member-import/handoffs/orchestrator-2025-11-18-handoff.md`
+- Backend Email Handoff: `/home/chad/repos/witchcityrope/docs/functional-areas/member-import/handoffs/backend-developer-email-2025-11-18-handoff.md`
+
 **Vetting System**:
 - Functional Area: `/home/chad/repos/witchcityrope/docs/functional-areas/vetting-system/`
 
 ## History
+
+**2025-12-14**: Post-import email workflow documentation added
+- Added NewImportedUsers segment documentation
+- Added per-user variable replacement details
+- Added complete post-import email workflow guide
+- Updated admin responsibilities with new email workflow
+- Removed legacy manual email process
 
 **2025-11-30**: Field mapping and truncation improvements
 - Added automatic field truncation for database column constraints
@@ -325,13 +443,14 @@ dotnet run -- --input=pre-vetted.csv --status=interview-approved
 For questions or issues:
 1. Review tool README and usage guide
 2. Check troubleshooting section
-3. Test with dry-run mode first
-4. Contact backend team for assistance
+3. For email issues: See post-import email workflow guide
+4. Test with dry-run mode first
+5. Contact backend team for assistance
 
 ---
 
 **Document Metadata**:
-- **Version**: 1.0
-- **Last Updated**: 2025-11-24
-- **Owner**: Backend Team
+- **Version**: 1.1
+- **Last Updated**: 2025-12-14
+- **Owner**: Backend Team + Librarian
 - **Status**: Active
