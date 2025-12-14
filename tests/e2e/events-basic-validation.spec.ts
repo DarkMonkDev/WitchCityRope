@@ -56,9 +56,11 @@ test.describe('Events System Basic Validation', () => {
     // Check if page loaded successfully (not 404 or error page)
     const pageTitle = await page.title();
     console.log(`📄 Page title: "${pageTitle}"`);
-    
-    const hasErrorIndicator = await page.locator('*:has-text("404"), *:has-text("Not Found"), *:has-text("Error")').count();
-    console.log(`❌ Error indicators found: ${hasErrorIndicator}`);
+
+    // Only check for actual error pages, not event titles containing "Error"
+    // Look for error-specific elements like h1/h2 with exact error text
+    const hasErrorPage = await page.locator('h1:has-text("404"), h1:has-text("Not Found"), h2:has-text("Page Not Found"), [role="alert"]:has-text("error occurred")').count();
+    console.log(`❌ Error page indicators found: ${hasErrorPage}`);
     
     // Look for any events-related content
     const eventContentSelectors = [
@@ -93,11 +95,11 @@ test.describe('Events System Basic Validation', () => {
 
     // Basic validation - page should load without major errors
     expect(response?.status()).toBe(200);
-    expect(hasErrorIndicator).toBe(0);
-    
+    expect(hasErrorPage).toBe(0);
+
     console.log(`📊 Events Page Analysis Complete:`);
     console.log(`   - Page loaded successfully: ${response?.status() === 200}`);
-    console.log(`   - No error indicators: ${hasErrorIndicator === 0}`);
+    console.log(`   - No error page indicators: ${hasErrorPage === 0}`);
     console.log(`   - Console errors: ${consoleErrors.length}`);
     console.log(`   - Interactive elements: ${formElements}`);
     console.log(`   - Content detection results:`, contentFound);
