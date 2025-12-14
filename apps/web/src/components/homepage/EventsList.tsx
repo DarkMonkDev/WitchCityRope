@@ -211,7 +211,7 @@ export const EventsList: React.FC<EventsListProps> = ({
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(350px, 100%), 1fr))',
           marginBottom: 'var(--space-xl)',
-          gap: 'var(--space-lg)',
+          gap: isMobile ? '0px' : 'var(--space-lg)',
         }}
       >
         {displayEvents.map((event) => (

@@ -156,7 +156,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
   }
 
   return (
-    <Box maw={900} mx="auto" p="md">
+    <Box maw={900} mx="auto" p="md" className="incident-report-wrapper">
       <Paper shadow="sm" p="xl" radius="md">
         <Stack gap="xl">
           {/* Header */}

@@ -756,7 +756,7 @@ h3 {
   }
 
   h3 {
-    font-size: 22px !important;
+    font-size: 18px !important;
   }
 
   .event-card > div {
@@ -766,6 +766,11 @@ h3 {
 
   h1 {
     font-size: 32px !important;
+    line-height: 1.3 !important;
+  }
+
+  .html-content h1 {
+    margin-block-end: 12px !important;
   }
 
   .hero-section h2 {
@@ -859,6 +864,16 @@ h3 {
   /* Checkout page step indicator - remove line height on mobile */
   .checkout-step-indicator {
     --text-lh: 0px !important;
+  }
+
+  /* CMS page content - add padding around body area on mobile */
+  .html-content {
+    padding: 16px;
+  }
+
+  /* Safety incident report form - remove padding so white box goes edge-to-edge on mobile */
+  .incident-report-wrapper {
+    padding: 0 !important;
   }
 }
 
