@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
+using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 
@@ -16,11 +19,22 @@ namespace WitchCityRope.Api.Features.EmailTemplates.Services;
 public class EmailTemplateService : IEmailTemplateService
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<EmailTemplateService> _logger;
 
-    public EmailTemplateService(ApplicationDbContext context, ILogger<EmailTemplateService> logger)
+    public EmailTemplateService(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        IEmailService emailService,
+        IConfiguration configuration,
+        ILogger<EmailTemplateService> logger)
     {
         _context = context;
+        _userManager = userManager;
+        _emailService = emailService;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -602,8 +616,72 @@ public class EmailTemplateService : IEmailTemplateService
             // Sanitize HTML content
             var sanitizedHtml = SanitizeHtml(request.HtmlBody);
 
-            // TODO: Implement SendGrid integration
-            // For now, create audit record without sending
+            // Get full user objects for variable replacement
+            List<ApplicationUser> recipientUsers;
+            if (request.Segment.HasValue)
+            {
+                recipientUsers = await GetUsersForSegmentAsync(request.Segment.Value, cancellationToken);
+            }
+            else
+            {
+                // For manual email list, look up users by email
+                recipientUsers = await _context.Users
+                    .Where(u => u.Email != null && request.RecipientEmails!.Contains(u.Email))
+                    .ToListAsync(cancellationToken);
+            }
+
+            // Check if template needs per-user replacement
+            var needsPerUserReplacement = sanitizedHtml.Contains("{{reset_url}}")
+                || sanitizedHtml.Contains("{{verification_url}}")
+                || sanitizedHtml.Contains("{{user_name}}");
+
+            if (needsPerUserReplacement)
+            {
+                // Send individual emails with per-user variables (unique tokens per user)
+                _logger.LogInformation("Template contains per-user variables, sending personalized content to {Count} users", recipientUsers.Count);
+
+                foreach (var user in recipientUsers)
+                {
+                    if (string.IsNullOrEmpty(user.Email)) continue;
+
+                    var (personalizedHtml, personalizedPlainText) = await ReplaceVariablesForUserAsync(
+                        sanitizedHtml, request.PlainTextBody, user, cancellationToken);
+
+                    var result = await _emailService.SendEmailAsync(
+                        user.Email,
+                        request.Subject,
+                        personalizedHtml,
+                        personalizedPlainText,
+                        cancellationToken);
+
+                    if (!result.IsSuccess)
+                    {
+                        _logger.LogWarning("Failed to send personalized email to {Email}: {Error}",
+                            user.Email, result.Error);
+                    }
+                }
+            }
+            else
+            {
+                // Send bulk email without per-user variables
+                foreach (var email in recipientEmails)
+                {
+                    var result = await _emailService.SendEmailAsync(
+                        email,
+                        request.Subject,
+                        sanitizedHtml,
+                        request.PlainTextBody,
+                        cancellationToken);
+
+                    if (!result.IsSuccess)
+                    {
+                        _logger.LogWarning("Failed to send email to {Email}: {Error}",
+                            email, result.Error);
+                    }
+                }
+            }
+
+            // Create audit record
             var sentEmail = new SentAdHocEmail
             {
                 Id = Guid.NewGuid(),
@@ -614,8 +692,8 @@ public class EmailTemplateService : IEmailTemplateService
                 RecipientEmails = recipientEmails.ToArray(),
                 RecipientCount = recipientCount,
                 EventId = request.EventId,
-                SendGridMessageId = string.Empty, // Will be populated when SendGrid is integrated
-                DeliveryStatus = "Pending", // Will be updated based on SendGrid response
+                SendGridMessageId = string.Empty,
+                DeliveryStatus = "Sent",
                 SentAt = DateTime.UtcNow,
                 SentBy = sentByUserId
             };
@@ -635,13 +713,8 @@ public class EmailTemplateService : IEmailTemplateService
                 SentAt = sentEmail.SentAt
             };
 
-            _logger.LogInformation("Created ad-hoc email audit record {EmailId} for {RecipientCount} recipients",
+            _logger.LogInformation("Sent ad-hoc email {EmailId} to {RecipientCount} recipients",
                 sentEmail.Id, recipientCount);
-
-            // TODO: When SendGrid is integrated:
-            // 1. Replace variables in HtmlBody and PlainTextBody ({{user_name}}, {{reset_url}}, {{system_url}})
-            // 2. Send via SendGrid API with personalization
-            // 3. Update DeliveryStatus and SendGridMessageId based on response
 
             return Result<SentAdHocEmailDto>.Success(dto);
         }
@@ -1067,6 +1140,11 @@ public class EmailTemplateService : IEmailTemplateService
             UserSegment.VettingPending =>
                 query.Where(u => u.VettingStatus == (int)VettingStatus.UnderReview && u.IsActive),
 
+            UserSegment.NewImportedUsers =>
+                query.Where(u => u.VettingStatus == (int)VettingStatus.Approved
+                    && !u.EmailConfirmed
+                    && u.IsActive),
+
             _ => throw new ArgumentException($"Unknown segment: {segment}")
         };
     }
@@ -1083,6 +1161,7 @@ public class EmailTemplateService : IEmailTemplateService
             UserSegment.AllAdmins => "All users with Administrator role",
             UserSegment.EmailNotVerified => "Users with unverified email addresses",
             UserSegment.VettingPending => "Users with vetting applications under review",
+            UserSegment.NewImportedUsers => "Newly imported vetted users who need welcome emails",
             _ => "Unknown segment"
         };
     }
@@ -1105,6 +1184,54 @@ public class EmailTemplateService : IEmailTemplateService
     // ========================================
     // HTML Sanitization (XSS Prevention)
     // ========================================
+
+    /// <summary>
+    /// Replace template variables with user-specific values
+    /// Generates unique tokens (password reset, email verification) per user
+    /// </summary>
+    private async Task<(string html, string plainText)> ReplaceVariablesForUserAsync(
+        string htmlBody,
+        string plainTextBody,
+        ApplicationUser user,
+        CancellationToken cancellationToken)
+    {
+        var html = htmlBody;
+        var plainText = plainTextBody;
+
+        // Replace {{user_name}}
+        var userName = user.SceneName ?? user.Email ?? "Member";
+        html = html.Replace("{{user_name}}", userName);
+        plainText = plainText.Replace("{{user_name}}", userName);
+
+        // Replace {{reset_url}} if present - generates unique token per user
+        if (html.Contains("{{reset_url}}") || plainText.Contains("{{reset_url}}"))
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var frontendUrl = _configuration["Frontend:Url"] ?? "https://staging.witchcityrope.com";
+            var resetUrl = $"{frontendUrl}/reset-password?userId={user.Id}&token={System.Web.HttpUtility.UrlEncode(token)}";
+
+            html = html.Replace("{{reset_url}}", resetUrl);
+            plainText = plainText.Replace("{{reset_url}}", resetUrl);
+        }
+
+        // Replace {{verification_url}} if present
+        if (html.Contains("{{verification_url}}") || plainText.Contains("{{verification_url}}"))
+        {
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var frontendUrl = _configuration["Frontend:Url"] ?? "https://staging.witchcityrope.com";
+            var verifyUrl = $"{frontendUrl}/verify-email?userId={user.Id}&token={System.Web.HttpUtility.UrlEncode(token)}";
+
+            html = html.Replace("{{verification_url}}", verifyUrl);
+            plainText = plainText.Replace("{{verification_url}}", verifyUrl);
+        }
+
+        // Replace {{system_url}}
+        var systemUrl = _configuration["Frontend:Url"] ?? "https://staging.witchcityrope.com";
+        html = html.Replace("{{system_url}}", systemUrl);
+        plainText = plainText.Replace("{{system_url}}", systemUrl);
+
+        return (html, plainText);
+    }
 
     /// <summary>
     /// Sanitize HTML to prevent XSS attacks

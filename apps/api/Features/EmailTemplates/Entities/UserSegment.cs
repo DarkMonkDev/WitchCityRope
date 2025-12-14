@@ -53,5 +53,12 @@ public enum UserSegment
     /// Users with vetting applications under review (VettingStatus == 0 - UnderReview)
     /// Applications submitted and awaiting initial review
     /// </summary>
-    VettingPending
+    VettingPending,
+
+    /// <summary>
+    /// Newly imported vetted users who have never logged in (VettingStatus == Approved AND EmailConfirmed == false)
+    /// These are users imported via VettedMemberImport tool who need welcome emails with password reset links
+    /// Uses EmailConfirmed as proxy for first login since LastLoginAt may not be available
+    /// </summary>
+    NewImportedUsers
 }

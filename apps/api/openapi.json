@@ -14197,6 +14197,7 @@
           "AllAdmins",
           "EmailNotVerified",
           "VettingPending",
+          "NewImportedUsers",
           null
         ],
         "nullable": true
@@ -16895,7 +16896,8 @@
           "AllSafetyTeam",
           "AllAdmins",
           "EmailNotVerified",
-          "VettingPending"
+          "VettingPending",
+          "NewImportedUsers"
         ]
       },
       "UserSegmentDto": {

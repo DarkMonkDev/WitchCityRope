@@ -187,7 +187,7 @@ export const ProfileSettingsPage: React.FC = () => {
                 borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
                 borderRadius: 0,
                 backgroundColor: 'transparent',
-                marginBottom: 'var(--space-sm)',
+                marginBottom: '2px',
                 '&:last-of-type': {
                   borderBottom: 'none',
                 },
@@ -195,8 +195,10 @@ export const ProfileSettingsPage: React.FC = () => {
               label: {
                 fontFamily: 'var(--font-heading)',
                 fontWeight: 600,
-                fontSize: '16px',
+                fontSize: '18px',
                 color: 'var(--color-burgundy)',
+                paddingTop: 0,
+                paddingBottom: 0,
               },
               panel: {
                 paddingTop: 0,
