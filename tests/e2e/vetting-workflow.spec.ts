@@ -296,25 +296,14 @@ test.describe('Vetting System - Complete Workflows', () => {
       lastName: 'Test',
     });
 
-    await df.vetting.createPending(user.id);
+    const application = await df.vetting.createPending(user.id);
+    console.log(`✅ Created application: ${application.id}`);
 
     // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Navigate to vetting dashboard and open first application
-    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('domcontentloaded');
-
-    const firstRow = page.locator('tbody tr').first();
-    const hasApplications = await firstRow.count() > 0;
-
-    if (!hasApplications) {
-      console.log('⚠️ No applications found');
-      test.skip();
-      return;
-    }
-
-    await firstRow.click();
+    // Navigate DIRECTLY to the specific application detail page
+    await page.goto(`/admin/vetting/applications/${application.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Act - Click On Hold button
@@ -393,32 +382,14 @@ test.describe('Vetting System - Complete Workflows', () => {
       lastName: 'Test',
     });
 
-    await df.vetting.createPending(user.id);
+    const application = await df.vetting.createPending(user.id);
+    console.log(`✅ Created application: ${application.id}`);
 
     // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Navigate to vetting dashboard and open first non-denied application
-    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('domcontentloaded');
-
-    // Wait for table to load
-    await page.waitForSelector('tbody tr', { timeout: 10000 });
-
-    // Find application that is NOT denied (check for visible status badge text)
-    const activeRow = page.locator('tbody tr').filter({
-      hasNot: page.locator('[data-testid="status-badge"]').filter({ hasText: /denied/i })
-    }).first();
-
-    const hasActiveApp = await activeRow.count() > 0;
-
-    if (!hasActiveApp) {
-      console.log('⚠️ No active applications found');
-      test.skip();
-      return;
-    }
-
-    await activeRow.click();
+    // Navigate DIRECTLY to the specific application detail page
+    await page.goto(`/admin/vetting/applications/${application.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Wait for detail page to fully load
