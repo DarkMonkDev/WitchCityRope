@@ -58,11 +58,9 @@ test.describe('Vetting System - Complete Workflows', () => {
     console.log(`✅ Registered new user: ${testEmail}`);
 
     // Step 2: Verify email via API (DataFactory helper)
-    const user = await df.users.createVerified({
-      email: testEmail,
-      firstName: 'Test',
-      lastName: 'User',
-    });
+    // User was already created via UI registration, just verify their email
+    await df.users.verifyEmail(testEmail);
+    console.log(`✅ Verified email for: ${testEmail}`);
 
     // Step 3: Login
     await AuthHelpers.loginWith(page, { email: testEmail, password: testPassword });

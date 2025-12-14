@@ -86,8 +86,12 @@ test.describe('Home Page - Events Display', () => {
       // Date info is present if we see:
       // 1. "Date and Time coming soon" (no sessions)
       // 2. data-testid="event-date" (single session, or list variant)
-      // 3. Day names like "Monday", "Tuesday", etc (multi-session homepage variant)
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      // 3. Day names (full or abbreviated) like "Sun", "Monday", etc (multi-session homepage variant)
+      // UI uses abbreviated format: "Sun, Dec 14" not "Sunday, Dec 14"
+      const dayNames = [
+        'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+        'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
+      ]
       const hasDateText = dayNames.some((day) => cardText?.includes(day))
       const hasDateTestId = (await firstCard.locator('[data-testid="event-date"]').count()) > 0
       const hasComingSoon = cardText?.includes('Date and Time coming soon')
@@ -342,8 +346,12 @@ test.describe('Home Page - Events Display', () => {
       // Date info is present if we see:
       // 1. "Date and Time coming soon" (no sessions)
       // 2. data-testid="event-date" (single session, or list variant)
-      // 3. Day names like "Monday", "Tuesday", etc (multi-session homepage variant)
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      // 3. Day names (full or abbreviated) like "Sun", "Monday", etc (multi-session homepage variant)
+      // UI uses abbreviated format: "Sun, Dec 14" not "Sunday, Dec 14"
+      const dayNames = [
+        'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+        'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
+      ]
       const hasDateText = dayNames.some((day) => cardText?.includes(day))
       const hasDateTestId = (await firstCard.locator('[data-testid="event-date"]').count()) > 0
       const hasComingSoon = cardText?.includes('Date and Time coming soon')
