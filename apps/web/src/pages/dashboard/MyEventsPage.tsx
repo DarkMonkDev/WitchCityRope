@@ -228,7 +228,7 @@ export const MyEventsPage: React.FC = () => {
         {/* Page Title Bar */}
         {isMobile ? (
           <Stack gap="xs" mb="lg">
-            <Box style={{ textAlign: 'left', marginLeft: '16px', marginTop: '16px' }}>
+            <Box style={{ textAlign: 'left', marginLeft: '16px', marginTop: '8px' }}>
               <Text
                 component={Link}
                 to="/dashboard/profile-settings"
