@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Container, Title, Button, Group, Box, Text, Center, Stack, Loader, Alert, Badge } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { VettingAlertBox } from './components/VettingAlertBox';
@@ -25,6 +26,7 @@ import type { VolunteerShiftWithEvent } from '../../components/dashboard/UserVol
  */
 export const MyEventsPage: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 991px)');
   const [showPast, setShowPast] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -226,12 +228,12 @@ export const MyEventsPage: React.FC = () => {
         {/* Page Title Bar */}
         <Group justify="space-between" mb="lg" wrap="wrap">
           <Title
-            order={1}
+            order={isMobile ? 3 : 1}
             tt="uppercase"
             style={{
               fontFamily: 'var(--font-heading)',
               color: 'var(--color-burgundy)',
-              fontSize: '2rem',
+              fontSize: isMobile ? '1.5rem' : '2rem',
             }}
           >
             {user?.sceneName || 'Your'}'s Events
@@ -295,7 +297,7 @@ export const MyEventsPage: React.FC = () => {
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-              gap: 'var(--space-lg)',
+              gap: isMobile ? 0 : 'var(--space-lg)',
             }}
           >
             {filteredEvents.map((event) => (

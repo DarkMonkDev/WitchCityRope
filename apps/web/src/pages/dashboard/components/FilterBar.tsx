@@ -1,5 +1,6 @@
 import React from 'react';
 import { Group, Checkbox, TextInput, Box } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 // SegmentedControl import removed - view toggle hidden for initial release
 import { IconSearch } from '@tabler/icons-react';
 
@@ -27,15 +28,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   searchQuery,
   onSearchChange,
 }) => {
+  const isMobile = useMediaQuery('(max-width: 991px)');
+
   return (
     <Box
       bg="var(--color-ivory)"
       style={{
         border: '1px solid var(--color-taupe)',
-        borderRadius: '8px',
+        borderRadius: isMobile ? 0 : '8px',
       }}
       p="md"
-      mb="lg"
+      mb={isMobile ? 0 : "lg"}
     >
       <Group justify="space-between" align="center" wrap="wrap" gap="md">
         <Group gap="md" align="center">

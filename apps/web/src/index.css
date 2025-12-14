@@ -905,6 +905,70 @@ h3 {
   .incident-report-wrapper .mantine-Text-root {
     margin-bottom: 0 !important;
   }
+
+  /* Login page - remove padding from Flex container on mobile */
+  [data-testid="page-login"].mantine-Flex-root {
+    padding: 0 !important;
+  }
+
+  /* Login page - remove border-radius from auth card on mobile */
+  [data-testid="page-login"] > div {
+    border-radius: 0 !important;
+  }
+
+  /* Login page - reduce header band padding (contains H1) on mobile */
+  [data-testid="page-login"] > div > div:first-child {
+    padding: var(--space-md) !important;
+  }
+
+  /* Login page - reduce form container padding on mobile */
+  [data-testid="page-login"] > div > div:nth-child(2) {
+    padding: var(--space-md) !important;
+  }
+
+  /* Forgot password page - remove padding from Flex container on mobile */
+  [data-testid="page-forgot-password"].mantine-Flex-root {
+    padding: 0 !important;
+  }
+
+  /* Forgot password page - remove border-radius from auth card on mobile */
+  [data-testid="page-forgot-password"] > div {
+    border-radius: 0 !important;
+  }
+
+  /* Forgot password page - reduce header band padding on mobile */
+  [data-testid="page-forgot-password"] > div > div:first-child {
+    padding: var(--space-md) !important;
+  }
+
+  /* Forgot password page - reduce form container padding on mobile */
+  [data-testid="page-forgot-password"] > div > div:nth-child(2) {
+    padding: var(--space-md) !important;
+  }
+
+  /* Register page - remove padding from Flex container on mobile */
+  [data-testid="page-register"].mantine-Flex-root,
+  [data-testid="page-register-success"].mantine-Flex-root {
+    padding: 0 !important;
+  }
+
+  /* Register page - remove border-radius from auth card on mobile */
+  [data-testid="page-register"] > div,
+  [data-testid="page-register-success"] > div {
+    border-radius: 0 !important;
+  }
+
+  /* Register page - reduce header band padding on mobile */
+  [data-testid="page-register"] > div > div:first-child,
+  [data-testid="page-register-success"] > div > div:first-child {
+    padding: var(--space-md) !important;
+  }
+
+  /* Register page - reduce form container padding on mobile */
+  [data-testid="page-register"] > div > div:nth-child(2),
+  [data-testid="page-register-success"] > div > div:nth-child(2) {
+    padding: var(--space-md) !important;
+  }
 }
 
 /* STANDARDIZED BUTTON CLASSES - v7 Design System */
