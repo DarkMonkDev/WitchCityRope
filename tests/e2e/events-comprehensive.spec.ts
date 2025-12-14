@@ -343,12 +343,13 @@ test.describe('Events - Authenticated Access', () => {
     await socialEvent.click();
     await page.waitForTimeout(500);
 
-    // Social events should show BOTH RSVP and ticket purchase buttons (using correct data-testid)
-    const rsvpButton = page.locator('[data-testid="button-rsvp"]');
-    const ticketButton = page.locator('[data-testid="button-purchase-ticket"]');
+    // Social events should show BOTH RSVP and ticket purchase buttons
+    // Use .last() due to React Strict Mode rendering components twice
+    const rsvpButton = page.locator('[data-testid="button-rsvp"]').last();
+    const ticketButton = page.locator('[data-testid="button-purchase-ticket"]').last();
 
-    const hasRSVP = await rsvpButton.count() > 0;
-    const hasTicket = await ticketButton.count() > 0;
+    const hasRSVP = await page.locator('[data-testid="button-rsvp"]').count() > 0;
+    const hasTicket = await page.locator('[data-testid="button-purchase-ticket"]').count() > 0;
 
     if (hasRSVP && hasTicket) {
       // CORRECT: Both options available as separate actions
@@ -414,27 +415,51 @@ test.describe('Events - Performance', () => {
   });
 
   test('should handle large number of events efficiently', async ({ page }) => {
-    // Mock API with many events
-    const manyEvents = Array.from({ length: 50 }, (_, i) => ({
-      id: i + 1,
-      title: `Event ${i + 1}`,
-      startDate: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString(),
-      description: `Description for event ${i + 1}`,
-      capacity: 20,
-      registrationCount: Math.floor(Math.random() * 20)
-    }));
+    // Mock API with many events - API returns array matching ApiEvent structure
+    const manyEvents = Array.from({ length: 50 }, (_, i) => {
+      const startDate = new Date(Date.now() + i * 24 * 60 * 60 * 1000);
+      const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+      return {
+        id: `perf-test-event-${i + 1}`,
+        title: `Performance Test Event ${i + 1}`,
+        shortDescription: `Short description for event ${i + 1}`,
+        description: `Full description for event ${i + 1}`,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        location: 'Test Location',
+        allowRsvps: false,
+        requireTicketPurchase: true,
+        vettedMembersOnly: false,
+        capacity: 20,
+        registrationCount: Math.floor(Math.random() * 10),
+        isPublished: true,
+        sessions: [{
+          id: `session-${i + 1}`,
+          sessionIdentifier: `S${i + 1}`,
+          name: 'Main Session',
+          startDate: startDate.toISOString().split('T')[0],
+          startTime: startDate.toISOString(),
+          endTime: endDate.toISOString(),
+          capacity: 20,
+          registrationCount: 0
+        }],
+        ticketTypes: [{
+          id: `ticket-${i + 1}`,
+          name: 'General Admission',
+          pricingType: 'Fixed',
+          sessionIdentifiers: [`S${i + 1}`],
+          price: 25,
+          quantityAvailable: 20,
+          quantitySold: 0
+        }]
+      };
+    });
 
-    await page.route('**/api/events', route => {
+    await page.route('**/api/events**', route => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          data: manyEvents,
-          error: null,
-          message: null,
-          timestamp: new Date().toISOString()
-        })
+        body: JSON.stringify(manyEvents)
       });
     });
 
