@@ -82,7 +82,7 @@ export function SubmissionConfirmation({ submissionResult }: SubmissionConfirmat
         shadow={isMobile ? undefined : "sm"}
         p={isMobile ? 0 : "xl"}
         radius={isMobile ? undefined : "md"}
-        style={isMobile ? {} : {
+        style={isMobile ? { backgroundColor: 'transparent' } : {
           borderTop: '4px solid var(--color-burgundy)',
           backgroundColor: '#FFFFFF'
         }}
