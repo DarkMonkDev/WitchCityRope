@@ -48,7 +48,7 @@ export function SubmissionConfirmation({ submissionResult }: SubmissionConfirmat
   return (
     <Box maw={800} mx="auto" p="md">
       {/* Page Title Section */}
-      <Box ta="center" mb="xl">
+      <Box ta="center" mb={isMobile ? 0 : "xl"}>
         <Title
           order={1}
           style={{
