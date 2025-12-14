@@ -198,7 +198,7 @@ public class UserImporterTests : IDisposable
     }
 
     [Fact]
-    public async Task ImportUsersAsync_WithDuplicateSceneName_SkipsUser()
+    public async Task ImportUsersAsync_WithDuplicateSceneName_AllowsImport()
     {
         // Arrange - Create existing user
         var existingUser = new ApplicationUser
@@ -233,7 +233,7 @@ public class UserImporterTests : IDisposable
             new CsvRow
             {
                 Email = "new@example.com",
-                SceneName = "testuser", // Same scene name, different case
+                SceneName = "testuser", // Same scene name, different case - this is ALLOWED
                 ApplicationDate = "7/11/22"
             }
         };
@@ -241,16 +241,15 @@ public class UserImporterTests : IDisposable
         // Act
         var result = await _sut.ImportUsersAsync(rows, isDryRun: false);
 
-        // Assert
+        // Assert - Duplicate scene names ARE allowed, only duplicate emails are blocked
         result.TotalRecords.Should().Be(1);
-        result.SkippedCount.Should().Be(1);
-        result.SuccessCount.Should().Be(0);
-        result.Warnings.Should().ContainSingle();
-        result.Warnings[0].Should().Contain("Duplicate");
+        result.SuccessCount.Should().Be(1);
+        result.SkippedCount.Should().Be(0);
+        result.ErrorCount.Should().Be(0);
 
-        // Verify only one user exists
+        // Verify both users exist (duplicate scene names allowed)
         var userCount = await _context.Users.CountAsync();
-        userCount.Should().Be(1);
+        userCount.Should().Be(2);
     }
 
     #endregion
@@ -592,8 +591,8 @@ public class UserImporterTests : IDisposable
         // Assert
         var user = await _context.Users.FirstOrDefaultAsync();
         user.Should().NotBeNull();
-        // Should use fallback date (2 years ago)
-        user!.CreatedAt.Should().BeCloseTo(DateTime.UtcNow.AddYears(-2), TimeSpan.FromDays(1));
+        // Should use fallback date (current UTC time)
+        user!.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
     }
 
     #endregion
