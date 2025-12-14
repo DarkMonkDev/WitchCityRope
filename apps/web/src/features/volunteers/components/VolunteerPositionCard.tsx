@@ -151,29 +151,26 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
       }}
     >
       <Stack gap={4}>
-        {/* Header */}
-        <Group justify="space-between" align="flex-start">
-          <div>
-            {/* Title and Signed Up badge on first line */}
+        {/* Header - Different layout for mobile vs desktop */}
+        {isMobile ? (
+          /* Mobile Layout: Title, Date, Description, then Badge+Button row */
+          <>
+            {/* Title and Signed Up badge */}
             <Group gap="xs" mb={0} align="baseline">
-              <h4 style={{ marginBlockStart: 0 }}>
+              <h4 style={{ marginBlockStart: 0, marginBlockEnd: 0 }}>
                 {position.title}
-                {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
                 {position.sessionName && !position.sessionName.includes('Main Session') && (
                   <> - {position.sessionName}</>
                 )}
               </h4>
               {position.hasUserSignedUp && (
-                <Badge
-                  color="green"
-                  variant="light"
-                  size="sm"
-                >
+                <Badge color="green" variant="light" size="sm">
                   Signed Up
                 </Badge>
               )}
             </Group>
-            {/* Date and time on second line - use position shift times if available, otherwise session times */}
+
+            {/* Date and time */}
             {position.sessionStartTime && (
               <Text size="sm" c="dimmed">
                 {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
@@ -184,82 +181,193 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                 ) : null}
               </Text>
             )}
-          </div>
 
-          {/* Badge showing spots filled - consistent color */}
-          <Badge
-            color="blue"
-            variant="light"
-            size="lg"
-          >
-            ({position.slotsFilled} / {position.slotsNeeded} spots filled)
-          </Badge>
-        </Group>
-
-        {/* Description, Sign Up Button, and Confirmation - grouped together */}
-        <div>
-          <Group align="center" wrap="nowrap" gap="md" mb={0}>
-            <p style={{ flex: 1 }}>
+            {/* Description */}
+            <p style={{ marginBlockStart: '8px', marginBlockEnd: '8px' }}>
               {position.description}
             </p>
 
-            {/* Show Sign Up button only if user hasn't signed up, position isn't full, AND signup window is open */}
-            {!position.hasUserSignedUp && !position.isFullyStaffed && isAuthenticated && position.canSignUp && (
-              <Button
-                variant="outline"
-                color="burgundy"
-                size="sm"
-                onClick={() => setShowSignupConfirm(!showSignupConfirm)}
-                styles={{
-                  root: {
-                    borderColor: '#880124',
-                    color: '#880124',
-                    fontWeight: 600,
-                    height: '44px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    fontSize: '14px',
-                    lineHeight: '1.2',
-                    flexShrink: 0
-                  }
-                }}
-              >
-                Sign Up
-              </Button>
-            )}
+            {/* Badge and Button row - vertically centered */}
+            <Group justify="space-between" align="center">
+              {/* Hide spots filled badge on mobile when user has signed up */}
+              {!position.hasUserSignedUp && (
+                <Badge color="blue" variant="light" size="lg">
+                  ({position.slotsFilled} / {position.slotsNeeded} spots filled)
+                </Badge>
+              )}
 
-            {!position.hasUserSignedUp && !position.isFullyStaffed && !isAuthenticated && position.canSignUp && (
-              <Button
-                component="a"
-                href="/login"
-                variant="outline"
+              {/* Show Sign Up button only if user hasn't signed up, position isn't full, AND signup window is open */}
+              {!position.hasUserSignedUp && !position.isFullyStaffed && isAuthenticated && position.canSignUp && (
+                <Button
+                  variant="outline"
+                  color="burgundy"
+                  size="sm"
+                  onClick={() => setShowSignupConfirm(!showSignupConfirm)}
+                  styles={{
+                    root: {
+                      borderColor: '#880124',
+                      color: '#880124',
+                      fontWeight: 600,
+                      height: '44px',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      fontSize: '14px',
+                      lineHeight: '1.2',
+                      flexShrink: 0
+                    }
+                  }}
+                >
+                  Sign Up
+                </Button>
+              )}
+
+              {!position.hasUserSignedUp && !position.isFullyStaffed && !isAuthenticated && position.canSignUp && (
+                <Button
+                  component="a"
+                  href="/login"
+                  variant="outline"
+                  color="blue"
+                  size="sm"
+                  styles={{
+                    root: {
+                      fontWeight: 600,
+                      height: '44px',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      fontSize: '14px',
+                      lineHeight: '1.2',
+                      flexShrink: 0
+                    }
+                  }}
+                >
+                  Login to Volunteer
+                </Button>
+              )}
+
+              {/* Show appropriate message when signup is blocked */}
+              {!position.hasUserSignedUp && !position.isFullyStaffed && !position.canSignUp && (
+                <Text size="sm" c="dimmed" style={{ textAlign: 'right', flexShrink: 0 }}>
+                  {position.signupBlockedReason === 'NoTicketForSession'
+                    ? 'Purchase a ticket to volunteer'
+                    : 'Signup closed'}
+                </Text>
+              )}
+            </Group>
+          </>
+        ) : (
+          /* Desktop Layout: Original layout */
+          <>
+            <Group justify="space-between" align="flex-start">
+              <div>
+                {/* Title and Signed Up badge on first line */}
+                <Group gap="xs" mb={0} align="baseline">
+                  <h4 style={{ marginBlockStart: 0 }}>
+                    {position.title}
+                    {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
+                    {position.sessionName && !position.sessionName.includes('Main Session') && (
+                      <> - {position.sessionName}</>
+                    )}
+                  </h4>
+                  {position.hasUserSignedUp && (
+                    <Badge
+                      color="green"
+                      variant="light"
+                      size="sm"
+                    >
+                      Signed Up
+                    </Badge>
+                  )}
+                </Group>
+                {/* Date and time on second line - use position shift times if available, otherwise session times */}
+                {position.sessionStartTime && (
+                  <Text size="sm" c="dimmed">
+                    {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
+                    {(position.startTime || position.endTime) ? (
+                      <> · {formatShiftTime(position.startTime)} - {formatShiftTime(position.endTime)}</>
+                    ) : position.sessionEndTime ? (
+                      <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}</>
+                    ) : null}
+                  </Text>
+                )}
+              </div>
+
+              {/* Badge showing spots filled - consistent color */}
+              <Badge
                 color="blue"
-                size="sm"
-                styles={{
-                  root: {
-                    fontWeight: 600,
-                    height: '44px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    fontSize: '14px',
-                    lineHeight: '1.2',
-                    flexShrink: 0
-                  }
-                }}
+                variant="light"
+                size="lg"
               >
-                Login to Volunteer
-              </Button>
-            )}
+                ({position.slotsFilled} / {position.slotsNeeded} spots filled)
+              </Badge>
+            </Group>
 
-            {/* Show appropriate message when signup is blocked */}
-            {!position.hasUserSignedUp && !position.isFullyStaffed && !position.canSignUp && (
-              <Text size="sm" c="dimmed" style={{ textAlign: 'right', flexShrink: 0 }}>
-                {position.signupBlockedReason === 'NoTicketForSession'
-                  ? 'Purchase a ticket to volunteer'
-                  : 'Signup closed'}
-              </Text>
-            )}
-          </Group>
+            {/* Description, Sign Up Button, and Confirmation - grouped together */}
+            <div>
+              <Group align="center" wrap="nowrap" gap="md" mb={0}>
+                <p style={{ flex: 1 }}>
+                  {position.description}
+                </p>
+
+                {/* Show Sign Up button only if user hasn't signed up, position isn't full, AND signup window is open */}
+                {!position.hasUserSignedUp && !position.isFullyStaffed && isAuthenticated && position.canSignUp && (
+                  <Button
+                    variant="outline"
+                    color="burgundy"
+                    size="sm"
+                    onClick={() => setShowSignupConfirm(!showSignupConfirm)}
+                    styles={{
+                      root: {
+                        borderColor: '#880124',
+                        color: '#880124',
+                        fontWeight: 600,
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2',
+                        flexShrink: 0
+                      }
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                )}
+
+                {!position.hasUserSignedUp && !position.isFullyStaffed && !isAuthenticated && position.canSignUp && (
+                  <Button
+                    component="a"
+                    href="/login"
+                    variant="outline"
+                    color="blue"
+                    size="sm"
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2',
+                        flexShrink: 0
+                      }
+                    }}
+                  >
+                    Login to Volunteer
+                  </Button>
+                )}
+
+                {/* Show appropriate message when signup is blocked */}
+                {!position.hasUserSignedUp && !position.isFullyStaffed && !position.canSignUp && (
+                  <Text size="sm" c="dimmed" style={{ textAlign: 'right', flexShrink: 0 }}>
+                    {position.signupBlockedReason === 'NoTicketForSession'
+                      ? 'Purchase a ticket to volunteer'
+                      : 'Signup closed'}
+                  </Text>
+                )}
+              </Group>
+            </div>
+          </>
+        )}
 
           {/* Inline Signup Confirmation */}
           <Collapse in={showSignupConfirm}>
@@ -268,7 +376,15 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               variant="light"
               icon={!isMobile ? <IconAlertCircle size={16} /> : undefined}
               title="Confirm Volunteer Signup"
-              style={{ marginTop: 'var(--space-md)' }}
+              style={{
+                marginTop: 'var(--space-md)',
+                ...(isMobile && {
+                  marginLeft: 'calc(-1 * var(--space-md))',
+                  marginRight: 'calc(-1 * var(--space-md))',
+                  marginBottom: 'calc(-1 * var(--space-md))',
+                  borderRadius: 0
+                })
+              }}
               styles={{
                 body: { paddingLeft: '6px', paddingRight: '6px' }
               }}
@@ -366,11 +482,20 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
             </Stack>
           </Alert>
         </Collapse>
-        </div>
 
         {/* Already Signed Up State */}
         {position.hasUserSignedUp && (
-          <Alert color="green" variant="light" icon={<IconCheck size={16} />}>
+          <Alert
+            color="green"
+            variant="light"
+            icon={<IconCheck size={16} />}
+            style={isMobile ? {
+              marginLeft: 'calc(-1 * var(--space-md))',
+              marginRight: 'calc(-1 * var(--space-md))',
+              marginBottom: 'calc(-1 * var(--space-md))',
+              borderRadius: 0
+            } : undefined}
+          >
             <Group justify="space-between" align="center">
               <Text size="sm">You're already signed up for this position</Text>
               {position.canCancel ? (

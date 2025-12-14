@@ -255,7 +255,7 @@ export const EventDetailPage: React.FC = () => {
       {/* Breadcrumb */}
       <Container size="xl" pt={{ base: 'xs', md: 'md' }} pb={{ base: 'xs', md: 0 }} px={{ base: 'sm', md: 'xl' }}>
         <Group justify="space-between" align="center">
-          <Breadcrumbs separator="/" mb="md" styles={{
+          <Breadcrumbs separator="/" mb={0} styles={{
             breadcrumb: {
               color: 'var(--color-stone)',
               fontSize: '14px'
@@ -579,11 +579,14 @@ export const EventDetailPage: React.FC = () => {
           {/* Volunteer Positions */}
           {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && isAuthenticated && canVolunteerBasedOnEventType && (
             <div id="volunteer-opportunities-section">
-              <ContentSection title="Volunteer Opportunities" isMobile={isMobile}>
-                <p>
-                  Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
-                </p>
-                <Stack gap="md" mt="md">
+              <ContentSection isMobile={isMobile}>
+                <div className="html-content">
+                  <h2>Volunteer Opportunities</h2>
+                  <p style={{ marginBottom: 0 }}>
+                    Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
+                  </p>
+                </div>
+                <Stack gap="md" mt={0}>
                   {[...volunteerPositions]
                     .sort((a, b) => {
                       // Sort by sessionStartTime, soonest first
@@ -709,10 +712,8 @@ const ContentSection: React.FC<ContentSectionProps> = ({ title, children, isMobi
       borderBottom: isMobile ? '1px solid rgba(183, 109, 117, 0.1)' : undefined
     }}
   >
-    <div className="html-content">
-      {title && <h2>{title}</h2>}
-      {children}
-    </div>
+    {title && <div className="html-content"><h2>{title}</h2></div>}
+    {children}
   </Paper>
 );
 
