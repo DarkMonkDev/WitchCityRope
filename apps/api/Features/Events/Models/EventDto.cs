@@ -90,7 +90,7 @@ public class EventDto
     /// List of volunteer positions for this event
     /// Includes both event-wide and session-specific volunteer opportunities
     /// </summary>
-    public List<VolunteerPositionDto> VolunteerPositions { get; set; } = new List<VolunteerPositionDto>();
+    public List<EventVolunteerPositionDto> VolunteerPositions { get; set; } = new List<EventVolunteerPositionDto>();
 
     /// <summary>
     /// List of teacher/organizer user IDs

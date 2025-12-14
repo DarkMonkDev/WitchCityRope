@@ -4,14 +4,15 @@ import { EventForm, EventFormData, EventSession, EventTicketType } from '../../c
 import { notifications } from '@mantine/notifications';
 
 // Mock data for demonstration
+// CRITICAL: startTime and endTime must be full ISO date strings for formatUtcToLocalTime()
 const mockSessions: EventSession[] = [
   {
     id: '1',
     sessionIdentifier: 'S1',
     name: 'Fundamentals Day',
     startDate: '2025-02-15',
-    startTime: '19:00',
-    endTime: '21:00',
+    startTime: '2025-02-16T00:00:00Z', // 7pm EST = midnight UTC next day
+    endTime: '2025-02-16T02:00:00Z',   // 9pm EST = 2am UTC next day
     capacity: 20,
     registrationCount: 8,
   },
@@ -20,8 +21,8 @@ const mockSessions: EventSession[] = [
     sessionIdentifier: 'S2',
     name: 'Intermediate Practice',
     startDate: '2025-02-16',
-    startTime: '19:00',
-    endTime: '21:00',
+    startTime: '2025-02-17T00:00:00Z',
+    endTime: '2025-02-17T02:00:00Z',
     capacity: 20,
     registrationCount: 15,
   },
@@ -30,8 +31,8 @@ const mockSessions: EventSession[] = [
     sessionIdentifier: 'S3',
     name: 'Advanced Techniques',
     startDate: '2025-02-17',
-    startTime: '19:00',
-    endTime: '21:00',
+    startTime: '2025-02-18T00:00:00Z',
+    endTime: '2025-02-18T02:00:00Z',
     capacity: 20,
     registrationCount: 8,
   },

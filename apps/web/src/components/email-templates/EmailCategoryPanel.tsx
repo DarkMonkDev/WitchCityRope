@@ -212,6 +212,11 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     );
   }
 
+  // For AdHoc category, skip the template cards and only render SendAdHocEmail
+  if (category === 'AdHoc') {
+    return <SendAdHocEmail />;
+  }
+
   return (
     <Stack gap="xl">
       {/* Template Cards - Horizontal Scrollable Group */}
@@ -369,9 +374,6 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
           </Stack>
         </Paper>
       )}
-
-      {/* Send Ad-Hoc Email Section - Only for Ad Hoc category */}
-      {category === 'AdHoc' && <SendAdHocEmail />}
 
       {/* Trigger Config Modal - Only for Events category */}
       {category === 'Events' && selectedTemplateForTrigger && (

@@ -69,7 +69,7 @@ public class CreateEventRequest
     /// <summary>
     /// List of volunteer positions for this event (optional)
     /// </summary>
-    public List<VolunteerPositionDto>? VolunteerPositions { get; set; }
+    public List<EventVolunteerPositionDto>? VolunteerPositions { get; set; }
 
     /// <summary>
     /// List of teacher/organizer user IDs (optional)

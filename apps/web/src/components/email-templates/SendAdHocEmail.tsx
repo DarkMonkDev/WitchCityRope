@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Stack,
   Group,
@@ -8,10 +8,11 @@ import {
   Text,
   Select,
   TextInput,
+  Textarea,
   Button,
   Modal,
   Alert,
-  Divider,
+  Checkbox,
 } from '@mantine/core';
 import { IconAlertCircle, IconCheck, IconSend } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -41,28 +42,55 @@ const AD_HOC_VARIABLES = [
 ];
 
 /**
+ * Helper to parse and validate email addresses from text input
+ */
+const parseEmails = (input: string): { valid: string[]; invalid: string[] } => {
+  // Split by comma, semicolon, newline, or space
+  const emails = input
+    .split(/[,;\n\s]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter((e) => e.length > 0);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const valid: string[] = [];
+  const invalid: string[] = [];
+
+  emails.forEach((email) => {
+    if (emailRegex.test(email)) {
+      if (!valid.includes(email)) {
+        valid.push(email);
+      }
+    } else {
+      invalid.push(email);
+    }
+  });
+
+  return { valid, invalid };
+};
+
+/**
  * SendAdHocEmail Component
  *
- * Allows admins to compose and send custom emails to specific user segments.
- * Features:
- * - Segment selector with live recipient counts
- * - Rich text editor for email content
- * - Variable validation
- * - Preview of first 10 recipients
- * - Confirmation dialog before sending
- * - Success/error notifications
+ * Allows admins to compose and send custom emails to specific user segments
+ * or directly to specific email addresses.
  *
- * Based on UI Designer specifications
+ * Flow:
+ * 1. Select a saved template (optional) - loads into editor
+ * 2. Compose/edit email content (subject + body)
+ * 3. Select recipients (segment or direct email input)
+ * 4. Preview and send
  */
 export const SendAdHocEmail: React.FC = () => {
   const queryClient = useQueryClient();
 
-  // Segment selection state
-  const [selectedSegment, setSelectedSegment] = useState<UserSegment | null>(null);
-
   // Email content state
   const [subject, setSubject] = useState('');
   const [htmlBody, setHtmlBody] = useState('');
+
+  // Recipient mode state
+  const [useDirectEmails, setUseDirectEmails] = useState(false);
+  const [selectedSegment, setSelectedSegment] = useState<UserSegment | null>(null);
+  const [directEmailInput, setDirectEmailInput] = useState('');
 
   // Validation state
   const [invalidVariables, setInvalidVariables] = useState<string[]>([]);
@@ -73,6 +101,9 @@ export const SendAdHocEmail: React.FC = () => {
   // Scheduled send state
   const [sendTiming, setSendTiming] = useState<'immediate' | 'scheduled'>('immediate');
   const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
+
+  // Parse direct emails
+  const parsedEmails = useMemo(() => parseEmails(directEmailInput), [directEmailInput]);
 
   // Fetch user segments with counts
   const {
@@ -95,7 +126,7 @@ export const SendAdHocEmail: React.FC = () => {
       selectedSegment
         ? emailTemplatesApi.getSegmentPreview(selectedSegment)
         : Promise.resolve([]),
-    enabled: selectedSegment !== null,
+    enabled: selectedSegment !== null && !useDirectEmails,
   });
 
   // Send email mutation
@@ -103,7 +134,8 @@ export const SendAdHocEmail: React.FC = () => {
     mutationFn: (data: {
       subject: string;
       htmlBody: string;
-      segment: UserSegment;
+      segment?: UserSegment;
+      recipientEmails?: string[];
       scheduledSendAt?: Date;
     }) => {
       // Generate plain text from HTML
@@ -120,9 +152,9 @@ export const SendAdHocEmail: React.FC = () => {
           subject: data.subject,
           htmlBody: data.htmlBody,
           plainTextBody,
-          segment: data.segment,
-          recipientEmails: null,
-          recipientGroup: data.segment,
+          segment: data.segment || null,
+          recipientEmails: data.recipientEmails || null,
+          recipientGroup: data.segment || null,
           scheduledSendAt: data.scheduledSendAt.toISOString(),
         });
       }
@@ -132,16 +164,19 @@ export const SendAdHocEmail: React.FC = () => {
         subject: data.subject,
         htmlBody: data.htmlBody,
         plainTextBody,
-        segment: data.segment,
-        recipientEmails: null,
-        recipientGroup: data.segment,
+        segment: data.segment || null,
+        recipientEmails: data.recipientEmails || null,
+        recipientGroup: data.segment || null,
       });
     },
-    onSuccess: (response) => {
-      const currentSegment = segments?.find((s) => s.segment === selectedSegment);
+    onSuccess: () => {
+      const recipientCount = useDirectEmails
+        ? parsedEmails.valid.length
+        : segments?.find((s) => s.segment === selectedSegment)?.count || 0;
+
       const message = sendTiming === 'scheduled'
-        ? `Email scheduled for ${currentSegment?.count || 0} recipients`
-        : `Email sent to ${currentSegment?.count || 0} recipients successfully`;
+        ? `Email scheduled for ${recipientCount} recipient${recipientCount !== 1 ? 's' : ''}`
+        : `Email sent to ${recipientCount} recipient${recipientCount !== 1 ? 's' : ''} successfully`;
 
       notifications.show({
         message,
@@ -223,14 +258,23 @@ export const SendAdHocEmail: React.FC = () => {
   const handleSendClick = () => setShowConfirmModal(true);
 
   const handleConfirmSend = () => {
-    if (!selectedSegment) return;
-
-    sendMutation.mutate({
-      subject,
-      htmlBody,
-      segment: selectedSegment,
-      scheduledSendAt: sendTiming === 'scheduled' ? scheduledDate || undefined : undefined,
-    });
+    if (useDirectEmails) {
+      if (parsedEmails.valid.length === 0) return;
+      sendMutation.mutate({
+        subject,
+        htmlBody,
+        recipientEmails: parsedEmails.valid,
+        scheduledSendAt: sendTiming === 'scheduled' ? scheduledDate || undefined : undefined,
+      });
+    } else {
+      if (!selectedSegment) return;
+      sendMutation.mutate({
+        subject,
+        htmlBody,
+        segment: selectedSegment,
+        scheduledSendAt: sendTiming === 'scheduled' ? scheduledDate || undefined : undefined,
+      });
+    }
     setShowConfirmModal(false);
   };
 
@@ -239,13 +283,13 @@ export const SendAdHocEmail: React.FC = () => {
     setSubject(template.subject);
     setHtmlBody(template.htmlBody);
     notifications.show({
-      message: 'Template loaded',
+      message: 'Template loaded into editor',
       color: 'blue',
     });
   };
 
   const handleCancel = () => {
-    if (subject || htmlBody) {
+    if (subject || htmlBody || directEmailInput) {
       if (window.confirm('Discard unsaved email?')) {
         handleReset();
       }
@@ -255,17 +299,33 @@ export const SendAdHocEmail: React.FC = () => {
   };
 
   const handleReset = () => {
-    setSelectedSegment(null);
     setSubject('');
     setHtmlBody('');
+    setUseDirectEmails(false);
+    setSelectedSegment(null);
+    setDirectEmailInput('');
     setInvalidVariables([]);
     setSendTiming('immediate');
     setScheduledDate(null);
   };
 
+  // Clear recipient when switching modes
+  const handleDirectEmailToggle = (checked: boolean) => {
+    setUseDirectEmails(checked);
+    if (checked) {
+      setSelectedSegment(null);
+    } else {
+      setDirectEmailInput('');
+    }
+  };
+
   // Computed validation
+  const hasValidRecipients = useDirectEmails
+    ? parsedEmails.valid.length > 0
+    : selectedSegment !== null;
+
   const isValid =
-    selectedSegment !== null &&
+    hasValidRecipients &&
     subject.trim().length > 0 &&
     htmlBody.trim().length > 0 &&
     invalidVariables.length === 0 &&
@@ -273,7 +333,9 @@ export const SendAdHocEmail: React.FC = () => {
 
   // Get current segment data
   const currentSegment = segments?.find((s) => s.segment === selectedSegment);
-  const recipientCount = currentSegment?.count || 0;
+  const recipientCount = useDirectEmails
+    ? parsedEmails.valid.length
+    : currentSegment?.count || 0;
 
   // Prepare segment options for Select dropdown
   const segmentOptions =
@@ -283,9 +345,7 @@ export const SendAdHocEmail: React.FC = () => {
     })) || [];
 
   return (
-    <Stack gap="xl" mt="3xl">
-      <Divider size="md" />
-
+    <Stack gap="xl">
       {/* Section Header */}
       <Box>
         <Title
@@ -300,63 +360,14 @@ export const SendAdHocEmail: React.FC = () => {
           Send Ad-Hoc Email
         </Title>
         <Text size="sm" c="dimmed">
-          Send custom emails to specific user groups
+          Send custom emails to specific user groups or individual recipients
         </Text>
       </Box>
 
-      {/* Saved Templates Section */}
+      {/* 1. Saved Templates Section */}
       <SavedAdHocTemplates onUseTemplate={handleUseTemplate} />
 
-      {/* Error Loading Segments */}
-      {segmentsError && (
-        <Alert icon={<IconAlertCircle />} color="red" title="Error Loading Segments">
-          <Text size="sm">Failed to load user segments. Please refresh the page.</Text>
-          <Button
-            size="xs"
-            variant="light"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['email-segments'] })}
-            mt="sm"
-          >
-            Retry
-          </Button>
-        </Alert>
-      )}
-
-      {/* Recipient Selector */}
-      {!segmentsError && (
-        <Paper p="md" withBorder style={{ borderColor: 'rgba(136, 1, 36, 0.1)' }}>
-          <Stack gap="md">
-            <Select
-              label="Select Recipients"
-              required
-              data={segmentOptions}
-              value={selectedSegment}
-              onChange={(value) => setSelectedSegment(value as UserSegment)}
-              placeholder="Choose a user group..."
-              searchable
-              maxDropdownHeight={300}
-              disabled={segmentsLoading}
-              styles={{
-                label: {
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  color: '#880124',
-                  marginBottom: '8px',
-                },
-              }}
-            />
-
-            {selectedSegment && (
-              <Text size="lg" fw={600} c="burgundy">
-                Selected: {recipientCount} recipients
-              </Text>
-            )}
-          </Stack>
-        </Paper>
-      )}
-
-      {/* Email Content Editor */}
+      {/* 2. Email Content Editor */}
       <Paper p="xl" withBorder style={{ borderColor: 'rgba(136, 1, 36, 0.1)' }}>
         <Stack gap="md">
           {/* Subject Line */}
@@ -426,8 +437,117 @@ export const SendAdHocEmail: React.FC = () => {
         </Stack>
       </Paper>
 
-      {/* Recipient Preview */}
-      {selectedSegment && (
+      {/* 3. Recipient Selection */}
+      <Paper p="md" withBorder style={{ borderColor: 'rgba(136, 1, 36, 0.1)' }}>
+        <Stack gap="md">
+          {/* Direct Email Toggle */}
+          <Checkbox
+            label="Input Recipient Emails Directly"
+            checked={useDirectEmails}
+            onChange={(e) => handleDirectEmailToggle(e.currentTarget.checked)}
+            styles={{
+              label: {
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: 600,
+                fontSize: '14px',
+                color: '#880124',
+              },
+            }}
+          />
+
+          {/* Segment Selector (when not using direct emails) */}
+          {!useDirectEmails && (
+            <>
+              {segmentsError && (
+                <Alert icon={<IconAlertCircle />} color="red" title="Error Loading Segments">
+                  <Text size="sm">Failed to load user segments. Please refresh the page.</Text>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ['email-segments'] })}
+                    mt="sm"
+                  >
+                    Retry
+                  </Button>
+                </Alert>
+              )}
+
+              {!segmentsError && (
+                <Select
+                  label="Select Recipients"
+                  required
+                  data={segmentOptions}
+                  value={selectedSegment}
+                  onChange={(value) => setSelectedSegment(value as UserSegment)}
+                  placeholder="Choose a user group..."
+                  searchable
+                  maxDropdownHeight={300}
+                  disabled={segmentsLoading}
+                  styles={{
+                    label: {
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      color: '#880124',
+                      marginBottom: '8px',
+                    },
+                  }}
+                />
+              )}
+
+              {selectedSegment && (
+                <Text size="lg" fw={600} c="burgundy">
+                  Selected: {recipientCount} recipients
+                </Text>
+              )}
+            </>
+          )}
+
+          {/* Direct Email Input (when using direct emails) */}
+          {useDirectEmails && (
+            <>
+              <Textarea
+                label="Recipient Emails"
+                required
+                value={directEmailInput}
+                onChange={(e) => setDirectEmailInput(e.currentTarget.value)}
+                placeholder="Enter email addresses (comma, semicolon, or newline separated)..."
+                minRows={4}
+                maxRows={8}
+                autosize
+                styles={{
+                  label: {
+                    fontFamily: 'Montserrat, sans-serif',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    color: '#880124',
+                    marginBottom: '8px',
+                  },
+                }}
+              />
+
+              {/* Email validation feedback */}
+              {directEmailInput.trim() && (
+                <Box>
+                  {parsedEmails.valid.length > 0 && (
+                    <Text size="sm" c="green" fw={500}>
+                      ✓ {parsedEmails.valid.length} valid email{parsedEmails.valid.length !== 1 ? 's' : ''} entered
+                    </Text>
+                  )}
+                  {parsedEmails.invalid.length > 0 && (
+                    <Text size="sm" c="red" mt={4}>
+                      ✗ Invalid: {parsedEmails.invalid.join(', ')}
+                    </Text>
+                  )}
+                </Box>
+              )}
+            </>
+          )}
+        </Stack>
+      </Paper>
+
+      {/* 4. Recipient Preview (for segment mode only) */}
+      {!useDirectEmails && selectedSegment && (
         <Paper p="md" withBorder style={{ borderColor: 'rgba(136, 1, 36, 0.1)' }}>
           <Stack gap="xs">
             <Text size="sm" fw={600} c="burgundy">
@@ -471,7 +591,7 @@ export const SendAdHocEmail: React.FC = () => {
         </Paper>
       )}
 
-      {/* Scheduled Send Section */}
+      {/* 5. Scheduled Send Section */}
       <ScheduledSendSection
         sendTiming={sendTiming}
         scheduledDate={scheduledDate}
@@ -479,7 +599,7 @@ export const SendAdHocEmail: React.FC = () => {
         onScheduledDateChange={setScheduledDate}
       />
 
-      {/* Action Buttons - Desktop */}
+      {/* 6. Action Buttons - Desktop */}
       <Group justify="flex-end" gap="sm" visibleFrom="sm">
         <Button variant="light" onClick={handleCancel} disabled={sendMutation.isPending}>
           Cancel
@@ -547,7 +667,7 @@ export const SendAdHocEmail: React.FC = () => {
         </Button>
       </Stack>
 
-      {/* Confirmation Modal */}
+      {/* 7. Confirmation Modal */}
       <Modal
         opened={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
@@ -567,7 +687,7 @@ export const SendAdHocEmail: React.FC = () => {
           {/* Warning Message */}
           <Alert color="yellow" variant="light" icon={<IconAlertCircle />}>
             <Text size="sm" fw={600}>
-              You are about to send this email to {recipientCount} recipients. This action
+              You are about to send this email to {recipientCount} recipient{recipientCount !== 1 ? 's' : ''}. This action
               cannot be undone.
             </Text>
           </Alert>
@@ -577,17 +697,22 @@ export const SendAdHocEmail: React.FC = () => {
             <Stack gap="xs">
               <Group gap="xs">
                 <Text size="sm" fw={600} c="burgundy">
-                  Segment:
-                </Text>
-                <Text size="sm">{currentSegment?.description || selectedSegment}</Text>
-              </Group>
-
-              <Group gap="xs">
-                <Text size="sm" fw={600} c="burgundy">
                   Recipients:
                 </Text>
-                <Text size="sm">{recipientCount} users</Text>
+                <Text size="sm">
+                  {useDirectEmails
+                    ? `${recipientCount} email address${recipientCount !== 1 ? 'es' : ''}`
+                    : `${currentSegment?.description || selectedSegment} (${recipientCount} users)`}
+                </Text>
               </Group>
+
+              {useDirectEmails && parsedEmails.valid.length <= 5 && (
+                <Box>
+                  <Text size="xs" c="dimmed">
+                    {parsedEmails.valid.join(', ')}
+                  </Text>
+                </Box>
+              )}
 
               <Box>
                 <Text size="sm" fw={600} c="burgundy" mb={4}>
@@ -597,6 +722,15 @@ export const SendAdHocEmail: React.FC = () => {
                   {subject}
                 </Text>
               </Box>
+
+              {sendTiming === 'scheduled' && scheduledDate && (
+                <Group gap="xs">
+                  <Text size="sm" fw={600} c="burgundy">
+                    Scheduled for:
+                  </Text>
+                  <Text size="sm">{scheduledDate.toLocaleString()}</Text>
+                </Group>
+              )}
             </Stack>
           </Paper>
 
@@ -616,7 +750,7 @@ export const SendAdHocEmail: React.FC = () => {
                 },
               }}
             >
-              Send Now
+              {sendTiming === 'immediate' ? 'Send Now' : 'Schedule Send'}
             </Button>
           </Group>
         </Stack>

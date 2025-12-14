@@ -3,6 +3,7 @@ import {
   Container,
   Title,
   Tabs,
+  Accordion,
   TextInput,
   PasswordInput,
   Textarea,
@@ -16,9 +17,10 @@ import {
   Alert,
   SimpleGrid,
 } from '@mantine/core'
+import { useMediaQuery } from '@mantine/hooks'
 import { Link } from 'react-router-dom'
 import { useForm } from '@mantine/form'
-import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
+import { IconAlertCircle, IconCheck, IconChevronDown } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { useProfile, useUpdateProfile, useChangePassword } from '../../hooks/useDashboard'
 import type {
@@ -40,6 +42,8 @@ import { useCurrentUser } from '../../features/auth/api/queries'
  */
 export const ProfileSettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string | null>('personal')
+  const [accordionValue, setAccordionValue] = useState<string | null>('personal')
+  const isMobile = useMediaQuery('(max-width: 991px)')
 
   // Fetch profile data using TanStack Query
   const { data: profile, isLoading, error } = useProfile()
@@ -80,94 +84,192 @@ export const ProfileSettingsPage: React.FC = () => {
   return (
     <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
       <Container size="xl" py="xl">
-        {/* Page Title with View Dashboard Button */}
-        <Group justify="space-between" align="center" mb="xl">
-          <Title
-            order={1}
-            tt="uppercase"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              color: 'var(--color-burgundy)',
-              fontSize: '2rem',
-            }}
-          >
-            Profile Settings
-          </Title>
-          <Button
-            component={Link}
-            to="/dashboard"
-            variant="filled"
-            color="burgundy"
-            styles={{
-              root: {
-                borderRadius: '12px 6px 12px 6px',
+        {/* Page Title with View Dashboard Button - Mobile-responsive */}
+        {isMobile ? (
+          <Stack gap="xs" mb="lg">
+            <Box style={{ textAlign: 'left', marginLeft: '16px', marginTop: '8px' }}>
+              <Text
+                component={Link}
+                to="/dashboard"
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  color: 'var(--color-burgundy)',
+                  textDecoration: 'none',
+                }}
+              >
+                View Dashboard
+              </Text>
+            </Box>
+            <Title
+              order={2}
+              tt="uppercase"
+              ta="center"
+              style={{
                 fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                transition: 'all 0.3s ease',
-                height: 'auto',
-                paddingTop: '10px',
-                paddingBottom: '10px',
-                paddingLeft: '20px',
-                paddingRight: '20px',
-                lineHeight: '1.2',
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'var(--color-burgundy)',
-                color: 'white',
+                color: 'var(--color-burgundy)',
+                fontSize: '1.5rem',
+              }}
+            >
+              Profile Settings
+            </Title>
+          </Stack>
+        ) : (
+          <Group justify="space-between" align="center" mb="xl">
+            <Title
+              order={1}
+              tt="uppercase"
+              style={{
+                fontFamily: 'var(--font-heading)',
+                color: 'var(--color-burgundy)',
+                fontSize: '2rem',
+              }}
+            >
+              Profile Settings
+            </Title>
+            <Button
+              component={Link}
+              to="/dashboard"
+              variant="filled"
+              color="burgundy"
+              styles={{
+                root: {
+                  borderRadius: '12px 6px 12px 6px',
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  transition: 'all 0.3s ease',
+                  height: 'auto',
+                  paddingTop: '10px',
+                  paddingBottom: '10px',
+                  paddingLeft: '20px',
+                  paddingRight: '20px',
+                  lineHeight: '1.2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: 'var(--color-burgundy)',
+                  color: 'white',
+                  '&:hover': {
+                    borderRadius: '6px 12px 6px 12px',
+                    backgroundColor: 'var(--color-burgundy-dark)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(183, 109, 117, 0.3)',
+                  },
+                },
+              }}
+            >
+              View Dashboard
+            </Button>
+          </Group>
+        )}
+
+        {/* Mobile: Accordion layout, Desktop: Tabs */}
+        {isMobile ? (
+          <Accordion
+            value={accordionValue}
+            onChange={setAccordionValue}
+            chevron={<IconChevronDown size={20} color="var(--color-rose-gold)" />}
+            styles={{
+              control: {
+                backgroundColor: 'white',
+                borderRadius: '12px 12px 0 0',
+                padding: 'var(--space-md)',
                 '&:hover': {
-                  borderRadius: '6px 12px 6px 12px',
-                  backgroundColor: 'var(--color-burgundy-dark)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 12px rgba(183, 109, 117, 0.3)',
+                  backgroundColor: 'var(--color-ivory)',
+                },
+                '&[data-active]': {
+                  backgroundColor: 'white',
                 },
               },
+              item: {
+                borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+                borderRadius: 0,
+                backgroundColor: 'transparent',
+                marginBottom: 'var(--space-sm)',
+                '&:last-of-type': {
+                  borderBottom: 'none',
+                },
+              },
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                fontSize: '16px',
+                color: 'var(--color-burgundy)',
+              },
+              panel: {
+                paddingTop: 0,
+                paddingBottom: 'var(--space-md)',
+                backgroundColor: 'white',
+                borderRadius: '0 0 12px 12px',
+              },
+              chevron: {
+                color: 'var(--color-rose-gold)',
+              },
             }}
           >
-            View Dashboard
-          </Button>
-        </Group>
+            <Accordion.Item value="personal">
+              <Accordion.Control>Personal</Accordion.Control>
+              <Accordion.Panel>
+                <PersonalInfoForm profile={profile} />
+              </Accordion.Panel>
+            </Accordion.Item>
 
-        {/* Tabs */}
-        <Tabs
-          value={activeTab}
-          onChange={setActiveTab}
-          color="burgundy"
-          styles={{
-            tab: {
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              fontSize: '16px',
-              padding: '12px 24px',
-              '&[data-active]': {
-                color: 'var(--color-burgundy)',
-                borderColor: 'var(--color-burgundy)',
+            <Accordion.Item value="security">
+              <Accordion.Control>Change Password</Accordion.Control>
+              <Accordion.Panel>
+                <ChangePasswordForm />
+              </Accordion.Panel>
+            </Accordion.Item>
+
+            <Accordion.Item value="vetting">
+              <Accordion.Control>Vetting & Membership</Accordion.Control>
+              <Accordion.Panel>
+                <VettingStatusDisplay profile={profile} />
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
+        ) : (
+          <Tabs
+            value={activeTab}
+            onChange={setActiveTab}
+            color="burgundy"
+            styles={{
+              tab: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                fontSize: '16px',
+                padding: '12px 24px',
+                '&[data-active]': {
+                  color: 'var(--color-burgundy)',
+                  borderColor: 'var(--color-burgundy)',
+                },
               },
-            },
-            panel: {
-              paddingTop: '24px',
-            },
-          }}
-        >
-          <Tabs.List>
-            <Tabs.Tab value="personal">Personal</Tabs.Tab>
-            <Tabs.Tab value="security">Change Password</Tabs.Tab>
-            <Tabs.Tab value="vetting">Vetting & Membership</Tabs.Tab>
-          </Tabs.List>
+              panel: {
+                paddingTop: '24px',
+              },
+            }}
+          >
+            <Tabs.List>
+              <Tabs.Tab value="personal">Personal</Tabs.Tab>
+              <Tabs.Tab value="security">Change Password</Tabs.Tab>
+              <Tabs.Tab value="vetting">Vetting & Membership</Tabs.Tab>
+            </Tabs.List>
 
-          <Tabs.Panel value="personal">
-            <PersonalInfoForm profile={profile} />
-          </Tabs.Panel>
+            <Tabs.Panel value="personal">
+              <PersonalInfoForm profile={profile} />
+            </Tabs.Panel>
 
-          <Tabs.Panel value="security">
-            <ChangePasswordForm />
-          </Tabs.Panel>
+            <Tabs.Panel value="security">
+              <ChangePasswordForm />
+            </Tabs.Panel>
 
-          <Tabs.Panel value="vetting">
-            <VettingStatusDisplay profile={profile} />
-          </Tabs.Panel>
-        </Tabs>
+            <Tabs.Panel value="vetting">
+              <VettingStatusDisplay profile={profile} />
+            </Tabs.Panel>
+          </Tabs>
+        )}
       </Container>
     </Box>
   )

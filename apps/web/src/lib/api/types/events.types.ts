@@ -39,16 +39,10 @@ export type EventSessionDto = components['schemas']['SessionDto']
 export type EventTicketTypeDto = components['schemas']['TicketTypeDto']
 
 /**
- * Volunteer position DTO
- * @generated from VolunteerPositionDto DTO
+ * Event Volunteer position DTO (simple version for admin event management)
+ * @generated from EventVolunteerPositionDto DTO
  */
-export type VolunteerPositionDto = components['schemas']['VolunteerPositionDto']
-
-/**
- * Volunteer position DTO (extended version with event details)
- * @generated from VolunteerPositionDto2 DTO
- */
-export type VolunteerPositionDto2 = components['schemas']['VolunteerPositionDto2']
+export type EventVolunteerPositionDto = components['schemas']['EventVolunteerPositionDto']
 
 /**
  * Update event request
@@ -98,7 +92,7 @@ export interface UpdateEventDto extends Omit<UpdateEventRequest, 'ticketTypes' |
   }>
 
   /** Volunteer positions with frontend fields */
-  volunteerPositions?: Array<VolunteerPositionDto & {
+  volunteerPositions?: Array<EventVolunteerPositionDto & {
     /** Position requirements (not in generated DTO) */
     requirements?: string
     /** Requires prior experience flag (not in generated DTO) */

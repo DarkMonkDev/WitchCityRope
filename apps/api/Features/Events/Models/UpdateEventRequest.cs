@@ -92,7 +92,7 @@ public class UpdateEventRequest
     /// Updated volunteer positions list (optional)
     /// If provided, will replace all existing volunteer positions with these
     /// </summary>
-    public List<VolunteerPositionDto>? VolunteerPositions { get; set; }
+    public List<EventVolunteerPositionDto>? VolunteerPositions { get; set; }
 
     /// <summary>
     /// Hours before/after event start when registration opens (optional)

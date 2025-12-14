@@ -5,16 +5,12 @@ namespace WitchCityRope.Api.Features.Events.Models;
 /// Used in the Events feature vertical slice for CRUD operations on events and their volunteer positions.
 /// </summary>
 /// <remarks>
-/// This is the SIMPLE version of VolunteerPositionDto designed for admin and event management operations.
+/// This is the SIMPLE version for admin and event management operations.
 /// It contains only the core fields needed for creating, updating, and displaying events in admin contexts.
 ///
-/// IMPORTANT: A second, richer version exists at Features/Volunteers/Models/VolunteerModels.cs that includes
+/// A richer version exists at Features/Volunteers/Models/VolunteerModels.cs (VolunteerPositionDto) that includes
 /// additional user-facing fields like CanSignUp, CanCancel, HasUserSignedUp, and session timing information.
-/// That version is used by the Volunteers feature for public-facing volunteer signup operations where user
-/// context and permission checks are needed.
-///
-/// Both DTOs exist intentionally as part of our vertical slice architecture - each feature slice has its own
-/// models optimized for its specific use case. This prevents coupling between features and keeps models focused.
+/// That version is used by the Volunteers feature for public-facing volunteer signup operations.
 ///
 /// This DTO is used by:
 /// - EventDto (includes list of volunteer positions)
@@ -22,7 +18,7 @@ namespace WitchCityRope.Api.Features.Events.Models;
 /// - UpdateEventRequest (for updating event volunteer positions)
 /// - EventService (for admin event management operations)
 /// </remarks>
-public class VolunteerPositionDto
+public class EventVolunteerPositionDto
 {
     public string Id { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
@@ -49,12 +45,12 @@ public class VolunteerPositionDto
     /// <summary>
     /// Constructor to map from VolunteerPosition entity
     /// </summary>
-    public VolunteerPositionDto() { }
+    public EventVolunteerPositionDto() { }
 
     /// <summary>
     /// Constructor to map from VolunteerPosition entity
     /// </summary>
-    public VolunteerPositionDto(WitchCityRope.Api.Models.VolunteerPosition volunteerPosition)
+    public EventVolunteerPositionDto(WitchCityRope.Api.Models.VolunteerPosition volunteerPosition)
     {
         Id = volunteerPosition.Id.ToString();
         Title = volunteerPosition.Title;

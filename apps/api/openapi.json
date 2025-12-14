@@ -3584,7 +3584,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/VolunteerPositionDto2"
+                    "$ref": "#/components/schemas/VolunteerPositionDto"
                   }
                 }
               }
@@ -4368,6 +4368,45 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/users/get-or-create": {
+      "post": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Get existing user or create new one",
+        "description": "Returns existing user if email exists, otherwise creates new user. ONLY available in Development/Test.",
+        "operationId": "GetOrCreateTestUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -12095,7 +12134,7 @@
           "volunteerPositions": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/VolunteerPositionDto"
+              "$ref": "#/components/schemas/EventVolunteerPositionDto"
             },
             "nullable": true
           },
@@ -12306,6 +12345,21 @@
           "venueId": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          },
+          "registrationOpenHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "registrationCloseHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "cancellationCloseHours": {
+            "type": "number",
+            "format": "double",
             "nullable": true
           }
         }
@@ -12926,7 +12980,7 @@
           "volunteerPositions": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/VolunteerPositionDto"
+              "$ref": "#/components/schemas/EventVolunteerPositionDto"
             }
           },
           "teacherIds": {
@@ -13164,6 +13218,50 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "EventVolunteerPositionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "slotsNeeded": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slotsFilled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sessionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "startTime": {
+            "type": "string",
+            "nullable": true
+          },
+          "endTime": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPublicFacing": {
+            "type": "boolean"
+          },
+          "slotsRemaining": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isFullyStaffed": {
+            "type": "boolean"
           }
         }
       },
@@ -16051,7 +16149,7 @@
           "volunteerPositions": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/VolunteerPositionDto"
+              "$ref": "#/components/schemas/EventVolunteerPositionDto"
             },
             "nullable": true
           },
@@ -17258,39 +17356,6 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "slotsNeeded": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "slotsFilled": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sessionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "slotsRemaining": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "isFullyStaffed": {
-            "type": "boolean"
-          }
-        }
-      },
-      "VolunteerPositionDto2": {
-        "type": "object",
-        "properties": {
-          "id": {
             "type": "string",
             "format": "uuid"
           },
@@ -17326,6 +17391,14 @@
           },
           "isFullyStaffed": {
             "type": "boolean"
+          },
+          "startTime": {
+            "type": "string",
+            "nullable": true
+          },
+          "endTime": {
+            "type": "string",
+            "nullable": true
           },
           "sessionName": {
             "type": "string",

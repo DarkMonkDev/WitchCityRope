@@ -140,7 +140,7 @@ public class EventService : IEventService
                     CurrentTickets = e.GetCurrentTicketCount(),
                     Sessions = e.Sessions.Select(s => new SessionDto(s)).ToList(),
                     TicketTypes = ticketTypeDtos,
-                    VolunteerPositions = e.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
+                    VolunteerPositions = e.VolunteerPositions.Select(vp => new EventVolunteerPositionDto(vp)).ToList(),
                     TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList(),
                     // Granular timing controls
                     RegistrationOpenHours = e.RegistrationOpenHours,
@@ -255,7 +255,7 @@ public class EventService : IEventService
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
                 TicketTypes = ticketTypeDtos,
-                VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
+                VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new EventVolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList(),
                 // Granular timing controls
                 RegistrationOpenHours = eventEntity.RegistrationOpenHours,
@@ -591,7 +591,7 @@ public class EventService : IEventService
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
                 TicketTypes = updatedTicketTypeDtos,
-                VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
+                VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new EventVolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList(),
                 // Granular timing controls
                 RegistrationOpenHours = eventEntity.RegistrationOpenHours,
@@ -1079,7 +1079,7 @@ public class EventService : IEventService
     /// </summary>
     private Task UpdateEventVolunteerPositionsAsync(
         WitchCityRope.Api.Models.Event eventEntity,
-        List<VolunteerPositionDto> newPositions,
+        List<EventVolunteerPositionDto> newPositions,
         CancellationToken cancellationToken)
     {
         // Get current volunteer positions mapped by ID for efficient lookups
@@ -1427,7 +1427,7 @@ public class EventService : IEventService
                     CurrentTickets = copiedEventWithNav.GetCurrentTicketCount(),
                     Sessions = copiedEventWithNav.Sessions.Select(s => new SessionDto(s)).ToList(),
                     TicketTypes = copiedTicketTypeDtos,
-                    VolunteerPositions = copiedEventWithNav.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
+                    VolunteerPositions = copiedEventWithNav.VolunteerPositions.Select(vp => new EventVolunteerPositionDto(vp)).ToList(),
                     TeacherIds = copiedEventWithNav.Organizers.Select(o => o.Id.ToString()).ToList(),
                     RegistrationOpenHours = copiedEventWithNav.RegistrationOpenHours,
                     RegistrationCloseHours = copiedEventWithNav.RegistrationCloseHours,
@@ -1725,7 +1725,7 @@ public class EventService : IEventService
                     CurrentTickets = createdEventWithNav.GetCurrentTicketCount(),
                     Sessions = createdEventWithNav.Sessions.Select(s => new SessionDto(s)).ToList(),
                     TicketTypes = createdTicketTypeDtos,
-                    VolunteerPositions = createdEventWithNav.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
+                    VolunteerPositions = createdEventWithNav.VolunteerPositions.Select(vp => new EventVolunteerPositionDto(vp)).ToList(),
                     TeacherIds = createdEventWithNav.Organizers.Select(o => o.Id.ToString()).ToList(),
                     RegistrationOpenHours = createdEventWithNav.RegistrationOpenHours,
                     RegistrationCloseHours = createdEventWithNav.RegistrationCloseHours,

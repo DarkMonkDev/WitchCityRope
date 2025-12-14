@@ -1416,6 +1416,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/test-helpers/users/get-or-create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get existing user or create new one
+         * @description Returns existing user if email exists, otherwise creates new user. ONLY available in Development/Test.
+         */
+        post: operations["GetOrCreateTestUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/test-helpers/ticket-purchases": {
         parameters: {
             query?: never;
@@ -4339,7 +4359,7 @@ export interface components {
             vettedMembersOnly: boolean;
             sessions?: components["schemas"]["SessionDto"][] | null;
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
-            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
+            volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][] | null;
             teacherIds?: string[] | null;
             /** Format: double */
             registrationOpenHours?: number | null;
@@ -4406,6 +4426,12 @@ export interface components {
             capacity?: number;
             /** Format: int32 */
             venueId?: number | null;
+            /** Format: double */
+            registrationOpenHours?: number | null;
+            /** Format: double */
+            registrationCloseHours?: number | null;
+            /** Format: double */
+            cancellationCloseHours?: number | null;
         };
         CreateTestSessionRequest: {
             /** Format: uuid */
@@ -4605,7 +4631,7 @@ export interface components {
             currentTickets?: number;
             sessions?: components["schemas"]["SessionDto"][];
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
-            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
+            volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][];
             teacherIds?: string[];
             /** Format: double */
             registrationOpenHours?: number | null;
@@ -4694,6 +4720,22 @@ export interface components {
             ticketId?: string | null;
             paymentMethod?: string | null;
             checkedInSessions?: string[];
+        };
+        EventVolunteerPositionDto: {
+            id?: string;
+            title?: string;
+            description?: string;
+            /** Format: int32 */
+            slotsNeeded?: number;
+            /** Format: int32 */
+            slotsFilled?: number;
+            sessionId?: string | null;
+            startTime?: string | null;
+            endTime?: string | null;
+            isPublicFacing?: boolean;
+            /** Format: int32 */
+            slotsRemaining?: number;
+            isFullyStaffed?: boolean;
         };
         ForgotPasswordRequest: {
             email: string;
@@ -5686,7 +5728,7 @@ export interface components {
             sessions?: components["schemas"]["SessionDto"][] | null;
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
             teacherIds?: string[] | null;
-            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
+            volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][] | null;
             /** Format: double */
             registrationOpenHours?: number | null;
             /** Format: double */
@@ -6082,19 +6124,6 @@ export interface components {
             checkedInAt?: string | null;
         };
         VolunteerPositionDto: {
-            id?: string;
-            title?: string;
-            description?: string;
-            /** Format: int32 */
-            slotsNeeded?: number;
-            /** Format: int32 */
-            slotsFilled?: number;
-            sessionId?: string | null;
-            /** Format: int32 */
-            slotsRemaining?: number;
-            isFullyStaffed?: boolean;
-        };
-        VolunteerPositionDto2: {
             /** Format: uuid */
             id?: string;
             /** Format: uuid */
@@ -6111,6 +6140,8 @@ export interface components {
             slotsRemaining?: number;
             isPublicFacing?: boolean;
             isFullyStaffed?: boolean;
+            startTime?: string | null;
+            endTime?: string | null;
             sessionName?: string | null;
             /** Format: date-time */
             sessionStartTime?: string | null;
@@ -9303,7 +9334,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["VolunteerPositionDto2"][];
+                    "application/json": components["schemas"]["VolunteerPositionDto"][];
                 };
             };
             /** @description Not Found */
@@ -9962,6 +9993,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    GetOrCreateTestUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestUserRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

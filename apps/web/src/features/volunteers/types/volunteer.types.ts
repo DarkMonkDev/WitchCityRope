@@ -18,10 +18,10 @@ import type { components } from '@witchcityrope/shared-types';
 
 /**
  * Volunteer Position DTO (full detail with session info)
- * @generated from C# VolunteerPositionDto2 via NSwag
- * Note: VolunteerPositionDto2 includes extended fields like eventId, sessionName, hasUserSignedUp
+ * @generated from C# VolunteerPositionDto via NSwag
+ * Includes extended fields like eventId, sessionName, hasUserSignedUp, startTime, endTime
  */
-export type VolunteerPositionDto = components['schemas']['VolunteerPositionDto2'];
+export type VolunteerPositionDto = components['schemas']['VolunteerPositionDto'];
 
 /**
  * Volunteer Signup DTO

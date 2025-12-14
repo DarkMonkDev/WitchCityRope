@@ -10,7 +10,7 @@ import type {
   RegistrationDto,
   EventSessionDto,
   EventTicketTypeDto,
-  VolunteerPositionDto
+  EventVolunteerPositionDto
 } from '../types/events.types'
 import type { PaginatedResponse } from '../types/api.types'
 
