@@ -17,7 +17,7 @@ import {
   Tooltip
 } from '@mantine/core';
 import { IconCopy } from '@tabler/icons-react';
-import { useClipboard } from '@mantine/hooks';
+import { useClipboard, useMediaQuery } from '@mantine/hooks';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface SubmissionConfirmationProps {
@@ -30,6 +30,7 @@ interface SubmissionConfirmationProps {
 export function SubmissionConfirmation({ submissionResult }: SubmissionConfirmationProps) {
   const clipboard = useClipboard({ timeout: 2000 });
   const eventTimeZone = useEventTimeZone();
+  const isMobile = useMediaQuery('(max-width: 991px)');
 
   const formatSubmissionTime = (isoString: string) => {
     const date = new Date(isoString);
@@ -78,10 +79,10 @@ export function SubmissionConfirmation({ submissionResult }: SubmissionConfirmat
 
       {/* Main Confirmation Card */}
       <Paper
-        shadow="sm"
-        p="xl"
-        radius="md"
-        style={{
+        shadow={isMobile ? undefined : "sm"}
+        p={isMobile ? 0 : "xl"}
+        radius={isMobile ? undefined : "md"}
+        style={isMobile ? {} : {
           borderTop: '4px solid var(--color-burgundy)',
           backgroundColor: '#FFFFFF'
         }}
