@@ -142,8 +142,10 @@ export interface CreateVolunteerPositionRequest {
   title: string;
   description?: string;
   slotsAvailable?: number;
-  startTime?: Date;
-  endTime?: Date;
+  /** Session ID (GUID) to associate this position with */
+  sessionId?: string;
+  startTime?: string;  // HH:MM format
+  endTime?: string;    // HH:MM format
 }
 
 export interface VolunteerPositionResponse {

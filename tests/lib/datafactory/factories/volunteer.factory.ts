@@ -35,7 +35,6 @@ export class VolunteerFactory {
     // Backend uses camelCase JSON naming policy (configured in Program.cs)
     // Map frontend field names to backend DTO field names:
     // - slotsAvailable (frontend) -> slotsNeeded (backend)
-    // - startTime/endTime (frontend) -> not used, use sessionId instead
     const request = {
       eventId: options.eventId,
       title: options.title,
@@ -43,8 +42,9 @@ export class VolunteerFactory {
       slotsNeeded: options.slotsAvailable ?? 3,
       slotsFilled: 0,
       isPublicFacing: true,
-      // Note: Backend uses sessionId, not startTime/endTime
-      // sessionId: options.sessionId, // Would need to add to types if needed
+      sessionId: options.sessionId ?? null,
+      startTime: options.startTime ?? '18:00',
+      endTime: options.endTime ?? '21:00',
     };
 
     const response = await this.client.post<

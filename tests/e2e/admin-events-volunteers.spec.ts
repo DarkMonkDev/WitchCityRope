@@ -62,7 +62,8 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     await expect(inlineForm).toBeVisible();
 
     // Check sessions dropdown - use Mantine Select pattern
-    const sessionDropdown = page.locator('[data-testid="dropdown-position-sessions"]');
+    // Note: testid is singular 'session' not plural 'sessions'
+    const sessionDropdown = page.locator('[data-testid="dropdown-position-session"]');
     await expect(sessionDropdown).toBeVisible();
 
     // Click to open dropdown
@@ -132,7 +133,8 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     await page.locator('[data-testid="textarea-position-description"]').fill('Monitor event safety and intervene if needed');
 
     // Select session from dropdown - use keyboard navigation for Mantine Select
-    const sessionDropdown = page.locator('[data-testid="dropdown-position-sessions"]');
+    // Note: testid is singular 'session' not plural 'sessions'
+    const sessionDropdown = page.locator('[data-testid="dropdown-position-session"]');
     await sessionDropdown.click();
     // Wait for dropdown to open and press Enter to select first option
     await page.waitForTimeout(200); // Small delay for dropdown animation
@@ -223,11 +225,12 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
       maxCapacity: 20,
     });
 
-    // Create volunteer position
+    // Create volunteer position with session assignment
     await df.volunteers.create({
       eventId: event.id,
       title: 'Original Position',
       slotsAvailable: 2,
+      sessionId: session.id,
     });
 
     // Navigate to admin event edit page
@@ -296,11 +299,12 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
       maxCapacity: 20,
     });
 
-    // Create volunteer position
+    // Create volunteer position with session assignment
     await df.volunteers.create({
       eventId: event.id,
       title: 'Position to Delete',
       slotsAvailable: 2,
+      sessionId: session.id,
     });
 
     // Navigate to admin event edit page
@@ -397,7 +401,8 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     await page.locator('[data-testid="input-slots-needed"]').fill('3');
 
     // Select a session - use keyboard navigation for Mantine Select
-    const sessionDropdown = page.locator('[data-testid="dropdown-position-sessions"]');
+    // Note: testid is singular 'session' not plural 'sessions'
+    const sessionDropdown = page.locator('[data-testid="dropdown-position-session"]');
     await sessionDropdown.click();
     await page.waitForTimeout(200);
     await page.keyboard.press('ArrowDown');
@@ -454,11 +459,12 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
       maxCapacity: 20,
     });
 
-    // Create volunteer position
+    // Create volunteer position with session assignment
     await df.volunteers.create({
       eventId: event.id,
       title: 'Test Position',
       slotsAvailable: 2,
+      sessionId: session.id,  // Link to the session for proper display
     });
 
     // Navigate to admin event edit page and volunteers tab
@@ -478,7 +484,8 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
       const firstRow = positionRows.first();
 
       // Sessions column should display session format
-      const sessionsCell = firstRow.locator('[data-testid="position-sessions"]');
+      // Note: testid is singular 'session' not plural 'sessions'
+      const sessionsCell = firstRow.locator('[data-testid="position-session"]');
       await expect(sessionsCell).toBeVisible();
 
       // Session display can be:
