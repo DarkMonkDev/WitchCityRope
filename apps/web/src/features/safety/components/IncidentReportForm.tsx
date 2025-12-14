@@ -232,7 +232,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
               {/* Contact Information - if identified */}
               {!form.values.isAnonymous && (
                 <Paper p="md" withBorder>
-                  <Stack gap={isMobile ? "lg" : "md"}>
+                  <Stack gap={isMobile ? "xl" : "md"}>
                     <Text fw={600} size="sm">Contact Information</Text>
                     <MantineTextInput
                       label="Your Name *"
