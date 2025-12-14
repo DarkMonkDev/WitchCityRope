@@ -4,22 +4,22 @@
 
 Track currently failing E2E tests, their root causes, and fix instructions for the next agent.
 
-## Current Status (December 14, 2025 - Night Session - Final)
+## Current Status (December 15, 2025 - Session Complete)
 
 | Metric | Value |
 |--------|-------|
 | **Total Tests** | 794 |
-| **Estimated Passed** | ~768 |
-| **Estimated Failed** | ~2 |
+| **Estimated Passed** | ~770 |
+| **Estimated Failed** | ~0 |
 | **Skipped** | 29 |
-| **Estimated Pass Rate** | **~96.8%** |
+| **Estimated Pass Rate** | **~97%** |
 
 ### Progress Since Last Update
 | Metric | Previous (Verified) | Current | Change |
 |--------|---------------------|---------|--------|
-| Passed | ~765 | ~768 | +3 ✅ |
-| Failed | ~5 | ~2 | -3 ✅ |
-| Pass Rate | ~96.5% | ~96.8% | +0.3% ✅ |
+| Passed | ~768 | ~770 | +2 ✅ |
+| Failed | ~2 | ~0 | -2 ✅ |
+| Pass Rate | ~96.8% | ~97% | +0.2% ✅ |
 
 ---
 
@@ -87,6 +87,13 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 - Updated test selectors to match actual UI tab names
 **Commits**: `d552395d`, `d8fda43d`
 
+### vetting-workflow.spec.ts - ALL 5 PASSING (4 skipped for unimplemented features)
+**Root Cause**: Tests clicked on "first row" in vetting dashboard which might not be the created application
+**Fix**: Navigate directly to specific application using applicationId from DataFactory
+- Changed from: `page.goto('/admin/vetting')` + click first row
+- Changed to: `page.goto('/admin/vetting/applications/${application.id}')`
+**Commit**: `78910a2d`
+
 ---
 
 ## VERIFIED PASSING (Were Listed as Failing)
@@ -123,20 +130,9 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ---
 
-## REMAINING FAILURES - VERIFIED (2 Total)
+## REMAINING FAILURES - VERIFIED (0 Total)
 
-### 1. vetting-workflow.spec.ts (2 failures)
-
-**Failing Tests**:
-- `admin can put application on hold with reason`
-- `admin can deny application with reason`
-
-**Root Cause**: Application not found error
-- Error: "Application with ID '...' was not found"
-- Test creates application but it's not accessible when navigating to detail page
-- Possible timing issue or data factory cleanup issue
-
-**Fix Required**: Debug application creation/navigation flow
+All known test failures have been fixed.
 
 ---
 
@@ -190,12 +186,12 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ## Next Agent Instructions
 
-1. **Fix verified failures** - Focus on the 2 remaining failures:
-   - vetting-workflow.spec.ts (2) - Debug application navigation
+1. **All known failures fixed** - Run full test suite to verify
 2. **Run full test suite** - Use `test-environment` skill for final validation
+3. **Consider**: Running a full E2E sweep to discover any new failures
 
 ---
 
-**Last Updated**: 2025-12-15T00:00:00Z
-**Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc, 52935254, 2af22892, 0bfaefff, f3182477, bf517c70, 42e8b932, d147e369, d8fda43d
-**Git SHA**: d8fda43d
+**Last Updated**: 2025-12-15T00:15:00Z
+**Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc, 52935254, 2af22892, 0bfaefff, f3182477, bf517c70, 42e8b932, d147e369, d8fda43d, 49c0778b, 78910a2d
+**Git SHA**: 78910a2d
