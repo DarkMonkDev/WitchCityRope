@@ -23,8 +23,9 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
   test('should display event filters correctly', async ({ page }) => {
     // Wait for page to fully load - either filter bar appears OR error state
     // The filter bar only renders when events API succeeds (no early return on error)
+    // Note: View toggle was removed from UI (card view only for initial release)
     const filterBarOrError = await Promise.race([
-      page.waitForSelector('[data-testid="button-view-toggle"]', { timeout: 10000 }).then(() => 'success'),
+      page.waitForSelector('[data-testid="input-search"]', { timeout: 10000 }).then(() => 'success'),
       page.waitForSelector('[data-testid="events-error"]', { timeout: 10000 }).then(() => 'error'),
     ]);
 
@@ -39,8 +40,8 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
     await page.waitForSelector('[data-testid="select-category"]', { timeout: 5000 });
 
     // Verify filter components are visible (use .first() since there are desktop and mobile versions)
-    await expect(page.locator('[data-testid="button-view-toggle"]').first()).toBeVisible();
     await expect(page.locator('[data-testid="input-search"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="select-category"]').first()).toBeVisible();
 
     // Take screenshot of filter view
     await page.screenshot({
