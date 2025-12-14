@@ -4,22 +4,22 @@
 
 Track currently failing E2E tests, their root causes, and fix instructions for the next agent.
 
-## Current Status (December 14, 2025 - Post Session Fixes)
+## Current Status (December 14, 2025 - Evening Session)
 
 | Metric | Value |
 |--------|-------|
 | **Total Tests** | 794 |
-| **Estimated Passed** | ~747 |
-| **Estimated Failed** | ~18 |
+| **Estimated Passed** | ~750 |
+| **Estimated Failed** | ~15 |
 | **Skipped** | 29 |
-| **Estimated Pass Rate** | **~94%** |
+| **Estimated Pass Rate** | **~94.5%** |
 
 ### Progress Since Last Update
-| Metric | Previous (Dec 13) | Current (Dec 14) | Change |
-|--------|-------------------|------------------|--------|
-| Passed | 727 | ~747 | +20 ✅ |
-| Failed | 38 | ~18 | -20 ✅ |
-| Pass Rate | 91.5% | ~94% | +2.5% ✅ |
+| Metric | Previous (Dec 14 AM) | Current (Dec 14 PM) | Change |
+|--------|----------------------|---------------------|--------|
+| Passed | ~747 | ~750 | +3 ✅ |
+| Failed | ~18 | ~15 | -3 ✅ |
+| Pass Rate | ~94% | ~94.5% | +0.5% ✅ |
 
 ---
 
@@ -45,6 +45,16 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 **Fix**: Removed visibility assertion on container, verify notification content directly
 **Commit**: `f72493cc`
 
+### admin-tickettype-deletion.spec.ts - ALL 6 PASSING
+**Root Cause**: Test created 3 ticket purchases for same user - violates business rule (same user cannot purchase multiple tickets for same session)
+**Fix**: Create 3 different users, each purchasing 1 ticket
+**Commit**: `52935254`
+
+### phase3-sessions-tickets.spec.ts - ALL 5 PASSING
+**Root Cause**: Test used `getByTestId('setup-tab')` which matched both tab button AND tab panel (strict mode violation)
+**Fix**: Changed to `getByRole('tab', { name: 'Sessions / Ticket Types' })` for unique selector
+**Commit**: `2af22892`
+
 ---
 
 ## PREVIOUSLY FIXED (Verified Passing December 14, 2025)
@@ -64,38 +74,9 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ---
 
-## REMAINING FAILURES - VERIFIED (4 Total)
+## REMAINING FAILURES - VERIFIED (1 Total)
 
-### 1. admin-tickettype-deletion.spec.ts (1 failure)
-
-**Failing Test**: `ticket type deletion shows correct sales count in blocked modal`
-
-**Root Cause**: Backend DataFactory API error when creating ticket purchases
-```
-Error: DataFactory API error: POST /ticket-purchases - Status 400
-"Internal error: An error occurred while saving the entity changes"
-```
-
-**Fix Required**: Backend investigation - TestHelperService ticket purchase creation
-
----
-
-### 2. phase3-sessions-tickets.spec.ts (2 failures)
-
-**Failing Tests**:
-- `Session CRUD - Add, edit, and delete sessions`
-- `Ticket Types - Create and manage ticket types`
-
-**Root Cause**: Tests expect "Setup" tab in event edit modal that doesn't exist in current UI
-```typescript
-await page.locator('button[role="tab"]:has-text("Setup")').click(); // Tab doesn't exist
-```
-
-**Fix Required**: Either implement "Setup" tab in UI OR rewrite tests to match actual UI structure
-
----
-
-### 3. profile-page.spec.ts (1 failure)
+### 1. profile-page.spec.ts (1 failure)
 
 **Failing Test**: `should handle user loading error`
 
@@ -213,6 +194,6 @@ These tests were listed as failing but haven't been run this session. May pass o
 
 ---
 
-**Last Updated**: 2025-12-14T02:15:00Z
-**Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc
-**Git SHA**: f72493cc
+**Last Updated**: 2025-12-14T21:20:00Z
+**Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc, 52935254, 2af22892, 0bfaefff
+**Git SHA**: 0bfaefff
