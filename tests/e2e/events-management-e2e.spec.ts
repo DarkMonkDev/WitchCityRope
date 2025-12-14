@@ -281,9 +281,9 @@ test.describe('Events Management System E2E Tests', () => {
       if (tabCount >= 4) {
         console.log(`✅ Found ${tabCount} tabs in event form`)
 
-        // Verify expected tabs are present
+        // Verify expected tabs are present (actual tab names from EventForm.tsx)
         await expect(page.locator('[role="tab"]:has-text("Basic Info")')).toBeVisible()
-        await expect(page.locator('[role="tab"]:has-text("Setup")')).toBeVisible()
+        await expect(page.locator('[role="tab"]:has-text("Sessions / Ticket Types")')).toBeVisible()
         await expect(page.locator('[role="tab"]:has-text("Emails")')).toBeVisible()
         await expect(page.locator('[role="tab"]:has-text("Volunteers")')).toBeVisible()
 
@@ -386,12 +386,12 @@ test.describe('Events Management System E2E Tests', () => {
       // Wait for content to load
       await page.waitForLoadState('domcontentloaded')
 
-      // Navigate to Setup tab where session grid lives
-      const setupTab = page.locator('[role="tab"]:has-text("Setup")')
+      // Navigate to Sessions / Ticket Types tab where session grid lives
+      const setupTab = page.locator('[role="tab"]:has-text("Sessions / Ticket Types")')
       if (await setupTab.count() > 0) {
         await setupTab.click()
         await page.waitForLoadState('domcontentloaded')
-        console.log('✅ Navigated to Setup tab')
+        console.log('✅ Navigated to Sessions / Ticket Types tab')
       }
 
       // Look for the actual sessions grid (modal-based UI)
