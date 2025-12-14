@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { Box, Text, Title, Button, Alert, Loader } from '@mantine/core';
+import { Box, Text, Title, Button, Alert, Loader, useMantineTheme } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Event } from '../../types/Event';
@@ -49,6 +50,8 @@ export const EventsList: React.FC<EventsListProps> = ({
   events: customEvents
 }) => {
   const navigate = useNavigate();
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery(`(max-width: 991px)`);
 
   // Use TanStack Query for real API data (only if custom events not provided)
   const {
@@ -129,6 +132,9 @@ export const EventsList: React.FC<EventsListProps> = ({
 
   const displayEvents = events.slice(0, maxEvents);
 
+  // Determine the display title based on viewport
+  const displayTitle = isMobile ? "Upcoming Events" : title;
+
   if (displayEvents.length === 0) {
     return (
       <Box
@@ -185,11 +191,11 @@ export const EventsList: React.FC<EventsListProps> = ({
           letterSpacing: '3px',
         }}
       >
-        {title}
+        {displayTitle}
         <Box
           style={{
             content: '""',
-            display: 'block',
+            display: isMobile ? 'none' : 'block',
             width: '100px',
             height: '2px',
             background: 'linear-gradient(90deg, transparent, var(--color-rose-gold), transparent)',
@@ -212,7 +218,7 @@ export const EventsList: React.FC<EventsListProps> = ({
           <PublicEventCard
             key={event.id}
             event={event}
-            variant="homepage"
+            variant={isMobile ? "list" : "homepage"}
             onClick={() => handleEventClick(event.id)}
           />
         ))}
