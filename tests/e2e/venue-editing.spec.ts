@@ -5,7 +5,7 @@
  * toggling active/inactive status.
  *
  * Test Coverage:
- * - Admin can edit venue name, directions, and notes
+ * - Admin can edit venue name, directions, and information
  * - Toggle venue active/inactive status
  * - Changes persist after save
  * - Non-admins cannot edit venues
@@ -106,7 +106,7 @@ test.describe('Admin Venue Editing', () => {
     await expect(page.getByRole('option', { name: updatedName })).toBeVisible({ timeout: 5000 });
   });
 
-  test('should update venue notes (admin-only field)', async ({ page }) => {
+  test('should update venue information (admin-only field)', async ({ page }) => {
     // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
@@ -133,13 +133,13 @@ test.describe('Admin Venue Editing', () => {
     await firstVenueOption.click();
     await page.waitForTimeout(500);
 
-    // Update notes field using data-testid
-    const updatedNotes = `Admin notes updated ${Date.now()}`;
-    const notesInput = venueCard.getByTestId('venue-notes-input');
+    // Update venue information field using correct data-testid
+    const updatedInfo = `Venue info updated ${Date.now()}. Capacity: 50.`;
+    const infoInput = venueCard.getByTestId('venue-information-input');
 
-    await notesInput.waitFor({ state: 'visible', timeout: 5000 });
-    await notesInput.clear();
-    await notesInput.fill(updatedNotes);
+    await infoInput.waitFor({ state: 'visible', timeout: 5000 });
+    await infoInput.clear();
+    await infoInput.fill(updatedInfo);
 
     // Save changes - use data-testid for more reliable selection
     const updateButton = venueCard.getByTestId('venue-submit-button');
@@ -164,9 +164,9 @@ test.describe('Admin Venue Editing', () => {
     await page.getByRole('option', { name: venueName }).click();
     await page.waitForTimeout(1000);
 
-    // Verify notes were saved using data-testid
-    const notesValue = await venueCard2.getByTestId('venue-notes-input').inputValue();
-    expect(notesValue).toContain(updatedNotes);
+    // Verify venue information was saved using correct data-testid
+    const infoValue = await venueCard2.getByTestId('venue-information-input').inputValue();
+    expect(infoValue).toContain(updatedInfo);
   });
 
   test('should delete venue (soft delete sets inactive)', async ({ page }) => {

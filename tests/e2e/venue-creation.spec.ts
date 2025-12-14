@@ -76,7 +76,8 @@ test.describe('Admin Venue Creation', () => {
 
     await page.locator('input[placeholder="Enter venue name"]').fill(uniqueName);
     await page.locator('textarea[placeholder="Enter directions to venue"]').fill('Turn left at Main Street, second building on the right');
-    await page.locator('textarea[placeholder="Enter additional notes"]').fill('Admin-only internal notes about parking');
+    // Note: The field is "Venue Information" not "Additional Notes"
+    await page.locator('textarea[placeholder="Enter venue information (capacity, parking, amenities, etc.)"]').fill('Capacity: 50 people. Free street parking available.');
 
     // Submit form - button shows "Create Venue" in create mode (line 433)
     const createButton = page.locator('button:has-text("Create Venue")');
