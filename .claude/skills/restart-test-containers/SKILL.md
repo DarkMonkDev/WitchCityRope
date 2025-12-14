@@ -69,14 +69,17 @@ docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.tes
 **Executable Script**: `execute.sh`
 
 ```bash
-# From project root - full rebuild with --no-cache (default)
+# From project root - clean rebuild with --no-cache (default, ensures fresh test files)
 bash .claude/skills/restart-test-containers/execute.sh
 
 # Skip confirmation prompt (for automation)
 SKIP_CONFIRMATION=true bash .claude/skills/restart-test-containers/execute.sh
 
-# Skip rebuild - just restart existing containers (faster when code hasn't changed)
+# Skip rebuild - just restart existing containers (fastest, when code hasn't changed)
 bash .claude/skills/restart-test-containers/execute.sh --skip-rebuild
+
+# Use Docker cache for faster rebuilds (when only non-test code changed)
+bash .claude/skills/restart-test-containers/execute.sh --use-cache
 
 # Combine flags for automation without rebuild
 SKIP_CONFIRMATION=true bash .claude/skills/restart-test-containers/execute.sh --skip-rebuild
@@ -89,7 +92,8 @@ SKIP_CONFIRMATION=true bash .claude/skills/restart-test-containers/execute.sh --
 4. Stops existing test containers (using `-p witchcityrope-test`)
 5. Builds and starts containers with test overlay (`docker-compose.yml + docker-compose.test.yml`)
    - Default: Builds with `--no-cache` for clean test images
-   - With `--skip-rebuild`: Skips build, just starts containers
+   - With `--use-cache`: Uses Docker cache for faster builds
+   - With `--skip-rebuild`: Skips build entirely, just starts containers
 6. Waits for containers to initialize
 7. Verifies health endpoints (Web, API, Database, Test Runner)
 8. Reports status summary
@@ -102,11 +106,14 @@ SKIP_CONFIRMATION=true bash .claude/skills/restart-test-containers/execute.sh --
 
 ### Using the Skill (Recommended)
 ```bash
-# From project root - full rebuild (for fresh test environment)
+# From project root - clean rebuild with --no-cache (default)
 bash .claude/skills/restart-test-containers/execute.sh
 
 # For quick restart without rebuild (code hasn't changed)
 bash .claude/skills/restart-test-containers/execute.sh --skip-rebuild
+
+# For faster rebuild using Docker cache (when only non-test files changed)
+bash .claude/skills/restart-test-containers/execute.sh --use-cache
 
 # For automation - skip confirmation
 SKIP_CONFIRMATION=true bash .claude/skills/restart-test-containers/execute.sh
@@ -136,13 +143,7 @@ docker exec witchcity-web-test curl -f http://localhost:5173
 
 **Cause**: Compilation errors in container or health not ready
 
-**Solution**: Skill automatically checks container health
-
-**Manual check**:
-```bash
-docker logs witchcity-web-test --tail 50 | grep -i error
-docker logs witchcity-api-test --tail 50 | grep -i error
-```
+**Solution**: Skill automatically checks container health. If issues persist, check container logs for errors in witchcity-web-test and witchcity-api-test.
 
 ### Issue: Network overlap error
 
@@ -163,14 +164,7 @@ bash .claude/skills/restart-test-containers/execute.sh
 
 **Note**: Test containers do NOT expose ports externally (internal communication only). This error usually means dev containers are on conflicting networks.
 
-**Solution**:
-```bash
-# Check if dev containers are running (they should be fine to run alongside)
-docker ps | grep witchcity
-
-# If network conflicts, remove old networks
-docker network prune -f
-```
+**Solution**: Check if dev containers are running (they should be fine to run alongside). If network conflicts occur, prune unused Docker networks.
 
 ### Issue: Dev containers were deleted when restarting test
 
@@ -233,7 +227,7 @@ On failure:
   "status": "failure",
   "error": "Container health check failed",
   "details": "API service did not respond within timeout",
-  "action": "Check container logs: docker logs witchcity-api-test"
+  "action": "Check API container logs for errors"
 }
 ```
 

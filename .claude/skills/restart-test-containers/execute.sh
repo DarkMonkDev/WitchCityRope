@@ -17,7 +17,7 @@ set -e  # Exit on error
 # ============================================
 
 SKIP_REBUILD=false
-FULL_REBUILD=false
+USE_CACHE=false
 
 for arg in "$@"; do
     case $arg in
@@ -25,8 +25,8 @@ for arg in "$@"; do
             SKIP_REBUILD=true
             shift
             ;;
-        --full-rebuild)
-            FULL_REBUILD=true
+        --use-cache)
+            USE_CACHE=true
             shift
             ;;
         *)
@@ -56,10 +56,10 @@ echo "⚙️  What this script does:"
 echo "   1. Stops existing test containers"
 if [ "$SKIP_REBUILD" = true ]; then
     echo "   2. Starts containers WITHOUT rebuild (--skip-rebuild mode)"
-elif [ "$FULL_REBUILD" = true ]; then
-    echo "   2. Rebuilds with --no-cache for FULL clean rebuild (--full-rebuild mode)"
+elif [ "$USE_CACHE" = true ]; then
+    echo "   2. Rebuilds containers with Docker cache (--use-cache mode, faster)"
 else
-    echo "   2. Rebuilds containers (incremental, uses Docker cache)"
+    echo "   2. Rebuilds with --no-cache for clean test images (default)"
 fi
 echo "   3. Waits for containers to initialize"
 echo "   4. Verifies health endpoints"
@@ -140,26 +140,26 @@ if [ "$SKIP_REBUILD" = true ]; then
     docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml up -d
     BUILD_MODE="skip"
     NO_CACHE="false"
-elif [ "$FULL_REBUILD" = true ]; then
-    echo "2️⃣  Building and starting test containers (FULL REBUILD)..."
+elif [ "$USE_CACHE" = true ]; then
+    echo "2️⃣  Building and starting test containers (with cache)..."
     echo "   Using: docker-compose.yml + docker-compose.test.yml"
     echo "   Project: witchcityrope-test (isolated from dev containers)"
-    echo "   Build: Full rebuild with --no-cache (downloads everything fresh)"
-    # Build first with --no-cache, then start containers
-    docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml build --no-cache
-    docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml up -d
-    BUILD_MODE="full"
-    NO_CACHE="true"
-else
-    echo "2️⃣  Building and starting test containers..."
-    echo "   Using: docker-compose.yml + docker-compose.test.yml"
-    echo "   Project: witchcityrope-test (isolated from dev containers)"
-    echo "   Build: Incremental rebuild (uses Docker cache)"
+    echo "   Build: Incremental rebuild (uses Docker cache for speed)"
     # Build with Docker cache (much faster), then start containers
     docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml build
     docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml up -d
     BUILD_MODE="incremental"
     NO_CACHE="false"
+else
+    echo "2️⃣  Building and starting test containers..."
+    echo "   Using: docker-compose.yml + docker-compose.test.yml"
+    echo "   Project: witchcityrope-test (isolated from dev containers)"
+    echo "   Build: Clean rebuild with --no-cache (ensures fresh test files)"
+    # Build first with --no-cache, then start containers
+    docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml build --no-cache
+    docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml up -d
+    BUILD_MODE="full"
+    NO_CACHE="true"
 fi
 
 echo "   ✅ Test containers starting..."
@@ -285,10 +285,10 @@ echo "📊 Status Summary:"
 echo "   • Containers: $RUNNING_COUNT/$EXPECTED_COUNT running"
 if [ "$SKIP_REBUILD" = true ]; then
     echo "   • Build: Skipped (--skip-rebuild mode)"
-elif [ "$FULL_REBUILD" = true ]; then
-    echo "   • Build: Full rebuild with --no-cache"
+elif [ "$USE_CACHE" = true ]; then
+    echo "   • Build: Incremental rebuild with Docker cache (--use-cache mode)"
 else
-    echo "   • Build: Incremental rebuild (Docker cache)"
+    echo "   • Build: Clean rebuild with --no-cache (default)"
 fi
 echo "   • Health checks: All passing"
 echo ""
