@@ -202,7 +202,7 @@ export const ProfileSettingsPage: React.FC = () => {
               },
               panel: {
                 paddingTop: 0,
-                paddingBottom: 'var(--space-md)',
+                paddingBottom: 0,
                 backgroundColor: 'white',
                 borderRadius: '0 0 12px 12px',
               },
