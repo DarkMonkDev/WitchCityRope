@@ -969,6 +969,11 @@ h3 {
   [data-testid="page-register-success"] > div > div:nth-child(2) {
     padding: var(--space-md) !important;
   }
+
+  /* Event cards - remove margin-bottom from Text elements on mobile */
+  [data-testid="event-card"] .mantine-Text-root {
+    margin-bottom: 0 !important;
+  }
 }
 
 /* STANDARDIZED BUTTON CLASSES - v7 Design System */
