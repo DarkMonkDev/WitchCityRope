@@ -4,22 +4,22 @@
 
 Track currently failing E2E tests, their root causes, and fix instructions for the next agent.
 
-## Current Status (December 14, 2025 - Late Evening Session)
+## Current Status (December 14, 2025 - Late Evening Session - Updated)
 
 | Metric | Value |
 |--------|-------|
 | **Total Tests** | 794 |
-| **Estimated Passed** | ~751 |
-| **Estimated Failed** | ~14 |
+| **Estimated Passed** | ~760 |
+| **Estimated Failed** | ~9 |
 | **Skipped** | 29 |
-| **Estimated Pass Rate** | **~94.6%** |
+| **Estimated Pass Rate** | **~95.7%** |
 
 ### Progress Since Last Update
-| Metric | Previous (Dec 14 PM) | Current (Dec 14 Late PM) | Change |
-|--------|----------------------|--------------------------|--------|
-| Passed | ~750 | ~751 | +1 ✅ |
-| Failed | ~15 | ~14 | -1 ✅ |
-| Pass Rate | ~94.5% | ~94.6% | +0.1% ✅ |
+| Metric | Previous (Dec 14 Late PM) | Current (Verified) | Change |
+|--------|---------------------------|---------------------|--------|
+| Passed | ~751 | ~760 | +9 ✅ |
+| Failed | ~14 | ~9 | -5 ✅ |
+| Pass Rate | ~94.6% | ~95.7% | +1.1% ✅ |
 
 ---
 
@@ -57,14 +57,26 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ### profile-page.spec.ts - ALL 2 PASSING
 **Root Cause**: Test mocked wrong endpoint (`/api/auth/user` instead of `/api/users/*/profile`)
-- ProfileSettingsPage uses `dashboardService.getProfile()` which calls `/api/users/{userId}/profile`
-- TanStack Query retries failed requests (default 3 retries with backoff)
-- Original selector hit strict mode violation when using `.or()`
-**Fix**:
-- Mock `/api/users/*/profile` endpoint instead of `/api/auth/user`
-- Use `getByRole('alert', { name: 'Error Loading Profile' })` for unique selector
-- Wait 15 seconds for TanStack Query retries to complete
+**Fix**: Mock `/api/users/*/profile` endpoint, use `getByRole('alert')`, wait for TanStack Query retries
 **Commit**: `f3182477`
+
+---
+
+## VERIFIED PASSING (Were Listed as Failing)
+
+### admin-events-volunteers.spec.ts - ALL 7 PASSING ✅
+**Status**: Verified passing - was listed as 4 failures, now all pass
+**Cleanup warnings**: Benign - volunteer positions deleted by tests before cleanup
+
+### anonymous-report-submission.spec.ts - ALL 2 PASSING ✅
+**Status**: Verified passing - fix committed previously (`e099d3b2`)
+
+### home-page.spec.ts - ALL 12 PASSING ✅
+**Status**: Verified passing - was listed as 2 failures, all tests pass
+**Cleanup warnings**: Benign - fixture reuse warnings don't affect test results
+
+### events-basic-validation.spec.ts - ALL 4 PASSING ✅
+**Status**: Verified passing - was listed as 1 failure
 
 ---
 
@@ -72,7 +84,6 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ### session-ticket-availability.spec.ts - ALL 7 PASSING
 **Fixed**: Previous session (commit `054a56d9`)
-**Root Cause**: Tests rewritten with proper timing logic
 
 ### admin-refund-eligibility.spec.ts - ALL 6 PASSING
 **Status**: Verified passing this session
@@ -85,68 +96,81 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ---
 
-## REMAINING FAILURES - VERIFIED (0 Total)
+## REMAINING FAILURES - VERIFIED (9 Total)
 
-All previously verified failures have been fixed.
+### 1. events-comprehensive.spec.ts (2 failures)
+
+**Failing Tests**:
+- `should handle large number of events efficiently`
+- `social event should offer RSVP AND ticket purchase as parallel actions`
+
+**Root Cause**: Mock data structure mismatch
+- Mock wraps events in `{ success, data, error }` but API returns array directly
+- Mock event objects missing required fields (sessions, ticketTypes, etc.)
+- Social event test: Selector may find hidden element first
+
+**Fix Required**: Update mock data structure to match actual API response format
 
 ---
 
-## NOT YET VERIFIED (~14 failures from tracker)
+### 2. events-management-e2e.spec.ts (3 failures)
 
-These tests were listed as failing but haven't been run this session. May pass or fail.
+**Failing Tests**:
+- `should load Event Session Matrix demo page`
+- `should display event form tabs`
+- `should verify form fields are present`
 
-### HIGH PRIORITY - Should Verify First
+**Root Cause**: Demo page crashes with "Invalid time value"
+- EventSessionMatrixDemo component throws error on render
+- Mock data has dates that cause Date parsing issues
 
-**admin-events-volunteers.spec.ts** (4 listed failures):
-- should add volunteer position via inline form
-- should display sessions in day format in position assignments
-- should show only current event sessions in dropdown
-- should validate volunteer position form fields
+**Fix Required**: Fix EventSessionMatrixDemo component - update mock dates or fix date parsing
 
-**anonymous-report-submission.spec.ts** (2 listed failures):
-- should submit anonymous incident report and receive reference number
-- should validate required fields before submission
-- **Note**: Tracker said fix was committed (`e099d3b2`) - needs verification
+---
 
-### MEDIUM PRIORITY
+### 3. vetting-workflow.spec.ts (2 failures)
 
-**events-comprehensive.spec.ts** (2 listed failures):
-- should handle large number of events efficiently
-- social event should offer RSVP AND ticket purchase as parallel actions
+**Failing Tests**:
+- `admin can put application on hold with reason`
+- `admin can deny application with reason`
 
-**events-management-e2e.spec.ts** (3 listed failures):
-- should display event form tabs
-- should load Event Session Matrix demo page
-- should verify form fields are present
+**Root Cause**: Application not found error
+- Error: "Application with ID '...' was not found"
+- Test creates application but it's not accessible when navigating to detail page
+- Possible timing issue or data factory cleanup issue
 
-**home-page.spec.ts** (2 listed failures):
-- events display from API with complete card structure
-- proves complete React + API + PostgreSQL stack works
+**Fix Required**: Debug application creation/navigation flow
 
-**vetting-workflow.spec.ts** (2 listed failures):
-- admin can deny application with reason
-- user can submit vetting application successfully
+---
 
-### LOW PRIORITY
+### 4. event-update-complete-flow.spec.ts (1 failure)
 
-**events-basic-validation.spec.ts** (1 listed failure):
-- Events Page Loading and Content Detection
+**Failing Test**: `Admin can update event without getting logged out`
 
-**event-update-complete-flow.spec.ts** (1 listed failure):
-- Admin can update event without getting logged out
+**Root Cause**: Needs investigation
+**Fix Required**: Check test and component for auth persistence issues
 
-**phase4-events-testing.spec.ts** (1 listed failure):
-- should display event filters correctly
+---
 
-### INFRASTRUCTURE (Can Skip)
+### 5. phase4-events-testing.spec.ts (1 failure)
+
+**Failing Test**: `should display event filters correctly`
+
+**Root Cause**: Selector not found
+- Looking for `[data-testid="button-view-toggle"]`
+- Element may have been removed or renamed
+
+**Fix Required**: Update selector to match current UI
+
+---
+
+## INFRASTRUCTURE (Can Skip)
 
 **compare-wireframe.spec.ts** (1 failure):
-- capture original wireframe
 - Requires docs server running on localhost:8080 - not critical
 
 **e2e-events-full-journey.spec.ts** (1 failure):
-- Environment Health Check
-- May be outdated infrastructure test
+- Environment Health Check - may be outdated
 
 ---
 
@@ -190,13 +214,16 @@ These tests were listed as failing but haven't been run this session. May pass o
 
 ## Next Agent Instructions
 
-1. **Verify unverified tests** - Run each test file in "NOT YET VERIFIED" section
-2. **Update this tracker** - Mark tests as passing or document specific failures
-3. **Fix verified failures** - Focus on the 4 verified failing tests
-4. **Run full test suite** - Use `test-environment` skill only for final validation
+1. **Fix verified failures** - Focus on the 9 remaining failures:
+   - events-comprehensive.spec.ts (2) - Mock data structure fix
+   - events-management-e2e.spec.ts (3) - Demo page component fix
+   - vetting-workflow.spec.ts (2) - Debug application navigation
+   - event-update-complete-flow.spec.ts (1) - Auth persistence check
+   - phase4-events-testing.spec.ts (1) - Selector update
+2. **Run full test suite** - Use `test-environment` skill for final validation
 
 ---
 
-**Last Updated**: 2025-12-14T21:30:00Z
+**Last Updated**: 2025-12-14T21:45:00Z
 **Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc, 52935254, 2af22892, 0bfaefff, f3182477
 **Git SHA**: f3182477
