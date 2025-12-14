@@ -1,5 +1,6 @@
 import React from 'react'
 import { Card, Text, Badge, Box, Stack, Group, Button } from '@mantine/core'
+import { useMediaQuery } from '@mantine/hooks'
 import { useNavigate } from 'react-router-dom'
 import { IconHeart } from '@tabler/icons-react'
 import type { UserEventDto } from '../../../types/dashboard.types'
@@ -27,6 +28,7 @@ interface EventCardProps {
  */
 export const EventCard: React.FC<EventCardProps> = ({ event, className, volunteerShifts = [] }) => {
   const navigate = useNavigate()
+  const isMobile = useMediaQuery('(max-width: 991px)')
   const eventTimeZone = useEventTimeZone();
 
   // Find volunteer shifts for this specific event
@@ -98,10 +100,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
 
   return (
     <Card
-      shadow="sm"
+      shadow={isMobile ? undefined : "sm"}
       padding="0"
-      radius="md"
-      withBorder
+      radius={isMobile ? 0 : "md"}
+      withBorder={!isMobile}
       className={className}
       data-testid="event-card"
       onClick={handleCardClick}
@@ -110,7 +112,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
         display: 'flex',
         flexDirection: 'column',
         background: 'var(--color-ivory)',
-        borderColor: 'rgba(183, 109, 117, 0.1)',
+        borderColor: isMobile ? 'transparent' : 'rgba(183, 109, 117, 0.1)',
+        border: isMobile ? 0 : undefined,
         transition: 'all 0.3s ease',
         cursor: 'pointer',
       }}

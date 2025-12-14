@@ -228,7 +228,7 @@ export const MyEventsPage: React.FC = () => {
         {/* Page Title Bar */}
         <Group justify="space-between" mb="lg" wrap="wrap">
           <Title
-            order={isMobile ? 3 : 1}
+            order={isMobile ? 2 : 1}
             tt="uppercase"
             style={{
               fontFamily: 'var(--font-heading)',
