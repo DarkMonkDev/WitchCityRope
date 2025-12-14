@@ -899,6 +899,12 @@ h3 {
   .incident-report-wrapper .mantine-InputWrapper-description {
     margin-top: 0 !important;
   }
+
+  /* Remove margin-bottom from p tags (description text) under inputs */
+  .incident-report-wrapper p,
+  .incident-report-wrapper .mantine-Text-root {
+    margin-bottom: 0 !important;
+  }
 }
 
 /* STANDARDIZED BUTTON CLASSES - v7 Design System */
