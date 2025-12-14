@@ -4,22 +4,22 @@
 
 Track currently failing E2E tests, their root causes, and fix instructions for the next agent.
 
-## Current Status (December 14, 2025 - Evening Session)
+## Current Status (December 14, 2025 - Late Evening Session)
 
 | Metric | Value |
 |--------|-------|
 | **Total Tests** | 794 |
-| **Estimated Passed** | ~750 |
-| **Estimated Failed** | ~15 |
+| **Estimated Passed** | ~751 |
+| **Estimated Failed** | ~14 |
 | **Skipped** | 29 |
-| **Estimated Pass Rate** | **~94.5%** |
+| **Estimated Pass Rate** | **~94.6%** |
 
 ### Progress Since Last Update
-| Metric | Previous (Dec 14 AM) | Current (Dec 14 PM) | Change |
-|--------|----------------------|---------------------|--------|
-| Passed | ~747 | ~750 | +3 ✅ |
-| Failed | ~18 | ~15 | -3 ✅ |
-| Pass Rate | ~94% | ~94.5% | +0.5% ✅ |
+| Metric | Previous (Dec 14 PM) | Current (Dec 14 Late PM) | Change |
+|--------|----------------------|--------------------------|--------|
+| Passed | ~750 | ~751 | +1 ✅ |
+| Failed | ~15 | ~14 | -1 ✅ |
+| Pass Rate | ~94.5% | ~94.6% | +0.1% ✅ |
 
 ---
 
@@ -55,6 +55,17 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 **Fix**: Changed to `getByRole('tab', { name: 'Sessions / Ticket Types' })` for unique selector
 **Commit**: `2af22892`
 
+### profile-page.spec.ts - ALL 2 PASSING
+**Root Cause**: Test mocked wrong endpoint (`/api/auth/user` instead of `/api/users/*/profile`)
+- ProfileSettingsPage uses `dashboardService.getProfile()` which calls `/api/users/{userId}/profile`
+- TanStack Query retries failed requests (default 3 retries with backoff)
+- Original selector hit strict mode violation when using `.or()`
+**Fix**:
+- Mock `/api/users/*/profile` endpoint instead of `/api/auth/user`
+- Use `getByRole('alert', { name: 'Error Loading Profile' })` for unique selector
+- Wait 15 seconds for TanStack Query retries to complete
+**Commit**: `f3182477`
+
 ---
 
 ## PREVIOUSLY FIXED (Verified Passing December 14, 2025)
@@ -74,17 +85,9 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ---
 
-## REMAINING FAILURES - VERIFIED (1 Total)
+## REMAINING FAILURES - VERIFIED (0 Total)
 
-### 1. profile-page.spec.ts (1 failure)
-
-**Failing Test**: `should handle user loading error`
-
-**Root Cause**: Test mocks API to return 500 error, expects error UI that may not be implemented
-- Component may not display error the way test expects
-- Or TanStack Query handles errors differently
-
-**Fix Required**: Verify ProfileSettingsPage error handling, update test selectors
+All previously verified failures have been fixed.
 
 ---
 
@@ -194,6 +197,6 @@ These tests were listed as failing but haven't been run this session. May pass o
 
 ---
 
-**Last Updated**: 2025-12-14T21:20:00Z
-**Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc, 52935254, 2af22892, 0bfaefff
-**Git SHA**: 0bfaefff
+**Last Updated**: 2025-12-14T21:30:00Z
+**Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc, 52935254, 2af22892, 0bfaefff, f3182477
+**Git SHA**: f3182477
