@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Group, Button, Box, Stack, Drawer, Burger } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { IconX } from '@tabler/icons-react'
 import { useUser, useIsAuthenticated } from '../../stores/authStore'
 import { useLogout } from '../../features/auth/api/mutations'
 import { useMenuVisibility } from '../../features/vetting/hooks/useMenuVisibility'
@@ -187,12 +188,12 @@ export const Navigation: React.FC = () => {
         )}
       </Group>
 
-      {/* Mobile Menu Toggle - Keep existing hamburger button for visual consistency */}
+      {/* Mobile Menu Toggle - Hamburger button that also acts as close button when menu is open */}
       <Box
         component="button"
         data-testid="button-mobile-menu"
         className={`mobile-menu-toggle ${isMobileMenuOpen ? 'open' : ''}`}
-        onClick={openMobileMenu}
+        onClick={isMobileMenuOpen ? closeMobileMenu : openMobileMenu}
         aria-label={isMobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
         aria-expanded={isMobileMenuOpen}
         aria-controls="mobile-menu"
@@ -227,6 +228,30 @@ export const Navigation: React.FC = () => {
           },
         }}
       >
+        {/* Close button at top-right of drawer */}
+        <Box
+          component="button"
+          onClick={closeMobileMenu}
+          data-testid="mobile-menu-close"
+          aria-label="Close menu"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--color-burgundy)',
+            zIndex: 10,
+          }}
+        >
+          <IconX size={28} stroke={2} />
+        </Box>
+
         <Stack
           gap="0"
           p="var(--space-lg)"
