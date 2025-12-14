@@ -48,7 +48,8 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
       }
       
       // Navigate to Sessions / Ticket Types tab (contains sessions and tickets)
-      await page.getByTestId('setup-tab').click();
+      // Use getByRole instead of getByTestId since data-testid="setup-tab" is on both tab and panel
+      await page.getByRole('tab', { name: 'Sessions / Ticket Types' }).click();
       
       // Check for Event Sessions section
       const sessionsSection = page.locator('text=Event Sessions');
@@ -131,7 +132,8 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
       }
       
       // Navigate to Sessions / Ticket Types tab (contains sessions and tickets)
-      await page.getByTestId('setup-tab').click();
+      // Use getByRole instead of getByTestId since data-testid="setup-tab" is on both tab and panel
+      await page.getByRole('tab', { name: 'Sessions / Ticket Types' }).click();
 
       // Check for Ticket Types section
       const ticketSection = page.locator('text=Ticket Types').first();
@@ -216,7 +218,8 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
       }
 
       // Navigate to Sessions / Ticket Types tab (contains sessions and tickets)
-      const setupTab = page.getByTestId('setup-tab');
+      // Use getByRole instead of getByTestId since data-testid="setup-tab" is on both tab and panel
+      const setupTab = page.getByRole('tab', { name: 'Sessions / Ticket Types' });
       if (await setupTab.isVisible()) {
         await setupTab.click();
 
