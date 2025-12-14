@@ -19,6 +19,7 @@ import {
 } from '@mantine/core';
 import { TimeInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconInfoCircle, IconShieldCheck, IconClock } from '@tabler/icons-react';
 import { StyledDatePicker } from '../../../components/forms/StyledDatePicker';
 import {
@@ -48,6 +49,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
   const [agreementChecked, setAgreementChecked] = useState(false);
   const user = useAuthStore(state => state.user);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const isMobile = useMediaQuery('(max-width: 991px)');
   const eventTimeZone = useEventTimeZone();
 
   const {
@@ -157,7 +159,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
 
   return (
     <Box maw={900} mx="auto" p="md" className="incident-report-wrapper">
-      <Paper shadow="sm" p="xl" radius="md">
+      <Paper shadow="sm" p={isMobile ? "md" : "xl"} radius="md">
         <Stack gap="xl">
           {/* Header */}
           <Box>
