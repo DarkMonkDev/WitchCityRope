@@ -25,6 +25,7 @@ export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
           onChange={(event) =>
             onFilterChange({ showPastEvents: event.currentTarget.checked })
           }
+          data-testid="switch-show-past-events"
           styles={{
             label: {
               fontWeight: 500,

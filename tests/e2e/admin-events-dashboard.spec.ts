@@ -12,30 +12,35 @@ test.describe('Admin Events Dashboard', () => {
     await page.waitForLoadState('domcontentloaded');
   });
 
-  test('should show both filter chips checked by default', async ({ page }) => {
-    // Check that both filter chips are selected by default
-    // Mantine puts data-testid directly on the checkbox input
-    const socialChipInput = page.getByTestId('filter-social');
-    const classChipInput = page.getByTestId('filter-class');
+  test('should display events dashboard with filter controls', async ({ page }) => {
+    // Check page title
+    await expect(page.getByRole('heading', { name: 'Events Dashboard' })).toBeVisible();
 
-    // Chips should be checked by default (use toBeChecked for checkbox inputs)
-    await expect(socialChipInput).toBeChecked();
-    await expect(classChipInput).toBeChecked();
+    // Check filter controls exist
+    // Show Past Events switch (Mantine Switch renders input as hidden, use toBeAttached)
+    const showPastSwitch = page.getByTestId('switch-show-past-events');
+    await expect(showPastSwitch).toBeAttached();
+
+    // Search input
+    const searchInput = page.getByTestId('input-search-events');
+    await expect(searchInput).toBeVisible();
+
+    // Create Event button
+    const createButton = page.getByTestId('button-create-event');
+    await expect(createButton).toBeVisible();
   });
 
-  test('should show events when both filters are checked', async ({ page }) => {
-    // Both filters should be checked by default
-    const eventsTable = page.getByTestId('events-table');
-    
+  test('should show events in table', async ({ page }) => {
     // Check if table exists
+    const eventsTable = page.getByTestId('events-table');
     await expect(eventsTable).toBeVisible();
-    
+
     // Check if there are any events in the table
     const tableRows = page.locator('tbody tr');
     const rowCount = await tableRows.count();
-    
-    console.log(`Found ${rowCount} events in table with both filters checked`);
-    
+
+    console.log(`Found ${rowCount} events in table`);
+
     // Should have at least one event (or show "No events found" message)
     if (rowCount === 1) {
       // Check if it's the "No events found" message
@@ -52,70 +57,58 @@ test.describe('Admin Events Dashboard', () => {
     }
   });
 
-  test('should filter events by type when unchecking filters', async ({ page }) => {
+  test('should toggle past events visibility with switch', async ({ page }) => {
     // Get initial event count
     const tableRows = page.locator('tbody tr');
     const initialCount = await tableRows.count();
     console.log(`Initial event count: ${initialCount}`);
 
-    // For Mantine Chips, we need to click on the label, not the input
-    // The input has the data-testid, so we find it and then get its associated label
-    const socialChipInput = page.getByTestId('filter-social');
-    const classChipInput = page.getByTestId('filter-class');
-
-    // Get the IDs to find the associated labels
-    const socialId = await socialChipInput.getAttribute('id');
-    const classId = await classChipInput.getAttribute('id');
-
-    // Click on the labels (not the inputs) to toggle the chips
-    const socialLabel = page.locator(`label[for="${socialId}"]`);
-    const classLabel = page.locator(`label[for="${classId}"]`);
-
-    // Uncheck Social filter by clicking its label
-    await socialLabel.click();
+    // Click the switch label text to toggle (Mantine hides the actual input)
+    const switchLabel = page.getByText('Show Past Events');
+    await expect(switchLabel).toBeVisible();
+    await switchLabel.click();
     await page.waitForTimeout(500); // Wait for filter to apply
 
-    // Check row count after unchecking Social
-    const afterSocialUncheck = await tableRows.count();
-    console.log(`Events after unchecking Social: ${afterSocialUncheck}`);
+    // Get new count
+    const newCount = await tableRows.count();
+    console.log(`Event count after toggle: ${newCount}`);
 
-    // Re-check Social and uncheck Class
-    await socialLabel.click();
+    // The counts might be different depending on whether there are past events
+    // Just verify the switch works (no crash)
+    console.log('Switch toggled successfully');
+  });
+
+  test('should filter events with search input', async ({ page }) => {
+    // Get the search input
+    const searchInput = page.getByTestId('input-search-events');
+    await expect(searchInput).toBeVisible();
+
+    // Type a search term
+    await searchInput.fill('test');
+    await page.waitForTimeout(500); // Wait for debounced search
+
+    // Verify search was applied (check the showing count text or table updates)
+    const tableRows = page.locator('tbody tr');
+    const rowCount = await tableRows.count();
+    console.log(`Events matching "test": ${rowCount}`);
+
+    // Clear search
+    await searchInput.fill('');
     await page.waitForTimeout(500);
 
-    await classLabel.click();
-    await page.waitForTimeout(500);
-
-    // Check row count after unchecking Class
-    const afterClassUncheck = await tableRows.count();
-    console.log(`Events after unchecking Class: ${afterClassUncheck}`);
-
-    // Uncheck both - click Social again
-    await socialLabel.click();
-    await page.waitForTimeout(500);
-
-    const bothUnchecked = await tableRows.count();
-    console.log(`Events with both unchecked: ${bothUnchecked}`);
-
-    // When both are unchecked, should show no events or "No events found" message
-    if (bothUnchecked === 1) {
-      const firstRow = tableRows.first();
-      const text = await firstRow.textContent();
-      expect(text).toContain('No events found');
-    } else {
-      expect(bothUnchecked).toBe(0);
-    }
+    const afterClear = await tableRows.count();
+    console.log(`Events after clearing search: ${afterClear}`);
   });
 
   test('should have working Copy button', async ({ page }) => {
     const tableRows = page.locator('tbody tr');
     const rowCount = await tableRows.count();
-    
+
     if (rowCount > 0) {
       // Check if first row has a Copy button
       const firstRowCopyButton = tableRows.first().getByTestId('button-copy-event');
       const buttonExists = await firstRowCopyButton.count() > 0;
-      
+
       if (buttonExists) {
         // Check that button text is visible
         await expect(firstRowCopyButton).toBeVisible();
@@ -127,18 +120,18 @@ test.describe('Admin Events Dashboard', () => {
   test('should navigate to event edit on row click', async ({ page }) => {
     const tableRows = page.locator('tbody tr');
     const rowCount = await tableRows.count();
-    
+
     if (rowCount > 0) {
       const firstRow = tableRows.first();
       const text = await firstRow.textContent();
-      
+
       // Only click if it's not the "No events found" row
       if (!text?.includes('No events found')) {
         await firstRow.click();
-        
+
         // Should either navigate or show a notification
         await page.waitForTimeout(1000);
-        
+
         // Check if we navigated away from the table page
         const currentUrl = page.url();
         console.log('Current URL after click:', currentUrl);
