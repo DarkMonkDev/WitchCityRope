@@ -86,6 +86,15 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
     return `${dayOfWeek}, ${month} ${day}`;
   };
 
+  // Format "HH:mm" military time to "h:mm AM/PM" format for volunteer shift times
+  const formatShiftTime = (time?: string) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
   return (
     <Paper
       style={{
@@ -137,7 +146,7 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
                 border: '1px solid var(--color-stone-light)'
               }}
             >
-              <Group justify="space-between" align="flex-start" wrap="nowrap">
+              <Group justify="space-between" align="flex-start" wrap="nowrap" gap={2}>
                 <Stack gap={4} style={{ flex: 1 }}>
                   <Group gap="xs" wrap="wrap">
                     <Text
@@ -155,9 +164,13 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
                     )}
                   </Group>
 
-                  {position.sessionStartTime && position.sessionEndTime && (
+                  {position.sessionStartTime && (
                     <Text size="xs" c="dimmed">
-                      {formatShortDateWithDay(position.sessionStartTime)} • {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}
+                      {formatShortDateWithDay(position.sessionStartTime)} • {(position.startTime || position.endTime)
+                        ? `${formatShiftTime(position.startTime)} - ${formatShiftTime(position.endTime)}`
+                        : position.sessionEndTime
+                          ? `${formatTime(position.sessionStartTime)} - ${formatTime(position.sessionEndTime)}`
+                          : ''}
                     </Text>
                   )}
                 </Stack>
