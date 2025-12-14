@@ -228,7 +228,7 @@ export const MyEventsPage: React.FC = () => {
         {/* Page Title Bar */}
         {isMobile ? (
           <Stack gap="xs" mb="lg">
-            <Box style={{ textAlign: 'right' }}>
+            <Box style={{ textAlign: 'left', marginLeft: '16px', marginTop: '16px' }}>
               <Text
                 component={Link}
                 to="/dashboard/profile-settings"
@@ -246,6 +246,7 @@ export const MyEventsPage: React.FC = () => {
             <Title
               order={2}
               tt="uppercase"
+              ta="center"
               style={{
                 fontFamily: 'var(--font-heading)',
                 color: 'var(--color-burgundy)',
