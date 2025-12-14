@@ -137,6 +137,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           alignItems: 'center',
           justifyContent: 'center',
           padding: '18px',
+          marginBottom: isMobile ? 0 : undefined,
         }}
       >
         <Text
