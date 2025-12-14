@@ -52,19 +52,23 @@ test.describe('Public Events Anonymous Access', () => {
       const firstEvent = events[0];
 
       // Required EventDto fields (actual API response uses these field names)
+      // Based on apps/api/Features/Events/Models/EventDto.cs
       expect(firstEvent).toHaveProperty('id');
       expect(firstEvent).toHaveProperty('title');
       expect(firstEvent).toHaveProperty('description');
       expect(firstEvent).toHaveProperty('startDate'); // API uses startDate, not startTime
       expect(firstEvent).toHaveProperty('endDate');   // API uses endDate, not endTime
       expect(firstEvent).toHaveProperty('isPublished');
-      expect(firstEvent).toHaveProperty('eventType');
+      // Note: eventType is NOT part of EventDto - it's a database field but not exposed in API
 
-      // Additional expected fields
+      // Additional expected fields from EventDto
       expect(firstEvent).toHaveProperty('capacity');
       expect(firstEvent).toHaveProperty('sessions');
       expect(firstEvent).toHaveProperty('venueId');
       expect(firstEvent).toHaveProperty('venueLocation');
+      expect(firstEvent).toHaveProperty('allowRsvps');
+      expect(firstEvent).toHaveProperty('requireTicketPurchase');
+      expect(firstEvent).toHaveProperty('registrationCount');
 
       // Verify published status (should only return published events)
       expect(firstEvent.isPublished).toBe(true);

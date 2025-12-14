@@ -48,6 +48,10 @@ export interface CreateEventRequest {
   status?: EventStatus;
   isPublic?: boolean;
   venueId?: string;
+  /** Whether free RSVPs are enabled for this event */
+  allowRsvps?: boolean;
+  /** Whether ticket purchase is mandatory to attend */
+  requireTicketPurchase?: boolean;
 }
 
 export interface EventResponse {

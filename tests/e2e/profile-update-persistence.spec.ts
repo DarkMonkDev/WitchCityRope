@@ -174,10 +174,13 @@ test.describe('Profile Update Persistence', () => {
     console.log('✅ Success notification appeared');
 
     // Step 11: Verify response contains updated data
+    // API returns profile data directly (not wrapped in { success, data })
     console.log('📍 Step 11: Verifying response data...');
-    expect(responseBody.success).toBe(true);
-    expect(responseBody.data).toBeDefined();
-    console.log('✅ Response indicates success with data');
+    expect(responseBody.userId).toBeDefined();
+    expect(responseBody.sceneName).toBe(newSceneName);
+    expect(responseBody.firstName).toBe(newFirstName);
+    expect(responseBody.lastName).toBe(newLastName);
+    console.log('✅ Response contains updated profile data');
 
     // Step 12: Refresh the page to verify persistence
     console.log('📍 Step 12: Refreshing page to verify persistence...');

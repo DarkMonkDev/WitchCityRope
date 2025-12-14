@@ -66,6 +66,8 @@ export class EventFactory {
       status: eventStatusToInt(options.status),
       isPublished: options.isPublic ?? true,
       venueId: options.venueId ? parseInt(options.venueId, 10) : 1,
+      allowRsvps: options.allowRsvps ?? false,
+      requireTicketPurchase: options.requireTicketPurchase ?? false,
     };
 
     const response = await this.client.post<typeof request, EventResponse>(
@@ -98,6 +100,8 @@ export class EventFactory {
 
   /**
    * Create a published event (ready for public viewing)
+   * By default, events have allowRsvps=false and requireTicketPurchase=false
+   * Use createRsvpEvent() for events that allow free RSVPs
    */
   async createPublished(title: string): Promise<EventResponse> {
     const now = new Date();
@@ -109,6 +113,26 @@ export class EventFactory {
       endDate: new Date(tomorrow.getTime() + 3 * 60 * 60 * 1000),
       status: 'Published',
       isPublic: true,
+    });
+  }
+
+  /**
+   * Create a published event with RSVPs enabled (for free social events)
+   * RSVP events allow free registration without ticket purchase
+   */
+  async createRsvpEvent(title: string): Promise<EventResponse> {
+    const now = new Date();
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    return this.create({
+      title,
+      startDate: tomorrow,
+      endDate: new Date(tomorrow.getTime() + 3 * 60 * 60 * 1000),
+      status: 'Published',
+      isPublic: true,
+      eventType: 'Social',
+      allowRsvps: true,
+      requireTicketPurchase: false,
     });
   }
 

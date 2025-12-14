@@ -29,39 +29,41 @@ import { DatabaseHelpers } from './utils/database-helpers';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Ticket Lifecycle Persistence Tests', () => {
-  test('CRITICAL: should persist ticket cancellation to database', async ({ page, df }) => {
-    // SKIP REASON: Test infrastructure gap, NOT missing feature
-    //
-    // FEATURE STATUS: Ticket cancellation IS IMPLEMENTED
-    // - Backend endpoint: DELETE /api/events/{id}/participation (works for both RSVPs and Tickets)
-    // - Frontend UI: Cancel ticket link available on Admin -> Event Details -> Tickets/RSVPs tab
-    // - Tested indirectly: RSVP cancellation tests verify the same code path works correctly
-    //
-    // TEST INFRASTRUCTURE GAP:
-    // - Creating paid tickets requires completing PayPal payment flow in browser
-    // - No test helper exists to create paid tickets directly in database (bypassing PayPal)
-    // - Alternative: Add database helper to insert EventParticipation with TicketType records
-    //
-    // WORKAROUND:
-    // - RSVP cancellation tests in rsvp-lifecycle-persistence.spec.ts test the same backend logic
-    // - Both ticket and RSVP cancellation use DELETE /api/events/{id}/participation
-    // - RSVP tests verify: persistence, database updates, UI feedback, audit logs
-    //
-    // FUTURE WORK:
-    // - Add DatabaseHelpers.createPaidTicket() method to bypass PayPal for testing
-    // - Unskip these tests once helper exists
+  /**
+   * INFRASTRUCTURE GAP: All tests in this file require PayPal payment flow
+   *
+   * FEATURE STATUS: Ticket cancellation IS IMPLEMENTED and working:
+   * - Backend endpoint: DELETE /api/events/{id}/participation (works for both RSVPs and Tickets)
+   * - Frontend UI: Cancel ticket link available on Admin -> Event Details -> Tickets/RSVPs tab
+   * - Tested indirectly: RSVP cancellation tests verify the same code path works correctly
+   *
+   * WHY SKIPPED:
+   * - Creating paid tickets requires completing PayPal payment flow in browser
+   * - No test helper exists to create paid tickets directly in database (bypassing PayPal)
+   *
+   * WORKAROUND:
+   * - RSVP cancellation tests in rsvp-lifecycle-persistence.spec.ts test the same backend logic
+   * - Both ticket and RSVP cancellation use DELETE /api/events/{id}/participation
+   * - RSVP tests verify: persistence, database updates, UI feedback, audit logs
+   *
+   * FUTURE WORK:
+   * - Add DatabaseHelpers.createPaidTicket() method to bypass PayPal for testing
+   * - Unskip these tests once helper exists
+   */
+
+  test.skip('CRITICAL: should persist ticket cancellation to database', async ({ page, df }) => {
+    // Skipped: Test infrastructure gap (PayPal integration required to create tickets)
+    // Feature IS implemented - see RSVP tests for equivalent coverage
   });
 
-  test('should handle complete ticket lifecycle', async ({ page, df }) => {
-    // SKIP REASON: Test infrastructure gap (PayPal integration required to create tickets)
-    // FEATURE STATUS: Ticket lifecycle IS IMPLEMENTED (purchase, view, cancel all work)
-    // See comment in 'CRITICAL: should persist ticket cancellation' test for details
+  test.skip('should handle complete ticket lifecycle', async ({ page, df }) => {
+    // Skipped: Test infrastructure gap (PayPal integration required to create tickets)
+    // Feature IS implemented - see RSVP tests for equivalent coverage
   });
 
-  test('should persist cancellation reason to database', async ({ page, df }) => {
-    // SKIP REASON: Test infrastructure gap (PayPal integration required to create tickets)
-    // FEATURE STATUS: Cancellation reasons ARE IMPLEMENTED and stored in database
-    // WORKAROUND: RSVP cancellation tests verify this same functionality
+  test.skip('should persist cancellation reason to database', async ({ page, df }) => {
+    // Skipped: Test infrastructure gap (PayPal integration required to create tickets)
+    // Feature IS implemented - see RSVP tests for equivalent coverage
 
     // Create test event with paid ticket using DataFactory
     const event = await df.events.createPublished(`Cancellation Test ${Date.now()}`);
@@ -130,10 +132,9 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
     console.log('✅ Cancellation audit log created');
   });
 
-  test('should prevent duplicate cancellations', async ({ page, df }) => {
-    // SKIP REASON: Test infrastructure gap (PayPal integration required to create tickets)
-    // FEATURE STATUS: Duplicate cancellation prevention IS IMPLEMENTED
-    // WORKAROUND: RSVP cancellation tests verify this same functionality
+  test.skip('should prevent duplicate cancellations', async ({ page, df }) => {
+    // Skipped: Test infrastructure gap (PayPal integration required to create tickets)
+    // Feature IS implemented - see RSVP tests for equivalent coverage
 
     // Create test event with paid ticket using DataFactory
     const event = await df.events.createPublished(`Duplicate Cancel Test ${Date.now()}`);
@@ -198,10 +199,9 @@ test.describe('Ticket Persistence Edge Cases', () => {
     // For now, we'll skip as it requires multiple browser contexts
   });
 
-  test('should verify endpoint called is correct', async ({ page, df }) => {
-    // SKIP REASON: Test infrastructure gap (PayPal integration required to create tickets)
-    // FEATURE STATUS: Correct endpoint IS USED (DELETE /api/events/{id}/participation)
-    // WORKAROUND: RSVP cancellation tests verify correct endpoint usage
+  test.skip('should verify endpoint called is correct', async ({ page, df }) => {
+    // Skipped: Test infrastructure gap (PayPal integration required to create tickets)
+    // Feature IS implemented - see RSVP tests for equivalent coverage
 
     // Create test event with paid ticket using DataFactory
     const event = await df.events.createPublished(`Endpoint Test ${Date.now()}`);

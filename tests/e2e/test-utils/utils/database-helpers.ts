@@ -591,7 +591,7 @@ export async function verifyAuditLogExists(
     SELECT COUNT(*) as count
     FROM "${tableName}"
     WHERE "${columnMap[tableName]}" = $1
-    AND "Action" ILIKE $2
+    AND "ActionType" ILIKE $2
   `;
 
   const rows = await query<{ count: string }>(sql, [entityId, `%${action}%`]);
@@ -639,8 +639,8 @@ export async function createTestUser(options: TestUserOptions): Promise<TestUser
 
   try {
     // Use TestHelpers API to create user (Development/Test environment only)
-    // Note: This uses global fetch with environment-based URL configuration
-    const apiBaseUrl = process.env.PLAYWRIGHT_BASE_URL || API_BASE_URL;
+    // Note: This uses API_URL, NOT PLAYWRIGHT_BASE_URL (which is the web frontend URL)
+    const apiBaseUrl = process.env.API_URL || API_BASE_URL;
     const response = await fetch(`${apiBaseUrl}/api/test-helpers/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
