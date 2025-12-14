@@ -9,17 +9,17 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 | Metric | Value |
 |--------|-------|
 | **Total Tests** | 794 |
-| **Estimated Passed** | ~760 |
-| **Estimated Failed** | ~9 |
+| **Estimated Passed** | ~761 |
+| **Estimated Failed** | ~8 |
 | **Skipped** | 29 |
-| **Estimated Pass Rate** | **~95.7%** |
+| **Estimated Pass Rate** | **~95.8%** |
 
 ### Progress Since Last Update
-| Metric | Previous (Dec 14 Late PM) | Current (Verified) | Change |
-|--------|---------------------------|---------------------|--------|
-| Passed | ~751 | ~760 | +9 ✅ |
-| Failed | ~14 | ~9 | -5 ✅ |
-| Pass Rate | ~94.6% | ~95.7% | +1.1% ✅ |
+| Metric | Previous (Verified) | Current | Change |
+|--------|---------------------|---------|--------|
+| Passed | ~760 | ~761 | +1 ✅ |
+| Failed | ~9 | ~8 | -1 ✅ |
+| Pass Rate | ~95.7% | ~95.8% | +0.1% ✅ |
 
 ---
 
@@ -60,6 +60,11 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 **Fix**: Mock `/api/users/*/profile` endpoint, use `getByRole('alert')`, wait for TanStack Query retries
 **Commit**: `f3182477`
 
+### phase4-events-testing.spec.ts - ALL 6 PASSING
+**Root Cause**: Test looked for `button-view-toggle` which was commented out in UI
+**Fix**: Updated selector to use `input-search` as filter bar indicator
+**Commit**: `bf517c70`
+
 ---
 
 ## VERIFIED PASSING (Were Listed as Failing)
@@ -96,7 +101,7 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ---
 
-## REMAINING FAILURES - VERIFIED (9 Total)
+## REMAINING FAILURES - VERIFIED (8 Total)
 
 ### 1. events-comprehensive.spec.ts (2 failures)
 
@@ -152,18 +157,6 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ---
 
-### 5. phase4-events-testing.spec.ts (1 failure)
-
-**Failing Test**: `should display event filters correctly`
-
-**Root Cause**: Selector not found
-- Looking for `[data-testid="button-view-toggle"]`
-- Element may have been removed or renamed
-
-**Fix Required**: Update selector to match current UI
-
----
-
 ## INFRASTRUCTURE (Can Skip)
 
 **compare-wireframe.spec.ts** (1 failure):
@@ -214,16 +207,15 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ## Next Agent Instructions
 
-1. **Fix verified failures** - Focus on the 9 remaining failures:
+1. **Fix verified failures** - Focus on the 8 remaining failures:
    - events-comprehensive.spec.ts (2) - Mock data structure fix
    - events-management-e2e.spec.ts (3) - Demo page component fix
    - vetting-workflow.spec.ts (2) - Debug application navigation
    - event-update-complete-flow.spec.ts (1) - Auth persistence check
-   - phase4-events-testing.spec.ts (1) - Selector update
 2. **Run full test suite** - Use `test-environment` skill for final validation
 
 ---
 
-**Last Updated**: 2025-12-14T21:45:00Z
-**Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc, 52935254, 2af22892, 0bfaefff, f3182477
-**Git SHA**: f3182477
+**Last Updated**: 2025-12-14T22:00:00Z
+**Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc, 52935254, 2af22892, 0bfaefff, f3182477, bf517c70
+**Git SHA**: bf517c70
