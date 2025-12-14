@@ -14,47 +14,39 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 test.describe('ProfilePage - E2E Tests', () => {
 
   test('should handle user loading error', async ({ page }) => {
-    // Set up route mock BEFORE login to intercept all user requests
-    let requestCount = 0;
-    const routeHandler = async (route: import('@playwright/test').Route) => {
-      requestCount++;
-
-      // Let the first request through (for login)
-      if (requestCount === 1) {
-        await route.continue();
-      } else {
-        // Fail subsequent requests (for profile page)
-        await route.fulfill({
-          status: 500,
-          contentType: 'application/json',
-          body: JSON.stringify({ error: 'Server error' })
-        });
-      }
-    };
-
-    await page.route('**/api/auth/user', routeHandler);
-
-    // Login as admin (first request will succeed)
+    // Login as admin first (before setting up error mock)
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Navigate to profile page - this will trigger the error (second request)
+    // Set up route mock for the profile endpoint AFTER login
+    // ProfileSettingsPage uses /api/users/{userId}/profile, not /api/auth/user
+    const profileRouteHandler = async (route: import('@playwright/test').Route) => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Server error' })
+      });
+    };
+
+    // Mock the profile endpoint to return 500
+    await page.route('**/api/users/*/profile', profileRouteHandler);
+
+    // Navigate to profile page - this will trigger the error
     await page.goto('/dashboard/profile-settings', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
-    // Verify error message is displayed (using flexible selector for error alert)
-    const errorAlert = page.locator('[role="alert"]').filter({ hasText: /error|failed/i }).first();
-    const errorText = page.locator('text=/Error Loading Profile|Failed to load|error/i').first();
+    // TanStack Query retries failed requests 3 times with exponential backoff
+    // Default delays: 1000ms, 2000ms, 4000ms (total ~7 seconds)
+    // Wait for error UI to appear after retries complete
+    // Use getByRole which is more specific than locator and handles strict mode better
+    const errorAlert = page.getByRole('alert', { name: 'Error Loading Profile' });
 
-    // Try both selectors
-    const errorVisible = await errorAlert.isVisible({ timeout: 5000 }).catch(() => false) ||
-                         await errorText.isVisible({ timeout: 5000 }).catch(() => false);
-
-    expect(errorVisible).toBeTruthy();
+    // Wait up to 15 seconds for error to appear (covers retry period)
+    await expect(errorAlert).toBeVisible({ timeout: 15000 });
 
     console.log('✅ Profile page correctly displays error when API returns 500');
 
     // Cleanup: Remove route mock for subsequent tests
-    await page.unroute('**/api/auth/user', routeHandler);
+    await page.unroute('**/api/users/*/profile', profileRouteHandler);
   });
 
   test('should display user account information correctly', async ({ page }) => {
