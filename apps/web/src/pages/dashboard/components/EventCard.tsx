@@ -157,7 +157,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
         </Text>
       </Box>
 
-      <Stack gap="sm" p="lg" style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: isMobile ? 0 : undefined }}>
+      <Stack gap="sm" p="lg" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Date/Time - Multi-session support */}
         {(() => {
           // Use registeredSessions (sessions the user purchased tickets for)
