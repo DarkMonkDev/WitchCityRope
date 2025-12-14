@@ -269,30 +269,57 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
               />
 
               {/* When did this occur? */}
-              <Group grow align="flex-start">
-                <Box>
-                  <Text fw={600} size="md" mb="xs">
-                    When did this occur? *
-                  </Text>
-                  <StyledDatePicker
-                    value={new Date(form.values.incidentDate)}
-                    onChange={(date) => {
-                      if (date) {
-                        form.setFieldValue('incidentDate', date.toISOString().split('T')[0]);
-                      }
-                    }}
-                    placeholder="Select date"
-                    maxDate={new Date()}
-                    clearable={false}
+              {isMobile ? (
+                <Stack gap="md">
+                  <Box>
+                    <Text fw={600} size="md" mb="xs">
+                      When did this occur? *
+                    </Text>
+                    <StyledDatePicker
+                      value={new Date(form.values.incidentDate)}
+                      onChange={(date) => {
+                        if (date) {
+                          form.setFieldValue('incidentDate', date.toISOString().split('T')[0]);
+                        }
+                      }}
+                      placeholder="Select date"
+                      maxDate={new Date()}
+                      clearable={false}
+                    />
+                  </Box>
+                  <TimeInput
+                    label="Time"
+                    value={form.values.incidentTime}
+                    onChange={(event) => form.setFieldValue('incidentTime', event.currentTarget.value)}
+                    leftSection={<IconClock size={16} />}
                   />
-                </Box>
-                <TimeInput
-                  label="Time"
-                  value={form.values.incidentTime}
-                  onChange={(event) => form.setFieldValue('incidentTime', event.currentTarget.value)}
-                  leftSection={<IconClock size={16} />}
-                />
-              </Group>
+                </Stack>
+              ) : (
+                <Group grow align="flex-start">
+                  <Box>
+                    <Text fw={600} size="md" mb="xs">
+                      When did this occur? *
+                    </Text>
+                    <StyledDatePicker
+                      value={new Date(form.values.incidentDate)}
+                      onChange={(date) => {
+                        if (date) {
+                          form.setFieldValue('incidentDate', date.toISOString().split('T')[0]);
+                        }
+                      }}
+                      placeholder="Select date"
+                      maxDate={new Date()}
+                      clearable={false}
+                    />
+                  </Box>
+                  <TimeInput
+                    label="Time"
+                    value={form.values.incidentTime}
+                    onChange={(event) => form.setFieldValue('incidentTime', event.currentTarget.value)}
+                    leftSection={<IconClock size={16} />}
+                  />
+                </Group>
+              )}
 
               {/* Where did this occur? - Dropdown per wireframe */}
               <MantineSelect

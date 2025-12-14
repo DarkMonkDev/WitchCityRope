@@ -875,6 +875,30 @@ h3 {
   .incident-report-wrapper {
     padding: 0 !important;
   }
+
+  /* Safety incident report form - remove margin-bottom from form elements on mobile */
+  .incident-report-wrapper [class*="formGroup"] {
+    margin-bottom: 0 !important;
+  }
+
+  /* Remove margin-bottom from Mantine input root elements */
+  .incident-report-wrapper .mantine-TextInput-root,
+  .incident-report-wrapper .mantine-Textarea-root,
+  .incident-report-wrapper .mantine-Select-root,
+  .incident-report-wrapper .mantine-PasswordInput-root,
+  .incident-report-wrapper .mantine-TimeInput-root,
+  .incident-report-wrapper .mantine-DateInput-root,
+  .incident-report-wrapper .mantine-DatePickerInput-root {
+    margin-bottom: 0 !important;
+  }
+
+  /* Remove margin-top from description/helper text under inputs */
+  .incident-report-wrapper .mantine-TextInput-description,
+  .incident-report-wrapper .mantine-Textarea-description,
+  .incident-report-wrapper .mantine-Select-description,
+  .incident-report-wrapper .mantine-InputWrapper-description {
+    margin-top: 0 !important;
+  }
 }
 
 /* STANDARDIZED BUTTON CLASSES - v7 Design System */
