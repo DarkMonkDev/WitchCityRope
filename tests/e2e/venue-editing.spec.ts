@@ -118,19 +118,20 @@ test.describe('Admin Venue Editing', () => {
     const venueCard = page.getByTestId('venue-management-card');
     await venueCard.waitFor({ state: 'visible', timeout: 5000 });
 
-    // Select first venue
+    // Select a venue (use index 2 to avoid conflict with delete test)
     const venueDropdown = venueCard.getByTestId('venue-select');
     await venueDropdown.click();
     await page.waitForTimeout(500);
 
-    // Select first REAL venue from dropdown (not "Add New")
+    // Select SECOND real venue from dropdown (index 2) to avoid conflict with delete test
     await page.getByRole('option', { name: 'Add New' }).waitFor({ state: 'visible', timeout: 5000 });
 
-    // Get all options and extract venue name from second option (first real venue)
+    // Get all options and extract venue name from third option (second real venue)
+    // Using index 2 because delete test uses index 1, avoiding parallel test conflicts
     const allOptions = page.getByRole('option');
-    const firstVenueOption = allOptions.nth(1);  // Index 0 is "Add New", index 1 is first real venue
-    let venueName = (await firstVenueOption.textContent()) || '';
-    await firstVenueOption.click();
+    const secondVenueOption = allOptions.nth(2);  // Index 0 is "Add New", index 2 is second real venue
+    let venueName = (await secondVenueOption.textContent()) || '';
+    await secondVenueOption.click();
     await page.waitForTimeout(500);
 
     // Update venue information field using correct data-testid
@@ -160,8 +161,10 @@ test.describe('Admin Venue Editing', () => {
     await venueDropdown2.click();
     await page.waitForTimeout(500);
 
-    // Click the venue option in the dropdown
-    await page.getByRole('option', { name: venueName }).click();
+    // Click the venue option in the dropdown (wait for it to appear first)
+    const venueOption = page.getByRole('option', { name: venueName });
+    await venueOption.waitFor({ state: 'visible', timeout: 5000 });
+    await venueOption.click();
     await page.waitForTimeout(1000);
 
     // Verify venue information was saved using correct data-testid
