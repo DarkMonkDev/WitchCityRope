@@ -334,9 +334,10 @@ test.describe('Admin Ticket Type Deletion', () => {
       quantityAvailable: 20,
     });
 
-    // Create test user and 3 ticket purchases to show count
-    const user = await df.users.createVerified({ email: `test-${Date.now()}@example.com` });
+    // Create 3 different users, each purchasing 1 ticket to show count
+    // Business rule: Same user cannot purchase multiple tickets for the same session
     for (let i = 0; i < 3; i++) {
+      const user = await df.users.createVerified({ email: `test-sales-${Date.now()}-${i}@example.com` });
       await df.ticketPurchases.create({
         userId: user.id,
         ticketTypeId: ticketType.id,

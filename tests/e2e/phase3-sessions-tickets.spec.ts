@@ -47,8 +47,8 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
         console.log('⚠️ Modal did not appear within timeout - may already be open or not required');
       }
       
-      // Navigate to Setup tab (contains sessions and tickets)
-      await page.locator('button[role="tab"]:has-text("Setup")').click();
+      // Navigate to Sessions / Ticket Types tab (contains sessions and tickets)
+      await page.getByTestId('setup-tab').click();
       
       // Check for Event Sessions section
       const sessionsSection = page.locator('text=Event Sessions');
@@ -130,8 +130,8 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
         console.log('⚠️ Modal did not appear within timeout - may already be open or not required');
       }
       
-      // Navigate to Setup tab (contains sessions and tickets)
-      await page.locator('button[role="tab"]:has-text("Setup")').click();
+      // Navigate to Sessions / Ticket Types tab (contains sessions and tickets)
+      await page.getByTestId('setup-tab').click();
 
       // Check for Ticket Types section
       const ticketSection = page.locator('text=Ticket Types').first();
@@ -215,8 +215,8 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
         console.log('⚠️ Modal did not appear within timeout - may already be open or not required');
       }
 
-      // Navigate to Setup tab (contains sessions and tickets)
-      const setupTab = page.locator('button[role="tab"]:has-text("Setup")');
+      // Navigate to Sessions / Ticket Types tab (contains sessions and tickets)
+      const setupTab = page.getByTestId('setup-tab');
       if (await setupTab.isVisible()) {
         await setupTab.click();
 
