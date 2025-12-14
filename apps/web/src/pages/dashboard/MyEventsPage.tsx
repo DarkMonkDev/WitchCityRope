@@ -226,53 +226,84 @@ export const MyEventsPage: React.FC = () => {
     <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
       <Container size="xl" py="xl">
         {/* Page Title Bar */}
-        <Group justify="space-between" mb="lg" wrap="wrap">
-          <Title
-            order={isMobile ? 2 : 1}
-            tt="uppercase"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              color: 'var(--color-burgundy)',
-              fontSize: isMobile ? '1.5rem' : '2rem',
-            }}
-          >
-            {user?.sceneName || 'Your'}'s Events
-          </Title>
-          <Button
-            component={Link}
-            to="/dashboard/profile-settings"
-            variant="filled"
-            color="burgundy"
-            styles={{
-              root: {
-                borderRadius: '12px 6px 12px 6px',
+        {isMobile ? (
+          <Stack gap="xs" mb="lg">
+            <Box style={{ textAlign: 'right' }}>
+              <Text
+                component={Link}
+                to="/dashboard/profile-settings"
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  color: 'var(--color-burgundy)',
+                  textDecoration: 'none',
+                }}
+              >
+                Edit Profile
+              </Text>
+            </Box>
+            <Title
+              order={2}
+              tt="uppercase"
+              style={{
                 fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                transition: 'all 0.3s ease',
-                height: 'auto',
-                paddingTop: '10px',
-                paddingBottom: '10px',
-                paddingLeft: '20px',
-                paddingRight: '20px',
-                lineHeight: '1.2',
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'var(--color-burgundy)',
-                color: 'white',
-                '&:hover': {
-                  borderRadius: '6px 12px 6px 12px',
-                  backgroundColor: 'var(--color-burgundy-dark)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 12px rgba(183, 109, 117, 0.3)',
+                color: 'var(--color-burgundy)',
+                fontSize: '1.5rem',
+              }}
+            >
+              {user?.sceneName || 'Your'}'s Events
+            </Title>
+          </Stack>
+        ) : (
+          <Group justify="space-between" mb="lg" wrap="wrap">
+            <Title
+              order={1}
+              tt="uppercase"
+              style={{
+                fontFamily: 'var(--font-heading)',
+                color: 'var(--color-burgundy)',
+                fontSize: '2rem',
+              }}
+            >
+              {user?.sceneName || 'Your'}'s Events
+            </Title>
+            <Button
+              component={Link}
+              to="/dashboard/profile-settings"
+              variant="filled"
+              color="burgundy"
+              styles={{
+                root: {
+                  borderRadius: '12px 6px 12px 6px',
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  transition: 'all 0.3s ease',
+                  height: 'auto',
+                  paddingTop: '10px',
+                  paddingBottom: '10px',
+                  paddingLeft: '20px',
+                  paddingRight: '20px',
+                  lineHeight: '1.2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: 'var(--color-burgundy)',
+                  color: 'white',
+                  '&:hover': {
+                    borderRadius: '6px 12px 6px 12px',
+                    backgroundColor: 'var(--color-burgundy-dark)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(183, 109, 117, 0.3)',
+                  },
                 },
-              },
-            }}
-          >
-            Edit Profile
-          </Button>
-        </Group>
+              }}
+            >
+              Edit Profile
+            </Button>
+          </Group>
+        )}
 
         {/* Conditional Vetting Alert */}
         {vettingStatus && vettingStatus.status !== 'Approved' && (
