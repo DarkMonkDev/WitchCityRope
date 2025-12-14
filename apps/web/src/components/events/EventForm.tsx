@@ -1101,23 +1101,76 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }
 
+  // Convert volunteer positions from frontend format to API format
+  // Now a simple pass-through since frontend stores sessionId directly (no lookup needed)
+  const convertVolunteerPositionsForApi = (positions: VolunteerPosition[]) => {
+    return positions.map((vp) => ({
+      id: vp.id,
+      title: vp.title,
+      description: vp.description,
+      slotsNeeded: vp.slotsNeeded,
+      slotsFilled: vp.slotsFilled,
+      sessionId: vp.sessionId,  // Direct pass-through - no conversion needed
+      startTime: vp.startTime,
+      endTime: vp.endTime,
+      isPublicFacing: vp.isPublicFacing,
+    }))
+  }
+
   // Volunteer position management handlers
-  const handleDeleteVolunteerPosition = (positionId: string) => {
+  const handleDeleteVolunteerPosition = async (positionId: string) => {
+    const deletedPosition = form.values.volunteerPositions.find((p) => p.id === positionId)
     const updatedPositions = form.values.volunteerPositions.filter(
       (position) => position.id !== positionId
     )
+
+    // Update form state immediately for UI feedback
     form.setFieldValue('volunteerPositions', updatedPositions)
+
+    // If we have an eventId, save to database immediately
+    if (eventId) {
+      try {
+        const volunteerPositionsForApi = convertVolunteerPositionsForApi(updatedPositions)
+
+        await updateEventMutation.mutateAsync({
+          id: eventId,
+          volunteerPositions: volunteerPositionsForApi,
+        })
+
+        notifications.show({
+          title: 'Position Deleted',
+          message: `Volunteer position "${deletedPosition?.title || 'Position'}" has been deleted.`,
+          color: 'green',
+          icon: <IconCheck size={16} />,
+        })
+
+        // Refresh the event data
+        queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) })
+      } catch (error) {
+        // Rollback form state on error
+        form.setFieldValue('volunteerPositions', [...updatedPositions, deletedPosition!].filter(Boolean))
+
+        notifications.show({
+          title: 'Delete Failed',
+          message: getApiErrorMessage(error, 'Failed to delete volunteer position. Please try again.'),
+          color: 'red',
+          icon: <IconAlertCircle size={16} />,
+        })
+      }
+    }
   }
 
-  const handleVolunteerPositionSubmit = (
+  const handleVolunteerPositionSubmit = async (
     positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'>,
     positionId?: string
   ) => {
+    let updatedPositions: VolunteerPosition[]
+
     if (positionId) {
       // Update existing position
       const existingPosition = form.values.volunteerPositions.find((p) => p.id === positionId)
       if (existingPosition) {
-        const updatedPositions = form.values.volunteerPositions.map((position) =>
+        updatedPositions = form.values.volunteerPositions.map((position) =>
           position.id === positionId
             ? {
                 ...positionData,
@@ -1126,7 +1179,8 @@ export const EventForm: React.FC<EventFormProps> = ({
               }
             : position
         )
-        form.setFieldValue('volunteerPositions', updatedPositions)
+      } else {
+        return // Position not found, exit early
       }
     } else {
       // Add new position
@@ -1135,7 +1189,39 @@ export const EventForm: React.FC<EventFormProps> = ({
         id: generateUUID(),
         slotsFilled: 0, // Start with no volunteers filled
       }
-      form.setFieldValue('volunteerPositions', [...form.values.volunteerPositions, newPosition])
+      updatedPositions = [...form.values.volunteerPositions, newPosition]
+    }
+
+    // Update form state immediately for UI feedback
+    form.setFieldValue('volunteerPositions', updatedPositions)
+
+    // If we have an eventId, save to database immediately
+    if (eventId) {
+      try {
+        const volunteerPositionsForApi = convertVolunteerPositionsForApi(updatedPositions)
+
+        await updateEventMutation.mutateAsync({
+          id: eventId,
+          volunteerPositions: volunteerPositionsForApi,
+        })
+
+        notifications.show({
+          title: 'Position Saved',
+          message: `Volunteer position "${positionData.title}" has been saved successfully.`,
+          color: 'green',
+          icon: <IconCheck size={16} />,
+        })
+
+        // Refresh the event data
+        queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) })
+      } catch (error) {
+        notifications.show({
+          title: 'Save Failed',
+          message: getApiErrorMessage(error, 'Failed to save volunteer position. Please try again.'),
+          color: 'red',
+          icon: <IconAlertCircle size={16} />,
+        })
+      }
     }
   }
 
@@ -2107,6 +2193,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   onPositionSubmit={handleVolunteerPositionSubmit}
                   onDeletePosition={handleDeleteVolunteerPosition}
                   availableSessions={form.values.sessions.map((s) => ({
+                    id: s.id || '',
                     sessionIdentifier: s.sessionIdentifier,
                     name: s.name,
                   }))}

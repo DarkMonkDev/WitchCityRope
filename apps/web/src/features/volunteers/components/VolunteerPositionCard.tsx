@@ -123,6 +123,15 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
     }
   };
 
+  // Format "HH:mm" military time to "h:mm AM/PM" format for volunteer shift times
+  const formatShiftTime = (time?: string) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12; // Convert 0 to 12 for midnight, 13+ to 1-11
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
   return (
     <Paper
       style={{
@@ -164,10 +173,15 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                 </Badge>
               )}
             </Group>
-            {/* Date and time on second line */}
-            {position.sessionStartTime && position.sessionEndTime && (
+            {/* Date and time on second line - use position shift times if available, otherwise session times */}
+            {position.sessionStartTime && (
               <Text size="sm" c="dimmed">
-                {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })} · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}
+                {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
+                {(position.startTime || position.endTime) ? (
+                  <> · {formatShiftTime(position.startTime)} - {formatShiftTime(position.endTime)}</>
+                ) : position.sessionEndTime ? (
+                  <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}</>
+                ) : null}
               </Text>
             )}
           </div>

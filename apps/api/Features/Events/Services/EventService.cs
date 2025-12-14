@@ -1095,6 +1095,9 @@ public class EventService : IEventService
                 currentPositions.TryGetValue(positionId, out var existingPosition))
             {
                 // Update existing volunteer position
+                _logger.LogInformation("🔍 Updating volunteer position {PositionId}: StartTime {OldStart} -> {NewStart}, EndTime {OldEnd} -> {NewEnd}",
+                    positionId, existingPosition.StartTime, positionDto.StartTime, existingPosition.EndTime, positionDto.EndTime);
+
                 existingPosition.Title = positionDto.Title;
                 existingPosition.Description = positionDto.Description;
                 existingPosition.SlotsNeeded = positionDto.SlotsNeeded;
@@ -1102,6 +1105,10 @@ public class EventService : IEventService
                 existingPosition.StartTime = positionDto.StartTime;
                 existingPosition.EndTime = positionDto.EndTime;
                 existingPosition.IsPublicFacing = positionDto.IsPublicFacing;
+                existingPosition.UpdatedAt = DateTime.UtcNow;
+
+                // Explicitly mark as modified to ensure EF Core tracks the change
+                _context.Entry(existingPosition).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                 // Update session linkage if provided
                 if (!string.IsNullOrEmpty(positionDto.SessionId) && Guid.TryParse(positionDto.SessionId, out var sessionId))

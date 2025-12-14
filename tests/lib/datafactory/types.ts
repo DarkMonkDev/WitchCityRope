@@ -52,6 +52,33 @@ export interface CreateEventRequest {
   allowRsvps?: boolean;
   /** Whether ticket purchase is mandatory to attend */
   requireTicketPurchase?: boolean;
+
+  // ====================================================================
+  // TIMING CONTROLS (for session-based ticket availability testing)
+  // ====================================================================
+
+  /**
+   * Hours before session when registration opens.
+   * Positive = before session start (e.g., 168 = 7 days before)
+   * NULL/undefined = no restriction (always open)
+   */
+  registrationOpenHours?: number;
+
+  /**
+   * Hours before/after session when registration closes.
+   * Positive = before session start (e.g., 12 = 12 hours before)
+   * Negative = after session start (e.g., -2 = 2 hours after)
+   * NULL/undefined = no restriction (never closes)
+   */
+  registrationCloseHours?: number;
+
+  /**
+   * Hours before/after session when cancellation closes.
+   * Positive = before session start (e.g., 24 = 24 hours before)
+   * Negative = after session start (e.g., -2 = 2 hours after)
+   * NULL/undefined = no restriction (always allowed)
+   */
+  cancellationCloseHours?: number;
 }
 
 export interface EventResponse {

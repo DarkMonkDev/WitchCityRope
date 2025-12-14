@@ -41,6 +41,10 @@ public class VolunteerPositionDto
     public bool IsPublicFacing { get; set; }
     public bool IsFullyStaffed { get; set; }
 
+    // Volunteer position shift times (HH:mm format)
+    public string? StartTime { get; set; }
+    public string? EndTime { get; set; }
+
     // Session information if session-specific
     public string? SessionName { get; set; }
     public DateTime? SessionStartTime { get; set; }

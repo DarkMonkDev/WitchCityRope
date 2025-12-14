@@ -205,6 +205,9 @@ public class VolunteerService : IVolunteerService
                     SlotsRemaining = vp.SlotsRemaining,
                     IsPublicFacing = vp.IsPublicFacing,
                     IsFullyStaffed = vp.IsFullyStaffed,
+                    // Volunteer position shift times
+                    StartTime = vp.StartTime,
+                    EndTime = vp.EndTime,
                     // Don't show session name if event has only one session (redundant)
                     SessionName = eventSessions.Count > 1 ? referenceSession?.Name : null,
                     SessionStartTime = referenceSession?.StartTime,

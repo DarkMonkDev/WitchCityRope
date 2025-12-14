@@ -4,23 +4,22 @@
 
 Track currently failing E2E tests, their root causes, and fix instructions for the next agent.
 
-## Current Test Run (December 13, 2025 - DataFactory Session Fixes)
+## Current Test Run (December 13, 2025 - Post Test Fixes)
 
 | Metric | Value |
 |--------|-------|
 | **Total Tests** | 794 |
-| **Passed** | 690 → ~710 (estimated with session fixes) |
-| **Failed** | 75 → ~55 (estimated) |
+| **Passed** | 727 |
+| **Failed** | 38 |
 | **Skipped** | 29 |
-| **Pass Rate** | **86.9% → ~89%** |
+| **Pass Rate** | **91.5%** |
 
-### Session Fix Verification (8 files, 41 tests)
-| Metric | Value |
-|--------|-------|
-| **Tests Run** | 41 |
-| **Passed** | 38 |
-| **Failed** | 3 |
-| **Pass Rate** | **92.7%** |
+### Progress Since Last Baseline
+| Metric | Previous | Current | Change |
+|--------|----------|---------|--------|
+| Passed | ~710 | 727 | +17 |
+| Failed | ~55 | 38 | -17 ✅ |
+| Pass Rate | ~89% | 91.5% | +2.5% ✅ |
 
 ---
 
@@ -50,84 +49,128 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ---
 
-## CURRENT FAILURES BY CATEGORY
+## CURRENT FAILURES BY CATEGORY (38 Total)
 
-### 1. DataFactory Session Creation (400 Errors) - ✅ FIXED
+### 1. Admin Events & Volunteers - 6 failures
 
-**Root Cause**: Tests creating multiple sessions without unique `sessionIdentifier`
+**admin-events-dashboard.spec.ts** (2 failures):
+- ✗ should filter events by type when unchecking filters
+- ✗ should show both filter chips checked by default
 
-**Status**: **FIXED** on 2025-12-13
-
-**Files Fixed** (8 files, ~25 tests):
-- ✅ `admin-session-deletion.spec.ts` (5 tests) - PASSING
-- ✅ `comprehensive-timing-tests.spec.ts` (12 tests) - PASSING
-- ✅ `multi-ticket-purchase.spec.ts` (3 tests) - PASSING
-- ✅ `session-availability-counts.spec.ts` (7 tests) - PASSING
-- ✅ `session-ticket-availability.spec.ts` (7 tests) - 4 passing, 3 failing (unrelated business logic issues)
-- ✅ `ticket-cancellation-selective.spec.ts` (3 tests) - PASSING
-- ✅ `volunteer-auto-cancel.spec.ts` (3 tests) - PASSING
-- ✅ `volunteer-session-validation.spec.ts` (2 tests) - PASSING
-
-**Fix Applied**:
-Added unique `sessionIdentifier: 'S1'`, `'S2'`, etc. to all `df.sessions.create()` calls.
-
-**Remaining Issues** (3 tests in session-ticket-availability.spec.ts):
-These failures are **NOT** sessionIdentifier issues - they're business logic assertion failures
-where tests expect `canPurchase: false` for past sessions but API returns differently.
+**admin-events-volunteers.spec.ts** (4 failures):
+- ✗ should add volunteer position via inline form
+- ✗ should display sessions in day format in position assignments
+- ✗ should show only current event sessions in dropdown
+- ✗ should validate volunteer position form fields
 
 ---
 
-### 2. Vetting Modal Visibility (UI Timing) - 6 failures
+### 2. Admin Ticket/Session Operations - 3 failures
 
-**Root Cause**: Deny/Hold/Interview modals exist in DOM but not visible due to animation timing
+**admin-refund-eligibility.spec.ts** (1 failure):
+- ✗ multiple refunds can be processed in sequence
 
-**Affected Tests**:
-- `vetting-application-detail.spec.ts`:
-  - admin can deny application with reasoning
-  - admin can put application on hold with reasoning
-  - admin can advance application to interview stage
-- `vetting-workflow.spec.ts`:
-  - admin can deny application with reason
+**admin-session-deletion.spec.ts** (1 failure):
+- ✗ cannot delete session with paid tickets - shows blocked modal with disabled button
 
-**Fix Required**: Add wait for modal animation or use `force: true` for hidden elements
+**admin-tickettype-deletion.spec.ts** (1 failure):
+- ✗ ticket type deletion shows correct sales count in blocked modal
 
 ---
 
-### 3. UI Selector/Element Issues - ~15 failures
+### 3. Anonymous Report Submission - 2 failures
 
-**Affected Tests**:
-- `admin-events-workflow.spec.ts` (2 tests) - strict mode violation, multiple Save buttons
-- `admin-dashboard-workflow.spec.ts` (2 tests) - Google Drive links, investigation notes
-- `anonymous-report-submission.spec.ts` (2 tests) - form visibility
-- `tiptap-editors.spec.ts` (2 tests) - Email tab editor not visible
-- `venue-display.spec.ts` (2 tests) - CSS selector syntax error
-- `venue-creation.spec.ts`, `venue-editing.spec.ts` - timeout issues
+**anonymous-report-submission.spec.ts** (2 failures):
+- ✗ should submit anonymous incident report and receive reference number
+- ✗ should validate required fields before submission
+
+**Note**: Fix was implemented but NOT COMMITTED - needs to be committed!
 
 ---
 
-### 4. API/Data Issues - ~10 failures
+### 4. Events Workflow Tests - 9 failures
 
-- `csrf-token-validation.spec.ts` - CSRF token expectations mismatch
-- `events-basic-validation.spec.ts` - API response format
-- `public-events-anonymous.spec.ts` - EventDto structure mismatch
-- `ticket-lifecycle-persistence.spec.ts` - participation record not found
-- `profile-update-persistence.spec.ts` - persistence verification failing
+**events-basic-validation.spec.ts** (1 failure):
+- ✗ Events Page Loading and Content Detection
+
+**events-complete-workflow.spec.ts** (1 failure):
+- ✗ Step 2: Admin Event Editing - Login as admin and update event details
+
+**events-comprehensive.spec.ts** (2 failures):
+- ✗ should handle large number of events efficiently
+- ✗ social event should offer RSVP AND ticket purchase as parallel actions
+
+**events-management-e2e.spec.ts** (3 failures):
+- ✗ should display event form tabs
+- ✗ should load Event Session Matrix demo page
+- ✗ should verify form fields are present
+
+**event-update-complete-flow.spec.ts** (1 failure):
+- ✗ Admin can update event without getting logged out
 
 ---
 
-### 5. Test Environment/Infrastructure - ~5 failures
+### 5. Home Page Tests - 2 failures
 
-- `compare-wireframe.spec.ts` - localhost:8080 connection refused (docs server not running)
-- `e2e-events-full-journey.spec.ts` - environment health check expectations
-- `events-comprehensive.spec.ts` - performance test with large events
+**home-page.spec.ts** (2 failures):
+- ✗ events display from API with complete card structure
+- ✗ proves complete React + API + PostgreSQL stack works
 
 ---
 
-### 6. RSVP/Ticket Workflow Issues - ~5 failures
+### 6. Session/Ticket Availability - 3 failures
 
-- `rsvp-lifecycle-persistence.spec.ts` (2 tests) - RSVP visibility issues
-- `session-based-ticket-timing.spec.ts` - ticket availability UI
-- `events-comprehensive.spec.ts` - RSVP AND ticket purchase parallel actions
+**session-ticket-availability.spec.ts** (3 failures):
+- ✗ API returns correct ticket availability status
+- ✗ Both Sessions ticket uses EARLIEST session (S1) - NOT purchasable
+- ✗ S1 Only ticket should NOT be available (timing window closed)
+
+**Root Cause**: Business logic assertion failures - tests expect `canPurchase: false` for past sessions but API returns differently.
+
+---
+
+### 7. Venue Tests - 2 failures
+
+**venue-creation.spec.ts** (1 failure):
+- ✗ should create new venue with all fields
+
+**venue-editing.spec.ts** (1 failure):
+- ✗ should update venue notes (admin-only field)
+
+---
+
+### 8. Vetting Workflow - 2 failures
+
+**vetting-workflow.spec.ts** (2 failures):
+- ✗ admin can deny application with reason
+- ✗ user can submit vetting application successfully
+
+---
+
+### 9. Test Environment/Infrastructure - 2 failures
+
+**compare-wireframe.spec.ts** (1 failure):
+- ✗ capture original wireframe (localhost:8080 connection refused - docs server not running)
+
+**e2e-events-full-journey.spec.ts** (1 failure):
+- ✗ Environment Health Check
+
+---
+
+### 10. Miscellaneous - 7 failures
+
+**notification-system-test.spec.ts** (1 failure):
+- ✗ Notifications container appears when notification is shown
+
+**phase3-sessions-tickets.spec.ts** (2 failures):
+- ✗ Session CRUD - Add, edit, and delete sessions
+- ✗ Ticket Types - Create and manage ticket types
+
+**phase4-events-testing.spec.ts** (1 failure):
+- ✗ should display event filters correctly
+
+**profile-page.spec.ts** (1 failure):
+- ✗ should handle user loading error
 
 ---
 
@@ -166,23 +209,32 @@ where tests expect `canPurchase: false` for past sessions but API returns differ
 
 ## Priority Fixes for Next Agent
 
-1. **HIGH**: Fix DataFactory session tests (~25 failures)
-   - Add unique sessionIdentifier to all multi-session test files
-   - Pattern established in `admin-checkin-sessions.spec.ts`
+1. **IMMEDIATE**: Commit anonymous-report-submission.spec.ts fix
+   - Fix was implemented but not committed
+   - Will eliminate 2 failures
 
-2. **MEDIUM**: Fix vetting modal tests (6 failures)
-   - Debug modal visibility timing
-   - May need wait for animation
+2. **HIGH**: Fix admin-events-volunteers tests (4 failures)
+   - Volunteer position UI tests failing
+   - Session dropdown/display issues
 
-3. **MEDIUM**: Fix venue tests (4 failures)
-   - CSS selector syntax errors
-   - Timeout issues
+3. **HIGH**: Fix events workflow tests (9 failures)
+   - Multiple event management tests failing
+   - Likely UI selector or state issues
 
-4. **LOW**: Fix infrastructure tests (5 failures)
-   - Some tests expect specific environment configurations
+4. **MEDIUM**: Fix home-page tests (2 failures)
+   - Event card structure validation failing
+   - May be data or timing issues
+
+5. **MEDIUM**: Fix session-ticket-availability tests (3 failures)
+   - Business logic assertion mismatches
+   - Tests expect `canPurchase: false` but API returns differently
+
+6. **LOW**: Fix infrastructure tests (2 failures)
+   - compare-wireframe needs docs server running
+   - Environment health check expectations
 
 ---
 
-**Last Updated**: 2025-12-13T21:10:00Z
+**Last Updated**: 2025-12-13T19:22:04Z
 **Test Run By**: test-environment skill
-**Git SHA**: 052a5e5f
+**Git SHA**: c8a7aa8f

@@ -93,31 +93,19 @@ export const AdminEventDetailsPage: React.FC = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vettedMembersOnly = (event as any)?.vettedMembersOnly ?? false
 
-    // Map volunteer positions from API response - now using consistent field names
+    // Map volunteer positions from API response - store sessionId directly (matches API format)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const volunteerPositions = ((event as any)?.volunteerPositions || []).map((vp: any) => {
-      // Find session name from sessions array if sessionId is present
-      let sessionDisplay = 'All Sessions';
-      if (vp.sessionId && event.sessions) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const session = (event.sessions as any[]).find((s: any) => s.id === vp.sessionId);
-        if (session?.name) {
-          sessionDisplay = session.name;
-        }
-      }
-
-      return {
-        id: vp.id || '',
-        title: vp.title || '',
-        description: vp.description || '',
-        sessions: sessionDisplay,
-        startTime: vp.startTime || '18:00',
-        endTime: vp.endTime || '21:00',
-        slotsNeeded: vp.slotsNeeded || 0,
-        slotsFilled: vp.slotsFilled || 0,
-        isPublicFacing: vp.isPublicFacing ?? true,
-      };
-    })
+    const volunteerPositions = ((event as any)?.volunteerPositions || []).map((vp: any) => ({
+      id: vp.id || '',
+      title: vp.title || '',
+      description: vp.description || '',
+      sessionId: vp.sessionId || null,  // Store sessionId directly - no conversion needed
+      startTime: vp.startTime || '18:00',
+      endTime: vp.endTime || '21:00',
+      slotsNeeded: vp.slotsNeeded || 0,
+      slotsFilled: vp.slotsFilled || 0,
+      isPublicFacing: vp.isPublicFacing ?? true,
+    }))
 
     // Map ticket types from API response, adding pricingType if missing
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

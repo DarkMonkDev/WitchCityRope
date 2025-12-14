@@ -15,7 +15,7 @@ export interface VolunteerPosition {
   id: string;
   title: string;  // Match API field name
   description: string;
-  sessions: string; // "S1, S2" or "All Sessions"
+  sessionId: string | null;  // Session GUID - matches API field directly
   startTime: string;
   endTime: string;
   slotsNeeded: number;  // Match API field name
@@ -42,7 +42,7 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
     initialValues: {
       title: position?.title || '',
       description: position?.description || '',
-      sessions: position?.sessions || (availableSessions[0]?.sessionIdentifier || 'S1'),
+      sessionId: position?.sessionId || availableSessions[0]?.sessionIdentifier || null,
       startTime: position?.startTime || '18:00',
       endTime: position?.endTime || '21:00',
       slotsNeeded: position?.slotsNeeded || 1,
@@ -80,7 +80,7 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
       const positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'> = {
         title: values.title,
         description: values.description,
-        sessions: values.sessions,
+        sessionId: values.sessionId,
         startTime: values.startTime,
         endTime: values.endTime,
         slotsNeeded: values.slotsNeeded,
@@ -107,7 +107,7 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
         form.setValues({
           title: position.title,
           description: position.description,
-          sessions: position.sessions,
+          sessionId: position.sessionId,
           startTime: position.startTime,
           endTime: position.endTime,
           slotsNeeded: position.slotsNeeded,
@@ -148,12 +148,12 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
           />
 
           <Select
-            label="Sessions"
-            placeholder="Select which sessions this position covers"
+            label="Session"
+            placeholder="Select which session this position covers"
             data={sessionOptions}
             required
-            data-testid="dropdown-position-sessions"
-            {...form.getInputProps('sessions')}
+            data-testid="dropdown-position-session"
+            {...form.getInputProps('sessionId')}
           />
 
           <Group grow>

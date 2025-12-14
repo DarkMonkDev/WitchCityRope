@@ -68,6 +68,10 @@ export class EventFactory {
       venueId: options.venueId ? parseInt(options.venueId, 10) : 1,
       allowRsvps: options.allowRsvps ?? false,
       requireTicketPurchase: options.requireTicketPurchase ?? false,
+      // Timing controls for session-based ticket availability
+      registrationOpenHours: options.registrationOpenHours ?? null,
+      registrationCloseHours: options.registrationCloseHours ?? null,
+      cancellationCloseHours: options.cancellationCloseHours ?? null,
     };
 
     const response = await this.client.post<typeof request, EventResponse>(

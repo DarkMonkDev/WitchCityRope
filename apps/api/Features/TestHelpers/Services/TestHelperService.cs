@@ -484,6 +484,10 @@ public class TestHelperService : ITestHelperService
                 IsPublished = request.IsPublished,
                 Capacity = request.Capacity,
                 VenueId = request.VenueId ?? 1, // Default to test venue
+                // Timing controls for session-based ticket availability
+                RegistrationOpenHours = request.RegistrationOpenHours,
+                RegistrationCloseHours = request.RegistrationCloseHours,
+                CancellationCloseHours = request.CancellationCloseHours,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

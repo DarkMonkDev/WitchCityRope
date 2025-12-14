@@ -130,8 +130,9 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     slotsNeeded: vp.slotsNeeded,
     slotsFilled: vp.slotsFilled,
     sessionId: vp.sessionId,
-    requirements: vp.requirements,
-    requiresExperience: vp.requiresExperience
+    startTime: vp.startTime,
+    endTime: vp.endTime,
+    isPublicFacing: vp.isPublicFacing,
   }));
 
   return {

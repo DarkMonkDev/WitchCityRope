@@ -21,7 +21,7 @@ interface VolunteerPositionInlineFormProps {
   onSubmit: (position: Omit<VolunteerPosition, 'id' | 'slotsFilled'>) => void;
   onCancel: () => void;
   onDelete?: (positionId: string) => void;
-  availableSessions: Array<{ sessionIdentifier: string; name: string }>;
+  availableSessions: Array<{ id: string; sessionIdentifier: string; name: string }>;
   mode: 'create' | 'edit';
 }
 
@@ -37,7 +37,7 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
     initialValues: {
       title: position?.title || '',
       description: position?.description || '',
-      sessions: position?.sessions || (availableSessions[0]?.sessionIdentifier || 'S1'),
+      sessionId: position?.sessionId || availableSessions[0]?.id || null,
       startTime: position?.startTime || '18:00',
       endTime: position?.endTime || '21:00',
       slotsNeeded: position?.slotsNeeded || 1,
@@ -74,7 +74,7 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
       form.setValues({
         title: position.title,
         description: position.description,
-        sessions: position.sessions,
+        sessionId: position.sessionId,
         startTime: position.startTime,
         endTime: position.endTime,
         slotsNeeded: position.slotsNeeded,
@@ -94,7 +94,7 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
     const positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'> = {
       title: values.title,
       description: values.description,
-      sessions: values.sessions,
+      sessionId: values.sessionId,
       startTime: values.startTime,
       endTime: values.endTime,
       slotsNeeded: values.slotsNeeded,
@@ -112,10 +112,11 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
   };
 
   // Generate session options (no "All Sessions" - each position must be assigned to a specific session)
+  // Uses session.id (GUID) as value to match API format directly
   const sessionOptions = availableSessions
-    .filter(session => session?.sessionIdentifier && session?.name)
+    .filter(session => session?.id && session?.name)
     .map(session => ({
-      value: session.sessionIdentifier,
+      value: session.id,
       label: `${session.sessionIdentifier} - ${session.name}`,
     }));
 
@@ -166,10 +167,10 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
 
           <Group grow>
             <Select
-              label="Sessions"
-              placeholder="Select which sessions this position covers"
+              label="Session"
+              placeholder="Select which session this position covers"
               data={sessionOptions}
-              data-testid="dropdown-position-sessions"
+              data-testid="dropdown-position-session"
               styles={{
                 label: { fontWeight: 600, marginBottom: '8px' },
                 input: {
@@ -177,7 +178,7 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
                   fontSize: '14px',
                 }
               }}
-              {...form.getInputProps('sessions')}
+              {...form.getInputProps('sessionId')}
             />
             <NumberInput
               label="Slots Needed"

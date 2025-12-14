@@ -69,4 +69,31 @@ public class CreateTestEventRequest
     /// Default: 1 (test venue)
     /// </summary>
     public int? VenueId { get; set; } = 1;
+
+    // ====================================================================
+    // TIMING CONTROLS (for session-based ticket availability testing)
+    // ====================================================================
+
+    /// <summary>
+    /// Hours before session when registration opens.
+    /// Positive = before session start (e.g., 168 = 7 days before)
+    /// NULL = no restriction (always open)
+    /// </summary>
+    public decimal? RegistrationOpenHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after session when registration closes.
+    /// Positive = before session start (e.g., 12 = 12 hours before)
+    /// Negative = after session start (e.g., -2 = 2 hours after)
+    /// NULL = no restriction (never closes)
+    /// </summary>
+    public decimal? RegistrationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after session when cancellation closes.
+    /// Positive = before session start (e.g., 24 = 24 hours before)
+    /// Negative = after session start (e.g., -2 = 2 hours after)
+    /// NULL = no restriction (always allowed)
+    /// </summary>
+    public decimal? CancellationCloseHours { get; set; }
 }

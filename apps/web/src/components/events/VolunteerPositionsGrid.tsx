@@ -10,7 +10,7 @@ interface VolunteerPositionsGridProps {
   positions: VolunteerPosition[];
   onPositionSubmit: (positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'>, positionId?: string) => void;
   onDeletePosition: (positionId: string) => void;
-  availableSessions: Array<{ sessionIdentifier: string; name: string }>;
+  availableSessions: Array<{ id: string; sessionIdentifier: string; name: string }>;
 }
 
 export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
@@ -146,11 +146,11 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Text fw={600} data-testid="position-sessions">
+                  <Text fw={600} data-testid="position-session">
                     {(() => {
-                      // Map session identifier to session name
-                      const session = availableSessions.find(s => s.sessionIdentifier === position.sessions);
-                      return session?.name || position.sessions;
+                      // Look up session name by sessionId (GUID)
+                      const session = availableSessions.find(s => s.id === position.sessionId);
+                      return session ? `${session.sessionIdentifier} - ${session.name}` : 'No Session';
                     })()}
                   </Text>
                 </Table.Td>
