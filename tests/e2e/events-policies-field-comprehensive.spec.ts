@@ -100,13 +100,8 @@ test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
 - No photography without consent
 - Safety protocols required`;
 
-    // SKIPPED: TipTap/ProseMirror editor changes don't trigger form dirty state detection
-    // when modified via Playwright automation. The form's onChange detection relies on
-    // React state updates that don't fire properly with programmatic input.
-    // Manual testing confirms the policies field saves correctly through the UI.
-    // The "should display policies field" and "API response structure" tests verify
-    // the field renders and backend handles it correctly.
-    test.skip('should save policies field and persist after page refresh', async ({ page, df }) => {
+    // Uses keyboard.type() pattern from tiptap-editors.spec.ts for proper TipTap integration
+    test('should save policies field and persist after page refresh', async ({ page, df }) => {
       console.log('🧪 Testing policies field save and persistence...');
 
       // Create test event using DataFactory
@@ -129,72 +124,32 @@ test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
       });
       console.log('✓ Event form loaded');
 
-      // Find policies field (uses MantineTiptapEditor - rich text)
-      // Policies is the SECOND TipTap editor on the page (first is fullDescription)
-      const policiesSelectors = [
-        '.mantine-RichTextEditor-root .ProseMirror',
-        '[contenteditable="true"].ProseMirror',
-        '.tiptap',
-      ];
+      // Find policies field - it's the SECOND RichTextEditor content area
+      // (first is fullDescription, second is policies)
+      const editorContents = page.locator('.mantine-RichTextEditor-content');
+      const editorCount = await editorContents.count();
+      console.log(`Found ${editorCount} TipTap editors on page`);
 
-      let policiesField = null;
-      for (const selector of policiesSelectors) {
-        const fields = page.locator(selector);
-        const count = await fields.count();
-        if (count >= 2) {
-          // Get the second editor (policies)
-          policiesField = fields.nth(1);
-          console.log(`✓ Found policies field: ${selector} (nth: 1, total: ${count})`);
-          break;
-        } else if (count === 1) {
-          policiesField = fields.first();
-          console.log(`✓ Found single editor: ${selector}`);
-          break;
-        }
-      }
+      // Get the policies editor (second one if available)
+      const policiesEditor = editorCount >= 2 ? editorContents.nth(1) : editorContents.first();
+      await expect(policiesEditor).toBeVisible({ timeout: 5000 });
 
-      expect(policiesField).not.toBeNull();
-
-      // Fill policies field using direct DOM manipulation
-      // Note: TipTap/ProseMirror doesn't fully respond to Playwright keyboard events
-      await policiesField!.click();
+      // Click into the policies editor and type content using keyboard
+      // This is the working pattern from tiptap-editors.spec.ts
+      await policiesEditor.click();
       await page.waitForTimeout(100);
 
-      // Set content directly and dispatch proper contenteditable events
-      await policiesField!.evaluate((el, content) => {
-        // Clear existing content
-        while (el.firstChild) {
-          el.removeChild(el.firstChild);
-        }
-        // Add new content as text node (TipTap expects text, not HTML)
-        el.textContent = content;
-        // Dispatch input event
-        el.dispatchEvent(new InputEvent('input', { bubbles: true, data: content }));
-      }, TEST_POLICIES);
+      // Type policies content using keyboard (proper TipTap integration)
+      await page.keyboard.type(TEST_POLICIES, { delay: 10 });
+      console.log('✓ Typed policies content using keyboard');
 
       // Wait for React/TipTap state to propagate
       await page.waitForTimeout(500);
 
       // Verify text was entered
-      const enteredValue = await policiesField!.textContent();
+      const enteredValue = await policiesEditor.textContent();
       expect(enteredValue).toContain('Test Policies');
       console.log('✓ Policies field filled with test content');
-
-      // TipTap form dirty detection workaround: also modify title field
-      // This ensures form is marked as dirty and save button is enabled
-      const titleInput = page.getByLabel('Event Title');
-      await titleInput.scrollIntoViewIfNeeded();
-      await expect(titleInput).toBeVisible({ timeout: 5000 });
-      const currentTitle = await titleInput.inputValue();
-
-      // Clear and type instead of fill() - this triggers React onChange properly
-      await titleInput.clear();
-      await titleInput.type(currentTitle + ' (updated)', { delay: 20 });
-      // Also dispatch change event to ensure React picks it up
-      await titleInput.evaluate((el) => {
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-      console.log(`✓ Modified title from "${currentTitle}" to trigger form dirty state`);
 
       await page.waitForTimeout(500);
 
@@ -240,40 +195,31 @@ test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
         timeout: 15000,
       });
 
-      // Find policies field again after refresh
-      let policiesFieldAfterRefresh = null;
-      for (const selector of policiesSelectors) {
-        const fields = page.locator(selector);
-        const count = await fields.count();
-        if (count >= 2) {
-          policiesFieldAfterRefresh = fields.nth(1);
-          console.log(`✓ Found policies field after refresh: ${selector}`);
-          break;
-        } else if (count === 1) {
-          policiesFieldAfterRefresh = fields.first();
-          break;
-        }
-      }
+      // Find policies field again after refresh using consistent pattern
+      const editorContentsAfterRefresh = page.locator('.mantine-RichTextEditor-content');
+      const editorCountAfterRefresh = await editorContentsAfterRefresh.count();
+      const policiesEditorAfterRefresh = editorCountAfterRefresh >= 2
+        ? editorContentsAfterRefresh.nth(1)
+        : editorContentsAfterRefresh.first();
 
-      expect(policiesFieldAfterRefresh).not.toBeNull();
+      await expect(policiesEditorAfterRefresh).toBeVisible({ timeout: 5000 });
 
       // Wait for field to be populated
       await page.waitForTimeout(1000);
 
       // Verify field still has saved value
-      const policiesValueAfterRefresh = await policiesFieldAfterRefresh!.textContent();
+      const policiesValueAfterRefresh = await policiesEditorAfterRefresh.textContent();
       console.log(`Policies field value after refresh: "${policiesValueAfterRefresh}"`);
 
       expect(policiesValueAfterRefresh).toContain('Test Policies');
       console.log('✅ Policies field persists correctly after page refresh');
     });
 
-    // SKIPPED: Same TipTap/Playwright limitation as above - form dirty state detection
-    // doesn't work with automated input. Manual testing confirms empty policies saves correctly.
-    test.skip('should handle empty policies field gracefully', async ({ page, df }) => {
+    // Uses keyboard.type() and keyboard shortcuts for proper TipTap integration
+    test('should handle empty policies field gracefully', async ({ page, df }) => {
       console.log('🧪 Testing empty policies field handling...');
 
-      // Create test event using DataFactory with some initial policies
+      // Create test event using DataFactory
       const event = await df.events.createPublished(`Empty Policies Test ${Date.now()}`);
       console.log(`✅ Created test event: ${event.id}`);
 
@@ -292,51 +238,20 @@ test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
       });
       console.log('✓ Event form loaded');
 
-      // Find policies field (uses MantineTiptapEditor - rich text)
-      // Policies is the SECOND TipTap editor on the page (first is fullDescription)
-      const policiesSelectors = [
-        '.mantine-RichTextEditor-root .ProseMirror',
-        '[contenteditable="true"].ProseMirror',
-        '.tiptap',
-      ];
+      // Find policies field using consistent pattern
+      const editorContents = page.locator('.mantine-RichTextEditor-content');
+      const editorCount = await editorContents.count();
+      console.log(`Found ${editorCount} TipTap editors on page`);
 
-      let policiesField = null;
-      for (const selector of policiesSelectors) {
-        const fields = page.locator(selector);
-        const count = await fields.count();
-        if (count >= 2) {
-          policiesField = fields.nth(1);
-          console.log(`✓ Found policies field: ${selector}`);
-          break;
-        } else if (count === 1) {
-          policiesField = fields.first();
-          break;
-        }
-      }
+      const policiesEditor = editorCount >= 2 ? editorContents.nth(1) : editorContents.first();
+      await expect(policiesEditor).toBeVisible({ timeout: 5000 });
 
-      if (!policiesField) {
-        console.log('⚠️ Policies field not found, skipping empty field test');
-        return;
-      }
-
-      // First, add some content to the policies field using DOM manipulation
-      await policiesField.click();
+      // First, add some content to the policies field using keyboard
+      await policiesEditor.click();
       await page.waitForTimeout(100);
-      await policiesField.evaluate((el) => {
-        el.textContent = 'Test policies to be cleared';
-        el.dispatchEvent(new InputEvent('input', { bubbles: true }));
-      });
+      await page.keyboard.type('Test policies to be cleared', { delay: 10 });
       await page.waitForTimeout(500);
       console.log('✓ Added initial policies content');
-
-      // Modify title to trigger form dirty state
-      const titleInput1 = page.getByLabel('Event Title');
-      await titleInput1.scrollIntoViewIfNeeded();
-      const currentTitle1 = await titleInput1.inputValue();
-      await titleInput1.clear();
-      await titleInput1.type(currentTitle1 + ' (with policies)', { delay: 20 });
-      await titleInput1.evaluate((el) => el.dispatchEvent(new Event('change', { bubbles: true })));
-      await page.waitForTimeout(500);
 
       // Save the event with content first
       const saveButton1 = page.locator('button:has-text("Save")').last();
@@ -345,25 +260,14 @@ test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
       console.log('✓ Saved event with policies content');
       await page.waitForTimeout(2000);
 
-      // Now clear the policies field
-      const policiesFieldAfterSave = page.locator('.mantine-RichTextEditor-root .ProseMirror').nth(1);
-      await policiesFieldAfterSave.click();
+      // Now clear the policies field using keyboard shortcuts
+      await policiesEditor.click();
       await page.waitForTimeout(100);
-      await policiesFieldAfterSave.evaluate((el) => {
-        el.textContent = '';
-        el.dispatchEvent(new InputEvent('input', { bubbles: true }));
-      });
+      // Select all and delete using keyboard
+      await page.keyboard.press('Control+a');
+      await page.keyboard.press('Backspace');
       await page.waitForTimeout(500);
-      console.log('✓ Cleared policies content');
-
-      // Modify title again to trigger form dirty state
-      const titleInput2 = page.getByLabel('Event Title');
-      await titleInput2.scrollIntoViewIfNeeded();
-      const currentTitle2 = await titleInput2.inputValue();
-      await titleInput2.clear();
-      await titleInput2.type(currentTitle2 + ' (cleared)', { delay: 20 });
-      await titleInput2.evaluate((el) => el.dispatchEvent(new Event('change', { bubbles: true })));
-      await page.waitForTimeout(500);
+      console.log('✓ Cleared policies content using keyboard');
 
       // Save - wait for button to be enabled first
       const saveButton = page.locator('button:has-text("Save")').last();

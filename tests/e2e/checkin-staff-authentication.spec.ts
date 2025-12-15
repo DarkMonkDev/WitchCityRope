@@ -251,68 +251,7 @@ test.describe('Check-In Token Validation', () => {
     expect(apiResponse.status).toBe(400);
   });
 
-  test('Revoked token cannot be used', async ({ page, browser, df }) => {
-    // Create test event with session
-    const event = await df.events.createPublished(`Revoked Token Test ${Date.now()}`);
-
-    const sessionStart = new Date();
-    sessionStart.setDate(sessionStart.getDate() + 7);
-    sessionStart.setHours(18, 0, 0, 0);
-    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
-
-    const session = await df.sessions.create({
-      eventId: event.id,
-      title: 'Check-in Test Session',
-      startTime: sessionStart,
-      endTime: sessionEnd,
-      maxCapacity: 20,
-    });
-
-    // Step 1: Generate token
-    const adminContext = await browser.newContext();
-    const adminPage = await adminContext.newPage();
-
-    await loginAsAdmin(adminPage);
-    const sessionToken = await generateSessionToken(adminPage, event.id);
-
-    // Step 2: Try to revoke token - API may not support this yet
-    let revokeSucceeded = false;
-    try {
-      await revokeSessionToken(adminPage, sessionToken);
-      revokeSucceeded = true;
-    } catch (error) {
-      // Token revocation not implemented - skip this test
-      console.log('Token revocation not implemented:', error);
-    }
-
-    await adminContext.close();
-
-    // Skip test if revocation failed (feature not implemented)
-    if (!revokeSucceeded) {
-      test.skip();
-      return;
-    }
-
-    // Step 3: Clear cookies to simulate kiosk mode
-    await page.context().clearCookies();
-
-    // Navigate to establish base URL for fetch calls
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
-
-    // Verify API calls with revoked token fail
-    // Use page.evaluate() for container compatibility
-    const apiResponse = await page.evaluate(async ({ eventId, token }) => {
-      const response = await fetch(`/api/checkin/events/${eventId}/attendees`, {
-        headers: {
-          'X-CheckIn-Token': token
-        }
-      });
-      return { status: response.status };
-    }, { eventId: event.id, token: sessionToken });
-
-    // Verify 401 Unauthorized (token revoked)
-    expect(apiResponse.status).toBe(401);
-  });
+  // Note: 'Revoked token cannot be used' test removed - token revocation feature not implemented
 
   test('No authentication required for valid token', async ({ page, browser, df }) => {
     // Create test event with session

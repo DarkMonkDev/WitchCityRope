@@ -210,37 +210,22 @@ test.describe('Vetting System - Complete Workflows', () => {
    *   - Status badge updates on UI
    */
   test('admin can approve application for interview', async ({ page, df }) => {
-    // Arrange - Create test application
+    // Arrange - Create test application in Pending/UnderReview status
     const user = await df.users.createVerified({
       email: `interview-test-${Date.now()}@example.com`,
       firstName: 'Interview',
       lastName: 'Test',
     });
 
-    await df.vetting.createWithStatus(user.id, 'InReview');
+    // 'Pending' maps to UnderReview (status 0) in backend
+    const application = await df.vetting.createPending(user.id);
+    console.log(`✅ Created UnderReview application: ${application.id}`);
 
     // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Navigate to vetting dashboard
-    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('domcontentloaded');
-
-    // Look for an application in UnderReview status
-    const underReviewRow = page.locator('tbody tr').filter({
-      has: page.locator('text=/under.*review|in.*review/i')
-    }).first();
-
-    const hasUnderReviewApp = await underReviewRow.count() > 0;
-
-    if (!hasUnderReviewApp) {
-      console.log('⚠️ No UnderReview applications found');
-      test.skip();
-      return;
-    }
-
-    // Click to view detail
-    await underReviewRow.click();
+    // Navigate DIRECTLY to the specific application detail page
+    await page.goto(`/admin/vetting/applications/${application.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Act - Find and click "Approve for Interview" button
@@ -248,12 +233,8 @@ test.describe('Vetting System - Complete Workflows', () => {
       .or(page.locator('button').filter({ hasText: /approve.*interview/i }))
       .first();
 
-    if (await approveButton.count() === 0) {
-      console.log('⚠️ Approve for Interview button not found');
-      test.skip();
-      return;
-    }
-
+    // Wait for button to be visible
+    await expect(approveButton).toBeVisible({ timeout: 10000 });
     await approveButton.click();
 
     // Assert - Success notification appears - use first() to handle strict mode
@@ -475,29 +456,23 @@ test.describe('Vetting System - Complete Workflows', () => {
    *   - Reminder email is sent to applicant
    *   - Success notification appears
    */
-  test('admin can send interview reminder to applicant', async ({ page }) => {
-    // Arrange - Login as admin
+  test('admin can send interview reminder to applicant', async ({ page, df }) => {
+    // Arrange - Create test application in InterviewApproved status
+    const user = await df.users.createVerified({
+      email: `reminder-test-${Date.now()}@example.com`,
+      firstName: 'Reminder',
+      lastName: 'Test',
+    });
+
+    // 'InReview' maps to InterviewApproved (status 1) in backend
+    const application = await df.vetting.createWithStatus(user.id, 'InReview');
+    console.log(`✅ Created InterviewApproved application: ${application.id}`);
+
+    // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Navigate to vetting dashboard
-    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('domcontentloaded');
-
-    // Look for InterviewApproved application
-    const interviewApprovedRow = page.locator('tbody tr').filter({
-      has: page.locator('text=/interview.*approved/i')
-    }).first();
-
-    const hasInterviewApp = await interviewApprovedRow.count() > 0;
-
-    if (!hasInterviewApp) {
-      console.log('⚠️ No InterviewApproved applications found');
-      test.skip();
-      return;
-    }
-
-    // Click to view detail
-    await interviewApprovedRow.click();
+    // Navigate DIRECTLY to the specific application detail page
+    await page.goto(`/admin/vetting/applications/${application.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Act - Click Reminder button
@@ -505,12 +480,8 @@ test.describe('Vetting System - Complete Workflows', () => {
       .or(page.locator('button').filter({ hasText: /reminder/i }))
       .first();
 
-    if (await reminderButton.count() === 0) {
-      console.log('⚠️ Reminder button not found');
-      test.skip();
-      return;
-    }
-
+    // Wait for button to be visible
+    await expect(reminderButton).toBeVisible({ timeout: 10000 });
     await reminderButton.click();
 
     // Assert - Modal opens
@@ -570,36 +541,21 @@ test.describe('Vetting System - Complete Workflows', () => {
    *   - Status badge shows Approved
    */
   test('admin can skip to approved status', async ({ page, df }) => {
-    // Arrange - Create test application
+    // Arrange - Create test application in Pending status
     const user = await df.users.createVerified({
       email: `skip-approved-test-${Date.now()}@example.com`,
       firstName: 'SkipApproved',
       lastName: 'Test',
     });
 
-    await df.vetting.createPending(user.id);
+    const application = await df.vetting.createPending(user.id);
+    console.log(`✅ Created Pending application: ${application.id}`);
 
     // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Navigate to vetting dashboard
-    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('domcontentloaded');
-
-    // Find application that is NOT in terminal status (not Approved, Denied, or Withdrawn)
-    const activeRow = page.locator('tbody tr').filter({
-      hasNot: page.locator('text=/approved|denied|withdrawn/i')
-    }).first();
-
-    const hasActiveApp = await activeRow.count() > 0;
-
-    if (!hasActiveApp) {
-      console.log('⚠️ No active applications found');
-      test.skip();
-      return;
-    }
-
-    await activeRow.click();
+    // Navigate DIRECTLY to the specific application detail page
+    await page.goto(`/admin/vetting/applications/${application.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Act - Click Skip to Approved button
@@ -607,12 +563,8 @@ test.describe('Vetting System - Complete Workflows', () => {
       .or(page.locator('button').filter({ hasText: /skip.*approved/i }))
       .first();
 
-    if (await skipButton.count() === 0) {
-      console.log('⚠️ Skip to Approved button not found');
-      test.skip();
-      return;
-    }
-
+    // Wait for button to be visible
+    await expect(skipButton).toBeVisible({ timeout: 10000 });
     await skipButton.click();
 
     // Assert - Success notification
@@ -651,28 +603,27 @@ test.describe('Vetting System - Complete Workflows', () => {
    * 2. API calls succeed (status code 200)
    * 3. Status changes persist (reload page shows new status)
    */
-  test('verify email notifications triggered for status changes', async ({ page }) => {
-    // Arrange - Login as admin
+  test('verify email notifications triggered for status changes', async ({ page, df }) => {
+    // Arrange - Create test application
+    const user = await df.users.createVerified({
+      email: `email-verify-test-${Date.now()}@example.com`,
+      firstName: 'EmailVerify',
+      lastName: 'Test',
+    });
+
+    const application = await df.vetting.createPending(user.id);
+    console.log(`✅ Created test application: ${application.id}`);
+
+    // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Navigate to any application
-    await page.goto('/admin/vetting', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('domcontentloaded');
-
-    const firstRow = page.locator('tbody tr').first();
-    const hasApplications = await firstRow.count() > 0;
-
-    if (!hasApplications) {
-      console.log('⚠️ No applications found');
-      test.skip();
-      return;
-    }
-
-    await firstRow.click();
+    // Navigate DIRECTLY to the specific application detail page
+    await page.goto(`/admin/vetting/applications/${application.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
 
     // Get current status
     const currentStatusBadge = page.locator('[data-testid="status-badge"]').first();
+    await expect(currentStatusBadge).toBeVisible({ timeout: 10000 });
     const currentStatus = await currentStatusBadge.textContent();
     console.log(`Current application status: ${currentStatus}`);
 

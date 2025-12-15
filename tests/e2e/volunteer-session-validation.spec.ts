@@ -137,14 +137,9 @@ test.describe('Volunteer Session Validation', () => {
 
     await page.screenshot({ path: './test-results/volunteer-session-page.png' });
 
-    // Look for volunteer section
+    // Volunteer section SHOULD be visible for ticket holders
     const volunteerSection = page.locator('text=/volunteer/i').first();
-    if (!await volunteerSection.isVisible({ timeout: 3000 })) {
-      console.log('⚠️ Volunteer section not visible');
-      test.skip();
-      return;
-    }
-
+    await expect(volunteerSection).toBeVisible({ timeout: 10000 });
     console.log('✅ Volunteer section is visible - user can sign up for positions they have tickets for');
   });
 

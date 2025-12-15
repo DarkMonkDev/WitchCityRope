@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test'
+import { test as baseTest, expect } from '@playwright/test'
+import { test as dfTest } from '../lib/datafactory/fixtures/test.fixture'
 import { DataFactory } from '../lib/datafactory'
 
 /**
@@ -24,14 +25,14 @@ import { DataFactory } from '../lib/datafactory'
  * - Price display formatting
  * - Availability/capacity display
  */
-test.describe('Home Page - Events Display', () => {
-  test.beforeEach(async ({ page }) => {
+baseTest.describe('Home Page - Events Display', () => {
+  baseTest.beforeEach(async ({ page }) => {
     // Navigate to the home page
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
   })
 
-  test('page loads successfully with correct title', async ({ page }) => {
+  baseTest('page loads successfully with correct title', async ({ page }) => {
     // Verify the page loads without errors
     await expect(page).toHaveTitle(/Witch City Rope/)
 
@@ -45,7 +46,7 @@ test.describe('Home Page - Events Display', () => {
     )
   })
 
-  test('events display from API with complete card structure', async ({ page }) => {
+  baseTest('events display from API with complete card structure', async ({ page }) => {
     // Wait for events to load from API
     await page.waitForSelector(
       '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
@@ -109,73 +110,13 @@ test.describe('Home Page - Events Display', () => {
     }
   })
 
-  test('event cards display price and availability information', async ({ page }) => {
-    // Wait for events to load
-    await page.waitForSelector(
-      '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
-      { timeout: 10000 }
-    )
+  // Note: 'event cards display price and availability information' test moved to
+  // 'Home Page - Events Display with Created Test Data' section below to use DataFactory
 
-    const eventsGrid = page.locator('[data-testid="events-grid"]')
-    const eventsVisible = await eventsGrid.isVisible()
+  // Note: 'clicking event card navigates to event details' test moved to
+  // 'Home Page - Events Display with Created Test Data' section below to use DataFactory
 
-    if (eventsVisible) {
-      const firstCard = page.locator('[data-testid="event-card"]').first()
-      const cardText = await firstCard.textContent()
-
-      // Verify price is displayed (either "Free" or "$X" or price range)
-      const hasPriceInfo =
-        cardText?.includes('Free') ||
-        cardText?.includes('$') ||
-        cardText?.includes('TBD')
-
-      expect(hasPriceInfo).toBe(true)
-
-      // Verify availability/capacity info is displayed
-      // Component shows: "X sold, Y left" or "X RSVPs, Y left" or "Sold Out" or "RSVPs Full"
-      const hasAvailabilityInfo =
-        cardText?.includes('sold') ||
-        cardText?.includes('RSVPs') ||
-        cardText?.includes('left') ||
-        cardText?.includes('Sold Out') ||
-        cardText?.includes('Full')
-
-      expect(hasAvailabilityInfo).toBe(true)
-    } else {
-      // Skip this test if no events - not a failure, just no data
-      test.skip()
-    }
-  })
-
-  test('clicking event card navigates to event details', async ({ page }) => {
-    // Wait for events to load
-    await page.waitForSelector(
-      '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
-      { timeout: 10000 }
-    )
-
-    const eventsGrid = page.locator('[data-testid="events-grid"]')
-    const eventsVisible = await eventsGrid.isVisible()
-
-    if (eventsVisible) {
-      const firstCard = page.locator('[data-testid="event-card"]').first()
-
-      // Get the event ID from the card
-      const eventId = await firstCard.getAttribute('data-event-id')
-      expect(eventId).toBeTruthy()
-
-      // Click the card
-      await firstCard.click()
-
-      // Verify navigation to event details page
-      await expect(page).toHaveURL(new RegExp(`/events/${eventId}`))
-    } else {
-      // Skip if no events
-      test.skip()
-    }
-  })
-
-  test('loading state displays correctly', async ({ page }) => {
+  baseTest('loading state displays correctly', async ({ page }) => {
     // Intercept the API call to simulate slow response
     await page.route('**/api/events', async (route) => {
       // Delay the response to test loading state
@@ -190,7 +131,7 @@ test.describe('Home Page - Events Display', () => {
     await expect(page.locator('[data-testid="loading-spinner"]')).toBeVisible()
   })
 
-  test('responsive layout works on different screen sizes', async ({ page }) => {
+  baseTest('responsive layout works on different screen sizes', async ({ page }) => {
     // Test desktop layout (large screen)
     await page.setViewportSize({ width: 1200, height: 800 })
     await page.waitForSelector(
@@ -234,7 +175,7 @@ test.describe('Home Page - Events Display', () => {
     }
   })
 
-  test('API integration works end-to-end', async ({ page }) => {
+  baseTest('API integration works end-to-end', async ({ page }) => {
     // Monitor network requests
     const apiRequests: string[] = []
 
@@ -258,7 +199,7 @@ test.describe('Home Page - Events Display', () => {
     expect(apiRequests[0]).toContain('/api/events')
   })
 
-  test('error handling works when API is unavailable', async ({ page }) => {
+  baseTest('error handling works when API is unavailable', async ({ page }) => {
     // Block the API endpoint to simulate server unavailable
     // Match any URL containing /api/events (works in both host and container)
     await page.route('**/api/events', (route) => {
@@ -292,7 +233,7 @@ test.describe('Home Page - Events Display', () => {
     }
   })
 
-  test('proves complete React + API + PostgreSQL stack works', async ({ page }) => {
+  baseTest('proves complete React + API + PostgreSQL stack works', async ({ page }) => {
     // This is the key test that proves our vertical slice implementation works
 
     // Navigate to the home page
@@ -369,119 +310,210 @@ test.describe('Home Page - Events Display', () => {
     }
   })
 
-  test('View Full Calendar link navigates to events page', async ({ page }) => {
-    // Wait for content to load
-    await page.waitForSelector(
-      '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
-      { timeout: 10000 }
-    )
-
-    // Look for the "View Full Calendar" link
-    const viewMoreLink = page.locator('a:has-text("View Full Calendar")')
-
-    if ((await viewMoreLink.count()) > 0) {
-      await viewMoreLink.click()
-      await expect(page).toHaveURL('/events')
-    } else {
-      // If no View Full Calendar link, that's acceptable - might be in empty state
-      test.skip()
-    }
-  })
+  // Note: 'View Full Calendar link navigates to events page' test moved to
+  // 'Home Page - Events Display with Created Test Data' section below to ensure events exist
 })
 
-test.describe('Home Page - Events Display with Test Data', () => {
-  let df: DataFactory
-  let testEventId: string
+dfTest.describe('Home Page - Events Display with Created Test Data', () => {
+  dfTest('event cards display price and availability information', async ({ page, df }) => {
+    // Create test event with session and ticket type
+    const event = await df.events.createPublished(`Price Info Test ${Date.now()}`)
 
-  test.beforeAll(async ({ request }) => {
-    df = new DataFactory(request)
+    const sessionStart = new Date()
+    sessionStart.setDate(sessionStart.getDate() + 7)
+    sessionStart.setHours(18, 0, 0, 0)
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
 
-    // Check if test helpers are available
-    const isAvailable = await df.healthCheck()
-    if (!isAvailable) {
-      console.log('Test helper endpoints not available - skipping data creation tests')
-      return
-    }
+    const session = await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    })
 
-    // Create a test event to ensure we have data to display
-    try {
-      const event = await df.events.createPublished('Home Page Test Event')
-      testEventId = event.id
+    await df.ticketTypes.create({
+      eventId: event.id,
+      sessionId: session.id,
+      name: 'General Admission',
+      price: 25.0,
+      quantityAvailable: 20,
+    })
 
-      // Create a session for the event
-      await df.sessions.createDefault(testEventId, 'Test Session')
-    } catch (error) {
-      console.log('Failed to create test data:', error)
-    }
-  })
+    console.log(`✅ Created test event: ${event.id}`)
 
-  test.afterAll(async () => {
-    // Cleanup test data
-    if (df) {
-      await df.cleanupAll()
-    }
-  })
-
-  test('displays created test event on home page', async ({ page }) => {
-    if (!testEventId) {
-      test.skip()
-      return
-    }
-
+    // Navigate to home page
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 
     // Wait for events grid to load
-    await page.waitForSelector('[data-testid="events-grid"]', { timeout: 10000 })
+    await page.waitForSelector('[data-testid="events-grid"]', { timeout: 15000 })
 
-    // Look for our test event
-    const testEventCard = page.locator(
-      `[data-testid="event-card"][data-event-id="${testEventId}"]`
-    )
+    // Find our test event card
+    const testEventCard = page.locator(`[data-testid="event-card"][data-event-id="${event.id}"]`)
+    await expect(testEventCard).toBeVisible({ timeout: 10000 })
 
-    // The event should be visible (assuming it's in the first 4 displayed)
-    const eventVisible = await testEventCard.isVisible()
+    const cardText = await testEventCard.textContent()
 
-    if (eventVisible) {
-      await expect(testEventCard.locator('[data-testid="event-title"]')).toContainText(
-        'Home Page Test Event'
-      )
-    } else {
-      // Event might not be in the displayed set - that's okay
-      console.log('Test event not visible in home page grid (may be outside display limit)')
-    }
+    // Verify price is displayed
+    const hasPriceInfo =
+      cardText?.includes('Free') ||
+      cardText?.includes('$') ||
+      cardText?.includes('TBD')
+    expect(hasPriceInfo).toBe(true)
+
+    // Verify availability info is displayed
+    const hasAvailabilityInfo =
+      cardText?.includes('sold') ||
+      cardText?.includes('RSVPs') ||
+      cardText?.includes('left') ||
+      cardText?.includes('Sold Out') ||
+      cardText?.includes('Full') ||
+      cardText?.includes('available')
+    expect(hasAvailabilityInfo).toBe(true)
   })
 
-  test('event card has data-event-id attribute for navigation', async ({ page }) => {
+  dfTest('clicking event card navigates to event details', async ({ page, df }) => {
+    // Create test event
+    const event = await df.events.createPublished(`Navigation Test ${Date.now()}`)
+
+    const sessionStart = new Date()
+    sessionStart.setDate(sessionStart.getDate() + 7)
+    sessionStart.setHours(18, 0, 0, 0)
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    })
+
+    console.log(`✅ Created test event: ${event.id}`)
+
+    // Navigate to home page
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 
-    await page.waitForSelector(
-      '[data-testid="events-grid"], [data-testid="empty-state"], [data-testid="error-message"]',
-      { timeout: 10000 }
+    // Wait for events grid
+    await page.waitForSelector('[data-testid="events-grid"]', { timeout: 15000 })
+
+    // Find and click our test event card
+    const testEventCard = page.locator(`[data-testid="event-card"][data-event-id="${event.id}"]`)
+    await expect(testEventCard).toBeVisible({ timeout: 10000 })
+    await testEventCard.click()
+
+    // Verify navigation to event details page
+    await expect(page).toHaveURL(new RegExp(`/events/${event.id}`))
+  })
+
+  dfTest('View Full Calendar link navigates to events page', async ({ page, df }) => {
+    // Create test event to ensure events exist
+    const event = await df.events.createPublished(`Calendar Test ${Date.now()}`)
+
+    const sessionStart = new Date()
+    sessionStart.setDate(sessionStart.getDate() + 7)
+    sessionStart.setHours(18, 0, 0, 0)
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    })
+
+    console.log(`✅ Created test event: ${event.id}`)
+
+    // Navigate to home page
+    await page.goto('/')
+    await page.waitForLoadState('domcontentloaded')
+
+    // Wait for events grid
+    await page.waitForSelector('[data-testid="events-grid"]', { timeout: 15000 })
+
+    // Click the View Full Calendar link
+    const viewMoreLink = page.locator('a:has-text("View Full Calendar")')
+    await expect(viewMoreLink).toBeVisible({ timeout: 5000 })
+    await viewMoreLink.click()
+
+    // Verify navigation to events page
+    await expect(page).toHaveURL('/events')
+  })
+
+  dfTest('displays created test event on home page', async ({ page, df }) => {
+    // Create test event
+    const event = await df.events.createPublished('Home Page Test Event')
+
+    const sessionStart = new Date()
+    sessionStart.setDate(sessionStart.getDate() + 7)
+    sessionStart.setHours(18, 0, 0, 0)
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
+
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    })
+
+    console.log(`✅ Created test event: ${event.id}`)
+
+    // Navigate to home page
+    await page.goto('/')
+    await page.waitForLoadState('domcontentloaded')
+
+    // Wait for events grid to load
+    await page.waitForSelector('[data-testid="events-grid"]', { timeout: 15000 })
+
+    // Find our test event card
+    const testEventCard = page.locator(`[data-testid="event-card"][data-event-id="${event.id}"]`)
+    await expect(testEventCard).toBeVisible({ timeout: 10000 })
+
+    // Verify event title is displayed
+    await expect(testEventCard.locator('[data-testid="event-title"]')).toContainText(
+      'Home Page Test Event'
     )
+  })
 
-    const eventsGrid = page.locator('[data-testid="events-grid"]')
-    const eventsVisible = await eventsGrid.isVisible()
+  dfTest('event card has data-event-id attribute for navigation', async ({ page, df }) => {
+    // Create test event
+    const event = await df.events.createPublished(`DataEventId Test ${Date.now()}`)
 
-    if (eventsVisible) {
-      const eventCards = page.locator('[data-testid="event-card"]')
-      const count = await eventCards.count()
+    const sessionStart = new Date()
+    sessionStart.setDate(sessionStart.getDate() + 7)
+    sessionStart.setHours(18, 0, 0, 0)
+    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
 
-      expect(count).toBeGreaterThan(0)
+    await df.sessions.create({
+      eventId: event.id,
+      title: 'Test Session',
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      maxCapacity: 20,
+    })
 
-      // Each card should have data-event-id attribute
-      for (let i = 0; i < Math.min(count, 4); i++) {
-        const card = eventCards.nth(i)
-        const eventId = await card.getAttribute('data-event-id')
-        expect(eventId).toBeTruthy()
-        // Event IDs should be GUIDs
-        expect(eventId).toMatch(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-        )
-      }
-    } else {
-      test.skip()
-    }
+    console.log(`✅ Created test event: ${event.id}`)
+
+    // Navigate to home page
+    await page.goto('/')
+    await page.waitForLoadState('domcontentloaded')
+
+    // Wait for events grid
+    await page.waitForSelector('[data-testid="events-grid"]', { timeout: 15000 })
+
+    // Find our test event card
+    const testEventCard = page.locator(`[data-testid="event-card"][data-event-id="${event.id}"]`)
+    await expect(testEventCard).toBeVisible({ timeout: 10000 })
+
+    // Verify the data-event-id attribute is a valid GUID
+    const eventId = await testEventCard.getAttribute('data-event-id')
+    expect(eventId).toBeTruthy()
+    expect(eventId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    )
   })
 })
