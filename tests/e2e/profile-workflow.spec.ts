@@ -465,13 +465,14 @@ test.describe('Profile Settings - Responsive Design', () => {
     await page.goto(`${baseUrl}/dashboard/profile-settings`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Verify page title is visible
-    const pageTitle = page.locator('h1:has-text("Profile Settings")');
+    // Verify page title is visible (h1 or h2 depending on layout)
+    const pageTitle = page.locator('h1:has-text("Profile Settings"), h2:has-text("Profile Settings")').first();
     await expect(pageTitle).toBeVisible({ timeout: 5000 });
 
-    // Verify tabs are visible
-    const personalTab = page.locator('button[role="tab"]:has-text("Personal")');
-    await expect(personalTab).toBeVisible();
+    // Verify Personal section is visible
+    // On mobile, tabs become accordion buttons (no role="tab")
+    const personalSection = page.locator('button:has-text("Personal")').first();
+    await expect(personalSection).toBeVisible({ timeout: 5000 });
 
     // Take screenshot for visual verification
     await page.screenshot({ path: './test-results/profile-mobile-375.png' });

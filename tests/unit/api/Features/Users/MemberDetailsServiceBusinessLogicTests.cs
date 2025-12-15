@@ -61,7 +61,7 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
             Id = 1,
             Name = "Test Venue",
             Directions = "123 Test St, Salem, MA 01970",
-            Notes = "Test venue for business logic tests",
+            VenueInformation = "Test venue for business logic tests",
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -141,7 +141,9 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
             StartDate = startDate ?? DateTime.UtcNow.AddDays(7),
             EndDate = endDate ?? DateTime.UtcNow.AddDays(7).AddHours(2),
             Capacity = 20,
-            EventType = eventType,
+            AllowRsvps = eventType == EventType.Social,
+            RequireTicketPurchase = eventType == EventType.Class,
+            VettedMembersOnly = false,
             VenueId = 1, // Test venue ID (Location moved to Venue entity)
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
@@ -436,10 +438,10 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         response.Should().NotBeNull();
         response!.Events.Should().HaveCount(2);
 
-        var rsvpEvent = response.Events.First(e => e.EventType == "Social");
+        var rsvpEvent = response.Events.First(e => e.AllowRsvps);
         rsvpEvent.RegistrationType.Should().Be("RSVP", "social event uses RSVP type");
 
-        var ticketEvent = response.Events.First(e => e.EventType == "Class");
+        var ticketEvent = response.Events.First(e => e.RequireTicketPurchase);
         ticketEvent.RegistrationType.Should().Be("Ticket", "class event uses Ticket type");
     }
 

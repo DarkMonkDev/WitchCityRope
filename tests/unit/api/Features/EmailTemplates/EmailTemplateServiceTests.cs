@@ -102,17 +102,23 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     /// </summary>
     private async Task<ApplicationUser> CreateTestUserAsync(
         string? email = null,
-        string? sceneName = null,
+        string? sceneName = "DEFAULT_GENERATE",
         int vettingStatus = 0,
         bool emailConfirmed = false,
         bool isActive = true)
     {
+        // Special handling: "DEFAULT_GENERATE" means generate a unique name
+        // null means actually set SceneName to null (for fallback testing)
+        var actualSceneName = sceneName == "DEFAULT_GENERATE"
+            ? $"TestUser-{Guid.NewGuid():N}"
+            : sceneName;
+
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
             Email = email ?? $"test-{Guid.NewGuid():N}@example.com",
             UserName = email ?? $"test-{Guid.NewGuid():N}@example.com",
-            SceneName = sceneName ?? $"TestUser-{Guid.NewGuid():N}",
+            SceneName = actualSceneName,
             VettingStatus = vettingStatus,
             EmailConfirmed = emailConfirmed,
             IsActive = isActive,
@@ -297,12 +303,12 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task SendAdHocEmailAsync_WithUserNameVariable_FallsBackToEmailWhenSceneNameNull()
+    public async Task SendAdHocEmailAsync_WithUserNameVariable_FallsBackToEmailWhenSceneNameEmpty()
     {
-        // Arrange
+        // Arrange - SceneName is non-nullable string, so use empty string to test fallback
         var user = await CreateTestUserAsync(
             email: "test@example.com",
-            sceneName: null, // No scene name
+            sceneName: "", // Empty scene name - should fall back to email
             vettingStatus: 3,
             emailConfirmed: false,
             isActive: true);
@@ -343,9 +349,10 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             emailConfirmed: false,
             isActive: true);
 
-        // Configure UserManager to return a unique token for this user
+        // Configure UserManager to return a unique token for any user
+        // Note: Service queries DB and gets a different instance, so use Arg.Any
         var expectedToken = "unique-reset-token-123";
-        _userManager.GeneratePasswordResetTokenAsync(user)
+        _userManager.GeneratePasswordResetTokenAsync(Arg.Any<ApplicationUser>())
             .Returns(Task.FromResult(expectedToken));
 
         var request = new SendAdHocEmailRequest
@@ -366,8 +373,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        // Verify token generation was called
-        await _userManager.Received(1).GeneratePasswordResetTokenAsync(user);
+        // Verify token generation was called for a user with matching email
+        await _userManager.Received(1).GeneratePasswordResetTokenAsync(
+            Arg.Is<ApplicationUser>(u => u.Email == user.Email));
 
         // Verify email contains correct URL structure
         await _emailService.Received(1).SendEmailAsync(
@@ -395,11 +403,10 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             emailConfirmed: false,
             isActive: true);
 
-        // Configure different tokens for each user
-        _userManager.GeneratePasswordResetTokenAsync(user1)
-            .Returns(Task.FromResult("token-for-user1"));
-        _userManager.GeneratePasswordResetTokenAsync(user2)
-            .Returns(Task.FromResult("token-for-user2"));
+        // Configure token generation for any user
+        // Note: Service queries DB and gets different instances, so use Arg.Any
+        _userManager.GeneratePasswordResetTokenAsync(Arg.Any<ApplicationUser>())
+            .Returns(Task.FromResult("unique-token"));
 
         var request = new SendAdHocEmailRequest
         {
@@ -419,9 +426,11 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        // Verify each user got their own token generated
-        await _userManager.Received(1).GeneratePasswordResetTokenAsync(user1);
-        await _userManager.Received(1).GeneratePasswordResetTokenAsync(user2);
+        // Verify each user got their own token generated (by email match)
+        await _userManager.Received(1).GeneratePasswordResetTokenAsync(
+            Arg.Is<ApplicationUser>(u => u.Email == user1.Email));
+        await _userManager.Received(1).GeneratePasswordResetTokenAsync(
+            Arg.Is<ApplicationUser>(u => u.Email == user2.Email));
 
         // Verify 2 separate emails were sent
         await _emailService.Received(2).SendEmailAsync(
@@ -441,8 +450,10 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             emailConfirmed: false,
             isActive: true);
 
+        // Configure UserManager to return a token for any user
+        // Note: Service queries DB and gets a different instance, so use Arg.Any
         var expectedToken = "email-confirmation-token-456";
-        _userManager.GenerateEmailConfirmationTokenAsync(user)
+        _userManager.GenerateEmailConfirmationTokenAsync(Arg.Any<ApplicationUser>())
             .Returns(Task.FromResult(expectedToken));
 
         var request = new SendAdHocEmailRequest
@@ -463,8 +474,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        // Verify email confirmation token was generated
-        await _userManager.Received(1).GenerateEmailConfirmationTokenAsync(user);
+        // Verify email confirmation token was generated for a user with matching email
+        await _userManager.Received(1).GenerateEmailConfirmationTokenAsync(
+            Arg.Is<ApplicationUser>(u => u.Email == user.Email));
 
         // Verify email contains verification URL
         await _emailService.Received(1).SendEmailAsync(

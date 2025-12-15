@@ -88,7 +88,7 @@ public class EventServiceTests : IAsyncLifetime
             Id = 1, // Explicitly set ID for test consistency
             Name = "Test Venue",
             Directions = "123 Test Street, Salem, MA",
-            Notes = "Standard test venue for unit tests",
+            VenueInformation = "Standard test venue for unit tests",
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -118,7 +118,9 @@ public class EventServiceTests : IAsyncLifetime
             ShortDescription = $"Short description for {title}",
             Description = $"Full description for {title}",
             VenueId = 1, // References venue created above
-            EventType = eventType,
+            AllowRsvps = eventType == EventType.Social,
+            RequireTicketPurchase = eventType == EventType.Class,
+            VettedMembersOnly = false,
             Capacity = capacity,
             IsPublished = isPublished,
             StartDate = (startDate ?? DateTime.UtcNow.AddDays(7)).ToUniversalTime(),
@@ -399,7 +401,9 @@ public class EventServiceTests : IAsyncLifetime
             Title = "Event with Explicit Capacity",
             Description = "Test event",
             VenueId = 1, // References venue created above
-            EventType = EventType.Class,
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 25, // Explicitly set capacity
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),

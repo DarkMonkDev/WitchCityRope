@@ -14,7 +14,9 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
     private DateTime _startDate;
     private DateTime _endDate;
     private int _venueId;
-    private string _eventType;
+    private bool _allowRsvps;
+    private bool _requireTicketPurchase;
+    private bool _vettedMembersOnly;
     private int _capacity;
 
     public CreateEventRequestBuilder()
@@ -25,7 +27,9 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         _startDate = DateTime.UtcNow.AddDays(7); // Event starts in a week
         _endDate = DateTime.UtcNow.AddDays(7).AddHours(2); // 2-hour event
         _venueId = 1; // Default venue ID
-        _eventType = "Workshop";
+        _allowRsvps = false;
+        _requireTicketPurchase = true; // Default: ticket required (workshop-style)
+        _vettedMembersOnly = false;
         _capacity = 20;
     }
 
@@ -59,9 +63,21 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return This;
     }
 
-    public CreateEventRequestBuilder WithEventType(string eventType)
+    public CreateEventRequestBuilder WithAllowRsvps(bool allowRsvps)
     {
-        _eventType = eventType;
+        _allowRsvps = allowRsvps;
+        return This;
+    }
+
+    public CreateEventRequestBuilder WithRequireTicketPurchase(bool requireTicketPurchase)
+    {
+        _requireTicketPurchase = requireTicketPurchase;
+        return This;
+    }
+
+    public CreateEventRequestBuilder WithVettedMembersOnly(bool vettedMembersOnly)
+    {
+        _vettedMembersOnly = vettedMembersOnly;
         return This;
     }
 
@@ -72,35 +88,38 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
     }
 
     /// <summary>
-    /// Creates a valid workshop event for testing
+    /// Creates a valid workshop event for testing (requires ticket purchase)
     /// </summary>
     public CreateEventRequestBuilder AsWorkshop()
     {
         return WithTitle("Rope Fundamentals Workshop")
             .WithDescription("Learn the basics of rope bondage safety and techniques")
-            .WithEventType("Workshop")
+            .WithRequireTicketPurchase(true)
+            .WithAllowRsvps(false)
             .WithCapacity(12);
     }
 
     /// <summary>
-    /// Creates a valid performance event for testing
+    /// Creates a valid performance event for testing (requires ticket purchase)
     /// </summary>
     public CreateEventRequestBuilder AsPerformance()
     {
         return WithTitle("Evening Rope Performance")
             .WithDescription("Artistic rope performance by experienced practitioners")
-            .WithEventType("Performance")
+            .WithRequireTicketPurchase(true)
+            .WithAllowRsvps(false)
             .WithCapacity(50);
     }
 
     /// <summary>
-    /// Creates a valid social event for testing
+    /// Creates a valid social event for testing (free RSVPs)
     /// </summary>
     public CreateEventRequestBuilder AsSocialEvent()
     {
         return WithTitle("Rope Social & Practice")
             .WithDescription("Open practice time and social gathering")
-            .WithEventType("Social")
+            .WithAllowRsvps(true)
+            .WithRequireTicketPurchase(false)
             .WithCapacity(30);
     }
 
@@ -133,7 +152,9 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
             StartDate = _startDate,
             EndDate = _endDate,
             VenueId = _venueId,
-            EventType = _eventType,
+            AllowRsvps = _allowRsvps,
+            RequireTicketPurchase = _requireTicketPurchase,
+            VettedMembersOnly = _vettedMembersOnly,
             Capacity = _capacity
         };
     }

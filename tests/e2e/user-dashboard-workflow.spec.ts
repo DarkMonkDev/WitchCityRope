@@ -332,8 +332,8 @@ test.describe('User Dashboard - Responsive Design', () => {
     await page.goto(`${baseUrl}/dashboard`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Verify page title is visible
-    const pageTitle = page.locator('h1').filter({ hasText: /Events/i });
+    // Verify page title is visible (h1 or h2 depending on responsive layout)
+    const pageTitle = page.locator('h1, h2').filter({ hasText: /Events/i }).first();
     await expect(pageTitle).toBeVisible({ timeout: 5000 });
 
     // Verify Edit Profile button is visible

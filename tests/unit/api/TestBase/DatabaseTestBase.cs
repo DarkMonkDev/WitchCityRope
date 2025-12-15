@@ -227,7 +227,9 @@ public abstract class DatabaseTestBase : IAsyncLifetime
             EndDate = startDate.AddHours(2),
             Capacity = 20,
             VenueId = 1, // FK constraint satisfaction - matches CreateTestVenueAsync() ID
-            EventType = EventType.Class,
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

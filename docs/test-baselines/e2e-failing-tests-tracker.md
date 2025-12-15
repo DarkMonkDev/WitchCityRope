@@ -4,22 +4,22 @@
 
 Track currently failing E2E tests, their root causes, and fix instructions for the next agent.
 
-## Current Status (December 15, 2025 - Session Complete)
+## Current Status (December 15, 2025 - Verified Test Run)
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | 794 |
-| **Estimated Passed** | ~770 |
-| **Estimated Failed** | ~0 |
-| **Skipped** | 29 |
-| **Estimated Pass Rate** | **~97%** |
+| **Total Tests** | 795 |
+| **Passed** | 768 |
+| **Failed** | 14 |
+| **Skipped** | 13 |
+| **Pass Rate** | **96.2%** |
 
 ### Progress Since Last Update
-| Metric | Previous (Verified) | Current | Change |
-|--------|---------------------|---------|--------|
-| Passed | ~768 | ~770 | +2 ✅ |
-| Failed | ~2 | ~0 | -2 ✅ |
-| Pass Rate | ~96.8% | ~97% | +0.2% ✅ |
+| Metric | Previous (Dec 14) | Current (Dec 15) | Notes |
+|--------|-------------------|------------------|-------|
+| Passed | 764 | 768 | +4 tests fixed |
+| Failed | 18 | 14 | -4 failures |
+| Pass Rate | 96.1% | 96.2% | Incremental improvement |
 
 ---
 
@@ -130,19 +130,70 @@ Track currently failing E2E tests, their root causes, and fix instructions for t
 
 ---
 
-## REMAINING FAILURES - VERIFIED (0 Total)
+## CURRENT FAILURES - December 15, 2025 (14 Total)
 
-All known test failures have been fixed.
+### Category A: home-page.spec.ts (4 failures) - HIGH PRIORITY
+| Test Name | Status |
+|-----------|--------|
+| clicking event card navigates to event details | FAILING |
+| displays created test event on home page | FAILING |
+| event card has data-event-id attribute for navigation | FAILING |
+| event cards display price and availability information | FAILING |
+
+**Root Cause**: DataFactory creates events but they don't appear on home page (sorting/filtering issue?)
+
+### Category B: admin-events-dependencies.spec.ts (2 failures)
+| Test Name | Status |
+|-----------|--------|
+| should only allow ticket creation when sessions exist | FAILING |
+| should show delete confirmation modal when deleting sessions | FAILING |
+
+**Root Cause**: DataFactory API error - POST /sessions returns Status 400
+
+### Category C: events-policies-field-comprehensive.spec.ts (2 failures)
+| Test Name | Status |
+|-----------|--------|
+| should handle empty policies field gracefully | FAILING |
+| should save policies field and persist after page refresh | FAILING |
+
+**Root Cause**: Save button not becoming enabled after TipTap editor changes
+
+### Category D: Mobile/Responsive Tests (2 failures) - PARTIALLY FIXED
+| Test File | Test Name | Status |
+|-----------|-----------|--------|
+| dashboard-comprehensive.spec.ts | should display correctly on Mobile | FAILING |
+| dashboard-comprehensive.spec.ts | should display correctly on Tablet | FAILING |
+
+**Root Cause**: h1 vs h2 selector issue on mobile/tablet viewports
+**Note**: profile-workflow.spec.ts and user-dashboard-workflow.spec.ts were FIXED this session
+
+### Category E: vetting-workflow.spec.ts (1 failure)
+| Test Name | Status |
+|-----------|--------|
+| admin can send interview reminder to applicant | FAILING |
+
+**Root Cause**: Button visibility/enable timing issue - test waits for button to be enabled but times out
+
+### Category F: Other (3 failures)
+| Test File | Test Name | Status |
+|-----------|-----------|--------|
+| admin-refund-eligibility.spec.ts | TBD | FAILING |
+| compare-wireframe.spec.ts | capture original wireframe | FAILING (Infrastructure) |
+| e2e-events-full-journey.spec.ts | Environment Health Check | FAILING (Infrastructure) |
+
+**Note**: compare-wireframe and e2e-events-full-journey are infrastructure tests, not app issues
 
 ---
 
-## INFRASTRUCTURE (Can Skip)
+## INFRASTRUCTURE (Can Skip - Not App Issues)
 
 **compare-wireframe.spec.ts** (1 failure):
 - Requires docs server running on localhost:8080 - not critical
 
 **e2e-events-full-journey.spec.ts** (1 failure):
 - Environment Health Check - may be outdated
+
+**Subtotal Infrastructure**: 2 failures (not counted in app failures)
 
 ---
 
@@ -192,6 +243,24 @@ All known test failures have been fixed.
 
 ---
 
-**Last Updated**: 2025-12-15T00:15:00Z
+**Last Updated**: 2025-12-15T03:30:00Z
 **Session Commits**: eca1c732, 333eb866, df2cebd4, f72493cc, 52935254, 2af22892, 0bfaefff, f3182477, bf517c70, 42e8b932, d147e369, d8fda43d, 49c0778b, 78910a2d
-**Git SHA**: 78910a2d
+**Git SHA**: 91c05332
+
+---
+
+## Session Notes: December 15, 2025
+
+### Fixed This Session
+- **user-dashboard-workflow.spec.ts**: Fixed h1 vs h2 selector issue (line 336) - same pattern as profile-workflow.spec.ts
+- **vetting-workflow.spec.ts**: Attempted fix for reminder button timing - added `toBeEnabled()` wait and proper data-testid selector
+
+### Still Failing After Fix Attempts
+Some tests that were marked as "fixed" in previous sessions are still failing:
+- **vetting-workflow.spec.ts reminder test**: Added `toBeEnabled()` wait but test still times out - may need deeper investigation into SendReminderModal component
+- **home-page.spec.ts (4 tests)**: DataFactory creates events but they don't appear on home page - need to investigate event visibility/sorting logic
+
+### Root Causes Identified
+1. **h1 vs h2 on mobile**: Page uses different heading elements based on viewport - tests now use `h1, h2` selector
+2. **Button enable timing**: React state updates asynchronously, tests must wait for `toBeEnabled()` before clicking
+3. **DataFactory events not appearing**: Events are created but not showing on public pages - possible date/status filter issue

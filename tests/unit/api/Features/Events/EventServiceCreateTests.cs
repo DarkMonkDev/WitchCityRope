@@ -63,7 +63,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             VenueId = _testVenueId,
-            EventType = "Workshop",
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 20
         };
 
@@ -76,7 +78,8 @@ public class EventServiceCreateTests : DatabaseTestBase
         response.Should().NotBeNull();
         response!.Title.Should().Be(request.Title);
         response.Description.Should().Be(request.Description);
-        response.EventType.Should().Be("Workshop");
+        response.AllowRsvps.Should().BeFalse();
+        response.RequireTicketPurchase.Should().BeTrue();
         response.Capacity.Should().Be(20);
         response.IsPublished.Should().BeFalse(); // Defaults to draft
         Guid.Parse(response.Id).Should().NotBeEmpty();
@@ -113,7 +116,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(8),
             VenueId = _testVenueId,
-            EventType = "Workshop",
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 20,
             Sessions = sessions
         };
@@ -168,7 +173,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             VenueId = _testVenueId,
-            EventType = "Workshop",
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 80,
             TicketTypes = ticketTypes
         };
@@ -195,16 +202,16 @@ public class EventServiceCreateTests : DatabaseTestBase
     public async Task CreateEventAsync_WithVolunteerPositions_CreatesPositionsCorrectly()
     {
         // Arrange
-        var positions = new List<VolunteerPositionDto>
+        var positions = new List<EventVolunteerPositionDto>
         {
-            new VolunteerPositionDto
+            new EventVolunteerPositionDto
             {
                 Title = "Setup Crew",
                 Description = "Help set up the venue",
                 SlotsNeeded = 3,
                 SlotsFilled = 0
             },
-            new VolunteerPositionDto
+            new EventVolunteerPositionDto
             {
                 Title = "Registration Desk",
                 Description = "Check in attendees",
@@ -220,7 +227,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             VenueId = _testVenueId,
-            EventType = "Social",
+            AllowRsvps = true,
+            RequireTicketPurchase = false,
+            VettedMembersOnly = false,
             Capacity = 50,
             VolunteerPositions = positions
         };
@@ -265,7 +274,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             VenueId = _testVenueId,
-            EventType = "Workshop",
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 20,
             TeacherIds = new List<string> { teacher1.Id.ToString(), teacher2.Id.ToString() }
         };
@@ -298,7 +309,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             VenueId = 99999, // Non-existent venue ID
-            EventType = "Workshop",
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 20
         };
 
@@ -327,7 +340,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(6), // End before start!
             VenueId = _testVenueId,
-            EventType = "Workshop",
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 20
         };
 
@@ -352,7 +367,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             VenueId = _testVenueId,
-            EventType = "Workshop",
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 0 // Invalid
         };
 
@@ -398,7 +415,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = localStart,
             EndDate = localEnd,
             VenueId = _testVenueId,
-            EventType = "Workshop",
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 20
         };
 
@@ -414,30 +433,6 @@ public class EventServiceCreateTests : DatabaseTestBase
             .FirstOrDefaultAsync(e => e.Id == Guid.Parse(response!.Id));
         savedEvent!.StartDate.Kind.Should().Be(DateTimeKind.Utc);
         savedEvent.EndDate.Kind.Should().Be(DateTimeKind.Utc);
-    }
-
-    [Fact]
-    public async Task CreateEventAsync_InvalidEventType_ReturnsError()
-    {
-        // Arrange - Invalid enum value
-        var request = new CreateEventRequest
-        {
-            Title = "Event with Invalid Type",
-            Description = "Invalid event type",
-            StartDate = DateTime.UtcNow.AddDays(7),
-            EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
-            VenueId = _testVenueId,
-            EventType = "InvalidType", // Not a valid EventType enum
-            Capacity = 20
-        };
-
-        // Act
-        var (success, response, error) = await _sut.CreateEventAsync(request);
-
-        // Assert
-        success.Should().BeFalse();
-        response.Should().BeNull();
-        error.Should().Contain("Invalid event type");
     }
 
     [Fact]
@@ -463,7 +458,9 @@ public class EventServiceCreateTests : DatabaseTestBase
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(4),
             VenueId = _testVenueId,
-            EventType = "Workshop",
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 50,
             IsPublished = true,
             Sessions = new List<SessionDto>
@@ -488,9 +485,9 @@ public class EventServiceCreateTests : DatabaseTestBase
                     SessionIdentifiers = new List<string> { "S1" }
                 }
             },
-            VolunteerPositions = new List<VolunteerPositionDto>
+            VolunteerPositions = new List<EventVolunteerPositionDto>
             {
-                new VolunteerPositionDto
+                new EventVolunteerPositionDto
                 {
                     Title = "Helper",
                     Description = "General help",

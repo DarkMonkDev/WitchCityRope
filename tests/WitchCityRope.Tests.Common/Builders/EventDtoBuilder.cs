@@ -14,8 +14,9 @@ public class EventDtoBuilder : TestDataBuilder<EventDto, EventDtoBuilder>
     private string _description;
     private DateTime _startDate;
     private DateTime _endDate;
-    private string _location;
-    private string _eventType;
+    private bool _allowRsvps;
+    private bool _requireTicketPurchase;
+    private bool _vettedMembersOnly;
     private int _capacity;
     private int _currentAttendees;
     private int _currentRSVPs;
@@ -32,12 +33,13 @@ public class EventDtoBuilder : TestDataBuilder<EventDto, EventDtoBuilder>
         _description = _faker.Lorem.Paragraph();
         _startDate = DateTimeFixture.NextWeek;
         _endDate = DateTimeFixture.NextWeek.AddHours(3);
-        _location = _faker.Address.FullAddress();
-        _eventType = _faker.PickRandom("Social", "Class", "Workshop", "Performance");
+        _allowRsvps = false;
+        _requireTicketPurchase = true; // Default: ticket required
+        _vettedMembersOnly = false;
         _capacity = TestConstants.Events.DefaultCapacity;
         _currentAttendees = _faker.Random.Int(0, _capacity / 2);
-        _currentRSVPs = _eventType == "Social" ? _currentAttendees : 0;
-        _currentTickets = _eventType == "Class" ? _currentAttendees : _faker.Random.Int(0, _currentAttendees);
+        _currentRSVPs = 0;
+        _currentTickets = _currentAttendees;
         _sessions = new List<SessionDto>();
         _ticketTypes = new List<TicketTypeDto>();
         _teacherIds = new List<string> { Guid.NewGuid().ToString() };
@@ -93,37 +95,48 @@ public class EventDtoBuilder : TestDataBuilder<EventDto, EventDtoBuilder>
         return This;
     }
 
-    public EventDtoBuilder WithLocation(string location)
+    public EventDtoBuilder WithAllowRsvps(bool allowRsvps)
     {
-        _location = location;
+        _allowRsvps = allowRsvps;
+        if (allowRsvps)
+        {
+            _currentRSVPs = _currentAttendees;
+        }
         return This;
     }
 
-    public EventDtoBuilder WithEventType(string eventType)
+    public EventDtoBuilder WithRequireTicketPurchase(bool requireTicketPurchase)
     {
-        _eventType = eventType;
-        // Adjust attendee logic based on event type
-        if (eventType == "Social")
+        _requireTicketPurchase = requireTicketPurchase;
+        if (requireTicketPurchase)
         {
-            _currentRSVPs = _currentAttendees;
-            _currentTickets = _faker.Random.Int(0, _currentAttendees);
-        }
-        else if (eventType == "Class")
-        {
-            _currentRSVPs = 0;
             _currentTickets = _currentAttendees;
         }
         return This;
     }
 
+    public EventDtoBuilder WithVettedMembersOnly(bool vettedMembersOnly)
+    {
+        _vettedMembersOnly = vettedMembersOnly;
+        return This;
+    }
+
     public EventDtoBuilder AsSocialEvent()
     {
-        return WithEventType("Social");
+        _allowRsvps = true;
+        _requireTicketPurchase = false;
+        _currentRSVPs = _currentAttendees;
+        _currentTickets = 0;
+        return This;
     }
 
     public EventDtoBuilder AsClassEvent()
     {
-        return WithEventType("Class");
+        _allowRsvps = false;
+        _requireTicketPurchase = true;
+        _currentRSVPs = 0;
+        _currentTickets = _currentAttendees;
+        return This;
     }
 
     public EventDtoBuilder WithCapacity(int capacity)
@@ -133,8 +146,8 @@ public class EventDtoBuilder : TestDataBuilder<EventDto, EventDtoBuilder>
         if (_currentAttendees > capacity)
         {
             _currentAttendees = capacity;
-            _currentRSVPs = _eventType == "Social" ? _currentAttendees : 0;
-            _currentTickets = _eventType == "Class" ? _currentAttendees : Math.Min(_currentTickets, _currentAttendees);
+            _currentRSVPs = _allowRsvps ? _currentAttendees : 0;
+            _currentTickets = _requireTicketPurchase ? _currentAttendees : Math.Min(_currentTickets, _currentAttendees);
         }
         return This;
     }
@@ -182,8 +195,8 @@ public class EventDtoBuilder : TestDataBuilder<EventDto, EventDtoBuilder>
     public EventDtoBuilder AtCapacity()
     {
         _currentAttendees = _capacity;
-        _currentRSVPs = _eventType == "Social" ? _capacity : 0;
-        _currentTickets = _eventType == "Class" ? _capacity : _currentTickets;
+        _currentRSVPs = _allowRsvps ? _capacity : 0;
+        _currentTickets = _requireTicketPurchase ? _capacity : _currentTickets;
         return This;
     }
 
@@ -220,8 +233,10 @@ public class EventDtoBuilder : TestDataBuilder<EventDto, EventDtoBuilder>
             Description = _description,
             StartDate = _startDate,
             EndDate = _endDate,
-            VenueId = 1, // Default venue ID (Location field removed - now using VenueId)
-            EventType = _eventType,
+            VenueId = 1, // Default venue ID
+            AllowRsvps = _allowRsvps,
+            RequireTicketPurchase = _requireTicketPurchase,
+            VettedMembersOnly = _vettedMembersOnly,
             Capacity = _capacity,
             RegistrationCount = _currentAttendees,
             CurrentRSVPs = _currentRSVPs,

@@ -489,7 +489,9 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
             Title = title,
             ShortDescription = $"Test event {uniqueId}",
             Description = "Test event description",
-            EventType = EventType.Class,
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             VenueId = 1, // Test venue ID (Location moved to Venue entity)
             StartDate = start,
             EndDate = start.AddHours(2),
@@ -515,7 +517,7 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
                 Id = 1,
                 Name = "Test Venue",
                 Directions = "123 Test Street, Salem, MA",
-                Notes = "Standard test venue",
+                VenueInformation = "Standard test venue",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow

@@ -224,7 +224,9 @@ public class MemberDetailsEndpointsTests
                 {
                     EventId = Guid.NewGuid(),
                     EventTitle = "Rope Workshop 101",
-                    EventType = "Workshop",
+                    AllowRsvps = false,
+                    RequireTicketPurchase = true,
+                    VettedMembersOnly = false,
                     EventDate = DateTime.UtcNow.AddDays(-10),
                     RegistrationType = "Ticket",
                     ParticipationStatus = "Active",
@@ -235,7 +237,9 @@ public class MemberDetailsEndpointsTests
                 {
                     EventId = Guid.NewGuid(),
                     EventTitle = "Monthly Munch",
-                    EventType = "Social",
+                    AllowRsvps = true,
+                    RequireTicketPurchase = false,
+                    VettedMembersOnly = false,
                     EventDate = DateTime.UtcNow.AddDays(-30),
                     RegistrationType = "RSVP",
                     ParticipationStatus = "Active",

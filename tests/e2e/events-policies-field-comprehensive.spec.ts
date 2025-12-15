@@ -21,6 +21,13 @@ import { expect } from '@playwright/test';
 import { test } from '../lib/datafactory/fixtures/test.fixture';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+// Module-level constant for TipTap editor selectors (used across multiple tests)
+const policiesSelectors = [
+  '.mantine-RichTextEditor-root .ProseMirror',
+  '[contenteditable="true"].ProseMirror',
+  '.tiptap',
+];
+
 test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin for event management
@@ -54,12 +61,7 @@ test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
 
       // Verify policies field exists and is visible
       // The policies field uses MantineTiptapEditor (rich text), not a textarea
-      // Use data-testid or Mantine RichTextEditor classes
-      const policiesSelectors = [
-        '.mantine-RichTextEditor-root .ProseMirror',
-        '[contenteditable="true"].ProseMirror',
-        '.tiptap',
-      ];
+      // Uses module-level policiesSelectors constant
 
       // Find the policies field - it's the SECOND TipTap editor on the page
       // (first is fullDescription, second is policies)
@@ -360,12 +362,7 @@ test.describe('Policies Field - Comprehensive Testing (DataFactory)', () => {
 
       // Verify UI displays policies field
       // Policies is the SECOND TipTap editor on the page (first is fullDescription)
-      const policiesSelectors = [
-        '.mantine-RichTextEditor-root .ProseMirror',
-        '[contenteditable="true"].ProseMirror',
-        '.tiptap',
-      ];
-
+      // Uses module-level policiesSelectors constant
       let policiesField = null;
       for (const selector of policiesSelectors) {
         const fields = page.locator(selector);

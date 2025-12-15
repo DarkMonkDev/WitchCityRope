@@ -88,7 +88,7 @@ public class VolunteerServiceTests : IAsyncLifetime
             Id = 1, // Explicitly set ID for test consistency
             Name = "Test Venue",
             Directions = "123 Test Street, Salem, MA",
-            Notes = "Standard test venue for unit tests",
+            VenueInformation = "Standard test venue for unit tests",
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -111,7 +111,9 @@ public class VolunteerServiceTests : IAsyncLifetime
             Title = title,
             Description = $"Description for {title}",
             VenueId = 1, // References venue created above
-            EventType = EventType.Class,
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = capacity,
             IsPublished = true,
             StartDate = DateTime.UtcNow.AddDays(7).ToUniversalTime(),
@@ -277,7 +279,9 @@ public class VolunteerServiceTests : IAsyncLifetime
         // Arrange
         // Create a Social event (auto-RSVP only works for social events)
         var testEvent = await CreateTestEvent("Test Event");
-        testEvent.EventType = EventType.Social;
+        testEvent.AllowRsvps = true;
+        testEvent.RequireTicketPurchase = false;
+        testEvent.VettedMembersOnly = false;
         await _context.SaveChangesAsync();
 
         var position = await CreateVolunteerPosition(testEvent.Id, "Setup Crew");
@@ -577,7 +581,9 @@ public class VolunteerServiceTests : IAsyncLifetime
             Title = "Started Event",
             Description = "Event in progress",
             VenueId = 1, // References venue created above
-            EventType = EventType.Class,
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 25,
             IsPublished = true,
             StartDate = eventStartTime,
@@ -632,7 +638,9 @@ public class VolunteerServiceTests : IAsyncLifetime
             Title = "Future Event",
             Description = "Event not started",
             VenueId = 1, // References venue created above
-            EventType = EventType.Class,
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 25,
             IsPublished = true,
             StartDate = futureEventStart,

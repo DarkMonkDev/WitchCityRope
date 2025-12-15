@@ -3,12 +3,15 @@ using FluentAssertions;
 using Moq;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Vetting.Entities;
+using WitchCityRope.Api.Features.Shared.Services;
 
 namespace WitchCityRope.Api.Tests.Services;
 
@@ -19,6 +22,9 @@ namespace WitchCityRope.Api.Tests.Services;
 public class EmailTemplateServiceTriggerTests : IDisposable
 {
     private readonly Mock<ILogger<EmailTemplateService>> _mockLogger;
+    private readonly Mock<UserManager<ApplicationUser>> _mockUserManager;
+    private readonly Mock<IEmailService> _mockEmailService;
+    private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly ApplicationDbContext _context;
     private readonly EmailTemplateService _sut; // System Under Test
     private readonly Guid _testUserId = Guid.NewGuid();
@@ -33,7 +39,23 @@ public class EmailTemplateServiceTriggerTests : IDisposable
         _context = new ApplicationDbContext(options);
         _mockLogger = new Mock<ILogger<EmailTemplateService>>();
 
-        _sut = new EmailTemplateService(_context, _mockLogger.Object);
+        // Setup UserManager mock (requires store mock)
+        var mockUserStore = new Mock<IUserStore<ApplicationUser>>();
+        _mockUserManager = new Mock<UserManager<ApplicationUser>>(
+            mockUserStore.Object, null, null, null, null, null, null, null, null);
+
+        // Setup EmailService mock
+        _mockEmailService = new Mock<IEmailService>();
+
+        // Setup Configuration mock
+        _mockConfiguration = new Mock<IConfiguration>();
+
+        _sut = new EmailTemplateService(
+            _context,
+            _mockUserManager.Object,
+            _mockEmailService.Object,
+            _mockConfiguration.Object,
+            _mockLogger.Object);
 
         // Seed test user
         var testUser = new ApplicationUser

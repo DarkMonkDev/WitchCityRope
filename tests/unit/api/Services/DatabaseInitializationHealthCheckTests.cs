@@ -481,7 +481,7 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
             Id = 1, // Explicitly set ID for test consistency
             Name = "Test Venue",
             Directions = "123 Test Street, Salem, MA",
-            Notes = "Standard test venue for unit tests",
+            VenueInformation = "Standard test venue for unit tests",
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

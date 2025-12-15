@@ -315,14 +315,27 @@ baseTest.describe('Home Page - Events Display', () => {
 })
 
 dfTest.describe('Home Page - Events Display with Created Test Data', () => {
-  dfTest('event cards display price and availability information', async ({ page, df }) => {
-    // Create test event with session and ticket type
-    const event = await df.events.createPublished(`Price Info Test ${Date.now()}`)
+  // IMPORTANT: All tests in this section create sessions for TOMORROW (not 7 days from now)
+  // CRITICAL: Home page shows only FIRST 4 events sorted by EVENT.StartDate (ascending).
+  // Test events must have startDate = NOW to appear at the TOP of the list.
+  // Using "tomorrow" startDate pushes test events below seed data events with earlier dates.
 
-    const sessionStart = new Date()
-    sessionStart.setDate(sessionStart.getDate() + 7)
-    sessionStart.setHours(18, 0, 0, 0)
+  dfTest('event cards display price and availability information', async ({ page, df }) => {
+    // CRITICAL: Use startDate of NOW to ensure test event sorts to TOP of home page
+    // Home page shows only first 4 events sorted by startDate ascending
+    // Using "tomorrow" startDate might push test events below seed data events
+    const now = new Date()
+    const sessionStart = new Date(now.getTime() + 2 * 60 * 60 * 1000) // 2 hours from now
     const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
+
+    // Create test event with startDate = NOW to appear at top of list
+    const event = await df.events.create({
+      title: `Price Info Test ${Date.now()}`,
+      startDate: now, // NOW - not tomorrow
+      endDate: sessionEnd,
+      status: 'Published',
+      isPublic: true,
+    })
 
     const session = await df.sessions.create({
       eventId: event.id,
@@ -340,7 +353,7 @@ dfTest.describe('Home Page - Events Display with Created Test Data', () => {
       quantityAvailable: 20,
     })
 
-    console.log(`✅ Created test event: ${event.id}`)
+    console.log(`✅ Created test event: ${event.id} with startDate: ${now.toISOString()}`)
 
     // Navigate to home page
     await page.goto('/')
@@ -374,13 +387,19 @@ dfTest.describe('Home Page - Events Display with Created Test Data', () => {
   })
 
   dfTest('clicking event card navigates to event details', async ({ page, df }) => {
-    // Create test event
-    const event = await df.events.createPublished(`Navigation Test ${Date.now()}`)
-
-    const sessionStart = new Date()
-    sessionStart.setDate(sessionStart.getDate() + 7)
-    sessionStart.setHours(18, 0, 0, 0)
+    // CRITICAL: Use startDate of NOW to ensure test event sorts to TOP of home page
+    const now = new Date()
+    const sessionStart = new Date(now.getTime() + 2 * 60 * 60 * 1000) // 2 hours from now
     const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
+
+    // Create test event with startDate = NOW to appear at top of list
+    const event = await df.events.create({
+      title: `Navigation Test ${Date.now()}`,
+      startDate: now, // NOW - not tomorrow
+      endDate: sessionEnd,
+      status: 'Published',
+      isPublic: true,
+    })
 
     await df.sessions.create({
       eventId: event.id,
@@ -412,8 +431,9 @@ dfTest.describe('Home Page - Events Display with Created Test Data', () => {
     // Create test event to ensure events exist
     const event = await df.events.createPublished(`Calendar Test ${Date.now()}`)
 
+    // Session starts TOMORROW to ensure it appears at top of home page list
     const sessionStart = new Date()
-    sessionStart.setDate(sessionStart.getDate() + 7)
+    sessionStart.setDate(sessionStart.getDate() + 1) // Tomorrow, not +7
     sessionStart.setHours(18, 0, 0, 0)
     const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
 
@@ -444,13 +464,19 @@ dfTest.describe('Home Page - Events Display with Created Test Data', () => {
   })
 
   dfTest('displays created test event on home page', async ({ page, df }) => {
-    // Create test event
-    const event = await df.events.createPublished('Home Page Test Event')
-
-    const sessionStart = new Date()
-    sessionStart.setDate(sessionStart.getDate() + 7)
-    sessionStart.setHours(18, 0, 0, 0)
+    // CRITICAL: Use startDate of NOW to ensure test event sorts to TOP of home page
+    const now = new Date()
+    const sessionStart = new Date(now.getTime() + 2 * 60 * 60 * 1000) // 2 hours from now
     const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
+
+    // Create test event with startDate = NOW to appear at top of list
+    const event = await df.events.create({
+      title: 'Home Page Test Event',
+      startDate: now, // NOW - not tomorrow
+      endDate: sessionEnd,
+      status: 'Published',
+      isPublic: true,
+    })
 
     await df.sessions.create({
       eventId: event.id,
@@ -460,7 +486,7 @@ dfTest.describe('Home Page - Events Display with Created Test Data', () => {
       maxCapacity: 20,
     })
 
-    console.log(`✅ Created test event: ${event.id}`)
+    console.log(`✅ Created test event: ${event.id} with startDate: ${now.toISOString()}`)
 
     // Navigate to home page
     await page.goto('/')
@@ -480,13 +506,19 @@ dfTest.describe('Home Page - Events Display with Created Test Data', () => {
   })
 
   dfTest('event card has data-event-id attribute for navigation', async ({ page, df }) => {
-    // Create test event
-    const event = await df.events.createPublished(`DataEventId Test ${Date.now()}`)
-
-    const sessionStart = new Date()
-    sessionStart.setDate(sessionStart.getDate() + 7)
-    sessionStart.setHours(18, 0, 0, 0)
+    // CRITICAL: Use startDate of NOW to ensure test event sorts to TOP of home page
+    const now = new Date()
+    const sessionStart = new Date(now.getTime() + 2 * 60 * 60 * 1000) // 2 hours from now
     const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000)
+
+    // Create test event with startDate = NOW to appear at top of list
+    const event = await df.events.create({
+      title: `DataEventId Test ${Date.now()}`,
+      startDate: now, // NOW - not tomorrow
+      endDate: sessionEnd,
+      status: 'Published',
+      isPublic: true,
+    })
 
     await df.sessions.create({
       eventId: event.id,
@@ -496,7 +528,7 @@ dfTest.describe('Home Page - Events Display with Created Test Data', () => {
       maxCapacity: 20,
     })
 
-    console.log(`✅ Created test event: ${event.id}`)
+    console.log(`✅ Created test event: ${event.id} with startDate: ${now.toISOString()}`)
 
     // Navigate to home page
     await page.goto('/')

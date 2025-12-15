@@ -44,7 +44,7 @@ public class VenueEndpointsTests
             Id = venueId,
             Name = "Test Venue",
             Directions = "123 Test St",
-            Notes = null, // Public endpoint should not expose notes
+            VenueInformation = null, // Public endpoint should not expose venue information
             IsActive = true,
             CreatedAt = DateTime.Parse("2025-11-14T10:00:00Z"),
             UpdatedAt = DateTime.Parse("2025-11-14T10:00:00Z")
@@ -65,7 +65,7 @@ public class VenueEndpointsTests
         okResult.Value.Should().NotBeNull();
         okResult.Value!.Id.Should().Be(venueId);
         okResult.Value.Name.Should().Be("Test Venue");
-        okResult.Value.Notes.Should().BeNull(); // Verify notes are not exposed
+        okResult.Value.VenueInformation.Should().BeNull(); // Verify venue information is not exposed
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class VenueEndpointsTests
                 Id = 1,
                 Name = "Venue A",
                 Directions = "123 A St",
-                Notes = null,
+                VenueInformation = null,
                 IsActive = true,
                 CreatedAt = DateTime.Parse("2025-11-14T10:00:00Z"),
                 UpdatedAt = DateTime.Parse("2025-11-14T10:00:00Z")
@@ -161,7 +161,7 @@ public class VenueEndpointsTests
                 Id = 2,
                 Name = "Venue B",
                 Directions = "456 B St",
-                Notes = null,
+                VenueInformation = null,
                 IsActive = true,
                 CreatedAt = DateTime.Parse("2025-11-14T10:00:00Z"),
                 UpdatedAt = DateTime.Parse("2025-11-14T10:00:00Z")
@@ -184,7 +184,7 @@ public class VenueEndpointsTests
         okResult.Value!.Count.Should().Be(2);
         okResult.Value![0].Name.Should().Be("Venue A");
         okResult.Value![1].Name.Should().Be("Venue B");
-        okResult.Value.All(v => v.Notes == null).Should().BeTrue(); // Verify notes are not exposed
+        okResult.Value.All(v => v.VenueInformation == null).Should().BeTrue(); // Verify venue information is not exposed
     }
 
     [Fact]

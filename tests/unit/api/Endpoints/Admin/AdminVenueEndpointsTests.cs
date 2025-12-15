@@ -50,7 +50,7 @@ public class AdminVenueEndpointsTests
                 Id = 1,
                 Name = "Active Venue",
                 Directions = "123 Active St",
-                Notes = "Internal notes visible to admin",
+                VenueInformation = "Internal notes visible to admin",
                 IsActive = true,
                 CreatedAt = DateTime.Parse("2025-11-14T10:00:00Z"),
                 UpdatedAt = DateTime.Parse("2025-11-14T10:00:00Z")
@@ -60,7 +60,7 @@ public class AdminVenueEndpointsTests
                 Id = 2,
                 Name = "Inactive Venue",
                 Directions = "456 Inactive St",
-                Notes = "Another note",
+                VenueInformation = "Another note",
                 IsActive = false,
                 CreatedAt = DateTime.Parse("2025-11-14T10:00:00Z"),
                 UpdatedAt = DateTime.Parse("2025-11-14T10:00:00Z")
@@ -80,7 +80,7 @@ public class AdminVenueEndpointsTests
         okResult.Value!.Count.Should().Be(2);
         okResult.Value.Should().Contain(v => v.IsActive);
         okResult.Value.Should().Contain(v => !v.IsActive); // Includes inactive venues
-        okResult.Value.All(v => v.Notes != null).Should().BeTrue(); // Admin sees notes
+        okResult.Value.All(v => v.VenueInformation != null).Should().BeTrue(); // Admin sees venue information
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public class AdminVenueEndpointsTests
             Id = venueId,
             Name = "Test Venue",
             Directions = "123 Test St",
-            Notes = "Admin can see notes",
+            VenueInformation = "Admin can see venue information",
             IsActive = true,
             CreatedAt = DateTime.Parse("2025-11-14T10:00:00Z"),
             UpdatedAt = DateTime.Parse("2025-11-14T10:00:00Z")
@@ -206,7 +206,7 @@ public class AdminVenueEndpointsTests
         result.Should().BeOfType<Ok<VenueDto>>();
         var okResult = (Ok<VenueDto>)result;
         okResult.Value!.Id.Should().Be(venueId);
-        okResult.Value.Notes.Should().NotBeNull(); // Admin sees notes
+        okResult.Value.VenueInformation.Should().NotBeNull(); // Admin sees venue information
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public class AdminVenueEndpointsTests
         {
             Name = "New Venue",
             Directions = "789 New St",
-            Notes = "Internal notes"
+            VenueInformation = "Internal venue information"
         };
 
         var httpContext = new DefaultHttpContext();
@@ -357,7 +357,7 @@ public class AdminVenueEndpointsTests
         {
             Name = "Updated Venue",
             Directions = "Updated directions",
-            Notes = "Updated notes",
+            VenueInformation = "Updated venue information",
             IsActive = true
         };
 
@@ -658,9 +658,9 @@ public class AdminVenueEndpointsTests
             return Results.Problem(title: "Validation Failed", detail: "Directions must not exceed 500 characters", statusCode: 400);
         }
 
-        if (request.Notes?.Length > 1000)
+        if (request.VenueInformation?.Length > 1000)
         {
-            return Results.Problem(title: "Validation Failed", detail: "Notes must not exceed 1000 characters", statusCode: 400);
+            return Results.Problem(title: "Validation Failed", detail: "VenueInformation must not exceed 1000 characters", statusCode: 400);
         }
 
         await Task.CompletedTask;
@@ -680,7 +680,7 @@ public class AdminVenueEndpointsTests
             Id = 1,
             Name = request.Name,
             Directions = request.Directions,
-            Notes = request.Notes,
+            VenueInformation = request.VenueInformation,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -717,9 +717,9 @@ public class AdminVenueEndpointsTests
             return Results.Problem(title: "Validation Failed", detail: "Directions must not exceed 500 characters", statusCode: 400);
         }
 
-        if (request.Notes?.Length > 1000)
+        if (request.VenueInformation?.Length > 1000)
         {
-            return Results.Problem(title: "Validation Failed", detail: "Notes must not exceed 1000 characters", statusCode: 400);
+            return Results.Problem(title: "Validation Failed", detail: "VenueInformation must not exceed 1000 characters", statusCode: 400);
         }
 
         await Task.CompletedTask;
@@ -744,7 +744,7 @@ public class AdminVenueEndpointsTests
             Id = id,
             Name = request.Name,
             Directions = request.Directions,
-            Notes = request.Notes,
+            VenueInformation = request.VenueInformation,
             IsActive = request.IsActive,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

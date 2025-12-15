@@ -79,7 +79,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = 1,
             Name = "Test Venue",
             Directions = "Test location for integration tests",
-            Notes = "Default test venue",
+            VenueInformation = "Default test venue",
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -106,7 +106,9 @@ public class CheckInServiceTests : IAsyncLifetime
             Title = title,
             Description = $"Description for {title}",
             VenueId = 1, // Test venue ID (Location moved to Venue entity)
-            EventType = EventType.Class,
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = capacity,
             IsPublished = true,
             StartDate = DateTime.UtcNow.AddDays(7).ToUniversalTime(),
@@ -292,7 +294,9 @@ public class CheckInServiceTests : IAsyncLifetime
             Title = "Future Event",
             Description = "Event not started yet",
             VenueId = 1, // Test venue ID (Location moved to Venue entity)
-            EventType = EventType.Class,
+            AllowRsvps = false,
+            RequireTicketPurchase = true,
+            VettedMembersOnly = false,
             Capacity = 25,
             IsPublished = true,
             StartDate = DateTime.UtcNow.AddHours(2).ToUniversalTime(),
@@ -543,7 +547,7 @@ public class CheckInServiceTests : IAsyncLifetime
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _service.GetEventAttendeesAsync(testEvent.Id, sessionId, status: "checked-in");
+        var result = await _service.GetEventAttendeesAsync(testEvent.Id, new List<Guid> { sessionId }, status: "checked-in");
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -719,7 +723,7 @@ public class CheckInServiceTests : IAsyncLifetime
 
         // Act
         var sessionId = Guid.NewGuid();
-        var result = await _service.GetEventAttendeesAsync(testEvent.Id, sessionId, search: "Alice");
+        var result = await _service.GetEventAttendeesAsync(testEvent.Id, new List<Guid> { sessionId }, search: "Alice");
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -742,7 +746,7 @@ public class CheckInServiceTests : IAsyncLifetime
 
         // Act - Get first page (10 per page)
         var sessionId = Guid.NewGuid();
-        var result = await _service.GetEventAttendeesAsync(testEvent.Id, sessionId, page: 1, pageSize: 10);
+        var result = await _service.GetEventAttendeesAsync(testEvent.Id, new List<Guid> { sessionId }, page: 1, pageSize: 10);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -764,7 +768,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var sessionId = Guid.NewGuid();
 
         // Act
-        var result = await _service.GetEventAttendeesAsync(nonExistentEventId, sessionId);
+        var result = await _service.GetEventAttendeesAsync(nonExistentEventId, new List<Guid> { sessionId });
 
         // Assert
         result.IsSuccess.Should().BeFalse();

@@ -616,6 +616,11 @@ public class EmailTemplateService : IEmailTemplateService
             // Sanitize HTML content
             var sanitizedHtml = SanitizeHtml(request.HtmlBody);
 
+            // Replace global variables (not per-user) - {{system_url}}
+            var systemUrl = _configuration["Frontend:Url"] ?? "https://staging.witchcityrope.com";
+            sanitizedHtml = sanitizedHtml.Replace("{{system_url}}", systemUrl);
+            var processedPlainText = request.PlainTextBody.Replace("{{system_url}}", systemUrl);
+
             // Get full user objects for variable replacement
             List<ApplicationUser> recipientUsers;
             if (request.Segment.HasValue)
@@ -645,7 +650,7 @@ public class EmailTemplateService : IEmailTemplateService
                     if (string.IsNullOrEmpty(user.Email)) continue;
 
                     var (personalizedHtml, personalizedPlainText) = await ReplaceVariablesForUserAsync(
-                        sanitizedHtml, request.PlainTextBody, user, cancellationToken);
+                        sanitizedHtml, processedPlainText, user, cancellationToken);
 
                     var result = await _emailService.SendEmailAsync(
                         user.Email,
@@ -670,7 +675,7 @@ public class EmailTemplateService : IEmailTemplateService
                         email,
                         request.Subject,
                         sanitizedHtml,
-                        request.PlainTextBody,
+                        processedPlainText,
                         cancellationToken);
 
                     if (!result.IsSuccess)
@@ -687,7 +692,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Id = Guid.NewGuid(),
                 Subject = request.Subject,
                 HtmlBody = sanitizedHtml,
-                PlainTextBody = request.PlainTextBody,
+                PlainTextBody = processedPlainText,
                 RecipientGroup = request.RecipientGroup,
                 RecipientEmails = recipientEmails.ToArray(),
                 RecipientCount = recipientCount,
@@ -1198,8 +1203,8 @@ public class EmailTemplateService : IEmailTemplateService
         var html = htmlBody;
         var plainText = plainTextBody;
 
-        // Replace {{user_name}}
-        var userName = user.SceneName ?? user.Email ?? "Member";
+        // Replace {{user_name}} - fall back to email if SceneName is null or empty
+        var userName = !string.IsNullOrEmpty(user.SceneName) ? user.SceneName : (user.Email ?? "Member");
         html = html.Replace("{{user_name}}", userName);
         plainText = plainText.Replace("{{user_name}}", userName);
 

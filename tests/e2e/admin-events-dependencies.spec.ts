@@ -40,19 +40,17 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
     await setupTab.click();
     await page.waitForTimeout(500);
 
-    // Verify sessions section is visible
-    const sessionsSection = page.locator('[data-testid="sessions-section"]');
-    await expect(sessionsSection).toBeVisible({ timeout: 5000 });
-
-    // Verify no sessions exist (session grid should show "no sessions" message or empty table)
+    // Verify sessions grid is visible (the grid itself, not a wrapper section)
     const sessionGrid = page.locator('[data-testid="grid-sessions"]');
+    await expect(sessionGrid).toBeVisible({ timeout: 5000 });
+
+    // Verify no sessions exist (session grid should show "no sessions" message)
     const sessionRows = sessionGrid.locator('[data-testid="session-row"]');
     const sessionCount = await sessionRows.count();
     expect(sessionCount).toBe(0);
     console.log('✓ Verified no sessions exist');
 
     // Add Ticket Type button should be disabled when no sessions exist
-    // Button text is "Add Ticket Type" and it has a title tooltip explaining why
     const addTicketButton = page.getByRole('button', { name: 'Add Ticket Type' });
     await expect(addTicketButton).toBeVisible({ timeout: 5000 });
     await expect(addTicketButton).toBeDisabled();
@@ -63,33 +61,33 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
     await expect(addSessionButton).toBeVisible({ timeout: 5000 });
     await addSessionButton.click();
 
-    // Fill in session details in the modal
+    // Wait for the modal to open
+    const sessionModal = page.locator('[data-testid="modal-add-session"]');
+    await expect(sessionModal).toBeVisible({ timeout: 5000 });
+
+    // Fill in session name (required field)
     const sessionNameInput = page.locator('[data-testid="input-session-name"]');
     await expect(sessionNameInput).toBeVisible({ timeout: 5000 });
-    await sessionNameInput.fill('Test Session');
+    await sessionNameInput.fill('Test Session for Ticket Check');
+    console.log('✓ Filled session name');
 
-    // Fill date and time fields
-    const sessionDateInput = page.locator('[data-testid="input-session-date"]');
-    if (await sessionDateInput.isVisible()) {
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 7);
-      await sessionDateInput.fill(futureDate.toISOString().split('T')[0]);
-    }
-
-    const startTimeInput = page.locator('[data-testid="input-session-start-time"]');
-    await startTimeInput.fill('18:00');
-
-    const endTimeInput = page.locator('[data-testid="input-session-end-time"]');
-    await endTimeInput.fill('21:00');
-
-    const capacityInput = page.locator('[data-testid="input-session-capacity"]');
-    await capacityInput.fill('20');
+    // The form has defaults for date (today), times (18:00-21:00), and capacity (50)
+    // These defaults are acceptable for this test - no need to override
+    // Note: DatePicker is a button component, not a text input - can't use .fill()
 
     // Save the session
     const saveSessionButton = page.locator('[data-testid="button-save-session"]');
+    await expect(saveSessionButton).toBeVisible();
     await saveSessionButton.click();
-    await page.waitForTimeout(1000);
-    console.log('✓ Created test session');
+    console.log('✓ Clicked save session');
+
+    // Wait for modal to close indicating session was saved
+    await expect(sessionModal).not.toBeVisible({ timeout: 10000 });
+    console.log('✓ Session modal closed - session created');
+
+    // Wait for grid to update with new session
+    await expect(sessionRows).toHaveCount(1, { timeout: 10000 });
+    console.log('✓ Session appears in grid');
 
     // Now Add Ticket Type button should be enabled
     await expect(addTicketButton).toBeEnabled({ timeout: 10000 });
@@ -241,23 +239,43 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
   });
 
   test('should show delete confirmation modal when deleting sessions', async ({ page, df }) => {
-    // Create event with session
+    // Create event with TWO sessions - IMPORTANT: deleting the ONLY session shows a
+    // "Cannot Delete Session" modal with disabled delete button, not a confirmation modal.
+    // We need 2+ sessions so deleting one shows the regular confirmation modal.
     const event = await df.events.createPublished(`Delete Modal Test ${Date.now()}`);
     console.log(`✅ Created test event: ${event.id}`);
 
-    const sessionStart = new Date();
-    sessionStart.setDate(sessionStart.getDate() + 7);
-    sessionStart.setHours(18, 0, 0, 0);
-    const sessionEnd = new Date(sessionStart.getTime() + 3 * 60 * 60 * 1000);
+    // Create Session 1
+    const sessionStart1 = new Date();
+    sessionStart1.setDate(sessionStart1.getDate() + 7);
+    sessionStart1.setHours(18, 0, 0, 0);
+    const sessionEnd1 = new Date(sessionStart1.getTime() + 3 * 60 * 60 * 1000);
 
-    const session = await df.sessions.create({
+    const session1 = await df.sessions.create({
       eventId: event.id,
       title: 'Test Session for Deletion',
-      startTime: sessionStart,
-      endTime: sessionEnd,
+      startTime: sessionStart1,
+      endTime: sessionEnd1,
       maxCapacity: 20,
+      sessionIdentifier: 'S1', // IMPORTANT: Each session needs unique identifier
     });
-    console.log(`✅ Created test session: ${session.id}`);
+    console.log(`✅ Created test session 1: ${session1.id}`);
+
+    // Create Session 2 (so we can delete session 1 without hitting "only session" block)
+    const sessionStart2 = new Date();
+    sessionStart2.setDate(sessionStart2.getDate() + 8);
+    sessionStart2.setHours(18, 0, 0, 0);
+    const sessionEnd2 = new Date(sessionStart2.getTime() + 3 * 60 * 60 * 1000);
+
+    const session2 = await df.sessions.create({
+      eventId: event.id,
+      title: 'Second Session (Keeps Event Valid)',
+      startTime: sessionStart2,
+      endTime: sessionEnd2,
+      maxCapacity: 20,
+      sessionIdentifier: 'S2', // IMPORTANT: Must be different from S1
+    });
+    console.log(`✅ Created test session 2: ${session2.id}`);
 
     // Navigate to admin event edit page
     await page.goto(`/admin/events/${event.id}`);
@@ -268,19 +286,19 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
     await sessionsTab.click();
     await page.waitForTimeout(500);
 
-    // Verify session exists
+    // Verify both sessions exist
     const sessionGrid = page.locator('[data-testid="grid-sessions"]');
     await expect(sessionGrid).toBeVisible({ timeout: 5000 });
     const sessionRows = sessionGrid.locator('[data-testid="session-row"]');
-    await expect(sessionRows).toHaveCount(1);
-    console.log('✓ Verified session exists in grid');
+    await expect(sessionRows).toHaveCount(2);
+    console.log('✓ Verified 2 sessions exist in grid');
 
-    // Try to delete the session
+    // Try to delete the first session
     const deleteButton = sessionGrid.locator('[data-testid="button-delete-session"]').first();
     await expect(deleteButton).toBeVisible({ timeout: 5000 });
     await deleteButton.click();
 
-    // Should show delete confirmation modal
+    // Should show delete confirmation modal (not "Cannot Delete" since there are 2 sessions)
     const deleteModal = page.locator('[data-testid="delete-confirmation-modal"]');
     await expect(deleteModal).toBeVisible({ timeout: 5000 });
     console.log('✓ Delete confirmation modal appeared');
@@ -288,11 +306,13 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
     // Modal should show session name
     await expect(deleteModal).toContainText(/Test Session for Deletion/i);
 
-    // Modal should have cancel and confirm buttons
+    // Modal should have cancel and confirm buttons - confirm should be ENABLED
     const cancelButton = deleteModal.locator('[data-testid="delete-cancel-button"]');
     const confirmButton = deleteModal.locator('[data-testid="delete-confirm-button"]');
     await expect(cancelButton).toBeVisible();
     await expect(confirmButton).toBeVisible();
+    await expect(confirmButton).toBeEnabled(); // Key assertion: should be enabled with 2+ sessions
+    console.log('✓ Delete confirm button is enabled (event has multiple sessions)');
 
     // Cancel the deletion
     await cancelButton.click();

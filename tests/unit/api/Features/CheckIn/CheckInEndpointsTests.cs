@@ -75,7 +75,7 @@ public class CheckInEndpointsTests
         _mockSessionTokenService.ValidateTokenAsync(ValidToken, Arg.Any<CancellationToken>())
             .Returns(Result<TokenValidationResult>.Success(tokenData));
 
-        _mockCheckInService.GetEventAttendeesAsync(_testEventId, Arg.Any<Guid>(), null, null, 1, 50, Arg.Any<CancellationToken>())
+        _mockCheckInService.GetEventAttendeesAsync(_testEventId, Arg.Any<List<Guid>>(), null, null, 1, 50, Arg.Any<CancellationToken>())
             .Returns(Result<CheckInAttendeesResponse>.Success(expectedResponse));
 
         // Act
@@ -157,7 +157,7 @@ public class CheckInEndpointsTests
         _mockSessionTokenService.ValidateTokenAsync(ValidToken, Arg.Any<CancellationToken>())
             .Returns(Result<TokenValidationResult>.Success(tokenData));
 
-        _mockCheckInService.GetEventAttendeesAsync(_testEventId, Arg.Any<Guid>(), null, null, 1, 50, Arg.Any<CancellationToken>())
+        _mockCheckInService.GetEventAttendeesAsync(_testEventId, Arg.Any<List<Guid>>(), null, null, 1, 50, Arg.Any<CancellationToken>())
             .Returns(Result<CheckInAttendeesResponse>.Failure("Database connection failed"));
 
         // Act
@@ -983,8 +983,8 @@ public class CheckInEndpointsTests
             return Results.Forbid();
         }
 
-        // Call service - use sessionId from token validation
-        var result = await _mockCheckInService.GetEventAttendeesAsync(eventId, tokenData.SessionId, search, status, page, pageSize, CancellationToken.None);
+        // Call service - use sessionId from token validation (wrapped in List)
+        var result = await _mockCheckInService.GetEventAttendeesAsync(eventId, new List<Guid> { tokenData.SessionId }, search, status, page, pageSize, CancellationToken.None);
 
         return result.IsSuccess
             ? Results.Ok(result.Value)
@@ -1213,10 +1213,8 @@ public class CheckInEndpointsTests
         }
 
         var result = await _mockSessionTokenService.GenerateTokenAsync(
-            request.EventId,
-            request.SessionId,
+            request,
             adminUserId,
-            request.ExpirationHours ?? 12,
             CancellationToken.None);
 
         return result.IsSuccess

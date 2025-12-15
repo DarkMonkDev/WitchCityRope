@@ -484,27 +484,26 @@ test.describe('Vetting System - Complete Workflows', () => {
     await expect(reminderButton).toBeVisible({ timeout: 10000 });
     await reminderButton.click();
 
-    // Assert - Modal opens
-    const modal = page.locator('[role="dialog"]').first();
-    await expect(modal).toBeVisible({ timeout: 5000 });
+    // Assert - Modal opens (use proper data-testid)
+    const modal = page.locator('[data-testid="send-reminder-modal"]');
+    await expect(modal).toBeVisible({ timeout: 10000 });
+    console.log('✓ Reminder modal opened');
 
-    // Look for message field (should have default text)
-    const messageField = page.locator('textarea').first();
+    // Look for message field within modal (use proper data-testid)
+    // CRITICAL: Use data-testid, not generic textarea selector which might find Notes textarea
+    const messageField = modal.locator('[data-testid="reminder-message-textarea"]');
+    await expect(messageField).toBeVisible({ timeout: 5000 });
 
-    if (await messageField.count() > 0) {
-      await expect(messageField).toBeVisible();
+    // Wait for useEffect to populate the default message
+    // The button is disabled until message.trim() has content
+    await page.waitForTimeout(500);
 
-      // Check if pre-filled
-      const messageValue = await messageField.inputValue();
-      console.log(`Reminder message length: ${messageValue.length} characters`);
+    // Get the pre-filled message value
+    const messageValue = await messageField.inputValue();
+    console.log(`Reminder message length: ${messageValue.length} characters`);
 
-      // Can optionally customize message
-      if (messageValue.length > 0) {
-        // Clear and add custom text
-        await messageField.clear();
-        await messageField.fill('Hello! This is a friendly reminder to schedule your vetting interview.');
-      }
-    }
+    // DON'T clear and refill - use the default message to avoid timing issues
+    // The default message from useEffect should be sufficient for testing
 
     // Screenshot modal
     await page.screenshot({
@@ -512,12 +511,17 @@ test.describe('Vetting System - Complete Workflows', () => {
       fullPage: true
     });
 
-    // Submit reminder
-    const sendButton = page.locator('button').filter({ hasText: /send/i }).first();
+    // Submit reminder - wait for button to be enabled
+    // The button starts disabled while React useEffect sets the default message
+    const sendButton = modal.locator('[data-testid="reminder-submit-button"]');
+    await expect(sendButton).toBeVisible({ timeout: 5000 });
+    // Wait for React state to propagate and button to be enabled
+    await expect(sendButton).toBeEnabled({ timeout: 10000 });
+    console.log('✓ Send button is enabled');
     await sendButton.click();
 
-    // Assert - Success notification
-    const notification = page.locator('[class*="mantine-Notification"]');
+    // Assert - Success notification (use first() due to potential multiple notifications)
+    const notification = page.locator('[class*="mantine-Notification"]').first();
     await expect(notification).toBeVisible({ timeout: 10000 });
 
     console.log('✅ Reminder email sent to applicant');
