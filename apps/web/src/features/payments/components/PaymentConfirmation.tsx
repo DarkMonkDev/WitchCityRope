@@ -13,8 +13,10 @@ import {
   Badge,
   Alert,
   Divider,
-  ThemeIcon
+  ThemeIcon,
+  List
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import {
   IconCheck,
   IconMapPin,
@@ -67,6 +69,7 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   onDownloadReceipt
 }) => {
   const eventTimeZone = useEventTimeZone();
+  const isMobile = useMediaQuery('(max-width: 991px)');
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -82,13 +85,14 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
 
   return (
     <Box maw={600} mx="auto">
-      <Stack gap="xl">
+      <Stack gap={isMobile ? 'md' : 'xl'}>
         {/* Success Header */}
-        <Paper 
-          radius="md" 
+        <Paper
+          radius="md"
           p="xl"
           ta="center"
           bg="linear-gradient(135deg, rgba(34, 139, 34, 0.1), rgba(76, 175, 80, 0.05))"
+          mb={isMobile ? 0 : undefined}
         >
           <Stack gap="md" align="center">
             <ThemeIcon
@@ -111,7 +115,7 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
         </Paper>
 
         {/* Event Details */}
-        <Paper radius="md" p="lg" withBorder>
+        <Paper radius="md" p="lg" withBorder mb={isMobile ? 0 : undefined}>
           <Stack gap="md">
             <Title order={3} c="#880124">
               Event Details
@@ -201,21 +205,25 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
               What's Next:
             </Title>
 
-            <Stack gap="sm">
-              <Group gap="sm" align="flex-start">
-                <Text fw={500} size="sm" c="#880124">•</Text>
-                <Text size="sm">
+            <List
+              size="sm"
+              spacing="sm"
+              styles={{
+                root: { paddingLeft: 0 },
+                item: { paddingLeft: '1.2em' }
+              }}
+            >
+              <List.Item>
+                <Text size="sm" c="dark">
                   Check your email for detailed event information and location details
                 </Text>
-              </Group>
-
-              <Group gap="sm" align="flex-start">
-                <Text fw={500} size="sm" c="#880124">•</Text>
-                <Text size="sm">
+              </List.Item>
+              <List.Item>
+                <Text size="sm" c="dark">
                   Contact us at info@witchcityrope.com if you have any questions
                 </Text>
-              </Group>
-            </Stack>
+              </List.Item>
+            </List>
           </Stack>
         </Paper>
 

@@ -18,6 +18,7 @@ import {
   Anchor,
   SimpleGrid
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import {
   EnhancedTextInput,
   EnhancedTextarea
@@ -51,6 +52,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const userSceneName = useUserSceneName();
+  const isMobile = useMediaQuery('(max-width: 991px)');
 
   // Check if user already has an application
   const { data: existingApplication, isLoading: isCheckingApplication, error: checkError } = useQuery({
@@ -364,8 +366,8 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
     <Box className={className} pos="relative">
       <LoadingOverlay visible={submitMutation.isPending} />
 
-      <Paper p="xl" shadow="sm">
-        <Stack gap="lg">
+      <Paper p={isMobile ? "md" : "xl"} shadow="sm">
+        <Stack gap={isMobile ? "xl" : "lg"}>
           {/* Header */}
           <div>
             <Title
@@ -380,7 +382,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
             >
               Apply to Join Witch City Rope
             </Title>
-            <Text c="dimmed" size="lg">
+            <Text c="dimmed" size="lg" mb={0}>
               Please fill out this application thoughtfully. We review all applications within 1-2 weeks.
             </Text>
           </div>
@@ -399,122 +401,224 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
           </Alert>
 
           <form onSubmit={form.onSubmit(handleFormSubmit)} data-testid="vetting-application-form">
-            <Stack gap="lg">
-              {/* Scene Name and Email in 2-column grid (read-only) */}
-              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-                <EnhancedTextInput
-                  label="Scene Name"
-                  value={(hasExistingApp && appData) ? appData.preferredSceneName : (userSceneName || user?.sceneName || 'Not set')}
-                  readOnly
-                  disabled
-                  data-testid="scene-name-input"
-                  styles={{
-                    input: {
-                      height: 56,
-                      fontSize: 16,
-                      backgroundColor: 'var(--mantine-color-gray-0)',
-                      cursor: 'not-allowed',
-                    },
-                  }}
-                />
+            <Stack gap={isMobile ? "xl" : "lg"}>
+              {/* Scene Name and Email - Stack on mobile, SimpleGrid on desktop */}
+              {isMobile ? (
+                <Stack gap="xl">
+                  <EnhancedTextInput
+                    label="Scene Name"
+                    value={(hasExistingApp && appData) ? appData.preferredSceneName : (userSceneName || user?.sceneName || 'Not set')}
+                    readOnly
+                    disabled
+                    data-testid="scene-name-input"
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: 'var(--mantine-color-gray-0)',
+                        cursor: 'not-allowed',
+                      },
+                    }}
+                  />
+                  <EnhancedTextInput
+                    label="Email"
+                    value={(hasExistingApp && appData) ? appData.email : (user?.email || '')}
+                    readOnly
+                    disabled
+                    data-testid="email-input"
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: 'var(--mantine-color-gray-0)',
+                        cursor: 'not-allowed',
+                      },
+                    }}
+                  />
+                </Stack>
+              ) : (
+                <SimpleGrid cols={2} spacing="lg">
+                  <EnhancedTextInput
+                    label="Scene Name"
+                    value={(hasExistingApp && appData) ? appData.preferredSceneName : (userSceneName || user?.sceneName || 'Not set')}
+                    readOnly
+                    disabled
+                    data-testid="scene-name-input"
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: 'var(--mantine-color-gray-0)',
+                        cursor: 'not-allowed',
+                      },
+                    }}
+                  />
+                  <EnhancedTextInput
+                    label="Email"
+                    value={(hasExistingApp && appData) ? appData.email : (user?.email || '')}
+                    readOnly
+                    disabled
+                    data-testid="email-input"
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: 'var(--mantine-color-gray-0)',
+                        cursor: 'not-allowed',
+                      },
+                    }}
+                  />
+                </SimpleGrid>
+              )}
 
-                <EnhancedTextInput
-                  label="Email"
-                  value={(hasExistingApp && appData) ? appData.email : (user?.email || '')}
-                  readOnly
-                  disabled
-                  data-testid="email-input"
-                  styles={{
-                    input: {
-                      height: 56,
-                      fontSize: 16,
-                      backgroundColor: 'var(--mantine-color-gray-0)',
-                      cursor: 'not-allowed',
-                    },
-                  }}
-                />
-              </SimpleGrid>
-
-              {/* First four fields in 2-column grid (responsive: 1 column on mobile/tablet, 2 columns on desktop) */}
-              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg" style={{ '--sg-spacing-y': 'var(--mantine-spacing-sm)' } as React.CSSProperties}>
-                {/* First Name */}
-                <EnhancedTextInput
-                  label="First Name"
-                  placeholder="Enter your first name"
-                  required
-                  description={fieldValidationMessages.firstName.required}
-                  data-testid="first-name-input"
-                  readOnly={hasExistingApp}
-                  disabled={hasExistingApp}
-                  {...form.getInputProps('firstName')}
-                  styles={{
-                    input: {
-                      height: 56,
-                      fontSize: 16,
-                      backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
-                      cursor: hasExistingApp ? 'not-allowed' : undefined,
-                    },
-                  }}
-                />
-
-                {/* Last Name */}
-                <EnhancedTextInput
-                  label="Last Name"
-                  placeholder="Enter your last name"
-                  required
-                  description={fieldValidationMessages.lastName.required}
-                  data-testid="last-name-input"
-                  readOnly={hasExistingApp}
-                  disabled={hasExistingApp}
-                  {...form.getInputProps('lastName')}
-                  styles={{
-                    input: {
-                      height: 56,
-                      fontSize: 16,
-                      backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
-                      cursor: hasExistingApp ? 'not-allowed' : undefined,
-                    },
-                  }}
-                />
-
-                {/* Pronouns */}
-                <EnhancedTextInput
-                  label="Pronouns"
-                  placeholder="Enter your pronouns (optional)"
-                  description={fieldValidationMessages.pronouns.optional}
-                  data-testid="pronouns-input"
-                  readOnly={hasExistingApp}
-                  disabled={hasExistingApp}
-                  {...form.getInputProps('pronouns')}
-                  styles={{
-                    input: {
-                      height: 56,
-                      fontSize: 16,
-                      backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
-                      cursor: hasExistingApp ? 'not-allowed' : undefined,
-                    },
-                  }}
-                />
-
-                {/* FetLife Handle */}
-                <EnhancedTextInput
-                  label="FetLife Handle"
-                  placeholder="Enter your FetLife handle (optional)"
-                  description={fieldValidationMessages.fetLifeHandle.optional}
-                  data-testid="fetlife-handle-input"
-                  readOnly={hasExistingApp}
-                  disabled={hasExistingApp}
-                  {...form.getInputProps('fetLifeHandle')}
-                  styles={{
-                    input: {
-                      height: 56,
-                      fontSize: 16,
-                      backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
-                      cursor: hasExistingApp ? 'not-allowed' : undefined,
-                    },
-                  }}
-                />
-              </SimpleGrid>
+              {/* First four fields - Stack on mobile, SimpleGrid on desktop */}
+              {isMobile ? (
+                <Stack gap="xl">
+                  <EnhancedTextInput
+                    label="First Name"
+                    placeholder="Enter your first name"
+                    required
+                    description={fieldValidationMessages.firstName.required}
+                    data-testid="first-name-input"
+                    readOnly={hasExistingApp}
+                    disabled={hasExistingApp}
+                    {...form.getInputProps('firstName')}
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                        cursor: hasExistingApp ? 'not-allowed' : undefined,
+                      },
+                    }}
+                  />
+                  <EnhancedTextInput
+                    label="Last Name"
+                    placeholder="Enter your last name"
+                    required
+                    description={fieldValidationMessages.lastName.required}
+                    data-testid="last-name-input"
+                    readOnly={hasExistingApp}
+                    disabled={hasExistingApp}
+                    {...form.getInputProps('lastName')}
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                        cursor: hasExistingApp ? 'not-allowed' : undefined,
+                      },
+                    }}
+                  />
+                  <EnhancedTextInput
+                    label="Pronouns"
+                    placeholder="Enter your pronouns (optional)"
+                    description={fieldValidationMessages.pronouns.optional}
+                    data-testid="pronouns-input"
+                    readOnly={hasExistingApp}
+                    disabled={hasExistingApp}
+                    {...form.getInputProps('pronouns')}
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                        cursor: hasExistingApp ? 'not-allowed' : undefined,
+                      },
+                    }}
+                  />
+                  <EnhancedTextInput
+                    label="FetLife Handle"
+                    placeholder="Enter your FetLife handle (optional)"
+                    description={fieldValidationMessages.fetLifeHandle.optional}
+                    data-testid="fetlife-handle-input"
+                    readOnly={hasExistingApp}
+                    disabled={hasExistingApp}
+                    {...form.getInputProps('fetLifeHandle')}
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                        cursor: hasExistingApp ? 'not-allowed' : undefined,
+                      },
+                    }}
+                  />
+                </Stack>
+              ) : (
+                <SimpleGrid cols={2} spacing="lg">
+                  <EnhancedTextInput
+                    label="First Name"
+                    placeholder="Enter your first name"
+                    required
+                    description={fieldValidationMessages.firstName.required}
+                    data-testid="first-name-input"
+                    readOnly={hasExistingApp}
+                    disabled={hasExistingApp}
+                    {...form.getInputProps('firstName')}
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                        cursor: hasExistingApp ? 'not-allowed' : undefined,
+                      },
+                    }}
+                  />
+                  <EnhancedTextInput
+                    label="Last Name"
+                    placeholder="Enter your last name"
+                    required
+                    description={fieldValidationMessages.lastName.required}
+                    data-testid="last-name-input"
+                    readOnly={hasExistingApp}
+                    disabled={hasExistingApp}
+                    {...form.getInputProps('lastName')}
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                        cursor: hasExistingApp ? 'not-allowed' : undefined,
+                      },
+                    }}
+                  />
+                  <EnhancedTextInput
+                    label="Pronouns"
+                    placeholder="Enter your pronouns (optional)"
+                    description={fieldValidationMessages.pronouns.optional}
+                    data-testid="pronouns-input"
+                    readOnly={hasExistingApp}
+                    disabled={hasExistingApp}
+                    {...form.getInputProps('pronouns')}
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                        cursor: hasExistingApp ? 'not-allowed' : undefined,
+                      },
+                    }}
+                  />
+                  <EnhancedTextInput
+                    label="FetLife Handle"
+                    placeholder="Enter your FetLife handle (optional)"
+                    description={fieldValidationMessages.fetLifeHandle.optional}
+                    data-testid="fetlife-handle-input"
+                    readOnly={hasExistingApp}
+                    disabled={hasExistingApp}
+                    {...form.getInputProps('fetLifeHandle')}
+                    styles={{
+                      input: {
+                        height: 56,
+                        fontSize: 16,
+                        backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                        cursor: hasExistingApp ? 'not-allowed' : undefined,
+                      },
+                    }}
+                  />
+                </SimpleGrid>
+              )}
 
               {/* Other Names */}
               <EnhancedTextarea
@@ -587,8 +691,14 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 p="md"
                 style={{
                   backgroundColor: 'var(--mantine-color-gray-0)',
-                  border: '2px solid var(--mantine-color-gray-3)',
-                  borderRadius: 12,
+                  border: isMobile ? 'none' : '2px solid var(--mantine-color-gray-3)',
+                  borderRadius: isMobile ? 0 : 12,
+                  ...(isMobile && {
+                    marginLeft: 'calc(-1 * var(--mantine-spacing-md))',
+                    marginRight: 'calc(-1 * var(--mantine-spacing-md))',
+                    borderTop: '2px solid var(--mantine-color-gray-3)',
+                    borderBottom: '2px solid var(--mantine-color-gray-3)',
+                  })
                 }}
               >
                 <Stack gap="xs" style={{ '--stack-gap': '0px' } as React.CSSProperties}>
@@ -640,7 +750,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
               </Paper>
 
               {/* Submit Button */}
-              <Group justify="flex-end" mt="xl">
+              <Group justify="flex-end" mt={isMobile ? 0 : "xl"}>
                 <Button
                   type="submit"
                   size="lg"

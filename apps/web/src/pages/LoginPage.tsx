@@ -357,21 +357,35 @@ export const LoginPage: React.FC = () => {
                     <Checkbox
                       key={form.key('rememberMe')}
                       {...form.getInputProps('rememberMe', { type: 'checkbox' })}
-                      style={{
+                      styles={{
+                        root: {
+                          display: 'flex',
+                          alignItems: 'center',
+                        },
                         input: {
                           width: '20px',
                           height: '20px',
                           accentColor: 'var(--color-burgundy)',
                         },
+                        body: {
+                          alignItems: 'center',
+                        },
+                        labelWrapper: {
+                          marginBottom: 0,
+                        },
+                        label: {
+                          marginBottom: 0,
+                          paddingBottom: 0,
+                        },
                       }}
                       data-testid="remember-me-checkbox"
                     />
                     <Text
+                      component="span"
                       style={{
                         fontSize: '14px',
                         color: 'var(--color-smoke)',
                         lineHeight: '20px',
-                        marginTop: '1px',
                       }}
                     >
                       Remember Me

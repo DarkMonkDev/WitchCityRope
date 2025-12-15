@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { Stack, TextInput, Group, Box, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 
 interface CreditCardData {
   cardNumber: string;
@@ -28,6 +29,8 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
   onCardDataChange,
   isProcessing
 }) => {
+  const isMobile = useMediaQuery('(max-width: 991px)');
+
   /**
    * Format card number with spaces every 4 digits
    */
@@ -336,7 +339,7 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
         {/* Expiry Date */}
         <Box>
           <Text component="label" style={labelStyles}>
-            Expiry Date
+            {isMobile ? 'Exp Date' : 'Expiry Date'}
           </Text>
           <TextInput
             value={cardData.expiryDate}
@@ -367,7 +370,7 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
         {/* Billing ZIP */}
         <Box>
           <Text component="label" style={labelStyles}>
-            Billing ZIP
+            {isMobile ? 'Zip' : 'Billing ZIP'}
           </Text>
           <TextInput
             value={cardData.billingZip}

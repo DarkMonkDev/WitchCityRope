@@ -16,6 +16,7 @@ import {
   Box,
   Checkbox
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft, IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
@@ -49,6 +50,7 @@ export const EventPaymentPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useMediaQuery('(max-width: 991px)');
 
   // Get owned session IDs from navigation state (for filtering out already-purchased sessions)
   const ownedSessionIds: string[] = (location.state as any)?.ownedSessionIds || [];
@@ -731,7 +733,7 @@ export const EventPaymentPage: React.FC = () => {
                 )}
 
 
-                <Group justify="flex-end" mt={0}>
+                <Group justify="flex-end" mt={0} style={{ marginRight: isMobile ? 20 : 0 }}>
                   <Button
                     onClick={handleContinue}
                     size="lg"
@@ -765,12 +767,14 @@ export const EventPaymentPage: React.FC = () => {
 
             {/* Step 2: Payment Form */}
             {currentStep === 1 && (
-              <PaymentForm
-                eventInfo={eventInfo}
-                initialSlidingScale={discountPercentage}
-                onPaymentSuccess={handlePaymentSuccess}
-                onPaymentError={handlePaymentError}
-              />
+              <Box style={{ padding: isMobile ? '0 16px' : 0 }}>
+                <PaymentForm
+                  eventInfo={eventInfo}
+                  initialSlidingScale={discountPercentage}
+                  onPaymentSuccess={handlePaymentSuccess}
+                  onPaymentError={handlePaymentError}
+                />
+              </Box>
             )}
 
             {/* Step 3: Confirmation */}

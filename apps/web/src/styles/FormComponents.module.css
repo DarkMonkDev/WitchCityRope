@@ -659,15 +659,15 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 991px) {
   .formGroup {
-    margin-bottom: var(--mantine-spacing-sm);
+    margin-bottom: 0;
   }
-  
+
   .floatingLabel {
     font-size: var(--mantine-font-size-xs);
   }
-  
+
   .floatingLabel.isEmpty {
     font-size: var(--mantine-font-size-md);
   }
