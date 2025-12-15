@@ -3,17 +3,17 @@
 ## Purpose
 Track E2E test suite health over time, documenting baseline results, improvements, and remaining issues. Originally started as a parity investigation between dev/test containers (Nov 2025), now serves as ongoing test health tracker.
 
-## Current Status: 96.2% Pass Rate (Dec 15, 2025)
+## Current Status: 97.2% Pass Rate (Dec 15, 2025)
 
-### Full Test Suite Results (December 15, 2025)
+### Full Test Suite Results (December 15, 2025 - Post Session Fixes)
 
 | Metric | Value |
 |--------|-------|
-| **Passed** | 768 |
-| **Failed** | 14 |
+| **Passed** | 773 |
+| **Failed** | 9 |
 | **Skipped** | 13 |
 | **Total** | 795 |
-| **Pass Rate** | **96.2%** |
+| **Pass Rate** | **97.2%** |
 
 ### Previous Status: 87.9% Pass Rate (Dec 13, 2025)
 
@@ -66,9 +66,10 @@ All test artifacts in `/test-results/`:
 | Dec 12 (DataFactory Fix) | 704 | 63 | 28 | 88.6% | User/TicketType factory fixes, 18 test files updated |
 | Dec 13 | 699 | 68 | 28 | 87.9% | Session form helper functions added |
 | Dec 14 | 764 | 18 | 13 | 96.1% | Major test fixes (50+ tests), skipped tests reduced |
-| **Dec 15** | **768** | **14** | **13** | **96.2%** | Fixed h1/h2 selectors, button enable waits |
+| Dec 15 (AM) | 768 | 14 | 13 | 96.2% | Fixed h1/h2 selectors, button enable waits |
+| **Dec 15 (PM)** | **773** | **9** | **13** | **97.2%** | Fixed home-page, admin-events-dependencies, dashboard mobile |
 
-**Note:** Improvement from 96.1% to 96.2% (+4 passing tests). 14 failures remain to be fixed.
+**Note:** Improvement from 96.2% to 97.2% (+5 passing tests). Only 9 failures remain.
 
 ### Key Fixes Applied (Dec 9-10)
 
