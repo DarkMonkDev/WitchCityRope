@@ -276,6 +276,119 @@ docker-compose up
 ./dev.sh
 ```
 
+## Browser Testing & Debugging (agent-browser)
+
+When testing UI in the browser, **prefer using `agent-browser`** (Vercel Labs' headless browser CLI for AI agents) before falling back to MCP browser tools directly. This gives better control, debugging output, and uses up to 93% less context tokens than MCP browser tools.
+
+### Why agent-browser First?
+
+| | `agent-browser` CLI | MCP Browser Tools |
+|---|---|---|
+| **Context usage** | ~5.5K chars per 6 operations | ~31K chars per 6 operations |
+| **Element selection** | Compact `@e1`, `@e2` refs from `snapshot` | Full accessibility trees or CSS selectors |
+| **Setup** | Zero config — just bash commands | MCP server must be configured and running |
+| **Best for** | Ad-hoc browser checks, UI verification, debugging, form testing | Complex multi-tab workflows, real-time screenshots for user |
+
+### Installation (Already Installed Globally)
+
+`agent-browser` is installed globally on this machine. No per-project installation needed.
+
+```bash
+# Verify it's available
+agent-browser --version
+
+# If not installed (shouldn't happen):
+npm install -g agent-browser
+agent-browser install          # Downloads Chromium
+agent-browser install --with-deps  # Linux: also installs system deps
+```
+
+**Source**: https://github.com/vercel-labs/agent-browser
+
+### Core Workflow: Snapshot + Refs
+
+The key pattern is: **open a page -> take a snapshot -> interact using `@ref` identifiers**.
+
+**Local dev URL**: `http://localhost:5173` (make sure Docker containers are running via `./dev.sh` before using agent-browser)
+
+```bash
+# 1. Open a page
+agent-browser open http://localhost:5173
+
+# 2. Take a snapshot — returns compact element refs (@e1, @e2, etc.)
+agent-browser snapshot
+
+# 3. Interact using refs (no CSS selectors needed)
+agent-browser click @e5           # Click element e5
+agent-browser fill @e12 "test"    # Fill input e12
+agent-browser get text @e3        # Get text from element e3
+
+# 4. Take a screenshot if visual verification needed
+agent-browser screenshot /tmp/debug.png
+
+# 5. Close when done
+agent-browser close
+```
+
+### Common Commands Reference
+
+```bash
+# Navigation
+agent-browser open <url>              # Navigate to URL
+agent-browser back / forward / reload # History navigation
+
+# Snapshots & Screenshots
+agent-browser snapshot                # Full accessibility tree with @refs
+agent-browser snapshot -i             # Interactive elements only (shorter output)
+agent-browser screenshot [path]       # Visual capture
+
+# Interaction (use @refs from snapshot)
+agent-browser click @e5               # Click element
+agent-browser fill @e3 "value"        # Clear + fill input
+agent-browser type @e3 "value"        # Type into element (triggers key events)
+agent-browser select @e8 "option"     # Select dropdown option
+agent-browser hover @e2               # Hover over element
+
+# Information
+agent-browser get text @e1            # Get element text
+agent-browser get value @e3           # Get input value
+agent-browser get url                 # Current URL
+agent-browser get title               # Page title
+
+# Waiting
+agent-browser wait @e5                # Wait for element to appear
+agent-browser wait --text "Success"   # Wait for text on page
+agent-browser wait 2000               # Wait milliseconds
+
+# Debugging
+agent-browser console                 # View browser console messages
+agent-browser errors                  # View page errors
+agent-browser eval "document.title"   # Execute JavaScript
+
+# Session management
+agent-browser close                   # Close browser
+```
+
+### When to Use Which Tool
+
+| Scenario | Use |
+|----------|-----|
+| Quick UI check ("is the page rendering correctly?") | `agent-browser` |
+| Verify a form works after code change | `agent-browser` |
+| Debug a JavaScript error on a page | `agent-browser` (use `console` / `errors`) |
+| Check element visibility or text content | `agent-browser` |
+| Multi-tab workflow or drag-and-drop | Chrome DevTools MCP |
+| Need to show user a real-time screenshot | Chrome DevTools MCP |
+| Running the E2E test suite | Playwright (`/tests/playwright/`) |
+
+### Important Notes
+
+- **`agent-browser` is for ad-hoc agent-driven browser interaction and debugging.** It does NOT replace Playwright for E2E tests.
+- **This project's E2E tests use Playwright.** Continue running those via the existing test commands. `agent-browser` is a separate tool for interactive debugging, not for running the test suite.
+- **Always close the browser** when done: `agent-browser close`. Leaving headless browsers running wastes resources.
+- **Refs are ephemeral** — they reset on each `snapshot` call. Always take a fresh snapshot before interacting if the page has changed.
+- **Headless by default** — no visible browser window. Use `agent-browser open <url> --headed` for visible debugging if needed.
+
 ## 📁 MANDATORY FILE TRACKING
 
 ### ALL Files Created/Modified/Deleted MUST Be Logged!
