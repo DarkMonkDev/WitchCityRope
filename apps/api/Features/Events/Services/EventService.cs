@@ -1186,6 +1186,7 @@ public class EventService : IEventService
             var sourceEvent = await _context.Events
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
+                    .ThenInclude(tt => tt.Sessions) // Load many-to-many sessions for remapping
                 .Include(e => e.VolunteerPositions)
                     .ThenInclude(vp => vp.Session) // Load Session for volunteer position start/end times
                 .Include(e => e.Organizers)
@@ -1322,6 +1323,8 @@ public class EventService : IEventService
                         Description = sourcePosition.Description,
                         SlotsNeeded = sourcePosition.SlotsNeeded,
                         IsPublicFacing = sourcePosition.IsPublicFacing,
+                        StartTime = sourcePosition.StartTime,
+                        EndTime = sourcePosition.EndTime,
 
                         // RESET filled count
                         SlotsFilled = 0,
@@ -1337,8 +1340,17 @@ public class EventService : IEventService
                     sourceEvent.VolunteerPositions.Count, copiedEvent.Id);
 
                 // 9. Copy Organizers (many-to-many relationship)
-                // Same organizers/teachers for the copied event
-                copiedEvent.Organizers = sourceEvent.Organizers.ToList();
+                // CRITICAL: Must load organizers as tracked entities (not detached from AsNoTracking query)
+                // Assigning detached entities to a tracked entity's collection causes EF Core to try to INSERT them,
+                // which fails with duplicate key violation (EF Core 10+ behavior change)
+                var organizerIds = sourceEvent.Organizers.Select(o => o.Id).ToList();
+                if (organizerIds.Any())
+                {
+                    var trackedOrganizers = await _context.Users
+                        .Where(u => organizerIds.Contains(u.Id))
+                        .ToListAsync(cancellationToken);
+                    copiedEvent.Organizers = trackedOrganizers;
+                }
 
                 _logger.LogInformation("Copied {OrganizerCount} organizers for event {NewEventId}",
                     sourceEvent.Organizers.Count, copiedEvent.Id);
@@ -1387,6 +1399,7 @@ public class EventService : IEventService
                 var copiedEventWithNav = await _context.Events
                     .Include(e => e.Sessions)
                     .Include(e => e.TicketTypes)
+                        .ThenInclude(tt => tt.Sessions) // Load many-to-many sessions for DTO timing fields
                     .Include(e => e.VolunteerPositions)
                         .ThenInclude(vp => vp.Session) // Load Session for volunteer position start/end times
                     .Include(e => e.Organizers)
