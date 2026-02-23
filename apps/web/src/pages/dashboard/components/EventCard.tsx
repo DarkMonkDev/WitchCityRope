@@ -31,10 +31,14 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
   const isMobile = useMediaQuery('(max-width: 991px)')
   const eventTimeZone = useEventTimeZone();
 
-  // Find volunteer shifts for this specific event (match by event ID only)
-  const eventVolunteerShifts = volunteerShifts.filter(shift =>
-    shift.eventId === event.id
-  )
+  // Find volunteer shifts for this specific event, sorted by earliest shift first
+  const eventVolunteerShifts = volunteerShifts
+    .filter(shift => shift.eventId === event.id)
+    .sort((a, b) => {
+      const aTime = a.sessionStartTime ? new Date(a.sessionStartTime).getTime() : Infinity;
+      const bTime = b.sessionStartTime ? new Date(b.sessionStartTime).getTime() : Infinity;
+      return aTime - bTime;
+    })
   const statusColors: Record<string, string> = {
     'RSVP Confirmed': 'blue',
     'Ticket Purchased': 'green',

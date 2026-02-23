@@ -562,7 +562,8 @@ public class VolunteerService : IVolunteerService
 
             _logger.LogInformation("Retrieved {Count} upcoming volunteer shifts for user {UserId}", shiftDtos.Count, userId);
 
-            return (true, shiftDtos, null);
+            // Return sorted by earliest shift first
+            return (true, shiftDtos.OrderBy(s => s.ShiftStartTime ?? DateTime.MaxValue).ToList(), null);
         }
         catch (Exception ex)
         {
