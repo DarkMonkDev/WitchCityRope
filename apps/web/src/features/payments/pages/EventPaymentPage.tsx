@@ -276,15 +276,18 @@ export const EventPaymentPage: React.FC = () => {
 
       debugLog('Checkout completed:', result);
 
-      // Set confirmation data
+      // Set confirmation data (PaymentConfirmation expects PaymentResponse shape)
       setCompletedPayment({
+        id: result.transactionId || result.confirmationNumber,
         transactionId: result.transactionId,
         amount: result.amountCharged,
         currency: 'USD',
         status: 'completed',
         paymentMethod: 'credit_card',
+        paymentMethodType: 1, // Credit Card
         confirmationNumber: result.confirmationNumber,
         cardLast4: nonceData.lastFourDigits,
+        slidingScalePercentage: 0,
         createdAt: new Date().toISOString()
       });
 
