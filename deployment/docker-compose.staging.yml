@@ -43,6 +43,17 @@ services:
       - CORS__AllowCredentials=true
       - Logging__LogLevel__Default=Debug
       - Logging__LogLevel__Microsoft=Information
+      # PayPal Configuration - reads from .env
+      - PayPal__ClientId=${PAYPAL_CLIENT_ID}
+      - PayPal__Secret=${PAYPAL_SECRET}
+      - PayPal__Mode=${PAYPAL_MODE:-sandbox}
+      - PayPal__WebhookId=${PAYPAL_WEBHOOK_ID:-}
+      # Authorize.net Configuration - reads from .env
+      - CreditCardProcessor__ActiveProcessor=AuthorizeNet
+      - CreditCardProcessor__AuthorizeNet__ApiLoginId=${AUTHORIZENET_API_LOGIN_ID}
+      - CreditCardProcessor__AuthorizeNet__TransactionKey=${AUTHORIZENET_TRANSACTION_KEY}
+      - CreditCardProcessor__AuthorizeNet__ClientKey=${AUTHORIZENET_CLIENT_KEY:-}
+      - CreditCardProcessor__AuthorizeNet__TestMode=${AUTHORIZENET_TEST_MODE:-true}
       # Email Configuration (SendGrid) - reads from .env
       - Vetting__EmailEnabled=${Vetting__EmailEnabled:-true}
       - Vetting__SendGridApiKey=${Vetting__SendGridApiKey}
