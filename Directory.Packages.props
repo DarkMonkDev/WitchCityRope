@@ -54,7 +54,7 @@
     <PackageVersion Include="NSwag.AspNetCore" Version="14.6.3" />
 
     <!-- Payment -->
-    <PackageVersion Include="AuthorizeNet" Version="2.0.4" />
+    <PackageVersion Include="AuthorizeNet.Core" Version="8.0.1" />
     <PackageVersion Include="Crc32.NET" Version="1.2.0" />
     <PackageVersion Include="PayPalServerSDK" Version="2.2.0" />
 
