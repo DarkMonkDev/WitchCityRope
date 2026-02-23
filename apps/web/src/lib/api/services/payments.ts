@@ -27,6 +27,27 @@ export interface TicketPurchaseResponse {
   paymentStatus?: 'Pending' | 'Completed' | 'Failed';
 }
 
+export interface CheckoutRequest {
+  eventId: string;
+  ticketTypeIds: string[];
+  eventWaiverAccepted: boolean;
+  nonce: string;
+  dataDescriptor: string;
+  amount: number;
+  lastFourDigits?: string;
+  cardType?: string;
+  idempotencyKey: string;
+}
+
+export interface CheckoutResponse {
+  transactionId: string;
+  ticketPurchaseIds: string[];
+  confirmationNumber: string;
+  status: string;
+  authCode?: string;
+  amountCharged: number;
+}
+
 export interface PayPalOrderRequest {
   eventId: string;
   amount: number;
@@ -69,6 +90,22 @@ export const paymentsService = {
     );
 
     debugLog('✅ Ticket purchase response:', response.data);
+    return response.data;
+  },
+
+  /**
+   * Unified checkout: create ticket + charge card in a single atomic request.
+   * Replaces the broken two-step flow (charge first, then create ticket).
+   */
+  async checkout(request: CheckoutRequest): Promise<CheckoutResponse> {
+    debugLog('Checkout request:', request);
+
+    const response = await apiClient.post<CheckoutResponse>(
+      '/api/checkout/credit-card',
+      request
+    );
+
+    debugLog('Checkout response:', response.data);
     return response.data;
   },
 

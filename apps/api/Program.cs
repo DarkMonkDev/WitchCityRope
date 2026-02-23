@@ -85,8 +85,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         KeepAlive = 30,                   // 30 seconds
 
         // Performance tuning
-        NoResetOnClose = false,           // Reset connection state on return to pool
-        Enlist = true                     // Support distributed transactions
+        NoResetOnClose = !environment.IsDevelopment(), // true for staging/prod (PgBouncer handles reset)
+        Enlist = true,                    // Support distributed transactions
+
+        // PgBouncer compatibility (staging/prod use PgBouncer transaction pooling)
+        Multiplexing = false,             // Conflicts with PgBouncer's own connection multiplexing
+        MaxAutoPrepare = 0                // PgBouncer transaction mode doesn't persist prepared statements
     }.ToString();
 
     options.UseNpgsql(connectionString, npgsqlOptions =>

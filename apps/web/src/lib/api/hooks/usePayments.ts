@@ -1,7 +1,7 @@
 // React Query hooks for payment operations
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { paymentsService, type CreateTicketPurchaseRequest } from '../services/payments';
+import { paymentsService, type CreateTicketPurchaseRequest, type CheckoutRequest, type CheckoutResponse } from '../services/payments';
 
 /**
  * Hook for purchasing tickets through the backend API
@@ -65,6 +65,47 @@ export function usePurchaseTicket() {
       });
 
       console.error('❌ Ticket purchase failed:', error);
+    }
+  });
+}
+
+/**
+ * Hook for unified checkout: create ticket + charge card atomically.
+ * Returns structured error information for stage-aware error display.
+ */
+export function useCheckout() {
+  const queryClient = useQueryClient();
+
+  return useMutation<CheckoutResponse, Error, CheckoutRequest>({
+    mutationFn: (request: CheckoutRequest) =>
+      paymentsService.checkout(request),
+
+    onSuccess: (data, variables) => {
+      // Invalidate participation data to refresh UI
+      queryClient.invalidateQueries({
+        queryKey: ['participation', 'event', variables.eventId]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['participation', 'user']
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['events', variables.eventId, 'participations']
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['checkin', 'attendees', variables.eventId]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['checkin', 'dashboard', variables.eventId]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['volunteerPositions', variables.eventId]
+      });
+    },
+
+    onError: (error: any) => {
+      // Don't show notification here - let the page component handle error display
+      // with stage-aware messaging
+      console.error('Checkout failed:', error);
     }
   });
 }
@@ -165,6 +206,7 @@ export function useConfirmPayPalPayment() {
 
 export default {
   usePurchaseTicket,
+  useCheckout,
   useCreatePayPalOrder,
   useConfirmPayPalPayment
 };

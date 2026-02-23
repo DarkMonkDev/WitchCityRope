@@ -14,7 +14,8 @@ import {
   LoadingOverlay,
   Paper,
   Box,
-  Checkbox
+  Checkbox,
+  Loader
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft, IconAlertCircle, IconCheck } from '@tabler/icons-react';
@@ -28,9 +29,11 @@ import { PaymentConfirmation } from '../components/PaymentConfirmation';
 import { PaymentSummary } from '../components/PaymentSummary';
 import { usePayment } from '../hooks/usePayment';
 import { useSlidingScale } from '../hooks/useSlidingScale';
-import { usePurchaseTicket } from '../../../lib/api/hooks/usePayments';
+import { useCheckout } from '../../../lib/api/hooks/usePayments';
+import type { CheckoutResponse } from '../../../lib/api/services/payments';
 import { eventsManagementService } from '../../../api/services/eventsManagement.service';
 import { formatAbbreviatedDate, formatUtcTimeRange } from '../../../utils/eventUtils';
+import type { NonceData } from '../components/checkout/CreditCardForm';
 
 import type { PaymentEventInfo } from '../types/payment.types';
 
@@ -71,6 +74,7 @@ export const EventPaymentPage: React.FC = () => {
   const [selectedTicketTypeIds, setSelectedTicketTypeIds] = useState<string[]>([]);
   // Track the price for each selected ticket (ticketId -> price)
   const [ticketPrices, setTicketPrices] = useState<Record<string, number>>({});
+  const [checkoutErrorDismissed, setCheckoutErrorDismissed] = useState(false);
 
   // Payment processing
   const { 
@@ -88,8 +92,23 @@ export const EventPaymentPage: React.FC = () => {
     updateDiscountPercentage
   } = useSlidingScale(eventInfo?.basePrice || 0, 0);
 
-  // Ticket purchase mutation
-  const purchaseTicket = usePurchaseTicket();
+  // Unified checkout mutation (ticket + payment in single request)
+  const checkout = useCheckout();
+  const [idempotencyKey, setIdempotencyKey] = useState(() =>
+    `WCR-${crypto.randomUUID().replace(/-/g, '').substring(0, 32)}`
+  );
+
+  // Prevent navigation during checkout
+  useEffect(() => {
+    if (checkout.isPending) {
+      const handler = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = 'Payment is being processed. Are you sure you want to leave?';
+      };
+      window.addEventListener('beforeunload', handler);
+      return () => window.removeEventListener('beforeunload', handler);
+    }
+  }, [checkout.isPending]);
 
   /**
    * Load event information from API
@@ -221,87 +240,84 @@ export const EventPaymentPage: React.FC = () => {
   }, [eventId, registrationId]);
 
   /**
-   * Handle successful payment
+   * Handle card nonce ready from CreditCardForm.
+   * Sends a single unified checkout request (ticket + payment atomically).
    */
-  const handlePaymentSuccess = async (paymentDetails: any) => {
-    debugLog('Payment success received:', paymentDetails);
+  const handleNonceReady = async (nonceData: NonceData) => {
+    if (!eventId) return;
 
-    // Calculate total amount from selected tickets
     const totalAmount = Object.values(ticketPrices).reduce((sum, price) => sum + price, 0);
+    const ticketIds = selectedTickets.map(t => t.id).filter((id): id is string => !!id);
 
-    // Create payment data object for confirmation page
-    const paymentData = {
-      id: typeof paymentDetails === 'string' ? paymentDetails : paymentDetails.id,
-      transactionId: typeof paymentDetails === 'string' ? paymentDetails : paymentDetails.transactionId || paymentDetails.id,
-      amount: totalAmount,
-      currency: 'USD',
-      status: 'completed',
-      paymentMethod: typeof paymentDetails === 'string' ? 'credit_card' : paymentDetails.method || 'credit_card',
-      createdAt: new Date().toISOString(),
-      eventRegistrationId: registrationId || '',
-      confirmationNumber: `WCR-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
-      cardLast4: typeof paymentDetails === 'object' && paymentDetails.cardLast4 ? paymentDetails.cardLast4 : undefined
-    };
+    if (ticketIds.length === 0) {
+      notifications.show({
+        title: 'No Tickets Selected',
+        message: 'Please select at least one ticket.',
+        color: 'red'
+      });
+      return;
+    }
 
-    // Store the payment data locally
-    setCompletedPayment(paymentData);
+    debugLog('Starting unified checkout:', { eventId, ticketIds, totalAmount, idempotencyKey });
+    setCheckoutErrorDismissed(false);
 
     try {
-      // CRITICAL: Actually create the ticket purchase in the database
-      debugLog('🔍 Creating ticket purchase for event:', eventId);
-      debugLog('🔍 Payment details:', paymentData);
-      debugLog('🔍 Total amount:', totalAmount);
-      debugLog('🔍 Selected tickets:', selectedTickets.map(t => ({ id: t.id, name: t.name })));
-      debugLog('🔍 Ticket prices:', ticketPrices);
-
-      if (!eventId) {
-        throw new Error('Event ID is required');
-      }
-
-      // Create a metadata object with purchase details
-      const metadata = JSON.stringify({
-        paymentMethodId: paymentData.transactionId,
-        purchaseAmount: totalAmount,
-        ticketCount: selectedTickets.length,
-        ticketTypes: selectedTickets.map(t => ({ id: t.id, name: t.name, price: ticketPrices[t.id || ''] })),
-        confirmationNumber: paymentData.confirmationNumber,
-        cardLast4: paymentData.cardLast4
-      });
-
-      // Call the API to create the ticket purchase
-      // Send all selected ticket IDs in a single request (batch purchase)
-      const ticketIds = selectedTickets.map(t => t.id).filter((id): id is string => !!id);
-      if (ticketIds.length === 0) {
-        throw new Error('No ticket type selected');
-      }
-
-      await purchaseTicket.mutateAsync({
-        eventId: eventId,
+      const result: CheckoutResponse = await checkout.mutateAsync({
+        eventId,
         ticketTypeIds: ticketIds,
-        notes: metadata,
-        paymentMethodId: paymentData.transactionId,
-        eventWaiverAccepted: true // UI enforces checkbox must be checked before payment
+        eventWaiverAccepted: true, // UI enforces checkbox before payment
+        nonce: nonceData.nonce,
+        dataDescriptor: nonceData.dataDescriptor,
+        amount: totalAmount,
+        lastFourDigits: nonceData.lastFourDigits,
+        cardType: nonceData.cardType,
+        idempotencyKey
       });
 
-      debugLog('✅ Ticket purchase created successfully in database');
+      debugLog('Checkout completed:', result);
 
-      // Move to confirmation step
-      setCurrentStep(2);
-
-      // Note: Success notification is already shown by usePurchaseTicket hook
-    } catch (error: any) {
-      console.error('❌ Failed to create ticket purchase:', error);
-
-      // apiClient interceptor extracts RFC 9457 message to error.message
-      const errorMessage = error instanceof Error ? error.message : 'Payment succeeded but ticket creation failed. Please contact support.';
+      // Set confirmation data
+      setCompletedPayment({
+        transactionId: result.transactionId,
+        amount: result.amountCharged,
+        currency: 'USD',
+        status: 'completed',
+        paymentMethod: 'credit_card',
+        confirmationNumber: result.confirmationNumber,
+        cardLast4: nonceData.lastFourDigits,
+        createdAt: new Date().toISOString()
+      });
 
       notifications.show({
-        title: 'Purchase Error',
-        message: errorMessage,
-        color: 'red',
-        autoClose: false
+        title: 'Ticket Purchased Successfully!',
+        message: `Confirmation: ${result.confirmationNumber}`,
+        color: 'green',
+        autoClose: 8000
       });
+
+      setCurrentStep(2);
+    } catch {
+      // Error display is handled inline on the page (see Step 2 render)
+      // Generate new idempotency key for retry
+      setIdempotencyKey(`WCR-${crypto.randomUUID().replace(/-/g, '').substring(0, 32)}`);
     }
+  };
+
+  /**
+   * Handle successful PayPal payment (legacy flow - PayPal handles differently)
+   */
+  const handlePayPalSuccess = async (paymentId: string) => {
+    debugLog('PayPal payment success:', paymentId);
+    // PayPal flow is separate and not being changed in this PR
+    setCompletedPayment({
+      transactionId: paymentId,
+      amount: Object.values(ticketPrices).reduce((sum, price) => sum + price, 0),
+      currency: 'USD',
+      status: 'completed',
+      paymentMethod: 'paypal',
+      createdAt: new Date().toISOString()
+    });
+    setCurrentStep(2);
   };
 
   /**
@@ -505,6 +521,29 @@ export const EventPaymentPage: React.FC = () => {
           ? formatUtcTimeRange(session.startTime, session.endTime)
           : '',
       }));
+  };
+
+  // Checkout error helper functions
+  const getCheckoutErrorTitle = (error: any): string => {
+    const data = error?.response?.data;
+    if (data?.paymentCharged && data?.refundInitiated) return 'Payment Issue - Refund In Progress';
+    if (data?.paymentCharged) return 'Payment Issue - Please Contact Us';
+    if (data?.failureStage === 'payment') return 'Payment Declined';
+    if (data?.failureStage === 'ticket_creation') return 'Unable to Process Order';
+    if (data?.failureStage === 'validation') return 'Checkout Error';
+    return 'Checkout Failed';
+  };
+
+  const isPaymentCharged = (error: any): boolean => {
+    return error?.response?.data?.paymentCharged === true;
+  };
+
+  const getCorrelationId = (error: any): string | null => {
+    return error?.response?.data?.checkoutCorrelationId || null;
+  };
+
+  const getCheckoutErrorMessage = (error: any): string => {
+    return error?.response?.data?.detail || error?.message || 'An unexpected error occurred. Please try again.';
   };
 
   // Show loading state
@@ -768,11 +807,59 @@ export const EventPaymentPage: React.FC = () => {
             {/* Step 2: Payment Form */}
             {currentStep === 1 && (
               <Box style={{ padding: isMobile ? '0 16px' : 0 }}>
+                {/* Processing indicator */}
+                {checkout.isPending && (
+                  <Paper p="lg" radius="md" mb="md" style={{ background: 'rgba(25, 113, 194, 0.05)', border: '1px solid rgba(25, 113, 194, 0.2)' }}>
+                    <Group>
+                      <Loader size="sm" />
+                      <Stack gap={2}>
+                        <Text fw={600}>Processing your payment...</Text>
+                        <Text size="sm" c="dimmed">Please do not close this page or press back.</Text>
+                      </Stack>
+                    </Group>
+                  </Paper>
+                )}
+
+                {/* Checkout error display */}
+                {checkout.isError && !checkout.isPending && !checkoutErrorDismissed && (
+                  <Alert
+                    icon={<IconAlertCircle size={18} />}
+                    title={getCheckoutErrorTitle(checkout.error)}
+                    color={isPaymentCharged(checkout.error) ? 'orange' : 'red'}
+                    mb="md"
+                  >
+                    <Stack gap="xs">
+                      <Text size="sm">{getCheckoutErrorMessage(checkout.error)}</Text>
+                      {getCorrelationId(checkout.error) && (
+                        <Text size="xs" c="dimmed">Reference: {getCorrelationId(checkout.error)}</Text>
+                      )}
+                      {!isPaymentCharged(checkout.error) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          color="red"
+                          mt="xs"
+                          onClick={() => setCheckoutErrorDismissed(true)}
+                        >
+                          Dismiss and Try Again
+                        </Button>
+                      )}
+                      {isPaymentCharged(checkout.error) && (
+                        <Text size="xs" fw={600} c="orange">
+                          If you believe you were charged incorrectly, please contact info@witchcityrope.com
+                        </Text>
+                      )}
+                    </Stack>
+                  </Alert>
+                )}
+
                 <PaymentForm
                   eventInfo={eventInfo}
                   initialSlidingScale={discountPercentage}
-                  onPaymentSuccess={handlePaymentSuccess}
+                  onNonceReady={handleNonceReady}
+                  onPaymentSuccess={handlePayPalSuccess}
                   onPaymentError={handlePaymentError}
+                  isCheckoutInProgress={checkout.isPending}
                 />
               </Box>
             )}

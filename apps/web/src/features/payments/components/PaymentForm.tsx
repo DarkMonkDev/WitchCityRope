@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { IconShieldCheck } from '@tabler/icons-react';
 import { PayPalButton } from './PayPalButton';
-import { CreditCardForm } from './checkout/CreditCardForm';
+import { CreditCardForm, type NonceData } from './checkout/CreditCardForm';
 import { useSlidingScale } from '../hooks/useSlidingScale';
 import type { PaymentEventInfo } from '../types/payment.types';
 
@@ -22,12 +22,16 @@ interface PaymentFormProps {
   eventInfo: PaymentEventInfo;
   /** Initial sliding scale percentage */
   initialSlidingScale?: number;
-  /** Callback when payment is successful */
+  /** Callback when card nonce is ready (tokenized) - parent handles checkout */
+  onNonceReady?: (data: NonceData) => void;
+  /** Callback when PayPal payment succeeds (legacy flow) */
   onPaymentSuccess?: (paymentId: string) => void;
-  /** Callback when payment fails */
+  /** Callback when payment/tokenization fails */
   onPaymentError?: (error: string) => void;
   /** Whether form is disabled */
   disabled?: boolean;
+  /** Whether checkout API call is in progress (from parent) */
+  isCheckoutInProgress?: boolean;
 }
 
 /**
@@ -36,9 +40,11 @@ interface PaymentFormProps {
 export const PaymentForm: React.FC<PaymentFormProps> = ({
   eventInfo,
   initialSlidingScale = 0,
+  onNonceReady,
   onPaymentSuccess,
   onPaymentError,
-  disabled = false
+  disabled = false,
+  isCheckoutInProgress = false
 }) => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -88,7 +94,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
           id="terms-checkbox"
           checked={termsAccepted}
           onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
-          disabled={disabled}
+          disabled={disabled || isCheckoutInProgress}
           size="md"
           color="#880124"
           styles={{
@@ -147,20 +153,20 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         </Text>
       </Group>
 
-      {/* Credit Card Form - uses Authorize.net Accept.js */}
+      {/* Credit Card Form - tokenize only, parent handles checkout */}
       <Box>
         <CreditCardForm
           amount={finalAmount}
-          onPaymentSuccess={(details) => {
+          onNonceReady={(nonceData) => {
             setPaymentError(null);
-            const paymentId = typeof details === 'string' ? details : details?.transactionId || details?.id || `cc_${Date.now()}`;
-            onPaymentSuccess?.(paymentId);
+            onNonceReady?.(nonceData);
           }}
-          onPaymentError={(error) => {
+          onTokenizeError={(error) => {
             setPaymentError(error);
             onPaymentError?.(error);
           }}
           disabled={disabled || !termsAccepted}
+          isCheckoutInProgress={isCheckoutInProgress}
         />
       </Box>
 

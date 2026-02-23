@@ -806,6 +806,7 @@ public class AttendanceService : IAttendanceService
 
             // Check if user already has a ticket for ANY of these sessions
             var overlappingAttendance = await _context.EventAttendances
+                .AsNoTracking()
                 .Where(ea =>
                     ea.UserId == userId &&
                     ea.Status == AttendanceStatus.Active &&
@@ -885,7 +886,17 @@ public class AttendanceService : IAttendanceService
                 }
 
                 // Create audit history for this ticket type's purchase
-                var primaryAttendanceForType = allAttendances.Last();
+                var primaryAttendanceForType = allAttendances.LastOrDefault();
+                if (primaryAttendanceForType == null)
+                {
+                    _logger.LogError(
+                        "No attendance records created for ticket type {TicketTypeId} '{TicketTypeName}' " +
+                        "for user {UserId} in event {EventId}. Sessions loaded: {SessionCount}",
+                        ticketType.Id, ticketType.Name, userId, request.EventId, ticketType.Sessions.Count);
+                    return Result<ParticipationStatusDto>.Failure(
+                        $"Failed to create attendance records for ticket '{ticketType.Name}'. " +
+                        "The ticket may not be configured correctly. Please contact support.");
+                }
                 var history = new AttendanceHistory(primaryAttendanceForType.Id, "Created")
                 {
                     NewValues = System.Text.Json.JsonSerializer.Serialize(new
@@ -995,7 +1006,16 @@ public class AttendanceService : IAttendanceService
             await _context.SaveChangesAsync(cancellationToken);
 
             // Verify persistence
-            var primaryAttendance = allAttendances.First();
+            var primaryAttendance = allAttendances.FirstOrDefault();
+            if (primaryAttendance == null)
+            {
+                _logger.LogError(
+                    "No attendance records were created for user {UserId} in event {EventId} " +
+                    "despite processing {TicketTypeCount} ticket types",
+                    userId, request.EventId, request.TicketTypeIds.Count);
+                return Result<ParticipationStatusDto>.Failure(
+                    "Failed to create ticket purchase records. Please try again or contact support.");
+            }
             var savedAttendance = await _context.EventAttendances
                 .AsNoTracking()
                 .FirstOrDefaultAsync(ea => ea.Id == primaryAttendance.Id, cancellationToken);

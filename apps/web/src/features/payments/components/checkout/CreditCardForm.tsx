@@ -1,19 +1,27 @@
 // Credit Card Form Component using Accept.js
-// Card data goes directly to Authorize.net - never touches our server
+// Tokenize-only: card data goes directly to Authorize.net, returns nonce to parent.
+// Parent handles the checkout API call.
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { Stack, TextInput, Group, Box, Text, Button, Alert, Loader } from '@mantine/core';
 import { IconAlertCircle, IconLock } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
-import { apiClient } from '../../../../lib/api/client';
 import { isNonProduction, getPayPalTestCard } from '../../../../lib/utils/environment';
+
+export interface NonceData {
+  nonce: string;
+  dataDescriptor: string;
+  lastFourDigits: string;
+  cardType: string;
+}
 
 interface CreditCardFormProps {
   amount: number;
-  ticketPurchaseId?: string;
-  onPaymentSuccess?: (details: any) => void;
-  onPaymentError?: (error: string) => void;
+  onNonceReady: (data: NonceData) => void;
+  onTokenizeError?: (error: string) => void;
   disabled?: boolean;
+  /** Parent controls this when checkout API call is in progress */
+  isCheckoutInProgress?: boolean;
 }
 
 interface CardData {
@@ -59,13 +67,13 @@ declare global {
 
 export const CreditCardForm: React.FC<CreditCardFormProps> = ({
   amount,
-  ticketPurchaseId,
-  onPaymentSuccess,
-  onPaymentError,
-  disabled = false
+  onNonceReady,
+  onTokenizeError,
+  disabled = false,
+  isCheckoutInProgress = false
 }) => {
   const isMobile = useMediaQuery('(max-width: 991px)');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isTokenizing, setIsTokenizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cardData, setCardData] = useState<CardData>({
     cardNumber: '',
@@ -91,10 +99,11 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
 
   const loginId = import.meta.env.VITE_AUTHORIZENET_LOGIN_ID;
   const clientKey = import.meta.env.VITE_AUTHORIZENET_CLIENT_KEY;
-  const environment = import.meta.env.VITE_AUTHORIZENET_ENVIRONMENT || 'SANDBOX';
 
   // Accept.js is loaded via script tag in index.html
   const isAcceptJsLoaded = typeof window !== 'undefined' && window.Accept;
+
+  const isProcessing = isTokenizing || isCheckoutInProgress;
 
   const formatCardNumber = (value: string) => {
     const digitsOnly = value.replace(/\D/g, '');
@@ -148,14 +157,14 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
       return;
     }
 
-    setIsProcessing(true);
+    setIsTokenizing(true);
     setError(null);
 
     const digits = cardData.cardNumber.replace(/\D/g, '');
     const [month, year] = cardData.expiryDate.split('/');
     const fullYear = year.length === 2 ? `20${year}` : year;
 
-    // Step 1: Send card data directly to Authorize.net via Accept.js
+    // Send card data directly to Authorize.net via Accept.js for tokenization
     window.Accept!.dispatchData(
       {
         authData: {
@@ -171,45 +180,34 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
           fullName: cardData.cardholderName
         }
       },
-      async (acceptResponse: AcceptJsResponse) => {
+      (acceptResponse: AcceptJsResponse) => {
         if (acceptResponse.messages.resultCode === 'Error') {
           const errorMsg = acceptResponse.messages.message
             .map(m => m.text)
             .join('; ');
           setError(errorMsg);
-          onPaymentError?.(errorMsg);
-          setIsProcessing(false);
+          onTokenizeError?.(errorMsg);
+          setIsTokenizing(false);
           return;
         }
 
         if (!acceptResponse.opaqueData) {
           setError('Failed to tokenize card data.');
-          setIsProcessing(false);
+          setIsTokenizing(false);
           return;
         }
 
-        // Step 2: Send nonce to our server (card data never touches us)
-        try {
-          const response = await apiClient.post('/api/payments/credit-card', {
-            nonce: acceptResponse.opaqueData.dataValue,
-            dataDescriptor: acceptResponse.opaqueData.dataDescriptor,
-            amount: amount,
-            ticketPurchaseId: ticketPurchaseId || null,
-            lastFourDigits: getLastFour(cardData.cardNumber),
-            cardType: getCardType(cardData.cardNumber)
-          });
-
-          onPaymentSuccess?.(response.data);
-        } catch (err: any) {
-          const errorMsg = err?.response?.data?.detail || err?.message || 'Payment failed';
-          setError(errorMsg);
-          onPaymentError?.(errorMsg);
-        } finally {
-          setIsProcessing(false);
-        }
+        // Pass the nonce to the parent - parent handles the checkout API call
+        setIsTokenizing(false);
+        onNonceReady({
+          nonce: acceptResponse.opaqueData.dataValue,
+          dataDescriptor: acceptResponse.opaqueData.dataDescriptor,
+          lastFourDigits: getLastFour(cardData.cardNumber),
+          cardType: getCardType(cardData.cardNumber)
+        });
       }
     );
-  }, [cardData, amount, ticketPurchaseId, loginId, clientKey, isAcceptJsLoaded, onPaymentSuccess, onPaymentError]);
+  }, [cardData, loginId, clientKey, isAcceptJsLoaded, onNonceReady, onTokenizeError]);
 
   if (!loginId || !clientKey) {
     return (
@@ -247,10 +245,16 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
 
   const cardType = getCardType(cardData.cardNumber);
 
+  const buttonLabel = isCheckoutInProgress
+    ? 'Processing Payment...'
+    : isTokenizing
+      ? 'Securing Card...'
+      : `Pay $${amount.toFixed(2)}`;
+
   return (
     <Stack gap="md">
       {error && (
-        <Alert icon={<IconAlertCircle size={16} />} title="Payment Error" color="red">
+        <Alert icon={<IconAlertCircle size={16} />} title="Card Error" color="red">
           <Text size="sm">{error}</Text>
         </Alert>
       )}
@@ -365,7 +369,7 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
         disabled={!isFormValid() || isProcessing || disabled}
         leftSection={isProcessing ? <Loader size="xs" color="white" /> : <IconLock size={18} />}
       >
-        {isProcessing ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
+        {buttonLabel}
       </Button>
 
       <Text size="xs" c="dimmed" ta="center">
