@@ -1,11 +1,12 @@
 // Credit Card Form Component using Accept.js
 // Card data goes directly to Authorize.net - never touches our server
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Stack, TextInput, Group, Box, Text, Button, Alert, Loader } from '@mantine/core';
 import { IconAlertCircle, IconLock } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
 import { apiClient } from '../../../../lib/api/client';
+import { isNonProduction, getPayPalTestCard } from '../../../../lib/utils/environment';
 
 interface CreditCardFormProps {
   amount: number;
@@ -73,6 +74,20 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
     cvv: '',
     billingZip: ''
   });
+
+  // Auto-fill test card data in dev/staging environments
+  useEffect(() => {
+    if (isNonProduction()) {
+      const testCard = getPayPalTestCard();
+      setCardData({
+        cardNumber: testCard.cardNumber.match(/.{1,4}/g)?.join(' ') || testCard.cardNumber,
+        cardholderName: testCard.cardholderName,
+        expiryDate: testCard.expiryDate,
+        cvv: testCard.cvv,
+        billingZip: testCard.billingZip
+      });
+    }
+  }, []);
 
   const loginId = import.meta.env.VITE_AUTHORIZENET_LOGIN_ID;
   const clientKey = import.meta.env.VITE_AUTHORIZENET_CLIENT_KEY;
