@@ -2,7 +2,7 @@
 # Based on design: /docs/functional-areas/docker-authentication/design/api-container-design.md
 
 # Development stage - Full SDK with hot reload support
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS development
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS development
 
 # Create app directory
 WORKDIR /app
@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y postgresql-client-16 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy API project files
+# Copy central package management and API project files
+COPY Directory.Packages.props ./
 COPY apps/api/ ./
 
 # Restore dependencies
@@ -40,11 +41,12 @@ ENV ASPNETCORE_ENVIRONMENT=Development
 CMD ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:8080", "--no-restore"]
 
 # Production build stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /app
 
-# Copy API project files
+# Copy central package management and API project files
+COPY Directory.Packages.props ./
 COPY apps/api/ ./
 
 # Restore dependencies
@@ -57,7 +59,7 @@ RUN dotnet build -c Release --no-restore
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
 # Production runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS production
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS production
 
 # Create non-root user for security
 RUN adduser -D -u 1001 -g 1001 -s /bin/sh appuser
@@ -99,7 +101,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 ENTRYPOINT ["dotnet", "WitchCityRope.Api.dll"]
 
 # Test stage - for isolated test environment
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS test
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS test
 
 # Add test environment label for cleanup
 LABEL witchcity.test=true
@@ -119,8 +121,9 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y postgresql-client-16 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy API project files (context is apps/api, so copy current directory)
-COPY . ./
+# Copy central package management and API project files
+COPY Directory.Packages.props ./
+COPY apps/api/ ./
 
 # Restore dependencies
 RUN dotnet restore

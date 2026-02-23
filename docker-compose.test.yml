@@ -71,8 +71,8 @@ services:
     networks:
       - witchcity-test-net
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/api/Dockerfile
       target: test  # Multi-stage test target
     
     # NO EXTERNAL PORTS - Test isolation

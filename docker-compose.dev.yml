@@ -118,6 +118,9 @@ services:
       # Source code mounting for hot reload
       - ./apps/api:/app:cached
 
+      # Central package management - mount to root so NuGet walks up from /app/ and finds it
+      - ./Directory.Packages.props:/Directory.Packages.props:ro
+
       # Package cache for faster builds
       - nuget_cache:/root/.nuget/packages
 

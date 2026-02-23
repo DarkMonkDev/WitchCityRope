@@ -119,8 +119,8 @@ services:
   # ==========================================================================
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/api/Dockerfile
       target: production  # Multi-stage production target
     
     restart: unless-stopped
