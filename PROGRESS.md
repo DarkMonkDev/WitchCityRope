@@ -107,6 +107,29 @@ Volunteer assignments showed on the wrong event card when multiple events shared
 
 ---
 
+## 2026-02-23 - Accept.js Environment-Based URL Switching ✅
+
+**Status**: COMPLETE - Deployed to staging, verified working
+**Type**: Enhancement
+**Impact**: Medium - Required for production Authorize.NET payments
+
+### Problem
+Accept.js (Authorize.NET's client-side tokenization library) URL was hardcoded to the sandbox version in `index.html`. Switching to production required a manual code change before deploying.
+
+### Solution
+Used Vite's built-in `%VITE_VAR%` HTML replacement to automatically load the correct Accept.js URL per environment:
+- **Development/Staging**: `https://jstest.authorize.net/v1/Accept.js` (sandbox)
+- **Production**: `https://js.authorize.net/v1/Accept.js` (live)
+
+### Files Modified
+- `apps/web/index.html` - Replaced hardcoded URL with `%VITE_ACCEPTJS_URL%` placeholder
+- `apps/web/.env.development` / `.env.staging` / `.env.production` / `.env.example` - Added `VITE_ACCEPTJS_URL`
+- `apps/web/Dockerfile` - Added `VITE_ACCEPTJS_URL` build ARG/ENV
+- `.claude/skills/staging-deploy/execute.sh` - Passes sandbox URL as build arg
+- `.claude/skills/production-deploy/execute.sh` - Passes live URL as build arg
+
+---
+
 ## 2026-02-23 - Minor TypeScript Strict-Mode Cleanup ✅
 
 **Status**: COMPLETE
