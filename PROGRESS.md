@@ -1,10 +1,10 @@
 # Witch City Rope - Development Progress
 
 ## Current Development Status
-**Last Updated**: 2025-11-24
-**Current Focus**: Production Bug Fixes & Infrastructure
+**Last Updated**: 2026-02-23
+**Current Focus**: Payment Flow Fix & Dashboard Bug Fixes
 **Project Status**: Production-ready, continuous enhancement
-**Deployment**: Staging fully updated, production seeding fix ready for deployment
+**Deployment**: Staging fully updated with unified checkout endpoint
 
 ### Historical Archive
 For complete development history, see:
@@ -15,6 +15,107 @@ For complete development history, see:
 > **Note**: During 2025-08-22 canonical document location consolidation, extensive historical development details were moved from this file to maintain focused current status while preserving complete project history.
 
 ## Current Development Sessions
+
+## 2026-02-23 - Unified Checkout Endpoint & Payment Flow Fix ✅
+
+**Status**: COMPLETE - Deployed to staging, verified working
+**Type**: Critical Bug Fix + Enhancement
+**Impact**: High - Prevents double-charging and lost tickets
+
+### Problem
+
+The credit card checkout flow had a critical ordering bug: cards were charged BEFORE ticket purchases were created in the database. If ticket creation failed after payment, users were charged with no ticket. On retry, Authorize.NET's duplicate transaction window blocked the payment, and after expiry, users could be double-charged.
+
+Additionally, error messages were generic and backend logging was insufficient to trace checkout failures.
+
+### Solution: Unified Backend Checkout Endpoint
+
+Replaced the broken two-step frontend-orchestrated flow with a single atomic backend endpoint: `POST /api/checkout/credit-card`
+
+**Previous (broken) flow:**
+```
+CreditCardForm → POST /api/payments/credit-card (CARD CHARGED) →
+  → purchaseTicket (creates ticket) → IF THIS FAILS, user charged with no ticket
+```
+
+**New flow:**
+```
+CreditCardForm tokenizes via Accept.js → returns nonce →
+  → POST /api/checkout/credit-card (single request) →
+    Stage 1: Validate inputs + idempotency check
+    Stage 2: Create pending ticket purchase
+    Stage 3: Charge credit card (if declined → roll back Stage 2)
+    Stage 4: Link payment to tickets (if fails → auto-refund Stage 3)
+```
+
+### Changes Made
+
+**Backend:**
+- `apps/api/Features/Payments/Endpoints/CheckoutEndpoints.cs` - NEW: Unified 4-stage checkout endpoint with correlation ID logging, auto-rollback, auto-refund
+- `apps/api/Features/Participation/Services/AttendanceService.cs` - Defensive `.LastOrDefault()`/`.FirstOrDefault()` null checks, `.AsNoTracking()` on overlap query, removed diagnostic logging
+- `apps/api/Features/Payments/Services/AuthorizeNetService.cs` - Added `GetErrorResponse()` diagnostic logging for null gateway responses, truncated `invoiceNumber` to Authorize.NET's 20-char max
+- `apps/api/Program.cs` - PgBouncer connection string fixes: `NoResetOnClose=true`, `Multiplexing=false`, `MaxAutoPrepare=0` for staging/prod
+
+**Frontend:**
+- `apps/web/src/lib/api/services/payments.ts` - Added `checkout()` method, `CheckoutRequest`/`CheckoutResponse` types
+- `apps/web/src/lib/api/hooks/usePayments.ts` - Added `useCheckout()` hook
+- `apps/web/src/features/payments/components/checkout/CreditCardForm.tsx` - Rewritten to tokenize-only (no longer calls payment API directly)
+- `apps/web/src/features/payments/components/PaymentForm.tsx` - Updated props for new tokenize-only flow
+- `apps/web/src/features/payments/pages/EventPaymentPage.tsx` - Single `checkout.mutateAsync()` call, stage-aware error display, `beforeunload` handler, idempotency key generation, processing indicator
+
+**Key features:**
+- Correlation ID logging on every stage (`[Checkout:{correlationId}]`)
+- ProblemDetails extensions: `checkoutCorrelationId`, `failureStage`, `paymentCharged`, `refundInitiated`
+- Idempotency via `TicketPurchase.IdempotencyKey` to prevent duplicate charges
+- Stage-aware error display with color-coded alerts (red for declined, orange for charged+refund)
+
+### Bugs Found & Fixed During Staging Testing
+
+1. **varchar(20) overflow** - `"authorize-net-pending"` (22 chars) exceeded `PaymentMethod` column max length → shortened to `"authnet-pending"`
+2. **Authorize.NET invoiceNumber max length** - Full GUID (36 chars) exceeded 20-char schema limit → added `TruncateField()` helper
+3. **Confirmation page crash** - `PaymentConfirmation` component accessed `payment.id.slice()` but `completedPayment` object lacked `id` and `paymentMethodType` fields → added missing fields
+
+### What Was NOT Changed
+- `/api/payments/credit-card` endpoint stays (used by kiosk/other flows)
+- PayPal flow not touched (separate architecture)
+- `usePurchaseTicket` hook stays (non-payment ticket creation)
+
+---
+
+## 2026-02-23 - Dashboard Volunteer Shift Matching Bug Fix ✅
+
+**Status**: COMPLETE - Deployed to staging, verified working
+**Type**: Bug Fix
+**Impact**: Medium - Incorrect volunteer display on dashboard
+
+### Problem
+Volunteer assignments showed on the wrong event card when multiple events shared the same name (e.g., two "Suspension Basics" events on different dates). The backend `UserVolunteerShiftDto` didn't include `EventId`, forcing the frontend to match by event title instead of ID.
+
+### Solution
+- Added `EventId` property to `UserVolunteerShiftDto` (C# DTO)
+- Populated it from `eventEntity.Id` in `VolunteerService.GetUserVolunteerShiftsAsync()`
+- Regenerated frontend TypeScript types
+- Removed title-based fallback matching in `EventCard.tsx` — now matches by ID only
+- Added sort by `ShiftStartTime` so earliest upcoming shift appears first (backend + frontend)
+
+### Files Modified
+- `apps/api/Features/Volunteers/Models/UserVolunteerShiftDto.cs` - Added `EventId` property
+- `apps/api/Features/Volunteers/Services/VolunteerService.cs` - Populated `EventId`, added sort by `ShiftStartTime`
+- `apps/web/src/pages/dashboard/MyEventsPage.tsx` - Use `shift.eventId` (was hardcoded `''`)
+- `apps/web/src/pages/dashboard/components/EventCard.tsx` - Match by ID only, sort by start time
+- `apps/api/openapi.json` + `packages/shared-types/src/generated/api-types.ts` - Regenerated
+
+---
+
+## 2026-02-23 - Minor TypeScript Strict-Mode Cleanup ✅
+
+**Status**: COMPLETE
+**Type**: Tech Debt
+**Impact**: Low - Code quality only
+
+Fixed 12 minor TypeScript strict-mode errors across 6 files: unused imports, implicit `any` parameters, unused variables. ~1000 remaining errors from full strict mode migration deferred to a future session.
+
+---
 
 ## 2025-11-24 - Database Backup Environment Isolation ✅
 
