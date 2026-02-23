@@ -1,6 +1,6 @@
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using WitchCityRope.Api.Features.Vetting.Entities;
 
 namespace WitchCityRope.Api.Infrastructure.OpenAPI;
@@ -15,19 +15,20 @@ public class EnumSchemaTransformer : IOpenApiDocumentTransformer
     {
         // Ensure components exist
         document.Components ??= new OpenApiComponents();
-        document.Components.Schemas ??= new Dictionary<string, OpenApiSchema>();
+        document.Components.Schemas ??= new Dictionary<string, IOpenApiSchema>();
 
         // Update or add VettingStatus enum schema
-        if (document.Components.Schemas.TryGetValue("VettingStatus", out var existingSchema))
+        if (document.Components.Schemas.TryGetValue("VettingStatus", out var existingSchema)
+            && existingSchema is OpenApiSchema concreteSchema)
         {
             // Schema already exists, just ensure it has enum values
-            if (existingSchema.Enum == null || existingSchema.Enum.Count == 0)
+            if (concreteSchema.Enum == null || concreteSchema.Enum.Count == 0)
             {
-                existingSchema.Type = "string";
-                existingSchema.Enum = Enum.GetNames(typeof(VettingStatus))
-                    .Select(name => new OpenApiString(name) as IOpenApiAny)
+                concreteSchema.Type = JsonSchemaType.String;
+                concreteSchema.Enum = Enum.GetNames(typeof(VettingStatus))
+                    .Select(name => (JsonNode)JsonValue.Create(name)!)
                     .ToList();
-                existingSchema.Description = "Vetting application workflow status";
+                concreteSchema.Description = "Vetting application workflow status";
             }
         }
         else
@@ -35,9 +36,9 @@ public class EnumSchemaTransformer : IOpenApiDocumentTransformer
             // Schema doesn't exist, create it
             var vettingStatusSchema = new OpenApiSchema
             {
-                Type = "string",
+                Type = JsonSchemaType.String,
                 Enum = Enum.GetNames(typeof(VettingStatus))
-                    .Select(name => new OpenApiString(name) as IOpenApiAny)
+                    .Select(name => (JsonNode)JsonValue.Create(name)!)
                     .ToList(),
                 Description = "Vetting application workflow status"
             };
@@ -46,35 +47,5 @@ public class EnumSchemaTransformer : IOpenApiDocumentTransformer
         }
 
         return Task.CompletedTask;
-    }
-
-    private void UpdateSchemaEnumReferences(OpenApiSchema schema)
-    {
-        if (schema.Properties != null)
-        {
-            foreach (var (propertyName, propertySchema) in schema.Properties)
-            {
-                // If property is named "status" or "vettingStatus" and is a string, convert to enum reference
-                if ((propertyName.Equals("status", StringComparison.OrdinalIgnoreCase) ||
-                     propertyName.Equals("vettingStatus", StringComparison.OrdinalIgnoreCase)) &&
-                    propertySchema.Type == "string" &&
-                    propertySchema.Enum == null)
-                {
-                    // Replace with reference to VettingStatus enum schema
-                    propertySchema.Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.Schema,
-                        Id = "VettingStatus"
-                    };
-                    propertySchema.Type = null; // Clear type when using reference
-                }
-
-                // Recursively process nested schemas
-                if (propertySchema.Properties != null)
-                {
-                    UpdateSchemaEnumReferences(propertySchema);
-                }
-            }
-        }
     }
 }

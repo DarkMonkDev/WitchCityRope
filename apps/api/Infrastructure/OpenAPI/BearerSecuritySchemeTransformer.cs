@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace WitchCityRope.Api.Infrastructure.OpenAPI;
 
@@ -27,7 +27,7 @@ public class BearerSecuritySchemeTransformer : IOpenApiDocumentTransformer
 
         // Initialize components if needed
         document.Components ??= new OpenApiComponents();
-        document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
 
         // Add Bearer scheme to components
         document.Components.SecuritySchemes["Bearer"] = bearerScheme;
@@ -35,18 +35,11 @@ public class BearerSecuritySchemeTransformer : IOpenApiDocumentTransformer
         // Apply Bearer security requirement globally to all endpoints
         var securityRequirement = new OpenApiSecurityRequirement
         {
-            [new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            }] = Array.Empty<string>()
+            [new OpenApiSecuritySchemeReference("Bearer")] = new List<string>()
         };
 
-        document.SecurityRequirements ??= new List<OpenApiSecurityRequirement>();
-        document.SecurityRequirements.Add(securityRequirement);
+        document.Security ??= new List<OpenApiSecurityRequirement>();
+        document.Security.Add(securityRequirement);
 
         return Task.CompletedTask;
     }
