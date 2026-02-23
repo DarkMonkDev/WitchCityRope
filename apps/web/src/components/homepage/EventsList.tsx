@@ -217,7 +217,7 @@ export const EventsList: React.FC<EventsListProps> = ({
             key={event.id}
             event={event}
             variant={isMobile ? "list" : "homepage"}
-            onClick={() => handleEventClick(event.id)}
+            onClick={() => handleEventClick(event.id || '')}
           />
         ))}
       </Box>

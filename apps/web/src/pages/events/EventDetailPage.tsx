@@ -6,7 +6,7 @@ import { IconExternalLink } from '@tabler/icons-react';
 import { formatUtcToLocalDate, formatUtcTimeRange } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
 import { useParticipation, useCreateRSVP, useCancelRSVP, useCancelTicket } from '../../hooks/useParticipation';
-import { ParticipationCard } from '../../components/events/ParticipationCard';
+import { ParticipationCard, type ParticipationCardProps } from '../../components/events/ParticipationCard';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import { useVolunteerPositions } from '../../features/volunteers/hooks/useVolunteerPositions';
 import { VolunteerPositionCard } from '../../features/volunteers/components/VolunteerPositionCard';
@@ -213,13 +213,13 @@ export const EventDetailPage: React.FC = () => {
   };
 
   // Extract ParticipationCard props for reuse (DRY pattern)
-  const participationCardProps = {
+  const participationCardProps: Omit<ParticipationCardProps, 'isMobile'> = {
     eventId: id!,
     eventTitle: (event as any)?.title || 'Event',
     allowRsvps,
     requireTicketPurchase,
     vettedMembersOnly,
-    participation,
+    participation: participation ?? null,
     isLoading: participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending || cancelTicketMutation.isPending,
     ticketTypeId: (event as any)?.ticketTypes?.[0]?.id,
     onRSVP: handleRSVP,

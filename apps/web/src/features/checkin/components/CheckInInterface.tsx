@@ -141,14 +141,14 @@ function ManualEntryModal({
 
           <TextInput
             label="Dietary Restrictions"
-            value={formData.dietaryRestrictions}
+            value={formData.dietaryRestrictions ?? ''}
             onChange={(e) => setFormData(prev => ({ ...prev, dietaryRestrictions: e.target.value }))}
             placeholder="Any dietary needs (optional)"
           />
 
           <TextInput
             label="Accessibility Needs"
-            value={formData.accessibilityNeeds}
+            value={formData.accessibilityNeeds ?? ''}
             onChange={(e) => setFormData(prev => ({ ...prev, accessibilityNeeds: e.target.value }))}
             placeholder="Any accessibility accommodations (optional)"
           />

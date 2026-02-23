@@ -223,7 +223,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         )}
       </Box>
 
-      <Tabs value={activeTab} onChange={setActiveTab}>
+      <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'personal')}>
         <Tabs.List>
           <Tabs.Tab
             value="personal"

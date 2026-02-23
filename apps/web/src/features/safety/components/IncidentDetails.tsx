@@ -112,7 +112,7 @@ export function IncidentDetails({ incidentId, onClose: _onClose }: IncidentDetai
     );
   }
   
-  const statusConfig = STATUS_CONFIGS[incident.status];
+  const statusConfig = STATUS_CONFIGS[incident.status || ''];
 
   return (
     <Stack gap="lg">
@@ -135,7 +135,7 @@ export function IncidentDetails({ incidentId, onClose: _onClose }: IncidentDetai
               •
             </Text>
             <Text c="dimmed" size="sm">
-              Reported on {formatDateTime(incident.reportedAt)}
+              Reported on {formatDateTime(incident.reportedAt || '')}
             </Text>
           </Group>
         </Box>
@@ -169,7 +169,7 @@ export function IncidentDetails({ incidentId, onClose: _onClose }: IncidentDetai
                   <IconClock size={16} />
                   <Box>
                     <Text size="sm" fw={500}>Incident Date</Text>
-                    <Text size="sm" c="dimmed">{formatDateTime(incident.incidentDate)}</Text>
+                    <Text size="sm" c="dimmed">{formatDateTime(incident.incidentDate || '')}</Text>
                   </Box>
                 </Group>
                 
@@ -350,7 +350,7 @@ export function IncidentDetails({ incidentId, onClose: _onClose }: IncidentDetai
                         {log.actionDescription}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {log.userName || 'System'} • {formatDateTime(log.createdAt)}
+                        {log.userName || 'System'} • {formatDateTime(log.createdAt || '')}
                       </Text>
                     </Timeline.Item>
                   ))}

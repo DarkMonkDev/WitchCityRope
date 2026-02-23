@@ -124,8 +124,8 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     description: apiEvent.description,
     policies: apiEvent.policies || null,
     startDate: apiEvent.startDate,
-    endDate: apiEvent.endDate || null,
-    venueId: apiEvent.venueId || null,
+    endDate: apiEvent.endDate || undefined,
+    venueId: apiEvent.venueId ?? undefined,
     venueLocation: apiEvent.venueLocation || null,
     // Map boolean flags from API
     allowRsvps: apiEvent.allowRsvps ?? false,
@@ -222,7 +222,9 @@ export function useCreateEvent() {
       cacheUtils.invalidateEvents(queryClient)
 
       // Optimistically add to cache
-      queryClient.setQueryData(eventKeys.detail(newEvent.id), newEvent)
+      if (newEvent.id) {
+        queryClient.setQueryData(eventKeys.detail(newEvent.id), newEvent)
+      }
 
     },
     onError: (_error: Error) => {

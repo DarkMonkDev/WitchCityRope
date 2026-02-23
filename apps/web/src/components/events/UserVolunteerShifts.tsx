@@ -170,7 +170,7 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
                   {position.sessionStartTime && (
                     <Text size="xs" c="dimmed">
                       {formatShortDateWithDay(position.sessionStartTime)} • {(position.startTime || position.endTime)
-                        ? `${formatShiftTime(position.startTime)} - ${formatShiftTime(position.endTime)}`
+                        ? `${formatShiftTime(position.startTime ?? undefined)} - ${formatShiftTime(position.endTime ?? undefined)}`
                         : position.sessionEndTime
                           ? `${formatTime(position.sessionStartTime)} - ${formatTime(position.sessionEndTime)}`
                           : ''}

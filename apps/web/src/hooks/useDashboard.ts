@@ -25,7 +25,7 @@ export const useUserEvents = (includePast = false) => {
     queryFn: async () => {
       debugLog('🔍 Calling dashboardService.getUserEvents with userId:', user!.id);
       try {
-        const result = await dashboardService.getUserEvents(user!.id, includePast);
+        const result = await dashboardService.getUserEvents(user!.id!, includePast);
         debugLog('✅ getUserEvents result:', result);
         return result;
       } catch (error) {
@@ -48,7 +48,7 @@ export const useVettingStatus = () => {
 
   return useQuery<VettingStatusDto | null, Error>({
     queryKey: ['vetting-status', user?.id],
-    queryFn: () => dashboardService.getVettingStatus(user!.id),
+    queryFn: () => dashboardService.getVettingStatus(user!.id!),
     enabled: !!user?.id,
     staleTime: 1 * 60 * 1000, // 1 minute (reduced from 10 minutes)
     refetchOnWindowFocus: true, // Refetch when user returns to tab (CRITICAL for admin updates)
@@ -64,7 +64,7 @@ export const useProfile = () => {
 
   return useQuery<UserProfileDto, Error>({
     queryKey: ['user-profile', user?.id],
-    queryFn: () => dashboardService.getProfile(user!.id),
+    queryFn: () => dashboardService.getProfile(user!.id!),
     enabled: !!user?.id,
     staleTime: 0, // Always consider stale - ensures fresh data on refetch
     refetchOnWindowFocus: true, // Refetch when user returns to tab (CRITICAL for admin updates)
@@ -81,7 +81,7 @@ export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateProfileDto) => dashboardService.updateProfile(user!.id, data),
+    mutationFn: (data: UpdateProfileDto) => dashboardService.updateProfile(user!.id!, data),
     onSuccess: () => {
       // Invalidate profile cache to refetch fresh data
       // CRITICAL: Must include user.id in queryKey to match the query key used in useProfile
@@ -97,6 +97,6 @@ export const useChangePassword = () => {
   const user = useUser();
 
   return useMutation({
-    mutationFn: (data: ChangePasswordDto) => dashboardService.changePassword(user!.id, data),
+    mutationFn: (data: ChangePasswordDto) => dashboardService.changePassword(user!.id!, data),
   });
 };

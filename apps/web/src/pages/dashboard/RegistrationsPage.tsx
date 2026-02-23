@@ -331,7 +331,7 @@ export const RegistrationsPage: React.FC = () => {
         </Paper>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onChange={setActiveTab}>
+        <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'all')}>
           <Tabs.List>
             <Tabs.Tab
               value="all"

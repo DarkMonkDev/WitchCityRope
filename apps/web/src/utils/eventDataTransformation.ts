@@ -63,11 +63,11 @@ export function convertEventFormDataToUpdateDto(
       id: ticket.id,
       name: ticket.name,
       pricingType: ticket.pricingType,
-      price: ticket.price,
-      minPrice: ticket.minPrice,
-      maxPrice: ticket.maxPrice,
-      defaultPrice: ticket.defaultPrice,
-      quantityAvailable: ticket.quantityAvailable,
+      price: ticket.price ?? 0,
+      minPrice: ticket.minPrice ?? undefined,
+      maxPrice: ticket.maxPrice ?? undefined,
+      defaultPrice: ticket.defaultPrice ?? undefined,
+      quantityAvailable: ticket.quantityAvailable ?? 0,
       sessionIdentifiers: ticket.sessionIdentifiers
     }));
   }
@@ -251,11 +251,11 @@ export function getChangedEventFields(
       id: ticket.id,
       name: ticket.name,
       pricingType: ticket.pricingType,
-      price: ticket.price,
-      minPrice: ticket.minPrice,
-      maxPrice: ticket.maxPrice,
-      defaultPrice: ticket.defaultPrice,
-      quantityAvailable: ticket.quantityAvailable,
+      price: ticket.price ?? 0,
+      minPrice: ticket.minPrice ?? undefined,
+      maxPrice: ticket.maxPrice ?? undefined,
+      defaultPrice: ticket.defaultPrice ?? undefined,
+      quantityAvailable: ticket.quantityAvailable ?? 0,
       sessionIdentifiers: ticket.sessionIdentifiers
     }));
   }

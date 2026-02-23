@@ -116,7 +116,7 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
               variant="light"
               color="burgundy"
               size="xs"
-              onClick={() => onEditTrigger(id)}
+              onClick={() => onEditTrigger(id || '')}
               leftSection={<IconSettings size={14} />}
               styles={{
                 root: {
@@ -136,7 +136,7 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
               variant="outline"
               color="burgundy"
               size="xs"
-              onClick={() => onEditContent(id)}
+              onClick={() => onEditContent(id || '')}
               leftSection={<IconEdit size={14} />}
               styles={{
                 root: {
@@ -156,7 +156,7 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
 
         {/* Subject line */}
         <Text size="sm" c="stone" lineClamp={1}>
-          {cleanVariablePlaceholders(subject)}
+          {cleanVariablePlaceholders(subject || '')}
         </Text>
 
         {/* Badge row - Trigger type, timing, recipient */}

@@ -67,7 +67,7 @@ export const MemberNoteRenderer = (note: MemberNoteHistoryResponse): React.React
           </Text>
         </Group>
         <Text size="sm" c="dimmed">
-          {formatTime(note.timestamp)}
+          {formatTime(note.timestamp || '')}
         </Text>
       </Group>
       {/* Display content with preserved line breaks for admin reasons */}

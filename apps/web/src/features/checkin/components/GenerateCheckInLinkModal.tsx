@@ -121,7 +121,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
 
   // Get stable list of available session IDs
   const availableSessionIds = React.useMemo(
-    () => availableSessions.map(s => s.id),
+    () => availableSessions.map(s => s.id).filter((id): id is string => !!id),
     [availableSessions]
   );
 
@@ -160,7 +160,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
         sessionIds: selectedSessionIds.length > 0 ? selectedSessionIds : undefined,
         expirationHours: expiresInHours
       });
-      setGeneratedToken(result);
+      setGeneratedToken(result as SessionTokenResponse);
 
       // Get session names for success message
       const sessionCount = selectedSessionIds.length;
@@ -287,23 +287,24 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
               <Table.Tbody>
                 {sessionsWithStatus.map((session) => {
                   const isAvailable = session.status === 'available';
-                  const isSelected = selectedSessionIds.includes(session.id);
+                  const sessionId = session.id ?? '';
+                  const isSelected = selectedSessionIds.includes(sessionId);
 
                   return (
                     <Table.Tr
-                      key={session.id}
+                      key={sessionId}
                       style={{
                         opacity: isAvailable ? 1 : 0.6,
                         cursor: isAvailable ? 'pointer' : 'not-allowed',
                         backgroundColor: isSelected ? 'var(--mantine-color-blue-1)' : undefined,
                       }}
-                      onClick={() => isAvailable && handleSessionToggle(session.id)}
+                      onClick={() => isAvailable && handleSessionToggle(sessionId)}
                     >
                       <Table.Td>
                         <Checkbox
                           checked={isSelected}
                           disabled={!isAvailable}
-                          onChange={() => handleSessionToggle(session.id)}
+                          onChange={() => handleSessionToggle(sessionId)}
                           onClick={(e) => e.stopPropagation()}
                           style={{ cursor: isAvailable ? 'pointer' : 'not-allowed' }}
                         />
@@ -408,7 +409,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                   Link Generated Successfully
                 </Text>
                 <Text size="xs" c="dimmed">
-                  Expires: {formatDate(generatedToken.expiresAt)}
+                  Expires: {formatDate(generatedToken.expiresAt ?? '')}
                 </Text>
               </Stack>
               <Group gap="sm">
@@ -417,7 +418,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                   size="xs"
                   leftSection={copiedToken === generatedToken.token ? <IconCheck size={14} /> : <IconCopy size={14} />}
                   color={copiedToken === generatedToken.token ? 'green' : 'blue'}
-                  onClick={() => handleCopy(generatedToken.checkInUrl, generatedToken.token)}
+                  onClick={() => handleCopy(generatedToken.checkInUrl ?? '', generatedToken.token ?? '')}
                 >
                   Copy URL
                 </Button>
@@ -466,20 +467,17 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                   <Table.Tr key={token.token}>
                     <Table.Td>
                       <Text size="sm" ff="monospace">
-                        {formatTokenPrefix(token.token)}
+                        {formatTokenPrefix(token.token ?? '')}
                       </Text>
                     </Table.Td>
                     <Table.Td>
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {(token as any)?.sessionNames && (token as any).sessionNames.length > 0 ? (
+                      {token.sessionNames && token.sessionNames.length > 0 ? (
                         <Text size="sm">
-                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                          {(token as any).sessionNames.join(', ')}
+                          {token.sessionNames.join(', ')}
                         </Text>
-                      ) : (token as any)?.sessionName ? (
+                      ) : token.sessionName ? (
                         <Badge variant="light" color="blue">
-                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                          {(token as any).sessionName}
+                          {token.sessionName}
                         </Badge>
                       ) : (
                         <Text size="sm" c="dimmed">All Sessions</Text>
@@ -487,7 +485,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm" c="dimmed">
-                        {formatDate(token.expiresAt)}
+                        {formatDate(token.expiresAt ?? '')}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -496,7 +494,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                           <ActionIcon
                             variant="light"
                             color="blue"
-                            onClick={() => handleCopy(token.checkInUrl, token.token)}
+                            onClick={() => handleCopy(token.checkInUrl ?? '', token.token ?? '')}
                           >
                             {copiedToken === token.token ? <IconCheck size={16} /> : <IconCopy size={16} />}
                           </ActionIcon>
@@ -505,7 +503,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
                           <ActionIcon
                             variant="light"
                             color="red"
-                            onClick={() => handleRevoke(token.token)}
+                            onClick={() => handleRevoke(token.token ?? '')}
                             loading={revokeMutation.isPending}
                           >
                             <IconTrash size={16} />

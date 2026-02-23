@@ -45,7 +45,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       minPrice: 0,
       maxPrice: 0,
       defaultPrice: 0,
-      sessionsIncluded: [],
+      sessionsIncluded: [] as string[],
       quantityAvailable: 100,
       quantitySold: 0,
       allowMultiplePurchase: false,
@@ -126,7 +126,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       !session.id.startsWith('temp-') // Exclude temporary IDs
     )
     .map(session => ({
-      value: session.sessionIdentifier,
+      value: session.sessionIdentifier || '',
       label: `${session.sessionIdentifier} - ${session.name}`,
     }));
 

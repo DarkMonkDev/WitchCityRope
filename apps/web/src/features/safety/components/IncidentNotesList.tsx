@@ -79,7 +79,7 @@ export const IncidentNotesList: React.FC<IncidentNotesListProps> = ({
 
   // Sort notes chronologically (newest first)
   const sortedNotes = [...notes].sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
   );
 
   return (
@@ -174,7 +174,7 @@ export const IncidentNotesList: React.FC<IncidentNotesListProps> = ({
                       <Text fw={600} size="sm">{note.authorName}</Text>
                     </Group>
                     <Text size="sm" c="dimmed">
-                      {formatTime(note.createdAt, eventTimeZone)}
+                      {formatTime(note.createdAt || '', eventTimeZone)}
                       {note.updatedAt && note.updatedAt !== note.createdAt && <> • Edited</>}
                     </Text>
                   </Group>

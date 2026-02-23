@@ -25,11 +25,12 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
 }) => {
   const isMobile = useMediaQuery('(max-width: 767px)');
 
-  const handleEventTypeChange = (value: string | null) => {
-    if (value && (value === 'all' || value === 'classes' || value === 'member-only' || value === 'social')) {
+  const handleEventTypeChange = (value: string | string[]) => {
+    const v = Array.isArray(value) ? value[0] : value;
+    if (v && (v === 'all' || v === 'classes' || v === 'member-only' || v === 'social')) {
       onFiltersChange({
         ...filters,
-        eventType: value
+        eventType: v
       });
     }
   };

@@ -154,7 +154,7 @@ export const SendAdHocEmail: React.FC = () => {
           plainTextBody,
           segment: data.segment || null,
           recipientEmails: data.recipientEmails || null,
-          recipientGroup: data.segment || null,
+          recipientGroup: data.segment || '',
           scheduledSendAt: data.scheduledSendAt.toISOString(),
         });
       }
@@ -166,7 +166,7 @@ export const SendAdHocEmail: React.FC = () => {
         plainTextBody,
         segment: data.segment || null,
         recipientEmails: data.recipientEmails || null,
-        recipientGroup: data.segment || null,
+        recipientGroup: data.segment || '',
       });
     },
     onSuccess: () => {

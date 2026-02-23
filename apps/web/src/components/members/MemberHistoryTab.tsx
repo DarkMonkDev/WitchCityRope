@@ -75,7 +75,7 @@ export const MemberHistoryTab: React.FC<MemberHistoryTabProps> = ({ memberId }) 
         >
           {/* Date/Time */}
           <Text size="sm" c="dimmed" mb="xs">
-            {formatDate(change.changedAt)}
+            {formatDate(change.changedAt || '')}
           </Text>
 
           {/* Field Name and Change */}

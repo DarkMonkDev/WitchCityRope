@@ -98,7 +98,7 @@ export const AssignedMembersSection: React.FC<AssignedMembersSectionProps> = ({
 
       <Box mt="md">
         <MemberSearchInput
-          excludedMemberIds={assignedMembers.map(m => m.userId)}
+          excludedMemberIds={assignedMembers.map(m => m.userId || '')}
           onMemberSelect={handleAddMember}
         />
         <Text size="xs" c="dimmed" mt="xs">

@@ -82,7 +82,7 @@ export const MemberVettingTab: React.FC<MemberVettingTabProps> = ({ memberId, us
     if (!vettingDetails || !vettingDetails.hasApplication) {
       return 'Application Not Submitted'
     }
-    return formatDate(vettingDetails.submittedAt)
+    return formatDate(vettingDetails.submittedAt ?? undefined)
   }
 
   // Handle vetting status change

@@ -12,7 +12,7 @@ import {
   IconWifiOff
 } from '@tabler/icons-react';
 import type { CheckInDashboard, RecentCheckIn, CapacityInfo } from '../types/checkin.types';
-import { EVENT_STATUS_CONFIGS, TOUCH_TARGETS } from '../types/checkin.types';
+import { EVENT_STATUS_CONFIGS, TOUCH_TARGETS, EventStatus } from '../types/checkin.types';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 import { formatUtcToLocalTime } from '../../../utils/eventUtils';
@@ -108,8 +108,8 @@ function StatisticsCard({ capacity }: { capacity: CapacityInfo }) {
  * Event status and info card
  */
 function EventInfoCard({ dashboard }: { dashboard: CheckInDashboard }) {
-  const statusConfig = EVENT_STATUS_CONFIGS[dashboard.eventStatus];
-  const eventDate = new Date(dashboard.eventDate);
+  const statusConfig = EVENT_STATUS_CONFIGS[(dashboard.eventStatus ?? 'upcoming') as EventStatus];
+  const eventDate = new Date(dashboard.eventDate ?? '');
   const eventTimeZone = useEventTimeZone();
 
   return (
@@ -195,7 +195,7 @@ function RecentActivity({ recentCheckIns }: { recentCheckIns: RecentCheckIn[] })
         <ScrollArea.Autosize mah="250px">
           <Stack gap="xs">
             {recentCheckIns.map((checkIn, index) => {
-              const checkInTime = new Date(checkIn.checkInTime);
+              const checkInTime = new Date(checkIn.checkInTime ?? '');
               return (
                 <Group
                   key={`${checkIn.attendeeId}-${checkIn.checkInTime}`}
@@ -379,12 +379,12 @@ export function CheckInDashboard({
 
         {/* Statistics - Full width */}
         <Grid.Col span={12}>
-          <StatisticsCard capacity={dashboard.capacity} />
+          <StatisticsCard capacity={dashboard.capacity ?? { totalCapacity: 0, checkedInCount: 0, waitlistCount: 0, availableSpots: 0, isAtCapacity: false, canOverride: false }} />
         </Grid.Col>
 
         {/* Recent Activity - Full width */}
         <Grid.Col span={12}>
-          <RecentActivity recentCheckIns={dashboard.recentCheckIns} />
+          <RecentActivity recentCheckIns={dashboard.recentCheckIns ?? []} />
         </Grid.Col>
       </Grid>
     </Stack>

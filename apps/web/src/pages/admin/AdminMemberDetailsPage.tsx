@@ -97,7 +97,7 @@ export const AdminMemberDetailsPage: React.FC = () => {
       <Card shadow="md" radius="lg" p="xl" style={{ backgroundColor: 'white' }}>
         <Tabs
           value={activeTab}
-          onChange={setActiveTab}
+          onChange={(value) => setActiveTab(value || 'profile')}
           variant="pills"
           radius="md"
         >

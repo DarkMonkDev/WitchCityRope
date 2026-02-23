@@ -139,7 +139,7 @@ export const MemberIncidentsTab: React.FC<MemberIncidentsTabProps> = ({ memberId
           {incidentsData.incidents?.map((incident) => (
             <Table.Tr
               key={incident.incidentId}
-              onClick={() => handleRowClick(incident.incidentId)}
+              onClick={() => handleRowClick(incident.incidentId || '')}
               style={{ cursor: 'pointer' }}
             >
               <Table.Td>
@@ -153,18 +153,18 @@ export const MemberIncidentsTab: React.FC<MemberIncidentsTabProps> = ({ memberId
                 </Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm">{new Date(incident.incidentDate).toLocaleDateString()}</Text>
+                <Text size="sm">{new Date(incident.incidentDate || '').toLocaleDateString()}</Text>
               </Table.Td>
               <Table.Td>
                 <Badge
-                  color={involvementColors[incident.userInvolvementType] || 'gray'}
+                  color={involvementColors[incident.userInvolvementType || ''] || 'gray'}
                   variant="light"
                 >
                   {incident.userInvolvementType}
                 </Badge>
               </Table.Td>
               <Table.Td>
-                <Badge color={statusColors[incident.status] || 'gray'} variant="light">
+                <Badge color={statusColors[incident.status || ''] || 'gray'} variant="light">
                   {incident.status}
                 </Badge>
               </Table.Td>

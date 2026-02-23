@@ -68,7 +68,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       if (!selectedTemplate) {
         throw new Error('No template selected');
       }
-      return emailTemplatesApi.updateGlobalTemplate(selectedTemplate.id, data);
+      return emailTemplatesApi.updateGlobalTemplate(selectedTemplate.id ?? '', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['email-templates', 'global', category] });
@@ -112,9 +112,9 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   // Sync editor state when template is selected
   useEffect(() => {
     if (selectedTemplate) {
-      setSubject(selectedTemplate.subject);
-      setHtmlBody(selectedTemplate.htmlBody);
-      setPlainTextBody(selectedTemplate.plainTextBody);
+      setSubject(selectedTemplate.subject ?? '');
+      setHtmlBody(selectedTemplate.htmlBody ?? '');
+      setPlainTextBody(selectedTemplate.plainTextBody ?? '');
       setInvalidVariables([]);
     }
   }, [selectedTemplate]);
@@ -380,9 +380,9 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
         <TriggerConfigModal
           opened={triggerModalOpened}
           onClose={() => setTriggerModalOpened(false)}
-          template={selectedTemplateForTrigger}
+          template={selectedTemplateForTrigger as GlobalEmailTemplateDto & { triggerType?: 'FixedEvent' | 'TimeBased' | 'Manual'; triggerEnabled?: boolean; timingOffsetDays?: number; recipientGroup?: any }}
           onSave={async (config) => {
-            await saveTriggerMutation.mutateAsync({ id: selectedTemplateForTrigger.id, config });
+            await saveTriggerMutation.mutateAsync({ id: selectedTemplateForTrigger.id ?? '', config });
           }}
         />
       )}

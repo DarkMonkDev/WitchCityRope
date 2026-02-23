@@ -64,7 +64,7 @@ interface TicketPriceRange {
   isSinglePrice: boolean;
 }
 
-interface ParticipationCardProps {
+export interface ParticipationCardProps {
   eventId: string;
   eventTitle: string;
   // Replaced eventType with boolean flags

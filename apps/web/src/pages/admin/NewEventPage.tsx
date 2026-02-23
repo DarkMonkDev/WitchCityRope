@@ -84,14 +84,14 @@ export const NewEventPage: React.FC = () => {
       const firstSessionDate = sessions[0].startTime;
       // EndDate must be AFTER startDate - use last session's end time, or add 2 hours for single session
       const lastSessionEndTime = sessions[sessions.length - 1].endTime;
-      const endDate = new Date(new Date(lastSessionEndTime).getTime()).toISOString();
+      const endDate = new Date(new Date(lastSessionEndTime || firstSessionDate || new Date().toISOString()).getTime()).toISOString();
 
       const createData: CreateEventRequest = {
         title: formData.title,
         description: formData.fullDescription,
         shortDescription: formData.shortDescription || null,
         policies: formData.policies || null,
-        startDate: firstSessionDate,
+        startDate: firstSessionDate || new Date().toISOString(),
         endDate: endDate, // Must be AFTER startDate (validation requirement)
         // ✅ CRITICAL: venueId must be number, boolean flags for event registration options
         venueId: parseInt(formData.venueId) || 1,

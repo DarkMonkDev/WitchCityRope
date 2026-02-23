@@ -64,7 +64,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
   const now = new Date();
   const filteredParticipations = participations
     ?.filter(p => {
-      const eventDate = new Date(p.eventStartDate);
+      const eventDate = new Date(p.eventStartDate ?? '');
       const isTimeMatch = showPastEvents ? eventDate < now : eventDate >= now;
       // Only show Active participations on the dashboard
       const isActive = p.status === 'Active';
@@ -73,7 +73,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
 
   // Group participations by eventId to avoid duplicate cards
   const groupedByEvent = filteredParticipations.reduce((acc, participation) => {
-    const eventId = participation.eventId;
+    const eventId = participation.eventId ?? '';
     if (!acc[eventId]) {
       acc[eventId] = {
         event: participation,
@@ -240,17 +240,17 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
                       {eventParticipations.map((participation) => (
                         <React.Fragment key={participation.id}>
                           <Badge
-                            color={getStatusColor(participation.status)}
+                            color={getStatusColor(participation.status ?? 'Active')}
                             variant="filled"
                             size="sm"
-                            leftSection={getTypeIcon(participation.participationType)}
+                            leftSection={getTypeIcon(participation.participationType ?? 'RSVP')}
                             style={{ borderRadius: '12px 6px 12px 6px' }}
                           >
                             {participation.participationType}
                           </Badge>
 
                           <Badge
-                            color={getStatusColor(participation.status)}
+                            color={getStatusColor(participation.status ?? 'Active')}
                             variant="light"
                             size="sm"
                           >
@@ -274,7 +274,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
                       <Group gap="sm" wrap="nowrap">
                         <IconClock size={14} color="var(--color-stone)" />
                         <Text size="sm" c="dimmed" truncate>
-                          {formatEventDate(event.eventStartDate)} at {formatEventTime(event.eventStartDate)}
+                          {formatEventDate(event.eventStartDate ?? '')} at {formatEventTime(event.eventStartDate ?? '')}
                         </Text>
                       </Group>
 

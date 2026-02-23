@@ -47,7 +47,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
                                      event.isSocialEvent
 
   // Fetch full event details only when we need to check for paid tickets
-  const { data: fullEvent } = useEvent(event.id, shouldCheckForPaidTickets)
+  const { data: fullEvent } = useEvent(event.id || '', shouldCheckForPaidTickets)
 
   // Check if event has paid tickets (maxPrice > 0)
   const hasPaidTickets = (fullEvent as any)?.ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0) || false

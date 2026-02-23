@@ -66,7 +66,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
     try {
       // Send reminders to all pending applications
       await Promise.all(
-        applications.map(app => vettingAdminApi.sendApplicationReminder(app.id, message))
+        applications.map(app => vettingAdminApi.sendApplicationReminder(app.id || '', message))
       );
 
       notifications.show({

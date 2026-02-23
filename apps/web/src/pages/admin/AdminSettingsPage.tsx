@@ -28,10 +28,10 @@ interface Settings {
 }
 
 interface Backup {
-  fileName: string;
-  timestamp: string;
-  sizeBytes: number;
-  sizeFormatted: string;
+  fileName?: string;
+  timestamp?: string;
+  sizeBytes?: number;
+  sizeFormatted?: string;
   displayName?: string;
 }
 
@@ -132,7 +132,7 @@ export const AdminSettingsPage: React.FC = () => {
       // Poll for job completion
       const pollInterval = setInterval(async () => {
         try {
-          const status = await backupApi.getJobStatus(response.jobId);
+          const status = await backupApi.getJobStatus(response.jobId || '');
 
           if (status.status === 'succeeded') {
             clearInterval(pollInterval);
@@ -458,7 +458,7 @@ export const AdminSettingsPage: React.FC = () => {
                 {backupToRestore.displayName || backupToRestore.fileName}
               </Text>
               <Text size="sm" c="dimmed">
-                {new Date(backupToRestore.timestamp).toLocaleString()}
+                {new Date(backupToRestore.timestamp || '').toLocaleString()}
               </Text>
               <Text size="sm" c="dimmed">
                 Size: {backupToRestore.sizeFormatted}

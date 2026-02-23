@@ -71,7 +71,7 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
 
   // Sort notes chronologically (newest first) - matches vetting pattern
   const sortedNotes = notes ? [...notes].sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
   ) : [];
 
   // Add note mutation: POST /api/safety/admin/incidents/{id}/notes
@@ -255,7 +255,7 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
                     )}
                   </Group>
                   <Group gap="xs">
-                    <Text size="xs" c="dimmed">{formatDate(note.createdAt, eventTimeZone)}</Text>
+                    <Text size="xs" c="dimmed">{formatDate(note.createdAt || '', eventTimeZone)}</Text>
                     {!isSystem && (
                       <Button
                         size="xs"

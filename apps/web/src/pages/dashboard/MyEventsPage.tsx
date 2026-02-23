@@ -85,8 +85,8 @@ export const MyEventsPage: React.FC = () => {
 
     // Sort events by date
     filtered.sort((a, b) => {
-      const dateA = new Date(a.startDate).getTime();
-      const dateB = new Date(b.startDate).getTime();
+      const dateA = new Date(a.startDate || '').getTime();
+      const dateB = new Date(b.startDate || '').getTime();
       return sortBy === 'date-oldest' ? dateA - dateB : dateB - dateA;
     });
 
@@ -118,7 +118,7 @@ export const MyEventsPage: React.FC = () => {
         label: 'Time',
         render: (event) => (
           <Text size="md" className="table-cell-text" style={{ color: '#2B2B2B' }}>
-            {formatEventTime(event.startDate, event.endDate)}
+            {formatEventTime(event.startDate || '', event.endDate)}
           </Text>
         ),
       },
@@ -136,7 +136,7 @@ export const MyEventsPage: React.FC = () => {
         label: 'Status',
         align: 'center',
         render: (event) => (
-          <Badge color={statusColors[event.registrationStatus] || 'gray'} variant="light">
+          <Badge color={statusColors[event.registrationStatus || ''] || 'gray'} variant="light">
             {event.registrationStatus}
           </Badge>
         ),

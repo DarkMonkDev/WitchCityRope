@@ -72,9 +72,9 @@ export const AdminEventsPage: React.FC = () => {
     const event = filteredAndSortedEvents.find((e) => e.id === eventId);
     if (event) {
       setEventToCopy({
-        id: event.id,
-        title: event.title,
-        startDate: event.startDate,
+        id: event.id || '',
+        title: event.title || '',
+        startDate: event.startDate || '',
       });
       setCopyModalOpened(true);
     }

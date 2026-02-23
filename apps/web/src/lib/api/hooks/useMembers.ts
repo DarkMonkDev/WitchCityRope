@@ -151,7 +151,7 @@ export function useBulkUpdateMembers() {
     onSuccess: (updatedMembers: UserDto[]) => {
       // Update individual member caches
       updatedMembers.forEach((member: UserDto) => {
-        queryClient.setQueryData(memberKeys.detail(member.id), member)
+        queryClient.setQueryData(memberKeys.detail(member.id || ''), member)
       })
 
       // Invalidate lists

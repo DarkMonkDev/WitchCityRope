@@ -120,8 +120,8 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
             </Alert>
           )}
 
-          {applicationDetail && (
-            <Tabs value={activeTab} onChange={setActiveTab} style={{ height: '100%' }}>
+          {!!applicationDetail && (
+            <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'details')} style={{ height: '100%' }}>
               <Tabs.List grow>
                 <Tabs.Tab value="details" leftSection={<IconEye size={16} />}>
                   Application Details

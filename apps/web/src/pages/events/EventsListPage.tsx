@@ -127,7 +127,7 @@ export const EventsListPage: React.FC = () => {
 
   // Helper component for price cell with participation status
   const PriceCell: React.FC<{ event: EventDto; isAuthenticated: boolean }> = ({ event, isAuthenticated }) => {
-    const { data: participation } = useParticipation(event.id, isAuthenticated)
+    const { data: participation } = useParticipation(event.id || '', isAuthenticated)
     const hasTicket = participation?.hasTicket || false
     const hasRSVP = participation?.hasRSVP || false
 
@@ -202,7 +202,7 @@ export const EventsListPage: React.FC = () => {
         align: 'left',
         render: (event) => (
           <Text size="md" className="table-cell-text" style={{ color: '#2B2B2B' }}>
-            {formatEventTime(event.startDate, event.endDate)}
+            {formatEventTime(event.startDate || '', event.endDate)}
           </Text>
         ),
       },
@@ -246,7 +246,7 @@ export const EventsListPage: React.FC = () => {
         label: 'Action',
         align: 'center',
         visibleFrom: 'md',
-        render: (event) => <EventTableCell eventId={event.id} isAuthenticated={isAuthenticated} />,
+        render: (event) => <EventTableCell eventId={event.id || ''} isAuthenticated={isAuthenticated} />,
       },
     ]
   }, [isAuthenticated, navigate]);
@@ -642,7 +642,7 @@ const EventCardGrid: React.FC<EventCardGridProps> = ({ events, userRole: _userRo
           event={event}
           variant="list"
           showParticipationStatus={true}
-          onClick={() => handleCardClick(event.id)}
+          onClick={() => handleCardClick(event.id || '')}
         />
       ))}
     </Box>

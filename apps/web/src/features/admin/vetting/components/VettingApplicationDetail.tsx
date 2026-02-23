@@ -56,7 +56,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         canSkipToApproved: false,
       }
 
-    const isTerminal = ['Approved', 'Denied', 'Withdrawn'].includes(application.status)
+    const isTerminal = ['Approved', 'Denied', 'Withdrawn'].includes(application.status || '')
     const isOnHold = application.status === 'OnHold'
 
     return {
@@ -257,7 +257,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         >
           Back to Applications
         </Button>
-        <VettingStatusBadge status={application.status} size="lg" data-testid="status-badge" />
+        <VettingStatusBadge status={application.status || ''} size="lg" data-testid="status-badge" />
       </Group>
 
       {/* Header Section - Person's name - SECOND with reduced padding */}
@@ -405,7 +405,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                       <Text fw={600} style={{ minWidth: '140px' }}>
                         Application Date:
                       </Text>
-                      <Text>{formatDateOnly(application.submittedAt)}</Text>
+                      <Text>{formatDateOnly(application.submittedAt || '')}</Text>
                     </Group>
                     <Group gap="md" wrap="nowrap">
                       <Text fw={600} style={{ minWidth: '140px' }}>
@@ -466,7 +466,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
       {/* Admin Notes Section */}
       <NotesSection
-        notes={application.notes}
+        notes={application.notes || []}
         onSaveNote={handleSaveNote}
         renderNoteHeader={VettingNoteRenderer}
         placeholder="Add a note about this application..."

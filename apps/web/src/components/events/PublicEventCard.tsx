@@ -31,7 +31,7 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
 
   // Fetch participation status for authenticated users (only for list variant)
   const { data: participation } = useParticipation(
-    event.id,
+    event.id || '',
     isAuthenticated && showParticipationStatus
   )
 

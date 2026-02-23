@@ -25,15 +25,15 @@ export const MemberSearchInput: React.FC<MemberSearchInputProps> = ({
   // Filter out already assigned members
   const filteredMembers = useMemo(() => {
     return searchResults.filter(
-      member => !excludedMemberIds.includes(member.userId)
+      member => !excludedMemberIds.includes(member.userId || '')
     );
   }, [searchResults, excludedMemberIds]);
 
   // Transform members to Select data format with custom rendering info
   const selectData = filteredMembers.map(member => ({
-    value: member.userId,
-    label: member.sceneName,
-    email: member.email,
+    value: member.userId || '',
+    label: member.sceneName || '',
+    email: member.email || '',
     discord: member.discordName,
   }));
 

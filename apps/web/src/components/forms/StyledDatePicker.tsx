@@ -1,8 +1,8 @@
-import { DatePickerInput, DatePickerInputProps } from '@mantine/dates';
+import { DatePickerInput, type DatePickerInputProps } from '@mantine/dates';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconCalendar } from '@tabler/icons-react';
 
-export interface StyledDatePickerProps extends Omit<DatePickerInputProps, 'leftSection'> {
+export interface StyledDatePickerProps extends Omit<DatePickerInputProps<'default'>, 'leftSection'> {
   /**
    * Show calendar icon in the input field
    * @default true
@@ -43,10 +43,16 @@ export function StyledDatePicker({
 }: StyledDatePickerProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
+  // StyledDatePicker constrains to 'default' (single date) mode via its props interface.
+  // However, DatePickerInput's generic type defaults to the wider DatePickerType union,
+  // causing an onChange type mismatch. We cast rest props to resolve this Mantine generics issue.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const restProps = props as any;
+
   return (
     <DatePickerInput
       size={size || 'md'}
-      firstDayOfWeek={0} // 0 = Sunday, 1 = Monday
+      firstDayOfWeek={0}
       leftSection={
         showIcon ? (
           <IconCalendar
@@ -58,7 +64,7 @@ export function StyledDatePicker({
       }
       leftSectionPointerEvents="none"
       dropdownType={isMobile ? 'modal' : 'popover'}
-      {...props}
+      {...restProps}
     />
   );
 }

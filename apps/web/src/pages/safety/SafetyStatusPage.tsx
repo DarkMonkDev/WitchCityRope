@@ -146,7 +146,7 @@ export function SafetyStatusPage() {
         )}
         
         {/* Error State */}
-        {error && shouldFetch && (
+        {!!error && shouldFetch && (
           <Alert variant="light" color="red">
             <Stack gap="xs">
               <Text size="sm" fw={500}>Unable to find incident</Text>
@@ -159,7 +159,7 @@ export function SafetyStatusPage() {
         )}
         
         {/* Status Results */}
-        {statusData && !error && (
+        {!!statusData && !error && (
           <Paper shadow="sm" p="xl" radius="md">
             <Stack gap="lg">
               <Group justify="space-between" align="center">

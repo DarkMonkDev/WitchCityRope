@@ -342,7 +342,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             key={event.id}
             data-testid="event-row"
             style={{ cursor: 'pointer' }}
-            onClick={() => handleRowClick(event.id)}
+            onClick={() => handleRowClick(event.id || '')}
             // Row hover handled by Mantine's highlightOnHover prop
           >
             {/* Date Column */}
@@ -407,7 +407,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
                   variant="subtle"
                   color="wcr.7"
                   data-testid="button-copy-event"
-                  onClick={(e) => handleCopyEvent(event.id, e)}
+                  onClick={(e) => handleCopyEvent(event.id || '', e)}
                   styles={{
                     root: {
                       minHeight: 40,

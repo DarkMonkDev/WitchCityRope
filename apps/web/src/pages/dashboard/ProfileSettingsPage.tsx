@@ -284,10 +284,10 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
   // All fields in one form with 3-column layout
   const form = useForm<UpdateProfileDto>({
     initialValues: {
-      sceneName: profile.sceneName,
+      sceneName: profile.sceneName || '',
       firstName: profile.firstName || '',
       lastName: profile.lastName || '',
-      email: profile.email,
+      email: profile.email || '',
       pronouns: profile.pronouns || '',
       bio: profile.bio || '',
       discordName: profile.discordName || '',

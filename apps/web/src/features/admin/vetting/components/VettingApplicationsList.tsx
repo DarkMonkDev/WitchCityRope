@@ -32,7 +32,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   // Notify parent component when selection changes
   React.useEffect(() => {
     if (onSelectionChange && data?.items) {
-      const selectedData = data.items.filter(app => selectedApplications.has(app.id));
+      const selectedData = data.items.filter(app => selectedApplications.has(app.id ?? ''));
       onSelectionChange(selectedApplications, selectedData);
     }
   }, [selectedApplications, data?.items, onSelectionChange]);
@@ -57,7 +57,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   const handleSelectAll = useCallback((checked: boolean) => {
     setSelectAll(checked);
     if (checked) {
-      const allIds = new Set(data?.items.map(app => app.id) || []);
+      const allIds = new Set(data?.items.map(app => app.id ?? '') || []);
       setSelectedApplications(allIds);
     } else {
       setSelectedApplications(new Set());
@@ -280,23 +280,23 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                 onClick={(event) => {
                   // Only navigate if clicking on the row itself, not the checkbox
                   if (!(event.target as HTMLElement).closest('input[type="checkbox"]')) {
-                    handleRowClick(application.id);
+                    handleRowClick(application.id ?? '');
                   }
                 }}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: selectedApplications.has(application.id) ? '#f0f8ff' : undefined
+                  backgroundColor: selectedApplications.has(application.id ?? '') ? '#f0f8ff' : undefined
                 }}
               >
                 {/* Checkbox - stopPropagation to prevent row click */}
                 <Table.Td>
                   <Checkbox
-                    checked={selectedApplications.has(application.id)}
+                    checked={selectedApplications.has(application.id ?? '')}
                     onChange={(event) => {
                       event.stopPropagation(); // Prevent row click
-                      handleSelectApplication(application.id, event.currentTarget.checked);
+                      handleSelectApplication(application.id ?? '', event.currentTarget.checked);
                     }}
-                    aria-label={`Select application for ${application.sceneName}`}
+                    aria-label={`Select application for ${application.sceneName ?? ''}`}
                   />
                 </Table.Td>
 
@@ -324,13 +324,13 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                 {/* Application Date - Center aligned */}
                 <Table.Td ta="center">
                   <Text size="sm" style={{ color: '#2B2B2B' }}>
-                    {formatDate(application.submittedAt)}
+                    {formatDate(application.submittedAt ?? '')}
                   </Text>
                 </Table.Td>
 
                 {/* Current Status - Colored pill badges matching wireframe */}
                 <Table.Td>
-                  <VettingStatusBadge status={application.status} />
+                  <VettingStatusBadge status={application.status ?? ''} />
                 </Table.Td>
               </Table.Tr>
             ))}

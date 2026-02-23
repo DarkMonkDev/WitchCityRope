@@ -66,8 +66,8 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
 
   const handleEdit = () => {
     if (content) {
-      setEditableTitle(content.title)
-      setEditableContent(content.content)
+      setEditableTitle(content.title || '')
+      setEditableContent(content.content || '')
     }
     setIsEditing(true)
     setIsDirty(false)
@@ -279,7 +279,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
       {!isEditing && (
         <Box>
           {/* Display page content with global HTML content styling */}
-          <div className="html-content" dangerouslySetInnerHTML={{ __html: pageContent.content }} />
+          <div className="html-content" dangerouslySetInnerHTML={{ __html: pageContent.content || '' }} />
         </Box>
       )}
 

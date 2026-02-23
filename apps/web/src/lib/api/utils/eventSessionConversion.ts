@@ -38,11 +38,11 @@ export function convertEventSessionToCreateDto(session: EventSession): {
   const endDateTime = new Date(`${session.startDate}T${session.endTime}:00`)
   
   return {
-    sessionIdentifier: session.sessionIdentifier,
-    name: session.name,
+    sessionIdentifier: session.sessionIdentifier ?? '',
+    name: session.name ?? '',
     startDateTime: startDateTime.toISOString(),
     endDateTime: endDateTime.toISOString(),
-    capacity: session.capacity
+    capacity: session.capacity ?? 0
   }
 }
 
@@ -52,12 +52,12 @@ export function convertEventSessionToCreateDto(session: EventSession): {
 export function convertEventTicketTypeFromDto(dto: TicketTypeDto, _sessions: EventSession[] = []): EventTicketType {
   // TicketTypeDto already has sessionIdentifiers
   return {
-    id: dto.id,
-    name: dto.name,
-    pricingType: dto.pricingType, // Direct mapping as enum values match
+    id: dto.id ?? '',
+    name: dto.name ?? '',
+    pricingType: dto.pricingType ?? 'Fixed', // Direct mapping as enum values match
     sessionIdentifiers: dto.sessionIdentifiers || [],
-    minPrice: dto.minPrice,
-    maxPrice: dto.maxPrice,
+    minPrice: dto.minPrice ?? undefined,
+    maxPrice: dto.maxPrice ?? undefined,
     quantityAvailable: dto.quantityAvailable,
     // ✅ REMOVED: salesEndDate field removed from backend DTO
     // salesEndDate: dto.salesEndDate

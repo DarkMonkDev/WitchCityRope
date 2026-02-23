@@ -182,8 +182,8 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       if (session) {
         // Populate form with existing session data for editing
         // Convert stored UTC times back to local time for display in form fields
-        const startLocal = utcToLocal(session.startTime, DEFAULT_EVENT_TIMEZONE);
-        const endLocal = utcToLocal(session.endTime, DEFAULT_EVENT_TIMEZONE);
+        const startLocal = utcToLocal(session.startTime || '', DEFAULT_EVENT_TIMEZONE);
+        const endLocal = utcToLocal(session.endTime || '', DEFAULT_EVENT_TIMEZONE);
 
         // Use the 24-hour format time string for the TimeInput component
         const startTimeString = startLocal.time24;
@@ -267,9 +267,9 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               data-testid="input-session-date"
               value={form.values.date}
               onChange={(value) => {
-                form.setFieldValue('date', value);
+                form.setFieldValue('date', value || new Date());
                 // Auto-sync end date to match start date
-                form.setFieldValue('endDate', value);
+                form.setFieldValue('endDate', value || new Date());
               }}
               error={form.errors.date}
             />

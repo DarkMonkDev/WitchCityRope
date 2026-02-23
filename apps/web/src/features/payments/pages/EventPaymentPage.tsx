@@ -696,7 +696,7 @@ export const EventPaymentPage: React.FC = () => {
                                 cursor: showCheckbox && !isDisabledDueToOverlap ? 'pointer' : 'default',
                                 opacity: isDisabledDueToOverlap ? 0.5 : 1,
                               }}
-                              onClick={() => showCheckbox && !isDisabledDueToOverlap && handleTicketTypeToggle(tt.id, !isSelected)}
+                              onClick={() => showCheckbox && !isDisabledDueToOverlap && handleTicketTypeToggle(tt.id ?? '', !isSelected)}
                             >
                               <Group justify="space-between" wrap="nowrap">
                                 <Group gap="sm" style={{ flex: 1 }}>
@@ -706,7 +706,7 @@ export const EventPaymentPage: React.FC = () => {
                                       disabled={isDisabledDueToOverlap}
                                       onChange={(e) => {
                                         e.stopPropagation();
-                                        handleTicketTypeToggle(tt.id, e.currentTarget.checked);
+                                        handleTicketTypeToggle(tt.id ?? '', e.currentTarget.checked);
                                       }}
                                       color="wcr"
                                     />
@@ -765,9 +765,9 @@ export const EventPaymentPage: React.FC = () => {
                     }}
                     title="Choose Your Payment Amount"
                     forceSliding={true}
-                    minPrice={firstSlidingTicket.minPrice}
-                    maxPrice={firstSlidingTicket.maxPrice}
-                    defaultPrice={firstSlidingTicket.defaultPrice}
+                    minPrice={firstSlidingTicket.minPrice ?? undefined}
+                    maxPrice={firstSlidingTicket.maxPrice ?? undefined}
+                    defaultPrice={firstSlidingTicket.defaultPrice ?? undefined}
                   />
                 )}
 

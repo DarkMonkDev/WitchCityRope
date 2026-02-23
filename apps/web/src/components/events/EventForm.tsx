@@ -88,11 +88,11 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
     const grouped = new Map<string, EventParticipationDto & { ticketAmount?: number; checkedInSessions?: string[] }>()
 
     participations.forEach((p) => {
-      const existing = grouped.get(p.userId)
+      const existing = grouped.get(p.userId ?? '')
 
       if (!existing) {
         // First entry for this user
-        grouped.set(p.userId, {
+        grouped.set(p.userId ?? '', {
           ...p,
           ticketAmount: p.participationType === 'Ticket' ? (p.amountPaid ?? 0) : undefined,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1366,9 +1366,9 @@ export const EventForm: React.FC<EventFormProps> = ({
       setInitialTimingValues((prev) => ({
         ...prev,
         rsvp: {
-          registrationOpenHours: form.values.registrationOpenHours,
-          registrationCloseHours: form.values.registrationCloseHours,
-          cancellationCloseHours: form.values.cancellationCloseHours,
+          registrationOpenHours: form.values.registrationOpenHours ?? null,
+          registrationCloseHours: form.values.registrationCloseHours ?? null,
+          cancellationCloseHours: form.values.cancellationCloseHours ?? null,
         },
       }))
       setRsvpTimingDirty(false)
@@ -1411,8 +1411,8 @@ export const EventForm: React.FC<EventFormProps> = ({
       setInitialTimingValues((prev) => ({
         ...prev,
         volunteer: {
-          volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours,
-          volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours,
+          volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours ?? null,
+          volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours ?? null,
         },
       }))
       setVolunteerTimingDirty(false)
@@ -1445,7 +1445,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       <form onSubmit={handleSubmit}>
         <Tabs
           value={activeTab}
-          onChange={setActiveTab}
+          onChange={(value) => setActiveTab(value ?? 'basic-info')}
           variant="pills"
           radius="md"
           data-testid="tabs-event-management"
@@ -2135,8 +2135,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                   onDeletePosition={handleDeleteVolunteerPosition}
                   availableSessions={form.values.sessions.map((s) => ({
                     id: s.id || '',
-                    sessionIdentifier: s.sessionIdentifier,
-                    name: s.name,
+                    sessionIdentifier: s.sessionIdentifier ?? '',
+                    name: s.name ?? '',
                   }))}
                 />
               </div>
@@ -2425,8 +2425,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 bVal = b.status
                                 break
                               case 'date':
-                                aVal = new Date(a.participationDate).getTime()
-                                bVal = new Date(b.participationDate).getTime()
+                                aVal = new Date(a.participationDate ?? '').getTime()
+                                bVal = new Date(b.participationDate ?? '').getTime()
                                 break
                               default:
                                 aVal = a.userSceneName
@@ -2458,7 +2458,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                               </Table.Td>
                               <Table.Td>
                                 <Text size="sm">
-                                  {new Date(participation.participationDate).toLocaleDateString('en-US', { timeZone: eventTimeZone })}
+                                  {new Date(participation.participationDate ?? '').toLocaleDateString('en-US', { timeZone: eventTimeZone })}
                                 </Text>
                               </Table.Td>
                               <Table.Td>
@@ -2695,8 +2695,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                               bVal = (b.sessionNames ?? '').toLowerCase()
                               break
                             case 'date':
-                              aVal = new Date(a.participationDate).getTime()
-                              bVal = new Date(b.participationDate).getTime()
+                              aVal = new Date(a.participationDate ?? '').getTime()
+                              bVal = new Date(b.participationDate ?? '').getTime()
                               break
                             case 'amount':
                               aVal = a.amountPaid ?? 0
@@ -2733,7 +2733,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm">
-                                {new Date(participation.participationDate).toLocaleDateString()}
+                                {new Date(participation.participationDate ?? '').toLocaleDateString()}
                               </Text>
                             </Table.Td>
                             <Table.Td>
@@ -2814,8 +2814,8 @@ export const EventForm: React.FC<EventFormProps> = ({
             setSelectedParticipant(null)
           }}
           participant={{
-            userId: selectedParticipant.userId,
-            name: selectedParticipant.userSceneName,
+            userId: selectedParticipant.userId ?? '',
+            name: selectedParticipant.userSceneName ?? '',
             hasTicket:
               selectedParticipant.participationType === 'Ticket' ||
               (participationsData as EventParticipationDto[])?.some(
@@ -2838,12 +2838,12 @@ export const EventForm: React.FC<EventFormProps> = ({
             setSelectedParticipant(null)
           }}
           payment={{
-            id: selectedParticipant.id,
-            userName: selectedParticipant.userSceneName,
-            userEmail: selectedParticipant.userEmail,
+            id: selectedParticipant.id ?? '',
+            userName: selectedParticipant.userSceneName ?? '',
+            userEmail: selectedParticipant.userEmail ?? '',
             amount: Number(selectedParticipant.amountPaid ?? 0),
             paymentMethod: selectedParticipant.paymentMethod || 'Paid Ticket',
-            paymentDate: selectedParticipant.participationDate,
+            paymentDate: selectedParticipant.participationDate ?? '',
             description:
               selectedParticipant.sessionNames !== 'All Sessions'
                 ? `Sessions: ${selectedParticipant.sessionNames}`

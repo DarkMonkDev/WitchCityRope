@@ -124,7 +124,7 @@ export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) =>
                 <Text fw={500}>{event.eventTitle}</Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm">{new Date(event.eventDate).toLocaleDateString()}</Text>
+                <Text size="sm">{new Date(event.eventDate || '').toLocaleDateString()}</Text>
               </Table.Td>
               <Table.Td>
                 <Text size="sm">
@@ -137,7 +137,7 @@ export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) =>
               </Table.Td>
               <Table.Td>
                 <Badge
-                  color={registrationTypeColors[event.registrationType] || 'gray'}
+                  color={registrationTypeColors[event.registrationType || ''] || 'gray'}
                   variant="light"
                 >
                   {event.registrationType}
@@ -163,7 +163,7 @@ export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) =>
           <Pagination
             value={page}
             onChange={setPage}
-            total={eventHistory.totalPages}
+            total={eventHistory.totalPages ?? 0}
             color="burgundy"
           />
         </Group>

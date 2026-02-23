@@ -31,7 +31,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
 
   const signupMutation = useMutation<any, any, void>({
     mutationFn: async () => {
-      return await signupForVolunteerPosition(position.id, {
+      return await signupForVolunteerPosition(position.id ?? '', {
         // If user has existing participation, they've already accepted the waiver
         // Otherwise, use the checkbox state
         eventWaiverAccepted: !needsTermsAcceptance || volunteerTermsAccepted
@@ -175,9 +175,9 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               <Text size="sm" c="dimmed">
                 {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
                 {(position.startTime || position.endTime) ? (
-                  <> · {formatShiftTime(position.startTime)} - {formatShiftTime(position.endTime)}</>
+                  <> · {formatShiftTime(position.startTime ?? undefined)} - {formatShiftTime(position.endTime ?? undefined)}</>
                 ) : position.sessionEndTime ? (
-                  <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}</>
+                  <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime ?? undefined)}</>
                 ) : null}
               </Text>
             )}
@@ -283,9 +283,9 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                   <Text size="sm" c="dimmed">
                     {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
                     {(position.startTime || position.endTime) ? (
-                      <> · {formatShiftTime(position.startTime)} - {formatShiftTime(position.endTime)}</>
+                      <> · {formatShiftTime(position.startTime ?? undefined)} - {formatShiftTime(position.endTime ?? undefined)}</>
                     ) : position.sessionEndTime ? (
-                      <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime)}</>
+                      <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime ?? undefined)}</>
                     ) : null}
                   </Text>
                 )}

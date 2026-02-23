@@ -294,7 +294,7 @@ export const CmsRevisionListPage: React.FC = () => {
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm" style={{ color: '#2B2B2B' }}>
-                      {formatDate(page.updatedAt)}
+                      {formatDate(page.updatedAt || '')}
                     </Text>
                   </Table.Td>
                   <Table.Td>

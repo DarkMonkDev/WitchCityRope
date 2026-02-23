@@ -77,13 +77,19 @@ export function useCreateEventSession() {
     },
     onSuccess: (newSession: EventSession, variables: CreateEventSessionDto) => {
       // Invalidate the event sessions list
-      queryClient.invalidateQueries({ queryKey: eventSessionKeys.list(variables.eventId) });
+      if (variables.eventId) {
+        queryClient.invalidateQueries({ queryKey: eventSessionKeys.list(variables.eventId) });
+      }
 
       // Add to cache
-      queryClient.setQueryData(eventSessionKeys.detail(newSession.id), newSession);
+      if (newSession.id) {
+        queryClient.setQueryData(eventSessionKeys.detail(newSession.id), newSession);
+      }
 
       // Invalidate related event data
-      queryClient.invalidateQueries({ queryKey: ['events', 'detail', variables.eventId] });
+      if (variables.eventId) {
+        queryClient.invalidateQueries({ queryKey: ['events', 'detail', variables.eventId] });
+      }
 
       console.log('Event session created successfully:', newSession.name);
     },
@@ -190,7 +196,9 @@ export function useBulkCreateEventSessions() {
 
           // Add each session to cache
           newSessions.forEach((session: EventSession) => {
-            queryClient.setQueryData(eventSessionKeys.detail(session.id), session);
+            if (session.id) {
+              queryClient.setQueryData(eventSessionKeys.detail(session.id), session);
+            }
           });
 
           // Invalidate related event data
@@ -224,7 +232,9 @@ export function useReorderEventSessions() {
 
       // Update individual session caches
       reorderedSessions.forEach((session: EventSession) => {
-        queryClient.setQueryData(eventSessionKeys.detail(session.id), session);
+        if (session.id) {
+          queryClient.setQueryData(eventSessionKeys.detail(session.id), session);
+        }
       });
 
       console.log('Event sessions reordered successfully');

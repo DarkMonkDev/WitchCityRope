@@ -12,7 +12,7 @@ interface CmsRevisionCardProps {
 export const CmsRevisionCard: React.FC<CmsRevisionCardProps> = ({ revision }) => {
   const [showFullContent, setShowFullContent] = useState(false)
 
-  const formattedDate = new Date(revision.createdAt).toLocaleString('en-US', {
+  const formattedDate = new Date(revision.createdAt || '').toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

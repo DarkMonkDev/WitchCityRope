@@ -77,8 +77,8 @@ export function BackupManagementCard({ onRestoreClick }: BackupManagementCardPro
     try {
       const data = await backupApi.getStorageSummary();
       setStorageInfo({
-        totalSizeFormatted: data.totalSizeFormatted,
-        percentUsed: data.percentUsed
+        totalSizeFormatted: data.totalSizeFormatted ?? '',
+        percentUsed: data.percentUsed ?? 0
       });
     } catch (err) {
       console.error('Failed to load storage info:', err);
@@ -101,7 +101,7 @@ export function BackupManagementCard({ onRestoreClick }: BackupManagementCardPro
       // Poll for job completion
       const pollInterval = setInterval(async () => {
         try {
-          const status = await backupApi.getJobStatus(response.jobId);
+          const status = await backupApi.getJobStatus(response.jobId ?? '');
 
           if (status.status === 'succeeded') {
             clearInterval(pollInterval);
@@ -306,8 +306,8 @@ export function BackupManagementCard({ onRestoreClick }: BackupManagementCardPro
   };
 
   const handleNameClick = (backup: Backup) => {
-    setEditingName(backup.fileName);
-    setEditValue(backup.displayName || backup.fileName);
+    setEditingName(backup.fileName ?? null);
+    setEditValue(backup.displayName || (backup.fileName ?? ''));
   };
 
   const handleNameBlur = () => {
@@ -446,7 +446,7 @@ export function BackupManagementCard({ onRestoreClick }: BackupManagementCardPro
               </Button>
               {lastBackup && !isBackingUp && (
                 <Text c="dimmed" size="sm">
-                  Last backup: {formatTimestamp(lastBackup.timestamp)}
+                  Last backup: {formatTimestamp(lastBackup.timestamp ?? '')}
                 </Text>
               )}
             </Group>
@@ -560,7 +560,7 @@ export function BackupManagementCard({ onRestoreClick }: BackupManagementCardPro
                       )}
                     </Table.Td>
                     <Table.Td>
-                      <Text size="sm">{formatDate(backup.timestamp)}</Text>
+                      <Text size="sm">{formatDate(backup.timestamp ?? '')}</Text>
                     </Table.Td>
                     <Table.Td style={{ textAlign: 'center' }}>
                       <Text size="sm">{backup.sizeFormatted}</Text>
@@ -576,7 +576,7 @@ export function BackupManagementCard({ onRestoreClick }: BackupManagementCardPro
                           Restore
                         </Button>
                         <Button
-                          onClick={(e) => handleDownload(backup.fileName, e)}
+                          onClick={(e) => handleDownload(backup.fileName ?? '', e)}
                           disabled={downloadingFile === backup.fileName}
                           color="blue"
                           size="xs"
@@ -585,7 +585,7 @@ export function BackupManagementCard({ onRestoreClick }: BackupManagementCardPro
                           {downloadingFile === backup.fileName ? '⏳' : 'Download'}
                         </Button>
                         <Button
-                          onClick={() => handleDelete(backup.fileName)}
+                          onClick={() => handleDelete(backup.fileName ?? '')}
                           disabled={deletingFile === backup.fileName}
                           color="red"
                           size="xs"

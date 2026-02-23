@@ -89,7 +89,7 @@ export const AssignedMembersTable: React.FC<AssignedMembersTableProps> = ({
                 variant="filled"
                 color="red"
                 size="sm"
-                onClick={() => handleRemoveClick(member.signupId, member.sceneName)}
+                onClick={() => handleRemoveClick(member.signupId || '', member.sceneName || '')}
                 data-testid="button-remove-member"
                 aria-label={`Remove ${member.sceneName}`}
               >

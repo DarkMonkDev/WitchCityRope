@@ -118,7 +118,7 @@ export function CheckInDashboardPage() {
         />
 
         {/* Event Info */}
-        {dashboard && (
+        {!!dashboard && (
           <Group justify="center" mt="xl">
             <Text size="sm" c="dimmed" ta="center">
               Event ID: {eventId} • {(dashboard as any)?.capacity?.checkedInCount || 0} attendees checked in

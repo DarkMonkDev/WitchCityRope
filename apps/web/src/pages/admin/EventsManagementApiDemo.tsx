@@ -49,7 +49,7 @@ export const EventsManagementApiDemo: React.FC = () => {
   
   // Future API queries - DISABLED
   const eventsLoading = false;
-  const eventsError: Error | null = null;
+  const eventsError = null as Error | null;
   
   
 
@@ -67,7 +67,7 @@ export const EventsManagementApiDemo: React.FC = () => {
         {/* API Selector */}
         <Paper shadow="sm" radius="md" p="lg">
           <Title order={2} c="burgundy" mb="md">API Integration Demo</Title>
-          <Tabs value={activeTab} onChange={setActiveTab}>
+          <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'current-api')}>
             <Tabs.List>
               <Tabs.Tab value="current-api">Current API (Working)</Tabs.Tab>
               <Tabs.Tab value="future-api">Future Events Management API</Tabs.Tab>
@@ -92,15 +92,15 @@ export const EventsManagementApiDemo: React.FC = () => {
                 </Group>
               )}
 
-              {legacyEventsError && (
+              {!!legacyEventsError && (
                 <Alert icon={<IconInfoCircle />} color="red" mb="md">
-                  Error loading events: {legacyEventsError.message}
+                  Error loading events: {legacyEventsError instanceof Error ? legacyEventsError.message : String(legacyEventsError)}
                 </Alert>
               )}
 
-              {legacyEvents && (legacyEvents as any)?.length > 0 && (
+              {(Array.isArray(legacyEvents) && legacyEvents.length > 0) ? (
                 <Grid>
-                  {(legacyEvents as any)?.map((event: LegacyEventDto) => (
+                  {(legacyEvents as LegacyEventDto[]).map((event: LegacyEventDto) => (
                     <Grid.Col key={event.id} span={{ base: 12, md: 6, lg: 4 }}>
                       <Card 
                         shadow="sm" 
@@ -134,9 +134,9 @@ export const EventsManagementApiDemo: React.FC = () => {
                     </Grid.Col>
                   ))}
                 </Grid>
-              )}
+              ) : null}
 
-              {selectedEventId && legacyEventDetails && (
+              {selectedEventId && !!legacyEventDetails && (
                 <Paper shadow="sm" radius="md" p="lg" mt="xl">
                   <Title order={3} mb="md">Selected Event Details</Title>
                   <Stack gap="md">

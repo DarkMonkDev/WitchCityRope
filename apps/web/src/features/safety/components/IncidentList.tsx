@@ -82,7 +82,7 @@ export function IncidentList({
           </Table.Thead>
           <Table.Tbody>
             {incidents.map((incident) => {
-              const statusConfig = STATUS_CONFIGS[incident.status];
+              const statusConfig = STATUS_CONFIGS[incident.status || ''];
               
               return (
                 <Table.Tr key={incident.id}>
@@ -96,8 +96,8 @@ export function IncidentList({
                   {/* Date */}
                   <Table.Td>
                     <Box>
-                      <Text size="sm">{formatDate(incident.incidentDate)}</Text>
-                      <Text size="xs" c="dimmed">{formatTime(incident.incidentDate)}</Text>
+                      <Text size="sm">{formatDate(incident.incidentDate || '')}</Text>
+                      <Text size="xs" c="dimmed">{formatTime(incident.incidentDate || '')}</Text>
                     </Box>
                   </Table.Td>
 
@@ -155,7 +155,7 @@ export function IncidentList({
                       <ActionIcon
                         variant="light"
                         color="blue"
-                        onClick={() => onIncidentSelect(incident.id)}
+                        onClick={() => onIncidentSelect(incident.id || '')}
                       >
                         <IconEye size={16} />
                       </ActionIcon>

@@ -64,7 +64,7 @@ export const VettingAlertBox: React.FC<VettingAlertBoxProps> = ({ status }) => {
     },
   };
 
-  const config = alertConfigs[status.status];
+  const config = status.status ? alertConfigs[status.status as keyof typeof alertConfigs] : undefined;
 
   if (!config) {
     return null;
