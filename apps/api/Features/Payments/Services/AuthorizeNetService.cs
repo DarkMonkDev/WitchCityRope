@@ -83,7 +83,8 @@ public class AuthorizeNetService : IAuthorizeNetService
             {
                 transactionRequest.order = new orderType
                 {
-                    invoiceNumber = invoiceId ?? "",
+                    // Authorize.NET invoiceNumber max length is 20 characters
+                    invoiceNumber = TruncateField(invoiceId, 20),
                     description = TruncateDescription(description)
                 };
             }
@@ -455,6 +456,13 @@ public class AuthorizeNetService : IAuthorizeNetService
             "4" => "Transaction held for review",
             _ => "Transaction failed - please try again"
         };
+    }
+
+    private static string TruncateField(string? value, int maxLength)
+    {
+        if (string.IsNullOrEmpty(value))
+            return "";
+        return value.Length > maxLength ? value[..maxLength] : value;
     }
 
     private static string TruncateDescription(string? description)
