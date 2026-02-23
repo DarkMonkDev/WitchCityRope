@@ -29,6 +29,15 @@ public interface IEventService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get lightweight event list for admin table view.
+    /// Uses SQL-level projection and COUNT subqueries instead of loading full object graph.
+    /// </summary>
+    Task<(bool Success, List<EventListItemDto> Response, string Error)> GetEventListAsync(
+        bool includeUnpublished = false,
+        bool includePastEvents = false,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Get a single event by ID
     /// </summary>
     /// <param name="id">Event ID (string representation of Guid)</param>

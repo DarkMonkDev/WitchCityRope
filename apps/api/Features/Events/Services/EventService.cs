@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Interfaces;
+using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Events.Services;
@@ -70,40 +71,8 @@ public class EventService : IEventService
                         .ThenInclude(tp => tp.TicketType) // CRITICAL: Load TicketType for session matching
                             .ThenInclude(tt => tt.Sessions); // CRITICAL: Load Sessions collection for Session.CurrentAttendees calculation (Session.cs lines 73-86)
 
-            // Apply filters based on admin vs public access
-            var now = DateTime.UtcNow;
-
-            if (includeUnpublished)
-            {
-                // Admin access: Show all events (both published and draft), including future and past
-                // Filter based on sessions: show events with sessions in last 365 days OR with future sessions
-                query = query.Where(e =>
-                    e.Sessions.Any(s => s.EndTime > now.AddDays(-365)) || // Has session that ended within last year
-                    e.Sessions.Any(s => s.StartTime > now) || // Has upcoming session
-                    e.StartDate > now.AddDays(-365)); // Fallback to StartDate for events without sessions
-            }
-            else
-            {
-                // Public access: Only published events
-                if (includePastEvents)
-                {
-                    // Show published events including past ones (last 90 days)
-                    // Filter based on sessions: show events with sessions in last 90 days OR with future sessions
-                    query = query.Where(e => e.IsPublished && (
-                        e.Sessions.Any(s => s.EndTime > now.AddDays(-90)) || // Has session that ended within last 90 days
-                        e.Sessions.Any(s => s.StartTime > now) || // Has upcoming session
-                        e.StartDate > now.AddDays(-90))); // Fallback to StartDate for events without sessions
-                }
-                else
-                {
-                    // Default: Only published future events
-                    // An event is "future" if it has ANY session with StartTime > now
-                    // An event is "past" only if ALL sessions have ended (EndTime < now)
-                    query = query.Where(e => e.IsPublished && (
-                        e.Sessions.Any(s => s.StartTime > now) || // Has at least one upcoming session
-                        (!e.Sessions.Any() && e.StartDate > now))); // Fallback: no sessions but StartDate is future
-                }
-            }
+            // Apply shared filters based on admin vs public access
+            query = ApplyEventFilters(query, includeUnpublished, includePastEvents);
 
             var events = await query
                 .OrderBy(e => e.StartDate) // Sort by date
@@ -158,6 +127,97 @@ public class EventService : IEventService
         {
             _logger.LogError(ex, "Failed to retrieve events from database");
             return (false, new List<EventDto>(), "Failed to retrieve events");
+        }
+    }
+
+    /// <summary>
+    /// Get lightweight event list for admin table view.
+    /// Uses SQL-level projection and COUNT subqueries — NO .Include() chains.
+    /// </summary>
+    public async Task<(bool Success, List<EventListItemDto> Response, string Error)> GetEventListAsync(
+        bool includeUnpublished = false,
+        bool includePastEvents = false,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var eventTypeFilter = includeUnpublished ? "all events (list)" : "published events (list)";
+            _logger.LogInformation("Querying {EventTypeFilter} using lightweight projection", eventTypeFilter);
+
+            // Phase A: SQL-level projection with COUNT subqueries — no .Include() at all
+            IQueryable<WitchCityRope.Api.Models.Event> query = _context.Events.AsNoTracking();
+            query = ApplyEventFilters(query, includeUnpublished, includePastEvents);
+
+            var projected = await query
+                .OrderBy(e => e.StartDate)
+                .Take(50)
+                .Select(e => new
+                {
+                    e.Id,
+                    e.Title,
+                    e.Description,
+                    e.IsPublished,
+                    e.AllowRsvps,
+                    e.RequireTicketPurchase,
+                    e.Capacity,
+                    e.StartDate,
+                    e.EndDate,
+                    CurrentRSVPs = e.EventAttendances.Count(ea =>
+                        ea.AttendanceType == AttendanceType.RSVP &&
+                        ea.Status == AttendanceStatus.Active),
+                    CurrentTickets = e.EventAttendances.Count(ea =>
+                        ea.AttendanceType == AttendanceType.Ticket &&
+                        ea.Status == AttendanceStatus.Active),
+                    Sessions = e.Sessions
+                        .OrderBy(s => s.StartTime)
+                        .Select(s => new
+                        {
+                            s.Id,
+                            s.StartTime,
+                            s.EndTime
+                        })
+                        .ToList()
+                })
+                .ToListAsync(cancellationToken);
+
+            // Phase B: In-memory timezone conversion for StartDate (can't be translated to SQL)
+            var easternZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+
+            var results = projected.Select(e => new EventListItemDto
+            {
+                Id = e.Id.ToString(),
+                Title = e.Title,
+                Description = e.Description,
+                IsPublished = e.IsPublished,
+                AllowRsvps = e.AllowRsvps,
+                RequireTicketPurchase = e.RequireTicketPurchase,
+                Capacity = e.Capacity,
+                CurrentRSVPs = e.CurrentRSVPs,
+                CurrentTickets = e.CurrentTickets,
+                StartDate = e.StartDate,
+                EndDate = e.EndDate,
+                Sessions = e.Sessions.Select(s =>
+                {
+                    var utcStart = DateTime.SpecifyKind(s.StartTime, DateTimeKind.Utc);
+                    var localStart = TimeZoneInfo.ConvertTimeFromUtc(utcStart, easternZone);
+
+                    return new EventListSessionDto
+                    {
+                        Id = s.Id.ToString(),
+                        StartTime = s.StartTime,
+                        EndTime = s.EndTime,
+                        StartDate = localStart.Date
+                    };
+                }).ToList()
+            }).ToList();
+
+            _logger.LogInformation("Retrieved {EventCount} {EventTypeFilter} via lightweight projection", results.Count, eventTypeFilter);
+            return (true, results, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve event list from database");
+            return (false, new List<EventListItemDto>(), "Failed to retrieve event list");
         }
     }
 
@@ -610,6 +670,43 @@ public class EventService : IEventService
             _logger.LogError(ex, "Failed to update event: {EventId}", eventId);
             return (false, null, "Failed to update event");
         }
+    }
+
+    /// <summary>
+    /// Apply shared event filters for admin vs public access and past events.
+    /// Used by both GetEventsAsync (full DTO) and GetEventListAsync (lightweight projection).
+    /// </summary>
+    private static IQueryable<WitchCityRope.Api.Models.Event> ApplyEventFilters(
+        IQueryable<WitchCityRope.Api.Models.Event> query,
+        bool includeUnpublished,
+        bool includePastEvents)
+    {
+        var now = DateTime.UtcNow;
+
+        if (includeUnpublished)
+        {
+            // Admin access: Show all events (both published and draft), including future and past
+            // Filter based on sessions: show events with sessions in last 365 days OR with future sessions
+            return query.Where(e =>
+                e.Sessions.Any(s => s.EndTime > now.AddDays(-365)) ||
+                e.Sessions.Any(s => s.StartTime > now) ||
+                e.StartDate > now.AddDays(-365));
+        }
+
+        // Public access: Only published events
+        if (includePastEvents)
+        {
+            // Show published events including past ones (last 90 days)
+            return query.Where(e => e.IsPublished && (
+                e.Sessions.Any(s => s.EndTime > now.AddDays(-90)) ||
+                e.Sessions.Any(s => s.StartTime > now) ||
+                e.StartDate > now.AddDays(-90)));
+        }
+
+        // Default: Only published future events
+        return query.Where(e => e.IsPublished && (
+            e.Sessions.Any(s => s.StartTime > now) ||
+            (!e.Sessions.Any() && e.StartDate > now)));
     }
 
     /// <summary>

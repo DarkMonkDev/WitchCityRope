@@ -3,7 +3,7 @@ import { Table, ActionIcon, Button, Text, Group, Skeleton } from '@mantine/core'
 import { IconCaretUp, IconCaretDown, IconSelector } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { useNavigate } from 'react-router-dom'
-import type { EventDto } from '@witchcityrope/shared-types'
+import type { EventListItemDto } from '@witchcityrope/shared-types'
 import { CapacityDisplay } from './CapacityDisplay'
 import type { AdminEventFiltersState } from '../../hooks/useAdminEventFilters'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone'
@@ -11,7 +11,7 @@ import { formatUtcToLocalTime, formatUtcTimeRange } from '../../utils/eventUtils
 import { GenerateCheckInLinkModal } from '../../features/checkin/components/GenerateCheckInLinkModal'
 
 interface EventsTableViewProps {
-  events: EventDto[]
+  events: EventListItemDto[]
   sortState: Pick<AdminEventFiltersState, 'sortColumn' | 'sortDirection'>
   onSort: (column: 'date' | 'title') => void
   onCopyEvent?: (eventId: string) => void
@@ -19,7 +19,7 @@ interface EventsTableViewProps {
 }
 
 // Helper function to get the next upcoming session or first session
-const getDisplaySession = (event: EventDto) => {
+const getDisplaySession = (event: EventListItemDto) => {
   if (!event.sessions || event.sessions.length === 0) {
     return null;
   }
@@ -40,7 +40,7 @@ const getDisplaySession = (event: EventDto) => {
 }
 
 // Helper function to format event dates with robust field handling
-const formatEventDate = (event: EventDto): string => {
+const formatEventDate = (event: EventListItemDto): string => {
   // Use next upcoming session's date instead of event.startDate
   const displaySession = getDisplaySession(event);
 
@@ -69,7 +69,7 @@ const formatEventDate = (event: EventDto): string => {
 }
 
 // Helper function to format time range with robust field handling
-const formatTimeRange = (event: EventDto, timeZone: string): string => {
+const formatTimeRange = (event: EventListItemDto, timeZone: string): string => {
   // Use next upcoming session's time instead of event.startDate/endDate
   const displaySession = getDisplaySession(event);
 
@@ -105,15 +105,15 @@ const formatTimeRange = (event: EventDto, timeZone: string): string => {
 }
 
 // Helper function to get the correct current count based on event flags
-const getCorrectCurrentCount = (event: EventDto): number => {
-  const allowRsvps = (event as any)?.allowRsvps ?? false
-  const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true
+const getCorrectCurrentCount = (event: EventListItemDto): number => {
+  const allowRsvps = event.allowRsvps ?? false
+  const requireTicketPurchase = event.requireTicketPurchase ?? true
   const isSocialEvent = allowRsvps && !requireTicketPurchase
-  return isSocialEvent ? event.currentRSVPs || 0 : event.currentTickets || 0
+  return isSocialEvent ? Number(event.currentRSVPs) || 0 : Number(event.currentTickets) || 0
 }
 
 // Helper function to check if event has any sessions within ±12 hours of current time
-const isWithinCheckInWindow = (event: EventDto): boolean => {
+const isWithinCheckInWindow = (event: EventListItemDto): boolean => {
   if (!event.sessions || event.sessions.length === 0) {
     return false
   }
@@ -397,7 +397,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
 
             {/* Capacity Column - Narrow */}
             <Table.Td style={{ width: '160px', maxWidth: '160px' }}>
-              <CapacityDisplay current={getCorrectCurrentCount(event)} max={event.capacity} />
+              <CapacityDisplay current={getCorrectCurrentCount(event)} max={Number(event.capacity) || 0} />
             </Table.Td>
 
             {/* Actions Column - Contains Copy button */}

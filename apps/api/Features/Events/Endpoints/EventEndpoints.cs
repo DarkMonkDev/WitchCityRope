@@ -78,6 +78,59 @@ public static class EventEndpoints
             .ProducesProblem(403)
             .ProducesProblem(500);
 
+        // Get lightweight event list for admin table
+        app.MapGet("/api/events/list", async (
+            [FromServices] IEventService eventService,
+            HttpContext context,
+            bool? includeUnpublished,
+            bool? includePastEvents,
+            CancellationToken cancellationToken) =>
+            {
+                var shouldIncludeUnpublished = includeUnpublished.GetValueOrDefault(false);
+                var shouldIncludePastEvents = includePastEvents.GetValueOrDefault(false);
+
+                if (shouldIncludeUnpublished)
+                {
+                    var user = context.User;
+                    if (user.Identity?.IsAuthenticated != true)
+                    {
+                        return Results.Problem(
+                            title: "Authentication Required",
+                            detail: "Authentication required to access unpublished events",
+                            statusCode: 401);
+                    }
+
+                    var userRole = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                    if (userRole != "Administrator")
+                    {
+                        return Results.Problem(
+                            title: "Insufficient Permissions",
+                            detail: "Administrator role required to access unpublished events",
+                            statusCode: 403);
+                    }
+                }
+
+                var (success, response, error) = await eventService.GetEventListAsync(shouldIncludeUnpublished, shouldIncludePastEvents, cancellationToken);
+
+                if (success)
+                {
+                    return Results.Ok(response);
+                }
+
+                return Results.Problem(
+                    title: "Failed to retrieve event list",
+                    detail: error ?? "Unable to retrieve event list.",
+                    statusCode: 500);
+            })
+            .WithName("GetEventList")
+            .WithSummary("Get lightweight event list for admin table")
+            .WithDescription("Returns a lightweight list of events with SQL-level count projections. Optimized for the admin events table view.")
+            .WithTags("Events")
+            .Produces<List<EventListItemDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500);
+
         // Get single event by ID
         app.MapGet("/api/events/{id}", async (
             string id,

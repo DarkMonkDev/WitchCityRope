@@ -2,7 +2,7 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { apiClient } from '../../../lib/api/client'
 import { queryKeys } from '../../../api/queryKeys'
-import type { EventDto } from '@witchcityrope/shared-types'
+import type { EventDto, EventListItemDto } from '@witchcityrope/shared-types'
 import type { PaginatedResponse, EventFilters } from '../../../types/api.types'
 
 export function useEvent(eventId: string) {
@@ -32,6 +32,25 @@ export function useEvents(options: { includeUnpublished?: boolean; includePastEv
 
       const response = await apiClient.get('/api/events', { params })
       // Pattern B: Direct DTO response
+      return response.data || []
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useEventList(options: { includeUnpublished?: boolean; includePastEvents?: boolean } = {}) {
+  return useQuery<EventListItemDto[]>({
+    queryKey: queryKeys.eventList(options),
+    queryFn: async (): Promise<EventListItemDto[]> => {
+      const params: Record<string, any> = {}
+      if (options.includeUnpublished) {
+        params.includeUnpublished = true
+      }
+      if (options.includePastEvents) {
+        params.includePastEvents = true
+      }
+
+      const response = await apiClient.get('/api/events/list', { params })
       return response.data || []
     },
     staleTime: 5 * 60 * 1000,

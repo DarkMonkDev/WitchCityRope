@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useDebounce } from './useDebounce';
-import type { EventDto } from '@witchcityrope/shared-types';
+import type { EventListItemDto } from '@witchcityrope/shared-types';
 
 export interface AdminEventFiltersState {
   searchTerm: string;
@@ -36,7 +36,7 @@ export const useAdminEventFilters = () => {
 
   // Helper function to get effective display date from sessions
   // Uses same logic as EventsTableView.tsx getDisplaySession()
-  const getEventDisplayDate = (event: EventDto): Date => {
+  const getEventDisplayDate = (event: EventListItemDto): Date => {
     // If no sessions, fall back to event.startDate
     if (!event.sessions || event.sessions.length === 0) {
       return new Date(event.startDate || '');
@@ -59,7 +59,7 @@ export const useAdminEventFilters = () => {
   };
 
   // Helper function to check if event is past
-  const isPastEvent = (event: EventDto): boolean => {
+  const isPastEvent = (event: EventListItemDto): boolean => {
     // Check if ALL sessions have ended
     if (event.sessions && event.sessions.length > 0) {
       const now = new Date();
@@ -77,7 +77,7 @@ export const useAdminEventFilters = () => {
 
   // Process and filter events
   const processEvents = useMemo(() => {
-    return (events: EventDto[]): EventDto[] => {
+    return (events: EventListItemDto[]): EventListItemDto[] => {
       if (!events) return [];
 
       return events

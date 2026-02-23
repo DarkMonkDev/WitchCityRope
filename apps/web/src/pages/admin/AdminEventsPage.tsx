@@ -3,7 +3,7 @@ import { Box, Container, Title, Button, Group, Loader, Alert } from '@mantine/co
 import { IconPlus } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
-import { useEvents } from '../../features/events/api/queries';
+import { useEventList } from '../../features/events/api/queries';
 import { useCopyEvent } from '../../features/events/api/mutations';
 import { useAdminEventFilters } from '../../hooks/useAdminEventFilters';
 import { EventsFilterBar } from '../../components/events/EventsFilterBar';
@@ -47,7 +47,7 @@ export const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
   // Fetch ALL events including unpublished and past events
   // Frontend filtering (useAdminEventFilters) handles show/hide past events toggle
-  const { data: events, isLoading, error } = useEvents({ includeUnpublished: true, includePastEvents: true });
+  const { data: events, isLoading, error } = useEventList({ includeUnpublished: true, includePastEvents: true });
 
   // Modal state for event copying
   const [copyModalOpened, setCopyModalOpened] = useState(false);

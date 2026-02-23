@@ -10,6 +10,9 @@ export const queryKeys = {
   
   // Events
   events: (options?: any) => options ? ['events', options] as const : ['events'] as const,
+  eventList: (options?: any) => options
+    ? ['events', 'list', options] as const
+    : ['events', 'list'] as const,
   event: (id: string) => [...queryKeys.events(), id] as const,
   eventAttendees: (id: string) => [...queryKeys.event(id), 'attendees'] as const,
   infiniteEvents: (filters: any) => [...queryKeys.events(), 'infinite', filters] as const,

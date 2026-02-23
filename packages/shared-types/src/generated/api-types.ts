@@ -368,6 +368,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get lightweight event list for admin table
+         * @description Returns a lightweight list of events with SQL-level count projections. Optimized for the admin events table view.
+         */
+        get: operations["GetEventList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/{id}": {
         parameters: {
             query?: never;
@@ -3228,6 +3248,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/payments/credit-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreditCardPaymentRequest"];
+                    "text/json": components["schemas"]["CreditCardPaymentRequest"];
+                    "application/*+json": components["schemas"]["CreditCardPaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreditCardPaymentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/kiosk/payment-stream/{sessionToken}": {
         parameters: {
             query?: never;
@@ -3303,8 +3382,8 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CashPaymentRequest2"];
-                    "application/*+json": components["schemas"]["CashPaymentRequest2"];
+                    "application/json": components["schemas"]["CashPaymentRequest"];
+                    "application/*+json": components["schemas"]["CashPaymentRequest"];
                 };
             };
             responses: {
@@ -3314,7 +3393,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["CashPaymentResponse2"];
+                        "application/json": components["schemas"]["CashPaymentResponse"];
                     };
                 };
                 /** @description Bad Request */
@@ -3622,9 +3701,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["RefundResponse2"];
-                        "application/json": components["schemas"]["RefundResponse2"];
-                        "text/json": components["schemas"]["RefundResponse2"];
+                        "text/plain": components["schemas"]["RefundResponse"];
+                        "application/json": components["schemas"]["RefundResponse"];
+                        "text/json": components["schemas"]["RefundResponse"];
                     };
                 };
                 /** @description Bad Request */
@@ -3669,6 +3748,124 @@ export interface paths {
                         "text/plain": components["schemas"]["ProblemDetails"];
                         "application/json": components["schemas"]["ProblemDetails"];
                         "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/paypal/create-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateOrderRequest"];
+                    "text/json": components["schemas"]["CreateOrderRequest"];
+                    "application/*+json": components["schemas"]["CreateOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreateOrderResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/paypal/capture-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CaptureOrderRequest"];
+                    "text/json": components["schemas"]["CaptureOrderRequest"];
+                    "application/*+json": components["schemas"]["CaptureOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CaptureOrderResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -3886,7 +4083,7 @@ export interface components {
         };
         AddNoteRequest: {
             content?: string;
-            tags?: string | null;
+            tags?: null | string;
         };
         AdHocEmailTemplateDto: {
             /** Format: uuid */
@@ -3913,7 +4110,7 @@ export interface components {
         AdminRefundTicketResponse: {
             ticketRefunded?: boolean;
             /** Format: double */
-            refundAmount?: number;
+            refundAmount?: number | string;
             rsvpRemoved?: boolean;
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
@@ -3922,7 +4119,7 @@ export interface components {
             rsvpRemoved?: boolean;
             ticketRefunded?: boolean;
             /** Format: double */
-            refundAmount?: number | null;
+            refundAmount?: null | number | string;
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
         };
@@ -3931,7 +4128,7 @@ export interface components {
             id?: string;
             name?: string;
             /** Format: int32 */
-            ticketsSold?: number;
+            ticketsSold?: number | string;
             willBeDeleted?: boolean;
         };
         ApplicationDetailResponse: {
@@ -3942,23 +4139,23 @@ export interface components {
             /** Format: date-time */
             submittedAt?: string;
             /** Format: date-time */
-            lastActivityAt?: string | null;
+            lastActivityAt?: null | string;
             sceneName?: string;
-            pronouns?: string | null;
+            pronouns?: null | string;
             email?: string;
-            fetLifeHandle?: string | null;
-            otherNames?: string | null;
+            fetLifeHandle?: null | string;
+            otherNames?: null | string;
             experienceDescription?: string;
             whyJoinCommunity?: string;
-            howDidYouHearAboutUs?: string | null;
+            howDidYouHearAboutUs?: null | string;
             agreesToGuidelines?: boolean;
-            assignedReviewerName?: string | null;
+            assignedReviewerName?: null | string;
             /** Format: date-time */
-            reviewStartedAt?: string | null;
+            reviewStartedAt?: null | string;
             /** Format: int32 */
-            priority?: number;
+            priority?: number | string;
             /** Format: date-time */
-            interviewScheduledFor?: string | null;
+            interviewScheduledFor?: null | string;
             references?: components["schemas"]["ReferenceDetailDto"][];
             notes?: components["schemas"]["ApplicationNoteDto"][];
             decisions?: components["schemas"]["ReviewDecisionDto"][];
@@ -3972,27 +4169,27 @@ export interface components {
         };
         ApplicationFilterRequest: {
             /** Format: int32 */
-            page?: number;
+            page?: number | string;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize?: number | string;
             statusFilters?: string[];
-            onlyMyAssignments?: boolean | null;
-            onlyUnassigned?: boolean | null;
+            onlyMyAssignments?: null | boolean;
+            onlyUnassigned?: null | boolean;
             /** Format: uuid */
-            assignedReviewerId?: string | null;
-            priorityFilters?: number[];
+            assignedReviewerId?: null | string;
+            priorityFilters?: (number | string)[];
             skillsFilters?: string[];
             /** Format: date-time */
-            submittedAfter?: string | null;
+            submittedAfter?: null | string;
             /** Format: date-time */
-            submittedBefore?: string | null;
+            submittedBefore?: null | string;
             /** Format: date-time */
-            lastActivityAfter?: string | null;
+            lastActivityAfter?: null | string;
             /** Format: date-time */
-            lastActivityBefore?: string | null;
-            searchQuery?: string | null;
-            onlyCompleteReferences?: boolean | null;
-            onlyPendingReferences?: boolean | null;
+            lastActivityBefore?: null | string;
+            searchQuery?: null | string;
+            onlyCompleteReferences?: null | boolean;
+            onlyPendingReferences?: null | boolean;
             sortBy?: string;
             sortDirection?: string;
         };
@@ -4017,19 +4214,19 @@ export interface components {
             interviewScheduled?: boolean;
             decisionMade?: boolean;
             /** Format: int32 */
-            progressPercentage?: number;
+            progressPercentage?: number | string;
             currentPhase?: string;
         };
         ApplicationReferenceStatus: {
             /** Format: int32 */
-            totalReferences?: number;
+            totalReferences?: number | string;
             /** Format: int32 */
-            contactedReferences?: number;
+            contactedReferences?: number | string;
             /** Format: int32 */
-            respondedReferences?: number;
+            respondedReferences?: number | string;
             allReferencesComplete?: boolean;
             /** Format: date-time */
-            oldestPendingReferenceDate?: string | null;
+            oldestPendingReferenceDate?: null | string;
         };
         ApplicationStatusInfo: {
             /** Format: uuid */
@@ -4041,10 +4238,10 @@ export interface components {
             submittedAt?: string;
             /** Format: date-time */
             lastUpdated?: string;
-            nextSteps?: string | null;
+            nextSteps?: null | string;
             /** Format: int32 */
-            estimatedDaysRemaining?: number | null;
-        } | null;
+            estimatedDaysRemaining?: null | number | string;
+        };
         ApplicationStatusResponse: {
             applicationNumber?: string;
             status?: string;
@@ -4052,9 +4249,9 @@ export interface components {
             submittedAt?: string;
             statusDescription?: string;
             /** Format: date-time */
-            lastUpdateAt?: string | null;
+            lastUpdateAt?: null | string;
             /** Format: int32 */
-            estimatedDaysRemaining?: number | null;
+            estimatedDaysRemaining?: null | number | string;
             progress?: components["schemas"]["ApplicationProgressSummary"];
             recentUpdates?: components["schemas"]["StatusUpdateSummary"][];
         };
@@ -4069,7 +4266,7 @@ export interface components {
             submittedAt?: string;
             confirmationMessage?: string;
             /** Format: int32 */
-            estimatedReviewDays?: number;
+            estimatedReviewDays?: number | string;
             nextSteps?: string;
             referenceStatuses?: components["schemas"]["ReferenceStatusSummary"][];
         };
@@ -4081,26 +4278,26 @@ export interface components {
             /** Format: date-time */
             submittedAt?: string;
             /** Format: date-time */
-            lastActivityAt?: string | null;
+            lastActivityAt?: null | string;
             sceneName?: string;
             email?: string;
-            fetLifeHandle?: string | null;
-            assignedReviewerName?: string | null;
+            fetLifeHandle?: null | string;
+            assignedReviewerName?: null | string;
             /** Format: date-time */
-            reviewStartedAt?: string | null;
+            reviewStartedAt?: null | string;
             /** Format: int32 */
-            priority?: number;
+            priority?: number | string;
             /** Format: int32 */
-            daysInCurrentStatus?: number;
+            daysInCurrentStatus?: number | string;
             referenceStatus?: components["schemas"]["ApplicationReferenceStatus"];
             hasRecentNotes?: boolean;
             hasPendingActions?: boolean;
             /** Format: date-time */
-            interviewScheduledFor?: string | null;
+            interviewScheduledFor?: null | string;
         };
         AssignCoordinatorRequest: {
             /** Format: uuid */
-            coordinatorId?: string | null;
+            coordinatorId?: null | string;
         };
         AssignVolunteerRequest: {
             /** Format: uuid */
@@ -4116,17 +4313,17 @@ export interface components {
             sceneName?: string;
             email?: string;
             registrationStatus?: components["schemas"]["RegistrationStatus"];
-            ticketNumber?: string | null;
-            checkInTime?: string | null;
+            ticketNumber?: null | string;
+            checkInTime?: null | string;
             isFirstTime?: boolean;
-            dietaryRestrictions?: string | null;
-            accessibilityNeeds?: string | null;
-            pronouns?: string | null;
+            dietaryRestrictions?: null | string;
+            accessibilityNeeds?: null | string;
+            pronouns?: null | string;
             hasCompletedWaiver?: boolean;
             /** Format: int32 */
-            waitlistPosition?: number | null;
+            waitlistPosition?: null | number | string;
             paymentStatus?: string;
-            sessionNames?: string[] | null;
+            sessionNames?: null | string[];
         };
         AuditLogDto: {
             /** Format: uuid */
@@ -4134,8 +4331,8 @@ export interface components {
             actionType?: string;
             actionDescription?: string;
             /** Format: uuid */
-            userId?: string | null;
-            userName?: string | null;
+            userId?: null | string;
+            userName?: null | string;
             /** Format: date-time */
             createdAt?: string;
         };
@@ -4147,7 +4344,7 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            lastLoginAt?: string | null;
+            lastLoginAt?: null | string;
             role?: string;
             roles?: string[];
             isActive?: boolean;
@@ -4160,80 +4357,81 @@ export interface components {
             jobId?: string;
             message?: string;
             /** Format: int32 */
-            estimatedSeconds?: number;
-            preBackupFileName?: string | null;
+            estimatedSeconds?: number | string;
+            preBackupFileName?: null | string;
         };
         BackupJobStatusResponse: {
             jobId?: string;
             status?: string;
             /** Format: int32 */
-            progress?: number;
+            progress?: number | string;
             message?: string;
             /** Format: date-time */
-            startedAt?: string | null;
+            startedAt?: null | string;
             /** Format: date-time */
-            completedAt?: string | null;
-            error?: string | null;
+            completedAt?: null | string;
+            error?: null | string;
         };
         BackupListItem: {
             fileName?: string;
             /** Format: date-time */
             timestamp?: string;
             /** Format: int64 */
-            sizeBytes?: number;
+            sizeBytes?: number | string;
             sizeFormatted?: string;
         };
         BackupListResponse: {
             backups?: components["schemas"]["BackupListItem"][];
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
             /** Format: int64 */
-            totalSizeBytes?: number;
+            totalSizeBytes?: number | string;
             totalSizeFormatted?: string;
         };
-        /** @default null */
         CancelTicketRequest: {
-            ticketPurchaseIds?: string[] | null;
-            reason?: string | null;
-        } | null;
+            ticketPurchaseIds?: null | string[];
+            reason?: null | string;
+        };
         CapacityInfo: {
             /** Format: int32 */
-            totalCapacity?: number;
+            totalCapacity?: number | string;
             /** Format: int32 */
-            checkedInCount?: number;
+            checkedInCount?: number | string;
             /** Format: int32 */
-            waitlistCount?: number;
+            waitlistCount?: number | string;
             /** Format: int32 */
-            availableSpots?: number;
+            availableSpots?: number | string;
             isAtCapacity?: boolean;
             canOverride?: boolean;
         };
         CapacityInfoDto: {
             /** Format: int32 */
-            current?: number;
+            current?: number | string;
             /** Format: int32 */
-            total?: number;
+            total?: number | string;
             /** Format: int32 */
-            available?: number;
-        } | null;
+            available?: number | string;
+        };
+        CaptureOrderRequest: {
+            orderId?: string;
+        };
+        CaptureOrderResponse: {
+            captureId?: string;
+            status?: string;
+            amount?: string;
+            currency?: string;
+            payerId?: null | string;
+        };
         CashPaymentRequest: {
             /** Format: uuid */
             attendeeId: string;
             /** Format: uuid */
             ticketTypeId: string;
             /** Format: double */
-            amount: number;
-            notes?: string | null;
+            amount: number | string;
+            notes?: null | string;
             /** Format: uuid */
             recordedByStaffId: string;
-        };
-        CashPaymentRequest2: {
-            /** Format: uuid */
-            attendeeId?: string;
-            /** Format: double */
-            amount?: number;
-            notes?: string | null;
-            sessionToken?: string | null;
         };
         CashPaymentResponse: {
             /** Format: uuid */
@@ -4241,24 +4439,9 @@ export interface components {
             success?: boolean;
             message?: string;
             /** Format: double */
-            amount?: number;
+            amount?: number | string;
             /** Format: date-time */
             recordedAt?: string;
-        };
-        CashPaymentResponse2: {
-            success?: boolean;
-            /** Format: uuid */
-            paymentId?: string;
-            /** Format: date-time */
-            timestamp?: string;
-            message?: string;
-            /** Format: uuid */
-            attendeeId?: string;
-            /** Format: uuid */
-            eventId?: string;
-            /** Format: double */
-            amount?: number;
-            currency?: string;
         };
         ChangePasswordDto: {
             currentPassword: string;
@@ -4270,22 +4453,22 @@ export interface components {
             eventTitle?: string;
             eventDate?: string;
             /** Format: int32 */
-            totalCapacity?: number;
+            totalCapacity?: number | string;
             /** Format: int32 */
-            checkedInCount?: number;
+            checkedInCount?: number | string;
             /** Format: int32 */
-            availableSpots?: number;
+            availableSpots?: number | string;
             attendees?: components["schemas"]["AttendeeResponse"][];
             pagination?: components["schemas"]["PaginationInfo"];
         };
         CheckInRequest: {
             attendeeId: string;
             checkInTime: string;
-            staffMemberId?: string | null;
-            notes?: string | null;
+            staffMemberId?: null | string;
+            notes?: null | string;
             overrideCapacity?: boolean;
             isManualEntry?: boolean;
-            manualEntryData?: components["schemas"]["ManualEntryData"];
+            manualEntryData?: null | components["schemas"]["ManualEntryData"];
         };
         CheckInResponse: {
             success?: boolean;
@@ -4293,18 +4476,18 @@ export interface components {
             checkInTime?: string;
             message?: string;
             currentCapacity?: components["schemas"]["CapacityInfo"];
-            auditLogId?: string | null;
+            auditLogId?: null | string;
             /** Format: uuid */
             sessionId?: string;
             sessionName?: string;
         };
         CmsPageSummaryDto: {
             /** Format: int32 */
-            id?: number;
+            id?: number | string;
             slug?: string;
             title?: string;
             /** Format: int32 */
-            revisionCount?: number;
+            revisionCount?: number | string;
             /** Format: date-time */
             updatedAt?: string;
             lastModifiedBy?: string;
@@ -4312,7 +4495,7 @@ export interface components {
         };
         ContentPageDto: {
             /** Format: int32 */
-            id?: number;
+            id?: number | string;
             slug?: string;
             title?: string;
             content?: string;
@@ -4323,17 +4506,17 @@ export interface components {
         };
         ContentRevisionDto: {
             /** Format: int32 */
-            id?: number;
+            id?: number | string;
             /** Format: int32 */
-            contentPageId?: number;
+            contentPageId?: number | string;
             /** Format: date-time */
             createdAt?: string;
             createdBy?: string;
             createdBySceneName?: string;
-            changeDescription?: string | null;
+            changeDescription?: null | string;
             contentPreview?: string;
             title?: string;
-            fullContent?: string | null;
+            fullContent?: null | string;
         };
         CopyEventRequest: {
             /** Format: date-time */
@@ -4342,76 +4525,89 @@ export interface components {
         };
         CreateEventRequest: {
             title: string;
-            shortDescription?: string | null;
+            shortDescription?: null | string;
             description: string;
-            policies?: string | null;
+            policies?: null | string;
             /** Format: date-time */
             startDate: string;
             /** Format: date-time */
             endDate: string;
             /** Format: int32 */
-            venueId: number;
+            venueId: number | string;
             /** Format: int32 */
-            capacity: number;
+            capacity: number | string;
             isPublished?: boolean;
             allowRsvps: boolean;
             requireTicketPurchase: boolean;
             vettedMembersOnly: boolean;
-            sessions?: components["schemas"]["SessionDto"][] | null;
-            ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
-            volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][] | null;
-            teacherIds?: string[] | null;
+            sessions?: null | components["schemas"]["SessionDto"][];
+            ticketTypes?: null | components["schemas"]["TicketTypeDto"][];
+            volunteerPositions?: null | components["schemas"]["EventVolunteerPositionDto"][];
+            teacherIds?: null | string[];
             /** Format: double */
-            registrationOpenHours?: number | null;
+            registrationOpenHours?: null | number | string;
             /** Format: double */
-            registrationCloseHours?: number | null;
+            registrationCloseHours?: null | number | string;
             /** Format: double */
-            cancellationCloseHours?: number | null;
+            cancellationCloseHours?: null | number | string;
             /** Format: double */
-            volunteerRegistrationCloseHours?: number | null;
+            volunteerRegistrationCloseHours?: null | number | string;
             /** Format: double */
-            volunteerCancellationCloseHours?: number | null;
+            volunteerCancellationCloseHours?: null | number | string;
         };
         CreateIncidentRequest: {
             /** Format: uuid */
-            reporterId?: string | null;
+            reporterId?: null | string;
             title?: string;
             /** Format: date-time */
             incidentDate?: string;
-            location?: string | null;
+            location?: null | string;
             description?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
             isAnonymous?: boolean;
             requestFollowUp?: boolean;
-            contactEmail?: string | null;
-            contactName?: string | null;
+            contactEmail?: null | string;
+            contactName?: null | string;
             type?: components["schemas"]["IncidentType"];
             whereOccurred?: components["schemas"]["WhereOccurred"];
-            eventName?: string | null;
-            hasSpokenToPerson?: components["schemas"]["NullableOfSpokenToPersonStatus"];
-            desiredOutcomes?: string | null;
-            futureInteractionPreference?: string | null;
-            anonymousDuringInvestigation?: boolean | null;
-            anonymousInFinalReport?: boolean | null;
+            eventName?: null | string;
+            hasSpokenToPerson?: null | components["schemas"]["SpokenToPersonStatus"];
+            desiredOutcomes?: null | string;
+            futureInteractionPreference?: null | string;
+            anonymousDuringInvestigation?: null | boolean;
+            anonymousInFinalReport?: null | boolean;
         };
         CreateNoteRequest: {
             content: string;
             /** Format: int32 */
-            type: number;
+            type: number | string;
             isPrivate?: boolean;
             tags?: string[];
+        };
+        CreateOrderRequest: {
+            /** Format: uuid */
+            ticketPurchaseId?: null | string;
+            /** Format: double */
+            amount?: number | string;
+            currency?: null | string;
+            /** Format: int32 */
+            slidingScalePercentage?: number | string;
+            eventTitle?: null | string;
+        };
+        CreateOrderResponse: {
+            orderId?: string;
         };
         CreateRSVPRequest: {
             /** Format: uuid */
             eventId: string;
-            notes?: string | null;
+            notes?: null | string;
             eventWaiverAccepted: boolean;
         };
         CreateTestEventRequest: {
             title: string;
-            shortDescription?: string | null;
-            description?: string | null;
+            shortDescription?: null | string;
+            description?: null | string;
             /** Format: date-time */
             startDate: string;
             /** Format: date-time */
@@ -4420,101 +4616,101 @@ export interface components {
             requireTicketPurchase?: boolean;
             vettedMembersOnly?: boolean;
             /** Format: int32 */
-            status?: number;
+            status?: number | string;
             isPublished?: boolean;
             /** Format: int32 */
-            capacity?: number;
+            capacity?: number | string;
             /** Format: int32 */
-            venueId?: number | null;
+            venueId?: null | number | string;
             /** Format: double */
-            registrationOpenHours?: number | null;
+            registrationOpenHours?: null | number | string;
             /** Format: double */
-            registrationCloseHours?: number | null;
+            registrationCloseHours?: null | number | string;
             /** Format: double */
-            cancellationCloseHours?: number | null;
+            cancellationCloseHours?: null | number | string;
         };
         CreateTestSessionRequest: {
             /** Format: uuid */
             eventId: string;
-            sessionCode?: string | null;
+            sessionCode?: null | string;
             name: string;
             /** Format: date-time */
             startTime: string;
             /** Format: date-time */
             endTime: string;
             /** Format: int32 */
-            capacity?: number;
+            capacity?: number | string;
         };
         CreateTestTicketPurchaseRequest: {
             /** Format: double */
-            totalPrice: number;
+            totalPrice: number | string;
             paymentMethod?: string;
             paymentStatus?: string;
-            paymentReference?: string | null;
-            notes?: string | null;
+            paymentReference?: null | string;
+            notes?: null | string;
             /** Format: uuid */
-            userId?: string | null;
+            userId?: null | string;
             /** Format: uuid */
-            ticketTypeId?: string | null;
+            ticketTypeId?: null | string;
             /** Format: int32 */
-            quantity?: number;
-            includePayPalCaptureId?: boolean | null;
-            eventName?: string | null;
+            quantity?: number | string;
+            includePayPalCaptureId?: null | boolean;
+            eventName?: null | string;
         };
         CreateTestTicketTypeRequest: {
             /** Format: uuid */
             eventId: string;
             name: string;
-            description?: string | null;
+            description?: null | string;
             /** Format: double */
-            price: number;
+            price: number | string;
             /** Format: int32 */
-            pricingType?: number;
+            pricingType?: number | string;
             /** Format: int32 */
-            available?: number;
-            sessionIds?: string[] | null;
+            available?: number | string;
+            sessionIds?: null | string[];
         };
         CreateTestUserRequest: {
             email: string;
             password: string;
             sceneName: string;
-            firstName?: string | null;
-            lastName?: string | null;
-            role?: string | null;
+            firstName?: null | string;
+            lastName?: null | string;
+            role?: null | string;
             /** Format: date-time */
-            dateOfBirth?: string | null;
+            dateOfBirth?: null | string;
             /** Format: int32 */
-            vettingStatus?: number;
-            bio?: string | null;
-            pronouns?: string | null;
+            vettingStatus?: number | string;
+            bio?: null | string;
+            pronouns?: null | string;
         };
         CreateTestVettingApplicationRequest: {
             userId: string;
             /** Format: int32 */
-            workflowStatus?: number;
-            experienceDescription?: string | null;
-            whyJoinCommunity?: string | null;
-            howDidYouHearAboutUs?: string | null;
+            workflowStatus?: number | string;
+            experienceDescription?: null | string;
+            whyJoinCommunity?: null | string;
+            howDidYouHearAboutUs?: null | string;
         };
         CreateTestVolunteerPositionRequest: {
             /** Format: uuid */
             eventId: string;
             title: string;
-            description?: string | null;
+            description?: null | string;
             /** Format: int32 */
-            slotsNeeded?: number;
+            slotsNeeded?: number | string;
             /** Format: int32 */
-            slotsFilled?: number;
+            slotsFilled?: number | string;
             isPublicFacing?: boolean;
             /** Format: uuid */
-            sessionId?: string | null;
+            sessionId?: null | string;
         };
         CreateTicketPurchaseRequest: {
             /** Format: uuid */
             eventId: string;
             ticketTypeIds: string[];
-            notes?: string | null;
-            paymentMethodId?: string | null;
+            notes?: null | string;
+            paymentMethodId?: null | string;
             eventWaiverAccepted: boolean;
         };
         CreateUserNoteRequest: {
@@ -4523,9 +4719,24 @@ export interface components {
         };
         CreateVenueRequest: {
             name?: string;
-            directions?: string | null;
-            venueInformation?: string | null;
-            location?: string | null;
+            directions?: null | string;
+            venueInformation?: null | string;
+            location?: null | string;
+        };
+        CreditCardPaymentRequest: {
+            nonce?: string;
+            dataDescriptor?: string;
+            /** Format: double */
+            amount?: number | string;
+            /** Format: uuid */
+            ticketPurchaseId?: null | string;
+            lastFourDigits?: null | string;
+            cardType?: null | string;
+        };
+        CreditCardPaymentResponse: {
+            transactionId?: string;
+            status?: string;
+            authCode?: null | string;
         };
         DashboardResponse: {
             eventId?: string;
@@ -4539,33 +4750,33 @@ export interface components {
         };
         DashboardStatisticsResponse: {
             /** Format: int32 */
-            unassignedCount?: number;
+            unassignedCount?: number | string;
             hasOldUnassigned?: boolean;
             recentIncidents?: components["schemas"]["IncidentSummaryDto"][];
         };
         DeleteSessionCheckDto: {
             canDelete?: boolean;
-            blockReason?: string | null;
+            blockReason?: null | string;
             /** Format: int32 */
-            rsvpCount?: number;
+            rsvpCount?: number | string;
             /** Format: int32 */
-            ticketsSoldCount?: number;
-            volunteerShifts?: string[] | null;
-            affectedTicketTypes?: components["schemas"]["AffectedTicketTypeDto"][] | null;
+            ticketsSoldCount?: number | string;
+            volunteerShifts?: null | string[];
+            affectedTicketTypes?: null | components["schemas"]["AffectedTicketTypeDto"][];
         };
         DeleteSessionResultDto: {
             success?: boolean;
             /** Format: int32 */
-            rsvpsCancelled?: number;
+            rsvpsCancelled?: number | string;
             /** Format: int32 */
-            volunteerSignupsCancelled?: number;
-            deletedTicketTypes?: string[] | null;
+            volunteerSignupsCancelled?: number | string;
+            deletedTicketTypes?: null | string[];
         };
         DeleteTicketTypeCheckDto: {
             canDelete?: boolean;
-            blockReason?: string | null;
+            blockReason?: null | string;
             /** Format: int32 */
-            ticketsSoldCount?: number;
+            ticketsSoldCount?: number | string;
         };
         DeleteTicketTypeResultDto: {
             success?: boolean;
@@ -4573,14 +4784,14 @@ export interface components {
         DetailedHealthResponse: {
             databaseVersion?: string;
             /** Format: int32 */
-            activeUserCount?: number;
+            activeUserCount?: number | string;
             environment?: string;
             status?: string;
             /** Format: date-time */
             timestamp?: string;
             databaseConnected?: boolean;
             /** Format: int32 */
-            userCount?: number;
+            userCount?: number | string;
             version?: string;
         };
         EnhancedParticipationStatusDto: {
@@ -4590,10 +4801,10 @@ export interface components {
             canPurchaseTicket?: boolean;
             canCancelRSVP?: boolean;
             canCancelTicket?: boolean;
-            ticketPurchaseMessage?: string | null;
-            rsvp?: components["schemas"]["RsvpDetailsDto"];
-            ticket?: components["schemas"]["TicketDetailsDto"];
-            capacity?: components["schemas"]["CapacityInfoDto"];
+            ticketPurchaseMessage?: null | string;
+            rsvp?: null | components["schemas"]["RsvpDetailsDto"];
+            ticket?: null | components["schemas"]["TicketDetailsDto"];
+            capacity?: null | components["schemas"]["CapacityInfoDto"];
             ownedSessionIds?: string[];
             ticketPurchaseSessionMap?: {
                 [key: string]: string[];
@@ -4607,42 +4818,42 @@ export interface components {
         EventDto: {
             id?: string;
             title?: string;
-            shortDescription?: string | null;
+            shortDescription?: null | string;
             description?: string;
-            policies?: string | null;
+            policies?: null | string;
             /** Format: date-time */
             startDate?: string;
             /** Format: date-time */
             endDate?: string;
             /** Format: int32 */
-            venueId?: number;
-            venueLocation?: string | null;
+            venueId?: number | string;
+            venueLocation?: null | string;
             /** Format: int32 */
-            capacity?: number;
+            capacity?: number | string;
             isPublished?: boolean;
             allowRsvps?: boolean;
             requireTicketPurchase?: boolean;
             vettedMembersOnly?: boolean;
             /** Format: int32 */
-            registrationCount?: number;
+            registrationCount?: number | string;
             /** Format: int32 */
-            currentRSVPs?: number;
+            currentRSVPs?: number | string;
             /** Format: int32 */
-            currentTickets?: number;
+            currentTickets?: number | string;
             sessions?: components["schemas"]["SessionDto"][];
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
             volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][];
             teacherIds?: string[];
             /** Format: double */
-            registrationOpenHours?: number | null;
+            registrationOpenHours?: null | number | string;
             /** Format: double */
-            registrationCloseHours?: number | null;
+            registrationCloseHours?: null | number | string;
             /** Format: double */
-            cancellationCloseHours?: number | null;
+            cancellationCloseHours?: null | number | string;
             /** Format: double */
-            volunteerRegistrationCloseHours?: number | null;
+            volunteerRegistrationCloseHours?: null | number | string;
             /** Format: double */
-            volunteerCancellationCloseHours?: number | null;
+            volunteerCancellationCloseHours?: null | number | string;
         };
         EventEmailTemplateDto: {
             /** Format: uuid */
@@ -4676,24 +4887,52 @@ export interface components {
             /** Format: date-time */
             eventDate?: string;
             registrationType?: string;
-            participationStatus?: string | null;
+            participationStatus?: null | string;
             /** Format: date-time */
-            registeredAt?: string | null;
+            registeredAt?: null | string;
             /** Format: date-time */
-            cancelledAt?: string | null;
+            cancelledAt?: null | string;
             /** Format: double */
-            amountPaid?: number | null;
+            amountPaid?: null | number | string;
         };
         EventHistoryResponse: {
             events?: components["schemas"]["EventHistoryRecord"][];
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
             /** Format: int32 */
-            page?: number;
+            page?: number | string;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize?: number | string;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages?: number | string;
+        };
+        EventListItemDto: {
+            id?: string;
+            title?: string;
+            description?: null | string;
+            isPublished?: boolean;
+            allowRsvps?: boolean;
+            requireTicketPurchase?: boolean;
+            /** Format: int32 */
+            capacity?: number | string;
+            /** Format: int32 */
+            currentRSVPs?: number | string;
+            /** Format: int32 */
+            currentTickets?: number | string;
+            /** Format: date-time */
+            startDate?: string;
+            /** Format: date-time */
+            endDate?: null | string;
+            sessions?: components["schemas"]["EventListSessionDto"][];
+        };
+        EventListSessionDto: {
+            id?: string;
+            /** Format: date-time */
+            startTime?: string;
+            /** Format: date-time */
+            endTime?: string;
+            /** Format: date-time */
+            startDate?: string;
         };
         EventParticipationDto: {
             /** Format: uuid */
@@ -4706,35 +4945,37 @@ export interface components {
             status?: components["schemas"]["AttendanceStatus"];
             /** Format: date-time */
             participationDate?: string;
-            notes?: string | null;
+            notes?: null | string;
             canCancel?: boolean;
-            metadata?: string | null;
+            metadata?: null | string;
             hasCheckedIn?: boolean;
             /** Format: date-time */
-            checkInTime?: string | null;
-            ticketTypeName?: string | null;
+            checkInTime?: null | string;
+            ticketTypeName?: null | string;
             sessionNames?: string;
             /** Format: double */
-            amountPaid?: number | null;
+            amountPaid?: null | number | string;
             /** Format: uuid */
-            ticketId?: string | null;
-            paymentMethod?: string | null;
+            ticketId?: null | string;
+            paymentMethod?: null | string;
             checkedInSessions?: string[];
         };
+        /** @enum {unknown} */
+        EventRecipientGroup: "SessionAttendees" | "RSVPTicketHolders" | "SessionVolunteers" | "Teachers" | null;
         EventVolunteerPositionDto: {
             id?: string;
             title?: string;
             description?: string;
             /** Format: int32 */
-            slotsNeeded?: number;
+            slotsNeeded?: number | string;
             /** Format: int32 */
-            slotsFilled?: number;
-            sessionId?: string | null;
-            startTime?: string | null;
-            endTime?: string | null;
+            slotsFilled?: number | string;
+            sessionId?: null | string;
+            startTime?: null | string;
+            endTime?: null | string;
             isPublicFacing?: boolean;
             /** Format: int32 */
-            slotsRemaining?: number;
+            slotsRemaining?: number | string;
             isFullyStaffed?: boolean;
         };
         ForgotPasswordRequest: {
@@ -4744,10 +4985,10 @@ export interface components {
             /** Format: uuid */
             eventId?: string;
             /** Format: uuid */
-            sessionId?: string | null;
-            sessionIds?: string[] | null;
+            sessionId?: null | string;
+            sessionIds?: null | string[];
             /** Format: double */
-            expirationHours?: number | null;
+            expirationHours?: null | number | string;
         };
         GlobalEmailTemplateDto: {
             /** Format: uuid */
@@ -4761,7 +5002,7 @@ export interface components {
             variables?: string[];
             isActive?: boolean;
             /** Format: int32 */
-            version?: number;
+            version?: number | string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -4772,14 +5013,14 @@ export interface components {
             triggerType?: components["schemas"]["TemplateTriggerType"];
             triggerEnabled?: boolean;
             /** Format: int32 */
-            timingOffsetDays?: number | null;
-            recipientGroup?: components["schemas"]["NullableOfEventRecipientGroup"];
+            timingOffsetDays?: null | number | string;
+            recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
         GoogleDriveUpdateResponse: {
             /** Format: uuid */
             id?: string;
-            googleDriveFolderUrl?: string | null;
-            googleDriveFinalReportUrl?: string | null;
+            googleDriveFolderUrl?: null | string;
+            googleDriveFinalReportUrl?: null | string;
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
@@ -4790,7 +5031,7 @@ export interface components {
             timestamp?: string;
             databaseConnected?: boolean;
             /** Format: int32 */
-            userCount?: number;
+            userCount?: number | string;
             version?: string;
         };
         IncidentNoteDto: {
@@ -4801,13 +5042,13 @@ export interface components {
             content?: string;
             type?: components["schemas"]["IncidentNoteType"];
             /** Format: uuid */
-            authorId?: string | null;
-            authorName?: string | null;
-            tags?: string | null;
+            authorId?: null | string;
+            authorName?: null | string;
+            tags?: null | string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            updatedAt?: string | null;
+            updatedAt?: null | string;
         };
         /** @enum {unknown} */
         IncidentNoteType: "Manual" | "System";
@@ -4817,37 +5058,37 @@ export interface components {
             referenceNumber?: string;
             title?: string;
             /** Format: uuid */
-            reporterId?: string | null;
-            reporterName?: string | null;
+            reporterId?: null | string;
+            reporterName?: null | string;
             /** Format: date-time */
             incidentDate?: string;
             /** Format: date-time */
             reportedAt?: string;
             location?: string;
             description?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
-            contactEmail?: string | null;
-            contactName?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
+            contactEmail?: null | string;
+            contactName?: null | string;
             isAnonymous?: boolean;
             requestFollowUp?: boolean;
             type?: components["schemas"]["IncidentType"];
             whereOccurred?: components["schemas"]["WhereOccurred"];
-            eventName?: string | null;
-            hasSpokenToPerson?: components["schemas"]["NullableOfSpokenToPersonStatus"];
-            desiredOutcomes?: string | null;
-            futureInteractionPreference?: string | null;
-            anonymousDuringInvestigation?: boolean | null;
-            anonymousInFinalReport?: boolean | null;
+            eventName?: null | string;
+            hasSpokenToPerson?: null | components["schemas"]["SpokenToPersonStatus"];
+            desiredOutcomes?: null | string;
+            futureInteractionPreference?: null | string;
+            anonymousDuringInvestigation?: null | boolean;
+            anonymousInFinalReport?: null | boolean;
             status?: components["schemas"]["IncidentStatus"];
             /** Format: uuid */
-            assignedTo?: string | null;
-            assignedUserName?: string | null;
+            assignedTo?: null | string;
+            assignedUserName?: null | string;
             /** Format: uuid */
-            coordinatorId?: string | null;
-            coordinatorName?: string | null;
-            googleDriveFolderUrl?: string | null;
-            googleDriveFinalReportUrl?: string | null;
+            coordinatorId?: null | string;
+            coordinatorName?: null | string;
+            googleDriveFolderUrl?: null | string;
+            googleDriveFinalReportUrl?: null | string;
             auditTrail?: components["schemas"]["AuditLogDto"][];
             /** Format: date-time */
             createdAt?: string;
@@ -4880,17 +5121,17 @@ export interface components {
             description?: string;
             isAnonymous?: boolean;
             /** Format: uuid */
-            reporterId?: string | null;
-            reporterName?: string | null;
+            reporterId?: null | string;
+            reporterName?: null | string;
             /** Format: uuid */
-            coordinatorId?: string | null;
-            coordinatorName?: string | null;
-            involvedParties?: string | null;
-            witnesses?: string | null;
-            googleDriveFolderUrl?: string | null;
-            googleDriveFinalReportUrl?: string | null;
+            coordinatorId?: null | string;
+            coordinatorName?: null | string;
+            involvedParties?: null | string;
+            witnesses?: null | string;
+            googleDriveFolderUrl?: null | string;
+            googleDriveFinalReportUrl?: null | string;
             /** Format: int32 */
-            noteCount?: number;
+            noteCount?: number | string;
         };
         IncidentSummaryResponse: {
             /** Format: uuid */
@@ -4905,66 +5146,58 @@ export interface components {
             isAnonymous?: boolean;
             status?: components["schemas"]["IncidentStatus"];
             /** Format: uuid */
-            assignedTo?: string | null;
-            assignedUserName?: string | null;
+            assignedTo?: null | string;
+            assignedUserName?: null | string;
         };
         /** @enum {unknown} */
         IncidentType: "SafetyConcern" | "BoundaryViolation" | "Harassment" | "OtherConcern";
         LoginRequest: {
             emailOrSceneName: string;
             password: string;
-            returnUrl?: string | null;
+            returnUrl?: null | string;
         };
         LoginResponse: {
             token?: string;
             /** Format: date-time */
             expiresAt?: string;
             user?: components["schemas"]["AuthUserResponse"];
-            returnUrl?: string | null;
+            returnUrl?: null | string;
         };
         ManualEntryData: {
             name: string;
             email: string;
             phone: string;
-            dietaryRestrictions?: string | null;
-            accessibilityNeeds?: string | null;
-            hasCompletedWaiver?: boolean;
-        } | null;
-        ManualEntryData2: {
-            name: string;
-            email: string;
-            phone: string;
-            dietaryRestrictions?: string | null;
-            accessibilityNeeds?: string | null;
+            dietaryRestrictions?: null | string;
+            accessibilityNeeds?: null | string;
             hasCompletedWaiver?: boolean;
         };
         MemberDetailsResponse: {
             /** Format: uuid */
             userId?: string;
             sceneName?: string;
-            email?: string | null;
-            discordName?: string | null;
-            fetLifeHandle?: string | null;
+            email?: null | string;
+            discordName?: null | string;
+            fetLifeHandle?: null | string;
             role?: string;
             isActive?: boolean;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            lastLoginAt?: string | null;
+            lastLoginAt?: null | string;
             /** Format: int32 */
-            totalEventsAttended?: number;
+            totalEventsAttended?: number | string;
             /** Format: date-time */
-            lastEventAttended?: string | null;
+            lastEventAttended?: null | string;
             /** Format: int32 */
-            futureEvents?: number;
+            futureEvents?: number | string;
             /** Format: int32 */
-            totalPastEventsRegistered?: number;
+            totalPastEventsRegistered?: number | string;
             /** Format: int32 */
-            cancelledRegistrations?: number;
+            cancelledRegistrations?: number | string;
             /** Format: int32 */
-            noShows?: number;
+            noShows?: number | string;
             /** Format: int32 */
-            vettingStatus?: number;
+            vettingStatus?: number | string;
             vettingStatusDisplay?: string;
             hasVettingApplication?: boolean;
         };
@@ -4980,14 +5213,14 @@ export interface components {
             status?: string;
             location?: string;
             description?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
             userInvolvementType?: string;
         };
         MemberIncidentsResponse: {
             incidents?: components["schemas"]["MemberIncidentRecord"][];
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
         };
         MemberNoteHistoryResponse: {
             /** Format: uuid */
@@ -4995,22 +5228,22 @@ export interface components {
             noteSource?: string;
             content?: string;
             type?: string;
-            authorSceneName?: string | null;
+            authorSceneName?: null | string;
             /** Format: date-time */
             timestamp?: string;
-            oldValue?: string | null;
-            newValue?: string | null;
+            oldValue?: null | string;
+            newValue?: null | string;
         };
         MembershipHoldResponse: {
             /** Format: int32 */
-            newStatus: number;
+            newStatus: number | string;
             statusName: string;
             /** Format: date-time */
             changedAt: string;
         };
         MyApplicationStatusResponse: {
             hasApplication?: boolean;
-            application?: components["schemas"]["ApplicationStatusInfo"];
+            application?: null | components["schemas"]["ApplicationStatusInfo"];
         };
         MyReportDetailDto: {
             /** Format: uuid */
@@ -5024,18 +5257,18 @@ export interface components {
             lastUpdatedAt?: string;
             location?: string;
             description?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
             isAnonymous?: boolean;
         };
         MyReportsPaginatedResponse: {
             reports?: components["schemas"]["MyReportSummaryDto"][];
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
             /** Format: int32 */
-            currentPage?: number;
+            currentPage?: number | string;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize?: number | string;
         };
         MyReportSummaryDto: {
             /** Format: uuid */
@@ -5059,45 +5292,39 @@ export interface components {
         NotesListResponse: {
             notes?: components["schemas"]["IncidentNoteDto"][];
         };
-        /** @enum {unknown|null} */
-        NullableOfEventRecipientGroup: "SessionAttendees" | "RSVPTicketHolders" | "SessionVolunteers" | "Teachers" | null;
-        /** @enum {unknown|null} */
-        NullableOfSpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
-        /** @enum {unknown|null} */
-        NullableOfUserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | "NewImportedUsers" | null;
         PagedResultOfApplicationSummaryDto: {
             items?: components["schemas"]["ApplicationSummaryDto"][];
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
             /** Format: int32 */
-            page?: number;
+            page?: number | string;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize?: number | string;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages?: number | string;
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
         };
         PaginatedIncidentListResponse: {
             items?: components["schemas"]["IncidentSummaryDto"][];
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
             /** Format: int32 */
-            page?: number;
+            page?: number | string;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize?: number | string;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages?: number | string;
         };
         PaginationInfo: {
             /** Format: int32 */
-            page?: number;
+            page?: number | string;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize?: number | string;
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages?: number | string;
         };
         ParticipationStatusDto: {
             /** Format: uuid */
@@ -5108,20 +5335,20 @@ export interface components {
             status?: components["schemas"]["AttendanceStatus"];
             /** Format: date-time */
             participationDate?: string;
-            notes?: string | null;
+            notes?: null | string;
             canCancel?: boolean;
-            metadata?: string | null;
+            metadata?: null | string;
         };
         PaymentListResponse: {
             transactions?: components["schemas"]["PaymentTransactionDto"][];
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
             /** Format: int32 */
-            page?: number;
+            page?: number | string;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize?: number | string;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages?: number | string;
         };
         /** @enum {unknown} */
         PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo" | "Cash";
@@ -5133,24 +5360,24 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             /** Format: double */
-            amount?: number;
+            amount?: number | string;
             currency?: string;
             displayAmount?: string;
             /** Format: double */
-            originalAmount?: number | null;
+            originalAmount?: null | number | string;
             /** Format: double */
-            slidingScalePercentage?: number;
+            slidingScalePercentage?: number | string;
             /** Format: double */
-            discountAmount?: number | null;
+            discountAmount?: null | number | string;
             status?: components["schemas"]["PaymentStatus"];
             statusDescription?: string;
             paymentMethodType?: components["schemas"]["PaymentMethodType"];
             /** Format: date-time */
-            processedAt?: string | null;
+            processedAt?: null | string;
             /** Format: date-time */
             createdAt?: string;
-            refundInfo?: components["schemas"]["RefundInfoResponse"];
-            clientSecret?: string | null;
+            refundInfo?: null | components["schemas"]["RefundInfoResponse"];
+            clientSecret?: null | string;
         };
         /** @enum {unknown} */
         PaymentStatus: "Pending" | "Completed" | "Failed" | "Refunded" | "PartiallyRefunded";
@@ -5164,10 +5391,10 @@ export interface components {
             isCompleted?: boolean;
             isRefunded?: boolean;
             /** Format: double */
-            amount?: number;
+            amount?: number | string;
             currency?: string;
             /** Format: date-time */
-            processedAt?: string | null;
+            processedAt?: null | string;
         };
         PaymentTransactionDto: {
             /** Format: uuid */
@@ -5179,28 +5406,28 @@ export interface components {
             userName?: string;
             userEmail?: string;
             eventName?: string;
-            sessionName?: string | null;
+            sessionName?: null | string;
             paymentMethod?: string;
             /** Format: double */
-            amount?: number;
+            amount?: number | string;
             currency?: string;
             status?: string;
             isRefundable?: boolean;
             /** Format: uuid */
-            refundId?: string | null;
+            refundId?: null | string;
             /** Format: date-time */
-            refundDate?: string | null;
+            refundDate?: null | string;
             /** Format: double */
-            remainingRefundableAmount?: number;
+            remainingRefundableAmount?: number | string;
         };
         PendingCheckIn: {
             localId: string;
             attendeeId: string;
             checkInTime: string;
             staffMemberId: string;
-            notes?: string | null;
+            notes?: null | string;
             isManualEntry?: boolean;
-            manualEntryData?: components["schemas"]["ManualEntryData"];
+            manualEntryData?: null | components["schemas"]["ManualEntryData"];
         };
         PlaceMembershipOnHoldRequest: {
             reason: string;
@@ -5208,30 +5435,30 @@ export interface components {
         /** @enum {unknown} */
         PricingType: "Fixed" | "SlidingScale";
         ProblemDetails: {
-            type?: string | null;
-            title?: string | null;
+            type?: null | string;
+            title?: null | string;
             /** Format: int32 */
-            status?: number | null;
-            detail?: string | null;
-            instance?: string | null;
+            status?: null | number | string;
+            detail?: null | string;
+            instance?: null | string;
         };
         ProcessPaymentApiRequest: {
             /** Format: uuid */
             eventRegistrationId?: string;
             /** Format: double */
-            originalAmount?: number;
+            originalAmount?: number | string;
             currency?: string;
             /** Format: double */
-            slidingScalePercentage?: number;
+            slidingScalePercentage?: number | string;
             paymentMethodType?: components["schemas"]["PaymentMethodType"];
-            returnUrl?: string | null;
-            cancelUrl?: string | null;
+            returnUrl?: null | string;
+            cancelUrl?: null | string;
         };
         ProcessRefundApiRequest: {
             /** Format: uuid */
             paymentId?: string;
             /** Format: double */
-            refundAmount?: number;
+            refundAmount?: number | string;
             currency?: string;
             refundReason?: string;
             metadata?: Record<string, never>;
@@ -5240,8 +5467,8 @@ export interface components {
             /** Format: date-time */
             changedAt?: string;
             fieldName?: string;
-            oldValue?: string | null;
-            newValue?: string | null;
+            oldValue?: null | string;
+            newValue?: null | string;
         };
         ProtectedWelcomeResponse: {
             message?: string;
@@ -5261,8 +5488,8 @@ export interface components {
             references: string;
             agreeToRules: boolean;
             consentToBackground: boolean;
-            pronouns?: string | null;
-            additionalInfo?: string | null;
+            pronouns?: null | string;
+            additionalInfo?: null | string;
         };
         RecentCheckIn: {
             attendeeId?: string;
@@ -5278,78 +5505,56 @@ export interface components {
             email?: string;
             relationship?: string;
             /** Format: int32 */
-            order?: number;
+            order?: number | string;
             status?: string;
             /** Format: date-time */
-            contactedAt?: string | null;
+            contactedAt?: null | string;
             /** Format: date-time */
-            respondedAt?: string | null;
+            respondedAt?: null | string;
             /** Format: date-time */
-            formExpiresAt?: string | null;
-            response?: components["schemas"]["ReferenceResponseDto"];
+            formExpiresAt?: null | string;
+            response?: null | components["schemas"]["ReferenceResponseDto"];
         };
         ReferenceResponseDto: {
             relationshipDuration?: string;
             experienceAssessment?: string;
-            safetyConcerns?: string | null;
+            safetyConcerns?: null | string;
             communityReadiness?: string;
             recommendation?: string;
-            additionalComments?: string | null;
+            additionalComments?: null | string;
             /** Format: date-time */
             respondedAt?: string;
-        } | null;
+        };
         ReferenceStatusSummary: {
             name?: string;
             email?: string;
             status?: string;
             /** Format: date-time */
-            contactedAt?: string | null;
+            contactedAt?: null | string;
             /** Format: date-time */
-            respondedAt?: string | null;
+            respondedAt?: null | string;
         };
         RefundInfoResponse: {
             /** Format: double */
-            refundedAmount?: number;
+            refundedAmount?: number | string;
             currency?: string;
             displayAmount?: string;
             /** Format: date-time */
-            refundedAt?: string | null;
-            refundReason?: string | null;
+            refundedAt?: null | string;
+            refundReason?: null | string;
             /** Format: int32 */
-            refundCount?: number;
+            refundCount?: number | string;
             isPartialRefund?: boolean;
-        } | null;
+        };
         RefundResponse: {
             /** Format: uuid */
             refundId?: string;
             /** Format: double */
-            amount?: number;
+            amount?: number | string;
             currency?: string;
             status?: string;
             message?: string;
         };
-        RefundResponse2: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            ticketPurchaseId?: string;
-            /** Format: double */
-            refundAmount?: number;
-            currency?: string;
-            displayAmount?: string;
-            refundReason?: string;
-            refundStatus?: components["schemas"]["RefundStatus"];
-            statusDescription?: string;
-            /** Format: uuid */
-            processedByUserId?: string;
-            processedByUserName?: string;
-            /** Format: date-time */
-            processedAt?: string;
-            /** Format: date-time */
-            createdAt?: string;
-        };
-        /** @enum {unknown} */
-        RefundStatus: "Processing" | "Completed" | "Failed" | "Cancelled";
         RegisterRequest: {
             email: string;
             password: string;
@@ -5380,14 +5585,14 @@ export interface components {
             decisionType?: string;
             reasoning?: string;
             /** Format: int32 */
-            score?: number | null;
+            score?: null | number | string;
             isFinalDecision?: boolean;
-            additionalInfoRequested?: string | null;
+            additionalInfoRequested?: null | string;
             /** Format: date-time */
-            additionalInfoDeadline?: string | null;
+            additionalInfoDeadline?: null | string;
             /** Format: date-time */
-            proposedInterviewTime?: string | null;
-            interviewNotes?: string | null;
+            proposedInterviewTime?: null | string;
+            interviewNotes?: null | string;
             reviewerName?: string;
             /** Format: date-time */
             createdAt?: string;
@@ -5396,14 +5601,14 @@ export interface components {
             decisionType: unknown;
             reasoning: string;
             /** Format: int32 */
-            score?: number | null;
+            score?: null | number | string;
             isFinalDecision?: boolean;
-            additionalInfoRequested?: string | null;
+            additionalInfoRequested?: null | string;
             /** Format: date-time */
-            additionalInfoDeadline?: string | null;
+            additionalInfoDeadline?: null | string;
             /** Format: date-time */
-            proposedInterviewTime?: string | null;
-            interviewNotes?: string | null;
+            proposedInterviewTime?: null | string;
+            interviewNotes?: null | string;
         };
         ReviewDecisionResponse: {
             /** Format: uuid */
@@ -5425,31 +5630,31 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            canceledAt?: string | null;
-            cancelReason?: string | null;
-            notes?: string | null;
-        } | null;
+            canceledAt?: null | string;
+            cancelReason?: null | string;
+            notes?: null | string;
+        };
         SafetyStatistics: {
             /** Format: int32 */
-            criticalCount?: number;
+            criticalCount?: number | string;
             /** Format: int32 */
-            highCount?: number;
+            highCount?: number | string;
             /** Format: int32 */
-            mediumCount?: number;
+            mediumCount?: number | string;
             /** Format: int32 */
-            lowCount?: number;
+            lowCount?: number | string;
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
             /** Format: int32 */
-            newCount?: number;
+            newCount?: number | string;
             /** Format: int32 */
-            inProgressCount?: number;
+            inProgressCount?: number | string;
             /** Format: int32 */
-            reviewingFinalReportCount?: number;
+            reviewingFinalReportCount?: number | string;
             /** Format: int32 */
-            resolvedCount?: number;
+            resolvedCount?: number | string;
             /** Format: int32 */
-            thisMonth?: number;
+            thisMonth?: number | string;
         };
         SaveAsTemplateRequest: {
             templateName: string;
@@ -5461,11 +5666,11 @@ export interface components {
             subject: string;
             htmlBody: string;
             plainTextBody: string;
-            segment?: components["schemas"]["NullableOfUserSegment"];
-            recipientEmails?: string[] | null;
+            segment?: null | components["schemas"]["UserSegment"];
+            recipientEmails?: null | string[];
             recipientGroup?: string;
             /** Format: uuid */
-            eventId?: string | null;
+            eventId?: null | string;
             /** Format: date-time */
             scheduledSendAt: string;
         };
@@ -5473,11 +5678,11 @@ export interface components {
             subject: string;
             htmlBody: string;
             plainTextBody: string;
-            segment?: components["schemas"]["NullableOfUserSegment"];
-            recipientEmails?: string[] | null;
+            segment?: null | components["schemas"]["UserSegment"];
+            recipientEmails?: null | string[];
             recipientGroup: string;
             /** Format: uuid */
-            eventId?: string | null;
+            eventId?: null | string;
         };
         SentAdHocEmailDto: {
             /** Format: uuid */
@@ -5487,11 +5692,11 @@ export interface components {
             plainTextBody?: string;
             recipientGroup?: string;
             /** Format: int32 */
-            recipientCount?: number;
+            recipientCount?: number | string;
             /** Format: uuid */
-            eventId?: string | null;
-            eventTitle?: string | null;
-            sendGridMessageId?: string | null;
+            eventId?: null | string;
+            eventTitle?: null | string;
+            sendGridMessageId?: null | string;
             deliveryStatus?: string;
             /** Format: date-time */
             sentAt?: string;
@@ -5499,7 +5704,7 @@ export interface components {
             sentBy?: string;
             sentByEmail?: string;
             /** Format: date-time */
-            scheduledSendAt?: string | null;
+            scheduledSendAt?: null | string;
         };
         ServiceTokenRequest: {
             userId?: string;
@@ -5515,11 +5720,11 @@ export interface components {
             /** Format: date-time */
             endTime?: string;
             /** Format: int32 */
-            soldCount?: number;
+            soldCount?: number | string;
             /** Format: int32 */
-            availableCount?: number;
+            availableCount?: number | string;
             /** Format: int32 */
-            capacity?: number;
+            capacity?: number | string;
         };
         SessionDto: {
             id?: string;
@@ -5534,9 +5739,9 @@ export interface components {
             /** Format: date-time */
             endTime?: string;
             /** Format: int32 */
-            capacity?: number;
+            capacity?: number | string;
             /** Format: int32 */
-            registrationCount?: number;
+            registrationCount?: number | string;
         };
         SessionTokenResponse: {
             token?: string;
@@ -5544,10 +5749,10 @@ export interface components {
             eventId?: string;
             eventTitle?: string;
             /** Format: uuid */
-            sessionId?: string | null;
-            sessionName?: string | null;
-            sessionIds?: string[] | null;
-            sessionNames?: string[] | null;
+            sessionId?: null | string;
+            sessionName?: null | string;
+            sessionIds?: null | string[];
+            sessionNames?: null | string[];
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -5556,8 +5761,8 @@ export interface components {
         };
         SimpleNoteRequest: {
             note: string;
-            isPrivate?: boolean | null;
-            tags?: string[] | null;
+            isPrivate?: null | boolean;
+            tags?: null | string[];
         };
         SimpleReasoningRequest: {
             reasoning: string;
@@ -5566,13 +5771,13 @@ export interface components {
             firstName: string;
             lastName: string;
             preferredSceneName: string;
-            fetLifeHandle?: string | null;
+            fetLifeHandle?: null | string;
             email: string;
             whyJoin: string;
             experienceWithRope: string;
             agreeToCommunityStandards: boolean;
-            pronouns?: string | null;
-            otherNames?: string | null;
+            pronouns?: null | string;
+            otherNames?: null | string;
         };
         SimplifiedApplicationResponse: {
             /** Format: uuid */
@@ -5583,18 +5788,20 @@ export interface components {
             confirmationMessage?: string;
             emailSent?: boolean;
             nextSteps?: string;
-            pronouns?: string | null;
-            otherNames?: string | null;
+            pronouns?: null | string;
+            otherNames?: null | string;
             firstName?: string;
             lastName?: string;
             email?: string;
             preferredSceneName?: string;
-            fetLifeHandle?: string | null;
+            fetLifeHandle?: null | string;
             whyJoin?: string;
             experienceWithRope?: string;
             agreeToCommunityStandards?: boolean;
             status?: string;
         };
+        /** @enum {unknown} */
+        SpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
         StaffMember: {
             userId?: string;
             sceneName?: string;
@@ -5621,15 +5828,15 @@ export interface components {
         };
         StorageSummaryResponse: {
             /** Format: int32 */
-            totalBackups?: number;
+            totalBackups?: number | string;
             /** Format: int64 */
-            totalSizeBytes?: number;
+            totalSizeBytes?: number | string;
             totalSizeFormatted?: string;
             /** Format: int64 */
-            limitBytes?: number;
+            limitBytes?: number | string;
             limitFormatted?: string;
             /** Format: double */
-            percentUsed?: number;
+            percentUsed?: number | string;
         };
         /** Format: binary */
         Stream: string;
@@ -5646,10 +5853,10 @@ export interface components {
         };
         SyncStatus: {
             /** Format: int32 */
-            pendingCount?: number;
+            pendingCount?: number | string;
             lastSync?: string;
             /** Format: int32 */
-            conflictCount?: number;
+            conflictCount?: number | string;
         };
         /** @enum {unknown} */
         TemplateTriggerType: "Manual" | "FixedEvent" | "TimeBased";
@@ -5658,22 +5865,22 @@ export interface components {
             id?: string;
             status?: string;
             /** Format: double */
-            amount?: number | null;
-            paymentStatus?: string | null;
+            amount?: null | number | string;
+            paymentStatus?: null | string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            canceledAt?: string | null;
-            cancelReason?: string | null;
-            notes?: string | null;
-        } | null;
+            canceledAt?: null | string;
+            cancelReason?: null | string;
+            notes?: null | string;
+        };
         TicketPurchaseInfoDto: {
             ticketTypeName?: string;
             sessionIds?: string[];
             /** Format: double */
-            totalPrice?: number;
+            totalPrice?: number | string;
             canCancel?: boolean;
-            cancellationMessage?: string | null;
+            cancellationMessage?: null | string;
         };
         TicketTypeDto: {
             id?: string;
@@ -5681,20 +5888,20 @@ export interface components {
             pricingType?: components["schemas"]["PricingType"];
             sessionIdentifiers?: string[];
             /** Format: double */
-            price?: number | null;
+            price?: null | number | string;
             /** Format: double */
-            minPrice?: number | null;
+            minPrice?: null | number | string;
             /** Format: double */
-            maxPrice?: number | null;
+            maxPrice?: null | number | string;
             /** Format: double */
-            defaultPrice?: number | null;
+            defaultPrice?: null | number | string;
             /** Format: int32 */
-            quantityAvailable?: number;
+            quantityAvailable?: number | string;
             /** Format: int32 */
-            quantitySold?: number;
+            quantitySold?: number | string;
             canPurchase?: boolean;
-            referenceSessionId?: string | null;
-            referenceSessionName?: string | null;
+            referenceSessionId?: null | string;
+            referenceSessionName?: null | string;
             availabilityMessage?: string;
             canCancel?: boolean;
         };
@@ -5706,39 +5913,39 @@ export interface components {
         UpdateContentPageRequest: {
             title: string;
             content: string;
-            changeDescription?: string | null;
+            changeDescription?: null | string;
         };
         UpdateEventRequest: {
-            title?: string | null;
-            shortDescription?: string | null;
-            description?: string | null;
-            policies?: string | null;
+            title?: null | string;
+            shortDescription?: null | string;
+            description?: null | string;
+            policies?: null | string;
             /** Format: date-time */
-            startDate?: string | null;
+            startDate?: null | string;
             /** Format: date-time */
-            endDate?: string | null;
+            endDate?: null | string;
             /** Format: int32 */
-            venueId?: number | null;
+            venueId?: null | number | string;
             /** Format: int32 */
-            capacity?: number | null;
-            isPublished?: boolean | null;
-            allowRsvps?: boolean | null;
-            requireTicketPurchase?: boolean | null;
-            vettedMembersOnly?: boolean | null;
-            sessions?: components["schemas"]["SessionDto"][] | null;
-            ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
-            teacherIds?: string[] | null;
-            volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][] | null;
+            capacity?: null | number | string;
+            isPublished?: null | boolean;
+            allowRsvps?: null | boolean;
+            requireTicketPurchase?: null | boolean;
+            vettedMembersOnly?: null | boolean;
+            sessions?: null | components["schemas"]["SessionDto"][];
+            ticketTypes?: null | components["schemas"]["TicketTypeDto"][];
+            teacherIds?: null | string[];
+            volunteerPositions?: null | components["schemas"]["EventVolunteerPositionDto"][];
             /** Format: double */
-            registrationOpenHours?: number | null;
+            registrationOpenHours?: null | number | string;
             /** Format: double */
-            registrationCloseHours?: number | null;
+            registrationCloseHours?: null | number | string;
             /** Format: double */
-            cancellationCloseHours?: number | null;
+            cancellationCloseHours?: null | number | string;
             /** Format: double */
-            volunteerRegistrationCloseHours?: number | null;
+            volunteerRegistrationCloseHours?: null | number | string;
             /** Format: double */
-            volunteerCancellationCloseHours?: number | null;
+            volunteerCancellationCloseHours?: null | number | string;
         };
         UpdateEventTemplateRequest: {
             subject: string;
@@ -5752,44 +5959,44 @@ export interface components {
             plainTextBody: string;
         };
         UpdateGoogleDriveRequest: {
-            googleDriveFolderUrl?: string | null;
-            googleDriveFinalReportUrl?: string | null;
+            googleDriveFolderUrl?: null | string;
+            googleDriveFinalReportUrl?: null | string;
         };
         UpdateMemberRoleRequest: {
             role?: string;
         };
         UpdateMemberStatusRequest: {
             isActive?: boolean;
-            reason?: string | null;
+            reason?: null | string;
         };
         UpdateNoteRequest: {
             content?: string;
-            tags?: string | null;
+            tags?: null | string;
         };
         UpdatePeopleRequest: {
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
         };
         UpdatePeopleResponse: {
             /** Format: uuid */
             id?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
         };
         UpdateProfileDto: {
             sceneName: string;
-            firstName?: string | null;
-            lastName?: string | null;
+            firstName?: null | string;
+            lastName?: null | string;
             email: string;
-            pronouns?: string | null;
-            bio?: string | null;
-            discordName?: string | null;
-            fetLifeName?: string | null;
-            phoneNumber?: string | null;
-            otherNames?: string | null;
+            pronouns?: null | string;
+            bio?: null | string;
+            discordName?: null | string;
+            fetLifeName?: null | string;
+            phoneNumber?: null | string;
+            otherNames?: null | string;
         };
         UpdateProfileRequest: {
             sceneName?: string;
@@ -5802,33 +6009,33 @@ export interface components {
         };
         UpdateStatusRequest: {
             newStatus?: components["schemas"]["IncidentStatus"];
-            reason?: string | null;
-            metadata?: Record<string, never> | null;
+            reason?: null | string;
+            metadata?: null | Record<string, never>;
         };
         UpdateTriggerConfigRequest: {
             triggerType: components["schemas"]["TemplateTriggerType"];
             triggerEnabled: boolean;
             /** Format: int32 */
-            timingOffsetDays?: number | null;
-            recipientGroup?: components["schemas"]["NullableOfEventRecipientGroup"];
+            timingOffsetDays?: null | number | string;
+            recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
         UpdateUserRequest: {
-            sceneName?: string | null;
-            role?: string | null;
-            pronouns?: string | null;
-            isActive?: boolean | null;
-            emailConfirmed?: boolean | null;
+            sceneName?: null | string;
+            role?: null | string;
+            pronouns?: null | string;
+            isActive?: null | boolean;
+            emailConfirmed?: null | boolean;
             /** Format: int32 */
-            vettingStatus?: number | null;
+            vettingStatus?: null | number | string;
         };
         UpdateUserRolesRequest: {
             roles: string[];
         };
         UpdateVenueRequest: {
             name?: string;
-            directions?: string | null;
-            venueInformation?: string | null;
-            location?: string | null;
+            directions?: null | string;
+            venueInformation?: null | string;
+            location?: null | string;
             isActive?: boolean;
         };
         UserCoordinatorDto: {
@@ -5838,15 +6045,15 @@ export interface components {
             fullName?: string;
             role?: string;
             /** Format: int32 */
-            activeIncidentCount?: number;
+            activeIncidentCount?: number | string;
         };
         UserDto: {
             /** Format: uuid */
             id?: string;
             email?: string;
             sceneName?: string;
-            discordName?: string | null;
-            bio?: string | null;
+            discordName?: null | string;
+            bio?: null | string;
             role?: string;
             roles?: string[];
             pronouns?: string;
@@ -5855,9 +6062,9 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            lastLoginAt?: string | null;
+            lastLoginAt?: null | string;
             /** Format: int32 */
-            vettingStatus?: number;
+            vettingStatus?: number | string;
             hasVettingApplication?: boolean;
             isVetted?: boolean;
         };
@@ -5870,25 +6077,25 @@ export interface components {
             /** Format: date-time */
             endDate?: string;
             location?: string;
-            description?: string | null;
+            description?: null | string;
             registrationStatus?: string;
             isSocialEvent?: boolean;
             hasTicket?: boolean;
             isPastEvent?: boolean;
             registeredSessions?: components["schemas"]["UserSessionDto"][];
             /** Format: int32 */
-            additionalSessionsAvailable?: number;
+            additionalSessionsAvailable?: number | string;
         };
         UserListResponse: {
             users?: components["schemas"]["UserDto"][];
             /** Format: int32 */
-            totalCount?: number;
+            totalCount?: number | string;
             /** Format: int32 */
-            page?: number;
+            page?: number | string;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize?: number | string;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages?: number | string;
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
         };
@@ -5900,8 +6107,8 @@ export interface components {
             content?: string;
             noteType?: string;
             /** Format: uuid */
-            authorId?: string | null;
-            authorSceneName?: string | null;
+            authorId?: null | string;
+            authorSceneName?: null | string;
             /** Format: date-time */
             createdAt?: string;
             isArchived?: boolean;
@@ -5926,14 +6133,14 @@ export interface components {
             status?: components["schemas"]["AttendanceStatus"];
             /** Format: date-time */
             participationDate?: string;
-            notes?: string | null;
+            notes?: null | string;
             canCancel?: boolean;
         };
         UserPreviewDto: {
             sceneName?: string;
             email?: string;
             /** Format: int32 */
-            vettingStatus?: number;
+            vettingStatus?: number | string;
             vettingStatusDisplay?: string;
             role?: string;
             emailConfirmed?: boolean;
@@ -5942,15 +6149,15 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             sceneName?: string;
-            firstName?: string | null;
-            lastName?: string | null;
+            firstName?: null | string;
+            lastName?: null | string;
             email?: string;
-            pronouns?: string | null;
-            bio?: string | null;
-            discordName?: string | null;
-            fetLifeName?: string | null;
-            phoneNumber?: string | null;
-            otherNames?: string | null;
+            pronouns?: null | string;
+            bio?: null | string;
+            discordName?: null | string;
+            fetLifeName?: null | string;
+            phoneNumber?: null | string;
+            otherNames?: null | string;
             vettingStatus?: components["schemas"]["VettingStatus"];
             hasVettingApplication?: boolean;
         };
@@ -5966,15 +6173,15 @@ export interface components {
             userId?: string;
             sceneName?: string;
             email?: string;
-            discordName?: string | null;
-            fullName?: string | null;
+            discordName?: null | string;
+            fullName?: null | string;
         };
         /** @enum {unknown} */
-        UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | "NewImportedUsers";
+        UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | "NewImportedUsers" | null;
         UserSegmentDto: {
             segment?: components["schemas"]["UserSegment"];
             /** Format: int32 */
-            count?: number;
+            count?: number | string;
             description?: string;
             segmentName?: string;
         };
@@ -5995,20 +6202,20 @@ export interface components {
             /** Format: date-time */
             eventDate?: string;
             positionTitle?: string;
-            sessionName?: string | null;
+            sessionName?: null | string;
             /** Format: date-time */
-            shiftStartTime?: string | null;
+            shiftStartTime?: null | string;
             /** Format: date-time */
-            shiftEndTime?: string | null;
+            shiftEndTime?: null | string;
             canCancel?: boolean;
         };
         ValidationProblemDetails: {
-            type?: string | null;
-            title?: string | null;
+            type?: null | string;
+            title?: null | string;
             /** Format: int32 */
-            status?: number | null;
-            detail?: string | null;
-            instance?: string | null;
+            status?: null | number | string;
+            detail?: null | string;
+            instance?: null | string;
             errors?: {
                 [key: string]: string[];
             };
@@ -6018,28 +6225,28 @@ export interface components {
         };
         VariableRefundRequest: {
             /** Format: double */
-            refundAmount: number;
+            refundAmount: number | string;
             refundReason: string;
         };
         VariableRefundResponse: {
             /** Format: uuid */
             refundId?: string;
             /** Format: double */
-            amount?: number;
+            amount?: number | string;
             currency?: string;
             status?: string;
             message?: string;
             /** Format: double */
-            remainingRefundableAmount?: number;
+            remainingRefundableAmount?: number | string;
             paymentStatus?: string;
         };
         VenueDto: {
             /** Format: int32 */
-            id?: number;
+            id?: number | string;
             name?: string;
-            directions?: string | null;
-            venueInformation?: string | null;
-            location?: string | null;
+            directions?: null | string;
+            venueInformation?: null | string;
+            location?: null | string;
             isActive?: boolean;
             /** Format: date-time */
             createdAt?: string;
@@ -6056,44 +6263,44 @@ export interface components {
         VettingDetailsResponse: {
             hasApplication?: boolean;
             /** Format: uuid */
-            applicationId?: string | null;
-            applicationNumber?: string | null;
+            applicationId?: null | string;
+            applicationNumber?: null | string;
             /** Format: date-time */
-            submittedAt?: string | null;
+            submittedAt?: null | string;
             /** Format: int32 */
-            workflowStatus?: number | null;
-            workflowStatusDisplay?: string | null;
+            workflowStatus?: null | number | string;
+            workflowStatusDisplay?: null | string;
             /** Format: date-time */
-            lastReviewedAt?: string | null;
+            lastReviewedAt?: null | string;
             /** Format: date-time */
-            decisionMadeAt?: string | null;
-            sceneName?: string | null;
-            firstName?: string | null;
-            lastName?: string | null;
-            email?: string | null;
-            phone?: string | null;
-            fetLifeHandle?: string | null;
-            otherNames?: string | null;
-            pronouns?: string | null;
-            aboutYourself?: string | null;
-            experienceDescription?: string | null;
-            safetyKnowledge?: string | null;
-            consentUnderstanding?: string | null;
-            whyJoinCommunity?: string | null;
-            howDidYouHearAboutUs?: string | null;
-            skillsInterests?: string | null;
-            expectationsGoals?: string | null;
-            agreesToGuidelines?: boolean | null;
-            agreesToTerms?: boolean | null;
+            decisionMadeAt?: null | string;
+            sceneName?: null | string;
+            firstName?: null | string;
+            lastName?: null | string;
+            email?: null | string;
+            phone?: null | string;
+            fetLifeHandle?: null | string;
+            otherNames?: null | string;
+            pronouns?: null | string;
+            aboutYourself?: null | string;
+            experienceDescription?: null | string;
+            safetyKnowledge?: null | string;
+            consentUnderstanding?: null | string;
+            whyJoinCommunity?: null | string;
+            howDidYouHearAboutUs?: null | string;
+            skillsInterests?: null | string;
+            expectationsGoals?: null | string;
+            agreesToGuidelines?: null | boolean;
+            agreesToTerms?: null | boolean;
         };
         VettingHoldStatusResponse: {
             /** Format: int32 */
-            vettingStatus: number;
+            vettingStatus: number | string;
             statusName: string;
             canPlaceOnHold: boolean;
             canRequestReinstatement: boolean;
             /** Format: date-time */
-            lastStatusChangeDate: string | null;
+            lastStatusChangeDate: null | string;
         };
         /** @enum {unknown} */
         VettingStatus: "UnderReview" | "InterviewApproved" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
@@ -6102,8 +6309,8 @@ export interface components {
             /** Format: date-time */
             lastUpdatedAt?: string;
             message?: string;
-            interviewScheduleUrl?: string | null;
-            reapplyInfoUrl?: string | null;
+            interviewScheduleUrl?: null | string;
+            reapplyInfoUrl?: null | string;
         };
         VolunteerAssignmentDto: {
             /** Format: uuid */
@@ -6114,14 +6321,14 @@ export interface components {
             volunteerPositionId?: string;
             sceneName?: string;
             email?: string;
-            fetLifeName?: string | null;
-            discordName?: string | null;
+            fetLifeName?: null | string;
+            discordName?: null | string;
             status?: string;
             /** Format: date-time */
             signedUpAt?: string;
             hasCheckedIn?: boolean;
             /** Format: date-time */
-            checkedInAt?: string | null;
+            checkedInAt?: null | string;
         };
         VolunteerPositionDto: {
             /** Format: uuid */
@@ -6129,30 +6336,30 @@ export interface components {
             /** Format: uuid */
             eventId?: string;
             /** Format: uuid */
-            sessionId?: string | null;
+            sessionId?: null | string;
             title?: string;
             description?: string;
             /** Format: int32 */
-            slotsNeeded?: number;
+            slotsNeeded?: number | string;
             /** Format: int32 */
-            slotsFilled?: number;
+            slotsFilled?: number | string;
             /** Format: int32 */
-            slotsRemaining?: number;
+            slotsRemaining?: number | string;
             isPublicFacing?: boolean;
             isFullyStaffed?: boolean;
-            startTime?: string | null;
-            endTime?: string | null;
-            sessionName?: string | null;
+            startTime?: null | string;
+            endTime?: null | string;
+            sessionName?: null | string;
             /** Format: date-time */
-            sessionStartTime?: string | null;
+            sessionStartTime?: null | string;
             /** Format: date-time */
-            sessionEndTime?: string | null;
+            sessionEndTime?: null | string;
             hasUserSignedUp?: boolean;
             /** Format: uuid */
-            userSignupId?: string | null;
+            userSignupId?: null | string;
             canCancel?: boolean;
             canSignUp?: boolean;
-            signupBlockedReason?: string | null;
+            signupBlockedReason?: null | string;
         };
         VolunteerSignupDto: {
             /** Format: uuid */
@@ -6166,10 +6373,10 @@ export interface components {
             signedUpAt?: string;
             hasCheckedIn?: boolean;
             /** Format: date-time */
-            checkedInAt?: string | null;
+            checkedInAt?: null | string;
             hasCompleted?: boolean;
             /** Format: date-time */
-            completedAt?: string | null;
+            completedAt?: null | string;
             positionTitle?: string;
             eventTitle?: string;
             /** Format: date-time */
@@ -6185,7 +6392,7 @@ export interface components {
             /** Format: date-time */
             performedAt?: string;
             performedBy?: string;
-            notes?: string | null;
+            notes?: null | string;
         };
     };
     responses: never;
@@ -6799,6 +7006,56 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetEventList: {
+        parameters: {
+            query?: {
+                includeUnpublished?: boolean;
+                includePastEvents?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventListItemDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7528,8 +7785,8 @@ export interface operations {
                 Role?: string;
                 RoleFilters?: string[];
                 IsActive?: boolean;
-                Page: number;
-                PageSize: number;
+                Page: number | string;
+                PageSize: number | string;
                 SortBy: string;
                 SortDescending: boolean;
             };
@@ -8545,12 +8802,12 @@ export interface operations {
                 endDate?: string;
                 paymentMethods?: string;
                 statuses?: string;
-                minAmount?: number;
-                maxAmount?: number;
+                minAmount?: number | string;
+                maxAmount?: number | string;
                 sortBy: string;
                 sortDirection: string;
-                page: number;
-                pageSize: number;
+                page: number | string;
+                pageSize: number | string;
             };
             header?: never;
             path?: never;
@@ -8727,7 +8984,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["CancelTicketRequest"];
+                "application/json": null | components["schemas"]["CancelTicketRequest"];
             };
         };
         responses: {
@@ -10577,8 +10834,8 @@ export interface operations {
     GetMemberEventHistory: {
         parameters: {
             query?: {
-                page?: number;
-                pageSize?: number;
+                page?: number | string;
+                pageSize?: number | string;
             };
             header?: never;
             path: {
@@ -11039,8 +11296,8 @@ export interface operations {
                 AssignedTo?: string;
                 Unassigned?: boolean;
                 Type?: string;
-                Page: number;
-                PageSize: number;
+                Page: number | string;
+                PageSize: number | string;
                 SortBy: string;
                 SortOrder: string;
             };
@@ -11821,8 +12078,8 @@ export interface operations {
     GetMyReports: {
         parameters: {
             query?: {
-                page?: number;
-                pageSize?: number;
+                page?: number | string;
+                pageSize?: number | string;
             };
             header?: never;
             path?: never;
@@ -11922,8 +12179,8 @@ export interface operations {
             query?: {
                 search?: string;
                 status?: string;
-                page?: number;
-                pageSize?: number;
+                page?: number | string;
+                pageSize?: number | string;
             };
             header?: {
                 "X-CheckIn-Token"?: string;
@@ -12198,7 +12455,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ManualEntryData2"];
+                "application/json": components["schemas"]["ManualEntryData"];
             };
         };
         responses: {
@@ -14328,7 +14585,7 @@ export interface operations {
     ListBackups: {
         parameters: {
             query?: {
-                days?: number;
+                days?: number | string;
             };
             header?: never;
             path?: never;
