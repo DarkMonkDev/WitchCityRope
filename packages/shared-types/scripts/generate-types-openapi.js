@@ -106,6 +106,7 @@ export type schemas = components['schemas'];
 // Common types
 export type UserDto = schemas['UserDto'];
 export type EventDto = schemas['EventDto'];
+export type EventListItemDto = schemas['EventListItemDto'];
 export type LoginRequest = schemas['LoginRequest'];
 export type LoginResponse = schemas['LoginResponse'];
 export type RegisterRequest = schemas['RegisterRequest'];

@@ -4169,7 +4169,7 @@ export interface components {
         AdminRefundTicketResponse: {
             ticketRefunded?: boolean;
             /** Format: double */
-            refundAmount?: number | string;
+            refundAmount?: number;
             rsvpRemoved?: boolean;
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
@@ -4178,7 +4178,7 @@ export interface components {
             rsvpRemoved?: boolean;
             ticketRefunded?: boolean;
             /** Format: double */
-            refundAmount?: null | number | string;
+            refundAmount?: null | number;
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
         };
@@ -4187,7 +4187,7 @@ export interface components {
             id?: string;
             name?: string;
             /** Format: int32 */
-            ticketsSold?: number | string;
+            ticketsSold?: number;
             willBeDeleted?: boolean;
         };
         ApplicationDetailResponse: {
@@ -4212,7 +4212,7 @@ export interface components {
             /** Format: date-time */
             reviewStartedAt?: null | string;
             /** Format: int32 */
-            priority?: number | string;
+            priority?: number;
             /** Format: date-time */
             interviewScheduledFor?: null | string;
             references?: components["schemas"]["ReferenceDetailDto"][];
@@ -4228,15 +4228,15 @@ export interface components {
         };
         ApplicationFilterRequest: {
             /** Format: int32 */
-            page?: number | string;
+            page?: number;
             /** Format: int32 */
-            pageSize?: number | string;
+            pageSize?: number;
             statusFilters?: string[];
             onlyMyAssignments?: null | boolean;
             onlyUnassigned?: null | boolean;
             /** Format: uuid */
             assignedReviewerId?: null | string;
-            priorityFilters?: (number | string)[];
+            priorityFilters?: number[];
             skillsFilters?: string[];
             /** Format: date-time */
             submittedAfter?: null | string;
@@ -4273,16 +4273,16 @@ export interface components {
             interviewScheduled?: boolean;
             decisionMade?: boolean;
             /** Format: int32 */
-            progressPercentage?: number | string;
+            progressPercentage?: number;
             currentPhase?: string;
         };
         ApplicationReferenceStatus: {
             /** Format: int32 */
-            totalReferences?: number | string;
+            totalReferences?: number;
             /** Format: int32 */
-            contactedReferences?: number | string;
+            contactedReferences?: number;
             /** Format: int32 */
-            respondedReferences?: number | string;
+            respondedReferences?: number;
             allReferencesComplete?: boolean;
             /** Format: date-time */
             oldestPendingReferenceDate?: null | string;
@@ -4299,7 +4299,7 @@ export interface components {
             lastUpdated?: string;
             nextSteps?: null | string;
             /** Format: int32 */
-            estimatedDaysRemaining?: null | number | string;
+            estimatedDaysRemaining?: null | number;
         };
         ApplicationStatusResponse: {
             applicationNumber?: string;
@@ -4310,7 +4310,7 @@ export interface components {
             /** Format: date-time */
             lastUpdateAt?: null | string;
             /** Format: int32 */
-            estimatedDaysRemaining?: null | number | string;
+            estimatedDaysRemaining?: null | number;
             progress?: components["schemas"]["ApplicationProgressSummary"];
             recentUpdates?: components["schemas"]["StatusUpdateSummary"][];
         };
@@ -4325,7 +4325,7 @@ export interface components {
             submittedAt?: string;
             confirmationMessage?: string;
             /** Format: int32 */
-            estimatedReviewDays?: number | string;
+            estimatedReviewDays?: number;
             nextSteps?: string;
             referenceStatuses?: components["schemas"]["ReferenceStatusSummary"][];
         };
@@ -4345,9 +4345,9 @@ export interface components {
             /** Format: date-time */
             reviewStartedAt?: null | string;
             /** Format: int32 */
-            priority?: number | string;
+            priority?: number;
             /** Format: int32 */
-            daysInCurrentStatus?: number | string;
+            daysInCurrentStatus?: number;
             referenceStatus?: components["schemas"]["ApplicationReferenceStatus"];
             hasRecentNotes?: boolean;
             hasPendingActions?: boolean;
@@ -4380,7 +4380,7 @@ export interface components {
             pronouns?: null | string;
             hasCompletedWaiver?: boolean;
             /** Format: int32 */
-            waitlistPosition?: null | number | string;
+            waitlistPosition?: null | number;
             paymentStatus?: string;
             sessionNames?: null | string[];
         };
@@ -4416,14 +4416,14 @@ export interface components {
             jobId?: string;
             message?: string;
             /** Format: int32 */
-            estimatedSeconds?: number | string;
+            estimatedSeconds?: number;
             preBackupFileName?: null | string;
         };
         BackupJobStatusResponse: {
             jobId?: string;
             status?: string;
             /** Format: int32 */
-            progress?: number | string;
+            progress?: number;
             message?: string;
             /** Format: date-time */
             startedAt?: null | string;
@@ -4436,15 +4436,15 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
             /** Format: int64 */
-            sizeBytes?: number | string;
+            sizeBytes?: number;
             sizeFormatted?: string;
         };
         BackupListResponse: {
             backups?: components["schemas"]["BackupListItem"][];
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
             /** Format: int64 */
-            totalSizeBytes?: number | string;
+            totalSizeBytes?: number;
             totalSizeFormatted?: string;
         };
         CancelTicketRequest: {
@@ -4453,23 +4453,23 @@ export interface components {
         };
         CapacityInfo: {
             /** Format: int32 */
-            totalCapacity?: number | string;
+            totalCapacity?: number;
             /** Format: int32 */
-            checkedInCount?: number | string;
+            checkedInCount?: number;
             /** Format: int32 */
-            waitlistCount?: number | string;
+            waitlistCount?: number;
             /** Format: int32 */
-            availableSpots?: number | string;
+            availableSpots?: number;
             isAtCapacity?: boolean;
             canOverride?: boolean;
         };
         CapacityInfoDto: {
             /** Format: int32 */
-            current?: number | string;
+            current?: number;
             /** Format: int32 */
-            total?: number | string;
+            total?: number;
             /** Format: int32 */
-            available?: number | string;
+            available?: number;
         };
         CaptureOrderRequest: {
             orderId?: string;
@@ -4487,7 +4487,7 @@ export interface components {
             /** Format: uuid */
             ticketTypeId: string;
             /** Format: double */
-            amount: number | string;
+            amount: number;
             notes?: null | string;
             /** Format: uuid */
             recordedByStaffId: string;
@@ -4498,7 +4498,7 @@ export interface components {
             success?: boolean;
             message?: string;
             /** Format: double */
-            amount?: number | string;
+            amount?: number;
             /** Format: date-time */
             recordedAt?: string;
         };
@@ -4512,11 +4512,11 @@ export interface components {
             eventTitle?: string;
             eventDate?: string;
             /** Format: int32 */
-            totalCapacity?: number | string;
+            totalCapacity?: number;
             /** Format: int32 */
-            checkedInCount?: number | string;
+            checkedInCount?: number;
             /** Format: int32 */
-            availableSpots?: number | string;
+            availableSpots?: number;
             attendees?: components["schemas"]["AttendeeResponse"][];
             pagination?: components["schemas"]["PaginationInfo"];
         };
@@ -4548,7 +4548,7 @@ export interface components {
             nonce: string;
             dataDescriptor: string;
             /** Format: double */
-            amount: number | string;
+            amount: number;
             lastFourDigits?: null | string;
             cardType?: null | string;
             idempotencyKey: string;
@@ -4560,15 +4560,15 @@ export interface components {
             status?: string;
             authCode?: null | string;
             /** Format: double */
-            amountCharged?: number | string;
+            amountCharged?: number;
         };
         CmsPageSummaryDto: {
             /** Format: int32 */
-            id?: number | string;
+            id?: number;
             slug?: string;
             title?: string;
             /** Format: int32 */
-            revisionCount?: number | string;
+            revisionCount?: number;
             /** Format: date-time */
             updatedAt?: string;
             lastModifiedBy?: string;
@@ -4576,7 +4576,7 @@ export interface components {
         };
         ContentPageDto: {
             /** Format: int32 */
-            id?: number | string;
+            id?: number;
             slug?: string;
             title?: string;
             content?: string;
@@ -4587,9 +4587,9 @@ export interface components {
         };
         ContentRevisionDto: {
             /** Format: int32 */
-            id?: number | string;
+            id?: number;
             /** Format: int32 */
-            contentPageId?: number | string;
+            contentPageId?: number;
             /** Format: date-time */
             createdAt?: string;
             createdBy?: string;
@@ -4614,9 +4614,9 @@ export interface components {
             /** Format: date-time */
             endDate: string;
             /** Format: int32 */
-            venueId: number | string;
+            venueId: number;
             /** Format: int32 */
-            capacity: number | string;
+            capacity: number;
             isPublished?: boolean;
             allowRsvps: boolean;
             requireTicketPurchase: boolean;
@@ -4626,15 +4626,15 @@ export interface components {
             volunteerPositions?: null | components["schemas"]["EventVolunteerPositionDto"][];
             teacherIds?: null | string[];
             /** Format: double */
-            registrationOpenHours?: null | number | string;
+            registrationOpenHours?: null | number;
             /** Format: double */
-            registrationCloseHours?: null | number | string;
+            registrationCloseHours?: null | number;
             /** Format: double */
-            cancellationCloseHours?: null | number | string;
+            cancellationCloseHours?: null | number;
             /** Format: double */
-            volunteerRegistrationCloseHours?: null | number | string;
+            volunteerRegistrationCloseHours?: null | number;
             /** Format: double */
-            volunteerCancellationCloseHours?: null | number | string;
+            volunteerCancellationCloseHours?: null | number;
         };
         CreateIncidentRequest: {
             /** Format: uuid */
@@ -4662,7 +4662,7 @@ export interface components {
         CreateNoteRequest: {
             content: string;
             /** Format: int32 */
-            type: number | string;
+            type: number;
             isPrivate?: boolean;
             tags?: string[];
         };
@@ -4670,10 +4670,10 @@ export interface components {
             /** Format: uuid */
             ticketPurchaseId?: null | string;
             /** Format: double */
-            amount?: number | string;
+            amount?: number;
             currency?: null | string;
             /** Format: int32 */
-            slidingScalePercentage?: number | string;
+            slidingScalePercentage?: number;
             eventTitle?: null | string;
         };
         CreateOrderResponse: {
@@ -4697,18 +4697,18 @@ export interface components {
             requireTicketPurchase?: boolean;
             vettedMembersOnly?: boolean;
             /** Format: int32 */
-            status?: number | string;
+            status?: number;
             isPublished?: boolean;
             /** Format: int32 */
-            capacity?: number | string;
+            capacity?: number;
             /** Format: int32 */
-            venueId?: null | number | string;
+            venueId?: null | number;
             /** Format: double */
-            registrationOpenHours?: null | number | string;
+            registrationOpenHours?: null | number;
             /** Format: double */
-            registrationCloseHours?: null | number | string;
+            registrationCloseHours?: null | number;
             /** Format: double */
-            cancellationCloseHours?: null | number | string;
+            cancellationCloseHours?: null | number;
         };
         CreateTestSessionRequest: {
             /** Format: uuid */
@@ -4720,11 +4720,11 @@ export interface components {
             /** Format: date-time */
             endTime: string;
             /** Format: int32 */
-            capacity?: number | string;
+            capacity?: number;
         };
         CreateTestTicketPurchaseRequest: {
             /** Format: double */
-            totalPrice: number | string;
+            totalPrice: number;
             paymentMethod?: string;
             paymentStatus?: string;
             paymentReference?: null | string;
@@ -4734,7 +4734,7 @@ export interface components {
             /** Format: uuid */
             ticketTypeId?: null | string;
             /** Format: int32 */
-            quantity?: number | string;
+            quantity?: number;
             includePayPalCaptureId?: null | boolean;
             eventName?: null | string;
         };
@@ -4744,11 +4744,11 @@ export interface components {
             name: string;
             description?: null | string;
             /** Format: double */
-            price: number | string;
+            price: number;
             /** Format: int32 */
-            pricingType?: number | string;
+            pricingType?: number;
             /** Format: int32 */
-            available?: number | string;
+            available?: number;
             sessionIds?: null | string[];
         };
         CreateTestUserRequest: {
@@ -4761,14 +4761,14 @@ export interface components {
             /** Format: date-time */
             dateOfBirth?: null | string;
             /** Format: int32 */
-            vettingStatus?: number | string;
+            vettingStatus?: number;
             bio?: null | string;
             pronouns?: null | string;
         };
         CreateTestVettingApplicationRequest: {
             userId: string;
             /** Format: int32 */
-            workflowStatus?: number | string;
+            workflowStatus?: number;
             experienceDescription?: null | string;
             whyJoinCommunity?: null | string;
             howDidYouHearAboutUs?: null | string;
@@ -4779,9 +4779,9 @@ export interface components {
             title: string;
             description?: null | string;
             /** Format: int32 */
-            slotsNeeded?: number | string;
+            slotsNeeded?: number;
             /** Format: int32 */
-            slotsFilled?: number | string;
+            slotsFilled?: number;
             isPublicFacing?: boolean;
             /** Format: uuid */
             sessionId?: null | string;
@@ -4808,7 +4808,7 @@ export interface components {
             nonce?: string;
             dataDescriptor?: string;
             /** Format: double */
-            amount?: number | string;
+            amount?: number;
             /** Format: uuid */
             ticketPurchaseId?: null | string;
             lastFourDigits?: null | string;
@@ -4831,7 +4831,7 @@ export interface components {
         };
         DashboardStatisticsResponse: {
             /** Format: int32 */
-            unassignedCount?: number | string;
+            unassignedCount?: number;
             hasOldUnassigned?: boolean;
             recentIncidents?: components["schemas"]["IncidentSummaryDto"][];
         };
@@ -4839,25 +4839,25 @@ export interface components {
             canDelete?: boolean;
             blockReason?: null | string;
             /** Format: int32 */
-            rsvpCount?: number | string;
+            rsvpCount?: number;
             /** Format: int32 */
-            ticketsSoldCount?: number | string;
+            ticketsSoldCount?: number;
             volunteerShifts?: null | string[];
             affectedTicketTypes?: null | components["schemas"]["AffectedTicketTypeDto"][];
         };
         DeleteSessionResultDto: {
             success?: boolean;
             /** Format: int32 */
-            rsvpsCancelled?: number | string;
+            rsvpsCancelled?: number;
             /** Format: int32 */
-            volunteerSignupsCancelled?: number | string;
+            volunteerSignupsCancelled?: number;
             deletedTicketTypes?: null | string[];
         };
         DeleteTicketTypeCheckDto: {
             canDelete?: boolean;
             blockReason?: null | string;
             /** Format: int32 */
-            ticketsSoldCount?: number | string;
+            ticketsSoldCount?: number;
         };
         DeleteTicketTypeResultDto: {
             success?: boolean;
@@ -4865,14 +4865,14 @@ export interface components {
         DetailedHealthResponse: {
             databaseVersion?: string;
             /** Format: int32 */
-            activeUserCount?: number | string;
+            activeUserCount?: number;
             environment?: string;
             status?: string;
             /** Format: date-time */
             timestamp?: string;
             databaseConnected?: boolean;
             /** Format: int32 */
-            userCount?: number | string;
+            userCount?: number;
             version?: string;
         };
         EnhancedParticipationStatusDto: {
@@ -4907,34 +4907,34 @@ export interface components {
             /** Format: date-time */
             endDate?: string;
             /** Format: int32 */
-            venueId?: number | string;
+            venueId?: number;
             venueLocation?: null | string;
             /** Format: int32 */
-            capacity?: number | string;
+            capacity?: number;
             isPublished?: boolean;
             allowRsvps?: boolean;
             requireTicketPurchase?: boolean;
             vettedMembersOnly?: boolean;
             /** Format: int32 */
-            registrationCount?: number | string;
+            registrationCount?: number;
             /** Format: int32 */
-            currentRSVPs?: number | string;
+            currentRSVPs?: number;
             /** Format: int32 */
-            currentTickets?: number | string;
+            currentTickets?: number;
             sessions?: components["schemas"]["SessionDto"][];
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
             volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][];
             teacherIds?: string[];
             /** Format: double */
-            registrationOpenHours?: null | number | string;
+            registrationOpenHours?: null | number;
             /** Format: double */
-            registrationCloseHours?: null | number | string;
+            registrationCloseHours?: null | number;
             /** Format: double */
-            cancellationCloseHours?: null | number | string;
+            cancellationCloseHours?: null | number;
             /** Format: double */
-            volunteerRegistrationCloseHours?: null | number | string;
+            volunteerRegistrationCloseHours?: null | number;
             /** Format: double */
-            volunteerCancellationCloseHours?: null | number | string;
+            volunteerCancellationCloseHours?: null | number;
         };
         EventEmailTemplateDto: {
             /** Format: uuid */
@@ -4974,18 +4974,18 @@ export interface components {
             /** Format: date-time */
             cancelledAt?: null | string;
             /** Format: double */
-            amountPaid?: null | number | string;
+            amountPaid?: null | number;
         };
         EventHistoryResponse: {
             events?: components["schemas"]["EventHistoryRecord"][];
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
             /** Format: int32 */
-            page?: number | string;
+            page?: number;
             /** Format: int32 */
-            pageSize?: number | string;
+            pageSize?: number;
             /** Format: int32 */
-            totalPages?: number | string;
+            totalPages?: number;
         };
         EventListItemDto: {
             id?: string;
@@ -4995,11 +4995,11 @@ export interface components {
             allowRsvps?: boolean;
             requireTicketPurchase?: boolean;
             /** Format: int32 */
-            capacity?: number | string;
+            capacity?: number;
             /** Format: int32 */
-            currentRSVPs?: number | string;
+            currentRSVPs?: number;
             /** Format: int32 */
-            currentTickets?: number | string;
+            currentTickets?: number;
             /** Format: date-time */
             startDate?: string;
             /** Format: date-time */
@@ -5035,7 +5035,7 @@ export interface components {
             ticketTypeName?: null | string;
             sessionNames?: string;
             /** Format: double */
-            amountPaid?: null | number | string;
+            amountPaid?: null | number;
             /** Format: uuid */
             ticketId?: null | string;
             paymentMethod?: null | string;
@@ -5048,15 +5048,15 @@ export interface components {
             title?: string;
             description?: string;
             /** Format: int32 */
-            slotsNeeded?: number | string;
+            slotsNeeded?: number;
             /** Format: int32 */
-            slotsFilled?: number | string;
+            slotsFilled?: number;
             sessionId?: null | string;
             startTime?: null | string;
             endTime?: null | string;
             isPublicFacing?: boolean;
             /** Format: int32 */
-            slotsRemaining?: number | string;
+            slotsRemaining?: number;
             isFullyStaffed?: boolean;
         };
         ForgotPasswordRequest: {
@@ -5069,7 +5069,7 @@ export interface components {
             sessionId?: null | string;
             sessionIds?: null | string[];
             /** Format: double */
-            expirationHours?: null | number | string;
+            expirationHours?: null | number;
         };
         GlobalEmailTemplateDto: {
             /** Format: uuid */
@@ -5083,7 +5083,7 @@ export interface components {
             variables?: string[];
             isActive?: boolean;
             /** Format: int32 */
-            version?: number | string;
+            version?: number;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -5094,7 +5094,7 @@ export interface components {
             triggerType?: components["schemas"]["TemplateTriggerType"];
             triggerEnabled?: boolean;
             /** Format: int32 */
-            timingOffsetDays?: null | number | string;
+            timingOffsetDays?: null | number;
             recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
         GoogleDriveUpdateResponse: {
@@ -5112,7 +5112,7 @@ export interface components {
             timestamp?: string;
             databaseConnected?: boolean;
             /** Format: int32 */
-            userCount?: number | string;
+            userCount?: number;
             version?: string;
         };
         IncidentNoteDto: {
@@ -5212,7 +5212,7 @@ export interface components {
             googleDriveFolderUrl?: null | string;
             googleDriveFinalReportUrl?: null | string;
             /** Format: int32 */
-            noteCount?: number | string;
+            noteCount?: number;
         };
         IncidentSummaryResponse: {
             /** Format: uuid */
@@ -5266,19 +5266,19 @@ export interface components {
             /** Format: date-time */
             lastLoginAt?: null | string;
             /** Format: int32 */
-            totalEventsAttended?: number | string;
+            totalEventsAttended?: number;
             /** Format: date-time */
             lastEventAttended?: null | string;
             /** Format: int32 */
-            futureEvents?: number | string;
+            futureEvents?: number;
             /** Format: int32 */
-            totalPastEventsRegistered?: number | string;
+            totalPastEventsRegistered?: number;
             /** Format: int32 */
-            cancelledRegistrations?: number | string;
+            cancelledRegistrations?: number;
             /** Format: int32 */
-            noShows?: number | string;
+            noShows?: number;
             /** Format: int32 */
-            vettingStatus?: number | string;
+            vettingStatus?: number;
             vettingStatusDisplay?: string;
             hasVettingApplication?: boolean;
         };
@@ -5301,7 +5301,7 @@ export interface components {
         MemberIncidentsResponse: {
             incidents?: components["schemas"]["MemberIncidentRecord"][];
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
         };
         MemberNoteHistoryResponse: {
             /** Format: uuid */
@@ -5317,7 +5317,7 @@ export interface components {
         };
         MembershipHoldResponse: {
             /** Format: int32 */
-            newStatus: number | string;
+            newStatus: number;
             statusName: string;
             /** Format: date-time */
             changedAt: string;
@@ -5345,11 +5345,11 @@ export interface components {
         MyReportsPaginatedResponse: {
             reports?: components["schemas"]["MyReportSummaryDto"][];
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
             /** Format: int32 */
-            currentPage?: number | string;
+            currentPage?: number;
             /** Format: int32 */
-            pageSize?: number | string;
+            pageSize?: number;
         };
         MyReportSummaryDto: {
             /** Format: uuid */
@@ -5376,36 +5376,36 @@ export interface components {
         PagedResultOfApplicationSummaryDto: {
             items?: components["schemas"]["ApplicationSummaryDto"][];
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
             /** Format: int32 */
-            page?: number | string;
+            page?: number;
             /** Format: int32 */
-            pageSize?: number | string;
+            pageSize?: number;
             /** Format: int32 */
-            totalPages?: number | string;
+            totalPages?: number;
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
         };
         PaginatedIncidentListResponse: {
             items?: components["schemas"]["IncidentSummaryDto"][];
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
             /** Format: int32 */
-            page?: number | string;
+            page?: number;
             /** Format: int32 */
-            pageSize?: number | string;
+            pageSize?: number;
             /** Format: int32 */
-            totalPages?: number | string;
+            totalPages?: number;
         };
         PaginationInfo: {
             /** Format: int32 */
-            page?: number | string;
+            page?: number;
             /** Format: int32 */
-            pageSize?: number | string;
+            pageSize?: number;
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
             /** Format: int32 */
-            totalPages?: number | string;
+            totalPages?: number;
         };
         ParticipationStatusDto: {
             /** Format: uuid */
@@ -5423,13 +5423,13 @@ export interface components {
         PaymentListResponse: {
             transactions?: components["schemas"]["PaymentTransactionDto"][];
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
             /** Format: int32 */
-            page?: number | string;
+            page?: number;
             /** Format: int32 */
-            pageSize?: number | string;
+            pageSize?: number;
             /** Format: int32 */
-            totalPages?: number | string;
+            totalPages?: number;
         };
         /** @enum {unknown} */
         PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo" | "Cash";
@@ -5441,15 +5441,15 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             /** Format: double */
-            amount?: number | string;
+            amount?: number;
             currency?: string;
             displayAmount?: string;
             /** Format: double */
-            originalAmount?: null | number | string;
+            originalAmount?: null | number;
             /** Format: double */
-            slidingScalePercentage?: number | string;
+            slidingScalePercentage?: number;
             /** Format: double */
-            discountAmount?: null | number | string;
+            discountAmount?: null | number;
             status?: components["schemas"]["PaymentStatus"];
             statusDescription?: string;
             paymentMethodType?: components["schemas"]["PaymentMethodType"];
@@ -5472,7 +5472,7 @@ export interface components {
             isCompleted?: boolean;
             isRefunded?: boolean;
             /** Format: double */
-            amount?: number | string;
+            amount?: number;
             currency?: string;
             /** Format: date-time */
             processedAt?: null | string;
@@ -5490,7 +5490,7 @@ export interface components {
             sessionName?: null | string;
             paymentMethod?: string;
             /** Format: double */
-            amount?: number | string;
+            amount?: number;
             currency?: string;
             status?: string;
             isRefundable?: boolean;
@@ -5499,7 +5499,7 @@ export interface components {
             /** Format: date-time */
             refundDate?: null | string;
             /** Format: double */
-            remainingRefundableAmount?: number | string;
+            remainingRefundableAmount?: number;
         };
         PendingCheckIn: {
             localId: string;
@@ -5519,7 +5519,7 @@ export interface components {
             type?: null | string;
             title?: null | string;
             /** Format: int32 */
-            status?: null | number | string;
+            status?: null | number;
             detail?: null | string;
             instance?: null | string;
         };
@@ -5527,10 +5527,10 @@ export interface components {
             /** Format: uuid */
             eventRegistrationId?: string;
             /** Format: double */
-            originalAmount?: number | string;
+            originalAmount?: number;
             currency?: string;
             /** Format: double */
-            slidingScalePercentage?: number | string;
+            slidingScalePercentage?: number;
             paymentMethodType?: components["schemas"]["PaymentMethodType"];
             returnUrl?: null | string;
             cancelUrl?: null | string;
@@ -5539,7 +5539,7 @@ export interface components {
             /** Format: uuid */
             paymentId?: string;
             /** Format: double */
-            refundAmount?: number | string;
+            refundAmount?: number;
             currency?: string;
             refundReason?: string;
             metadata?: Record<string, never>;
@@ -5586,7 +5586,7 @@ export interface components {
             email?: string;
             relationship?: string;
             /** Format: int32 */
-            order?: number | string;
+            order?: number;
             status?: string;
             /** Format: date-time */
             contactedAt?: null | string;
@@ -5617,21 +5617,21 @@ export interface components {
         };
         RefundInfoResponse: {
             /** Format: double */
-            refundedAmount?: number | string;
+            refundedAmount?: number;
             currency?: string;
             displayAmount?: string;
             /** Format: date-time */
             refundedAt?: null | string;
             refundReason?: null | string;
             /** Format: int32 */
-            refundCount?: number | string;
+            refundCount?: number;
             isPartialRefund?: boolean;
         };
         RefundResponse: {
             /** Format: uuid */
             refundId?: string;
             /** Format: double */
-            amount?: number | string;
+            amount?: number;
             currency?: string;
             status?: string;
             message?: string;
@@ -5666,7 +5666,7 @@ export interface components {
             decisionType?: string;
             reasoning?: string;
             /** Format: int32 */
-            score?: null | number | string;
+            score?: null | number;
             isFinalDecision?: boolean;
             additionalInfoRequested?: null | string;
             /** Format: date-time */
@@ -5682,7 +5682,7 @@ export interface components {
             decisionType: unknown;
             reasoning: string;
             /** Format: int32 */
-            score?: null | number | string;
+            score?: null | number;
             isFinalDecision?: boolean;
             additionalInfoRequested?: null | string;
             /** Format: date-time */
@@ -5717,25 +5717,25 @@ export interface components {
         };
         SafetyStatistics: {
             /** Format: int32 */
-            criticalCount?: number | string;
+            criticalCount?: number;
             /** Format: int32 */
-            highCount?: number | string;
+            highCount?: number;
             /** Format: int32 */
-            mediumCount?: number | string;
+            mediumCount?: number;
             /** Format: int32 */
-            lowCount?: number | string;
+            lowCount?: number;
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
             /** Format: int32 */
-            newCount?: number | string;
+            newCount?: number;
             /** Format: int32 */
-            inProgressCount?: number | string;
+            inProgressCount?: number;
             /** Format: int32 */
-            reviewingFinalReportCount?: number | string;
+            reviewingFinalReportCount?: number;
             /** Format: int32 */
-            resolvedCount?: number | string;
+            resolvedCount?: number;
             /** Format: int32 */
-            thisMonth?: number | string;
+            thisMonth?: number;
         };
         SaveAsTemplateRequest: {
             templateName: string;
@@ -5773,7 +5773,7 @@ export interface components {
             plainTextBody?: string;
             recipientGroup?: string;
             /** Format: int32 */
-            recipientCount?: number | string;
+            recipientCount?: number;
             /** Format: uuid */
             eventId?: null | string;
             eventTitle?: null | string;
@@ -5801,11 +5801,11 @@ export interface components {
             /** Format: date-time */
             endTime?: string;
             /** Format: int32 */
-            soldCount?: number | string;
+            soldCount?: number;
             /** Format: int32 */
-            availableCount?: number | string;
+            availableCount?: number;
             /** Format: int32 */
-            capacity?: number | string;
+            capacity?: number;
         };
         SessionDto: {
             id?: string;
@@ -5820,9 +5820,9 @@ export interface components {
             /** Format: date-time */
             endTime?: string;
             /** Format: int32 */
-            capacity?: number | string;
+            capacity?: number;
             /** Format: int32 */
-            registrationCount?: number | string;
+            registrationCount?: number;
         };
         SessionTokenResponse: {
             token?: string;
@@ -5909,15 +5909,15 @@ export interface components {
         };
         StorageSummaryResponse: {
             /** Format: int32 */
-            totalBackups?: number | string;
+            totalBackups?: number;
             /** Format: int64 */
-            totalSizeBytes?: number | string;
+            totalSizeBytes?: number;
             totalSizeFormatted?: string;
             /** Format: int64 */
-            limitBytes?: number | string;
+            limitBytes?: number;
             limitFormatted?: string;
             /** Format: double */
-            percentUsed?: number | string;
+            percentUsed?: number;
         };
         /** Format: binary */
         Stream: string;
@@ -5934,10 +5934,10 @@ export interface components {
         };
         SyncStatus: {
             /** Format: int32 */
-            pendingCount?: number | string;
+            pendingCount?: number;
             lastSync?: string;
             /** Format: int32 */
-            conflictCount?: number | string;
+            conflictCount?: number;
         };
         /** @enum {unknown} */
         TemplateTriggerType: "Manual" | "FixedEvent" | "TimeBased";
@@ -5946,7 +5946,7 @@ export interface components {
             id?: string;
             status?: string;
             /** Format: double */
-            amount?: null | number | string;
+            amount?: null | number;
             paymentStatus?: null | string;
             /** Format: date-time */
             createdAt?: string;
@@ -5959,7 +5959,7 @@ export interface components {
             ticketTypeName?: string;
             sessionIds?: string[];
             /** Format: double */
-            totalPrice?: number | string;
+            totalPrice?: number;
             canCancel?: boolean;
             cancellationMessage?: null | string;
         };
@@ -5969,17 +5969,17 @@ export interface components {
             pricingType?: components["schemas"]["PricingType"];
             sessionIdentifiers?: string[];
             /** Format: double */
-            price?: null | number | string;
+            price?: null | number;
             /** Format: double */
-            minPrice?: null | number | string;
+            minPrice?: null | number;
             /** Format: double */
-            maxPrice?: null | number | string;
+            maxPrice?: null | number;
             /** Format: double */
-            defaultPrice?: null | number | string;
+            defaultPrice?: null | number;
             /** Format: int32 */
-            quantityAvailable?: number | string;
+            quantityAvailable?: number;
             /** Format: int32 */
-            quantitySold?: number | string;
+            quantitySold?: number;
             canPurchase?: boolean;
             referenceSessionId?: null | string;
             referenceSessionName?: null | string;
@@ -6006,9 +6006,9 @@ export interface components {
             /** Format: date-time */
             endDate?: null | string;
             /** Format: int32 */
-            venueId?: null | number | string;
+            venueId?: null | number;
             /** Format: int32 */
-            capacity?: null | number | string;
+            capacity?: null | number;
             isPublished?: null | boolean;
             allowRsvps?: null | boolean;
             requireTicketPurchase?: null | boolean;
@@ -6018,15 +6018,15 @@ export interface components {
             teacherIds?: null | string[];
             volunteerPositions?: null | components["schemas"]["EventVolunteerPositionDto"][];
             /** Format: double */
-            registrationOpenHours?: null | number | string;
+            registrationOpenHours?: null | number;
             /** Format: double */
-            registrationCloseHours?: null | number | string;
+            registrationCloseHours?: null | number;
             /** Format: double */
-            cancellationCloseHours?: null | number | string;
+            cancellationCloseHours?: null | number;
             /** Format: double */
-            volunteerRegistrationCloseHours?: null | number | string;
+            volunteerRegistrationCloseHours?: null | number;
             /** Format: double */
-            volunteerCancellationCloseHours?: null | number | string;
+            volunteerCancellationCloseHours?: null | number;
         };
         UpdateEventTemplateRequest: {
             subject: string;
@@ -6097,7 +6097,7 @@ export interface components {
             triggerType: components["schemas"]["TemplateTriggerType"];
             triggerEnabled: boolean;
             /** Format: int32 */
-            timingOffsetDays?: null | number | string;
+            timingOffsetDays?: null | number;
             recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
         UpdateUserRequest: {
@@ -6107,7 +6107,7 @@ export interface components {
             isActive?: null | boolean;
             emailConfirmed?: null | boolean;
             /** Format: int32 */
-            vettingStatus?: null | number | string;
+            vettingStatus?: null | number;
         };
         UpdateUserRolesRequest: {
             roles: string[];
@@ -6126,7 +6126,7 @@ export interface components {
             fullName?: string;
             role?: string;
             /** Format: int32 */
-            activeIncidentCount?: number | string;
+            activeIncidentCount?: number;
         };
         UserDto: {
             /** Format: uuid */
@@ -6145,7 +6145,7 @@ export interface components {
             /** Format: date-time */
             lastLoginAt?: null | string;
             /** Format: int32 */
-            vettingStatus?: number | string;
+            vettingStatus?: number;
             hasVettingApplication?: boolean;
             isVetted?: boolean;
         };
@@ -6165,18 +6165,18 @@ export interface components {
             isPastEvent?: boolean;
             registeredSessions?: components["schemas"]["UserSessionDto"][];
             /** Format: int32 */
-            additionalSessionsAvailable?: number | string;
+            additionalSessionsAvailable?: number;
         };
         UserListResponse: {
             users?: components["schemas"]["UserDto"][];
             /** Format: int32 */
-            totalCount?: number | string;
+            totalCount?: number;
             /** Format: int32 */
-            page?: number | string;
+            page?: number;
             /** Format: int32 */
-            pageSize?: number | string;
+            pageSize?: number;
             /** Format: int32 */
-            totalPages?: number | string;
+            totalPages?: number;
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
         };
@@ -6221,7 +6221,7 @@ export interface components {
             sceneName?: string;
             email?: string;
             /** Format: int32 */
-            vettingStatus?: number | string;
+            vettingStatus?: number;
             vettingStatusDisplay?: string;
             role?: string;
             emailConfirmed?: boolean;
@@ -6262,7 +6262,7 @@ export interface components {
         UserSegmentDto: {
             segment?: components["schemas"]["UserSegment"];
             /** Format: int32 */
-            count?: number | string;
+            count?: number;
             description?: string;
             segmentName?: string;
         };
@@ -6296,7 +6296,7 @@ export interface components {
             type?: null | string;
             title?: null | string;
             /** Format: int32 */
-            status?: null | number | string;
+            status?: null | number;
             detail?: null | string;
             instance?: null | string;
             errors?: {
@@ -6308,24 +6308,24 @@ export interface components {
         };
         VariableRefundRequest: {
             /** Format: double */
-            refundAmount: number | string;
+            refundAmount: number;
             refundReason: string;
         };
         VariableRefundResponse: {
             /** Format: uuid */
             refundId?: string;
             /** Format: double */
-            amount?: number | string;
+            amount?: number;
             currency?: string;
             status?: string;
             message?: string;
             /** Format: double */
-            remainingRefundableAmount?: number | string;
+            remainingRefundableAmount?: number;
             paymentStatus?: string;
         };
         VenueDto: {
             /** Format: int32 */
-            id?: number | string;
+            id?: number;
             name?: string;
             directions?: null | string;
             venueInformation?: null | string;
@@ -6351,7 +6351,7 @@ export interface components {
             /** Format: date-time */
             submittedAt?: null | string;
             /** Format: int32 */
-            workflowStatus?: null | number | string;
+            workflowStatus?: null | number;
             workflowStatusDisplay?: null | string;
             /** Format: date-time */
             lastReviewedAt?: null | string;
@@ -6378,7 +6378,7 @@ export interface components {
         };
         VettingHoldStatusResponse: {
             /** Format: int32 */
-            vettingStatus: number | string;
+            vettingStatus: number;
             statusName: string;
             canPlaceOnHold: boolean;
             canRequestReinstatement: boolean;
@@ -6423,11 +6423,11 @@ export interface components {
             title?: string;
             description?: string;
             /** Format: int32 */
-            slotsNeeded?: number | string;
+            slotsNeeded?: number;
             /** Format: int32 */
-            slotsFilled?: number | string;
+            slotsFilled?: number;
             /** Format: int32 */
-            slotsRemaining?: number | string;
+            slotsRemaining?: number;
             isPublicFacing?: boolean;
             isFullyStaffed?: boolean;
             startTime?: null | string;
@@ -7868,8 +7868,8 @@ export interface operations {
                 Role?: string;
                 RoleFilters?: string[];
                 IsActive?: boolean;
-                Page: number | string;
-                PageSize: number | string;
+                Page: number;
+                PageSize: number;
                 SortBy: string;
                 SortDescending: boolean;
             };
@@ -8885,12 +8885,12 @@ export interface operations {
                 endDate?: string;
                 paymentMethods?: string;
                 statuses?: string;
-                minAmount?: number | string;
-                maxAmount?: number | string;
+                minAmount?: number;
+                maxAmount?: number;
                 sortBy: string;
                 sortDirection: string;
-                page: number | string;
-                pageSize: number | string;
+                page: number;
+                pageSize: number;
             };
             header?: never;
             path?: never;
@@ -10917,8 +10917,8 @@ export interface operations {
     GetMemberEventHistory: {
         parameters: {
             query?: {
-                page?: number | string;
-                pageSize?: number | string;
+                page?: number;
+                pageSize?: number;
             };
             header?: never;
             path: {
@@ -11379,8 +11379,8 @@ export interface operations {
                 AssignedTo?: string;
                 Unassigned?: boolean;
                 Type?: string;
-                Page: number | string;
-                PageSize: number | string;
+                Page: number;
+                PageSize: number;
                 SortBy: string;
                 SortOrder: string;
             };
@@ -12161,8 +12161,8 @@ export interface operations {
     GetMyReports: {
         parameters: {
             query?: {
-                page?: number | string;
-                pageSize?: number | string;
+                page?: number;
+                pageSize?: number;
             };
             header?: never;
             path?: never;
@@ -12262,8 +12262,8 @@ export interface operations {
             query?: {
                 search?: string;
                 status?: string;
-                page?: number | string;
-                pageSize?: number | string;
+                page?: number;
+                pageSize?: number;
             };
             header?: {
                 "X-CheckIn-Token"?: string;
@@ -14668,7 +14668,7 @@ export interface operations {
     ListBackups: {
         parameters: {
             query?: {
-                days?: number | string;
+                days?: number;
             };
             header?: never;
             path?: never;

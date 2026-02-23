@@ -137,9 +137,12 @@ export const WhereOccurred = {
 
 /**
  * Spoken to Person Status Enum (Nullable String Literal Union Type)
- * Source: C# NullableOfSpokenToPersonStatus via NSwag generation
+ * Source: C# SpokenToPersonStatus via OpenAPI generation
+ * Note: Previously 'NullableOfSpokenToPersonStatus' - the nullable wrapper was
+ * removed in .NET 10's OpenAPI spec generation; nullable is now expressed via
+ * the field's own nullability, not a separate schema wrapper.
  */
-export type SpokenToPersonStatus = components['schemas']['NullableOfSpokenToPersonStatus'];
+export type SpokenToPersonStatus = components['schemas']['SpokenToPersonStatus'];
 
 /**
  * Spoken to Person Status Enum Values (for runtime usage)

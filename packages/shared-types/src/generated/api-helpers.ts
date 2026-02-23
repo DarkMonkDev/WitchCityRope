@@ -2,7 +2,7 @@
 /* tslint:disable */
 /**
  * Helper functions for working with the generated API types
- * Generated on: 2026-02-23T06:11:46.997Z
+ * Generated on: 2026-02-23T09:45:25.179Z
  */
 
 import type { paths, components } from './api-types';
@@ -26,7 +26,6 @@ export type schemas = components['schemas'];
 export type UserDto = schemas['UserDto'];
 export type EventDto = schemas['EventDto'];
 export type EventListItemDto = schemas['EventListItemDto'];
-export type EventListSessionDto = schemas['EventListSessionDto'];
 export type LoginRequest = schemas['LoginRequest'];
 export type LoginResponse = schemas['LoginResponse'];
 export type RegisterRequest = schemas['RegisterRequest'];

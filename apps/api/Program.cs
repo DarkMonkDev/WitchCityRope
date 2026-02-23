@@ -53,7 +53,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-    // EnumSchemaTransformer removed - built-in transformer handles enums automatically
+    // Fix: Strip "string" from integer/number union types in OpenAPI schema
+    // Without this, openapi-typescript generates "number | string" instead of "number"
+    // See: NumericSchemaTransformer.cs for full explanation and issue references
+    options.AddSchemaTransformer<NumericSchemaTransformer>();
 });
 
 // Database configuration for PostgreSQL with connection pooling and retry policies
