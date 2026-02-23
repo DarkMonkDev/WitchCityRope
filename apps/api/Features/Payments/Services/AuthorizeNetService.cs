@@ -55,8 +55,11 @@ public class AuthorizeNetService : IAuthorizeNetService
         string? invoiceId = null)
     {
         _logger.LogInformation(
-            "Processing Authorize.NET payment with Accept.js nonce for amount {Amount}, invoice: {InvoiceId}",
-            amount, invoiceId ?? "(none)");
+            "Processing Authorize.NET payment with Accept.js nonce for amount {Amount}, invoice: {InvoiceId}, " +
+            "nonceLength={NonceLength}, descriptorLength={DescriptorLength}, descriptor={DataDescriptor}, " +
+            "apiLoginId={ApiLoginIdPrefix}***, testMode={TestMode}",
+            amount, invoiceId ?? "(none)", nonce?.Length ?? 0, dataDescriptor?.Length ?? 0, dataDescriptor,
+            _options.ApiLoginId?[..Math.Min(4, _options.ApiLoginId?.Length ?? 0)] ?? "(null)", _options.TestMode);
 
         try
         {
@@ -97,11 +100,31 @@ public class AuthorizeNetService : IAuthorizeNetService
 
             if (response == null)
             {
-                _logger.LogError("Authorize.NET returned null response for payment");
+                // GetApiResponse() returns null when the HTTP call itself failed.
+                // GetErrorResponse() contains the actual error details from the SDK.
+                var errorResponse = controller.GetErrorResponse();
+                if (errorResponse != null)
+                {
+                    var errCode = errorResponse.messages?.message?.FirstOrDefault()?.code ?? "unknown";
+                    var errText = errorResponse.messages?.message?.FirstOrDefault()?.text ?? "unknown";
+                    _logger.LogError(
+                        "Authorize.NET returned null API response. ErrorResponse code={ErrorCode}, text={ErrorText}, resultCode={ResultCode}",
+                        errCode, errText, errorResponse.messages?.resultCode);
+                    return Task.FromResult(new AuthorizeNetPaymentResponse
+                    {
+                        Success = false,
+                        ErrorCode = errCode,
+                        ErrorMessage = $"Payment gateway error: {errText}"
+                    });
+                }
+
+                _logger.LogError(
+                    "Authorize.NET returned null response AND null error response for payment. " +
+                    "This typically indicates a network connectivity issue between our server and the payment gateway.");
                 return Task.FromResult(new AuthorizeNetPaymentResponse
                 {
                     Success = false,
-                    ErrorMessage = "No response from payment gateway. Please try again."
+                    ErrorMessage = "Unable to reach payment gateway. Please try again in a moment."
                 });
             }
 
