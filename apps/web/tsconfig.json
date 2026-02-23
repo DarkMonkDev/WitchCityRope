@@ -24,9 +24,9 @@
     "jsx": "react-jsx",
     
     /* Type Checking */
-    "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     
     /* Path Mapping for React App */
