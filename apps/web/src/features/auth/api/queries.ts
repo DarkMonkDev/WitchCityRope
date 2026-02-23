@@ -21,7 +21,7 @@ export function useCurrentUser() {
     },
     staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes (v5 uses gcTime instead of cacheTime)
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       // Don't retry on 401 (unauthorized) errors
       if (error?.response?.status === 401) return false
       return failureCount < 3
@@ -42,7 +42,7 @@ export function useProtectedWelcome() {
     },
     staleTime: 30 * 1000, // Consider data stale after 30 seconds
     gcTime: 60 * 1000, // Keep in cache for 1 minute
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       // Don't retry on auth errors
       if (error?.response?.status === 401 || error?.response?.status === 403) {
         return false

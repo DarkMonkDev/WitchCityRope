@@ -322,7 +322,7 @@ export const MembershipWidget: React.FC = () => {
                 lineHeight: 1.3,
               }}
             >
-              🎉 Ready for vetting! Apply to become a {membershipInfo.nextLevel.name}
+              🎉 Ready for vetting! Apply to become a {membershipInfo.nextLevel?.name}
             </Text>
           </Box>
         )}

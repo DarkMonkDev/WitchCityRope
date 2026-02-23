@@ -91,7 +91,7 @@ export function useAssignMember() {
     Error,
     { positionId: string; userId: string }
   >({
-    mutationFn: async ({ positionId, userId }) => {
+    mutationFn: async ({ positionId, userId }: { positionId: string; userId: string }) => {
       const response = await apiClient.post<VolunteerAssignmentDto>(
         `/api/volunteer-positions/${positionId}/signups`,
         { userId }
@@ -99,7 +99,7 @@ export function useAssignMember() {
 
       return response.data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data: VolunteerAssignmentDto, variables: { positionId: string; userId: string }) => {
       // Invalidate the signups list for this position
       queryClient.invalidateQueries({
         queryKey: ['volunteer-signups', variables.positionId],
@@ -111,7 +111,7 @@ export function useAssignMember() {
         color: 'green',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       notifications.show({
         title: 'Assignment Failed',
         message: error.message || 'Failed to assign member to position',
@@ -133,10 +133,10 @@ export function useRemoveAssignment() {
     Error,
     { signupId: string; positionId: string }
   >({
-    mutationFn: async ({ signupId }) => {
+    mutationFn: async ({ signupId }: { signupId: string; positionId: string }) => {
       await apiClient.delete(`/api/volunteer-signups/${signupId}`);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_data: void, variables: { signupId: string; positionId: string }) => {
       // Invalidate the signups list for this position
       queryClient.invalidateQueries({
         queryKey: ['volunteer-signups', variables.positionId],
@@ -148,7 +148,7 @@ export function useRemoveAssignment() {
         color: 'blue',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       notifications.show({
         title: 'Removal Failed',
         message: error.message || 'Failed to remove volunteer assignment',

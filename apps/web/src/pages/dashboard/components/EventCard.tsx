@@ -221,7 +221,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           // Multiple sessions
           return (
             <Stack gap={8} style={{ marginBottom: '4px' }}>
-              {sessions.map((session, index) => {
+              {sessions.map((session: any, index: number) => {
                 const showSessionName = session.name && !session.name.includes('Main Session');
                 return (
                   <Stack key={session.id || index} gap={2}>
@@ -347,7 +347,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
             This indicates user has both paid AND RSVPed to a social event
             Backend sets this when: hasTicket=true AND isSocialEvent=true AND user has RSVP
           */}
-          {event.registrationStatus.includes('(Social Event)') && (
+          {event.registrationStatus?.includes('(Social Event)') && (
             <Badge color="blue" variant="light">
               RSVP
             </Badge>

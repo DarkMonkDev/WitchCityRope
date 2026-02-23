@@ -29,7 +29,7 @@ export const useVariableRefund = () => {
       });
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: VariableRefundResponse) => {
       queryClient.invalidateQueries({ queryKey: ['admin-payments'] });
       notifications.show({
         title: 'Refund Processed',

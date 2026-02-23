@@ -4,12 +4,17 @@ import type { EventSession } from '../components/events/EventSessionsGrid';
 import type { SessionDto, CreateEventSessionDto, UpdateEventSessionDto } from '../lib/api/types/event-session-matrix.types';
 
 /**
- * ✅ DTO ALIGNMENT STRATEGY COMPLIANT
+ * DTO ALIGNMENT STRATEGY COMPLIANT
  * Types imported from event-session-matrix.types.ts which uses auto-generated SessionDto
  */
 
 // Type alias for backward compatibility (used throughout this file as EventSessionDto)
 type EventSessionDto = SessionDto;
+
+// Context type for optimistic update rollback
+interface OptimisticSessionContext {
+  previousSession: EventSession | undefined;
+}
 
 // Query keys
 export const eventSessionKeys = {
@@ -70,19 +75,19 @@ export function useCreateEventSession() {
       if (!data) throw new Error('Failed to create event session');
       return transformEventSession(data);
     },
-    onSuccess: (newSession, variables) => {
+    onSuccess: (newSession: EventSession, variables: CreateEventSessionDto) => {
       // Invalidate the event sessions list
       queryClient.invalidateQueries({ queryKey: eventSessionKeys.list(variables.eventId) });
-      
+
       // Add to cache
       queryClient.setQueryData(eventSessionKeys.detail(newSession.id), newSession);
-      
+
       // Invalidate related event data
       queryClient.invalidateQueries({ queryKey: ['events', 'detail', variables.eventId] });
-      
+
       console.log('Event session created successfully:', newSession.name);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Create event session failed:', error);
     },
   });
@@ -98,33 +103,33 @@ export function useUpdateEventSession() {
       if (!data) throw new Error('Failed to update event session');
       return transformEventSession(data);
     },
-    onMutate: async (updatedSession) => {
+    onMutate: async (updatedSession: UpdateEventSessionDto) => {
       // Cancel outgoing queries
       await queryClient.cancelQueries({ queryKey: eventSessionKeys.detail(updatedSession.id) });
-      
+
       // Snapshot previous value
       const previousSession = queryClient.getQueryData(eventSessionKeys.detail(updatedSession.id)) as EventSession | undefined;
-      
+
       // Optimistically update
       queryClient.setQueryData(eventSessionKeys.detail(updatedSession.id), (old: EventSession | undefined) => {
         if (!old) return old;
         return { ...old, ...updatedSession };
       });
-      
+
       return { previousSession };
     },
-    onError: (err, updatedSession, context) => {
+    onError: (err: Error, updatedSession: UpdateEventSessionDto, context: OptimisticSessionContext | undefined) => {
       // Rollback on error
       if (context?.previousSession) {
         queryClient.setQueryData(eventSessionKeys.detail(updatedSession.id), context.previousSession);
       }
       console.error('Update event session failed, rolling back:', err);
     },
-    onSettled: (_data, _error, updatedSession) => {
+    onSettled: (_data: EventSession | undefined, _error: Error | null, updatedSession: UpdateEventSessionDto) => {
       // Refetch to ensure consistency
       queryClient.invalidateQueries({ queryKey: eventSessionKeys.detail(updatedSession.id) });
     },
-    onSuccess: (updatedSession) => {
+    onSuccess: (updatedSession: EventSession) => {
       // Find the event ID from current queries to invalidate the list
       const queries = (queryClient as any).getQueriesData({ queryKey: eventSessionKeys.lists() });
       for (const [queryKey] of queries) {
@@ -133,7 +138,7 @@ export function useUpdateEventSession() {
           queryClient.invalidateQueries({ queryKey: eventSessionKeys.list(eventId) });
         }
       }
-      
+
       console.log('Event session updated successfully:', updatedSession.name);
     },
   });
@@ -148,19 +153,19 @@ export function useDeleteEventSession() {
       await apiClient.delete(`/api/events/sessions/${sessionId}`);
       return sessionId;
     },
-    onSuccess: (deletedId) => {
+    onSuccess: (deletedId: string) => {
       // Remove from cache
       queryClient.removeQueries({ queryKey: eventSessionKeys.detail(deletedId) });
-      
+
       // Invalidate all session lists (we don't know which event it belonged to)
       queryClient.invalidateQueries({ queryKey: eventSessionKeys.lists() });
-      
+
       // Invalidate event details (capacity calculations might change)
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      
+
       console.log('Event session deleted successfully');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Delete event session failed:', error);
     },
   });
@@ -176,26 +181,26 @@ export function useBulkCreateEventSessions() {
       if (!data) throw new Error('Failed to create event sessions');
       return data.map(transformEventSession);
     },
-    onSuccess: (newSessions, variables) => {
+    onSuccess: (newSessions: EventSession[], variables: CreateEventSessionDto[]) => {
       if (newSessions.length > 0) {
         const eventId = variables[0]?.eventId;
         if (eventId) {
           // Invalidate the event sessions list
           queryClient.invalidateQueries({ queryKey: eventSessionKeys.list(eventId) });
-          
+
           // Add each session to cache
-          newSessions.forEach(session => {
+          newSessions.forEach((session: EventSession) => {
             queryClient.setQueryData(eventSessionKeys.detail(session.id), session);
           });
-          
+
           // Invalidate related event data
           queryClient.invalidateQueries({ queryKey: ['events', 'detail', eventId] });
         }
       }
-      
+
       console.log('Bulk event sessions created successfully:', newSessions.length);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Bulk create event sessions failed:', error);
     },
   });
@@ -213,18 +218,18 @@ export function useReorderEventSessions() {
       if (!data) throw new Error('Failed to reorder event sessions');
       return data.map(transformEventSession);
     },
-    onSuccess: (reorderedSessions, variables) => {
+    onSuccess: (reorderedSessions: EventSession[], variables: { eventId: string; sessionIds: string[] }) => {
       // Invalidate the event sessions list
       queryClient.invalidateQueries({ queryKey: eventSessionKeys.list(variables.eventId) });
-      
+
       // Update individual session caches
-      reorderedSessions.forEach(session => {
+      reorderedSessions.forEach((session: EventSession) => {
         queryClient.setQueryData(eventSessionKeys.detail(session.id), session);
       });
-      
+
       console.log('Event sessions reordered successfully');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Reorder event sessions failed:', error);
     },
   });

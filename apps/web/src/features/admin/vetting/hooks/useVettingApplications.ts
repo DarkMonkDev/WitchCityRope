@@ -68,7 +68,7 @@ export function useVettingApplications(
     staleTime: 5 * 60 * 1000, // 5 minutes - reduce memory pressure
     refetchOnWindowFocus: false,
     refetchOnMount: false, // Only refetch if data is stale
-    placeholderData: (previousData) => previousData,
+    placeholderData: (previousData: PagedResult<ApplicationSummaryDto> | undefined) => previousData,
     // Ensure errors are thrown instead of silently returning fallback data
     throwOnError: true,
     // Allow component to override with custom options (e.g., enabled: false)

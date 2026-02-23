@@ -75,7 +75,7 @@ export function useCheckInAttendee(eventId: string, sessionToken: string) {
 
       return checkinApi.checkInAttendee(eventId, request, sessionToken);
     },
-    onMutate: async (newCheckIn) => {
+    onMutate: async (newCheckIn: CheckInRequest) => {
       // Cancel outgoing refetches to prevent optimistic update conflicts
       await queryClient.cancelQueries({ 
         queryKey: checkinKeys.eventAttendees(eventId) 
@@ -110,7 +110,7 @@ export function useCheckInAttendee(eventId: string, sessionToken: string) {
 
       return { previousData };
     },
-    onSuccess: (data, _variables) => {
+    onSuccess: (data: CheckInResponse, _variables: CheckInRequest) => {
       // Invalidate related queries for fresh data
       queryClient.invalidateQueries({
         queryKey: checkinKeys.eventAttendees(eventId)
@@ -136,7 +136,7 @@ export function useCheckInAttendee(eventId: string, sessionToken: string) {
       //   withCloseButton: true,
       // });
     },
-    onError: (error, _variables, context) => {
+    onError: (error: Error, _variables: CheckInRequest, context: { previousData: unknown } | undefined) => {
       // Rollback optimistic updates on error
       if (context?.previousData) {
         queryClient.setQueryData(
@@ -176,13 +176,13 @@ export function useCreateManualEntry(eventId: string, sessionToken: string) {
       manualEntryData: ManualEntryData;
       notes?: string;
     }) => checkinApi.createManualEntry(eventId, staffMemberId, manualEntryData, sessionToken, notes),
-    onSuccess: (data) => {
+    onSuccess: (data: CheckInResponse) => {
       // Invalidate attendee lists to show new entry
-      queryClient.invalidateQueries({ 
-        queryKey: checkinKeys.eventAttendees(eventId) 
+      queryClient.invalidateQueries({
+        queryKey: checkinKeys.eventAttendees(eventId)
       });
-      queryClient.invalidateQueries({ 
-        queryKey: checkinKeys.eventDashboard(eventId) 
+      queryClient.invalidateQueries({
+        queryKey: checkinKeys.eventDashboard(eventId)
       });
 
       // KIOSK MODE: Notification disabled for streamlined UX
@@ -195,7 +195,7 @@ export function useCreateManualEntry(eventId: string, sessionToken: string) {
       //   autoClose: 4000,
       // });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       // KIOSK MODE: Notification disabled for streamlined UX
       console.error('Manual entry failed:', error);
       // notifications.show({
@@ -263,7 +263,7 @@ export function useExportAttendance(eventId: string, sessionToken: string) {
   return useMutation({
     mutationFn: (format: 'csv' | 'pdf' = 'csv') =>
       checkinApi.exportAttendance(eventId, sessionToken, format),
-    onSuccess: (blob, format) => {
+    onSuccess: (blob: Blob, format: 'csv' | 'pdf') => {
       // Trigger download
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -284,7 +284,7 @@ export function useExportAttendance(eventId: string, sessionToken: string) {
       //   autoClose: 3000,
       // });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       // KIOSK MODE: Notification disabled for streamlined UX
       console.error('Export failed:', error);
       // notifications.show({

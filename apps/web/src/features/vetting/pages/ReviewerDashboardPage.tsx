@@ -7,7 +7,7 @@ import { ReviewerDashboard } from '../components/reviewer/ReviewerDashboard';
 import { useQuery } from '@tanstack/react-query';
 import { vettingApi } from '../api/vettingApi';
 import type { ApplicationSummaryDto } from '../types/vetting.types';
-import { APPLICATION_STATUS_CONFIGS } from '../types/vetting.types';
+import { APPLICATION_STATUS_CONFIGS, ApplicationStatus } from '../types/vetting.types';
 import type { components } from '@witchcityrope/shared-types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
@@ -142,11 +142,11 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                     <Group justify="apart" mb="md">
                       <Group gap="md">
                         <Badge
-                          color={APPLICATION_STATUS_CONFIGS[(applicationDetail as any)?.status]?.color || 'gray'}
+                          color={APPLICATION_STATUS_CONFIGS[(applicationDetail as any)?.status as ApplicationStatus]?.color || 'gray'}
                           variant="filled"
                           size="lg"
                         >
-                          {APPLICATION_STATUS_CONFIGS[(applicationDetail as any)?.status]?.label || (applicationDetail as any)?.status}
+                          {APPLICATION_STATUS_CONFIGS[(applicationDetail as any)?.status as ApplicationStatus]?.label || (applicationDetail as any)?.status}
                         </Badge>
                         
                         {(applicationDetail as any)?.assignedReviewerName && (

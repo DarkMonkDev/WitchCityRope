@@ -116,7 +116,7 @@ export function useApiMutation<TData = unknown, TVariables = void, TError = Axio
 
   return useMutation({
     mutationFn,
-    onSuccess: async (data, variables) => {
+    onSuccess: async (data: TData, variables: TVariables) => {
       // Show success notification if message provided and enabled
       if (successMessage && showSuccessNotification) {
         const message = typeof successMessage === 'function'
@@ -133,7 +133,7 @@ export function useApiMutation<TData = unknown, TVariables = void, TError = Axio
       // Call original onSuccess if provided
       await onSuccess?.(data, variables)
     },
-    onError: async (error, variables) => {
+    onError: async (error: Error, variables: TVariables) => {
       // Error message is already extracted by apiClient interceptor
       // error.message now contains the RFC 9457 detail/title instead of generic axios message
       if (showErrorNotification) {
@@ -151,7 +151,7 @@ export function useApiMutation<TData = unknown, TVariables = void, TError = Axio
       // Call original onError if provided
       await onError?.(error as TError, variables)
     },
-    onSettled: async (data, error, variables) => {
+    onSettled: async (data: TData | undefined, error: Error | null, variables: TVariables) => {
       await onSettled?.(data, error as TError | null, variables)
     },
   })

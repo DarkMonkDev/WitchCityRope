@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { vettingApi, getVettingErrorMessage } from '../api/vettingApi';
-import type { ApplicationFilterRequest, ReviewDecisionRequest, DashboardFilters, DashboardStats } from '../types/vetting.types';
+import type { ApplicationFilterRequest, ReviewDecisionRequest, DashboardFilters, DashboardStats, ApplicationDetailResponse, ApplicationSummaryDto } from '../types/vetting.types';
 
 /**
  * Hook for managing reviewer dashboard
@@ -102,7 +102,7 @@ export const useReviewerDashboard = () => {
       applicationId: string;
       decision: ReviewDecisionRequest;
     }) => vettingApi.submitReview(applicationId, decision),
-    onSuccess: (updatedApplication, { decision }) => {
+    onSuccess: (updatedApplication: ApplicationDetailResponse, { decision }: { applicationId: string; decision: ReviewDecisionRequest }) => {
       // Invalidate and refetch related queries
       queryClient.invalidateQueries({ queryKey: ['reviewer-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['application-detail'] });
@@ -122,7 +122,7 @@ export const useReviewerDashboard = () => {
         autoClose: 5000,
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       notifications.show({
         title: 'Review Submission Failed',
         message: getVettingErrorMessage(error),
@@ -138,7 +138,7 @@ export const useReviewerDashboard = () => {
       applicationId: string;
       reviewerId: string;
     }) => vettingApi.assignApplication(applicationId, reviewerId),
-    onSuccess: (updatedApplication) => {
+    onSuccess: (updatedApplication: ApplicationDetailResponse) => {
       queryClient.invalidateQueries({ queryKey: ['reviewer-dashboard'] });
       queryClient.setQueryData(
         ['application-detail', updatedApplication.id],
@@ -152,7 +152,7 @@ export const useReviewerDashboard = () => {
         autoClose: 4000,
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       notifications.show({
         title: 'Assignment Failed',
         message: getVettingErrorMessage(error),
@@ -168,7 +168,7 @@ export const useReviewerDashboard = () => {
       applicationId: string;
       note: { content: string; isPrivate: boolean; tags?: string[] };
     }) => vettingApi.addReviewNote(applicationId, note),
-    onSuccess: (updatedApplication) => {
+    onSuccess: (updatedApplication: ApplicationDetailResponse) => {
       queryClient.setQueryData(
         ['application-detail', updatedApplication.id],
         updatedApplication
@@ -181,7 +181,7 @@ export const useReviewerDashboard = () => {
         autoClose: 3000,
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       notifications.show({
         title: 'Failed to Add Note',
         message: getVettingErrorMessage(error),
@@ -215,13 +215,13 @@ export const useReviewerDashboard = () => {
   const getFilteredStats = useCallback((): Partial<DashboardStats> => {
     if (!(dashboardData as any)?.applications) return {};
 
-    const applications = (dashboardData as any).applications;
+    const applications = (dashboardData as any).applications as ApplicationSummaryDto[];
     const stats = {
       totalApplications: applications.length,
-      newApplications: applications.filter(app => app.status === 'submitted').length,
-      inReview: applications.filter(app => app.status === 'under-review').length,
-      pendingInterview: applications.filter(app => app.status === 'pending-interview').length,
-      awaitingReferences: applications.filter(app => 
+      newApplications: applications.filter((app: ApplicationSummaryDto) => app.status === 'submitted').length,
+      inReview: applications.filter((app: ApplicationSummaryDto) => app.status === 'under-review').length,
+      pendingInterview: applications.filter((app: ApplicationSummaryDto) => app.status === 'pending-interview').length,
+      awaitingReferences: applications.filter((app: ApplicationSummaryDto) =>
         app.status === 'references-contacted' && !app.referenceStatus.allReferencesComplete
       ).length
     };

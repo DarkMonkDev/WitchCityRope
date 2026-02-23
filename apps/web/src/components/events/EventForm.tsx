@@ -134,7 +134,7 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
       let compareValue = 0
 
       if (sortColumn === 'name') {
-        compareValue = a.userSceneName.localeCompare(b.userSceneName)
+        compareValue = (a.userSceneName ?? '').localeCompare(b.userSceneName ?? '')
       } else if (sortColumn === 'paid') {
         const amountA = a.ticketAmount ?? 0
         const amountB = b.ticketAmount ?? 0
@@ -454,7 +454,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       setResetModalOpen(false)
       setTemplateToReset(null)
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to reset template:', error)
       notifications.show({
         title: 'Error',
@@ -2413,12 +2413,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                             let aVal: any, bVal: any
                             switch (rsvpSortColumn) {
                               case 'name':
-                                aVal = a.userSceneName.toLowerCase()
-                                bVal = b.userSceneName.toLowerCase()
+                                aVal = (a.userSceneName ?? '').toLowerCase()
+                                bVal = (b.userSceneName ?? '').toLowerCase()
                                 break
                               case 'email':
-                                aVal = a.userEmail.toLowerCase()
-                                bVal = b.userEmail.toLowerCase()
+                                aVal = (a.userEmail ?? '').toLowerCase()
+                                bVal = (b.userEmail ?? '').toLowerCase()
                                 break
                               case 'status':
                                 aVal = a.status
@@ -2679,8 +2679,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                           let aVal: any, bVal: any
                           switch (ticketsSortColumn) {
                             case 'name':
-                              aVal = a.userSceneName.toLowerCase()
-                              bVal = b.userSceneName.toLowerCase()
+                              aVal = (a.userSceneName ?? '').toLowerCase()
+                              bVal = (b.userSceneName ?? '').toLowerCase()
                               break
                             case 'ticketType':
                               aVal = (a.ticketTypeName ?? '').toLowerCase()
@@ -2691,8 +2691,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                               bVal = b.status
                               break
                             case 'sessions':
-                              aVal = a.sessionNames.toLowerCase()
-                              bVal = b.sessionNames.toLowerCase()
+                              aVal = (a.sessionNames ?? '').toLowerCase()
+                              bVal = (b.sessionNames ?? '').toLowerCase()
                               break
                             case 'date':
                               aVal = new Date(a.participationDate).getTime()

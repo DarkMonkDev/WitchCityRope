@@ -91,7 +91,7 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
         color: 'green',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       showNotification({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Failed to add note',
@@ -116,7 +116,7 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
         color: 'green',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       showNotification({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Failed to update note',
@@ -138,7 +138,7 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
         color: 'green',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       showNotification({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Failed to delete note',

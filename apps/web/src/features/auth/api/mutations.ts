@@ -54,7 +54,7 @@ export function useLogin() {
       const response = await apiClient.post('/api/auth/login', credentials)
       return response.data
     },
-    onSuccess: async (data, _variables, _context) => {
+    onSuccess: async (data: LoginResponseData, _variables: LoginRequest, _context: unknown) => {
       // Handle httpOnly cookie authentication - no tokens in response
       // The API returns { success: true, user: {...}, returnUrl: '...' }
       const userData = data.user
@@ -98,7 +98,7 @@ export function useLogin() {
         });
       }
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Login failed:', error)
       // Error handling is managed by the component
     },
@@ -120,7 +120,7 @@ export function useRegister() {
       const response = await apiClient.post('/api/auth/register', credentials)
       return response.data
     },
-    onSuccess: (_userData) => {
+    onSuccess: (_userData: UserDto) => {
       // Handle flat response structure from API
       // Registration doesn't return JWT token - user needs to login
       // Just navigate to login page with success message
@@ -128,7 +128,7 @@ export function useRegister() {
       // Navigate to login page after successful registration
       navigate('/login?message=Registration successful. Please log in.', { replace: true })
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Registration failed:', error)
       // Error handling is managed by the component
     },
@@ -207,7 +207,7 @@ export function useLogout() {
 
       console.log('✅ Logout successful')
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('❌ Logout failed after retry:', error)
       // CRITICAL: Still clear local state even on error
       // Backend logout may have succeeded even if we got an error response

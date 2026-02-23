@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { sessionTokenApi } from '../api/sessionTokenApi';
-import type { GenerateTokenRequest, RevokeTokenRequest } from '../api/sessionTokenApi';
+import type { GenerateTokenRequest, RevokeTokenRequest, SessionTokenResponse } from '../api/sessionTokenApi';
 
 /**
  * React Query hooks for session token management
@@ -25,7 +25,7 @@ export const useGenerateSessionToken = () => {
 
   return useMutation({
     mutationFn: (request: GenerateTokenRequest) => sessionTokenApi.generateToken(request),
-    onSuccess: (_, variables) => {
+    onSuccess: (_data: SessionTokenResponse, variables: GenerateTokenRequest) => {
       // Invalidate active tokens query for this event
       queryClient.invalidateQueries({
         queryKey: ['sessionTokens', 'event', variables.eventId],

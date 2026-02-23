@@ -338,9 +338,9 @@ export function IncidentDetails({ incidentId, onClose: _onClose }: IncidentDetai
             <Paper p="md" withBorder>
               <Title order={4} size="h5" mb="md">Activity Log</Title>
               
-              {incident.auditTrail.length > 0 ? (
+              {(incident.auditTrail?.length ?? 0) > 0 ? (
                 <Timeline bulletSize={24} lineWidth={2}>
-                  {incident.auditTrail.map((log) => (
+                  {incident.auditTrail?.map((log) => (
                     <Timeline.Item
                       key={log.id}
                       bullet={<IconClock size={12} />}

@@ -76,7 +76,7 @@ export const AdminIncidentDetailPage: React.FC = () => {
 
   // Status update mutation
   const statusMutation = useMutation<unknown, Error, { newStatus: IncidentStatus; notes?: string }>({
-    mutationFn: async ({ newStatus, notes }) => {
+    mutationFn: async ({ newStatus, notes }: { newStatus: IncidentStatus; notes?: string }) => {
       const response = await apiClient.put(`/api/safety/admin/incidents/${id}/status`, {
         newStatus,
         notes
@@ -94,7 +94,7 @@ export const AdminIncidentDetailPage: React.FC = () => {
         color: 'green',
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       showNotification({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Failed to update status',

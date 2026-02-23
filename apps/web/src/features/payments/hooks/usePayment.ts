@@ -57,7 +57,7 @@ export const usePayment = (eventRegistrationId?: string) => {
         throw error;
       }
     },
-    onSuccess: (_data) => {
+    onSuccess: (_data: any) => {
       // Invalidate relevant queries
       if (eventRegistrationId) {
         queryClient.invalidateQueries({ 

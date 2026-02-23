@@ -62,9 +62,9 @@ export function BackupManagementCard({ onRestoreClick }: BackupManagementCardPro
       const savedNames = localStorage.getItem('backupDisplayNames');
       const displayNames = savedNames ? JSON.parse(savedNames) : {};
 
-      setBackups(data.backups.map(b => ({
+      setBackups((data.backups ?? []).map(b => ({
         ...b,
-        displayName: displayNames[b.fileName] || b.fileName.replace(/\.(dump|sql)$/, '').replace('backup-', '')
+        displayName: displayNames[(b.fileName ?? '')] || (b.fileName ?? '').replace(/\.(dump|sql)$/, '').replace('backup-', '')
       })));
     } catch (err) {
       console.error('Failed to load backups:', err);

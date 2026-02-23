@@ -33,7 +33,7 @@ export const AdminMemberDetailsPage: React.FC = () => {
 
   // Fetch incidents to determine if tab should be shown
   const { data: incidentsData } = useMemberIncidents(id || '', !!id)
-  const hasIncidents = incidentsData && incidentsData.totalCount > 0
+  const hasIncidents = incidentsData && (incidentsData.totalCount ?? 0) > 0
 
   if (!id) {
     return (
@@ -67,7 +67,7 @@ export const AdminMemberDetailsPage: React.FC = () => {
         {memberDetails && !isLoading && !error && (
           <Group gap="xs">
             {/* Role Badges */}
-            {memberDetails.role.split(',').filter(role => role.trim()).map((role, index) => (
+            {(memberDetails.role ?? '').split(',').filter(role => role.trim()).map((role, index) => (
               <Badge key={index} color="blue" size="lg" variant="filled">
                 {role.trim().toUpperCase()}
               </Badge>

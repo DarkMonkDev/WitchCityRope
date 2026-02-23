@@ -26,7 +26,7 @@ export function useUpdateProfile() {
       const response = await apiClient.put('/api/members/profile', data)
       return response.data
     },
-    onSettled: () => {
+    onSettled: (_data: unknown, _error: Error | null) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.currentUser() })
     },
   })
@@ -41,7 +41,7 @@ export function useUpdateMemberStatus() {
       const response = await apiClient.put(`/api/members/${id}/status`, { status, reason })
       return response.data
     },
-    onMutate: async ({ id, status }) => {
+    onMutate: async ({ id, status }: UpdateMemberStatusData) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.user(id) })
       
@@ -59,7 +59,7 @@ export function useUpdateMemberStatus() {
       // Return rollback context
       return { previousUser, id }
     },
-    onError: (error, _variables, context) => {
+    onError: (error: Error, _variables: UpdateMemberStatusData, context: { previousUser: UserDto | undefined; id: string } | undefined) => {
       // Rollback on error
       if (context?.previousUser) {
         queryClient.setQueryData(
@@ -69,7 +69,7 @@ export function useUpdateMemberStatus() {
       }
       console.error('Status update failed:', error)
     },
-    onSettled: (_data, _error, variables) => {
+    onSettled: (_data: UserDto | undefined, _error: Error | null, variables: UpdateMemberStatusData) => {
       // Always refetch to ensure server state
       queryClient.invalidateQueries({ queryKey: queryKeys.user(variables.id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.users() })

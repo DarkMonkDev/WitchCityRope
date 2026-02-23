@@ -148,6 +148,11 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
   }
 }
 
+// Context type for optimistic event update rollback
+interface OptimisticEventContext {
+  previousEvent: EventDto | undefined
+}
+
 // Fetch events list with filters
 export function useEvents(filters: EventFilters = {}) {
   return useQuery({
@@ -181,7 +186,7 @@ export function useInfiniteEvents(filters: Omit<EventFilters, 'page'> = {}) {
       })
       return data || { items: [], page: 1, limit: 10, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
     },
-    getNextPageParam: (lastPage) =>
+    getNextPageParam: (lastPage: PaginatedResponse<EventDto>) =>
       lastPage.hasNext ? lastPage.page + 1 : undefined,
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000,
@@ -212,15 +217,15 @@ export function useCreateEvent() {
       if (!data) throw new Error('Failed to create event')
       return data
     },
-    onSuccess: (newEvent) => {
+    onSuccess: (newEvent: EventDto) => {
       // Invalidate events list to refetch
       cacheUtils.invalidateEvents(queryClient)
-      
+
       // Optimistically add to cache
       queryClient.setQueryData(eventKeys.detail(newEvent.id), newEvent)
-      
+
     },
-    onError: (_error) => {
+    onError: (_error: Error) => {
     },
   })
 }
@@ -236,7 +241,7 @@ export function useUpdateEvent() {
       // Transform the API response to match our EventDto structure
       return transformApiEvent(data)
     },
-    onMutate: async (updatedEvent) => {
+    onMutate: async (updatedEvent: UpdateEventDto) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: eventKeys.detail(updatedEvent.id) })
 
@@ -251,12 +256,12 @@ export function useUpdateEvent() {
 
       return { previousEvent }
     },
-    onSuccess: (data, updatedEvent) => {
+    onSuccess: (data: EventDto, updatedEvent: UpdateEventDto) => {
       // CRITICAL: Immediately update cache with actual API response
       // This ensures the UI shows the correct saved values instead of optimistic values
       queryClient.setQueryData(eventKeys.detail(updatedEvent.id), data)
     },
-    onError: (_err, updatedEvent, context) => {
+    onError: (_err: Error, updatedEvent: UpdateEventDto, context: OptimisticEventContext | undefined) => {
       // Rollback on error
       if (context?.previousEvent) {
         queryClient.setQueryData(eventKeys.detail(updatedEvent.id), context.previousEvent)
@@ -273,17 +278,17 @@ export function useUpdateEvent() {
 // Delete event mutation
 export function useDeleteEvent() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (id: string): Promise<string> => {
       await apiClient.delete(`/api/events/${id}`)
       return id
     },
-    onSuccess: (deletedId) => {
+    onSuccess: (deletedId: string) => {
       queryClient.removeQueries({ queryKey: eventKeys.detail(deletedId) })
       cacheUtils.invalidateEvents(queryClient)
     },
-    onError: (_error) => {
+    onError: (_error: Error) => {
     },
   })
 }
@@ -301,6 +306,11 @@ export function useEventRegistrations(eventId: string) {
   })
 }
 
+// Context type for optimistic registration rollback
+interface OptimisticRegistrationContext {
+  previousEvent: EventDto | undefined
+}
+
 export function useRegisterForEvent() {
   const queryClient = useQueryClient()
 
@@ -310,12 +320,12 @@ export function useRegisterForEvent() {
       if (!data) throw new Error('Registration failed')
       return data
     },
-    onMutate: async (eventId) => {
+    onMutate: async (eventId: string) => {
       // Optimistically update event registration count
       await queryClient.cancelQueries({ queryKey: eventKeys.detail(eventId) })
-      
+
       const previousEvent = queryClient.getQueryData(eventKeys.detail(eventId)) as EventDto | undefined
-      
+
       queryClient.setQueryData(eventKeys.detail(eventId), (old: EventDto | undefined) => {
         if (!old) return old
         return {
@@ -323,16 +333,16 @@ export function useRegisterForEvent() {
           registrationCount: (old.registrationCount || 0) + 1
         }
       })
-      
+
       return { previousEvent }
     },
-    onError: (_err, eventId, context) => {
+    onError: (_err: Error, eventId: string, context: OptimisticRegistrationContext | undefined) => {
       // Rollback registration count on error
       if (context?.previousEvent) {
         queryClient.setQueryData(eventKeys.detail(eventId), context.previousEvent)
       }
     },
-    onSuccess: (_registration, eventId) => {
+    onSuccess: (_registration: RegistrationDto, eventId: string) => {
       // Refresh registration data
       queryClient.invalidateQueries({ queryKey: eventKeys.registrations(eventId) })
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) })

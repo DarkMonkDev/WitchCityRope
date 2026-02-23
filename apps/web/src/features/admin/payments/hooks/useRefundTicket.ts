@@ -26,7 +26,7 @@ export const useRefundTicket = () => {
       });
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: RefundTicketResponse) => {
       // Invalidate payments query to refresh the list
       queryClient.invalidateQueries({ queryKey: ['admin-payments'] });
 

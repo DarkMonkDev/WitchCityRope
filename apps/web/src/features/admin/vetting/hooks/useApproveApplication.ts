@@ -14,7 +14,7 @@ export function useApproveApplication(onSuccess?: () => void) {
   return useMutation({
     mutationFn: ({ applicationId, reasoning }: ApproveApplicationParams) =>
       vettingAdminApi.approveApplication(applicationId, reasoning),
-    onSuccess: (data, variables) => {
+    onSuccess: (data: any, variables: ApproveApplicationParams) => {
       // Invalidate and refetch related queries
       queryClient.invalidateQueries({
         queryKey: vettingKeys.applications(),

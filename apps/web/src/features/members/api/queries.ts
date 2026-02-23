@@ -32,7 +32,7 @@ export function useInfiniteMembers(filters: MemberFilters = {}) {
       return response.data
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: (lastPage: PaginatedResponse<UserDto>) => {
       return lastPage.hasNext ? lastPage.page + 1 : undefined
     },
     maxPages: 10,

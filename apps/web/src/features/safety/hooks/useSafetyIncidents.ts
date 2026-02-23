@@ -3,7 +3,13 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { safetyApi } from '../api/safetyApi';
-import type { SubmitIncidentRequest, SearchIncidentsRequest, UpdateIncidentRequest, FrontendIncidentDetails } from '../types/safety.types';
+import type {
+  SubmitIncidentRequest,
+  SearchIncidentsRequest,
+  UpdateIncidentRequest,
+  FrontendIncidentDetails,
+  SubmissionResponse
+} from '../types/safety.types';
 
 // Query keys for cache management
 export const safetyKeys = {
@@ -22,19 +28,19 @@ export const safetyKeys = {
  */
 export function useSubmitIncident() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (request: SubmitIncidentRequest) => safetyApi.submitIncident(request),
-    onSuccess: (data, variables) => {
+    onSuccess: (data: SubmissionResponse, variables: SubmitIncidentRequest) => {
       // Invalidate dashboard if this was from an authenticated user
       if (!variables.isAnonymous) {
         queryClient.invalidateQueries({ queryKey: safetyKeys.dashboard() });
         queryClient.invalidateQueries({ queryKey: safetyKeys.userReports() });
       }
-      
+
       console.log('Incident submitted successfully:', data.referenceNumber);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to submit incident:', error);
     }
   });
@@ -65,7 +71,7 @@ export function useIncidentDetail(incidentId: string, enabled: boolean = true) {
     queryFn: () => safetyApi.getIncidentDetail(incidentId),
     enabled: enabled && !!incidentId,
     staleTime: 30 * 1000, // 30 seconds (incident data changes frequently)
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       // Don't retry on 403/404 errors
       if (error?.response?.status === 403 || error?.response?.status === 404) {
         return false;
@@ -85,7 +91,7 @@ export function useSafetyDashboard() {
     queryFn: () => safetyApi.getSafetyDashboard(),
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnWindowFocus: true, // Dashboard should be current when visible
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       if (error?.response?.status === 403) {
         return false;
       }
@@ -117,7 +123,7 @@ export function useUserReports() {
     queryKey: safetyKeys.userReports(),
     queryFn: () => safetyApi.getUserReports(),
     staleTime: 5 * 60 * 1000, // 5 minutes (user reports don't change often)
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       if (error?.response?.status === 403) {
         return false;
       }
@@ -125,6 +131,9 @@ export function useUserReports() {
     }
   });
 }
+
+// Variables type for update incident mutation
+type UpdateIncidentVariables = { incidentId: string; request: UpdateIncidentRequest }
 
 /**
  * Update incident status, assignment, or add notes
@@ -134,16 +143,16 @@ export function useUpdateIncident() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ incidentId, request }: { incidentId: string; request: UpdateIncidentRequest }) =>
+    mutationFn: ({ incidentId, request }: UpdateIncidentVariables) =>
       safetyApi.updateIncident(incidentId, request),
-    onSuccess: (_, { incidentId }) => {
+    onSuccess: (_: FrontendIncidentDetails, { incidentId }: UpdateIncidentVariables) => {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: safetyKeys.incident(incidentId) });
       queryClient.invalidateQueries({ queryKey: safetyKeys.dashboard() });
       queryClient.invalidateQueries({ queryKey: safetyKeys.incidents() });
       // Notes are refetched directly by parent page using ref pattern (matches vetting)
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to update incident:', error);
     }
   });
@@ -155,14 +164,14 @@ export function useUpdateIncident() {
  */
 export function useDeleteIncident() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (incidentId: string) => safetyApi.deleteIncident(incidentId),
     onSuccess: () => {
       // Invalidate all incident-related queries
       queryClient.invalidateQueries({ queryKey: safetyKeys.all });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to delete incident:', error);
     }
   });
@@ -174,7 +183,7 @@ export function useDeleteIncident() {
  */
 export function useBulkUpdateIncidents() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ incidentIds, updates }: { incidentIds: string[]; updates: UpdateIncidentRequest }) =>
       safetyApi.bulkUpdateIncidents([{ incidentIds, ...updates }]),
@@ -182,7 +191,7 @@ export function useBulkUpdateIncidents() {
       // Invalidate all incident-related queries
       queryClient.invalidateQueries({ queryKey: safetyKeys.all });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to bulk update incidents:', error);
     }
   });
@@ -195,7 +204,7 @@ export function useBulkUpdateIncidents() {
 export function useExportIncidents() {
   return useMutation({
     mutationFn: (filters: SearchIncidentsRequest) => safetyApi.exportIncidents(filters),
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to export incidents:', error);
     }
   });

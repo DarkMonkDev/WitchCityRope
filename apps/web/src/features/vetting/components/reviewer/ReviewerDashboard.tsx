@@ -388,7 +388,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
         cols={{ base: 1, sm: 2, lg: 3 }}
         mb="lg"
       >
-        {applications.map((application) => (
+        {applications.map((application: ApplicationSummaryDto) => (
           <ApplicationCard key={application.id} application={application} />
         ))}
       </SimpleGrid>

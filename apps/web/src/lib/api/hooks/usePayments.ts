@@ -1,7 +1,7 @@
 // React Query hooks for payment operations
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { paymentsService, type CreateTicketPurchaseRequest, type CheckoutRequest, type CheckoutResponse } from '../services/payments';
+import { paymentsService, type CreateTicketPurchaseRequest, type CheckoutRequest, type CheckoutResponse, type TicketPurchaseResponse } from '../services/payments';
 
 /**
  * Hook for purchasing tickets through the backend API
@@ -13,7 +13,7 @@ export function usePurchaseTicket() {
     mutationFn: (request: CreateTicketPurchaseRequest) =>
       paymentsService.purchaseTicket(request),
 
-    onSuccess: (data, variables) => {
+    onSuccess: (data: TicketPurchaseResponse, variables: CreateTicketPurchaseRequest) => {
       // Invalidate participation data to refresh UI (event details page)
       queryClient.invalidateQueries({
         queryKey: ['participation', 'event', variables.eventId]
@@ -80,7 +80,7 @@ export function useCheckout() {
     mutationFn: (request: CheckoutRequest) =>
       paymentsService.checkout(request),
 
-    onSuccess: (_data, variables) => {
+    onSuccess: (_data: CheckoutResponse, variables: CheckoutRequest) => {
       // Invalidate participation data to refresh UI
       queryClient.invalidateQueries({
         queryKey: ['participation', 'event', variables.eventId]
@@ -143,7 +143,7 @@ export function useConfirmPayPalPayment() {
     mutationFn: ({ orderId, paymentDetails, ticketTypeIds }: { orderId: string; paymentDetails: any; ticketTypeIds: string[] }) =>
       paymentsService.confirmPayPalPayment(orderId, paymentDetails, ticketTypeIds),
 
-    onSuccess: (data, variables) => {
+    onSuccess: (data: TicketPurchaseResponse, variables: { orderId: string; paymentDetails: any; ticketTypeIds: string[] }) => {
       // Extract event ID from payment details
       const eventId = variables.paymentDetails?.purchase_units?.[0]?.custom_id || '';
 

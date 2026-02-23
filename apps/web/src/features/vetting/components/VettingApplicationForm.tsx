@@ -177,7 +177,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
 
       return simplifiedVettingApi.submitApplication(request);
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       // Invalidate dashboard and vetting queries to refresh status
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['vetting', 'my-application'] });
@@ -194,7 +194,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
       // Trigger parent callback to show success screen
       onSubmitSuccess?.(response.applicationId, response.statusPageUrl);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       const errorMessage = getSimplifiedVettingErrorMessage(error);
 
       notifications.show({

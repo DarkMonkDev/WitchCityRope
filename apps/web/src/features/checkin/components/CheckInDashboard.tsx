@@ -30,7 +30,7 @@ interface CheckInDashboardProps {
  * Statistics card for capacity and attendance metrics
  */
 function StatisticsCard({ capacity }: { capacity: CapacityInfo }) {
-  const capacityPercentage = (capacity.checkedInCount / capacity.totalCapacity) * 100;
+  const capacityPercentage = ((capacity.checkedInCount ?? 0) / (capacity.totalCapacity || 1)) * 100;
   const isAtCapacity = capacityPercentage >= 100;
   const isNearCapacity = capacityPercentage >= 90;
 
@@ -74,7 +74,7 @@ function StatisticsCard({ capacity }: { capacity: CapacityInfo }) {
             </Text>
           </Stack>
 
-          {capacity.waitlistCount > 0 && (
+          {(capacity.waitlistCount ?? 0) > 0 && (
             <Stack gap="xs" align="center">
               <Text size="xs" c="dimmed" ta="center">Waitlist</Text>
               <Text size="lg" fw={700} c="orange">
@@ -151,7 +151,7 @@ function EventInfoCard({ dashboard }: { dashboard: CheckInDashboard }) {
         <Group justify="space-between" align="center">
           <Text size="sm" fw={500}>Event ID:</Text>
           <Text size="sm" style={{ fontFamily: 'monospace' }}>
-            {dashboard.eventId.split('-')[0]}
+            {dashboard.eventId?.split('-')[0]}
           </Text>
         </Group>
       </Stack>

@@ -85,7 +85,7 @@ export const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({
       setNewStatus('');
       setNotes('');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       showNotification({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Failed to update status',

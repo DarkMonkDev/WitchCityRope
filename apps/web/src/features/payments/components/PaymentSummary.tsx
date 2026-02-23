@@ -234,7 +234,7 @@ export const CompactPaymentSummary: React.FC<PaymentSummaryProps> = ({
   calculation,
   processingFee = 0
 }) => {
-  const totalAmount = calculation.finalAmount + processingFee;
+  const totalAmount = (calculation?.finalAmount ?? 0) + processingFee;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -255,13 +255,13 @@ export const CompactPaymentSummary: React.FC<PaymentSummaryProps> = ({
           </Text>
         </Group>
 
-        {calculation.discountAmount > 0 && (
+        {calculation && calculation.discountAmount > 0 && (
           <Group justify="space-between" align="center">
             <Text size="xs" c="green.7">
-              Sliding Scale ({calculation.display.percentage}):
+              Sliding Scale ({calculation?.display.percentage}):
             </Text>
             <Text size="xs" c="green.7">
-              -{calculation.display.discount}
+              -{calculation?.display.discount}
             </Text>
           </Group>
         )}

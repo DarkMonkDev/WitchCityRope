@@ -15,7 +15,7 @@ export function useSubmitReviewDecision(onSuccess?: () => void) {
   return useMutation({
     mutationFn: ({ applicationId, decision }: SubmitDecisionParams) =>
       vettingAdminApi.submitReviewDecision(applicationId, decision),
-    onSuccess: (data, variables) => {
+    onSuccess: (data: any, variables: SubmitDecisionParams) => {
       // Invalidate and refetch related queries
       queryClient.invalidateQueries({
         queryKey: vettingKeys.applications(),

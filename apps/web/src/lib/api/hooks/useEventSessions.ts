@@ -30,16 +30,16 @@ export function useCreateEventSession(eventId: string) {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: (sessionData: CreateEventSessionDto) => 
+    mutationFn: (sessionData: CreateEventSessionDto) =>
       eventSessionsApi.createSession(eventId, sessionData),
     onSuccess: () => {
       // Invalidate sessions for this event
-      queryClient.invalidateQueries({ 
-        queryKey: [...eventKeys.detail(eventId), 'sessions'] 
+      queryClient.invalidateQueries({
+        queryKey: [...eventKeys.detail(eventId), 'sessions']
       })
       console.log('Event session created successfully')
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Create event session failed:', error)
     },
   })
@@ -55,16 +55,16 @@ export function useUpdateEventSession() {
     }) => eventSessionsApi.updateSession(sessionId, sessionData),
     onSuccess: () => {
       // Invalidate all session-related queries using query key patterns
-      queryClient.invalidateQueries({ 
-        predicate: (query) => {
+      queryClient.invalidateQueries({
+        predicate: (query: { queryKey: readonly unknown[] }) => {
           const key = query.queryKey
           return Array.isArray(key) && key.includes('sessions')
         }
       })
-      
+
       console.log('Event session updated successfully')
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Update event session failed:', error)
     },
   })
@@ -77,16 +77,16 @@ export function useDeleteEventSession() {
     mutationFn: (sessionId: string) => eventSessionsApi.deleteSession(sessionId),
     onSuccess: () => {
       // Invalidate all session-related queries
-      queryClient.invalidateQueries({ 
-        predicate: (query) => {
+      queryClient.invalidateQueries({
+        predicate: (query: { queryKey: readonly unknown[] }) => {
           const key = query.queryKey
           return Array.isArray(key) && key.includes('sessions')
         }
       })
-      
+
       console.log('Event session deleted successfully')
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Delete event session failed:', error)
     },
   })
@@ -110,12 +110,12 @@ export function useCreateEventTicketType(eventId: string) {
       eventSessionsApi.createTicketType(eventId, ticketTypeData),
     onSuccess: () => {
       // Invalidate ticket types for this event
-      queryClient.invalidateQueries({ 
-        queryKey: [...eventKeys.detail(eventId), 'ticket-types'] 
+      queryClient.invalidateQueries({
+        queryKey: [...eventKeys.detail(eventId), 'ticket-types']
       })
       console.log('Event ticket type created successfully')
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Create event ticket type failed:', error)
     },
   })
@@ -131,16 +131,16 @@ export function useUpdateEventTicketType() {
     }) => eventSessionsApi.updateTicketType(ticketTypeId, ticketTypeData),
     onSuccess: () => {
       // Invalidate all ticket-type queries
-      queryClient.invalidateQueries({ 
-        predicate: (query) => {
+      queryClient.invalidateQueries({
+        predicate: (query: { queryKey: readonly unknown[] }) => {
           const key = query.queryKey
           return Array.isArray(key) && key.includes('ticket-types')
         }
       })
-      
+
       console.log('Event ticket type updated successfully')
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Update event ticket type failed:', error)
     },
   })
@@ -153,16 +153,16 @@ export function useDeleteEventTicketType() {
     mutationFn: (ticketTypeId: string) => eventSessionsApi.deleteTicketType(ticketTypeId),
     onSuccess: () => {
       // Invalidate all ticket-type-related queries
-      queryClient.invalidateQueries({ 
-        predicate: (query) => {
+      queryClient.invalidateQueries({
+        predicate: (query: { queryKey: readonly unknown[] }) => {
           const key = query.queryKey
           return Array.isArray(key) && key.includes('ticket-types')
         }
       })
-      
+
       console.log('Event ticket type deleted successfully')
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Delete event ticket type failed:', error)
     },
   })

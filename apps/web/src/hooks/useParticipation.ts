@@ -50,7 +50,7 @@ export function useCreateRSVP() {
       const { data } = await apiClient.post(`/api/events/${request.eventId}/rsvp`, request);
       return data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data: ParticipationStatusDto, variables: CreateRSVPRequest) => {
       // Update the participation status cache
       queryClient.setQueryData(
         participationKeys.eventStatus(variables.eventId),
@@ -93,7 +93,7 @@ export function useCancelRSVP() {
         params: { reason }
       });
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_data: void, variables: { eventId: string; reason?: string }) => {
       // Invalidate participation status to fetch fresh data from API
       queryClient.invalidateQueries({
         queryKey: participationKeys.eventStatus(variables.eventId)
@@ -170,7 +170,7 @@ export function useCancelTicket() {
         });
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_data: void, variables: { eventId: string; reason?: string; ticketPurchaseIds?: string[] }) => {
       // Invalidate all relevant caches to fetch fresh data
       queryClient.invalidateQueries({
         queryKey: participationKeys.eventStatus(variables.eventId)

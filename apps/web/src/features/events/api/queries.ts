@@ -68,7 +68,7 @@ export function useInfiniteEvents(filters: EventFilters = {}) {
       return response.data || { events: [], page: 1, totalPages: 1 }
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: (lastPage: { events: EventDto[], page: number, totalPages: number }) => {
       // EventListResponse has page, totalPages but no hasNext property
       const currentPage = lastPage.page || 1
       const totalPages = lastPage.totalPages || 1

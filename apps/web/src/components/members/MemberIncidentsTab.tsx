@@ -30,7 +30,7 @@ export const MemberIncidentsTab: React.FC<MemberIncidentsTabProps> = ({ memberId
     )
   }
 
-  if (!incidentsData || incidentsData.incidents.length === 0) {
+  if (!incidentsData || !incidentsData.incidents || incidentsData.incidents.length === 0) {
     return (
       <Alert icon={<IconAlertCircle size={16} />} color="blue" title="No Incidents">
         <Text>This member has no incident involvement on record.</Text>
@@ -136,7 +136,7 @@ export const MemberIncidentsTab: React.FC<MemberIncidentsTabProps> = ({ memberId
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {incidentsData.incidents.map((incident) => (
+          {incidentsData.incidents?.map((incident) => (
             <Table.Tr
               key={incident.incidentId}
               onClick={() => handleRowClick(incident.incidentId)}

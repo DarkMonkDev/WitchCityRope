@@ -76,7 +76,7 @@ export const EditPeopleModal: React.FC<EditPeopleModalProps> = ({
       });
       onClose();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       showNotification({
         title: 'Error',
         message: error instanceof Error ? error.message : `Failed to update ${type}`,

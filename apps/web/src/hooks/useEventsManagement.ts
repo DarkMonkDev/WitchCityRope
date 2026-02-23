@@ -45,7 +45,7 @@ export function useEventDetails(eventId: string, enabled: boolean = true) {
     enabled: !!eventId && enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       // Don't retry on 404 errors
       if (error?.message === 'Event not found') {
         return false;
@@ -67,7 +67,7 @@ export function useEventAvailability(eventId: string, enabled: boolean = true) {
     staleTime: 30 * 1000, // 30 seconds - availability changes frequently
     refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes when component is mounted
     refetchOnWindowFocus: true, // Always check when user returns to window
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       // Don't retry on 404 errors
       if (error?.message === 'Event not found') {
         return false;

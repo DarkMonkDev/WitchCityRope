@@ -36,10 +36,10 @@ export function useLegacyEvents() {
     refetchOnMount: false, // Don't refetch on component mount if data is fresh
     refetchInterval: false, // Disable automatic refetching
     refetchOnReconnect: false, // Don't refetch on reconnect
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: Error) => {
       // Don't retry on client errors (4xx)
-      if (error?.response?.status >= 400 && error?.response?.status < 500) {
-        debugLog('🔍 Not retrying client error:', error?.response?.status);
+      if ((error as any)?.response?.status >= 400 && (error as any)?.response?.status < 500) {
+        debugLog('🔍 Not retrying client error:', (error as any)?.response?.status);
         return false;
       }
       return failureCount < 3;
@@ -66,7 +66,7 @@ export function useLegacyEventDetails(eventId: string, enabled: boolean = true) 
     refetchOnMount: false, // Don't refetch on component mount if data is fresh
     refetchInterval: false, // Disable automatic refetching
     refetchOnReconnect: false, // Don't refetch on reconnect
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       // Don't retry on specific error messages
       if (error?.message === 'Event not found') {
         debugLog('🔍 Not retrying - event not found');

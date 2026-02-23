@@ -338,7 +338,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   }
 
   // Check capacity
-  const isAtCapacity = validParticipation?.capacity && validParticipation.capacity.available <= 0;
+  const isAtCapacity = validParticipation?.capacity && (validParticipation.capacity.available ?? 0) <= 0;
 
   const handleRSVPClick = () => {
     // Direct RSVP without modal confirmation, passing event waiver acceptance
@@ -433,8 +433,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             <Box>
               {/* Availability status text - same logic as PublicEventCard */}
               {(() => {
-                const available = validParticipation.capacity.available;
-                const current = validParticipation.capacity.current;
+                const available = validParticipation.capacity.available ?? 0;
+                const current = validParticipation.capacity.current ?? 0;
                 const isSocialEvent = allowRsvps && !requireTicketPurchase;
 
                 // Color logic: >10 = success, >3 = warning, ≤3 = error
@@ -473,8 +473,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                 );
               })()}
               <Progress
-                value={(validParticipation.capacity.current / validParticipation.capacity.total) * 100}
-                color={validParticipation.capacity.available <= 3 ? 'red' : validParticipation.capacity.available <= 10 ? 'yellow' : 'green'}
+                value={((validParticipation.capacity.current ?? 0) / (validParticipation.capacity.total || 1)) * 100}
+                color={(validParticipation.capacity.available ?? 0) <= 3 ? 'red' : (validParticipation.capacity.available ?? 0) <= 10 ? 'yellow' : 'green'}
                 size="sm"
                 radius="md"
               />

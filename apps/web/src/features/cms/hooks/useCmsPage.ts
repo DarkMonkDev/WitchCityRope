@@ -30,7 +30,7 @@ export const useCmsPage = (slug: string) => {
     },
 
     // Optimistic update (instant UI feedback)
-    onMutate: async (newData) => {
+    onMutate: async (newData: UpdateContentPageRequest) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['cms-page', slug] })
 
@@ -62,7 +62,7 @@ export const useCmsPage = (slug: string) => {
     },
 
     // Rollback on error
-    onError: (err: Error, _newData, context) => {
+    onError: (err: Error, _newData: UpdateContentPageRequest, context: { previousData: ContentPageDto | undefined } | undefined) => {
       // Restore previous data
       if (context?.previousData) {
         queryClient.setQueryData(['cms-page', slug], context.previousData)

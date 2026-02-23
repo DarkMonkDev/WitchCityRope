@@ -14,7 +14,7 @@ export function useSendReminder(onSuccess?: () => void) {
   return useMutation({
     mutationFn: ({ applicationId, message }: SendReminderParams) =>
       vettingAdminApi.sendApplicationReminder(applicationId, message),
-    onSuccess: (data, variables) => {
+    onSuccess: (data: any, variables: SendReminderParams) => {
       // Invalidate and refetch related queries to update last activity
       queryClient.invalidateQueries({
         queryKey: vettingKeys.applications(),

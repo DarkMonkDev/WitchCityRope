@@ -46,7 +46,7 @@ export const CoordinatorAssignmentModal: React.FC<CoordinatorAssignmentModalProp
       });
       onClose();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       showNotification({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Failed to assign coordinator',

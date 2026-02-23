@@ -31,7 +31,7 @@ export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) =>
     )
   }
 
-  if (!eventHistory || eventHistory.events.length === 0) {
+  if (!eventHistory || !eventHistory.events || eventHistory.events.length === 0) {
     return (
       <Alert icon={<IconAlertCircle size={16} />} color="blue" title="No Events">
         <Text>This member has no event participation history yet.</Text>
@@ -48,7 +48,7 @@ export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) =>
   return (
     <Stack gap="md">
       <Text size="sm" c="dimmed">
-        Showing {eventHistory.events.length} of {eventHistory.totalCount} events
+        Showing {eventHistory.events?.length ?? 0} of {eventHistory.totalCount} events
       </Text>
 
       {/* Events Table */}
@@ -118,7 +118,7 @@ export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) =>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {eventHistory.events.map((event) => (
+          {eventHistory.events?.map((event) => (
             <Table.Tr key={event.eventId}>
               <Table.Td>
                 <Text fw={500}>{event.eventTitle}</Text>
@@ -158,7 +158,7 @@ export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) =>
       </Table>
 
       {/* Pagination */}
-      {eventHistory.totalPages > 1 && (
+      {(eventHistory.totalPages ?? 0) > 1 && (
         <Group justify="center" mt="md">
           <Pagination
             value={page}

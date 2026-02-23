@@ -22,7 +22,7 @@ export const useApplicationStatus = (trackingToken?: string) => {
       return vettingApi.getApplicationStatus(trackingToken);
     },
     enabled: !!trackingToken,
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       // Don't retry for 404 (not found) or 403 (expired token)
       if (error?.response?.status === 404 || error?.response?.status === 403) {
         return false;
@@ -30,7 +30,7 @@ export const useApplicationStatus = (trackingToken?: string) => {
       return failureCount < 3;
     },
     // Poll for updates every 5 minutes if status is in progress
-    refetchInterval: (data) => {
+    refetchInterval: (data: any) => {
       if (!data) return false;
       
       // Keep polling for active statuses

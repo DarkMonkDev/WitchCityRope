@@ -37,7 +37,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         eventWaiverAccepted: !needsTermsAcceptance || volunteerTermsAccepted
       });
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       notifications.show({
         title: 'Success!',
         message: response.message || 'You have been signed up for this volunteer position. You have also been automatically RSVPed to the event.',

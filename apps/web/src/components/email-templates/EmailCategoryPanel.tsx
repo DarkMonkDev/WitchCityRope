@@ -144,7 +144,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
 
     // Compare with allowed variables
     const invalid = Array.from(extractedVars).filter(
-      (v) => !selectedTemplate.variables.includes(v)
+      (v) => !selectedTemplate.variables?.includes(v)
     );
     setInvalidVariables(invalid);
   }, [subject, htmlBody, selectedTemplate]);
@@ -308,8 +308,8 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                 Available Variables:
               </Text>
               <Text size="xs" c="dimmed" mb="xs">
-                {selectedTemplate.variables.length > 0
-                  ? selectedTemplate.variables.join(', ')
+                {(selectedTemplate.variables?.length ?? 0) > 0
+                  ? selectedTemplate.variables?.join(', ')
                   : 'No dynamic variables for this template'}
               </Text>
               <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
@@ -344,7 +344,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                 </Text>
                 <Text size="xs" mt="xs" c="dimmed">
                   The email may not render correctly when sent. Available variables:{' '}
-                  {selectedTemplate.variables.join(', ')}
+                  {selectedTemplate.variables?.join(', ')}
                 </Text>
               </Alert>
             )}

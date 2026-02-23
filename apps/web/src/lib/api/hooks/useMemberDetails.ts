@@ -161,11 +161,11 @@ export function useCreateMemberNote() {
       if (!data) throw new Error('Failed to create note')
       return data
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_data: UserNoteResponse, variables: { userId: string; request: CreateUserNoteRequest }) => {
       // Invalidate notes query to refetch
       queryClient.invalidateQueries({ queryKey: memberDetailsKeys.notes(variables.userId) })
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to create note:', error)
     },
   })
@@ -185,12 +185,12 @@ export function useUpdateMemberStatus() {
     }): Promise<void> => {
       await apiClient.put(`/api/users/${userId}/status`, request)
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_data: void, variables: { userId: string; request: UpdateMemberStatusRequest }) => {
       // Invalidate all member details queries
       queryClient.invalidateQueries({ queryKey: memberDetailsKeys.details(variables.userId) })
       queryClient.invalidateQueries({ queryKey: memberDetailsKeys.notes(variables.userId) })
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to update status:', error)
     },
   })
@@ -210,11 +210,11 @@ export function useUpdateMemberRole() {
     }): Promise<void> => {
       await apiClient.put(`/api/admin/users/${userId}/roles`, request)
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_data: void, variables: { userId: string; request: { roles: string[] } }) => {
       // Invalidate member details
       queryClient.invalidateQueries({ queryKey: memberDetailsKeys.details(variables.userId) })
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to update role:', error)
     },
   })
@@ -243,7 +243,7 @@ export function useChangeVettingStatus() {
       // Invalidate all member details and vetting queries
       queryClient.invalidateQueries({ queryKey: memberDetailsKeys.all })
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to change vetting status:', error)
     },
   })

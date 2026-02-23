@@ -134,15 +134,15 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
     <Container size="lg" py="xl" className={className}>
       <Stack gap="xl">
         {/* Show status box at top if application exists */}
-        {hasExistingApplication && statusData.application.status && (
+        {hasExistingApplication && statusData?.application?.status && (
           <VettingStatusBox
             status={statusData.application.status as import('../types/vettingStatus').VettingStatus}
-            applicationNumber={statusData.application.applicationNumber || 'N/A'}
-            submittedAt={new Date(statusData.application.submittedAt!)}
-            lastUpdated={new Date(statusData.application.lastUpdated!)}
-            statusDescription={statusData.application.statusDescription || ''}
-            nextSteps={statusData.application.nextSteps || undefined}
-            estimatedDaysRemaining={statusData.application.estimatedDaysRemaining || undefined}
+            applicationNumber={statusData.application?.applicationNumber || 'N/A'}
+            submittedAt={new Date(statusData.application?.submittedAt!)}
+            lastUpdated={new Date(statusData.application?.lastUpdated!)}
+            statusDescription={statusData.application?.statusDescription || ''}
+            nextSteps={statusData.application?.nextSteps || undefined}
+            estimatedDaysRemaining={statusData.application?.estimatedDaysRemaining || undefined}
           />
         )}
 

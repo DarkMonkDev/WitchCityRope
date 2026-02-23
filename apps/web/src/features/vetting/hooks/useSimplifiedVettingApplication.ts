@@ -44,7 +44,7 @@ export const useSimplifiedVettingApplication = () => {
       }
       return simplifiedVettingApi.submitApplication(request);
     },
-    onSuccess: (response) => {
+    onSuccess: (response: SimplifiedApplicationSubmissionResponse) => {
       // Invalidate application check query to reflect new status
       queryClient.invalidateQueries({ queryKey: ['vetting', 'my-application'] });
 
@@ -57,7 +57,7 @@ export const useSimplifiedVettingApplication = () => {
 
       return response;
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       const errorMessage = getSimplifiedVettingErrorMessage(error);
 
       notifications.show({

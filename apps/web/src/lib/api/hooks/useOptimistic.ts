@@ -9,6 +9,22 @@ interface OptimisticUpdateOptions<TData, TVariables> {
   onSuccess?: (data: TData, variables: TVariables, context: unknown) => void
 }
 
+// Context type for optimistic updates
+interface OptimisticContext<TData> {
+  previousData: TData | undefined
+}
+
+// Context type for optimistic list updates
+interface OptimisticListContext<TItem> {
+  previousItem: TItem | undefined
+  previousList: TItem[] | undefined
+}
+
+// Context type for optimistic counter updates
+interface OptimisticCounterContext {
+  previousData: unknown
+}
+
 export function useOptimisticUpdate<TData, TVariables>({
   queryKey,
   mutationFn,
@@ -17,31 +33,31 @@ export function useOptimisticUpdate<TData, TVariables>({
   onSuccess,
 }: OptimisticUpdateOptions<TData, TVariables>) {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn,
-    onMutate: async (variables) => {
+    onMutate: async (variables: TVariables) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey })
-      
+
       // Snapshot previous value
       const previousData = queryClient.getQueryData(queryKey) as TData | undefined
-      
+
       // Optimistically update cache
       if (previousData) {
         queryClient.setQueryData(queryKey, updateFn(previousData, variables))
       }
-      
+
       return { previousData }
     },
-    onError: (error, variables, context) => {
+    onError: (error: Error, variables: TVariables, context: OptimisticContext<TData> | undefined) => {
       // Rollback on error
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData)
       }
       onError?.(error as Error, variables, context)
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data: TData, variables: TVariables, context: OptimisticContext<TData> | undefined) => {
       onSuccess?.(data, variables, context)
     },
     onSettled: () => {
@@ -68,39 +84,39 @@ export function useOptimisticListUpdate<TItem extends { id: string }>({
   onSuccess?: (data: TItem, variables: Partial<TItem> & { id: string }, context: unknown) => void
 }) {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn,
-    onMutate: async (updatedItem) => {
+    onMutate: async (updatedItem: Partial<TItem> & { id: string }) => {
       const itemKey = itemQueryKey(updatedItem.id)
-      
+
       // Cancel queries
       await queryClient.cancelQueries({ queryKey: itemKey })
       await queryClient.cancelQueries({ queryKey: listQueryKey })
-      
+
       // Snapshot previous values
       const previousItem = queryClient.getQueryData(itemKey) as TItem | undefined
       const previousList = queryClient.getQueryData(listQueryKey) as TItem[] | undefined
-      
+
       // Update individual item cache
       queryClient.setQueryData(itemKey, (old: TItem | undefined) => {
         if (!old) return old
         return { ...old, ...updatedItem }
       })
-      
+
       // Update list cache
       queryClient.setQueryData(listQueryKey, (old: TItem[] | undefined) => {
         if (!old) return old
-        return old.map(item => 
-          item.id === updatedItem.id 
+        return old.map(item =>
+          item.id === updatedItem.id
             ? { ...item, ...updatedItem }
             : item
         )
       })
-      
+
       return { previousItem, previousList }
     },
-    onError: (error, variables, context) => {
+    onError: (error: Error, variables: Partial<TItem> & { id: string }, context: OptimisticListContext<TItem> | undefined) => {
       // Rollback both item and list
       if (context?.previousItem) {
         queryClient.setQueryData(itemQueryKey(variables.id), context.previousItem)
@@ -110,10 +126,10 @@ export function useOptimisticListUpdate<TItem extends { id: string }>({
       }
       onError?.(error as Error, variables, context)
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data: TItem, variables: Partial<TItem> & { id: string }, context: OptimisticListContext<TItem> | undefined) => {
       onSuccess?.(data, variables, context)
     },
-    onSettled: (_data, _error, variables) => {
+    onSettled: (_data: TItem | undefined, _error: Error | null, variables: Partial<TItem> & { id: string }) => {
       // Refetch to ensure consistency
       queryClient.invalidateQueries({ queryKey: itemQueryKey(variables.id) })
       queryClient.invalidateQueries({ queryKey: listQueryKey })
@@ -138,14 +154,14 @@ export function useOptimisticCounter({
   onSuccess?: (data: any, variables: void, context: unknown) => void
 }) {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn,
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey })
-      
+
       const previousData = queryClient.getQueryData(queryKey)
-      
+
       // Optimistically update counter
       queryClient.setQueryData(queryKey, (old: any) => {
         if (!old) return old
@@ -154,16 +170,16 @@ export function useOptimisticCounter({
           [counterPath]: (old[counterPath] || 0) + increment
         }
       })
-      
+
       return { previousData }
     },
-    onError: (error, _variables, context) => {
+    onError: (error: Error, _variables: void, context: OptimisticCounterContext | undefined) => {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData)
       }
       onError?.(error as Error, _variables, context)
     },
-    onSuccess: (data, _variables, context) => {
+    onSuccess: (data: unknown, _variables: void, context: OptimisticCounterContext | undefined) => {
       onSuccess?.(data, _variables, context)
     },
     onSettled: () => {
@@ -189,7 +205,7 @@ export function useOptimisticToggle<TData>({
   onSuccess?: (data: TData, variables: boolean, context: unknown) => void
 }) {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async () => {
       const currentState = false

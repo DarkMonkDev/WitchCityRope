@@ -305,7 +305,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
           </Text>
           
           <Stack gap="md">
-            {(statusData as any)?.recentUpdates.map((update, index) => (
+            {(statusData as any)?.recentUpdates.map((update: any, index: number) => (
               <Box key={index}>
                 <Group gap="xs" mb="xs">
                   <Text size="sm" fw={500}>
