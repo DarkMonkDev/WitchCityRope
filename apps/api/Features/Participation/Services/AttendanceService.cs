@@ -868,29 +868,11 @@ public class AttendanceService : IAttendanceService
                 // Create EventAttendance records for each session in this ticket type
                 var sessionIds = ticketType.Sessions.Select(s => s.Id).ToList();
 
-                if (ticketType.Sessions.Any())
+                foreach (var session in ticketType.Sessions)
                 {
-                    foreach (var session in ticketType.Sessions)
-                    {
-                        var attendance = new EventAttendance(request.EventId, userId, AttendanceType.Ticket)
-                        {
-                            SessionId = session.Id,
-                            TicketPurchaseId = ticketPurchase.Id,
-                            Notes = request.Notes,
-                            EventWaiverAccepted = true,
-                            EventWaiverAcceptedAt = DateTime.UtcNow,
-                            CreatedBy = userId
-                        };
-
-                        allAttendances.Add(attendance);
-                        _context.EventAttendances.Add(attendance);
-                    }
-                }
-                else
-                {
-                    // Ticket type with no linked sessions (e.g., general admission)
                     var attendance = new EventAttendance(request.EventId, userId, AttendanceType.Ticket)
                     {
+                        SessionId = session.Id,
                         TicketPurchaseId = ticketPurchase.Id,
                         Notes = request.Notes,
                         EventWaiverAccepted = true,
