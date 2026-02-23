@@ -165,7 +165,7 @@ public class CheckoutEndpoints : ControllerBase
                 EventId = request.EventId,
                 TicketTypeIds = request.TicketTypeIds,
                 EventWaiverAccepted = request.EventWaiverAccepted,
-                PaymentMethodId = "authorize-net-pending",
+                PaymentMethodId = "authnet-pending",
                 Notes = $"Checkout {correlationId}"
             };
 
@@ -186,7 +186,7 @@ public class CheckoutEndpoints : ControllerBase
             // Find the ticket purchases we just created (they have our idempotency key pattern in Notes)
             var pendingPurchases = await _context.TicketPurchases
                 .Where(tp => tp.UserId == userId
-                    && tp.PaymentMethod == "authorize-net-pending"
+                    && tp.PaymentMethod == "authnet-pending"
                     && tp.Notes.Contains($"Checkout {correlationId}"))
                 .ToListAsync(cancellationToken);
 
