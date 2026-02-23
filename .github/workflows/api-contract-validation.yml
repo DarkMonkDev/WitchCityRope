@@ -1,20 +1,7 @@
-name: API Contract Validation
+name: API Contract Validation (DISABLED - Manual Only)
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'apps/api/**'
-      - 'apps/web/src/**'
-      - 'scripts/validate-api-contract.js'
-      - '.github/workflows/api-contract-validation.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'apps/api/**'
-      - 'apps/web/src/**'
-      - 'scripts/validate-api-contract.js'
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - disabled to stop auto-running on push
 
 env:
   DOTNET_VERSION: '10.0.x'

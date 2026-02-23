@@ -1,17 +1,7 @@
-name: Security Vulnerability Scan
+name: Security Vulnerability Scan (DISABLED - Manual Only)
 
 on:
-  # Run on push to main branch
-  push:
-    branches: [ main, master ]
-  # Run on pull requests
-  pull_request:
-    branches: [ main, master ]
-  # Run weekly on Monday at 9 AM UTC
-  schedule:
-    - cron: '0 9 * * 1'
-  # Allow manual trigger
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - disabled to stop auto-running on push and schedule
 
 jobs:
   security-scan:

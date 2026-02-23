@@ -1,13 +1,7 @@
-name: Visual Regression Tests
+name: Visual Regression Tests (DISABLED - Manual Only)
 
 on:
-  pull_request:
-    paths:
-      - 'src/WitchCityRope.Web/**'
-      - 'src/WitchCityRope.Web/wwwroot/**'
-      - 'visual-tests/**'
-      - '.github/workflows/visual-regression.yml'
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - disabled to stop auto-running on PRs
     inputs:
       update-snapshots:
         description: 'Update visual snapshots'

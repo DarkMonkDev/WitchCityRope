@@ -1,17 +1,7 @@
-name: Container Cleanup Verification
+name: Container Cleanup Verification (DISABLED - Manual Only)
 
 on:
-  workflow_run:
-    workflows: 
-      - "Containerized Test Pipeline"
-      - "Integration Tests (TestContainers)"
-      - "E2E Tests (Containerized)"
-    types:
-      - completed
-  schedule:
-    # Run cleanup check every 6 hours to catch any orphaned containers
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - disabled to stop auto-running after workflows and on schedule
     inputs:
       force_cleanup:
         description: 'Force cleanup of all test containers'

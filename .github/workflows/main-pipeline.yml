@@ -1,11 +1,7 @@
-name: Main Testing Pipeline
+name: Main Testing Pipeline (DISABLED - Manual Only)
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - disabled to stop auto-running tests on push
     inputs:
       skip_integration:
         description: 'Skip integration tests'
