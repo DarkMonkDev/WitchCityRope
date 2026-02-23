@@ -5,7 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 function QueryErrorBoundary({ children }: { children: React.ReactNode }) {
   return (
     <QueryErrorResetBoundary>
-      {(({ reset }) => (
+      {(({ reset }: { reset: () => void }) => (
         <ErrorBoundary
           onReset={reset}
           fallbackRender={({ resetErrorBoundary, error }) => (

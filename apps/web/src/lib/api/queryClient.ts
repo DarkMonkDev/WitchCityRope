@@ -5,15 +5,15 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 15 * 60 * 1000, // 15 minutes (gcTime replaces cacheTime in v5)
-      retry: (failureCount, error: any) => {
-        // Don't retry authentication errors
-        if (error?.response?.status === 401) return false
-        // Don't retry validation errors (4xx)
-        if (error?.response?.status >= 400 && error?.response?.status < 500) return false
+      retry: (failureCount: number, error: Error) => {
+        // Don't retry authentication errors or validation errors (4xx)
+        const status = (error as Error & { response?: { status?: number } }).response?.status
+        if (status === 401) return false
+        if (status !== undefined && status >= 400 && status < 500) return false
         // Retry network errors up to 3 times
         return failureCount < 3
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false, // Disable for development/validation
     },
     mutations: {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Group,
@@ -55,7 +55,7 @@ export const VenueManagementCard: React.FC = () => {
   });
 
   // Fetch active venues only
-  const { data: venues, isLoading } = useQuery<VenueDto[]>({
+  const { data: venues } = useQuery<VenueDto[]>({
     queryKey: ['admin', 'venues', 'active'],
     queryFn: async () => {
       const response = await apiClient.get<VenueDto[]>('/api/admin/venues/active');

@@ -9,9 +9,7 @@ import { apiClient } from '../../lib/api/client';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import type {
   EventSummaryDto,
-  EventDetailsDto,
   EventAvailabilityDto,
-  EventsListResponse,
   EventsFilters
 } from '@witchcityrope/shared-types';
 

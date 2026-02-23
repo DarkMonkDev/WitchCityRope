@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { router } from './routes/router'
 import { useAuthActions, useAuthStore } from './stores/authStore'
