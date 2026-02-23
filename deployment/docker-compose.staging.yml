@@ -17,7 +17,7 @@ volumes:
 
 services:
   # ==========================================================================
-  # API Service - .NET 9 Minimal API (Staging)
+  # API Service - .NET 10 Minimal API (Staging)
   # ==========================================================================
   api:
     env_file:
