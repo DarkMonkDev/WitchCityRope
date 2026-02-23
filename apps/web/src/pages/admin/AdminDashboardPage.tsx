@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Title, Text, Grid, Paper, Box, Group, Badge } from '@mantine/core';
+import { Container, Title, Text, Grid, Paper, Box, Badge } from '@mantine/core';
 import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconClipboardCheck, IconFileText, IconAlertTriangle, IconMail } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { useVettingStats } from '../../features/admin/vetting/hooks/useVettingStats';

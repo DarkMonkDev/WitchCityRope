@@ -62,7 +62,7 @@ export const useCmsPage = (slug: string) => {
     },
 
     // Rollback on error
-    onError: (err: Error, newData, context) => {
+    onError: (err: Error, _newData, context) => {
       // Restore previous data
       if (context?.previousData) {
         queryClient.setQueryData(['cms-page', slug], context.previousData)

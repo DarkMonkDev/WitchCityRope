@@ -1,42 +1,12 @@
 // Reviewer dashboard page for vetting team members
 import React, { useState } from 'react';
-import {
-  Container,
-  Box,
-  Paper,
-  Text,
-  Group,
-  Stack,
-  Title,
-  Modal,
-  Tabs,
-  Alert,
-  Button,
-  Badge,
-  SimpleGrid,
-  Textarea,
-  Select,
-  ActionIcon,
-  Divider,
-  LoadingOverlay
-} from '@mantine/core';
-import {
-  IconUser,
-  IconEye,
-  IconNotes,
-  IconCheck,
-  IconX,
-  IconInfoCircle,
-  IconClock,
-  IconAlertTriangle,
-  IconArrowLeft,
-  IconShieldCheck
-} from '@tabler/icons-react';
+import { Container, Box, Paper, Text, Group, Stack, Modal, Tabs, Alert, Button, Badge, SimpleGrid, Textarea, Select, ActionIcon, LoadingOverlay } from '@mantine/core';
+import { IconUser, IconEye, IconNotes, IconCheck, IconClock, IconAlertTriangle, IconArrowLeft, IconShieldCheck } from '@tabler/icons-react';
 import { useAuthStore } from '../../../stores/authStore';
 import { ReviewerDashboard } from '../components/reviewer/ReviewerDashboard';
 import { useQuery } from '@tanstack/react-query';
 import { vettingApi } from '../api/vettingApi';
-import type { ApplicationSummaryDto, ApplicationDetailResponse } from '../types/vetting.types';
+import type { ApplicationSummaryDto } from '../types/vetting.types';
 import { APPLICATION_STATUS_CONFIGS } from '../types/vetting.types';
 import type { components } from '@witchcityrope/shared-types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';

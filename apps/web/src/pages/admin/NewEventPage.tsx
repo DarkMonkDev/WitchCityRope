@@ -8,7 +8,7 @@ import type { components } from '@witchcityrope/shared-types';
 
 // ✅ Use auto-generated CreateEventRequest and SessionDto from backend DTOs
 type CreateEventRequest = components['schemas']['CreateEventRequest'];
-type SessionDto = components['schemas']['SessionDto'];
+
 
 /**
  * NewEventPage - Create new event page for administrators

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paper, Stack, Group, Text, Button, rem } from '@mantine/core';
+import { Paper, Stack, Group, Text, Button } from '@mantine/core';
 import { IconArrowRight } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { IncidentStatusBadge } from './IncidentStatusBadge';

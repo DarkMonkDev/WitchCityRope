@@ -7,12 +7,8 @@ import {
   CTASection,
   RopeDivider
 } from '../components/homepage';
-import { useUser, useIsAuthenticated } from '../stores/authStore';
 
 export const HomePage: React.FC = () => {
-  const user = useUser();
-  const isAuthenticated = useIsAuthenticated();
-
   return (
     <Box>
       {/* Hero Section */}

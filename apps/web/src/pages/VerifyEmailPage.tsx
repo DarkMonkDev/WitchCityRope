@@ -1,19 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate, Link } from 'react-router-dom'
-import {
-  Container,
-  Stack,
-  Title,
-  Text,
-  Alert,
-  Button,
-  Paper,
-  Flex,
-  Box,
-  LoadingOverlay,
-  TextInput,
-  Group,
-} from '@mantine/core'
+import { useSearchParams, Link } from 'react-router-dom'
+import { Stack, Title, Text, Alert, Button, Flex, Box, LoadingOverlay, TextInput, Group } from '@mantine/core'
 import { IconCircleCheck, IconAlertCircle, IconMail } from '@tabler/icons-react'
 import { useVerifyEmail, useResendVerification } from '../features/auth/api/mutations'
 
@@ -26,7 +13,6 @@ import { useVerifyEmail, useResendVerification } from '../features/auth/api/muta
  */
 export const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
   const [verificationAttempted, setVerificationAttempted] = useState(false)
   const [showResendForm, setShowResendForm] = useState(false)
   const [resendEmail, setResendEmail] = useState('')

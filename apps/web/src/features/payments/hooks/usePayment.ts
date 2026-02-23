@@ -4,13 +4,7 @@
 import { useState, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { paymentApi } from '../api/paymentApi';
-import type {
-  ProcessPaymentRequest,
-  PaymentResponse,
-  PaymentError,
-  PaymentProcessingState,
-  PaymentMethodType
-} from '../types/payment.types';
+import type { ProcessPaymentRequest, PaymentError, PaymentProcessingState, PaymentMethodType } from '../types/payment.types';
 
 /**
  * Hook for managing payment processing
@@ -63,7 +57,7 @@ export const usePayment = (eventRegistrationId?: string) => {
         throw error;
       }
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       // Invalidate relevant queries
       if (eventRegistrationId) {
         queryClient.invalidateQueries({ 
@@ -123,7 +117,7 @@ export const usePayment = (eventRegistrationId?: string) => {
   /**
    * Create PayPal order (handled by backend)
    */
-  const createPayPalOrder = useCallback(async (amount: number, eventInfo: any) => {
+  const createPayPalOrder = useCallback(async (amount: number, _eventInfo: any) => {
     try {
       // PayPal order creation is handled in the PayPalButton component
       // This method is kept for API compatibility but delegates to the component

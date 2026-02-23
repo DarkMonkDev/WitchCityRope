@@ -1,32 +1,10 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Table,
-  Text,
-  Badge,
-  Group,
-  TextInput,
-  Select,
-  MultiSelect,
-  Button,
-  Paper,
-  Stack,
-  Pagination,
-  Box,
-  Title,
-  rem,
-  Checkbox
-} from '@mantine/core';
-import {
-  IconSearch,
-  IconFilter,
-  IconRefresh,
-  IconSortAscending,
-  IconSortDescending
-} from '@tabler/icons-react';
+import { Table, Text, Group, TextInput, MultiSelect, Button, Paper, Stack, Pagination, Box, rem, Checkbox } from '@mantine/core';
+import { IconSearch, IconFilter, IconRefresh, IconSortAscending, IconSortDescending } from '@tabler/icons-react';
 import { useVettingApplications } from '../hooks/useVettingApplications';
 import { VettingStatusBadge } from './VettingStatusBadge';
-import type { ApplicationSummaryDto, ApplicationFilterRequest } from '../types/vetting.types';
+import type { ApplicationFilterRequest } from '../types/vetting.types';
 
 interface VettingApplicationsListProps {
   onSelectionChange?: (selectedIds: Set<string>, applicationsData: any[]) => void;

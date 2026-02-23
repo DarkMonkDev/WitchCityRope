@@ -80,7 +80,7 @@ export function useCheckout() {
     mutationFn: (request: CheckoutRequest) =>
       paymentsService.checkout(request),
 
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate participation data to refresh UI
       queryClient.invalidateQueries({
         queryKey: ['participation', 'event', variables.eventId]

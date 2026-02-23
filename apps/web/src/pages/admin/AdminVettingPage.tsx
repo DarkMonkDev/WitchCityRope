@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Title, Text, Group, Button, Alert } from '@mantine/core';
+import { Container, Title, Group, Button, Alert } from '@mantine/core';
 import { IconMail, IconClock, IconAlertTriangle, IconLock } from '@tabler/icons-react';
 import { VettingApplicationsList } from '../../features/admin/vetting/components/VettingApplicationsList';
 import { OnHoldModal } from '../../features/admin/vetting/components/OnHoldModal';

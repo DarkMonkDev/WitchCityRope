@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Text, ActionIcon, Badge } from '@mantine/core';
+import { Table, Text, ActionIcon } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import { VolunteerAssignmentDto } from '../../lib/api/hooks/useVolunteerAssignment';
 

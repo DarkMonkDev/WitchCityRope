@@ -2,26 +2,7 @@
 // Detailed view of a safety incident for admin management
 
 import React, { useState } from 'react';
-import {
-  Box,
-  Paper,
-  Title,
-  Text,
-  Group,
-  Stack,
-  Badge,
-  Button,
-  Select,
-  TextInput,
-  Textarea,
-  Alert,
-  Timeline,
-  Divider,
-  Grid,
-  Loader,
-  ActionIcon,
-  Tooltip
-} from '@mantine/core';
+import { Box, Paper, Title, Text, Group, Stack, Badge, Button, Select, TextInput, Textarea, Alert, Timeline, Grid, Loader, ActionIcon, Tooltip } from '@mantine/core';
 import {
   IconAlertTriangle,
   IconUser,
@@ -47,7 +28,7 @@ interface IncidentDetailsProps {
   onClose: () => void;
 }
 
-export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
+export function IncidentDetails({ incidentId, onClose: _onClose }: IncidentDetailsProps) {
   const [editMode, setEditMode] = useState(false);
   const eventTimeZone = useEventTimeZone();
 

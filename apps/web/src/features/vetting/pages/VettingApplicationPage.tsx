@@ -1,24 +1,7 @@
 // Main vetting application page
 import React, { useState } from 'react';
-import {
-  Container,
-  Box,
-  Paper,
-  Text,
-  Button,
-  Group,
-  Stack,
-  Title,
-  Timeline,
-  ThemeIcon,
-  Alert
-} from '@mantine/core';
-import {
-  IconCheck,
-  IconInfoCircle,
-  IconCalendar,
-  IconMail
-} from '@tabler/icons-react';
+import { Container, Box, Paper, Text, Button, Group, Stack, Title, ThemeIcon, Alert } from '@mantine/core';
+import { IconInfoCircle } from '@tabler/icons-react';
 import { VettingApplicationForm } from '../components/VettingApplicationForm';
 import { VettingStatusBox } from '../components/VettingStatusBox';
 import { useVettingStatus } from '../hooks/useVettingStatus';

@@ -59,7 +59,7 @@ export function useUpdateMemberStatus() {
       // Return rollback context
       return { previousUser, id }
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // Rollback on error
       if (context?.previousUser) {
         queryClient.setQueryData(
@@ -69,7 +69,7 @@ export function useUpdateMemberStatus() {
       }
       console.error('Status update failed:', error)
     },
-    onSettled: (data, error, variables) => {
+    onSettled: (_data, _error, variables) => {
       // Always refetch to ensure server state
       queryClient.invalidateQueries({ queryKey: queryKeys.user(variables.id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.users() })

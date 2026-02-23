@@ -3,7 +3,7 @@ import { Table, Text, Group, ActionIcon } from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
 import { WCRButton } from '../ui';
 import type { components } from '@witchcityrope/shared-types';
-import { formatUtcToLocalTime, formatUtcToLocalDate } from '../../utils/eventUtils';
+import { formatUtcToLocalTime } from '../../utils/eventUtils';
 
 // Use auto-generated SessionDto from backend instead of manual interface
 export type EventSession = components['schemas']['SessionDto'];

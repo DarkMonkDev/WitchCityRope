@@ -2,16 +2,11 @@
 // Handles network connectivity and data sync for mobile reliability
 
 import { useState, useEffect, useCallback } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { checkinApi } from '../api/checkinApi';
 import { offlineStorage } from '../utils/offlineStorage';
-import type {
-  SyncRequest,
-  SyncResponse,
-  PendingCheckIn,
-  OfflineQueue
-} from '../types/checkin.types';
+import type { SyncRequest, PendingCheckIn } from '../types/checkin.types';
 
 interface OfflineAction {
   type: 'checkin' | 'manual-entry';
@@ -245,7 +240,7 @@ export function useOfflineSync() {
  * Hook for managing automatic sync attempts
  * Handles retry logic and backoff strategies
  */
-export function useAutoSync(eventId: string) {
+export function useAutoSync(_eventId: string) {
   const { isOnline, pendingCount, triggerSync } = useOfflineSync();
   const [isAutoSyncing, setIsAutoSyncing] = useState(false);
 

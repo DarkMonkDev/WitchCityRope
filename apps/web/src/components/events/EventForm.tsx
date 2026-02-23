@@ -1,40 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import {
-  Card,
-  Tabs,
-  TextInput,
-  Group,
-  Text,
-  Radio,
-  Select,
-  Stack,
-  Title,
-  MultiSelect,
-  Badge,
-  Table,
-  ActionIcon,
-  Alert,
-  Modal,
-  Textarea,
-  Button,
-  NumberInput,
-  Collapse,
-  Box,
-  Flex,
-  Checkbox,
-  SimpleGrid,
-} from '@mantine/core'
+import { Card, Tabs, TextInput, Group, Text, Select, Stack, Title, MultiSelect, Badge, Table, Alert, Modal, Button, NumberInput, Box, Checkbox, SimpleGrid } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../lib/api/client'
 import { notifications } from '@mantine/notifications'
-import {
-  IconCheck,
-  IconAlertCircle,
-  IconChevronUp,
-  IconChevronDown,
-  IconSettings,
-} from '@tabler/icons-react'
+import { IconCheck, IconAlertCircle, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
 import { MantineTiptapEditor } from '../forms/MantineTiptapEditor'
 import type { components } from '@witchcityrope/shared-types'
 
@@ -96,35 +66,6 @@ const generateUUID = (): string => {
   });
 };
 
-// Helper function to extract purchase amount from metadata JSON
-const extractAmountFromMetadata = (metadata?: string): number => {
-  if (!metadata) return 0
-
-  try {
-    const parsed = JSON.parse(metadata)
-    // Check for different possible field names in the metadata
-    return parsed.purchaseAmount || parsed.amount || parsed.ticketAmount || 0
-  } catch (error) {
-    // If metadata is not JSON, it might be plain text - return 0
-    return 0
-  }
-}
-
-// Helper function to extract ticket name from metadata JSON
-const extractTicketNameFromMetadata = (metadata?: string): string => {
-  if (!metadata) return 'Standard Ticket'
-
-  try {
-    const parsed = JSON.parse(metadata)
-    // Try to get ticket name from ticketTypes array
-    if (parsed.ticketTypes && parsed.ticketTypes.length > 0) {
-      return parsed.ticketTypes[0].name || 'Standard Ticket'
-    }
-    return 'Standard Ticket'
-  } catch (error) {
-    return 'Standard Ticket'
-  }
-}
 
 // Attendees Tab Panel Component
 interface AttendeesTabPanelProps {
@@ -450,8 +391,8 @@ export const EventForm: React.FC<EventFormProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info')
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string | null>(null)
-  const [rsvpTimingOpen, setRsvpTimingOpen] = useState(false)
-  const [volunteerTimingOpen, setVolunteerTimingOpen] = useState(false)
+  const [_rsvpTimingOpen, _setRsvpTimingOpen] = useState(false)
+  const [_volunteerTimingOpen, _setVolunteerTimingOpen] = useState(false)
 
   // Track timing-specific changes separately
   const [rsvpTimingDirty, setRsvpTimingDirty] = useState(false)
@@ -536,7 +477,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [deleteItemId, setDeleteItemId] = useState<string>('')
   const [deleteItemName, setDeleteItemName] = useState<string>('')
   const [deletionCheckResponse, setDeletionCheckResponse] = useState<any>(null)
-  const [isCheckingDeletion, setIsCheckingDeletion] = useState(false)
+  const [_isCheckingDeletion, setIsCheckingDeletion] = useState(false)
   const [isDeletingItem, setIsDeletingItem] = useState(false)
 
   // RSVP/Ticket removal modal state

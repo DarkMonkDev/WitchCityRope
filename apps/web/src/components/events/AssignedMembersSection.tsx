@@ -16,14 +16,12 @@ interface AssignedMembersSectionProps {
 
 export const AssignedMembersSection: React.FC<AssignedMembersSectionProps> = ({
   positionId,
-  positionTitle,
 }) => {
   // Fetch assigned members using real API
   const {
     data: assignedMembers = [],
     isLoading,
     error,
-    refetch,
   } = usePositionSignups(positionId);
 
   // Mutations for adding/removing members

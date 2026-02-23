@@ -1,18 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Stack,
-  Group,
-  Box,
-  Paper,
-  Title,
-  Text,
-  Radio,
-  Button,
-  Card,
-  Modal,
-  TextInput,
-  Divider,
-} from '@mantine/core';
+import { Stack, Group, Box, Paper, Title, Text, Radio, Button, Card, Modal, TextInput } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import { IconCalendar, IconTrash, IconDeviceFloppy } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -241,7 +228,6 @@ export const SavedAdHocTemplates: React.FC<SavedAdHocTemplatesProps> = ({
   // Fetch saved templates
   const {
     data: savedTemplates,
-    isLoading,
   } = useQuery<AdHocEmailTemplateDto[]>({
     queryKey: ['adhoc-templates'],
     queryFn: () => emailTemplatesApi.getAdHocTemplates(),

@@ -38,11 +38,9 @@ import { useMembers } from '../hooks/useMembers';
 import { apiClient } from '../../../../lib/api/client';
 import type { UserDto, MemberFilterRequest } from '../types/members.types';
 import type { components } from '@witchcityrope/shared-types';
-import { useEventTimeZone } from '../../../../hooks/useEventTimeZone';
 
 export const MembersList: React.FC = () => {
   const navigate = useNavigate();
-  const eventTimeZone = useEventTimeZone();
   const [filters, setFilters] = useState<MemberFilterRequest>(() => ({
     page: 1,
     pageSize: 25,
@@ -85,11 +83,6 @@ export const MembersList: React.FC = () => {
     [navigate]
   );
 
-  const formatDate = useCallback((dateString?: string | null) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString('en-US', { timeZone: eventTimeZone });
-  }, [eventTimeZone]);
-
   const getSortIcon = useCallback(
     (field: string) => {
       if (filters.sortBy !== field) return null;
@@ -103,7 +96,6 @@ export const MembersList: React.FC = () => {
   );
 
   // Fetch available roles from API (auto-generated from backend enum)
-  type UserRole = components['schemas']['UserRole'];
   type AvailableRolesResponse = components['schemas']['AvailableRolesResponse'];
 
   const { data: rolesData } = useQuery<AvailableRolesResponse>({

@@ -1,23 +1,8 @@
 // Simplified Vetting Application Form Component
 // Based on approved UI mockups with floating labels and streamlined process
 
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Checkbox,
-  Text,
-  Title,
-  Alert,
-  LoadingOverlay,
-  Stack,
-  Group,
-  Paper,
-  List,
-  ThemeIcon,
-  Anchor,
-  SimpleGrid
-} from '@mantine/core';
+import React, { useEffect } from 'react';
+import { Box, Button, Checkbox, Text, Title, Alert, LoadingOverlay, Stack, Group, Paper, List, Anchor, SimpleGrid } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import {
   EnhancedTextInput,
@@ -29,7 +14,7 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconAlertCircle, IconShieldCheck, IconLogin, IconUserPlus } from '@tabler/icons-react';
 import { useAuthStore, useUserSceneName } from '../../../stores/authStore';
 import { simplifiedVettingApi, getSimplifiedVettingErrorMessage } from '../api/simplifiedVettingApi';
-import { simplifiedApplicationSchema, defaultFormValues, fieldValidationMessages } from '../schemas/simplifiedApplicationSchema';
+import { defaultFormValues, fieldValidationMessages } from '../schemas/simplifiedApplicationSchema';
 import type {
   SimplifiedApplicationFormData,
   SimplifiedCreateApplicationRequest,
@@ -55,7 +40,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
   const isMobile = useMediaQuery('(max-width: 991px)');
 
   // Check if user already has an application
-  const { data: existingApplication, isLoading: isCheckingApplication, error: checkError } = useQuery({
+  const { data: existingApplication, isLoading: isCheckingApplication, error: _checkError } = useQuery({
     queryKey: ['vetting', 'my-application'],
     queryFn: simplifiedVettingApi.checkExistingApplication,
     enabled: !!user && isAuthenticated,

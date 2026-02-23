@@ -31,7 +31,6 @@ export const PaymentCancelPage: React.FC = () => {
   // Get parameters from PayPal redirect
   const token = searchParams.get('token');
   const eventId = searchParams.get('eventId');
-  const registrationId = searchParams.get('registrationId');
 
   return (
     <Container size="md" py="xl">

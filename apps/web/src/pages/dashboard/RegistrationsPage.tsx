@@ -1,26 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  Title,
-  Text,
-  Paper,
-  Group,
-  Badge,
-  Button,
-  Stack,
-  Tabs,
-  Table,
-  Select,
-  TextInput,
-  ActionIcon,
-  Pagination,
-  Alert,
-  Loader,
-  Modal,
-  SimpleGrid,
-  Card,
-  Divider,
-} from '@mantine/core';
+import { Box, Title, Text, Paper, Group, Badge, Button, Stack, Tabs, Table, Select, TextInput, Pagination, Alert, Modal, SimpleGrid, Card } from '@mantine/core';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';

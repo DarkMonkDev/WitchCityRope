@@ -1,15 +1,12 @@
 // React hook for application status tracking
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { vettingApi, getVettingErrorMessage } from '../api/vettingApi';
-import type { ApplicationStatusResponse } from '../types/vetting.types';
+import { vettingApi } from '../api/vettingApi';
 
 /**
  * Hook for checking application status by tracking token
  */
 export const useApplicationStatus = (trackingToken?: string) => {
-  const queryClient = useQueryClient();
-
   // Query application status
   const {
     data: statusData,
@@ -142,13 +139,6 @@ export const useApplicationStatus = (trackingToken?: string) => {
  * Hook for tracking multiple applications (for admin/reviewer use)
  */
 export const useMultipleApplicationStatus = (trackingTokens: string[]) => {
-  const queries = trackingTokens.map(token => ({
-    queryKey: ['vetting-application-status', token],
-    queryFn: () => vettingApi.getApplicationStatus(token),
-    retry: 1,
-    enabled: !!token
-  }));
-
   // Use parallel queries for multiple status checks
   const results = useQuery({
     queryKey: ['multiple-application-status', ...trackingTokens],

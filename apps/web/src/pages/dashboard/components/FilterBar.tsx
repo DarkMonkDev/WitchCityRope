@@ -23,8 +23,8 @@ interface FilterBarProps {
 export const FilterBar: React.FC<FilterBarProps> = ({
   showPast,
   onShowPastChange,
-  viewMode,
-  onViewModeChange,
+  viewMode: _viewMode,
+  onViewModeChange: _onViewModeChange,
   searchQuery,
   onSearchChange,
 }) => {

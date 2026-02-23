@@ -3,14 +3,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { vettingApi, getVettingErrorMessage } from '../api/vettingApi';
-import type { 
-  ApplicationFilterRequest,
-  ApplicationSummaryDto,
-  ApplicationDetailResponse,
-  ReviewDecisionRequest,
-  DashboardFilters,
-  DashboardStats
-} from '../types/vetting.types';
+import type { ApplicationFilterRequest, ReviewDecisionRequest, DashboardFilters, DashboardStats } from '../types/vetting.types';
 
 /**
  * Hook for managing reviewer dashboard

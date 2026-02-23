@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Container, Button, Group, Title, Text, Alert, Stack } from '@mantine/core';
+import { Container, Button, Text, Alert, Stack } from '@mantine/core';
 import { IconArrowLeft, IconAlertCircle, IconLock } from '@tabler/icons-react';
 import { VettingApplicationDetail } from '../../features/admin/vetting/components/VettingApplicationDetail';
 import { useUser } from '../../stores/authStore';

@@ -6,27 +6,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Title, 
-  Paper, 
-  Group, 
-  Button, 
-  Text, 
-  Card, 
-  Badge, 
-  Stack,
-  Grid,
-  Alert,
-  Loader,
-  Tabs,
-  Table
-} from '@mantine/core';
-import { IconInfoCircle, IconCalendar, IconUsers, IconCurrency } from '@tabler/icons-react';
-import { useEventsManagement, useEventDetails, useEventAvailability } from '../../hooks/useEventsManagement';
+import { Container, Title, Paper, Group, Button, Text, Card, Stack, Grid, Alert, Loader, Tabs } from '@mantine/core';
+import { IconInfoCircle, IconCalendar } from '@tabler/icons-react';
 import { useLegacyEvents, useLegacyEventDetails } from '../../hooks/useLegacyEventsApi';
 import { apiClient } from '../../lib/api/client';
-import type { EventSummaryDto } from '@witchcityrope/shared-types';
 import type { LegacyEventDto } from '../../api/services/legacyEventsApi.service';
 import { debugLog } from '../../utils/debug';
 
@@ -60,23 +43,15 @@ export const EventsManagementApiDemo: React.FC = () => {
   
   const { 
     data: legacyEventDetails, 
-    isLoading: legacyDetailsLoading, 
-    error: legacyDetailsError 
+    isLoading: _legacyDetailsLoading, 
+    error: _legacyDetailsError 
   } = useLegacyEventDetails(selectedEventId || '', !!selectedEventId && activeTab === 'current-api');
   
   // Future API queries - DISABLED
-  const events = null;
   const eventsLoading = false;
-  const eventsError = null;
-  const refetchEvents = () => debugLog('Refetch disabled for debugging');
+  const eventsError: Error | null = null;
   
-  const eventDetails = null;
-  const detailsLoading = false;
-  const detailsError = null;
   
-  const eventAvailability = null;
-  const availabilityLoading = false;
-  const availabilityError = null;
 
   const handleEventSelect = (eventId: string) => {
     setSelectedEventId(eventId === selectedEventId ? null : eventId);

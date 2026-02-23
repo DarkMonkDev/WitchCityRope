@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
-import { Alert, Button, Box, Text, Loader, Stack } from '@mantine/core';
-import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
+import { Alert, Button, Box, Text, Loader } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import type { PaymentEventInfo } from '../types/payment.types';
 import { debugLog } from '../../../utils/debug';
 import { apiClient } from '../../../lib/api/client';

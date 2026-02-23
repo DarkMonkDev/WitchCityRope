@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Stack, Title, Card, Group, Button, Text, Loader, Alert, TextInput, ActionIcon } from '@mantine/core';
-import { IconArrowLeft, IconUserPlus, IconAlertCircle, IconCheck, IconClock, IconX, IconEdit, IconDeviceFloppy } from '@tabler/icons-react';
+import { Container, Stack, Title, Card, Group, Button, Text, Loader, Alert, TextInput } from '@mantine/core';
+import { IconArrowLeft, IconUserPlus, IconAlertCircle, IconCheck, IconClock, IconX, IconDeviceFloppy } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
 import { apiClient } from '@/lib/api/client';
@@ -14,7 +14,7 @@ import { EditPeopleModal } from '@/features/safety/components/EditPeopleModal';
 import { IncidentStatusBadge } from '@/features/safety/components/IncidentStatusBadge';
 
 type IncidentStatus = 'ReportSubmitted' | 'InformationGathering' | 'ReviewingFinalReport' | 'OnHold' | 'Closed';
-type SeverityLevel = 'Low' | 'Medium' | 'High' | 'Critical';
+
 type IncidentType = 'SafetyConcern' | 'BoundaryViolation' | 'Harassment' | 'OtherConcern';
 type WhereOccurred = 'AtEvent' | 'Online' | 'PrivatePlay' | 'OtherSpace';
 type SpokenToPersonStatus = 'Yes' | 'No' | 'NotApplicable';

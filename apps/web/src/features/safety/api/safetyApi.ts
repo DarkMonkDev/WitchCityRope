@@ -2,7 +2,7 @@
 // Handles all HTTP requests to Safety System backend
 
 import { apiClient } from '../../../lib/api/client';
-import type { ApiResponse, PaginatedResponse } from '../../../lib/api/types/api.types';
+import type { PaginatedResponse } from '../../../lib/api/types/api.types';
 import type {
   SubmitIncidentRequest,
   SubmissionResponse,

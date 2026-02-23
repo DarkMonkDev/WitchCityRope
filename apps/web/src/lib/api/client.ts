@@ -1,4 +1,4 @@
-import axios, { InternalAxiosRequestConfig } from 'axios'
+import axios from 'axios'
 import { queryClient } from './queryClient'
 import { getCSRFToken } from '../../hooks/useCSRFToken'
 

@@ -49,7 +49,6 @@ interface EventAttendeesTabProps {
  * - Status badges with clear visual distinction
  */
 export const EventAttendeesTab: React.FC<EventAttendeesTabProps> = ({
-  eventId,
   eventHasPassed
 }) => {
   const [searchTerm, setSearchTerm] = useState('');

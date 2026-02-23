@@ -38,8 +38,6 @@ export const PaymentSuccessPage: React.FC = () => {
 
   // Get parameters from PayPal redirect
   const paymentId = searchParams.get('paymentId');
-  const token = searchParams.get('token');
-  const payerID = searchParams.get('PayerID');
 
   // Fetch payment details
   const { data: paymentData, error, isLoading: isPaymentLoading } = useQuery<PaymentResponse>({

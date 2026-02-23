@@ -2,7 +2,6 @@
 // Entry point for event staff to check in attendees using session tokens
 // Route: /events/{eventId}/checkin?token={sessionToken}&event={eventId}
 
-import React from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Container, Alert, Stack, Text } from '@mantine/core';
 

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Group, Button, Box, Stack, Drawer, Burger } from '@mantine/core'
+import { Group, Button, Box, Stack, Drawer } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconX } from '@tabler/icons-react'
 import { useUser, useIsAuthenticated } from '../../stores/authStore'

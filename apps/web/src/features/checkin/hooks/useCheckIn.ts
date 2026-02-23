@@ -2,15 +2,8 @@
 // Manages server state for check-in operations with offline support
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { notifications } from '@mantine/notifications';
 import { checkinApi } from '../api/checkinApi';
-import type {
-  AttendeeSearchParams,
-  CheckInRequest,
-  CheckInResponse,
-  ManualEntryData,
-  CapacityInfo
-} from '../types/checkin.types';
+import type { AttendeeSearchParams, CheckInRequest, CheckInResponse, ManualEntryData } from '../types/checkin.types';
 import { useOfflineSync } from './useOfflineSync';
 
 // Query keys for caching and invalidation
@@ -117,7 +110,7 @@ export function useCheckInAttendee(eventId: string, sessionToken: string) {
 
       return { previousData };
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data, _variables) => {
       // Invalidate related queries for fresh data
       queryClient.invalidateQueries({
         queryKey: checkinKeys.eventAttendees(eventId)
@@ -143,7 +136,7 @@ export function useCheckInAttendee(eventId: string, sessionToken: string) {
       //   withCloseButton: true,
       // });
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // Rollback optimistic updates on error
       if (context?.previousData) {
         queryClient.setQueryData(

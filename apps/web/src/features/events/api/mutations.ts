@@ -142,7 +142,7 @@ export function useEventRegistration() {
       // Return rollback context
       return { previousEvent, eventId }
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // Rollback on error
       if (context?.previousEvent) {
         queryClient.setQueryData(
@@ -152,7 +152,7 @@ export function useEventRegistration() {
       }
       console.error('Registration failed:', error)
     },
-    onSettled: (data, error, variables) => {
+    onSettled: (_data, _error, variables) => {
       // Always refetch to ensure server state
       queryClient.invalidateQueries({ queryKey: queryKeys.event(variables.eventId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.currentUser() })
@@ -187,7 +187,7 @@ export function usePurchaseTicket() {
       // Return rollback context
       return { previousEvent, eventId: ticketData.eventId }
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // Rollback on error
       if (context?.previousEvent) {
         queryClient.setQueryData(
@@ -197,7 +197,7 @@ export function usePurchaseTicket() {
       }
       console.error('Ticket purchase failed:', error)
     },
-    onSettled: (data, error, variables) => {
+    onSettled: (_data, _error, variables) => {
       // Always refetch to ensure server state
       queryClient.invalidateQueries({ queryKey: queryKeys.event(variables.eventId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.events() })
@@ -214,7 +214,7 @@ export function useCancelTicket() {
     mutationFn: async ({ eventId, ticketId }: { eventId: string; ticketId: string }): Promise<void> => {
       await apiClient.delete(`/api/events/${eventId}/ticket/${ticketId}`)
     },
-    onMutate: async ({ eventId, ticketId }) => {
+    onMutate: async ({ eventId, ticketId: _ticketId }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.event(eventId) })
       
@@ -232,7 +232,7 @@ export function useCancelTicket() {
       // Return rollback context
       return { previousEvent, eventId }
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // Rollback on error
       if (context?.previousEvent) {
         queryClient.setQueryData(
@@ -242,7 +242,7 @@ export function useCancelTicket() {
       }
       console.error('Ticket cancellation failed:', error)
     },
-    onSettled: (data, error, variables) => {
+    onSettled: (_data, _error, variables) => {
       // Always refetch to ensure server state
       queryClient.invalidateQueries({ queryKey: queryKeys.event(variables.eventId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.events() })
@@ -278,7 +278,7 @@ export function useRSVPForEvent() {
       // Return rollback context
       return { previousEvent, eventId: rsvpData.eventId }
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // Rollback on error
       if (context?.previousEvent) {
         queryClient.setQueryData(
@@ -288,7 +288,7 @@ export function useRSVPForEvent() {
       }
       console.error('RSVP failed:', error)
     },
-    onSettled: (data, error, variables) => {
+    onSettled: (_data, _error, variables) => {
       // Always refetch to ensure server state
       queryClient.invalidateQueries({ queryKey: queryKeys.event(variables.eventId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.events() })
@@ -306,7 +306,7 @@ export function useCancelRSVP() {
       // Use the correct events-management endpoint for canceling RSVP
       await apiClient.delete(`/api/events-management/${eventId}/rsvp`)
     },
-    onMutate: async ({ eventId, rsvpId }) => {
+    onMutate: async ({ eventId, rsvpId: _rsvpId }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.event(eventId) })
       
@@ -318,7 +318,7 @@ export function useCancelRSVP() {
       // Return rollback context
       return { previousEvent, eventId }
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // Rollback on error
       if (context?.previousEvent) {
         queryClient.setQueryData(
@@ -328,7 +328,7 @@ export function useCancelRSVP() {
       }
       console.error('RSVP cancellation failed:', error)
     },
-    onSettled: (data, error, variables) => {
+    onSettled: (_data, _error, variables) => {
       // Always refetch to ensure server state
       queryClient.invalidateQueries({ queryKey: queryKeys.event(variables.eventId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.events() })

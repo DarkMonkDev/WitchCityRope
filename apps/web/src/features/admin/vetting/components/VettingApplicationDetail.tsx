@@ -1,37 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import {
-  Paper,
-  Stack,
-  Title,
-  Text,
-  Group,
-  Badge,
-  Button,
-  Divider,
-  Grid,
-  Textarea,
-  Select,
-  Modal,
-  Box,
-  Alert,
-  ActionIcon,
-  Card,
-  Anchor,
-} from '@mantine/core'
-import {
-  IconArrowLeft,
-  IconEdit,
-  IconCheck,
-  IconX,
-  IconClock,
-  IconUser,
-  IconMail,
-  IconPhone,
-  IconCalendar,
-  IconAlertCircle,
-  IconNotes,
-  IconCalendarEvent,
-} from '@tabler/icons-react'
+import { Paper, Stack, Title, Text, Group, Button, Grid, Modal, Alert, Card, Anchor } from '@mantine/core'
+import { IconArrowLeft, IconCheck, IconX, IconClock, IconMail, IconAlertCircle, IconCalendarEvent } from '@tabler/icons-react'
 import { useVettingApplicationDetail } from '../hooks/useVettingApplicationDetail'
 import { useSubmitReviewDecision } from '../hooks/useSubmitReviewDecision'
 import { useApproveApplication } from '../hooks/useApproveApplication'
@@ -40,7 +9,6 @@ import { VettingStatusBadge } from './VettingStatusBadge'
 import { OnHoldModal } from './OnHoldModal'
 import { SendReminderModal } from './SendReminderModal'
 import { DenyApplicationModal } from './DenyApplicationModal'
-import type { ApplicationDetailResponse, ReviewDecisionRequest } from '../types/vetting.types'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { VettingNoteRenderer } from './VettingNoteRenderer'
 
@@ -74,16 +42,6 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       refetch()
     }
   )
-
-  // Calculate days since submission
-  const daysSinceSubmission = useMemo(() => {
-    if (!application?.submittedAt) return 0
-    const submitted = new Date(application.submittedAt)
-    const now = new Date()
-    const diffTime = Math.abs(now.getTime() - submitted.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
-  }, [application?.submittedAt])
 
   // Determine available actions based on current status
   const availableActions = useMemo(() => {
@@ -148,10 +106,6 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
   const nextStageConfig = getNextStageConfig(application?.status || '')
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString()
-  }
-
   const formatDateOnly = (dateString: string) => {
     return new Date(dateString).toLocaleDateString()
   }
@@ -194,11 +148,6 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         reasoning,
       })
     }
-  }
-
-  const handleApproveApplication = () => {
-    // This is now the "Skip to Approved" action
-    handleSkipToApproved()
   }
 
   const handlePutOnHold = () => {

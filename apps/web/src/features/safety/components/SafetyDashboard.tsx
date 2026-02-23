@@ -1,46 +1,14 @@
 // Safety Dashboard Component
 // Admin dashboard for managing safety incidents
 
-import React, { useState } from 'react';
-import {
-  Box,
-  Paper,
-  Title,
-  Text,
-  Group,
-  Stack,
-  Grid,
-  Card,
-  Badge,
-  Button,
-  TextInput,
-  Select,
-  MultiSelect,
-  Alert,
-  Loader,
-  ActionIcon,
-  Tooltip,
-  Modal
-} from '@mantine/core';
-import { 
-  IconSearch, 
-  IconAlertTriangle, 
-  IconShieldCheck, 
-  IconClock,
-  IconUsers,
-  IconEye,
-  IconFilter,
-  IconRefresh
-} from '@tabler/icons-react';
+import { useState } from 'react';
+import { Box, Paper, Title, Text, Group, Grid, Card, Button, TextInput, MultiSelect, Alert, Loader, ActionIcon, Tooltip, Modal } from '@mantine/core';
+import { IconSearch, IconAlertTriangle, IconShieldCheck, IconClock, IconUsers, IconFilter, IconRefresh } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useSafetyDashboard, useSearchIncidents } from '../hooks/useSafetyIncidents';
 import { IncidentList } from './IncidentList';
 import { IncidentDetails } from './IncidentDetails';
-import {
-  IncidentStatus,
-  STATUS_CONFIGS,
-  SearchIncidentsRequest
-} from '../types/safety.types';
+import { IncidentStatus, STATUS_CONFIGS, SearchIncidentsRequest } from '../types/safety.types';
 
 export function SafetyDashboard() {
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
@@ -73,8 +41,6 @@ export function SafetyDashboard() {
   
   // Type assert the data to prevent 'unknown' property access
   const dashboard = (dashboardResult.data as any)?.dashboard;
-  const recentIncidents = (dashboardResult.data as any)?.recentIncidents;
-  const totalIncidents = (dashboardResult.data as any)?.totalIncidents;
   
   // Search results (separate from dashboard recent incidents)
   const searchQuery = useSearchIncidents(searchFilters);

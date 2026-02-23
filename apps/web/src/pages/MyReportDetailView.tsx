@@ -17,7 +17,6 @@ import {
   IconInfoCircle,
   IconMail
 } from '@tabler/icons-react';
-import { IncidentDetailHeader } from '../features/safety/components/IncidentDetailHeader';
 import { IncidentDetailsCard } from '../features/safety/components/IncidentDetailsCard';
 import { PeopleInvolvedCard } from '../features/safety/components/PeopleInvolvedCard';
 import { useEventTimeZone } from '../hooks/useEventTimeZone';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Paper, Stack, Title, Text, Badge, Group, Button, Modal, Alert } from '@mantine/core';
-import { IconCheck, IconClock, IconX, IconAlertCircle, IconCalendar } from '@tabler/icons-react';
+import { Paper, Stack, Title, Text, Badge, Group, Button, Modal } from '@mantine/core';
+import { IconCheck, IconX } from '@tabler/icons-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import type { VolunteerPosition } from '../../features/volunteers/types/volunteer.types';

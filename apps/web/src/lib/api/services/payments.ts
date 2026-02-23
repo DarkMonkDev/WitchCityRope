@@ -2,7 +2,7 @@
 // Integrates with backend payment endpoints and PayPal webhook system
 
 import { apiClient } from '../client';
-import type { PaymentResponse, ProcessPaymentRequest } from '../../../features/payments/types/payment.types';
+
 import { debugLog } from '../../../utils/debug';
 
 export interface CreateTicketPurchaseRequest {

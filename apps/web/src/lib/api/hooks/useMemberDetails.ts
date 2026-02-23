@@ -1,18 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../client'
-import type {
-  MemberDetailsResponse,
-  VettingDetailsResponse,
-  VettingDetailsResponseExtended,
-  EventHistoryResponse,
-  VolunteerHistoryResponse,
-  MemberIncidentsResponse,
-  UserNoteResponse,
-  MemberNoteHistoryResponse,
-  CreateUserNoteRequest,
-  UpdateMemberStatusRequest,
-  UpdateMemberRoleRequest,
-} from '../types/member-details.types'
+import type { MemberDetailsResponse, VettingDetailsResponse, VettingDetailsResponseExtended, EventHistoryResponse, VolunteerHistoryResponse, MemberIncidentsResponse, UserNoteResponse, MemberNoteHistoryResponse, CreateUserNoteRequest, UpdateMemberStatusRequest } from '../types/member-details.types'
 
 // Query keys for caching
 export const memberDetailsKeys = {

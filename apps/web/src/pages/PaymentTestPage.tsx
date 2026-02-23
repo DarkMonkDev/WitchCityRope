@@ -257,7 +257,7 @@ export const PaymentTestPage: React.FC = () => {
                 const url = `/events/test-event/payment/test-registration?title=${encodeURIComponent(mockEventInfo.title)}&price=${mockEventInfo.basePrice}&instructor=${encodeURIComponent(mockEventInfo.instructorName!)}&location=${encodeURIComponent(mockEventInfo.location!)}&startDateTime=${mockEventInfo.startDateTime}&endDateTime=${mockEventInfo.endDateTime}`;
                 window.open(url, '_blank');
               }}
-              styles={(theme) => ({
+              styles={(_theme) => ({
                 root: {
                   background: 'linear-gradient(135deg, #FFB800, #DAA520)',
                   border: 'none',

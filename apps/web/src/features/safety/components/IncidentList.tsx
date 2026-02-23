@@ -1,19 +1,7 @@
 // Incident List Component
 // Table display of safety incidents with pagination and actions
 
-import React from 'react';
-import {
-  Table,
-  Badge,
-  Group,
-  ActionIcon,
-  Text,
-  Box,
-  Pagination,
-  Stack,
-  Tooltip,
-  Button
-} from '@mantine/core';
+import { Table, Badge, Group, ActionIcon, Text, Box, Pagination, Stack, Tooltip } from '@mantine/core';
 import { IconEye, IconUser, IconUserOff } from '@tabler/icons-react';
 import {
   IncidentSummaryDto,

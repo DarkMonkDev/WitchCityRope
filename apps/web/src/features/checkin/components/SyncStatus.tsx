@@ -2,29 +2,8 @@
 // Connection and synchronization status indicator
 
 import React from 'react';
-import {
-  Group,
-  Text,
-  Badge,
-  ActionIcon,
-  Progress,
-  Card,
-  Stack,
-  Alert,
-  Button,
-  Modal,
-  ScrollArea,
-  Divider
-} from '@mantine/core';
-import {
-  IconWifi,
-  IconWifiOff,
-  IconRefresh,
-  IconClock,
-  IconAlertTriangle,
-  IconCheck,
-  IconX
-} from '@tabler/icons-react';
+import { Group, Text, Badge, ActionIcon, Progress, Card, Stack, Alert, Button, Modal } from '@mantine/core';
+import { IconWifi, IconWifiOff, IconRefresh, IconClock, IconAlertTriangle, IconX } from '@tabler/icons-react';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 import { TOUCH_TARGETS } from '../types/checkin.types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';

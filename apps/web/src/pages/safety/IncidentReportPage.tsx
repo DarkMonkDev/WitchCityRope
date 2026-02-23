@@ -1,19 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Container,
-  Title,
-  Text,
-  Paper,
-  Stack,
-  Group,
-  Switch,
-  TextInput,
-  Textarea,
-  Select,
-  Button,
-  Alert,
-  Box
-} from '@mantine/core';
+import { Container, Title, Text, Paper, Stack, Group, Switch, TextInput, Textarea, Button, Alert, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconInfoCircle, IconCheck, IconAlertCircle } from '@tabler/icons-react';
@@ -84,7 +70,7 @@ export const IncidentReportPage: React.FC = () => {
     }
   });
 
-  const handleSubmit = async (values: IncidentFormValues) => {
+  const handleSubmit = async (_values: IncidentFormValues) => {
     setIsSubmitting(true);
 
     try {

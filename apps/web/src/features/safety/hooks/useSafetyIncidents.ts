@@ -3,14 +3,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { safetyApi } from '../api/safetyApi';
-import type {
-  SubmitIncidentRequest,
-  SearchIncidentsRequest,
-  UpdateIncidentRequest,
-  IncidentStatus,
-  SafetyIncidentDto,
-  FrontendIncidentDetails
-} from '../types/safety.types';
+import type { SubmitIncidentRequest, SearchIncidentsRequest, UpdateIncidentRequest, FrontendIncidentDetails } from '../types/safety.types';
 
 // Query keys for cache management
 export const safetyKeys = {

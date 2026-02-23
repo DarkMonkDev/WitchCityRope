@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Box, Button, Card, Text, TextInput, Stack, Alert, Code } from '@mantine/core';
 import { apiClient } from '../lib/api/client';
 

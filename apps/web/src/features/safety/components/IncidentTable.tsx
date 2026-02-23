@@ -1,14 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  Table,
-  Text,
-  Group,
-  ActionIcon,
-  Menu,
-  Skeleton,
-  Box,
-  Button
-} from '@mantine/core';
+import { Table, Text, ActionIcon, Menu, Skeleton, Box, Button } from '@mantine/core';
 import {
   IconDots,
   IconUserPlus,

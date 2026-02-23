@@ -3,21 +3,7 @@
 // Mobile-first design with offline capability support
 
 import { apiClient } from '../../../lib/api/client';
-import type {
-  CheckInAttendeesResponse,
-  CheckInRequest,
-  CheckInResponse,
-  CheckInDashboard,
-  SyncRequest,
-  SyncResponse,
-  AttendeeSearchParams,
-  ManualEntryData,
-  CapacityInfo,
-  CreateCashTicketPurchaseRequest,
-  TicketPurchaseResponse,
-  CashPaymentResponse,
-  TicketType
-} from '../types/checkin.types';
+import type { CheckInAttendeesResponse, CheckInRequest, CheckInResponse, CheckInDashboard, SyncRequest, SyncResponse, AttendeeSearchParams, ManualEntryData, CapacityInfo, CreateCashTicketPurchaseRequest, CashPaymentResponse, TicketType } from '../types/checkin.types';
 
 /**
  * CheckIn API client following established patterns

@@ -76,8 +76,8 @@ export async function createEventExample(eventData: {
 
 // Example 3: Type-safe event fetching with pagination
 export async function getEventsExample(
-  page: number = 1, 
-  pageSize: number = 10
+  _page: number = 1, 
+  _pageSize: number = 10
 ): Promise<{ events: EventDto[], totalCount: number }> {
   try {
     const response: any = await (apiClient as any).getEvents(); // EventListResponse not available

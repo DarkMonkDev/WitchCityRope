@@ -134,7 +134,7 @@ export const StageGuidanceModal: React.FC<StageGuidanceModalProps> = ({
   onClose,
   onConfirm,
   variant,
-  incidentReference
+  incidentReference: _incidentReference
 }) => {
   const config = getModalConfig(variant);
   const [isSubmitting, setIsSubmitting] = useState(false);

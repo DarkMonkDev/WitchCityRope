@@ -6,12 +6,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { eventsManagementService } from '../api/services/eventsManagement.service';
-import type {
-  EventSummaryDto,
-  EventDetailsDto,
-  EventAvailabilityDto,
-  EventsFilters
-} from '@witchcityrope/shared-types';
+import type { EventsFilters } from '@witchcityrope/shared-types';
 
 /**
  * Query keys for Events Management API

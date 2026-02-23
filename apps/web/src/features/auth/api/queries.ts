@@ -2,13 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../../../lib/api/client'
 import type { UserDto } from '@witchcityrope/shared-types'
 
-// Response interfaces - temporary until full API coverage
-interface ApiResponse<T> {
-  success: boolean
-  data: T
-  message?: string
-}
-
 interface ProtectedWelcomeData {
   message: string
   user: UserDto

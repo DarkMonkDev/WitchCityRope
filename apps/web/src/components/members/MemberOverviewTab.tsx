@@ -1,4 +1,3 @@
-import React, { useState } from 'react'
 import { Stack, Title, Card, Text, Group, Badge, Grid, Paper, Alert, MultiSelect, Anchor } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
 import { useMemberDetails, useMemberNotes, useMemberVetting, useUpdateMemberRole, useCreateMemberNote } from '../../lib/api/hooks/useMemberDetails'

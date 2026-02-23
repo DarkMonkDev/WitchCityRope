@@ -2,26 +2,8 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { apiClient } from '../client'
 import { eventKeys, cacheUtils } from '../utils/cache'
 // import { handleApiError } from '../utils/errors' // For future error handling
-import type {
-  EventDto,
-  CreateEventDto,
-  UpdateEventDto,
-  EventFilters,
-  RegistrationDto,
-  EventSessionDto,
-  EventTicketTypeDto,
-  EventVolunteerPositionDto
-} from '../types/events.types'
+import type { EventDto, CreateEventDto, UpdateEventDto, EventFilters, RegistrationDto, EventSessionDto, EventTicketTypeDto } from '../types/events.types'
 import type { PaginatedResponse } from '../types/api.types'
-
-// Pagination response structure (for future paginated endpoints)
-interface ApiEventResponse {
-  events: ApiEvent[]
-  totalCount: number
-  page: number
-  pageSize: number
-  totalPages: number
-}
 
 // API event structure from backend (actual response structure)
 interface ApiEvent {
@@ -238,7 +220,7 @@ export function useCreateEvent() {
       queryClient.setQueryData(eventKeys.detail(newEvent.id), newEvent)
       
     },
-    onError: (error) => {
+    onError: (_error) => {
     },
   })
 }
@@ -274,7 +256,7 @@ export function useUpdateEvent() {
       // This ensures the UI shows the correct saved values instead of optimistic values
       queryClient.setQueryData(eventKeys.detail(updatedEvent.id), data)
     },
-    onError: (err, updatedEvent, context) => {
+    onError: (_err, updatedEvent, context) => {
       // Rollback on error
       if (context?.previousEvent) {
         queryClient.setQueryData(eventKeys.detail(updatedEvent.id), context.previousEvent)
@@ -301,7 +283,7 @@ export function useDeleteEvent() {
       queryClient.removeQueries({ queryKey: eventKeys.detail(deletedId) })
       cacheUtils.invalidateEvents(queryClient)
     },
-    onError: (error) => {
+    onError: (_error) => {
     },
   })
 }
@@ -344,7 +326,7 @@ export function useRegisterForEvent() {
       
       return { previousEvent }
     },
-    onError: (err, eventId, context) => {
+    onError: (_err, eventId, context) => {
       // Rollback registration count on error
       if (context?.previousEvent) {
         queryClient.setQueryData(eventKeys.detail(eventId), context.previousEvent)

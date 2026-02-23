@@ -3,7 +3,6 @@
 // Uses session token instead of user authentication
 // Route: /events/{eventId}/checkin/dashboard?token={sessionToken}&event={eventId}
 
-import React from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Container, Alert, Stack, Button, Group, Text } from '@mantine/core';
 import { IconArrowLeft, IconUsers } from '@tabler/icons-react';

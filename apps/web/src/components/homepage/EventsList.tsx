@@ -1,9 +1,8 @@
 import React, { useCallback } from 'react';
-import { Box, Text, Title, Button, Alert, Loader, useMantineTheme } from '@mantine/core';
+import { Box, Text, Title, Alert, Loader } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Event } from '../../types/Event';
 import { EventDto } from '@witchcityrope/shared-types';
 import { PublicEventCard } from '../events/PublicEventCard';
 import { apiClient } from '../../lib/api/client';
@@ -50,7 +49,6 @@ export const EventsList: React.FC<EventsListProps> = ({
   events: customEvents
 }) => {
   const navigate = useNavigate();
-  const theme = useMantineTheme();
   const isMobile = useMediaQuery(`(max-width: 991px)`);
 
   // Use TanStack Query for real API data (only if custom events not provided)

@@ -2,7 +2,7 @@
 // Main form for submitting safety incidents (anonymous or identified)
 // UPDATED: Matches wireframe exactly per user requirements
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -20,7 +20,7 @@ import {
 import { TimeInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconInfoCircle, IconShieldCheck, IconClock } from '@tabler/icons-react';
+import { IconShieldCheck, IconClock } from '@tabler/icons-react';
 import { StyledDatePicker } from '../../../components/forms/StyledDatePicker';
 import {
   MantineTextInput,
@@ -45,7 +45,7 @@ interface IncidentReportFormProps {
   onSubmissionComplete?: (referenceNumber: string) => void;
 }
 
-export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormProps) {
+export function IncidentReportForm({ onSubmissionComplete: _onSubmissionComplete }: IncidentReportFormProps) {
   const [agreementChecked, setAgreementChecked] = useState(false);
   const user = useAuthStore(state => state.user);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
@@ -58,7 +58,6 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
     isSubmitting,
     error,
     isSuccess,
-    resetSubmission
   } = useSubmitIncidentForm();
 
   // Initialize form with default values (matching wireframe)
@@ -121,7 +120,6 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
   });
 
   // Validation for agreement checkbox (separate from form validation)
-  const isAgreementValid = agreementChecked;
 
   // Handle form submission
   const handleSubmit = useCallback(async (values: IncidentFormData) => {

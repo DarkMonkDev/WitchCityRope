@@ -75,14 +75,6 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   // Type-safe active tokens (API returns SessionTokenResponse[] | undefined)
   const tokens = (activeTokens as SessionTokenResponse[] | undefined) || [];
 
-  // Type definition for session status
-  type SessionStatus = 'available' | 'future' | 'past' | 'unavailable';
-
-  interface SessionWithStatus extends SessionDto {
-    status: SessionStatus;
-    statusText: string;
-  }
-
   // Calculate status for each session
   const sessionsWithStatus = React.useMemo(() => {
     if (sessions.length === 0) return [];

@@ -39,12 +39,6 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
       const bTime = b.sessionStartTime ? new Date(b.sessionStartTime).getTime() : Infinity;
       return aTime - bTime;
     })
-  const statusColors: Record<string, string> = {
-    'RSVP Confirmed': 'blue',
-    'Ticket Purchased': 'green',
-    Attended: 'grape',
-  }
-
   // Check if we should show Purchase Ticket button:
   // - User has RSVP but no ticket
   // - Event is a social event
@@ -60,21 +54,6 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
 
   // Show purchase button if all conditions are met
   const showPurchaseButton = shouldCheckForPaidTickets && hasPaidTickets
-
-  const formatEventDateTime = (startDate: string, endDate?: string) => {
-    // Format date using TRUE UTC to local conversion
-    // See: /docs/guides-setup/datetime-handling-guide.md
-    const datePart = formatUtcToLocalDate(startDate, eventTimeZone, {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric'
-    })
-
-    // Format time range
-    const timeRange = formatUtcTimeRange(startDate, endDate || undefined, eventTimeZone)
-
-    return `${datePart} - ${timeRange}`
-  }
 
   const formatShiftTime = (timeString?: string) => {
     if (!timeString) return ''

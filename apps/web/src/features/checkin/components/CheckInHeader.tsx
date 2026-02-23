@@ -20,7 +20,6 @@ interface CheckInHeaderProps {
 export const CheckInHeader: React.FC<CheckInHeaderProps> = ({
   eventTitle,
   eventDate,
-  onExit,
   checkedInCount,
   totalCount,
 }) => {

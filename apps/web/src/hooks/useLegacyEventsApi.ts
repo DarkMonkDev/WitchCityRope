@@ -5,7 +5,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { legacyEventsApiService, type LegacyEventDto } from '../api/services/legacyEventsApi.service';
+import { legacyEventsApiService } from '../api/services/legacyEventsApi.service';
 import { debugLog } from '../utils/debug';
 
 /**

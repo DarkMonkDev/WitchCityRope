@@ -10,7 +10,7 @@ import {
   Switch,
   TextInput
 } from '@mantine/core';
-import { IconNotes, IconLock, IconWorld } from '@tabler/icons-react';
+import { IconNotes } from '@tabler/icons-react';
 import type { components } from '@witchcityrope/shared-types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 

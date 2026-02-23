@@ -21,13 +21,11 @@ interface EventSessionFormProps {
 }
 
 export const EventSessionForm: React.FC<EventSessionFormProps> = ({
-  eventId,
   sessions,
   ticketTypes,
   allowRsvps = false,
   requireTicketPurchase = true,
   onSave,
-  onCancel
 }) => {
   return (
     <Box role="form" aria-label="Event session configuration">

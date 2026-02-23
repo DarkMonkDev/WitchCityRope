@@ -33,26 +33,16 @@
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Paper, Stack, Alert, Group, Text, Box, Badge, Button,
-  LoadingOverlay, Progress, Modal, Textarea, Checkbox, Title, Divider
-} from '@mantine/core';
-import { IconUsers, IconTicket, IconCalendarCheck, IconCheck, IconAlertCircle, IconClock } from '@tabler/icons-react';
+import { Paper, Stack, Alert, Group, Text, Box, Button, LoadingOverlay, Progress, Modal, Textarea, Checkbox, Title, Divider } from '@mantine/core';
+import { IconTicket, IconCalendarCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import {
   EnhancedParticipationStatusDto
 } from '../../types/participation.types';
-import { PayPalButton } from '../../features/payments/components/PayPalButton';
-import type { PaymentEventInfo } from '../../features/payments/types/payment.types';
-import { useConfirmPayPalPayment } from '../../lib/api/hooks/usePayments';
-import { PaymentSummary } from '../../features/payments/components/PaymentSummary';
-import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { debugLog } from '../../utils/debug';
 import { useVettingStatus } from '../../features/vetting/hooks/useVettingStatus';
 import { formatUtcToLocalDate, formatUtcTimeRange } from '../../utils/eventUtils';
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
-
-type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
 // Helper function to extract purchase amount from metadata JSON
 const extractAmountFromMetadata = (metadata?: string): number => {
@@ -111,9 +101,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   vettedMembersOnly,
   participation,
   isLoading = false,
-  ticketTypeId,
   onRSVP,
-  onPurchaseTicket,
   onCancel,
   ticketPrice = 50,
   ticketPriceRange,
@@ -154,17 +142,11 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelType, setCancelType] = useState<'rsvp' | 'ticket'>('rsvp');
   const [cancelReason, setCancelReason] = useState('');
-  const [showPayPal, setShowPayPal] = useState(false);
-  const [selectedAmount, setSelectedAmount] = useState(ticketPrice);
-  const [slidingScalePercentage, setSlidingScalePercentage] = useState(0);
   const [rsvpTermsAccepted, setRsvpTermsAccepted] = useState(false);
 
   // Cancel mode state for selective ticket cancellation
   const [isCancelMode, setIsCancelMode] = useState(false);
   const [selectedTicketPurchaseIds, setSelectedTicketPurchaseIds] = useState<string[]>([]);
-
-  // PayPal payment confirmation hook
-  const confirmPayPalPayment = useConfirmPayPalPayment();
 
   // Show login prompt for anonymous users
   if (!isAuthenticated) {
@@ -424,9 +406,6 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   };
 
   const handleTicketPurchase = () => {
-    setSelectedAmount(ticketPrice);
-    setSlidingScalePercentage(0);
-
     // Navigate to checkout page with event info and owned session IDs for filtering
     navigate(`/checkout/${eventId}`, {
       state: {
@@ -443,55 +422,6 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
         ownedSessionIds: (validParticipation as any)?.ownedSessionIds || []
       }
     });
-  };
-
-  const handlePayPalSuccess = async (paymentDetails: any) => {
-    debugLog('🔍 PayPal payment successful:', paymentDetails);
-
-    try {
-      if (!ticketTypeId) {
-        console.error('❌ Cannot process PayPal payment: ticketTypeId is required');
-        return;
-      }
-
-      // Confirm payment with backend and create ticket
-      await confirmPayPalPayment.mutateAsync({
-        orderId: paymentDetails.id,
-        paymentDetails,
-        ticketTypeId
-      });
-
-      // Call the parent component's purchase handler for additional UI updates
-      onPurchaseTicket(selectedAmount, slidingScalePercentage);
-
-      // Hide PayPal form
-      setShowPayPal(false);
-
-    } catch (error) {
-      console.error('❌ Failed to confirm PayPal payment:', error);
-    }
-  };
-
-  const handlePayPalError = (error: string) => {
-    console.error('❌ PayPal payment error:', error);
-    // Keep PayPal form visible for retry
-  };
-
-  const handlePayPalCancel = () => {
-    debugLog('🔍 PayPal payment cancelled');
-    setShowPayPal(false);
-  };
-
-
-  // Create PayPal event info
-  const paypalEventInfo: PaymentEventInfo = {
-    id: eventId,
-    title: eventTitle,
-    startDateTime: new Date().toISOString(), // Would come from event data
-    endDateTime: new Date().toISOString(),   // Would come from event data
-    currency: 'USD',
-    basePrice: selectedAmount,
-    registrationId: eventId // Use event ID as registration ID for now
   };
 
   return (

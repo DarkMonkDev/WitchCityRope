@@ -15,7 +15,7 @@ import {
   Button,
   Loader,
 } from '@mantine/core'
-import { IconAlertCircle, IconMail, IconCircleCheck, IconShieldCheck } from '@tabler/icons-react'
+import { IconAlertCircle, IconMail, IconCircleCheck } from '@tabler/icons-react'
 import { useLogin, useResendVerification } from '../features/auth/api/mutations'
 import { useCSRFStore } from '../stores/csrfStore'
 

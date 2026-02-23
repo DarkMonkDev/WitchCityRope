@@ -3,7 +3,7 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { apiClient } from '../../../lib/api/client'
 import { queryKeys } from '../../../api/queryKeys'
 import type { EventDto, EventListItemDto } from '@witchcityrope/shared-types'
-import type { PaginatedResponse, EventFilters } from '../../../types/api.types'
+import type { EventFilters } from '../../../types/api.types'
 
 export function useEvent(eventId: string) {
   return useQuery<EventDto>({

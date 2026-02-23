@@ -23,7 +23,7 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   requiredRole,
-  fallback 
+  fallback: _fallback
 }) => {
   const user = useUser();
   const isAuthenticated = useIsAuthenticated();

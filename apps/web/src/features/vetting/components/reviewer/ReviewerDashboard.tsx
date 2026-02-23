@@ -23,22 +23,9 @@ import {
   Progress,
   Divider
 } from '@mantine/core';
-import {
-  IconSearch,
-  IconFilter,
-  IconEye,
-  IconUserCheck,
-  IconClock,
-  IconAlertTriangle,
-  IconRefresh,
-  IconDownload,
-  IconDots,
-  IconUser,
-  IconMail,
-  IconCalendar
-} from '@tabler/icons-react';
+import { IconSearch, IconFilter, IconEye, IconUserCheck, IconClock, IconAlertTriangle, IconRefresh, IconDownload, IconDots, IconUser, IconMail } from '@tabler/icons-react';
 import { useReviewerDashboard } from '../../hooks/useReviewerDashboard';
-import type { ApplicationSummaryDto, DashboardFilters } from '../../types/vetting.types';
+import type { ApplicationSummaryDto } from '../../types/vetting.types';
 import { APPLICATION_STATUS_CONFIGS, TOUCH_TARGETS } from '../../types/vetting.types';
 
 interface ReviewerDashboardProps {
@@ -50,7 +37,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
   onApplicationSelect,
   className
 }) => {
-  const [selectedApplications, setSelectedApplications] = useState<string[]>([]);
+  const [_selectedApplications, _setSelectedApplications] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
 
   const {
@@ -113,7 +100,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
           transition: 'all 0.2s ease',
           minHeight: TOUCH_TARGETS.CARD_MIN_HEIGHT
         }}
-        styles={(theme) => ({
+        styles={(_theme) => ({
           root: {
             '&:hover': {
               transform: 'translateY(-2px)',

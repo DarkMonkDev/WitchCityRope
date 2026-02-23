@@ -49,7 +49,7 @@ export function convertEventSessionToCreateDto(session: EventSession): {
 /**
  * Converts backend TicketTypeDto to frontend EventTicketType interface
  */
-export function convertEventTicketTypeFromDto(dto: TicketTypeDto, sessions: EventSession[] = []): EventTicketType {
+export function convertEventTicketTypeFromDto(dto: TicketTypeDto, _sessions: EventSession[] = []): EventTicketType {
   // TicketTypeDto already has sessionIdentifiers
   return {
     id: dto.id,

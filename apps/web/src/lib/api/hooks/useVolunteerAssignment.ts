@@ -50,17 +50,6 @@ export interface AssignVolunteerRequest {
   userId: string;
 }
 
-/**
- * API Response wrapper (generic)
- * Note: Backend uses ApiResponse<T> pattern
- */
-interface ApiResponse<T> {
-  success: boolean;
-  data: T | null;
-  message?: string | null;
-  error?: string | null;
-}
-
 // ============================================================================
 // React Query Hooks
 // ============================================================================
@@ -175,7 +164,7 @@ export function useRemoveAssignment() {
  * @param debounceMs - Debounce delay in milliseconds (default: 300)
  * @returns Query result with list of matching members
  */
-export function useSearchMembers(searchQuery: string, debounceMs: number = 300) {
+export function useSearchMembers(searchQuery: string, _debounceMs: number = 300) {
   // Debounce implementation
   const debouncedQuery = useMemo(() => {
     const trimmed = searchQuery.trim();

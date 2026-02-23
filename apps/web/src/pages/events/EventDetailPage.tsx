@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import {
-  Container, Stack, Title, Text, Breadcrumbs,
-  Anchor, Alert, Button, Box, Group, Paper,
-  ActionIcon, List, Avatar, Skeleton, Center, Grid, Badge
-} from '@mantine/core';
+import { Container, Stack, Title, Text, Breadcrumbs, Anchor, Alert, Button, Box, Group, Paper, Skeleton, Grid, Badge } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import {
-  IconCalendar, IconClock, IconMapPin, IconUsers,
-  IconShare, IconMail, IconBrandX, IconLink, IconCheck, IconExternalLink
-} from '@tabler/icons-react';
-import { formatUtcToLocalDate, formatUtcTimeRange, formatAbbreviatedDate } from '../../utils/eventUtils';
+import { IconExternalLink } from '@tabler/icons-react';
+import { formatUtcToLocalDate, formatUtcTimeRange } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
 import { useParticipation, useCreateRSVP, useCancelRSVP, useCancelTicket } from '../../hooks/useParticipation';
 import { ParticipationCard } from '../../components/events/ParticipationCard';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
-import type { EventDto } from '../../lib/api/types/events.types';
 import { useVolunteerPositions } from '../../features/volunteers/hooks/useVolunteerPositions';
 import { VolunteerPositionCard } from '../../features/volunteers/components/VolunteerPositionCard';
 import { VolunteerEncouragementBox } from '../../components/events/VolunteerEncouragementBox';
@@ -33,7 +25,7 @@ export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string}>();
   const eventTimeZone = useEventTimeZone();
   const isMobile = useMediaQuery('(max-width: 991px)');
-  const [selectedTicket, setSelectedTicket] = useState('single');
+  const [_selectedTicket, _setSelectedTicket] = useState('single');
 
   // Scroll to top when page loads or event ID changes
   useEffect(() => {
@@ -44,9 +36,9 @@ export const EventDetailPage: React.FC = () => {
   const { data: currentUser } = useCurrentUser();
   const isAuthenticated = !!currentUser;
   const { data: participation, isLoading: participationLoading } = useParticipation(id!, isAuthenticated, !!id);
-  const { data: volunteerPositions, isLoading: volunteerLoading } = useVolunteerPositions(id!, !!id);
-  const { data: venue, isLoading: venueLoading } = useVenue((event as any)?.venueId, !!event) as { data: VenueDto | null; isLoading: boolean };
-  const { data: teachers = [], isLoading: teachersLoading } = useTeacherProfiles((event as any)?.teacherIds) as { data: UserProfileDto[]; isLoading: boolean };
+  const { data: volunteerPositions, isLoading: _volunteerLoading } = useVolunteerPositions(id!, !!id);
+  const { data: venue, isLoading: _venueLoading } = useVenue((event as any)?.venueId, !!event) as { data: VenueDto | null; isLoading: boolean };
+  const { data: teachers = [], isLoading: _teachersLoading } = useTeacherProfiles((event as any)?.teacherIds) as { data: UserProfileDto[]; isLoading: boolean };
   const createRSVPMutation = useCreateRSVP();
   const cancelRSVPMutation = useCancelRSVP();
   const cancelTicketMutation = useCancelTicket();
@@ -81,15 +73,7 @@ export const EventDetailPage: React.FC = () => {
   }
 
   const availableSpots = ((event as any)?.capacity || 0) - ((event as any)?.registrationCount || 0);
-  const capacityPercentage = (event as any)?.capacity ? ((event as any)?.registrationCount || 0) / (event as any)?.capacity * 100 : 0;
   
-  const getAvailabilityStatus = () => {
-    if (availableSpots <= 0) return { status: 'sold-out', color: 'var(--color-stone)' };
-    if (availableSpots <= 3) return { status: 'low', color: 'var(--color-error)' };
-    return { status: 'available', color: 'var(--color-success)' };
-  };
-  
-  const availability = getAvailabilityStatus();
 
   const handleRSVP = (notes?: string, eventWaiverAccepted?: boolean) => {
     if (!id) return;
@@ -100,7 +84,7 @@ export const EventDetailPage: React.FC = () => {
     });
   };
 
-  const handlePurchaseTicket = (amount: number, slidingScalePercentage?: number) => {
+  const handlePurchaseTicket = (_amount: number, _slidingScalePercentage?: number) => {
     // PayPal integration handles ticket creation
   };
 

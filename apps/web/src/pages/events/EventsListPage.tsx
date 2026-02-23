@@ -1,32 +1,14 @@
 import React, { useMemo, useState } from 'react'
-import {
-  Container,
-  Stack,
-  Title,
-  Text,
-  Group,
-  Alert,
-  Button,
-  Box,
-  Skeleton,
-  Center,
-  Paper,
-  TextInput,
-  Select,
-  SegmentedControl,
-  Switch,
-  Badge,
-} from '@mantine/core'
+import { Container, Stack, Title, Text, Group, Alert, Button, Box, Skeleton, Center, TextInput, Select, Switch, Badge } from '@mantine/core'
 import { IconSearch } from '@tabler/icons-react'
 import { useEventFilters } from '../../hooks/useEventFilters'
 import { useEvents } from '../../lib/api/hooks/useEvents'
-import { formatEventDate, formatEventDateTime, formatEventTime, formatShortDate, calculateEventPriceRange, formatUtcTimeRange, formatUtcToLocalDate } from '../../utils/eventUtils'
+import { formatEventTime, formatShortDate, calculateEventPriceRange } from '../../utils/eventUtils'
 import type { EventDto } from '../../lib/api/types/events.types'
 import { useNavigate } from 'react-router-dom'
 import { useParticipation } from '../../hooks/useParticipation'
 import { useCurrentUser } from '../../lib/api/hooks/useAuth'
 import { BaseEventsTable, type TableColumn } from '../../components/events/BaseEventsTable'
-import { useEventTimeZone } from '../../hooks/useEventTimeZone'
 import { PublicEventCard } from '../../components/events/PublicEventCard'
 
 // Mock function to get user role - replace with actual auth context
@@ -38,8 +20,7 @@ const useAuth = () => ({
 export const EventsListPage: React.FC = () => {
   const navigate = useNavigate()
   const { userRole } = useAuth()
-  const eventTimeZone = useEventTimeZone();
-  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
+  const [viewMode, _setViewMode] = useState<'cards' | 'list'>('cards')
   const [showPastClasses, setShowPastClasses] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('date-oldest')
@@ -634,7 +615,7 @@ interface EventCardGridProps {
   onRSVP: (eventId: string) => void
 }
 
-const EventCardGrid: React.FC<EventCardGridProps> = ({ events, userRole, onRegister, onRSVP }) => {
+const EventCardGrid: React.FC<EventCardGridProps> = ({ events, userRole: _userRole, onRegister: _onRegister, onRSVP: _onRSVP }) => {
   const navigate = useNavigate()
 
   const handleCardClick = (eventId: string) => {

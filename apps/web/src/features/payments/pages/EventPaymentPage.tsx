@@ -77,16 +77,13 @@ export const EventPaymentPage: React.FC = () => {
   const [checkoutErrorDismissed, setCheckoutErrorDismissed] = useState(false);
 
   // Payment processing
-  const { 
-    processPayment, 
-    processingState, 
-    paymentData, 
-    resetProcessingState 
+  const {
+    paymentData,
+    resetProcessingState
   } = usePayment(registrationId);
 
   // Sliding scale management
   const {
-    finalAmount,
     discountPercentage,
     calculation,
     updateDiscountPercentage
@@ -781,7 +778,7 @@ export const EventPaymentPage: React.FC = () => {
                     size="lg"
                     color="#880124"
                     disabled={selectedTickets.length === 0}
-                    styles={(theme) => ({
+                    styles={(_theme) => ({
                       root: {
                         background: selectedTickets.length === 0
                           ? 'var(--mantine-color-gray-3)'

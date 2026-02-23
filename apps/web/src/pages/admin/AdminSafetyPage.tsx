@@ -1,8 +1,7 @@
 // Admin Safety Page
 // Protected admin page for safety team incident management
 
-import React from 'react';
-import { Container, Box, Alert, Text } from '@mantine/core';
+import { Container, Alert, Text } from '@mantine/core';
 import { IconShieldOff } from '@tabler/icons-react';
 import { SafetyDashboard } from '../../features/safety/components/SafetyDashboard';
 // FIX: Commented out missing import that was blocking entire app
@@ -15,7 +14,7 @@ const useSafetyTeamAccess = () => {
 };
 
 export function AdminSafetyPage() {
-  const { hasAccess, isLoading, error } = useSafetyTeamAccess();
+  const { hasAccess, isLoading, error: _error } = useSafetyTeamAccess();
   
   // Show loading state
   if (isLoading) {

@@ -35,7 +35,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(_error: Error, errorInfo: any) {
     debugError('🚨 React Error Boundary - Component stack:', errorInfo)
   }
 

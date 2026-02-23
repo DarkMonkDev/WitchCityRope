@@ -342,10 +342,7 @@ export const handlers = [
 
   // Events list endpoint (both relative and absolute URL support)
   // Pattern B: API returns Event[] directly, NOT wrapped in {success, data}
-  http.get('/api/events', ({ request }) => {
-    const url = new URL(request.url)
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
+  http.get('/api/events', () => {
 
     const events = [
       {
@@ -385,10 +382,7 @@ export const handlers = [
     return HttpResponse.json(events)
   }),
 
-  http.get(`${API_BASE_URL}/api/events`, ({ request }) => {
-    const url = new URL(request.url)
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
+  http.get(`${API_BASE_URL}/api/events`, () => {
 
     const events = [
       {
@@ -567,8 +561,7 @@ export const handlers = [
     } as UserDto)
   }),
 
-  http.put('/api/members/:id/status', async ({ params, request }) => {
-    const body = await request.json() as any
+  http.put('/api/members/:id/status', async ({ params }) => {
     return HttpResponse.json({
       id: params.id,
       email: 'member@test.com',

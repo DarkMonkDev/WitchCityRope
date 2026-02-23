@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stack, Text, Progress, Box } from '@mantine/core';
+import { Text, Progress, Box } from '@mantine/core';
 
 interface CapacityDisplayProps {
   current?: number;

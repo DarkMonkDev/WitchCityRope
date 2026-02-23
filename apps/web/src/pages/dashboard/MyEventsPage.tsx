@@ -11,7 +11,7 @@ import { useUserEvents, useVettingStatus } from '../../hooks/useDashboard';
 import { useUser } from '../../stores/authStore';
 import { useUserVolunteerShifts } from '../../features/volunteers/hooks/useVolunteerPositions';
 import { formatShortDate, formatEventTime } from '../../utils/eventUtils';
-import type { UserEventDto, VettingStatusDto } from '../../types/dashboard.types';
+import type { UserEventDto } from '../../types/dashboard.types';
 import type { VolunteerShiftWithEvent } from '../../components/dashboard/UserVolunteerShifts';
 
 /**

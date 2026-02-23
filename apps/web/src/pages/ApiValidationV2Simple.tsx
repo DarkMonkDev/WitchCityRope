@@ -1,22 +1,5 @@
 import React, { useState } from 'react'
-import { 
-  Container, 
-  Title, 
-  Button, 
-  Text, 
-  Card, 
-  Group, 
-  Stack, 
-  Badge, 
-  Alert,
-  Divider,
-  TextInput,
-  NumberInput,
-  Grid,
-  Tabs,
-  Code,
-  Box,
-} from '@mantine/core'
+import { Container, Title, Button, Text, Card, Group, Stack, Badge, Alert, Divider, Grid, Tabs, Code, Box } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconCheck, IconX, IconRefresh, IconAlertTriangle, IconCode } from '@tabler/icons-react'
 
@@ -137,7 +120,7 @@ export function useCreateEvent() {
   // 2. CSS-Only Optimistic Updates (Spec Section 4.3.1)
   const PatternCSSOptimisticUpdates: React.FC = () => {
     const [isOptimistic, setIsOptimistic] = useState(false)
-    const [profileData, setProfileData] = useState({
+    const [profileData, _setProfileData] = useState({
       firstName: 'Test',
       lastName: 'User',
       sceneName: 'TestUser'

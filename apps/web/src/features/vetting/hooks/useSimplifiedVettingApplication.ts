@@ -6,11 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useAuthStore } from '../../../stores/authStore';
 import { simplifiedVettingApi, getSimplifiedVettingErrorMessage } from '../api/simplifiedVettingApi';
-import type {
-  SimplifiedCreateApplicationRequest,
-  SimplifiedApplicationSubmissionResponse,
-  SimplifiedApplicationStatus
-} from '../types/simplified-vetting.types';
+import type { SimplifiedCreateApplicationRequest, SimplifiedApplicationSubmissionResponse } from '../types/simplified-vetting.types';
 
 /**
  * Hook for managing simplified vetting application process

@@ -3,12 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { apiClient } from '../../../lib/api/client'
 import { useAuthActions } from '../../../stores/authStore'
 import { initializeCSRFProtection, getCSRFToken } from '../../../hooks/useCSRFToken'
-import type {
-  UserDto,
-  LoginRequest,
-  LoginResponse,
-  RegisterRequest
-} from '@witchcityrope/shared-types'
+import type { UserDto, LoginRequest, RegisterRequest } from '@witchcityrope/shared-types'
 
 // API Response for httpOnly cookie authentication (no tokens)
 interface LoginResponseData {
@@ -59,7 +54,7 @@ export function useLogin() {
       const response = await apiClient.post('/api/auth/login', credentials)
       return response.data
     },
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, _variables, _context) => {
       // Handle httpOnly cookie authentication - no tokens in response
       // The API returns { success: true, user: {...}, returnUrl: '...' }
       const userData = data.user
@@ -117,8 +112,6 @@ export function useLogin() {
  * Connects to the working API endpoint from vertical slice
  */
 export function useRegister() {
-  const queryClient = useQueryClient()
-  const { login } = useAuthActions()
   const navigate = useNavigate()
 
   return useMutation({
@@ -127,7 +120,7 @@ export function useRegister() {
       const response = await apiClient.post('/api/auth/register', credentials)
       return response.data
     },
-    onSuccess: (userData) => {
+    onSuccess: (_userData) => {
       // Handle flat response structure from API
       // Registration doesn't return JWT token - user needs to login
       // Just navigate to login page with success message

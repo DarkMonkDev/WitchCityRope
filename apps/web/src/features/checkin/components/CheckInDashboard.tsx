@@ -1,24 +1,7 @@
 // CheckInDashboard component for CheckIn system
 // Real-time event overview with statistics and recent activity
 
-import React from 'react';
-import {
-  Grid,
-  Card,
-  Stack,
-  Group,
-  Text,
-  Progress,
-  Badge,
-  ActionIcon,
-  ScrollArea,
-  Box,
-  Divider,
-  Button,
-  Alert,
-  Loader,
-  Center
-} from '@mantine/core';
+import { Grid, Card, Stack, Group, Text, Progress, Badge, ActionIcon, ScrollArea, Divider, Button, Alert, Loader, Center } from '@mantine/core';
 import {
   IconUsers,
   IconClock,

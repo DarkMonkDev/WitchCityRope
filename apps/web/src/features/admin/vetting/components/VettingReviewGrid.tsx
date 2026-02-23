@@ -1,23 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Table,
-  Text,
-  Badge,
-  Group,
-  TextInput,
-  Select,
-  Button,
-  Paper,
-  Stack,
-  Pagination,
-  Box,
-  Skeleton,
-  Alert,
-  ActionIcon,
-  Menu,
-  rem
-} from '@mantine/core';
+import { Table, Text, Group, TextInput, Select, Button, Paper, Stack, Pagination, Box, Skeleton, Alert, ActionIcon, Menu, rem } from '@mantine/core';
 import {
   IconSearch,
   IconFilter,
@@ -55,7 +38,6 @@ interface VettingReviewGridProps {
  */
 export const VettingReviewGrid: React.FC<VettingReviewGridProps> = ({
   onViewDetails,
-  onActionComplete
 }) => {
   const navigate = useNavigate();
 
@@ -130,23 +112,23 @@ export const VettingReviewGrid: React.FC<VettingReviewGridProps> = ({
   }, [navigate, onViewDetails]);
 
   // Quick action handlers (TODO: Implement modals)
-  const handleApprove = useCallback((applicationId: string) => {
+  const handleApprove = useCallback((_applicationId: string) => {
     // TODO: Open approval modal
   }, []);
 
-  const handleDeny = useCallback((applicationId: string) => {
+  const handleDeny = useCallback((_applicationId: string) => {
     // TODO: Open deny modal
   }, []);
 
-  const handlePutOnHold = useCallback((applicationId: string) => {
+  const handlePutOnHold = useCallback((_applicationId: string) => {
     // TODO: Open on-hold modal
   }, []);
 
-  const handleScheduleInterview = useCallback((applicationId: string) => {
+  const handleScheduleInterview = useCallback((_applicationId: string) => {
     // TODO: Open schedule interview modal
   }, []);
 
-  const handleSendReminder = useCallback((applicationId: string) => {
+  const handleSendReminder = useCallback((_applicationId: string) => {
     // TODO: Open send reminder modal
   }, []);
 

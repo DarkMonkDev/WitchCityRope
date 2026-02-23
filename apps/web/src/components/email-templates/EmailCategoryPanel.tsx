@@ -45,7 +45,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   const [selectedTemplate, setSelectedTemplate] = useState<GlobalEmailTemplateDto | null>(null);
   const [subject, setSubject] = useState('');
   const [htmlBody, setHtmlBody] = useState('');
-  const [plainTextBody, setPlainTextBody] = useState('');
+  const [_plainTextBody, setPlainTextBody] = useState('');
   const [invalidVariables, setInvalidVariables] = useState<string[]>([]);
 
   // State for trigger config modal (Events tab only)
@@ -227,11 +227,11 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               <EnhancedTemplateCard
                 key={template.id}
                 template={template}
-                onEditTrigger={(id) => {
+                onEditTrigger={(_id) => {
                   setSelectedTemplateForTrigger(template);
                   setTriggerModalOpened(true);
                 }}
-                onEditContent={(id) => setSelectedTemplate(template)}
+                onEditContent={(_id) => setSelectedTemplate(template)}
               />
             ) : (
               <Card

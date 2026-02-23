@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Select, Textarea, Button, Group, Stack, Text, MultiSelect } from '@mantine/core';
+import { Modal, Textarea, Button, Group, Stack, Text, MultiSelect } from '@mantine/core';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
 import { apiClient } from '../../../lib/api/client';

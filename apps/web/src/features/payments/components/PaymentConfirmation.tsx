@@ -17,15 +17,7 @@ import {
   List
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import {
-  IconCheck,
-  IconMapPin,
-  IconUser,
-  IconTicket,
-  IconCreditCard,
-  IconMail,
-  IconDownload
-} from '@tabler/icons-react';
+import { IconCheck, IconMapPin, IconTicket, IconCreditCard, IconMail, IconDownload } from '@tabler/icons-react';
 import type { PaymentResponse, PaymentEventInfo } from '../types/payment.types';
 import { paymentUtils } from '../api/paymentApi';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
@@ -268,7 +260,7 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
             <Button
               color="#880124"
               onClick={onRegisterMore}
-              styles={(theme) => ({
+              styles={(_theme) => ({
                 root: {
                   background: 'linear-gradient(135deg, #FFB800, #DAA520)',
                   border: 'none',

@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconSearch, IconQrcode, IconFilter } from '@tabler/icons-react';
-import type { AttendeeSearchFormData, RegistrationStatus } from '../types/checkin.types';
+import type { RegistrationStatus } from '../types/checkin.types';
 import { STATUS_CONFIGS, TOUCH_TARGETS } from '../types/checkin.types';
 
 interface AttendeeSearchProps {

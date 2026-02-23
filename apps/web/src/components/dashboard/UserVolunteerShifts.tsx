@@ -1,12 +1,8 @@
 // UserVolunteerShifts component for dashboard
 import React from 'react';
-import {
-  Paper, Stack, Title, Text, Badge, Group, Box, Button, Skeleton, Alert
-} from '@mantine/core';
-import {
-  IconCalendarEvent, IconMapPin, IconClock, IconHeart, IconExternalLink
-} from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
+import { Paper, Stack, Title, Text, Badge, Group, Box, Skeleton, Alert } from '@mantine/core';
+import { IconMapPin, IconClock, IconHeart } from '@tabler/icons-react';
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 import { formatUtcToLocalTime, formatUtcToLocalDate } from '../../utils/eventUtils';
 

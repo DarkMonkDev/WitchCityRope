@@ -5,16 +5,8 @@
  * Uses Mantine v7 components for consistent styling
  */
 import React from 'react';
-import { Paper, Stack, Badge, Text, Group, Box } from '@mantine/core';
-import {
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Calendar,
-  FileText,
-  Pause
-} from 'lucide-react';
+import { Paper, Stack, Text, Group, Box } from '@mantine/core';
+import { Clock, CheckCircle, XCircle, AlertCircle, FileText, Pause } from 'lucide-react';
 import type { VettingStatus } from '../types/vettingStatus';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
@@ -97,12 +89,12 @@ const statusConfig: Record<
  */
 export const VettingStatusBox: React.FC<VettingStatusBoxProps> = ({
   status,
-  applicationNumber,
+  applicationNumber: _applicationNumber,
   submittedAt,
-  lastUpdated,
+  lastUpdated: _lastUpdated,
   statusDescription,
   nextSteps,
-  estimatedDaysRemaining
+  estimatedDaysRemaining: _estimatedDaysRemaining
 }) => {
   const config = statusConfig[status];
   const Icon = config.icon;

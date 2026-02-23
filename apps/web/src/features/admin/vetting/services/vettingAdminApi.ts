@@ -144,8 +144,8 @@ export class VettingAdminApiService {
    * Send reminder to application references
    */
   async sendApplicationReminder(
-    applicationId: string,
-    message: string
+    _applicationId: string,
+    _message: string
   ): Promise<{ success: boolean; message: string }> {
     // TODO: Implement when API endpoint is available
     // For now, simulate the API call

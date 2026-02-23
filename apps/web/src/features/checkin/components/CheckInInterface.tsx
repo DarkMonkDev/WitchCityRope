@@ -3,29 +3,12 @@
 // Source: /docs/design/wireframes/event-checkin-visual.html (lines 199-741)
 
 import React, { useState, useCallback, useMemo } from 'react';
-import {
-  Box,
-  Stack,
-  Group,
-  Text,
-  Button,
-  Alert,
-  Loader,
-  Center,
-  Modal,
-  TextInput,
-  Textarea,
-  Table,
-  Badge,
-  Menu
-} from '@mantine/core';
+import { Box, Stack, Group, Text, Button, Alert, Loader, Center, Modal, TextInput, Textarea, Table, Menu } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
-import { IconPlus, IconCash, IconQrcode, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import { IconCash, IconQrcode, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 
 import { CheckInHeader } from './CheckInHeader';
 import { CheckInModal } from './CheckInModal';
-import { CompactSyncStatus } from './SyncStatus';
 import { checkInTheme } from '../styles/theme';
 import { CheckInButton, CheckInButtonState } from './CheckInButton';
 import { CashPaymentModal } from './CashPaymentModal';
@@ -228,13 +211,12 @@ export function CheckInInterface({
   eventId,
   sessionToken,
   eventTitle,
-  onNavigateToDashboard
 }: CheckInInterfaceProps) {
   // State management
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<RegistrationStatus | 'all'>('all');
-  const [selectedAttendee, setSelectedAttendee] = useState<CheckInAttendee | null>(null);
-  const [checkInResponse, setCheckInResponse] = useState<CheckInResponse | null>(null);
+  const [statusFilter, _setStatusFilter] = useState<RegistrationStatus | 'all'>('all');
+  const [selectedAttendee, _setSelectedAttendee] = useState<CheckInAttendee | null>(null);
+  const [_checkInResponse, setCheckInResponse] = useState<CheckInResponse | null>(null);
 
   // Sorting state
   type SortColumn = 'name' | 'status' | 'payment';
@@ -252,8 +234,8 @@ export function CheckInInterface({
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
 
   // Modal states
-  const [confirmationOpened, { open: openConfirmation, close: closeConfirmation }] = useDisclosure(false);
-  const [manualEntryOpened, { open: openManualEntry, close: closeManualEntry }] = useDisclosure(false);
+  const [confirmationOpened, { open: _openConfirmation, close: closeConfirmation }] = useDisclosure(false);
+  const [manualEntryOpened, { open: _openManualEntry, close: closeManualEntry }] = useDisclosure(false);
   const [cashPaymentOpened, { open: openCashPayment, close: closeCashPayment }] = useDisclosure(false);
   const [qrPaymentOpened, { open: openQRPayment, close: closeQRPayment }] = useDisclosure(false);
 
@@ -307,8 +289,8 @@ export function CheckInInterface({
 
   const {
     data: dashboard,
-    isLoading: loadingDashboard,
-    error: dashboardError,
+    isLoading: _loadingDashboard,
+    error: _dashboardError,
     refetch: refetchDashboard
   } = useEventDashboard(eventId, sessionToken) as {
     data: CheckInDashboardType | undefined;
@@ -325,10 +307,6 @@ export function CheckInInterface({
     setSearchTerm(term);
   }, []);
 
-  const handleStatusFilter = useCallback((status: RegistrationStatus | 'all') => {
-    setStatusFilter(status);
-  }, []);
-
   // Handle column header click for sorting
   const handleSort = useCallback((column: SortColumn) => {
     if (sortColumn === column) {
@@ -340,11 +318,6 @@ export function CheckInInterface({
       setSortDirection('asc');
     }
   }, [sortColumn]);
-
-  const handleSelectAttendee = useCallback((attendee: CheckInAttendee) => {
-    setSelectedAttendee(attendee);
-    openConfirmation();
-  }, [openConfirmation]);
 
   const handleCheckIn = useCallback(async (attendee: CheckInAttendee) => {
     try {
@@ -377,7 +350,7 @@ export function CheckInInterface({
 
   const handleManualEntry = useCallback(async (data: ManualEntryData, notes?: string) => {
     try {
-      const response = await manualEntryMutation.mutateAsync({
+      await manualEntryMutation.mutateAsync({
         staffMemberId: undefined, // Kiosk mode - no authenticated staff member
         manualEntryData: data,
         notes
@@ -582,41 +555,6 @@ export function CheckInInterface({
       // });
     }
   }, [paymentAttendee, eventId, sessionToken, closeCashPayment, refetchAttendees, refetchDashboard, handleCheckIn]);
-
-  // Handle QR payment completion
-  const handleQRPaymentComplete = useCallback(() => {
-    if (!paymentAttendee) return;
-
-    // Update button state to covidTest after payment
-    setButtonStates(prev => {
-      const updated = new Map(prev);
-      updated.set(paymentAttendee.attendeeId, 'covidTest');
-      return updated;
-    });
-
-    closeQRPayment();
-    setPaymentAttendee(null);
-
-    // KIOSK MODE: Notification disabled for streamlined UX
-    // notifications.show({
-    //   title: 'Payment Complete',
-    //   message: `Digital payment received for ${paymentAttendee.sceneName || paymentAttendee.email}`,
-    //   color: 'green'
-    // });
-  }, [paymentAttendee, closeQRPayment]);
-
-  // Calculate stats
-  const stats = useMemo(() => {
-    const attendees = (attendeesResponse as any)?.attendees || [];
-    return {
-      notArrived: attendees.filter((a: CheckInAttendee) =>
-        a.registrationStatus !== "CheckedIn"
-      ).length,
-      total: dashboard?.capacity.totalCapacity || 0,
-      needWaiver: attendees.filter((a: CheckInAttendee) => !a.hasCompletedWaiver).length,
-      checkedIn: dashboard?.capacity.checkedInCount || 0
-    };
-  }, [attendeesResponse, dashboard]);
 
   // Helper function to render a table of attendees
   // showDoorPayment: Whether to show Door Payment column (false for classes/workshops, true for social)

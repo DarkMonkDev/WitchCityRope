@@ -46,7 +46,7 @@ interface SlidingScaleSelectorProps {
  */
 export const SlidingScaleSelector: React.FC<SlidingScaleSelectorProps> = ({
   basePrice,
-  currency = 'USD',
+  currency: _currency = 'USD',
   initialPercentage = 0,
   onAmountChange,
   disabled = false,
@@ -69,7 +69,6 @@ export const SlidingScaleSelector: React.FC<SlidingScaleSelectorProps> = ({
     enableSlidingScale,
     disableSlidingScale,
     updateDiscountPercentage,
-    sliderMarks,
     getCommunityMessage
   } = useSlidingScale(basePrice, initialPercentage);
 
@@ -104,7 +103,7 @@ export const SlidingScaleSelector: React.FC<SlidingScaleSelectorProps> = ({
     <Paper 
       radius="md" 
       p="lg"
-      style={(theme) => ({
+      style={(_theme) => ({
         backgroundColor: '#FAF6F2', // ivory from design system
         border: `2px solid #D4A5A5`, // dusty rose border
       })}
@@ -180,7 +179,7 @@ export const SlidingScaleSelector: React.FC<SlidingScaleSelectorProps> = ({
             <Box
               mt="md"
               p="md"
-              style={(theme) => ({
+              style={(_theme) => ({
                 backgroundColor: 'rgba(255, 255, 255, 0.7)',
                 borderRadius: '12px',
                 border: '1px solid #D4A5A5'
@@ -396,7 +395,7 @@ export const SlidingScaleSelector: React.FC<SlidingScaleSelectorProps> = ({
  */
 export const CompactSlidingScaleSelector: React.FC<SlidingScaleSelectorProps> = ({
   basePrice,
-  currency = 'USD',
+  currency: _currency = 'USD',
   initialPercentage = 0,
   onAmountChange,
   disabled = false

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
-import { Card, Title, Stack, Textarea, Button, Group, Text, Badge, Paper, Modal, Anchor } from '@mantine/core';
-import { IconNote, IconTrash, IconEdit } from '@tabler/icons-react';
+import { useState, useImperativeHandle, forwardRef } from 'react';
+import { Card, Title, Stack, Textarea, Button, Group, Text, Paper, Anchor } from '@mantine/core';
+import { IconNote, IconTrash } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
@@ -11,7 +11,6 @@ import { apiClient } from '../../../lib/api/client';
 
 // Use auto-generated types from API
 type IncidentNoteDto = components['schemas']['IncidentNoteDto'];
-type IncidentNoteType = components['schemas']['IncidentNoteType'];
 
 // Helper to detect system-generated notes and extract status
 const isSystemGeneratedIncidentNote = (noteText: string): { isSystem: boolean; status?: string } => {

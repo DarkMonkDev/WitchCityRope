@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Text, Title, Group, Button, Box } from '@mantine/core';
+import { Container, Text, Title, Group, Box } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { useIsAuthenticated } from '../../stores/authStore';
 

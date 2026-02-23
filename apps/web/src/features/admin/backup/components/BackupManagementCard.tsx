@@ -14,16 +14,7 @@ import {
   Loader,
   TextInput,
 } from '@mantine/core';
-import {
-  IconDatabase,
-  IconAlertCircle,
-  IconCheck,
-  IconRefresh,
-  IconUpload,
-  IconDownload,
-  IconTrash,
-  IconRotateClockwise,
-} from '@tabler/icons-react';
+import { IconDatabase, IconAlertCircle, IconRefresh, IconUpload, IconDownload, IconTrash, IconRotateClockwise } from '@tabler/icons-react';
 import { backupApi } from '../api/backupApi';
 import type { components } from '@witchcityrope/shared-types';
 

@@ -56,7 +56,7 @@ export const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({
   opened,
   onClose,
   incidentId,
-  currentStatus,
+  currentStatus: _currentStatus,
 }) => {
   const [newStatus, setNewStatus] = useState<string>('');
   const [notes, setNotes] = useState('');

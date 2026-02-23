@@ -2,20 +2,7 @@
 // Shows confirmation after successful incident submission
 // REDESIGNED: 2025-11-16 - Simplified, brand-aligned success experience
 
-import React from 'react';
-import {
-  Box,
-  Paper,
-  Title,
-  Text,
-  Button,
-  Alert,
-  Group,
-  Stack,
-  Code,
-  ActionIcon,
-  Tooltip
-} from '@mantine/core';
+import { Box, Paper, Title, Text, Alert, Group, Stack, Code, ActionIcon, Tooltip } from '@mantine/core';
 import { IconCopy } from '@tabler/icons-react';
 import { useClipboard, useMediaQuery } from '@mantine/hooks';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';

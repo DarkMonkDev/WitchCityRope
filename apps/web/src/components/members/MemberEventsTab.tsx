@@ -9,7 +9,7 @@ interface MemberEventsTabProps {
 
 export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) => {
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, _setPageSize] = useState(20)
 
   const { data: eventHistory, isLoading, error } = useMemberEventHistory(memberId, page, pageSize)
 

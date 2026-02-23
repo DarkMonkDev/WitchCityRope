@@ -1,6 +1,6 @@
 import React from 'react';
 import { Paper, Stack, Text, Title, Badge, Group, Grid, Anchor } from '@mantine/core';
-import { IconLock, IconMail, IconCalendar } from '@tabler/icons-react';
+import { IconLock } from '@tabler/icons-react';
 import {
   IncidentType,
   WhereOccurred,
@@ -48,8 +48,6 @@ export const IncidentDetailsCard: React.FC<IncidentDetailsCardProps> = ({
   description,
   isAnonymous,
   reporterName,
-  reporterEmail,
-  requestedFollowUp,
   incidentDate,
   location,
   contactEmail,

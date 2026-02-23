@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Container, SimpleGrid, Text, Title } from '@mantine/core';
+import { Box, SimpleGrid, Text, Title } from '@mantine/core';
 
 interface Feature {
   icon: string;

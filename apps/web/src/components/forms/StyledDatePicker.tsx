@@ -1,4 +1,3 @@
-import React from 'react';
 import { DatePickerInput, DatePickerInputProps } from '@mantine/dates';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconCalendar } from '@tabler/icons-react';

@@ -1,20 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Modal,
-  Title,
-  Text,
-  Stack,
-  Group,
-  Button,
-  Card,
-  Badge,
-  Select,
-  NumberInput,
-  Divider,
-  Radio,
-  Alert,
-  Box,
-} from '@mantine/core';
+import { Modal, Title, Text, Stack, Group, Button, Card, Badge, NumberInput, Divider, Radio, Alert, Box } from '@mantine/core';
 import { IconTicket, IconCreditCard, IconAlertCircle } from '@tabler/icons-react'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 

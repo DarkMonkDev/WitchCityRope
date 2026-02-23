@@ -12,8 +12,7 @@ import {
   Select
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
-import { IconCheck, IconX } from '@tabler/icons-react';
+import { IconCheck } from '@tabler/icons-react';
 import type { CashPaymentData, TicketType } from '../types/checkin.types';
 
 export interface CashPaymentModalProps {
