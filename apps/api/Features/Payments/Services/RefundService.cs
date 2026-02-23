@@ -23,6 +23,7 @@ public class RefundService : IRefundService
 {
     private readonly ApplicationDbContext _context;
     private readonly IPayPalService _payPalService;
+    private readonly IAuthorizeNetService? _authorizeNetService;
     private readonly IEncryptionService _encryptionService;
     private readonly IVolunteerAssignmentService _volunteerAssignmentService;
     private readonly IEmailService _emailService;
@@ -35,10 +36,12 @@ public class RefundService : IRefundService
         IEncryptionService encryptionService,
         IVolunteerAssignmentService volunteerAssignmentService,
         IEmailService emailService,
-        ILogger<RefundService> logger)
+        ILogger<RefundService> logger,
+        IAuthorizeNetService? authorizeNetService = null)
     {
         _context = context;
         _payPalService = payPalService;
+        _authorizeNetService = authorizeNetService;
         _encryptionService = encryptionService;
         _volunteerAssignmentService = volunteerAssignmentService;
         _emailService = emailService;
@@ -186,6 +189,61 @@ public class RefundService : IRefundService
 
                     refund.MarkFailed(errorMessage);
                     _logger.LogError(ex, "Error processing PayPal refund for ticket {TicketId}", request.PaymentId);
+                }
+            }
+            else if (!string.IsNullOrEmpty(ticketPurchase.EncryptedAuthNetTransactionId))
+            {
+                // Authorize.net refund
+                if (_authorizeNetService == null)
+                {
+                    var errorMessage = "Authorize.net service not configured. Cannot process credit card refund automatically.";
+                    await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
+                    refund.MarkFailed(errorMessage);
+                }
+                else
+                {
+                    try
+                    {
+                        var transactionId = await _encryptionService.DecryptAsync(ticketPurchase.EncryptedAuthNetTransactionId);
+                        var lastFour = ticketPurchase.CreditCardLastFour ?? "0000";
+
+                        _logger.LogInformation(
+                            "Processing Authorize.net refund for ticket {TicketId}, idempotency key {IdempotencyKey}",
+                            request.PaymentId, idempotencyKey);
+
+                        var authNetResult = await _authorizeNetService.RefundAsync(
+                            transactionId,
+                            request.RefundAmount.Amount,
+                            lastFour,
+                            request.RefundReason);
+
+                        if (authNetResult.Success)
+                        {
+                            refund.RefundStatus = RefundStatus.Completed;
+                            refund.ProcessedAt = DateTime.UtcNow;
+                            _context.PaymentRefunds.Update(refund);
+
+                            _logger.LogInformation(
+                                "Authorize.net refund completed for ticket {TicketId}, refund transaction: {TransactionId}",
+                                request.PaymentId, authNetResult.TransactionId);
+                        }
+                        else
+                        {
+                            var errorMessage = $"Authorize.net refund failed: {authNetResult.ErrorMessage}";
+                            await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
+                            refund.MarkFailed(errorMessage);
+
+                            _logger.LogError("Authorize.net refund failed for ticket {TicketId}: {Error}",
+                                request.PaymentId, authNetResult.ErrorMessage);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var errorMessage = $"Authorize.net processing error: {ex.Message}";
+                        await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
+                        refund.MarkFailed(errorMessage);
+                        _logger.LogError(ex, "Error processing Authorize.net refund for ticket {TicketId}", request.PaymentId);
+                    }
                 }
             }
             else if (!string.IsNullOrEmpty(ticketPurchase.EncryptedPayPalOrderId))

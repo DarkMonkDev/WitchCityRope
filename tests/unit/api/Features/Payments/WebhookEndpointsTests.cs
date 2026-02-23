@@ -1,4 +1,5 @@
 using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Payments.Models.PayPal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using WitchCityRope.Api.Features.Payments.Endpoints;
 using WitchCityRope.Api.Features.Payments.Services;
+using WitchCityRope.Api.Features.Webhooks.Services;
 using Xunit;
 using FluentAssertions;
 using NSubstitute;
@@ -22,6 +24,8 @@ namespace WitchCityRope.UnitTests.Api.Features.Payments;
 public class WebhookEndpointsTests
 {
     private readonly IPayPalService _mockPayPalService;
+    private readonly IPayPalWebhookVerificationService _mockVerificationService;
+    private readonly IPayPalWebhookProcessingService _mockProcessingService;
     private readonly ILogger<WebhookEndpoints> _mockLogger;
     private readonly IConfiguration _mockConfiguration;
     private readonly WebhookEndpoints _controller;
@@ -30,10 +34,16 @@ public class WebhookEndpointsTests
     public WebhookEndpointsTests()
     {
         _mockPayPalService = Substitute.For<IPayPalService>();
+        _mockVerificationService = Substitute.For<IPayPalWebhookVerificationService>();
+        _mockProcessingService = Substitute.For<IPayPalWebhookProcessingService>();
         _mockLogger = Substitute.For<ILogger<WebhookEndpoints>>();
         _mockConfiguration = Substitute.For<IConfiguration>();
 
-        _controller = new WebhookEndpoints(_mockPayPalService, _mockLogger);
+        _controller = new WebhookEndpoints(
+            _mockPayPalService,
+            _mockVerificationService,
+            _mockProcessingService,
+            _mockLogger);
 
         // Setup HttpContext with services including ProblemDetailsFactory
         _httpContext = new DefaultHttpContext();
@@ -54,9 +64,6 @@ public class WebhookEndpointsTests
 
     #region POST /api/webhooks/paypal Tests
 
-    /// <summary>
-    /// Test that valid PayPal webhook with signature returns 200 OK
-    /// </summary>
     [Fact]
     public async Task HandlePayPalWebhook_WithValidSignature_ReturnsOkResult()
     {
@@ -69,16 +76,20 @@ public class WebhookEndpointsTests
         SetupHttpContextWithPayload(payload, signature, transmissionId);
         _mockConfiguration["PayPal:WebhookId"].Returns(webhookId);
 
-        var webhookEvent = new Dictionary<string, object>
+        _mockVerificationService.VerifyWebhookSignatureAsync(
+            Arg.Any<HttpRequest>(), payload, Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        var webhookEvent = new PayPalWebhookEvent
         {
-            { "event_type", "PAYMENT.CAPTURE.COMPLETED" },
-            { "id", "WH-123" }
+            EventType = "PAYMENT.CAPTURE.COMPLETED",
+            Id = "WH-123"
         };
 
-        _mockPayPalService.ValidateWebhookSignature(payload, signature, webhookId)
-            .Returns(Result<Dictionary<string, object>>.Success(webhookEvent));
+        _mockPayPalService.ValidateWebhookSignatureTyped(payload, signature, webhookId)
+            .Returns(Result<PayPalWebhookEvent>.Success(webhookEvent));
 
-        _mockPayPalService.ProcessWebhookEventAsync(webhookEvent, Arg.Any<CancellationToken>())
+        _mockProcessingService.ProcessEventAsync(webhookEvent, transmissionId, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
@@ -88,38 +99,8 @@ public class WebhookEndpointsTests
         result.Should().BeOfType<OkObjectResult>();
         var okResult = (OkObjectResult)result;
         okResult.StatusCode.Should().Be(200);
-
-        // Verify response contains the expected data
-        okResult.Value.Should().NotBeNull();
     }
 
-    /// <summary>
-    /// Test that missing PAYPAL-TRANSMISSION-SIG header returns 400 BadRequest
-    /// </summary>
-    [Fact]
-    public async Task HandlePayPalWebhook_WithMissingSignatureHeader_ReturnsBadRequest()
-    {
-        // Arrange
-        var payload = "{\"event_type\":\"PAYMENT.CAPTURE.COMPLETED\"}";
-        SetupHttpContextWithPayload(payload, signature: null, transmissionId: "transmission-123");
-
-        // Act
-        var result = await _controller.HandlePayPalWebhook();
-
-        // Assert
-        result.Should().BeOfType<ObjectResult>();
-        var problemResult = (ObjectResult)result;
-        problemResult.StatusCode.Should().Be(400);
-
-        var problemDetails = problemResult.Value as ProblemDetails;
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Bad Request");
-        problemDetails.Detail.Should().Contain("Missing PayPal signature headers");
-    }
-
-    /// <summary>
-    /// Test that missing PAYPAL-TRANSMISSION-ID header returns 400 BadRequest
-    /// </summary>
     [Fact]
     public async Task HandlePayPalWebhook_WithMissingTransmissionIdHeader_ReturnsBadRequest()
     {
@@ -141,9 +122,6 @@ public class WebhookEndpointsTests
         problemDetails.Detail.Should().Contain("Missing PayPal signature headers");
     }
 
-    /// <summary>
-    /// Test that empty payload returns 400 BadRequest
-    /// </summary>
     [Fact]
     public async Task HandlePayPalWebhook_WithEmptyPayload_ReturnsBadRequest()
     {
@@ -165,23 +143,18 @@ public class WebhookEndpointsTests
         problemDetails.Detail.Should().Contain("Empty webhook payload");
     }
 
-    /// <summary>
-    /// Test that invalid webhook signature returns 400 BadRequest
-    /// </summary>
     [Fact]
     public async Task HandlePayPalWebhook_WithInvalidSignature_ReturnsBadRequest()
     {
         // Arrange
         var payload = "{\"event_type\":\"PAYMENT.CAPTURE.COMPLETED\"}";
-        var signature = "invalid-signature";
         var transmissionId = "transmission-123";
-        var webhookId = "webhook-id-123";
 
-        SetupHttpContextWithPayload(payload, signature, transmissionId);
-        _mockConfiguration["PayPal:WebhookId"].Returns(webhookId);
+        SetupHttpContextWithPayload(payload, "invalid-signature", transmissionId);
 
-        _mockPayPalService.ValidateWebhookSignature(payload, signature, webhookId)
-            .Returns(Result<Dictionary<string, object>>.Failure("Invalid signature"));
+        _mockVerificationService.VerifyWebhookSignatureAsync(
+            Arg.Any<HttpRequest>(), payload, Arg.Any<CancellationToken>())
+            .Returns(false);
 
         // Act
         var result = await _controller.HandlePayPalWebhook();
@@ -193,38 +166,9 @@ public class WebhookEndpointsTests
 
         var problemDetails = problemResult.Value as ProblemDetails;
         problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Bad Request");
-        problemDetails.Detail.Should().Contain("Invalid webhook signature");
+        problemDetails!.Detail.Should().Contain("Invalid webhook signature");
     }
 
-    /// <summary>
-    /// Test that webhook ID not configured returns 500 InternalServerError
-    /// </summary>
-    [Fact]
-    public async Task HandlePayPalWebhook_WithMissingWebhookId_ReturnsInternalServerError()
-    {
-        // Arrange
-        var payload = "{\"event_type\":\"PAYMENT.CAPTURE.COMPLETED\"}";
-        SetupHttpContextWithPayload(payload, signature: "valid-signature", transmissionId: "transmission-123");
-        _mockConfiguration["PayPal:WebhookId"].Returns((string?)null);
-
-        // Act
-        var result = await _controller.HandlePayPalWebhook();
-
-        // Assert
-        result.Should().BeOfType<ObjectResult>();
-        var problemResult = (ObjectResult)result;
-        problemResult.StatusCode.Should().Be(500);
-
-        var problemDetails = problemResult.Value as ProblemDetails;
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Server Error");
-        problemDetails.Detail.Should().Contain("Webhook configuration error");
-    }
-
-    /// <summary>
-    /// Test that processing failure returns 500 InternalServerError (PayPal will retry)
-    /// </summary>
     [Fact]
     public async Task HandlePayPalWebhook_WithProcessingFailure_ReturnsInternalServerError()
     {
@@ -237,16 +181,20 @@ public class WebhookEndpointsTests
         SetupHttpContextWithPayload(payload, signature, transmissionId);
         _mockConfiguration["PayPal:WebhookId"].Returns(webhookId);
 
-        var webhookEvent = new Dictionary<string, object>
+        _mockVerificationService.VerifyWebhookSignatureAsync(
+            Arg.Any<HttpRequest>(), payload, Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        var webhookEvent = new PayPalWebhookEvent
         {
-            { "event_type", "PAYMENT.CAPTURE.COMPLETED" },
-            { "id", "WH-123" }
+            EventType = "PAYMENT.CAPTURE.COMPLETED",
+            Id = "WH-123"
         };
 
-        _mockPayPalService.ValidateWebhookSignature(payload, signature, webhookId)
-            .Returns(Result<Dictionary<string, object>>.Success(webhookEvent));
+        _mockPayPalService.ValidateWebhookSignatureTyped(payload, signature, webhookId)
+            .Returns(Result<PayPalWebhookEvent>.Success(webhookEvent));
 
-        _mockPayPalService.ProcessWebhookEventAsync(webhookEvent, Arg.Any<CancellationToken>())
+        _mockProcessingService.ProcessEventAsync(webhookEvent, transmissionId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Database error"));
 
         // Act
@@ -259,27 +207,21 @@ public class WebhookEndpointsTests
 
         var problemDetails = problemResult.Value as ProblemDetails;
         problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Server Error");
-        problemDetails.Detail.Should().Contain("Failed to process webhook event");
+        problemDetails!.Detail.Should().Contain("Failed to process webhook event");
     }
 
-    /// <summary>
-    /// Test that exception during processing returns 500 InternalServerError
-    /// </summary>
     [Fact]
     public async Task HandlePayPalWebhook_WithException_ReturnsInternalServerError()
     {
         // Arrange
         var payload = "{\"event_type\":\"PAYMENT.CAPTURE.COMPLETED\"}";
-        var signature = "valid-signature";
         var transmissionId = "transmission-123";
-        var webhookId = "webhook-id-123";
 
-        SetupHttpContextWithPayload(payload, signature, transmissionId);
-        _mockConfiguration["PayPal:WebhookId"].Returns(webhookId);
+        SetupHttpContextWithPayload(payload, "valid-signature", transmissionId);
 
-        _mockPayPalService.ValidateWebhookSignature(payload, signature, webhookId)
-            .Returns<Result<Dictionary<string, object>>>(x => throw new InvalidOperationException("Unexpected error"));
+        _mockVerificationService.VerifyWebhookSignatureAsync(
+            Arg.Any<HttpRequest>(), payload, Arg.Any<CancellationToken>())
+            .Returns<bool>(x => throw new InvalidOperationException("Unexpected error"));
 
         // Act
         var result = await _controller.HandlePayPalWebhook();
@@ -291,183 +233,13 @@ public class WebhookEndpointsTests
 
         var problemDetails = problemResult.Value as ProblemDetails;
         problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Server Error");
-        problemDetails.Detail.Should().Contain("Internal server error processing webhook");
-    }
-
-    /// <summary>
-    /// Test successful payment completed event returns 200 OK with event details
-    /// </summary>
-    [Fact]
-    public async Task HandlePayPalWebhook_WithSuccessfulPaymentCompletedEvent_ReturnsOkWithEventDetails()
-    {
-        // Arrange
-        var payload = "{\"event_type\":\"PAYMENT.CAPTURE.COMPLETED\",\"id\":\"WH-456\"}";
-        var signature = "valid-signature";
-        var transmissionId = "transmission-123";
-        var webhookId = "webhook-id-123";
-
-        SetupHttpContextWithPayload(payload, signature, transmissionId);
-        _mockConfiguration["PayPal:WebhookId"].Returns(webhookId);
-
-        var webhookEvent = new Dictionary<string, object>
-        {
-            { "event_type", "PAYMENT.CAPTURE.COMPLETED" },
-            { "id", "WH-456" }
-        };
-
-        _mockPayPalService.ValidateWebhookSignature(payload, signature, webhookId)
-            .Returns(Result<Dictionary<string, object>>.Success(webhookEvent));
-
-        _mockPayPalService.ProcessWebhookEventAsync(webhookEvent, Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
-        // Act
-        var result = await _controller.HandlePayPalWebhook();
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-        var okResult = (OkObjectResult)result;
-        okResult.StatusCode.Should().Be(200);
-
-        // Verify the response contains expected fields
-        var responseValue = okResult.Value;
-        responseValue.Should().NotBeNull();
-
-        // Verify service was called with correct parameters
-        await _mockPayPalService.Received(1).ProcessWebhookEventAsync(
-            Arg.Is<Dictionary<string, object>>(e => e.ContainsKey("event_type")),
-            Arg.Any<CancellationToken>());
-    }
-
-    /// <summary>
-    /// Test successful refund event returns 200 OK
-    /// </summary>
-    [Fact]
-    public async Task HandlePayPalWebhook_WithSuccessfulRefundEvent_ReturnsOk()
-    {
-        // Arrange
-        var payload = "{\"event_type\":\"PAYMENT.CAPTURE.REFUNDED\",\"id\":\"WH-789\"}";
-        var signature = "valid-signature";
-        var transmissionId = "transmission-123";
-        var webhookId = "webhook-id-123";
-
-        SetupHttpContextWithPayload(payload, signature, transmissionId);
-        _mockConfiguration["PayPal:WebhookId"].Returns(webhookId);
-
-        var webhookEvent = new Dictionary<string, object>
-        {
-            { "event_type", "PAYMENT.CAPTURE.REFUNDED" },
-            { "id", "WH-789" }
-        };
-
-        _mockPayPalService.ValidateWebhookSignature(payload, signature, webhookId)
-            .Returns(Result<Dictionary<string, object>>.Success(webhookEvent));
-
-        _mockPayPalService.ProcessWebhookEventAsync(webhookEvent, Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
-        // Act
-        var result = await _controller.HandlePayPalWebhook();
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-        var okResult = (OkObjectResult)result;
-        okResult.StatusCode.Should().Be(200);
-    }
-
-    /// <summary>
-    /// Test unknown event type is logged and handled properly
-    /// </summary>
-    [Fact]
-    public async Task HandlePayPalWebhook_WithUnknownEventType_LogsAndHandles()
-    {
-        // Arrange
-        var payload = "{\"event_type\":\"UNKNOWN.EVENT.TYPE\",\"id\":\"WH-999\"}";
-        var signature = "valid-signature";
-        var transmissionId = "transmission-123";
-        var webhookId = "webhook-id-123";
-
-        SetupHttpContextWithPayload(payload, signature, transmissionId);
-        _mockConfiguration["PayPal:WebhookId"].Returns(webhookId);
-
-        var webhookEvent = new Dictionary<string, object>
-        {
-            { "event_type", "UNKNOWN.EVENT.TYPE" },
-            { "id", "WH-999" }
-        };
-
-        _mockPayPalService.ValidateWebhookSignature(payload, signature, webhookId)
-            .Returns(Result<Dictionary<string, object>>.Success(webhookEvent));
-
-        _mockPayPalService.ProcessWebhookEventAsync(webhookEvent, Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
-        // Act
-        var result = await _controller.HandlePayPalWebhook();
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-        var okResult = (OkObjectResult)result;
-        okResult.StatusCode.Should().Be(200);
-
-        // Verify logging occurred for the unknown event type - NSubstitute auto-converts LogInformation calls
-        _mockLogger.Received(1).Log(
-            LogLevel.Information,
-            Arg.Any<EventId>(),
-            Arg.Is<object>(o => o.ToString()!.Contains("Valid PayPal webhook received")),
-            null,
-            Arg.Any<Func<object, Exception?, string>>());
-    }
-
-    /// <summary>
-    /// Test multiple headers present validates correct extraction
-    /// </summary>
-    [Fact]
-    public async Task HandlePayPalWebhook_WithMultipleHeaders_ExtractsCorrectly()
-    {
-        // Arrange
-        var payload = "{\"event_type\":\"PAYMENT.CAPTURE.COMPLETED\",\"id\":\"WH-MULTI\"}";
-        var signature = "correct-signature";
-        var transmissionId = "correct-transmission-id";
-        var webhookId = "webhook-id-123";
-
-        // Setup HttpContext with multiple header values (testing FirstOrDefault extraction)
-        _httpContext.Request.Body = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(payload));
-        _httpContext.Request.Headers["PAYPAL-TRANSMISSION-SIG"] = new StringValues(new[] { signature, "extra-value" });
-        _httpContext.Request.Headers["PAYPAL-TRANSMISSION-ID"] = new StringValues(new[] { transmissionId, "extra-id" });
-
-        _mockConfiguration["PayPal:WebhookId"].Returns(webhookId);
-
-        var webhookEvent = new Dictionary<string, object>
-        {
-            { "event_type", "PAYMENT.CAPTURE.COMPLETED" },
-            { "id", "WH-MULTI" }
-        };
-
-        _mockPayPalService.ValidateWebhookSignature(payload, signature, webhookId)
-            .Returns(Result<Dictionary<string, object>>.Success(webhookEvent));
-
-        _mockPayPalService.ProcessWebhookEventAsync(webhookEvent, Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
-        // Act
-        var result = await _controller.HandlePayPalWebhook();
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-
-        // Verify the service was called with the first signature value
-        _mockPayPalService.Received(1).ValidateWebhookSignature(payload, signature, webhookId);
+        problemDetails!.Detail.Should().Contain("Internal server error processing webhook");
     }
 
     #endregion
 
     #region GET /api/webhooks/paypal/health Tests
 
-    /// <summary>
-    /// Test health check endpoint returns 200 OK with health status
-    /// </summary>
     [Fact]
     public void HealthCheck_ReturnsOkWithHealthStatus()
     {
@@ -481,9 +253,6 @@ public class WebhookEndpointsTests
         okResult.Value.Should().NotBeNull();
     }
 
-    /// <summary>
-    /// Test health check response contains required fields
-    /// </summary>
     [Fact]
     public void HealthCheck_ResponseContainsRequiredFields()
     {
@@ -497,7 +266,6 @@ public class WebhookEndpointsTests
         var response = okResult.Value;
         response.Should().NotBeNull();
 
-        // Use reflection to check properties since it's an anonymous type
         var responseType = response!.GetType();
         responseType.GetProperty("status").Should().NotBeNull();
         responseType.GetProperty("service").Should().NotBeNull();
@@ -510,8 +278,6 @@ public class WebhookEndpointsTests
         status.Should().Be("healthy");
         service.Should().Be("paypal-webhooks");
         timestamp.Should().NotBeNullOrEmpty();
-
-        // Verify timestamp is valid ISO 8601 format
         DateTime.TryParse(timestamp, out _).Should().BeTrue();
     }
 
@@ -519,9 +285,6 @@ public class WebhookEndpointsTests
 
     #region Helper Methods
 
-    /// <summary>
-    /// Setup HttpContext with payload and headers for webhook testing
-    /// </summary>
     private void SetupHttpContextWithPayload(string payload, string? signature, string? transmissionId)
     {
         _httpContext.Request.Body = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(payload));

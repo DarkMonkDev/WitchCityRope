@@ -3,6 +3,7 @@ using FluentAssertions;
 using Moq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Http;
 using WitchCityRope.Api.Features.Webhooks.Services;
 
@@ -18,6 +19,7 @@ public class PayPalWebhookVerificationServiceTests
     private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
     private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly Mock<ILogger<PayPalWebhookVerificationService>> _mockLogger;
+    private readonly IMemoryCache _memoryCache;
     private readonly PayPalWebhookVerificationService _sut;
 
     public PayPalWebhookVerificationServiceTests()
@@ -25,6 +27,7 @@ public class PayPalWebhookVerificationServiceTests
         _mockHttpClientFactory = new Mock<IHttpClientFactory>();
         _mockConfiguration = new Mock<IConfiguration>();
         _mockLogger = new Mock<ILogger<PayPalWebhookVerificationService>>();
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
         // Setup webhook ID configuration
         _mockConfiguration.Setup(c => c["PayPal:WebhookId"]).Returns("test-webhook-id-12345");
@@ -32,7 +35,8 @@ public class PayPalWebhookVerificationServiceTests
         _sut = new PayPalWebhookVerificationService(
             _mockHttpClientFactory.Object,
             _mockConfiguration.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _memoryCache);
     }
 
     #region Valid Signature Tests

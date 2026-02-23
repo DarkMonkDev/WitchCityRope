@@ -8,7 +8,11 @@ import type {
   PaymentResponse,
   RefundResponse,
   PaymentStatusResponse,
-  PaymentError
+  PaymentError,
+  CreatePayPalOrderRequest,
+  CapturePayPalOrderResponse,
+  CreditCardPaymentRequest,
+  CreditCardPaymentResponse
 } from '../types/payment.types';
 
 /**
@@ -103,6 +107,45 @@ export class PaymentApiService {
   async getEventPayments(eventId: string): Promise<PaymentResponse[]> {
     try {
       const response = await apiClient.get<PaymentResponse[]>(`/api/payments/event/${eventId}`);
+      return response.data;
+    } catch (error) {
+      throw this.handlePaymentError(error);
+    }
+  }
+
+  /**
+   * Create a PayPal order server-side.
+   * Called by the PayPal button's createOrder callback.
+   */
+  async createPayPalOrder(request: CreatePayPalOrderRequest): Promise<{ orderId: string }> {
+    try {
+      const response = await apiClient.post<{ orderId: string }>('/api/paypal/create-order', request);
+      return response.data;
+    } catch (error) {
+      throw this.handlePaymentError(error);
+    }
+  }
+
+  /**
+   * Capture a PayPal order server-side after user approval.
+   * Called by the PayPal button's onApprove callback.
+   */
+  async capturePayPalOrder(orderId: string): Promise<CapturePayPalOrderResponse> {
+    try {
+      const response = await apiClient.post<CapturePayPalOrderResponse>('/api/paypal/capture-order', { orderId });
+      return response.data;
+    } catch (error) {
+      throw this.handlePaymentError(error);
+    }
+  }
+
+  /**
+   * Process a credit card payment using an Accept.js nonce.
+   * Card data never touches our server.
+   */
+  async processCreditCardPayment(request: CreditCardPaymentRequest): Promise<CreditCardPaymentResponse> {
+    try {
+      const response = await apiClient.post<CreditCardPaymentResponse>('/api/payments/credit-card', request);
       return response.data;
     } catch (error) {
       throw this.handlePaymentError(error);

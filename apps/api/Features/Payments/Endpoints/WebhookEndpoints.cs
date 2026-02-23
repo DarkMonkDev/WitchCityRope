@@ -1,31 +1,39 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WitchCityRope.Api.Features.Payments.Services;
-using WitchCityRope.Api.Features.Payments.Extensions;
+using WitchCityRope.Api.Features.Webhooks.Services;
 
 namespace WitchCityRope.Api.Features.Payments.Endpoints;
 
 /// <summary>
-/// PayPal webhook endpoints for payment processing events
-/// These endpoints are called by PayPal to notify us of payment status changes
+/// PayPal webhook endpoints for payment processing events.
+/// Uses real RSA-SHA256 signature verification via PayPalWebhookVerificationService.
 /// </summary>
 [ApiController]
 [Route("api/webhooks")]
-[AllowAnonymous] // Webhooks don't use standard authentication
+[AllowAnonymous]
 public class WebhookEndpoints : ControllerBase
 {
     private readonly IPayPalService _payPalService;
+    private readonly IPayPalWebhookVerificationService _webhookVerificationService;
+    private readonly IPayPalWebhookProcessingService _webhookProcessingService;
     private readonly ILogger<WebhookEndpoints> _logger;
 
-    public WebhookEndpoints(IPayPalService payPalService, ILogger<WebhookEndpoints> logger)
+    public WebhookEndpoints(
+        IPayPalService payPalService,
+        IPayPalWebhookVerificationService webhookVerificationService,
+        IPayPalWebhookProcessingService webhookProcessingService,
+        ILogger<WebhookEndpoints> logger)
     {
         _payPalService = payPalService;
+        _webhookVerificationService = webhookVerificationService;
+        _webhookProcessingService = webhookProcessingService;
         _logger = logger;
     }
 
     /// <summary>
-    /// Handle PayPal webhook events
-    /// Validates webhook signature and processes payment status updates
+    /// Handle PayPal webhook events.
+    /// Validates webhook signature using RSA-SHA256 verification, then processes the event.
     /// </summary>
     [HttpPost("paypal")]
     [Produces("application/json")]
@@ -36,20 +44,18 @@ public class WebhookEndpoints : ControllerBase
     {
         try
         {
-            // Read the request body
+            // Read the raw request body
             string payload;
             using (var reader = new StreamReader(HttpContext.Request.Body))
             {
-                payload = await reader.ReadToEndAsync();
+                payload = await reader.ReadToEndAsync(cancellationToken);
             }
 
-            // Get the PayPal signature from headers
-            var signature = HttpContext.Request.Headers["PAYPAL-TRANSMISSION-SIG"].FirstOrDefault();
+            // Quick header validation
             var transmissionId = HttpContext.Request.Headers["PAYPAL-TRANSMISSION-ID"].FirstOrDefault();
-
-            if (string.IsNullOrEmpty(signature) || string.IsNullOrEmpty(transmissionId))
+            if (string.IsNullOrEmpty(transmissionId))
             {
-                _logger.LogWarning("PayPal webhook received without required signature headers");
+                _logger.LogWarning("PayPal webhook received without PAYPAL-TRANSMISSION-ID header");
                 return Problem(
                     title: "Bad Request",
                     detail: "Missing PayPal signature headers",
@@ -65,53 +71,57 @@ public class WebhookEndpoints : ControllerBase
                     statusCode: 400);
             }
 
-            // Get webhook ID from configuration
-            var webhookId = HttpContext.RequestServices
-                .GetRequiredService<IConfiguration>()["PayPal:WebhookId"];
+            _logger.LogInformation("Processing PayPal webhook, transmission ID: {TransmissionId}, payload length: {Length}",
+                transmissionId, payload.Length);
 
-            if (string.IsNullOrEmpty(webhookId))
+            // Verify webhook signature using real RSA-SHA256 verification
+            var isSignatureValid = await _webhookVerificationService.VerifyWebhookSignatureAsync(
+                HttpContext.Request,
+                payload,
+                cancellationToken);
+
+            if (!isSignatureValid)
             {
-                _logger.LogError("PayPal webhook ID not configured");
-                return Problem(
-                    title: "Server Error",
-                    detail: "Webhook configuration error",
-                    statusCode: 500);
-            }
-
-            _logger.LogInformation("Processing PayPal webhook, payload length: {Length}", payload.Length);
-
-            // Validate webhook signature and parse event
-            var validationResult = _payPalService.ValidateWebhookSignature(payload, signature, webhookId);
-
-            if (!validationResult.IsSuccess || validationResult.Value == null)
-            {
-                _logger.LogWarning("PayPal webhook signature validation failed: {Error}", validationResult.ErrorMessage);
+                _logger.LogWarning("PayPal webhook signature verification failed for transmission {TransmissionId}",
+                    transmissionId);
                 return Problem(
                     title: "Bad Request",
                     detail: "Invalid webhook signature",
                     statusCode: 400);
             }
 
-            var paypalEvent = validationResult.Value;
+            // Parse and validate the webhook event
+            var signature = HttpContext.Request.Headers["PAYPAL-TRANSMISSION-SIG"].FirstOrDefault() ?? "";
+            var webhookId = HttpContext.RequestServices
+                .GetRequiredService<IConfiguration>()["PayPal:WebhookId"] ?? "";
 
-            // Extract event type and ID for logging using extension methods
-            var eventType = paypalEvent.GetStringValue("event_type") ?? "unknown";
-            var eventId = paypalEvent.GetStringValue("id") ?? "unknown";
+            var validationResult = _payPalService.ValidateWebhookSignatureTyped(payload, signature, webhookId);
+
+            if (!validationResult.IsSuccess || validationResult.Value == null)
+            {
+                _logger.LogWarning("PayPal webhook payload parsing failed: {Error}", validationResult.ErrorMessage);
+                return Problem(
+                    title: "Bad Request",
+                    detail: "Invalid webhook payload",
+                    statusCode: 400);
+            }
+
+            var paypalEvent = validationResult.Value;
 
             _logger.LogInformation(
                 "Valid PayPal webhook received: {EventType}, Event ID: {EventId}",
-                eventType, eventId);
+                paypalEvent.EventType, paypalEvent.Id);
 
-            // Process the webhook event
-            var processingResult = await _payPalService.ProcessWebhookEventAsync(paypalEvent, cancellationToken);
+            // Process the webhook event via dedicated processing service
+            var processingResult = await _webhookProcessingService.ProcessEventAsync(
+                paypalEvent, transmissionId, cancellationToken);
 
             if (!processingResult.IsSuccess)
             {
                 _logger.LogError(
                     "Failed to process PayPal webhook event {EventId} of type {EventType}: {Error}",
-                    eventId, eventType, processingResult.ErrorMessage);
+                    paypalEvent.Id, paypalEvent.EventType, processingResult.ErrorMessage);
 
-                // Return 500 so PayPal will retry the webhook
                 return Problem(
                     title: "Server Error",
                     detail: "Failed to process webhook event",
@@ -120,16 +130,13 @@ public class WebhookEndpoints : ControllerBase
 
             _logger.LogInformation(
                 "Successfully processed PayPal webhook event {EventId} of type {EventType}",
-                eventId, eventType);
+                paypalEvent.Id, paypalEvent.EventType);
 
-            // Return 200 to acknowledge receipt to PayPal
-            return Ok(new { received = true, eventId = eventId, eventType = eventType });
+            return Ok(new { received = true, eventId = paypalEvent.Id, eventType = paypalEvent.EventType });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error processing PayPal webhook");
-
-            // Return 500 so PayPal will retry the webhook
             return Problem(
                 title: "Server Error",
                 detail: "Internal server error processing webhook",
@@ -138,7 +145,7 @@ public class WebhookEndpoints : ControllerBase
     }
 
     /// <summary>
-    /// Health check endpoint for webhook monitoring
+    /// Health check endpoint for webhook monitoring.
     /// </summary>
     [HttpGet("paypal/health")]
     [ProducesResponseType(StatusCodes.Status200OK)]

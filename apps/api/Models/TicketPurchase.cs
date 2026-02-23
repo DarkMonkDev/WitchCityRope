@@ -95,6 +95,40 @@ public class TicketPurchase
     /// </summary>
     public string? EncryptedPayPalCaptureId { get; set; }
 
+    // ========================================
+    // Credit Card (Authorize.net) Integration Fields
+    // ========================================
+
+    /// <summary>
+    /// Last four digits of the credit card used for payment
+    /// NULL for non-credit-card payments
+    /// </summary>
+    public string? CreditCardLastFour { get; set; }
+
+    /// <summary>
+    /// Credit card type/brand (e.g., "Visa", "Mastercard", "Amex")
+    /// NULL for non-credit-card payments
+    /// </summary>
+    public string? CreditCardType { get; set; }
+
+    /// <summary>
+    /// Encrypted Authorize.net transaction ID
+    /// NULL for non-credit-card payments
+    /// CRITICAL: Encrypted for PCI compliance
+    /// </summary>
+    public string? EncryptedAuthNetTransactionId { get; set; }
+
+    // ========================================
+    // PayPal Webhook Optimization Fields
+    // ========================================
+
+    /// <summary>
+    /// SHA256 hash of the PayPal Order ID for indexed webhook lookups
+    /// Allows finding TicketPurchase by OrderId without decrypting every row
+    /// NULL for non-PayPal payments
+    /// </summary>
+    public string? PayPalOrderIdHash { get; set; }
+
     /// <summary>
     /// Sliding scale discount percentage applied (0-75%)
     /// 0 = full price, 25 = 25% discount, 75 = 75% discount (max)

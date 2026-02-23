@@ -17,8 +17,8 @@
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.PostgreSql" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="PayPalCheckoutSdk" />
-    <PackageReference Include="PayPalHttp" />
+    <PackageReference Include="PayPalServerSDK" />
+    <PackageReference Include="AuthorizeNet" />
     <PackageReference Include="SendGrid" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />

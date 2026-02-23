@@ -91,23 +91,6 @@ public class MockPayPalServiceTests
     }
 
     [Fact]
-    public async Task ProcessWebhookEventAsync_ShouldAlwaysReturnSuccess()
-    {
-        // Arrange
-        var webhookEvent = new Dictionary<string, object>
-        {
-            ["event_type"] = "PAYMENT.CAPTURE.COMPLETED",
-            ["resource"] = new { id = "TEST-123" }
-        };
-
-        // Act
-        var result = await _service.ProcessWebhookEventAsync(webhookEvent);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-    }
-
-    [Fact]
     public async Task RefundCaptureAsync_WithValidCapture_ShouldReturnSuccess()
     {
         // Arrange

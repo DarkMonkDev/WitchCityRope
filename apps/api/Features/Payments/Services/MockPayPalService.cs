@@ -204,26 +204,4 @@ public class MockPayPalService : IPayPalService
         return Result<PayPalWebhookEvent>.Success(webhookEvent);
     }
 
-    public Task<Result> ProcessWebhookEventAsync(
-        Dictionary<string, object> webhookEvent,
-        CancellationToken cancellationToken = default)
-    {
-        var eventType = webhookEvent.GetValueOrDefault("event_type")?.ToString() ?? "UNKNOWN";
-
-        _logger.LogInformation("Mock webhook event processed: {EventType}", eventType);
-
-        // Always return success in mock mode
-        return Task.FromResult(Result.Success());
-    }
-
-    public Task<Result> ProcessWebhookEventAsync(
-        PayPalWebhookEvent webhookEvent,
-        CancellationToken cancellationToken = default)
-    {
-        _logger.LogInformation("Mock webhook event processed (typed): {EventType}, ID: {EventId}",
-            webhookEvent.EventType, webhookEvent.Id);
-
-        // Always return success in mock mode
-        return Task.FromResult(Result.Success());
-    }
 }

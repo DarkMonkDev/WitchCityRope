@@ -13,6 +13,8 @@ using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Features.VettingHold.Services;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.Validators;
+using WitchCityRope.Api.Features.Payments.Models.AuthorizeNet;
+using WitchCityRope.Api.Features.Webhooks.Services;
 using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.TestHelpers.Services;
 using WitchCityRope.Api.Features.Cms;
@@ -114,6 +116,18 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddScoped<IRefundService, RefundService>();
+
+        // Authorize.NET credit card processing (register if configured)
+        var authNetSection = configuration.GetSection("CreditCardProcessor:AuthorizeNet");
+        if (authNetSection.Exists() && !string.IsNullOrEmpty(authNetSection["ApiLoginId"]))
+        {
+            services.Configure<AuthorizeNetOptions>(authNetSection);
+            services.AddScoped<IAuthorizeNetService, AuthorizeNetService>();
+        }
+
+        // PayPal webhook services
+        services.AddScoped<IPayPalWebhookVerificationService, PayPalWebhookVerificationService>();
+        services.AddScoped<IPayPalWebhookProcessingService, PayPalWebhookProcessingService>();
 
         // FluentValidation for Payment feature
         services.AddValidatorsFromAssemblyContaining<ProcessPaymentApiRequestValidator>();

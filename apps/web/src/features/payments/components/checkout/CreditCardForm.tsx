@@ -1,11 +1,21 @@
-// Credit Card Form Component
-// Handles credit card payment information input
+// Credit Card Form Component using Accept.js
+// Card data goes directly to Authorize.net - never touches our server
 
-import React from 'react';
-import { Stack, TextInput, Group, Box, Text } from '@mantine/core';
+import React, { useState, useCallback } from 'react';
+import { Stack, TextInput, Group, Box, Text, Button, Alert, Loader } from '@mantine/core';
+import { IconAlertCircle, IconLock } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
+import { apiClient } from '../../../../lib/api/client';
 
-interface CreditCardData {
+interface CreditCardFormProps {
+  amount: number;
+  ticketPurchaseId?: string;
+  onPaymentSuccess?: (details: any) => void;
+  onPaymentError?: (error: string) => void;
+  disabled?: boolean;
+}
+
+interface CardData {
   cardNumber: string;
   cardholderName: string;
   expiryDate: string;
@@ -13,90 +23,186 @@ interface CreditCardData {
   billingZip: string;
 }
 
-interface CreditCardFormProps {
-  cardData: CreditCardData;
-  onCardDataChange: (data: CreditCardData) => void;
-  isProcessing: boolean;
-  onSubmit: (data: CreditCardData) => void;
+// Accept.js response types
+interface AcceptJsResponse {
+  messages: {
+    resultCode: 'Ok' | 'Error';
+    message: Array<{ code: string; text: string }>;
+  };
+  opaqueData?: {
+    dataDescriptor: string;
+    dataValue: string;
+  };
 }
 
-/**
- * Credit card form component
- * Collects card details for payment processing
- */
+declare global {
+  interface Window {
+    Accept?: {
+      dispatchData: (
+        secureData: {
+          authData: { clientKey: string; apiLoginID: string };
+          cardData: {
+            cardNumber: string;
+            month: string;
+            year: string;
+            cardCode: string;
+            zip?: string;
+            fullName?: string;
+          };
+        },
+        responseHandler: (response: AcceptJsResponse) => void
+      ) => void;
+    };
+  }
+}
+
 export const CreditCardForm: React.FC<CreditCardFormProps> = ({
-  cardData,
-  onCardDataChange,
-  isProcessing
+  amount,
+  ticketPurchaseId,
+  onPaymentSuccess,
+  onPaymentError,
+  disabled = false
 }) => {
   const isMobile = useMediaQuery('(max-width: 991px)');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [cardData, setCardData] = useState<CardData>({
+    cardNumber: '',
+    cardholderName: '',
+    expiryDate: '',
+    cvv: '',
+    billingZip: ''
+  });
 
-  /**
-   * Format card number with spaces every 4 digits
-   */
+  const loginId = import.meta.env.VITE_AUTHORIZENET_LOGIN_ID;
+  const clientKey = import.meta.env.VITE_AUTHORIZENET_CLIENT_KEY;
+  const environment = import.meta.env.VITE_AUTHORIZENET_ENVIRONMENT || 'SANDBOX';
+
+  // Accept.js is loaded via script tag in index.html
+  const isAcceptJsLoaded = typeof window !== 'undefined' && window.Accept;
+
   const formatCardNumber = (value: string) => {
-    // Remove all non-digits
     const digitsOnly = value.replace(/\D/g, '');
-    // Add spaces every 4 digits
     const formatted = digitsOnly.match(/.{1,4}/g)?.join(' ') || digitsOnly;
-    return formatted.substring(0, 19); // Max length for formatted card number
+    return formatted.substring(0, 19);
   };
 
-  /**
-   * Format expiry date as MM/YY
-   */
   const formatExpiryDate = (value: string) => {
-    // Remove all non-digits
     const digitsOnly = value.replace(/\D/g, '');
-    // Add slash after MM
     if (digitsOnly.length >= 2) {
       return digitsOnly.slice(0, 2) + '/' + digitsOnly.slice(2, 4);
     }
     return digitsOnly;
   };
 
-  const handleCardNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCardNumber(event.target.value);
-    onCardDataChange({
-      ...cardData,
-      cardNumber: formatted
-    });
-  };
-
-  const handleExpiryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatExpiryDate(event.target.value);
-    onCardDataChange({
-      ...cardData,
-      expiryDate: formatted
-    });
-  };
-
-  const handleCvvChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.replace(/\D/g, '').substring(0, 4);
-    onCardDataChange({
-      ...cardData,
-      cvv: value
-    });
-  };
-
-  const handleZipChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.replace(/\D/g, '').substring(0, 5);
-    onCardDataChange({
-      ...cardData,
-      billingZip: value
-    });
-  };
-
   const getCardType = (cardNumber: string) => {
     const digitsOnly = cardNumber.replace(/\D/g, '');
-    if (digitsOnly.startsWith('4')) return 'visa';
-    if (digitsOnly.startsWith('5') || digitsOnly.startsWith('2')) return 'mastercard';
-    if (digitsOnly.startsWith('3')) return 'amex';
-    if (digitsOnly.startsWith('6')) return 'discover';
-    return 'unknown';
+    if (digitsOnly.startsWith('4')) return 'Visa';
+    if (digitsOnly.startsWith('5') || digitsOnly.startsWith('2')) return 'Mastercard';
+    if (digitsOnly.startsWith('3')) return 'Amex';
+    if (digitsOnly.startsWith('6')) return 'Discover';
+    return '';
   };
 
-  const cardType = getCardType(cardData.cardNumber);
+  const getLastFour = (cardNumber: string) => {
+    const digitsOnly = cardNumber.replace(/\D/g, '');
+    return digitsOnly.slice(-4);
+  };
+
+  const isFormValid = () => {
+    const digits = cardData.cardNumber.replace(/\D/g, '');
+    const [month, year] = cardData.expiryDate.split('/');
+    return (
+      digits.length >= 13 &&
+      digits.length <= 19 &&
+      cardData.cardholderName.trim().length >= 2 &&
+      month && year && parseInt(month) >= 1 && parseInt(month) <= 12 &&
+      cardData.cvv.length >= 3 &&
+      cardData.billingZip.length >= 5
+    );
+  };
+
+  const handleSubmit = useCallback(async () => {
+    if (!isAcceptJsLoaded) {
+      setError('Payment system is loading. Please wait a moment and try again.');
+      return;
+    }
+
+    if (!loginId || !clientKey) {
+      setError('Credit card processing is not configured.');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+
+    const digits = cardData.cardNumber.replace(/\D/g, '');
+    const [month, year] = cardData.expiryDate.split('/');
+    const fullYear = year.length === 2 ? `20${year}` : year;
+
+    // Step 1: Send card data directly to Authorize.net via Accept.js
+    window.Accept!.dispatchData(
+      {
+        authData: {
+          clientKey: clientKey,
+          apiLoginID: loginId
+        },
+        cardData: {
+          cardNumber: digits,
+          month: month,
+          year: fullYear,
+          cardCode: cardData.cvv,
+          zip: cardData.billingZip,
+          fullName: cardData.cardholderName
+        }
+      },
+      async (acceptResponse: AcceptJsResponse) => {
+        if (acceptResponse.messages.resultCode === 'Error') {
+          const errorMsg = acceptResponse.messages.message
+            .map(m => m.text)
+            .join('; ');
+          setError(errorMsg);
+          onPaymentError?.(errorMsg);
+          setIsProcessing(false);
+          return;
+        }
+
+        if (!acceptResponse.opaqueData) {
+          setError('Failed to tokenize card data.');
+          setIsProcessing(false);
+          return;
+        }
+
+        // Step 2: Send nonce to our server (card data never touches us)
+        try {
+          const response = await apiClient.post('/api/payments/credit-card', {
+            nonce: acceptResponse.opaqueData.dataValue,
+            dataDescriptor: acceptResponse.opaqueData.dataDescriptor,
+            amount: amount,
+            ticketPurchaseId: ticketPurchaseId || null,
+            lastFourDigits: getLastFour(cardData.cardNumber),
+            cardType: getCardType(cardData.cardNumber)
+          });
+
+          onPaymentSuccess?.(response.data);
+        } catch (err: any) {
+          const errorMsg = err?.response?.data?.detail || err?.message || 'Payment failed';
+          setError(errorMsg);
+          onPaymentError?.(errorMsg);
+        } finally {
+          setIsProcessing(false);
+        }
+      }
+    );
+  }, [cardData, amount, ticketPurchaseId, loginId, clientKey, isAcceptJsLoaded, onPaymentSuccess, onPaymentError]);
+
+  if (!loginId || !clientKey) {
+    return (
+      <Alert icon={<IconAlertCircle size={16} />} title="Configuration Error" color="red">
+        <Text size="sm">Credit card processing is not configured.</Text>
+      </Alert>
+    );
+  }
 
   const labelStyles = {
     display: 'block',
@@ -124,264 +230,132 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
     }
   };
 
+  const cardType = getCardType(cardData.cardNumber);
+
   return (
     <Stack gap="md">
-      {/* MOBILE LAYOUT - Stacked Vertically */}
+      {error && (
+        <Alert icon={<IconAlertCircle size={16} />} title="Payment Error" color="red">
+          <Text size="sm">{error}</Text>
+        </Alert>
+      )}
+
+      {/* Card Number + Cardholder Name */}
       <Box hiddenFrom="md">
-        {/* Card Number - Full Width */}
         <Box style={{ position: 'relative' }} mb="md">
-          <Text component="label" style={labelStyles}>
-            Card Number
-          </Text>
+          <Text component="label" style={labelStyles}>Card Number</Text>
           <TextInput
             value={cardData.cardNumber}
-            onChange={handleCardNumberChange}
+            onChange={(e) => setCardData(d => ({ ...d, cardNumber: formatCardNumber(e.target.value) }))}
             placeholder="1234 5678 9012 3456"
-            disabled={isProcessing}
-            styles={{
-              input: {
-                ...inputStyles,
-                paddingRight: '44px' // Space for single card icon
-              }
-            }}
+            disabled={isProcessing || disabled}
+            styles={{ input: { ...inputStyles, paddingRight: '70px' } }}
           />
-
-          {/* Card Type Icons */}
-          <Box
-            className="card-type-icons"
-            style={{
-              position: 'absolute',
-              right: '12px',
-              top: '55%',
-              transform: 'translateY(-50%)',
-              marginTop: '10px', // Offset for label height
-              display: 'flex',
-              gap: '4px'
-            }}
-          >
-            <Box
-              style={{
-                width: '32px',
-                height: '20px',
-                backgroundColor: cardType === 'visa' ? '#1A1F71' : 'var(--color-gray-light)',
-                borderRadius: '4px',
-                display: cardType === 'visa' ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '10px',
-                color: 'white',
-                fontWeight: 'bold'
-              }}
-            >
-              VISA
+          {cardType && (
+            <Box style={{ position: 'absolute', right: '12px', top: '55%', transform: 'translateY(-50%)', marginTop: '10px' }}>
+              <Text size="xs" fw={700} c="dimmed">{cardType.toUpperCase()}</Text>
             </Box>
-            <Box
-              style={{
-                width: '32px',
-                height: '20px',
-                backgroundColor: cardType === 'mastercard' ? '#EB001B' : 'var(--color-gray-light)',
-                borderRadius: '4px',
-                display: cardType === 'mastercard' ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '8px',
-                color: 'white',
-                fontWeight: 'bold'
-              }}
-            >
-              MC
-            </Box>
-            <Box
-              style={{
-                width: '32px',
-                height: '20px',
-                backgroundColor: cardType === 'amex' ? '#006FCF' : 'var(--color-gray-light)',
-                borderRadius: '4px',
-                display: cardType === 'amex' ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '8px',
-                color: 'white',
-                fontWeight: 'bold'
-              }}
-            >
-              AMEX
-            </Box>
-          </Box>
+          )}
         </Box>
-
-        {/* Cardholder Name - Full Width */}
         <Box>
-          <Text component="label" style={labelStyles}>
-            Cardholder Name
-          </Text>
+          <Text component="label" style={labelStyles}>Cardholder Name</Text>
           <TextInput
             value={cardData.cardholderName}
-            onChange={(event) =>
-              onCardDataChange({
-                ...cardData,
-                cardholderName: event.target.value
-              })
-            }
+            onChange={(e) => setCardData(d => ({ ...d, cardholderName: e.target.value }))}
             placeholder="Name on card"
-            disabled={isProcessing}
+            disabled={isProcessing || disabled}
             styles={{ input: inputStyles }}
           />
         </Box>
       </Box>
 
-      {/* DESKTOP/TABLET LAYOUT - Side by Side */}
       <Group grow align="flex-start" visibleFrom="md">
-        {/* Card Number */}
         <Box style={{ position: 'relative' }}>
-          <Text component="label" style={labelStyles}>
-            Card Number
-          </Text>
+          <Text component="label" style={labelStyles}>Card Number</Text>
           <TextInput
             value={cardData.cardNumber}
-            onChange={handleCardNumberChange}
+            onChange={(e) => setCardData(d => ({ ...d, cardNumber: formatCardNumber(e.target.value) }))}
             placeholder="1234 5678 9012 3456"
-            disabled={isProcessing}
-            styles={{
-              input: {
-                ...inputStyles,
-                paddingRight: '44px' // Space for single card icon
-              }
-            }}
+            disabled={isProcessing || disabled}
+            styles={{ input: { ...inputStyles, paddingRight: '70px' } }}
           />
-
-          {/* Card Type Icons */}
-          <Box
-            className="card-type-icons"
-            style={{
-              position: 'absolute',
-              right: '12px',
-              top: '55%',
-              transform: 'translateY(-50%)',
-              marginTop: '10px', // Offset for label height
-              display: 'flex',
-              gap: '4px'
-            }}
-          >
-            <Box
-              style={{
-                width: '32px',
-                height: '20px',
-                backgroundColor: cardType === 'visa' ? '#1A1F71' : 'var(--color-gray-light)',
-                borderRadius: '4px',
-                display: cardType === 'visa' ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '10px',
-                color: 'white',
-                fontWeight: 'bold'
-              }}
-            >
-              VISA
+          {cardType && (
+            <Box style={{ position: 'absolute', right: '12px', top: '55%', transform: 'translateY(-50%)', marginTop: '10px' }}>
+              <Text size="xs" fw={700} c="dimmed">{cardType.toUpperCase()}</Text>
             </Box>
-            <Box
-              style={{
-                width: '32px',
-                height: '20px',
-                backgroundColor: cardType === 'mastercard' ? '#EB001B' : 'var(--color-gray-light)',
-                borderRadius: '4px',
-                display: cardType === 'mastercard' ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '8px',
-                color: 'white',
-                fontWeight: 'bold'
-              }}
-            >
-              MC
-            </Box>
-            <Box
-              style={{
-                width: '32px',
-                height: '20px',
-                backgroundColor: cardType === 'amex' ? '#006FCF' : 'var(--color-gray-light)',
-                borderRadius: '4px',
-                display: cardType === 'amex' ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '8px',
-                color: 'white',
-                fontWeight: 'bold'
-              }}
-            >
-              AMEX
-            </Box>
-          </Box>
+          )}
         </Box>
-
-        {/* Cardholder Name */}
         <Box>
-          <Text component="label" style={labelStyles}>
-            Cardholder Name
-          </Text>
+          <Text component="label" style={labelStyles}>Cardholder Name</Text>
           <TextInput
             value={cardData.cardholderName}
-            onChange={(event) =>
-              onCardDataChange({
-                ...cardData,
-                cardholderName: event.target.value
-              })
-            }
+            onChange={(e) => setCardData(d => ({ ...d, cardholderName: e.target.value }))}
             placeholder="Name on card"
-            disabled={isProcessing}
+            disabled={isProcessing || disabled}
             styles={{ input: inputStyles }}
           />
         </Box>
       </Group>
 
-      {/* Row 2: Expiry Date, CVV, and Billing ZIP */}
+      {/* Expiry, CVV, ZIP */}
       <Group grow>
-        {/* Expiry Date */}
         <Box>
-          <Text component="label" style={labelStyles}>
-            {isMobile ? 'Exp Date' : 'Expiry Date'}
-          </Text>
+          <Text component="label" style={labelStyles}>{isMobile ? 'Exp Date' : 'Expiry Date'}</Text>
           <TextInput
             value={cardData.expiryDate}
-            onChange={handleExpiryChange}
+            onChange={(e) => setCardData(d => ({ ...d, expiryDate: formatExpiryDate(e.target.value) }))}
             placeholder="MM/YY"
-            disabled={isProcessing}
+            disabled={isProcessing || disabled}
             maxLength={5}
             styles={{ input: inputStyles }}
           />
         </Box>
-
-        {/* CVV */}
         <Box>
-          <Text component="label" style={labelStyles}>
-            CVV
-          </Text>
+          <Text component="label" style={labelStyles}>CVV</Text>
           <TextInput
             type="password"
             value={cardData.cvv}
-            onChange={handleCvvChange}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, '').substring(0, 4);
+              setCardData(d => ({ ...d, cvv: val }));
+            }}
             placeholder="123"
-            disabled={isProcessing}
+            disabled={isProcessing || disabled}
             maxLength={4}
             styles={{ input: inputStyles }}
           />
         </Box>
-
-        {/* Billing ZIP */}
         <Box>
-          <Text component="label" style={labelStyles}>
-            {isMobile ? 'Zip' : 'Billing ZIP'}
-          </Text>
+          <Text component="label" style={labelStyles}>{isMobile ? 'Zip' : 'Billing ZIP'}</Text>
           <TextInput
             value={cardData.billingZip}
-            onChange={handleZipChange}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, '').substring(0, 5);
+              setCardData(d => ({ ...d, billingZip: val }));
+            }}
             placeholder="12345"
-            disabled={isProcessing}
+            disabled={isProcessing || disabled}
             maxLength={5}
             styles={{ input: inputStyles }}
           />
         </Box>
       </Group>
+
+      {/* Submit Button */}
+      <Button
+        fullWidth
+        size="lg"
+        color="dark"
+        onClick={handleSubmit}
+        disabled={!isFormValid() || isProcessing || disabled}
+        leftSection={isProcessing ? <Loader size="xs" color="white" /> : <IconLock size={18} />}
+      >
+        {isProcessing ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
+      </Button>
+
+      <Text size="xs" c="dimmed" ta="center">
+        Your card information is sent directly to Authorize.net and never touches our servers.
+      </Text>
     </Stack>
   );
 };

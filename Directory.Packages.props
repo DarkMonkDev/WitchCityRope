@@ -54,9 +54,9 @@
     <PackageVersion Include="NSwag.AspNetCore" Version="14.6.3" />
 
     <!-- Payment -->
+    <PackageVersion Include="AuthorizeNet" Version="2.0.4" />
     <PackageVersion Include="Crc32.NET" Version="1.2.0" />
-    <PackageVersion Include="PayPalCheckoutSdk" Version="1.0.4" />
-    <PackageVersion Include="PayPalHttp" Version="1.0.1" />
+    <PackageVersion Include="PayPalServerSDK" Version="2.2.0" />
 
     <!-- Email -->
     <PackageVersion Include="SendGrid" Version="9.29.3" />

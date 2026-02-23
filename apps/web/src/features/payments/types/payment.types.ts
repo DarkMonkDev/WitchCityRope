@@ -324,3 +324,50 @@ export interface PaymentError {
   /** Suggested action for user */
   suggestedAction?: string;
 }
+
+// --- Server-side PayPal checkout types ---
+
+/**
+ * Request to create a PayPal order server-side
+ */
+export interface CreatePayPalOrderRequest {
+  ticketPurchaseId?: string;
+  amount: number;
+  currency?: string;
+  slidingScalePercentage: number;
+  eventTitle?: string;
+}
+
+/**
+ * Response from capturing a PayPal order
+ */
+export interface CapturePayPalOrderResponse {
+  captureId: string;
+  status: string;
+  amount: string;
+  currency: string;
+  payerId?: string;
+}
+
+// --- Credit card (Accept.js) types ---
+
+/**
+ * Request to process a credit card payment via Accept.js nonce
+ */
+export interface CreditCardPaymentRequest {
+  nonce: string;
+  dataDescriptor: string;
+  amount: number;
+  ticketPurchaseId?: string;
+  lastFourDigits?: string;
+  cardType?: string;
+}
+
+/**
+ * Response from credit card payment processing
+ */
+export interface CreditCardPaymentResponse {
+  transactionId: string;
+  status: string;
+  authCode?: string;
+}

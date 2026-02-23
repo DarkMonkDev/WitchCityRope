@@ -681,6 +681,23 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(p => p.EncryptedPayPalCaptureId)
                   .HasMaxLength(500);
 
+            // Credit card (Authorize.net) fields
+            entity.Property(p => p.CreditCardLastFour)
+                  .HasMaxLength(4)
+                  .HasColumnType("varchar(4)");
+
+            entity.Property(p => p.CreditCardType)
+                  .HasMaxLength(20)
+                  .HasColumnType("varchar(20)");
+
+            entity.Property(p => p.EncryptedAuthNetTransactionId)
+                  .HasMaxLength(500);
+
+            // PayPal webhook optimization
+            entity.Property(p => p.PayPalOrderIdHash)
+                  .HasMaxLength(64)
+                  .HasColumnType("varchar(64)");
+
             // Sliding scale and idempotency fields
             entity.Property(p => p.SlidingScalePercentage)
                   .HasColumnType("decimal(5,2)")
@@ -738,6 +755,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
             entity.HasIndex(p => p.PaymentStatus)
                   .HasDatabaseName("IX_TicketPurchases_PaymentStatus");
+
+            // PayPal webhook lookup index
+            entity.HasIndex(p => p.PayPalOrderIdHash)
+                  .HasDatabaseName("IX_TicketPurchases_PayPalOrderIdHash")
+                  .HasFilter("\"PayPalOrderIdHash\" IS NOT NULL");
 
             // Partial index for door purchases audit trail
             entity.HasIndex(p => p.RecordedByStaffId)

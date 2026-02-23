@@ -4,6 +4,7 @@ import { Alert, Button, Box, Text, Loader, Stack } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import type { PaymentEventInfo } from '../types/payment.types';
 import { debugLog } from '../../../utils/debug';
+import { apiClient } from '../../../lib/api/client';
 
 export interface PayPalButtonProps {
   eventInfo: PaymentEventInfo;
@@ -35,7 +36,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
   const discountAmount = amount * (slidingScalePercentage / 100);
   const finalAmount = amount - discountAmount;
 
-  debugLog('🔍 PayPal Button Configuration:');
+  debugLog('PayPal Button Configuration:');
   debugLog('  - paypalClientId:', paypalClientId ? `${paypalClientId.slice(0, 10)}...` : 'NOT SET');
   debugLog('  - paypalMode:', paypalMode);
   debugLog('  - originalAmount:', amount);
@@ -57,39 +58,34 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
     );
   }
 
-  const createOrder = async (data: any, actions: any) => {
+  const createOrder = async () => {
     try {
       setIsProcessing(true);
       setError(null);
 
-      debugLog('🔍 Creating PayPal order:', {
+      debugLog('Creating PayPal order via server:', {
         eventId: eventInfo.id,
         eventTitle: eventInfo.title,
         amount: finalAmount,
         currency: eventInfo.currency || 'USD'
       });
 
-      // Create order using PayPal actions
-      return actions.order.create({
-        intent: 'CAPTURE',
-        purchase_units: [{
-          amount: {
-            currency_code: eventInfo.currency || 'USD',
-            value: finalAmount.toFixed(2)
-          },
-          description: `Ticket for ${eventInfo.title}`,
-          custom_id: eventInfo.registrationId || eventInfo.id,
-          soft_descriptor: 'WitchCityRope'
-        }],
-        application_context: {
-          brand_name: 'WitchCityRope',
-          landing_page: 'NO_PREFERENCE',
-          shipping_preference: 'NO_SHIPPING',
-          user_action: 'PAY_NOW'
-        }
+      // Server-side order creation
+      const response = await apiClient.post('/api/paypal/create-order', {
+        ticketPurchaseId: eventInfo.registrationId || null,
+        amount: finalAmount,
+        currency: eventInfo.currency || 'USD',
+        slidingScalePercentage: slidingScalePercentage,
+        eventTitle: eventInfo.title
       });
+
+      const { orderId } = response.data;
+      debugLog('Server created PayPal order:', orderId);
+
+      // Return the order ID for PayPal JS SDK to open the popup
+      return orderId;
     } catch (error) {
-      console.error('❌ PayPal order creation failed:', error);
+      console.error('PayPal order creation failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create PayPal order';
       setError(errorMessage);
       onPaymentError?.(errorMessage);
@@ -98,20 +94,24 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
     }
   };
 
-  const onApprove = async (data: any, actions: any) => {
+  const onApprove = async (data: any) => {
     try {
       setIsProcessing(true);
-      debugLog('🔍 PayPal payment approved:', data);
+      debugLog('PayPal payment approved, capturing server-side:', data);
 
-      // Capture the payment
-      const details = await actions.order.capture();
-      debugLog('✅ PayPal payment captured:', details);
+      // Server-side capture
+      const response = await apiClient.post('/api/paypal/capture-order', {
+        orderId: data.orderID
+      });
 
-      // Call success callback with payment details
-      onPaymentSuccess?.(details);
+      const captureResult = response.data;
+      debugLog('PayPal payment captured:', captureResult);
+
+      // Call success callback with capture details
+      onPaymentSuccess?.(captureResult);
 
     } catch (error) {
-      console.error('❌ PayPal payment capture failed:', error);
+      console.error('PayPal payment capture failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to capture PayPal payment';
       setError(errorMessage);
       onPaymentError?.(errorMessage);
@@ -121,7 +121,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
   };
 
   const onError = (error: any) => {
-    console.error('❌ PayPal payment error:', error);
+    console.error('PayPal payment error:', error);
     const errorMessage = error?.message || 'PayPal payment failed';
     setError(errorMessage);
     onPaymentError?.(errorMessage);
@@ -129,7 +129,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
   };
 
   const onCancel = () => {
-    debugLog('🔍 PayPal payment cancelled');
+    debugLog('PayPal payment cancelled');
     onPaymentCancel?.();
     setIsProcessing(false);
   };
