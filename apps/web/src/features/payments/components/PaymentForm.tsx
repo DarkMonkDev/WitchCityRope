@@ -1,7 +1,7 @@
 // Payment Form Component
 // Handles PayPal and credit card payment integration with sliding scale
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Stack,
@@ -9,14 +9,12 @@ import {
   Text,
   Title,
   Alert,
-  Button,
   Checkbox
 } from '@mantine/core';
 import { IconShieldCheck } from '@tabler/icons-react';
 import { PayPalButton } from './PayPalButton';
 import { CreditCardForm } from './checkout/CreditCardForm';
 import { useSlidingScale } from '../hooks/useSlidingScale';
-import { isNonProduction, getPayPalTestCard } from '../../../lib/utils/environment';
 import type { PaymentEventInfo } from '../types/payment.types';
 
 interface PaymentFormProps {
@@ -43,37 +41,13 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   disabled = false
 }) => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [cardData, setCardData] = useState({
-    cardNumber: '',
-    cardholderName: '',
-    expiryDate: '',
-    cvv: '',
-    billingZip: ''
-  });
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   // Sliding scale logic
   const {
     finalAmount,
     discountPercentage,
-    calculation,
   } = useSlidingScale(eventInfo.basePrice, initialSlidingScale);
-
-  // Auto-fill credit card in dev/staging environment
-  useEffect(() => {
-    if (isNonProduction()) {
-      const testCard = getPayPalTestCard();
-      setCardData({
-        cardNumber: testCard.cardNumber.match(/.{1,4}/g)?.join(' ') || testCard.cardNumber,
-        cardholderName: testCard.cardholderName,
-        expiryDate: testCard.expiryDate,
-        cvv: testCard.cvv,
-        billingZip: testCard.billingZip
-      });
-      // Don't auto-accept terms - user must manually check
-    }
-  }, []); // Empty deps - run once on mount
 
   /**
    * Handle successful PayPal payment
@@ -101,33 +75,6 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
     setPaymentError(null);
   };
 
-  /**
-   * Handle credit card payment submission
-   */
-  const handleCreditCardSubmit = async (data: typeof cardData) => {
-    if (!termsAccepted) {
-      setPaymentError('Please accept the Event Waiver and Refund Policy to continue.');
-      return;
-    }
-
-    setIsProcessing(true);
-    setPaymentError(null);
-
-    try {
-      // Simulate credit card processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Simulate successful payment
-      const paymentId = `cc_${Date.now()}`;
-      onPaymentSuccess?.(paymentId);
-    } catch (error) {
-      setPaymentError('Payment processing failed. Please try again.');
-      onPaymentError?.('Payment processing failed');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   return (
     <Stack gap="lg">
       {/* Section Title */}
@@ -135,212 +82,86 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         Payment Method
       </Title>
 
-      {/* Credit Card Form */}
+      {/* Terms and Conditions - applies to both payment methods */}
+      <Group gap="sm" align="center">
+        <Checkbox
+          id="terms-checkbox"
+          checked={termsAccepted}
+          onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
+          disabled={disabled}
+          size="md"
+          color="#880124"
+          styles={{
+            input: {
+              cursor: disabled ? 'not-allowed' : 'pointer',
+              border: '2px solid #880124',
+              '&:checked': {
+                backgroundColor: '#880124',
+                borderColor: '#880124'
+              }
+            }
+          }}
+        />
+        <Text
+          component="label"
+          htmlFor="terms-checkbox"
+          size="sm"
+          onClick={(e) => {
+            if ((e.target as HTMLElement).tagName !== 'A') {
+              setTermsAccepted(!termsAccepted);
+            }
+          }}
+          style={{
+            color: 'var(--color-stone)',
+            lineHeight: 1.4,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            userSelect: 'none'
+          }}
+        >
+          I agree to the{' '}
+          <a
+            href="/event-waiver"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: 'var(--color-burgundy)',
+              textDecoration: 'underline'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            Event Waiver
+          </a>
+          {' '}and{' '}
+          <a
+            href="/refund-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: 'var(--color-burgundy)',
+              textDecoration: 'underline'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            Refund Policy
+          </a>
+        </Text>
+      </Group>
+
+      {/* Credit Card Form - uses Authorize.net Accept.js */}
       <Box>
         <CreditCardForm
-          cardData={cardData}
-          onCardDataChange={setCardData}
-          isProcessing={isProcessing}
-          onSubmit={handleCreditCardSubmit}
+          amount={finalAmount}
+          onPaymentSuccess={(details) => {
+            setPaymentError(null);
+            const paymentId = typeof details === 'string' ? details : details?.transactionId || details?.id || `cc_${Date.now()}`;
+            onPaymentSuccess?.(paymentId);
+          }}
+          onPaymentError={(error) => {
+            setPaymentError(error);
+            onPaymentError?.(error);
+          }}
+          disabled={disabled || !termsAccepted}
         />
-
-        {/* Terms and Button Row - Desktop Layout */}
-        <Box mt="lg" mb="sm" visibleFrom="md">
-          <Group justify="space-between" align="center" wrap="nowrap" gap="md">
-            <Group gap="sm" align="center" style={{ flex: 1 }}>
-              <Checkbox
-                id="terms-checkbox"
-                checked={termsAccepted}
-                onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
-                disabled={isProcessing}
-                size="md"
-                color="#880124"
-                styles={{
-                  input: {
-                    cursor: isProcessing ? 'not-allowed' : 'pointer',
-                    border: '2px solid #880124',
-                    '&:checked': {
-                      backgroundColor: '#880124',
-                      borderColor: '#880124'
-                    }
-                  }
-                }}
-              />
-              <Text
-                component="label"
-                htmlFor="terms-checkbox"
-                size="sm"
-                onClick={(e) => {
-                  // Allow label click to toggle checkbox, unless clicking a link
-                  if ((e.target as HTMLElement).tagName !== 'A') {
-                    setTermsAccepted(!termsAccepted);
-                  }
-                }}
-                style={{
-                  color: 'var(--color-stone)',
-                  lineHeight: 1.4,
-                  cursor: isProcessing ? 'not-allowed' : 'pointer',
-                  userSelect: 'none'
-                }}
-              >
-                I agree to the{' '}
-                <a
-                  href="/event-waiver"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    color: 'var(--color-burgundy)',
-                    textDecoration: 'underline'
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Event Waiver
-                </a>
-                {' '}and{' '}
-                <a
-                  href="/refund-policy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    color: 'var(--color-burgundy)',
-                    textDecoration: 'underline'
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Refund Policy
-                </a>
-              </Text>
-            </Group>
-
-            <Box style={{ flexShrink: 0 }}>
-              <Button
-                onClick={() => handleCreditCardSubmit(cardData)}
-                loading={isProcessing}
-                disabled={!termsAccepted}
-                size="lg"
-                styles={{
-                  root: {
-                    background: termsAccepted
-                      ? 'linear-gradient(135deg, #FFB800, #DAA520)'
-                      : 'linear-gradient(135deg, #CCC, #AAA)',
-                    color: termsAccepted ? '#2C2C2C' : '#666',
-                    fontWeight: 600,
-                    height: '44px',
-                    fontSize: '14px',
-                    lineHeight: '1.2',
-                    whiteSpace: 'nowrap',
-                    opacity: termsAccepted ? 1 : 0.4,
-                    transition: 'all 0.3s ease',
-                    cursor: termsAccepted ? 'pointer' : 'not-allowed',
-                    '&:hover': {
-                      boxShadow: termsAccepted ? '0 4px 12px rgba(255, 191, 0, 0.3)' : 'none'
-                    }
-                  }
-                }}
-              >
-                {isProcessing ? 'Processing...' : 'Pay with Credit Card'}
-              </Button>
-            </Box>
-          </Group>
-        </Box>
-
-        {/* Terms and Button Stack - Mobile Layout */}
-        <Box mt="lg" mb="sm" hiddenFrom="md">
-          <Stack gap="md">
-            <Group gap="sm" align="center">
-              <Checkbox
-                id="terms-checkbox-mobile"
-                checked={termsAccepted}
-                onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
-                disabled={isProcessing}
-                size="md"
-                color="#880124"
-                styles={{
-                  input: {
-                    cursor: isProcessing ? 'not-allowed' : 'pointer',
-                    border: '2px solid #880124',
-                    '&:checked': {
-                      backgroundColor: '#880124',
-                      borderColor: '#880124'
-                    }
-                  }
-                }}
-              />
-              <Text
-                component="label"
-                htmlFor="terms-checkbox-mobile"
-                size="sm"
-                onClick={(e) => {
-                  // Allow label click to toggle checkbox, unless clicking a link
-                  if ((e.target as HTMLElement).tagName !== 'A') {
-                    setTermsAccepted(!termsAccepted);
-                  }
-                }}
-                style={{
-                  color: 'var(--color-stone)',
-                  lineHeight: 1.4,
-                  cursor: isProcessing ? 'not-allowed' : 'pointer',
-                  userSelect: 'none'
-                }}
-              >
-                I agree to the{' '}
-                <a
-                  href="/event-waiver"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    color: 'var(--color-burgundy)',
-                    textDecoration: 'underline'
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Event Waiver
-                </a>
-                {' '}and{' '}
-                <a
-                  href="/refund-policy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    color: 'var(--color-burgundy)',
-                    textDecoration: 'underline'
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Refund Policy
-                </a>
-              </Text>
-            </Group>
-
-            <Button
-              onClick={() => handleCreditCardSubmit(cardData)}
-              loading={isProcessing}
-              disabled={!termsAccepted}
-              size="lg"
-              fullWidth
-              styles={{
-                root: {
-                  background: termsAccepted
-                    ? 'linear-gradient(135deg, #FFB800, #DAA520)'
-                    : 'linear-gradient(135deg, #CCC, #AAA)',
-                  color: termsAccepted ? '#2C2C2C' : '#666',
-                  fontWeight: 600,
-                  height: '44px',
-                  fontSize: '14px',
-                  lineHeight: '1.2',
-                  opacity: termsAccepted ? 1 : 0.4,
-                  transition: 'all 0.3s ease',
-                  cursor: termsAccepted ? 'pointer' : 'not-allowed',
-                  '&:hover': {
-                    boxShadow: termsAccepted ? '0 4px 12px rgba(255, 191, 0, 0.3)' : 'none'
-                  }
-                }
-              }}
-            >
-              {isProcessing ? 'Processing...' : 'Pay with Credit Card'}
-            </Button>
-          </Stack>
-        </Box>
       </Box>
 
       {/* Simple "Or" divider - Visible on all screen sizes */}

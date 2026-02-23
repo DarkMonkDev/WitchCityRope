@@ -78,11 +78,15 @@ export const usePayment = (eventRegistrationId?: string) => {
 
   /**
    * Get payment details query
+   * Only enabled for valid GUID registration IDs (API rejects non-GUID route params)
    */
+  const isValidGuid = (id: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
   const getPaymentQuery = useQuery({
     queryKey: ['payment', eventRegistrationId],
     queryFn: () => paymentApi.getPayment(eventRegistrationId!),
-    enabled: !!eventRegistrationId,
+    enabled: !!eventRegistrationId && isValidGuid(eventRegistrationId),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false
   });
