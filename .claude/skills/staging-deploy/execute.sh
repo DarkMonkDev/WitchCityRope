@@ -241,6 +241,7 @@ docker build \
   --build-arg VITE_AUTHORIZENET_LOGIN_ID="$VITE_AUTHORIZENET_LOGIN_ID" \
   --build-arg VITE_AUTHORIZENET_CLIENT_KEY="$VITE_AUTHORIZENET_CLIENT_KEY" \
   --build-arg VITE_AUTHORIZENET_ENVIRONMENT="${VITE_AUTHORIZENET_ENVIRONMENT:-SANDBOX}" \
+  --build-arg VITE_ACCEPTJS_URL="https://jstest.authorize.net/v1/Accept.js" \
   .
 
 if [ $? -ne 0 ]; then

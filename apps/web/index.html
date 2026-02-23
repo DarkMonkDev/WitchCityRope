@@ -8,10 +8,10 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Accept.js for Authorize.net credit card tokenization (sandbox) -->
-    <!-- Production: switch to https://js.authorize.net/v1/Accept.js -->
+    <!-- Accept.js for Authorize.net credit card tokenization -->
+    <!-- URL set per-environment via VITE_ACCEPTJS_URL in .env files -->
     <script type="text/javascript"
-      src="https://jstest.authorize.net/v1/Accept.js"
+      src="%VITE_ACCEPTJS_URL%"
       charset="utf-8">
     </script>
     <script type="module" src="/src/main.tsx"></script>
