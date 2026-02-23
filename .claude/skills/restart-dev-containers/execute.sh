@@ -11,6 +11,20 @@
 set -e  # Exit on error
 
 # ============================================
+# OPTIONAL VAULT INTEGRATION
+# ============================================
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/../_shared/vault-helpers.sh"
+
+VAULT_AVAILABLE=false
+echo "🔐 Checking Vault availability..."
+if vault_try_init; then
+    VAULT_AVAILABLE=true
+fi
+echo ""
+
+# ============================================
 # PRE-FLIGHT INFORMATION
 # ============================================
 
@@ -94,6 +108,17 @@ echo ""
 # ============================================
 # MAIN SCRIPT - CONTAINER RESTART
 # ============================================
+
+# Step 0: Pull dev secrets from vault (optional)
+if [ "$VAULT_AVAILABLE" = true ]; then
+    echo "0️⃣  Pulling dev secrets from vault..."
+    if vault_pull_env "secret/projects/witchcityrope/staging" ".env.development"; then
+        echo "   ✅ .env.development updated from vault (staging secrets for local dev)"
+    else
+        echo "   ⚠️  Could not pull secrets - using existing .env.development"
+    fi
+    echo ""
+fi
 
 # Step 1: Stop existing containers
 echo "1️⃣  Stopping containers..."

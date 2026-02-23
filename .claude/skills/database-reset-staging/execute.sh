@@ -10,6 +10,22 @@
 set -e  # Exit on error
 
 # ============================================
+# VAULT INTEGRATION
+# ============================================
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/../_shared/vault-helpers.sh"
+
+echo "🔐 Initializing Vault..."
+vault_init
+
+# Get SSH key path from shared secrets
+SSH_KEY_FILENAME=$(vault_get_field "secret/shared/digitalocean" "SSH_KEY_FILENAME")
+SSH_KEY_PATH="$HOME/.ssh/$SSH_KEY_FILENAME"
+echo "   ✅ SSH key path: $SSH_KEY_PATH"
+echo ""
+
+# ============================================
 # PRE-FLIGHT INFORMATION
 # ============================================
 
@@ -70,13 +86,13 @@ fi
 echo "🔍 Running prerequisite checks..."
 echo ""
 
-# Check 1: SSH key
+# Check 1: SSH key (path from vault)
 echo "1️⃣  Checking SSH access..."
-SSH_KEY="/home/chad/.ssh/id_ed25519_witchcityrope"
+SSH_KEY="$SSH_KEY_PATH"
 if [ ! -f "$SSH_KEY" ]; then
     echo "   ❌ FAIL: SSH key not found: $SSH_KEY"
     echo ""
-    echo "💡 Ensure SSH key is properly configured"
+    echo "💡 Key path from vault: secret/shared/digitalocean -> SSH_KEY_FILENAME"
     exit 1
 fi
 echo "   ✅ SSH key found"
@@ -117,14 +133,14 @@ echo ""
 # Configuration
 DEPLOY_PATH="/opt/witchcityrope/staging"
 
-# Step 1: Get database connection info
-echo "1️⃣  Retrieving database credentials..."
-DB_CONNECTION=$(ssh -i $SSH_KEY $USER@$SERVER "cat $DEPLOY_PATH/.env.staging | grep STAGING_DB_CONNECTION_STRING" | cut -d'=' -f2-)
+# Step 1: Get database connection info from vault
+echo "1️⃣  Retrieving database credentials from vault..."
+DB_CONNECTION=$(vault_get_field "secret/projects/witchcityrope/staging" "STAGING_DB_CONNECTION_STRING")
 
 if [ -z "$DB_CONNECTION" ]; then
-    echo "   ❌ FAIL: Could not retrieve database connection string"
+    echo "   ❌ FAIL: Could not retrieve database connection string from vault"
     echo ""
-    echo "💡 Verify .env.staging exists on server at: $DEPLOY_PATH"
+    echo "💡 Verify secret exists: vault kv get secret/projects/witchcityrope/staging"
     exit 1
 fi
 

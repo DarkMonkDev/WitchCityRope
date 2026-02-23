@@ -13,6 +13,20 @@
 set -e  # Exit on error
 
 # ============================================
+# OPTIONAL VAULT INTEGRATION
+# ============================================
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/../_shared/vault-helpers.sh"
+
+VAULT_AVAILABLE=false
+echo "🔐 Checking Vault availability..."
+if vault_try_init; then
+    VAULT_AVAILABLE=true
+fi
+echo ""
+
+# ============================================
 # PARSE ARGUMENTS
 # ============================================
 
@@ -122,6 +136,19 @@ echo ""
 # ============================================
 # MAIN SCRIPT - CONTAINER RESTART
 # ============================================
+
+# Step 0: Pull external API keys from vault (optional, test containers use mock values for most things)
+if [ "$VAULT_AVAILABLE" = true ]; then
+    echo "0️⃣  Pulling external API keys from vault..."
+    TINYMCE_KEY=$(vault_get_field "secret/projects/witchcityrope/staging" "TINYMCE_API_KEY" 2>/dev/null || true)
+    if [ -n "$TINYMCE_KEY" ]; then
+        echo "   ✅ TinyMCE API key retrieved from vault"
+        export TINYMCE_API_KEY="$TINYMCE_KEY"
+    else
+        echo "   ⚠️  No TinyMCE key in vault - tests will use mock"
+    fi
+    echo ""
+fi
 
 # Step 1: Stop existing test containers
 echo "1️⃣  Stopping test containers..."

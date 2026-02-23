@@ -125,6 +125,9 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IAuthorizeNetService, AuthorizeNetService>();
         }
 
+        // HttpClientFactory (required by PayPal webhook verification)
+        services.AddHttpClient();
+
         // PayPal webhook services
         services.AddScoped<IPayPalWebhookVerificationService, PayPalWebhookVerificationService>();
         services.AddScoped<IPayPalWebhookProcessingService, PayPalWebhookProcessingService>();

@@ -11,6 +11,28 @@
 set -e  # Exit on error
 
 # ============================================
+# VAULT INTEGRATION
+# ============================================
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/../_shared/vault-helpers.sh"
+
+echo "🔐 Initializing Vault..."
+vault_init
+
+# Pull production .env from vault to temp file
+LOCAL_ENV_FILE=$(mktemp /tmp/witchcityrope-production-env.XXXXXX)
+trap "rm -f $LOCAL_ENV_FILE" EXIT
+
+vault_pull_env "secret/projects/witchcityrope/production" "$LOCAL_ENV_FILE"
+
+# Get SSH key path from shared secrets
+SSH_KEY_FILENAME=$(vault_get_field "secret/shared/digitalocean" "SSH_KEY_FILENAME")
+SSH_KEY_PATH="$HOME/.ssh/$SSH_KEY_FILENAME"
+echo "   ✅ SSH key path: $SSH_KEY_PATH"
+echo ""
+
+# ============================================
 # PRE-FLIGHT INFORMATION
 # ============================================
 
@@ -125,12 +147,14 @@ if [ "$BRANCH" != "main" ]; then
 fi
 echo "   ✅ Branch verified"
 
-# Check 4: SSH key
+# Check 4: SSH key (path from vault)
 echo ""
 echo "4️⃣  Checking SSH access..."
-SSH_KEY="/home/chad/.ssh/id_ed25519_witchcityrope"
+SSH_KEY="$SSH_KEY_PATH"
 if [ ! -f "$SSH_KEY" ]; then
     echo "   ❌ FAIL: SSH key not found: $SSH_KEY"
+    echo ""
+    echo "💡 Key path from vault: secret/shared/digitalocean -> SSH_KEY_FILENAME"
     exit 1
 fi
 echo "   ✅ SSH key found"
@@ -240,8 +264,8 @@ if ! ssh -i $SSH_KEY -o ConnectTimeout=10 $USER@$SERVER "echo '   ✅ Connected 
 fi
 echo ""
 
-# Step 4: Update compose file on server
-echo "4️⃣  Updating docker-compose file on server..."
+# Step 4: Update compose file and .env on server
+echo "4️⃣  Updating docker-compose and .env files on server..."
 scp -i $SSH_KEY deployment/docker-compose.production.yml $USER@$SERVER:$DEPLOY_PATH/docker-compose.production.yml
 
 if [ $? -ne 0 ]; then
@@ -249,6 +273,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "   ✅ Compose file updated"
+
+# SCP vault-generated .env to server
+scp -i $SSH_KEY "$LOCAL_ENV_FILE" $USER@$SERVER:$DEPLOY_PATH/.env.production
+
+if [ $? -ne 0 ]; then
+    echo "   ❌ FAIL: Could not copy .env.production to server"
+    exit 1
+fi
+echo "   ✅ .env.production updated from vault"
 echo ""
 
 # Step 5: Pull images on server
