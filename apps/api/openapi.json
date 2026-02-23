@@ -10188,6 +10188,65 @@
         }
       }
     },
+    "/api/checkout/credit-card": {
+      "post": {
+        "tags": [
+          "CheckoutEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/payments/credit-card": {
       "post": {
         "tags": [
@@ -12468,6 +12527,100 @@
           },
           "sessionName": {
             "type": "string"
+          }
+        }
+      },
+      "CheckoutRequest": {
+        "required": [
+          "eventId",
+          "ticketTypeIds",
+          "eventWaiverAccepted",
+          "nonce",
+          "dataDescriptor",
+          "amount",
+          "idempotencyKey"
+        ],
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ticketTypeIds": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "eventWaiverAccepted": {
+            "type": "boolean"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "dataDescriptor": {
+            "type": "string"
+          },
+          "amount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "lastFourDigits": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cardType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "idempotencyKey": {
+            "maxLength": 50,
+            "type": "string"
+          }
+        }
+      },
+      "CheckoutResponse": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string"
+          },
+          "ticketPurchaseIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "confirmationNumber": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "authCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amountCharged": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
           }
         }
       },
@@ -18744,6 +18897,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "eventTitle": {
             "type": "string"
           },
@@ -19562,6 +19719,9 @@
     },
     {
       "name": "Backup"
+    },
+    {
+      "name": "CheckoutEndpoints"
     },
     {
       "name": "CreditCardEndpoints"

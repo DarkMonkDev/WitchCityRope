@@ -48,7 +48,7 @@ export const MyEventsPage: React.FC = () => {
 
     return volunteerShiftsResponse.map((shift) => ({
       id: shift.signupId || '',
-      eventId: '', // Note: Backend doesn't provide eventId in UserVolunteerShiftDto yet
+      eventId: shift.eventId || '',
       eventTitle: shift.eventTitle || 'Event',
       eventStartDate: shift.eventDate || new Date().toISOString(),
       eventLocation: shift.eventLocation || 'TBD',

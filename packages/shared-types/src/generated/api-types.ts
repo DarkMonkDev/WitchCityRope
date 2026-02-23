@@ -3248,6 +3248,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/checkout/credit-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CheckoutRequest"];
+                    "text/json": components["schemas"]["CheckoutRequest"];
+                    "application/*+json": components["schemas"]["CheckoutRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckoutResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/payments/credit-card": {
         parameters: {
             query?: never;
@@ -4480,6 +4539,28 @@ export interface components {
             /** Format: uuid */
             sessionId?: string;
             sessionName?: string;
+        };
+        CheckoutRequest: {
+            /** Format: uuid */
+            eventId: string;
+            ticketTypeIds: string[];
+            eventWaiverAccepted: boolean;
+            nonce: string;
+            dataDescriptor: string;
+            /** Format: double */
+            amount: number | string;
+            lastFourDigits?: null | string;
+            cardType?: null | string;
+            idempotencyKey: string;
+        };
+        CheckoutResponse: {
+            transactionId?: string;
+            ticketPurchaseIds?: string[];
+            confirmationNumber?: string;
+            status?: string;
+            authCode?: null | string;
+            /** Format: double */
+            amountCharged?: number | string;
         };
         CmsPageSummaryDto: {
             /** Format: int32 */
@@ -6197,6 +6278,8 @@ export interface components {
         UserVolunteerShiftDto: {
             /** Format: uuid */
             signupId?: string;
+            /** Format: uuid */
+            eventId?: string;
             eventTitle?: string;
             eventLocation?: string;
             /** Format: date-time */

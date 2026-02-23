@@ -11,6 +11,11 @@ public class UserVolunteerShiftDto
     public Guid SignupId { get; set; }
 
     /// <summary>
+    /// Event ID (for matching volunteer shifts to specific events on dashboard)
+    /// </summary>
+    public Guid EventId { get; set; }
+
+    /// <summary>
     /// Event title
     /// </summary>
     public string EventTitle { get; set; } = string.Empty;

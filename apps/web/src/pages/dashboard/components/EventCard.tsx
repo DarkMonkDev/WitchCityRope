@@ -31,10 +31,9 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
   const isMobile = useMediaQuery('(max-width: 991px)')
   const eventTimeZone = useEventTimeZone();
 
-  // Find volunteer shifts for this specific event
+  // Find volunteer shifts for this specific event (match by event ID only)
   const eventVolunteerShifts = volunteerShifts.filter(shift =>
-    // Match by eventId if available, otherwise try to match by event title as fallback
-    shift.eventId === event.id || shift.eventTitle === event.title
+    shift.eventId === event.id
   )
   const statusColors: Record<string, string> = {
     'RSVP Confirmed': 'blue',

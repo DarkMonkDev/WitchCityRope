@@ -548,6 +548,7 @@ public class VolunteerService : IVolunteerService
                 shiftDtos.Add(new UserVolunteerShiftDto
                 {
                     SignupId = vs.Id,
+                    EventId = eventEntity.Id,
                     EventTitle = eventEntity.Title,
                     EventLocation = eventEntity.Venue?.Name ?? string.Empty,
                     EventDate = eventEntity.StartDate,
