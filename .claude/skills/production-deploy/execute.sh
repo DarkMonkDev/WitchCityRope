@@ -219,9 +219,15 @@ if [ $? -ne 0 ]; then
 fi
 echo "   ✅ API image built"
 
-# Build Web
+# Build Web (pull VITE_ build-time vars from vault-generated env file)
 echo ""
 echo "   Building Web image..."
+VITE_PAYPAL_CLIENT_ID=$(grep '^VITE_PAYPAL_CLIENT_ID=' "$LOCAL_ENV_FILE" | cut -d'=' -f2-)
+VITE_PAYPAL_MODE=$(grep '^VITE_PAYPAL_MODE=' "$LOCAL_ENV_FILE" | cut -d'=' -f2-)
+VITE_AUTHORIZENET_LOGIN_ID=$(grep '^VITE_AUTHORIZENET_LOGIN_ID=' "$LOCAL_ENV_FILE" | cut -d'=' -f2-)
+VITE_AUTHORIZENET_CLIENT_KEY=$(grep '^VITE_AUTHORIZENET_CLIENT_KEY=' "$LOCAL_ENV_FILE" | cut -d'=' -f2-)
+VITE_AUTHORIZENET_ENVIRONMENT=$(grep '^VITE_AUTHORIZENET_ENVIRONMENT=' "$LOCAL_ENV_FILE" | cut -d'=' -f2-)
+
 docker build \
   -f apps/web/Dockerfile \
   -t $REGISTRY/production-web-witchcityrope:latest \
@@ -231,6 +237,11 @@ docker build \
   --build-arg VITE_API_BASE_URL="" \
   --build-arg VITE_APP_TITLE="WitchCityRope" \
   --build-arg VITE_APP_VERSION="$GIT_SHA" \
+  --build-arg VITE_PAYPAL_CLIENT_ID="$VITE_PAYPAL_CLIENT_ID" \
+  --build-arg VITE_PAYPAL_MODE="${VITE_PAYPAL_MODE:-sandbox}" \
+  --build-arg VITE_AUTHORIZENET_LOGIN_ID="$VITE_AUTHORIZENET_LOGIN_ID" \
+  --build-arg VITE_AUTHORIZENET_CLIENT_KEY="$VITE_AUTHORIZENET_CLIENT_KEY" \
+  --build-arg VITE_AUTHORIZENET_ENVIRONMENT="${VITE_AUTHORIZENET_ENVIRONMENT:-SANDBOX}" \
   .
 
 if [ $? -ne 0 ]; then
