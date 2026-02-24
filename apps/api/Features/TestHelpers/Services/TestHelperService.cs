@@ -438,7 +438,8 @@ public class TestHelperService : ITestHelperService
     private async Task<Guid> GetAdminUserIdAsync(CancellationToken cancellationToken)
     {
         var adminUser = await _userManager.Users
-            .Where(u => u.Role == "Administrator")
+            // Case-insensitive role match for test helper robustness
+            .Where(u => u.Role != null && u.Role.ToLower() == "administrator")
             .FirstOrDefaultAsync(cancellationToken);
 
         return adminUser?.Id ?? Guid.Empty;

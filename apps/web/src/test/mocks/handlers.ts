@@ -65,8 +65,8 @@ export const handlers = [
   }),
 
   // Legacy endpoints for backwards compatibility
-  // Mock the actual API endpoint that auth store calls: /api/Protected/profile
-  http.get('/api/Protected/profile', () => {
+  // Mock the actual API endpoint that auth store calls
+  http.get('/api/protected/profile', () => {
     return HttpResponse.json({
       id: '1',
       email: 'admin@witchcityrope.com',
@@ -82,7 +82,7 @@ export const handlers = [
   }),
 
   // Support absolute URLs for profile endpoint (environment-based)
-  http.get(`${API_BASE_URL}/api/Protected/profile`, () => {
+  http.get(`${API_BASE_URL}/api/protected/profile`, () => {
     return HttpResponse.json({
       id: '1',
       email: 'admin@witchcityrope.com',
@@ -97,17 +97,17 @@ export const handlers = [
     } as UserDto)
   }),
 
-  // Logout endpoints - Pascal case to match actual API
-  http.post('/api/Auth/logout', () => {
+  // Logout endpoints - lowercase to match actual API
+  http.post('/api/auth/logout', () => {
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.post(`${API_BASE_URL}/api/Auth/logout`, () => {
+  http.post(`${API_BASE_URL}/api/auth/logout`, () => {
     return new HttpResponse(null, { status: 204 })
   }),
 
-  // Login endpoints - Pascal case with proper LoginResponse structure
-  http.post('/api/Auth/login', async ({ request }) => {
+  // Login endpoints - lowercase with proper LoginResponse structure
+  http.post('/api/auth/login', async ({ request }) => {
     const body = await request.json() as any
     if (body.email === 'admin@witchcityrope.com' && body.password === 'Test123!') {
       return HttpResponse.json({
@@ -132,7 +132,7 @@ export const handlers = [
     }, { status: 401 })
   }),
 
-  http.post(`${API_BASE_URL}/api/Auth/login`, async ({ request }) => {
+  http.post(`${API_BASE_URL}/api/auth/login`, async ({ request }) => {
     const body = await request.json() as any
     if (body.email === 'admin@witchcityrope.com' && body.password === 'Test123!') {
       return HttpResponse.json({

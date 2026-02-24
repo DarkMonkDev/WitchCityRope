@@ -421,6 +421,7 @@ public class SafetyService : ISafetyService
             .Select(u => new { u.Role })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return user?.Role == "SafetyTeam" || user?.Role == "Administrator";
+        // Case-insensitive role check prevents access denial from casing differences
+        return string.Equals(user?.Role, "SafetyTeam", StringComparison.OrdinalIgnoreCase) || string.Equals(user?.Role, "Administrator", StringComparison.OrdinalIgnoreCase);
     }
 }

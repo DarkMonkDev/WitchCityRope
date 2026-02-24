@@ -100,16 +100,17 @@ public class CheckInService : ICheckInService
                     (ea.TicketNumber != null && ea.TicketNumber.ToLower().Contains(searchTerm)));
             }
 
-            // Apply status filter
+            // Apply status filter (case-insensitive: query parameter casing shouldn't affect results)
             if (!string.IsNullOrWhiteSpace(status))
             {
-                query = query.Where(ea => ea.RegistrationStatus == status);
+                var statusLower = status.ToLower();
+                query = query.Where(ea => ea.RegistrationStatus.ToLower() == statusLower);
             }
             else
             {
                 // By default, exclude cancelled attendees from check-in list
                 // Only show confirmed and checked-in attendees
-                query = query.Where(ea => ea.RegistrationStatus != "cancelled");
+                query = query.Where(ea => ea.RegistrationStatus.ToLower() != "cancelled");
             }
 
             // Get total count for pagination
@@ -166,7 +167,7 @@ public class CheckInService : ICheckInService
                         _context.TicketPurchases
                         .Any(tp => tp.UserId == ea.UserId &&
                                    tp.TicketType!.EventId == ea.EventId &&
-                                   tp.PaymentStatus == "Completed")
+                                   tp.PaymentStatus.ToLower() == "completed")
                 })
                 .ToListAsync(cancellationToken);
 
@@ -386,7 +387,7 @@ public class CheckInService : ICheckInService
 
             // Check capacity unless override is specified
             var capacity = await GetEventCapacityAsync(attendee.EventId, cancellationToken);
-            if (!request.OverrideCapacity && capacity.IsAtCapacity && attendee.RegistrationStatus == "waitlist")
+            if (!request.OverrideCapacity && capacity.IsAtCapacity && string.Equals(attendee.RegistrationStatus, "waitlist", StringComparison.OrdinalIgnoreCase))
             {
                 return Result<CheckInResponse>.Failure("Event at capacity. Override required for waitlist check-in.");
             }
@@ -535,7 +536,7 @@ public class CheckInService : ICheckInService
 
             // Get pending sync count
             var pendingCount = await _context.OfflineSyncQueues
-                .Where(q => q.EventId == eventId && q.SyncStatus != "completed")
+                .Where(q => q.EventId == eventId && q.SyncStatus.ToLower() != "completed")
                 .CountAsync(cancellationToken);
 
             var response = new DashboardResponse
@@ -793,7 +794,7 @@ public class CheckInService : ICheckInService
                 TotalCapacity = e.Capacity,
                 CheckedInCount = _context.CheckIns.Count(c => c.EventId == eventId),
                 WaitlistCount = _context.EventAttendees
-                    .Count(ea => ea.EventId == eventId && ea.RegistrationStatus == "waitlist"),
+                    .Count(ea => ea.EventId == eventId && ea.RegistrationStatus.ToLower() == "waitlist"),
                 AvailableSpots = e.Capacity - _context.CheckIns.Count(c => c.EventId == eventId),
                 IsAtCapacity = _context.CheckIns.Count(c => c.EventId == eventId) >= e.Capacity,
                 // CanOverride indicates if system supports capacity override

@@ -1168,8 +1168,8 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             return false;
         }
 
-        // Admin can access all incidents
-        if (user.Role == "Administrator")
+        // Admin can access all incidents (case-insensitive to prevent access denial from casing differences)
+        if (string.Equals(user.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }

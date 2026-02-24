@@ -64,7 +64,7 @@ export const apiConfig = {
     },
     protected: {
       welcome: '/api/protected/welcome',
-      profile: '/api/Protected/profile',
+      profile: '/api/protected/profile',
     },
     health: '/api/health',
   },

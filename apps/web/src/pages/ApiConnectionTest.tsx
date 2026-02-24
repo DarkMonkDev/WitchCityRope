@@ -27,7 +27,7 @@ export function ApiConnectionTest() {
     try {
       // Test 1: Health endpoint
       addResult('Testing API health endpoint...');
-      const healthResponse = await apiClient.get('/api/Health');
+      const healthResponse = await apiClient.get('/api/health');
       addResult(`✅ Health check: ${healthResponse.status} - ${healthResponse.data}`);
     } catch (error: any) {
       addResult(`❌ Health check failed: ${error.message}`);
@@ -36,7 +36,7 @@ export function ApiConnectionTest() {
     try {
       // Test 2: Protected endpoint (should return 401)
       addResult('Testing protected endpoint (should return 401)...');
-      await apiClient.get('/api/Protected/profile');
+      await apiClient.get('/api/protected/profile');
       addResult('❌ Protected endpoint should have returned 401');
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -49,7 +49,7 @@ export function ApiConnectionTest() {
     try {
       // Test 3: Login with test credentials (should fail with real API validation)
       addResult('Testing login with test credentials...');
-      await apiClient.post('/api/Auth/login', { email, password });
+      await apiClient.post('/api/auth/login', { email, password });
       addResult('❌ Login should have failed (test user not in real DB)');
     } catch (error: any) {
       if (error.response?.status === 401) {

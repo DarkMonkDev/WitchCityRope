@@ -1127,17 +1127,18 @@ public class EmailTemplateService : IEmailTemplateService
                     && u.VettingStatus != (int)VettingStatus.OnHold
                     && u.IsActive),
 
+            // Case-insensitive role matching for EF queries (ToLower translates to SQL LOWER())
             UserSegment.AllTeachers =>
-                query.Where(u => u.Role.Contains("Teacher") && u.IsActive),
+                query.Where(u => u.Role != null && u.Role.ToLower().Contains("teacher") && u.IsActive),
 
             UserSegment.AllDMs =>
-                query.Where(u => u.Role.Contains("DungeonMonitor") && u.IsActive),
+                query.Where(u => u.Role != null && u.Role.ToLower().Contains("dungeonmonitor") && u.IsActive),
 
             UserSegment.AllSafetyTeam =>
-                query.Where(u => u.Role.Contains("SafetyTeam") && u.IsActive),
+                query.Where(u => u.Role != null && u.Role.ToLower().Contains("safetyteam") && u.IsActive),
 
             UserSegment.AllAdmins =>
-                query.Where(u => u.Role.Contains("Administrator") && u.IsActive),
+                query.Where(u => u.Role != null && u.Role.ToLower().Contains("administrator") && u.IsActive),
 
             UserSegment.EmailNotVerified =>
                 query.Where(u => !u.EmailConfirmed && u.IsActive),

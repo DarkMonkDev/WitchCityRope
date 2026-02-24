@@ -211,10 +211,11 @@ public class TicketPurchase
     /// Includes "PartiallyRefunded" because partially refunded payments are still valid completed payments
     /// that can receive additional refunds (there's still money to refund!)
     /// </summary>
+    // Case-insensitive comparison prevents silent failures if payment gateway returns different casing
     public bool IsPaymentCompleted =>
-        PaymentStatus == "Completed" ||
-        PaymentStatus == "Confirmed" ||
-        PaymentStatus == "PartiallyRefunded";
+        string.Equals(PaymentStatus, "Completed", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(PaymentStatus, "Confirmed", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(PaymentStatus, "PartiallyRefunded", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Gets whether this purchase represents an RSVP (free ticket)

@@ -626,7 +626,8 @@ public class AttendanceService : IAttendanceService
 
                 _context.EventAttendees.Add(attendee);
             }
-            else if (existingAttendee.RegistrationStatus == "cancelled")
+            // Case-insensitive status check ensures re-registration works regardless of stored casing
+            else if (string.Equals(existingAttendee.RegistrationStatus, "cancelled", StringComparison.OrdinalIgnoreCase))
             {
                 // Re-activate cancelled attendee when they RSVP again
                 _logger.LogInformation(
@@ -948,7 +949,8 @@ public class AttendanceService : IAttendanceService
             {
                 existingAttendee.TicketNumber = ticketNumber;
 
-                if (existingAttendee.RegistrationStatus == "cancelled")
+                // Case-insensitive status check ensures cancelled attendees are properly detected
+                if (string.Equals(existingAttendee.RegistrationStatus, "cancelled", StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogInformation(
                         "Re-activating EventAttendee {AttendeeId} from 'cancelled' to 'confirmed' for user {UserId} purchasing ticket for event {EventId}",

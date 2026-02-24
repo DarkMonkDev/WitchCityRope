@@ -141,18 +141,21 @@ public class UserManagementService : IUserManagementService
             }
 
             // Apply role filter with OR logic for multiple roles
+            // Case-insensitive: user-provided filter casing shouldn't affect results
             if (request.RoleFilters != null && request.RoleFilters.Length > 0)
             {
                 // User matches if their Role field contains ANY of the requested roles
                 // This supports users with multiple comma-separated roles like "Teacher,SafetyTeam"
+                var lowerRoleFilters = request.RoleFilters.Select(r => r.ToLower()).ToArray();
                 query = query.Where(u =>
-                    request.RoleFilters.Any(role =>
-                        u.Role != null && u.Role.Contains(role)));
+                    lowerRoleFilters.Any(role =>
+                        u.Role != null && u.Role.ToLower().Contains(role)));
             }
             else if (!string.IsNullOrWhiteSpace(request.Role))
             {
                 // Legacy single role filter (kept for backward compatibility)
-                query = query.Where(u => u.Role == request.Role);
+                var roleLower = request.Role.ToLower();
+                query = query.Where(u => u.Role != null && u.Role.ToLower() == roleLower);
             }
 
             // Apply active status filter
@@ -359,7 +362,8 @@ public class UserManagementService : IUserManagementService
             // Support comma-separated roles (e.g., "Teacher,SafetyTeam")
             var users = await _context.Users
                 .AsNoTracking()
-                .Where(u => u.IsActive && (u.Role == role || u.Role.Contains(role + ",") || u.Role.Contains("," + role)))
+                // Case-insensitive role matching for comma-separated role strings
+                .Where(u => u.IsActive && u.Role != null && (u.Role.ToLower() == role.ToLower() || u.Role.ToLower().Contains(role.ToLower() + ",") || u.Role.ToLower().Contains("," + role.ToLower())))
                 .OrderBy(u => u.SceneName ?? u.Email)
                 .Select(u => new UserOptionDto
                 {

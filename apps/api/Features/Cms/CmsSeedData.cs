@@ -10,7 +10,8 @@ namespace WitchCityRope.Api.Features.Cms
         {
             // Get admin user for attribution (use first admin, or system user)
             var adminUser = await context.Users
-                .FirstOrDefaultAsync(u => u.Role == "Administrator");
+                // Case-insensitive role match for seeding robustness
+                .FirstOrDefaultAsync(u => u.Role != null && u.Role.ToLower() == "administrator");
 
             if (adminUser == null)
             {

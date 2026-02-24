@@ -169,7 +169,8 @@ public class SyncService : ISyncService
         try
         {
             var count = await _context.OfflineSyncQueues
-                .CountAsync(q => q.UserId == userId && q.SyncStatus == "pending", cancellationToken);
+                // Case-insensitive sync status check for robustness
+                .CountAsync(q => q.UserId == userId && q.SyncStatus.ToLower() == "pending", cancellationToken);
 
             return Result<int>.Success(count);
         }

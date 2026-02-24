@@ -47,7 +47,8 @@ public static class EventEndpoints
                     }
 
                     var userRole = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-                    if (userRole != "Administrator")
+                    // Case-insensitive role check prevents 403 from JWT claim casing differences
+                    if (!string.Equals(userRole, "Administrator", StringComparison.OrdinalIgnoreCase))
                     {
                         return Results.Problem(
                             title: "Insufficient Permissions",
@@ -101,7 +102,8 @@ public static class EventEndpoints
                     }
 
                     var userRole = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-                    if (userRole != "Administrator")
+                    // Case-insensitive role check prevents 403 from JWT claim casing differences
+                    if (!string.Equals(userRole, "Administrator", StringComparison.OrdinalIgnoreCase))
                     {
                         return Results.Problem(
                             title: "Insufficient Permissions",
@@ -498,7 +500,8 @@ public static class EventEndpoints
             }
 
             var userRole = context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (userRole != "Administrator" && userRole != "EventOrganizer")
+            // Case-insensitive role check prevents 403 from JWT claim casing differences
+            if (!string.Equals(userRole, "Administrator", StringComparison.OrdinalIgnoreCase) && !string.Equals(userRole, "EventOrganizer", StringComparison.OrdinalIgnoreCase))
             {
                 return Results.Problem(
                     title: "Insufficient Permissions",
@@ -547,7 +550,8 @@ public static class EventEndpoints
             }
 
             var userRole = context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (userRole != "Administrator" && userRole != "EventOrganizer")
+            // Case-insensitive role check prevents 403 from JWT claim casing differences
+            if (!string.Equals(userRole, "Administrator", StringComparison.OrdinalIgnoreCase) && !string.Equals(userRole, "EventOrganizer", StringComparison.OrdinalIgnoreCase))
             {
                 return Results.Problem(
                     title: "Insufficient Permissions",
@@ -600,7 +604,8 @@ public static class EventEndpoints
             }
 
             var userRole = context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (userRole != "Administrator" && userRole != "EventOrganizer")
+            // Case-insensitive role check prevents 403 from JWT claim casing differences
+            if (!string.Equals(userRole, "Administrator", StringComparison.OrdinalIgnoreCase) && !string.Equals(userRole, "EventOrganizer", StringComparison.OrdinalIgnoreCase))
             {
                 return Results.Problem(
                     title: "Insufficient Permissions",
@@ -649,7 +654,8 @@ public static class EventEndpoints
             }
 
             var userRole = context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (userRole != "Administrator" && userRole != "EventOrganizer")
+            // Case-insensitive role check prevents 403 from JWT claim casing differences
+            if (!string.Equals(userRole, "Administrator", StringComparison.OrdinalIgnoreCase) && !string.Equals(userRole, "EventOrganizer", StringComparison.OrdinalIgnoreCase))
             {
                 return Results.Problem(
                     title: "Insufficient Permissions",

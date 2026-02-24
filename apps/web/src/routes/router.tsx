@@ -21,6 +21,7 @@ import { EventFormTestPage } from '../pages/EventFormTestPage'
 import { NavigationTestPage } from '../pages/NavigationTestPage'
 import { RootLayout } from '../components/layout/RootLayout'
 import { RootErrorBoundary } from '../components/errors/RootErrorBoundary'
+import { LowercaseUrlRedirect } from './guards/LowercaseUrlRedirect'
 import { authLoader } from './loaders/authLoader'
 import { adminLoader } from './loaders/adminLoader'
 import { UnauthorizedPage } from '../pages/UnauthorizedPage'
@@ -74,7 +75,12 @@ import { PaymentCancelPage } from '../pages/payments/PaymentCancelPage'
  * React Router v7 configuration following validated patterns
  * Reference: /docs/functional-areas/routing-validation/requirements/functional-specification.md
  */
+// Wraps all routes in LowercaseUrlRedirect to normalize URLs to lowercase,
+// preventing 404s when users type mixed-case URLs (e.g., /Admin/Events → /admin/events)
 export const router = createBrowserRouter([
+  {
+    element: <LowercaseUrlRedirect />,
+    children: [
   {
     path: '/',
     element: <RootLayout />,
@@ -355,5 +361,7 @@ export const router = createBrowserRouter([
     path: "events/:eventId/checkin/dashboard",
     element: <CheckInDashboardPage />,
     errorElement: <RootErrorBoundary />
+  },
+    ],
   },
 ])

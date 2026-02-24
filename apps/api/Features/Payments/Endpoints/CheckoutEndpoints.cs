@@ -126,7 +126,8 @@ public class CheckoutEndpoints : ControllerBase
 
             if (existingPurchase != null)
             {
-                if (existingPurchase.PaymentStatus == "Completed" || existingPurchase.PaymentStatus == "Confirmed")
+                // Case-insensitive payment status check to prevent silent failures from casing mismatches
+                if (string.Equals(existingPurchase.PaymentStatus, "Completed", StringComparison.OrdinalIgnoreCase) || string.Equals(existingPurchase.PaymentStatus, "Confirmed", StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogInformation(
                         "[Checkout:{CorrelationId}] Idempotent duplicate detected. Returning cached success for TicketPurchase {TicketPurchaseId}",
@@ -142,7 +143,7 @@ public class CheckoutEndpoints : ControllerBase
                     });
                 }
 
-                if (existingPurchase.PaymentStatus == "Failed")
+                if (string.Equals(existingPurchase.PaymentStatus, "Failed", StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogInformation(
                         "[Checkout:{CorrelationId}] Previous attempt with same key failed. Allowing retry.",
