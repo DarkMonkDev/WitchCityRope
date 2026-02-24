@@ -35,10 +35,11 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Staging
       - ConnectionStrings__DefaultConnection=${STAGING_DB_CONNECTION_STRING}
-      - Authentication__JwtSecret=${JWT_SECRET}
-      - Authentication__Issuer=https://staging.notfai.com
-      - Authentication__Audience=https://staging.notfai.com
-      - Authentication__ExpiryMinutes=60
+      # JWT config must match Jwt:* paths read by Program.cs and JwtService.cs
+      - Jwt__SecretKey=${JWT_SECRET}
+      - Jwt__Issuer=https://staging.notfai.com
+      - Jwt__Audience=https://staging.notfai.com
+      - Jwt__ExpirationMinutes=60
       - CORS__AllowedOrigins=https://staging.notfai.com
       - CORS__AllowCredentials=true
       - Logging__LogLevel__Default=Debug
