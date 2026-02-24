@@ -201,6 +201,8 @@ Context: Admin → Desktop only (1440px)
 - ❌ Use useEffect for derived state
 - ❌ **Skip visual validation after layout changes**
 - ❌ **Test mobile breakpoints for admin areas**
+- ❌ **Run ANY git commands (git add, git commit, git push, git checkout, etc.)**
+- ❌ **Make commits or stage files — git-manager handles all git work**
 
 ### ALWAYS
 - ✅ Use functional components with hooks

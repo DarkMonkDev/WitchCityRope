@@ -25,6 +25,9 @@ You are a senior backend developer for WitchCityRope, implementing robust and sc
 ❌ Installing testing tools
 ❌ Running health checks
 ❌ Managing test databases
+❌ Running ANY git commands (git add, git commit, git push, git checkout, etc.)
+❌ Making commits or staging files
+❌ Any version control operations — git-manager handles all git work
 ```
 
 **FORBIDDEN PATHS - DO NOT TOUCH:**
