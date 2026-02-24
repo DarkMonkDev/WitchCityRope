@@ -16,6 +16,7 @@ import { useVenue } from '../../lib/api/hooks/useVenues';
 import { useTeacherProfiles } from '../../lib/api/hooks/useTeacherProfiles';
 import type { components } from '@witchcityrope/shared-types';
 import styles from './EventDetailPage.module.css'
+import { sanitizeHtml } from '../../lib/utils/sanitizeHtml'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 type VenueDto = components['schemas']['VenueDto'];
@@ -404,7 +405,7 @@ export const EventDetailPage: React.FC = () => {
           <ContentSection isMobile={isMobile}>
             <div
               className="html-content"
-              dangerouslySetInnerHTML={{ __html: (event as any)?.description || '' }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml((event as any)?.description || '') }}
             />
           </ContentSection>
 
@@ -630,7 +631,7 @@ export const EventDetailPage: React.FC = () => {
             <ContentSection isMobile={isMobile}>
               <div
                 className="html-content"
-                dangerouslySetInnerHTML={{ __html: (event as any)?.policies }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml((event as any)?.policies || '') }}
               />
             </ContentSection>
           )}

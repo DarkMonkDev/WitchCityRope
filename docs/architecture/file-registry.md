@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2026-02-22 -->
-<!-- Version: 4.552 -->
+<!-- Last Updated: 2026-02-23 -->
+<!-- Version: 4.553 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,5 +11,18 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2026-02-23 | /apps/web/src/lib/utils/sanitizeHtml.ts | CREATED | DOMPurify HTML sanitization utility for XSS prevention | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /nginx/production.conf | CREATED | Production-grade nginx config with full security headers, CSP, rate limiting | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /docs/functional-areas/security/audit/security-audit-report-2026-02-23.md | CREATED | Full security audit findings with severity ratings and fix status | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /docs/functional-areas/security/audit/exposed-secrets-inventory-2026-02-23.md | CREATED | Inventory of all secrets found committed in repo for rotation planning | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /apps/api/Program.cs | MODIFIED | Secured Hangfire dashboard, removed hardcoded secrets (fail-fast), fixed CORS (env-aware), strengthened password policy | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /apps/api/Features/Authentication/Endpoints/AuthenticationEndpoints.cs | MODIFIED | Removed unauthenticated debug endpoint exposing JWT/cookie data | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /apps/web/nginx.conf | MODIFIED | Security headers (HSTS, Permissions-Policy), tightened CSP, rate limiting, removed CORS reflection | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /nginx/staging.conf | MODIFIED | Added CSP, Permissions-Policy, fixed orphaned rate limiting blocks | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /deployment/deploy-linux.sh | MODIFIED | Updated to use static nginx configs instead of generating inline | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /apps/web/src/features/cms/components/CmsPage.tsx | MODIFIED | Added DOMPurify sanitization to dangerouslySetInnerHTML | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /apps/web/src/features/cms/components/CmsRevisionCard.tsx | MODIFIED | Added DOMPurify sanitization to dangerouslySetInnerHTML | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /apps/web/src/pages/events/EventDetailPage.tsx | MODIFIED | Added DOMPurify sanitization to 2 dangerouslySetInnerHTML locations | Security Audit Remediation | ACTIVE | Never |
+| 2026-02-23 | /apps/web/src/lib/api/client.ts | MODIFIED | Guarded console.debug calls with import.meta.env.DEV | Security Audit Remediation | ACTIVE | Never |
 | 2026-02-22 | /docs/functional-areas/payments/research/2026-02-22-acceptjs-react-integration-research.md | CREATED | Comprehensive research document on Authorize.net Accept.js integration for React + TypeScript - Covers Accept.js flow, PCI compliance (SAQ A-EP), react-acceptjs package evaluation, TypeScript types, React component patterns with Mantine UI, .NET backend nonce processing with AuthorizeNet SDK, security considerations, CSP requirements, error handling, implementation guidance | Technology Researcher: Accept.js Research | ACTIVE | Never |
 | 2025-12-14 | /docs/functional-areas/member-import/post-import-email-workflow-guide.md | CREATED | Comprehensive guide for post-import email workflow - Documents NewImportedUsers segment, per-user variable replacement ({{user_name}}, {{reset_url}}, {{verification_url}}), step-by-step workflow for sending welcome emails with password reset links after importing vetted members. Includes 8 user segments, troubleshooting, security considerations, performance details, FAQ | Librarian: Document Post-Import Email Workflow | ACTIVE | Never |

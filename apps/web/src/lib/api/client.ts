@@ -56,7 +56,7 @@ export const apiClient = axios.create({
 // Request interceptor for CSRF token and logging
 apiClient.interceptors.request.use(
   (config) => {
-    console.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`)
+    if (import.meta.env.DEV) console.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`)
 
     // Add CSRF token to all state-changing requests
     const method = config.method?.toLowerCase()
@@ -65,7 +65,7 @@ apiClient.interceptors.request.use(
 
       if (csrfToken) {
         config.headers['X-CSRF-TOKEN'] = csrfToken
-        console.debug('✅ CSRF token added to request')
+        if (import.meta.env.DEV) console.debug('✅ CSRF token added to request')
       } else {
         console.error('❌ No CSRF token available for state-changing request')
         // Let request proceed - backend will reject if token is required
@@ -83,11 +83,13 @@ apiClient.interceptors.request.use(
 // Response interceptor for error handling and logging
 apiClient.interceptors.response.use(
   (response) => {
-    console.debug(`API Response: ${response.status} ${response.config.url}`, {
-      duration: response.config.metadata?.requestStartTime
-        ? Date.now() - response.config.metadata.requestStartTime
-        : undefined,
-    })
+    if (import.meta.env.DEV) {
+      console.debug(`API Response: ${response.status} ${response.config.url}`, {
+        duration: response.config.metadata?.requestStartTime
+          ? Date.now() - response.config.metadata.requestStartTime
+          : undefined,
+      })
+    }
     return response
   },
   async (error) => {

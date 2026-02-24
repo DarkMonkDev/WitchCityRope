@@ -369,102 +369,22 @@ EOF
 # Configure nginx
 configure_nginx() {
     log_info "Configuring nginx..."
-    
+
     # Create nginx configuration directory
     sudo mkdir -p "$DEPLOYMENT_PATH/nginx/conf.d"
-    
-    # Create nginx configuration
-    cat > "$DEPLOYMENT_PATH/nginx/conf.d/witchcityrope.conf" << EOF
-upstream api_backend {
-    server api:8080;
-}
 
-upstream web_backend {
-    server web:8080;
-}
+    # Use version-controlled nginx config based on environment
+    local nginx_config_source="$DEPLOYMENT_PATH/nginx/${ENVIRONMENT}.conf"
 
-server {
-    listen 80;
-    server_name $DOMAIN www.$DOMAIN;
-    
-    # Redirect to HTTPS
-    location / {
-        return 301 https://\$server_name\$request_uri;
-    }
-    
-    # Let's Encrypt challenge
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-}
+    if [[ ! -f "$nginx_config_source" ]]; then
+        log_error "Nginx config not found: $nginx_config_source"
+        log_error "Expected file at nginx/${ENVIRONMENT}.conf in the repository"
+        exit 1
+    fi
 
-server {
-    listen 443 ssl http2;
-    server_name $DOMAIN www.$DOMAIN;
-    
-    # SSL configuration
-    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-    ssl_prefer_server_ciphers on;
-    
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Content-Security-Policy "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:;" always;
-    
-    # API proxy
-    location /api/ {
-        proxy_pass http://api_backend/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection keep-alive;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-        
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-    
-    # Web app proxy
-    location / {
-        proxy_pass http://web_backend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection keep-alive;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-        
-        # WebSocket support
-        proxy_set_header Connection "upgrade";
-    }
-    
-    # Static files
-    location /uploads/ {
-        alias /app/uploads/;
-        expires 30d;
-        add_header Cache-Control "public, immutable";
-    }
-    
-    # Compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
-}
-EOF
-    
+    # Copy environment-specific config
+    cp "$nginx_config_source" "$DEPLOYMENT_PATH/nginx/conf.d/witchcityrope.conf"
+
     # Create main nginx configuration
     cat > "$DEPLOYMENT_PATH/nginx/nginx.conf" << 'EOF'
 user nginx;
@@ -481,29 +401,25 @@ events {
 http {
     include /etc/nginx/mime.types;
     default_type application/octet-stream;
-    
+
     log_format main '$remote_addr - $remote_user [$time_local] "$request" '
                     '$status $body_bytes_sent "$http_referer" '
                     '"$http_user_agent" "$http_x_forwarded_for"';
-    
+
     access_log /var/log/nginx/access.log main;
-    
+
     sendfile on;
     tcp_nopush on;
     tcp_nodelay on;
     keepalive_timeout 65;
     types_hash_max_size 2048;
-    client_max_body_size 50M;
-    
-    # Rate limiting
-    limit_req_zone $binary_remote_addr zone=general:10m rate=10r/s;
-    limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
-    
+    client_max_body_size 10M;
+
     include /etc/nginx/conf.d/*.conf;
 }
 EOF
-    
-    log_success "Nginx configuration completed"
+
+    log_success "Nginx configuration completed (using ${ENVIRONMENT}.conf)"
 }
 
 # Setup SSL certificate

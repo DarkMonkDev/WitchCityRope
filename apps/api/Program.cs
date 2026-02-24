@@ -64,7 +64,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     // Base connection string (environment-aware, container-friendly)
     var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=WitchCity2024!";
+        ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured. Set via environment variable or user secrets.");
 
     // Environment-specific configuration
     var environment = builder.Environment;
@@ -115,7 +115,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Configure Hangfire for background job processing (database backups)
 var hangfireConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=WitchCity2024!";
+    ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured for Hangfire. Set via environment variable or user secrets.");
 
 builder.Services.AddHangfire(config => config
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -154,13 +154,13 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 // Configure ASP.NET Core Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 {
-    // Password settings for development (relaxed for testing)
+    // Password policy - enforced for new password creation and changes
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
-    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireNonAlphanumeric = true;
     options.Password.RequireUppercase = true;
-    options.Password.RequiredLength = 8;
-    options.Password.RequiredUniqueChars = 1;
+    options.Password.RequiredLength = 10;
+    options.Password.RequiredUniqueChars = 4;
 
     // Lockout settings
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
@@ -180,7 +180,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 .AddDefaultTokenProviders();
 
 // Configure JWT authentication
-var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] ?? "DevSecret-JWT-WitchCityRope-AuthTest-2024-32CharMinimum!";
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
+    ?? throw new InvalidOperationException("Jwt:SecretKey must be configured. Set via environment variable or user secrets.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "WitchCityRope-API";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "WitchCityRope-Services";
 
@@ -286,24 +287,31 @@ builder.Services.AddScoped<RestoreJob>();
 // Health checks for database monitoring
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=WitchCity2024!");
+        ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured for health checks."));
 
-// Configure CORS for React development
+// Configure CORS policies - environment-aware
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("ReactDevelopment",
-        corsBuilder => corsBuilder
-            .AllowAnyOrigin() // Most permissive for development
-            .AllowAnyMethod()
-            .AllowAnyHeader());
-
-    // Alternative policy with credentials (if needed)
-    options.AddPolicy("ReactDevelopmentWithCredentials",
+    // Development: explicit localhost origins with credentials
+    options.AddPolicy("Development",
         corsBuilder => corsBuilder
             .WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:5174", "http://127.0.0.1:5173", "http://localhost:8080")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
+
+    // Production/Staging: configured origins from environment variables
+    var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>()
+        ?? Array.Empty<string>();
+    if (allowedOrigins.Length > 0)
+    {
+        options.AddPolicy("Production",
+            corsBuilder => corsBuilder
+                .WithOrigins(allowedOrigins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
+    }
 });
 
 // Configure Anti-Forgery (CSRF) Protection
@@ -359,7 +367,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUi(); // NSwag UI (note: UseSwaggerUi, not UseSwaggerUI)
 }
 
-app.UseCors("ReactDevelopmentWithCredentials");
+// Use environment-appropriate CORS policy
+var corsPolicy = app.Environment.IsDevelopment() ? "Development" : "Production";
+app.UseCors(corsPolicy);
 
 // CRITICAL: Enable Anti-Forgery (CSRF) Protection middleware
 // MUST be placed AFTER UseCors() and BEFORE UseAuthentication()
@@ -481,16 +491,14 @@ app.Run();
 public partial class Program { }
 
 // Hangfire Dashboard Authorization - Admin only
+// Protects the /hangfire dashboard from unauthorized access.
+// Requires the user to be authenticated AND have the Administrator role.
 public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
 {
     public bool Authorize(DashboardContext context)
     {
-        // For Hangfire.Core (not AspNetCore), we need to check if the dashboard is accessed
-        // In production, configure proper authorization
-        // For now, allow access (will be secured by ASP.NET Core authentication/authorization on the endpoint)
-        return true;
+        var httpContext = context.GetHttpContext();
+        return httpContext.User.Identity?.IsAuthenticated == true
+            && httpContext.User.IsInRole("Administrator");
     }
 }
-
-// API test $(date)
-// API hot reload test Sun Aug 17 03:43:42 PM EDT 2025

@@ -11,6 +11,7 @@ import { useCmsPage } from '../hooks/useCmsPage'
 import { useUser } from '../../../stores/authStore'
 import { useViewportSize } from '@mantine/hooks'
 import type { components } from '@witchcityrope/shared-types'
+import { sanitizeHtml } from '../../../lib/utils/sanitizeHtml'
 
 interface CmsPageProps {
   slug: string
@@ -279,7 +280,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
       {!isEditing && (
         <Box>
           {/* Display page content with global HTML content styling */}
-          <div className="html-content" dangerouslySetInnerHTML={{ __html: pageContent.content || '' }} />
+          <div className="html-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(pageContent.content || '') }} />
         </Box>
       )}
 

@@ -4,6 +4,7 @@
 import React, { useState } from 'react'
 import { Paper, Text, Group, Button, Box } from '@mantine/core'
 import type { ContentRevisionDto } from '../types'
+import { sanitizeHtml } from '../../../lib/utils/sanitizeHtml'
 
 interface CmsRevisionCardProps {
   revision: ContentRevisionDto
@@ -51,7 +52,7 @@ export const CmsRevisionCard: React.FC<CmsRevisionCardProps> = ({ revision }) =>
           WebkitLineClamp: showFullContent ? 'unset' : 3,
           WebkitBoxOrient: 'vertical',
         }}
-        dangerouslySetInnerHTML={{ __html: revision.contentPreview || '' }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(revision.contentPreview || '') }}
       />
     </Paper>
   )
