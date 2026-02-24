@@ -34,10 +34,12 @@ public class UserSeeder
     /// Creates all required ASP.NET Core Identity roles for the application.
     /// Ensures roles exist before user creation and assignment.
     ///
-    /// Roles created:
+    /// Roles created (derived from UserRoleConstants.ValidRoles):
     /// - Administrator: Full system access
     /// - Teacher: Can create and manage events
     /// - SafetyTeam: Can manage safety incidents
+    /// - EventOrganizer: Can organize and manage events
+    /// - DungeonMonitor: Monitors play spaces during events
     /// </summary>
     public async Task SeedRolesAsync(CancellationToken cancellationToken = default)
     {
@@ -287,6 +289,22 @@ public class UserSeeder
                 PronouncedName = "Incident Handler",
                 Pronouns = "she/her",
                 VettingStatus = 3,  // Approved (pre-approved as founding safety team member - no formal application)
+                IsActive = true
+            },
+            // Dungeon monitor for testing DM role assignment and event safety monitoring
+            new {
+                Email = "dm@witchcityrope.com",
+                SceneName = "WatchfulEye",
+                FirstName = "Jamie",
+                LastName = "Nguyen",
+                DiscordName = "watchful_dm",
+                FetLifeName = "WatchfulDM",
+                PhoneNumber = "978-555-0108",
+                Bio = "Experienced dungeon monitor with 5 years overseeing play spaces. Trained in de-escalation, first aid, and risk-aware consensual practices. Committed to maintaining a safe and respectful environment for all participants.",
+                Role = UserRole.DungeonMonitor.ToRoleString(),
+                PronouncedName = "Watchful Eye",
+                Pronouns = "they/them",
+                VettingStatus = 3,  // Approved (pre-approved as founding DM - no formal application)
                 IsActive = true
             },
             // Additional users for vetting application testing (users 5-16)

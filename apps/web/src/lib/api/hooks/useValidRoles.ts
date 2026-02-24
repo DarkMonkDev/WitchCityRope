@@ -43,6 +43,8 @@ export function formatRolesForSelect(roles: string[]) {
         return 'Safety Team';
       case 'EventOrganizer':
         return 'Event Organizer';
+      case 'DungeonMonitor':
+        return 'Dungeon Monitor';
       default:
         return role;
     }

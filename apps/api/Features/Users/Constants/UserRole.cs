@@ -13,6 +13,7 @@ namespace WitchCityRope.Api.Features.Users.Constants;
 /// - SafetyTeam: Part of the safety coordination team
 /// - Administrator: Full administrative access to the system
 /// - EventOrganizer: Can organize and manage events
+/// - DungeonMonitor: Monitors play spaces and ensures participant safety during events
 /// </remarks>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum UserRole
@@ -47,5 +48,12 @@ public enum UserRole
     /// Can organize and manage events.
     /// Has elevated permissions for event creation and management.
     /// </summary>
-    EventOrganizer
+    EventOrganizer,
+
+    /// <summary>
+    /// Dungeon monitor responsible for safety monitoring during events.
+    /// Monitors play spaces, enforces rules, and ensures participant safety.
+    /// No elevated system permissions beyond regular member access.
+    /// </summary>
+    DungeonMonitor
 }

@@ -324,26 +324,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/debug-status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Debug authentication status (DEV ONLY)
-         * @description Check current authentication status for debugging logout issues
-         */
-        get: operations["DebugAuthStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -2119,6 +2099,26 @@ export interface paths {
          * @description Update involved parties and/or witnesses information (Admin/Coordinator)
          */
         put: operations["UpdateIncidentPeople"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/incidents/{incidentId}/title": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update incident title
+         * @description Update the title of an incident (Admin/Coordinator)
+         */
+        put: operations["UpdateIncidentTitle"];
         post?: never;
         delete?: never;
         options?: never;
@@ -6093,6 +6093,16 @@ export interface components {
             reason?: null | string;
             metadata?: null | Record<string, never>;
         };
+        UpdateTitleRequest: {
+            title: string;
+        };
+        UpdateTitleResponse: {
+            /** Format: uuid */
+            id?: string;
+            title?: string;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+        };
         UpdateTriggerConfigRequest: {
             triggerType: components["schemas"]["TemplateTriggerType"];
             triggerEnabled: boolean;
@@ -6243,7 +6253,7 @@ export interface components {
             hasVettingApplication?: boolean;
         };
         /** @enum {unknown} */
-        UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer";
+        UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer" | "DungeonMonitor";
         UserRoleDto: {
             role?: components["schemas"]["UserRole"];
             displayName?: string;
@@ -6972,33 +6982,6 @@ export interface operations {
             };
             /** @description Bad Request */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    DebugAuthStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11853,6 +11836,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UpdatePeopleResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateIncidentTitle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTitleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateTitleResponse"];
                 };
             };
             /** @description Unauthorized */

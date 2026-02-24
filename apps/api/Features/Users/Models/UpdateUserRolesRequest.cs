@@ -9,7 +9,7 @@ public class UpdateUserRolesRequest
 {
     /// <summary>
     /// List of roles to assign to the user
-    /// Valid values: "Teacher", "SafetyTeam", "Administrator"
+    /// Valid values: "Teacher", "SafetyTeam", "Administrator", "EventOrganizer", "DungeonMonitor"
     /// Empty list = Regular member (no special roles)
     /// </summary>
     [Required]

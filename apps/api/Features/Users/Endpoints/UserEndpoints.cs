@@ -375,6 +375,7 @@ Role changes are logged for audit purposes.")
         {
             UserRole.SafetyTeam => "Safety Team",
             UserRole.EventOrganizer => "Event Organizer",
+            UserRole.DungeonMonitor => "Dungeon Monitor",
             _ => role.ToString()
         };
     }
@@ -390,6 +391,7 @@ Role changes are logged for audit purposes.")
             UserRole.SafetyTeam => "Part of the safety coordination team",
             UserRole.Administrator => "Full administrative access to the system",
             UserRole.EventOrganizer => "Can organize and manage events",
+            UserRole.DungeonMonitor => "Monitors play spaces and ensures participant safety during events",
             UserRole.Member => "Regular member with no special privileges",
             _ => string.Empty
         };
