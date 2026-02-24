@@ -5,12 +5,7 @@
 # ============================================================================
 # DEVELOPMENT-SPECIFIC VOLUMES
 # ============================================================================
-volumes:
-  # Test output volumes for development
-  test_reports:
-    driver: local
-  test_screenshots:
-    driver: local
+volumes: {}
 
 # ============================================================================
 # DEVELOPMENT SERVICE OVERRIDES
@@ -213,53 +208,6 @@ services:
       retries: 3
       start_period: 20s
 
-  # ==========================================================================
-  # Test Server - Development Only Service
-  # ==========================================================================
-  test-server:
-    image: python:3.11-alpine
-    container_name: witchcity-test-server
-    networks:
-      - witchcity-net
-
-    # External access for test runner UI
-    ports:
-      - "8080:3000"
-
-    depends_on:
-      api:
-        condition: service_healthy
-      web:
-        condition: service_healthy
-
-    environment:
-      # Test server configuration
-      NODE_ENV: test
-      API_BASE_URL: http://api:8080
-      WEB_BASE_URL: http://web:5173
-
-      # Test configuration
-      PYTHONUNBUFFERED: 1
-      PYTHONDONTWRITEBYTECODE: 1
-
-    volumes:
-      # Test files and outputs
-      - ./tests:/app/tests:ro
-      - test_reports:/app/reports
-      - test_screenshots:/app/screenshots
-
-    working_dir: /app
-
-    # Simple HTTP server for testing
-    command: ["python", "-m", "http.server", "3000"]
-
-    healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://127.0.0.1:3000 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-
 # ============================================================================
 # DEVELOPMENT USAGE INSTRUCTIONS
 # ============================================================================
@@ -292,7 +240,6 @@ services:
 #   React App:    http://localhost:5173
 #   API:          http://localhost:5655
 #   Database:     localhost:5434 (postgres/devpass123)
-#   Test Server:  http://localhost:8080
 #
 # Hot Reload Features:
 #   - React: Instant HMR for component changes

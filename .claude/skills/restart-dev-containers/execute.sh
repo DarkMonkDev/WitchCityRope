@@ -149,13 +149,10 @@ echo ""
 echo "4️⃣  Checking container status..."
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep witchcity
 
-# Expected containers: postgres, api, web (from docker-compose.yml)
-#                    + test-server (from docker-compose.dev.yml)
-# NOTE: Only count DEV containers, not test containers
-# Dev containers: witchcity-postgres, witchcity-api, witchcity-web, witchcity-test-server
-# Test containers have "-test" suffix (e.g., witchcity-api-test) or "test-runner" pattern
-EXPECTED_COUNT=4
-RUNNING_COUNT=$(docker ps --format "{{.Names}}" | grep -E "^witchcity-(postgres|api|web|test-server)$" | wc -l)
+# Expected containers: postgres, api, web (3 core dev containers)
+# Test infrastructure is handled separately by restart-test-containers skill
+EXPECTED_COUNT=3
+RUNNING_COUNT=$(docker ps --format "{{.Names}}" | grep -E "^witchcity-(postgres|api|web)$" | wc -l)
 if [ "$RUNNING_COUNT" -ne "$EXPECTED_COUNT" ]; then
     echo "   ❌ ERROR: Expected $EXPECTED_COUNT containers, found $RUNNING_COUNT"
     echo ""
@@ -287,7 +284,7 @@ echo "✅ Container Restart Complete"
 echo "=============================="
 echo ""
 echo "📊 Status Summary:"
-echo "   • Containers: 4/4 running (postgres, api, web, test-server)"
+echo "   • Containers: 3/3 running (postgres, api, web)"
 echo "   • Compilation: No errors"
 echo "   • Health checks: All passing"
 echo ""
@@ -305,8 +302,8 @@ cat <<EOF
   "status": "success",
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "containers": {
-    "running": 4,
-    "expected": 4,
+    "running": 3,
+    "expected": 3,
     "healthy": true
   },
   "compilation": {
