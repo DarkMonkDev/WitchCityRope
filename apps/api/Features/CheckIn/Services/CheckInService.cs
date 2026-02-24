@@ -652,7 +652,7 @@ public class CheckInService : ICheckInService
                     NormalizedUserName = request.Email.ToUpperInvariant(),
                     SceneName = request.Name,
                     PhoneNumber = request.Phone,
-                    Role = "Member",
+                    Role = "", // No special role for walk-in attendees
                     VettingStatus = 0, // Unvetted
                     IsActive = true,
                     EmailConfirmed = false,

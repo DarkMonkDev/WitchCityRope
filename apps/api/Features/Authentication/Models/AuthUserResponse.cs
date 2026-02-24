@@ -70,7 +70,8 @@ public class AuthUserResponse
         CreatedAt = user.CreatedAt;
         LastLoginAt = user.LastLoginAt;
         Role = user.Role;
-        Roles = new[] { user.Role }; // Frontend expects roles array, provide single role as array
+        // Frontend expects roles array; only include non-empty roles (empty string = no special role)
+        Roles = string.IsNullOrWhiteSpace(user.Role) ? Array.Empty<string>() : new[] { user.Role };
         IsActive = user.IsActive;
         IsVetted = user.IsVetted;
     }

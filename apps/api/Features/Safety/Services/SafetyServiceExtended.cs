@@ -138,9 +138,15 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 "location" => request.SortOrder.ToLower() == "asc"
                     ? query.OrderBy(i => i.Location)
                     : query.OrderByDescending(i => i.Location),
-                _ => request.SortOrder.ToLower() == "asc"
+                "lastupdatedat" or "updatedat" => request.SortOrder.ToLower() == "asc"
+                    ? query.OrderBy(i => i.UpdatedAt)
+                    : query.OrderByDescending(i => i.UpdatedAt),
+                "reportedat" => request.SortOrder.ToLower() == "asc"
                     ? query.OrderBy(i => i.ReportedAt)
-                    : query.OrderByDescending(i => i.ReportedAt)
+                    : query.OrderByDescending(i => i.ReportedAt),
+                _ => request.SortOrder.ToLower() == "asc"
+                    ? query.OrderBy(i => i.UpdatedAt)
+                    : query.OrderByDescending(i => i.UpdatedAt)
             };
 
             // Apply pagination
@@ -307,7 +313,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                     FullName = (u.FirstName != null && u.LastName != null)
                         ? $"{u.FirstName} {u.LastName}"
                         : (u.FirstName ?? u.LastName ?? ""),
-                    Role = u.Role ?? "Member",
+                    Role = u.Role ?? "",
                     ActiveIncidentCount = _context.SafetyIncidents
                         .Count(i => i.CoordinatorId == u.Id && i.Status != IncidentStatus.Closed)
                 })
@@ -661,6 +667,71 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         {
             _logger.LogError(ex, "Failed to update people for incident {IncidentId}", incidentId);
             return Result<UpdatePeopleResponse>.Failure("Failed to update people information");
+        }
+    }
+
+    /// <summary>
+    /// Update incident title
+    /// Creates system note for title change
+    /// Authorization: Admin or assigned coordinator
+    /// </summary>
+    public async Task<Result<UpdateTitleResponse>> UpdateTitleAsync(
+        Guid incidentId,
+        UpdateTitleRequest request,
+        Guid userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var incident = await _context.SafetyIncidents
+                .FirstOrDefaultAsync(i => i.Id == incidentId, cancellationToken);
+
+            if (incident == null)
+            {
+                return Result<UpdateTitleResponse>.Failure("Incident not found");
+            }
+
+            // Check authorization - admin or assigned coordinator
+            var canAccess = await CanUserAccessIncidentAsync(userId, incident, cancellationToken);
+            if (!canAccess)
+            {
+                return Result<UpdateTitleResponse>.Failure("Access denied - you can only update incidents assigned to you");
+            }
+
+            var oldTitle = incident.Title;
+            incident.Title = request.Title;
+            incident.UpdatedAt = DateTime.UtcNow;
+            incident.UpdatedBy = userId;
+
+            // Create system note recording the title change
+            var noteContent = $"Title updated from \"{oldTitle}\" to \"{request.Title}\"";
+            await CreateSystemNoteAsync(incidentId, noteContent, userId, cancellationToken);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Log audit trail
+            await _auditService.LogActionAsync(
+                incidentId,
+                userId,
+                "TitleUpdated",
+                $"Title changed from \"{oldTitle}\" to \"{request.Title}\"",
+                cancellationToken: cancellationToken);
+
+            _logger.LogInformation("Incident {IncidentId} title updated by user {UserId}",
+                incidentId, userId);
+
+            return Result<UpdateTitleResponse>.Success(new UpdateTitleResponse
+            {
+                Id = incident.Id,
+                Title = incident.Title,
+                LastUpdatedAt = incident.UpdatedAt
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update title for incident {IncidentId}", incidentId);
+            return Result<UpdateTitleResponse>.Failure($"Failed to update title: {ex.Message}");
         }
     }
 

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Safety.Entities;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Users.Constants;
 using WitchCityRope.Api.Features.Users.Models.MemberDetails;
 using WitchCityRope.Api.Models;
 
@@ -703,12 +704,12 @@ public class MemberDetailsService : IMemberDetailsService
                 return (false, "User not found");
             }
 
-            // Validate role
-            var validRoles = new[] { "Admin", "Teacher", "VettedMember", "Member", "Guest", "SafetyTeam" };
-            if (!validRoles.Contains(request.Role))
+            // Validate role - empty string is allowed (means "no special role")
+            // Valid assignable roles come from UserRoleConstants (single source of truth)
+            if (!string.IsNullOrEmpty(request.Role) && !UserRoleConstants.ValidRoles.Contains(request.Role))
             {
-                _logger.LogWarning("Invalid role: {Role}", request.Role);
-                return (false, $"Invalid role. Must be one of: {string.Join(", ", validRoles)}");
+                _logger.LogWarning("Invalid role: {Role}. Valid roles: {ValidRoles}", request.Role, string.Join(", ", UserRoleConstants.ValidRoles));
+                return (false, $"Invalid role. Must be one of: {string.Join(", ", UserRoleConstants.ValidRoles)}, or empty to remove special role");
             }
 
             var oldRole = user.Role;

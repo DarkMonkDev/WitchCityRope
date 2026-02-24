@@ -74,7 +74,13 @@ public class ApplicationUser : IdentityUser<Guid>
     // But need to be here for EF Core mapping
     public string EncryptedLegalName { get; set; } = string.Empty;
     public DateTime DateOfBirth { get; set; } = DateTime.UtcNow;
-    public string Role { get; set; } = "Member";
+    /// <summary>
+    /// User's assigned role (e.g., "Administrator", "Teacher", "SafetyTeam", "EventOrganizer").
+    /// Empty string means no special role - this is the default for new registrations.
+    /// "Member" is NOT a valid role and should never be assigned.
+    /// Valid roles are defined in UserRoleConstants.ValidRoles.
+    /// </summary>
+    public string Role { get; set; } = "";
 
     /// <summary>
     /// Indicates whether the user account is active.

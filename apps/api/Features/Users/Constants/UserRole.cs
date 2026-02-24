@@ -18,8 +18,10 @@ namespace WitchCityRope.Api.Features.Users.Constants;
 public enum UserRole
 {
     /// <summary>
-    /// Regular member with no special privileges.
-    /// This is the default state - not assigned as an actual role in ASP.NET Identity.
+    /// Represents the absence of a special role - NEVER assign this as a role.
+    /// Exists in the enum for serialization/display purposes only.
+    /// Users without special roles have Role = "" (empty string) in the database.
+    /// Excluded from UserRoleConstants.ValidRoles by design.
     /// </summary>
     Member,
 

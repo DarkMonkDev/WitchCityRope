@@ -10,7 +10,7 @@ public class MemberDetailsResponse
     public string? Email { get; set; }
     public string? DiscordName { get; set; }
     public string? FetLifeHandle { get; set; }
-    public string Role { get; set; } = "Member";
+    public string Role { get; set; } = ""; // Empty string = no special role
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
@@ -220,7 +220,7 @@ public class UpdateMemberStatusRequest
 /// </summary>
 public class UpdateMemberRoleRequest
 {
-    public string Role { get; set; } = "Member"; // "Admin", "Teacher", "VettedMember", "Member", "Guest", "SafetyTeam"
+    public string Role { get; set; } = ""; // Valid roles: "Administrator", "Teacher", "SafetyTeam", "EventOrganizer", or "" (no special role)
 }
 
 /// <summary>

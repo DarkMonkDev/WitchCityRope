@@ -54,7 +54,7 @@ public class JwtService : IJwtService
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
                 new Claim("scene_name", user.SceneName ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? "Member"), // Add role claim for authorization
+                new Claim(ClaimTypes.Role, user.Role ?? ""), // Empty string = no special role; "Member" is not a valid role
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };

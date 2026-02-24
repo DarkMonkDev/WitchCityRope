@@ -68,7 +68,7 @@ public class TestHelperService : ITestHelperService
                 SceneName = request.SceneName,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Role = request.Role ?? "Member",
+                Role = request.Role ?? "", // Empty string = no special role; "Member" is not a valid role
                 VettingStatus = request.VettingStatus, // 0-6 enum value, 3 = Approved (vetted)
                 Bio = request.Bio,
                 Pronouns = request.Pronouns ?? string.Empty, // CRITICAL: Database has NOT NULL constraint
@@ -96,7 +96,7 @@ public class TestHelperService : ITestHelperService
                 Id = user.Id.ToString(),
                 Email = user.Email!,
                 SceneName = user.SceneName,
-                Role = user.Role ?? "Member",
+                Role = user.Role ?? "",
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -132,7 +132,7 @@ public class TestHelperService : ITestHelperService
                     Id = existingUser.Id.ToString(),
                     Email = existingUser.Email!,
                     SceneName = existingUser.SceneName,
-                    Role = existingUser.Role ?? "Member",
+                    Role = existingUser.Role ?? "",
                     CreatedAt = existingUser.CreatedAt
                 }, null);
             }
@@ -416,7 +416,7 @@ public class TestHelperService : ITestHelperService
             EmailConfirmed = true,
             IsActive = true,
             SceneName = $"E2E Test User {uniqueId}",
-            Role = "Member",
+            Role = "", // No special role for walk-in test users
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
