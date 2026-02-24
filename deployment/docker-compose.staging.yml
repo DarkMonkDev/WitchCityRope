@@ -22,7 +22,7 @@ services:
   api:
     env_file:
       - .env
-    image: registry.digitalocean.com/witchcityrope/witchcityrope-api:${IMAGE_TAG:-staging}
+    image: registry.digitalocean.com/witchcityrope/staging-api-witchcityrope:${IMAGE_TAG:-latest}
     container_name: witchcity-api-staging
     restart: unless-stopped
     networks:
@@ -104,7 +104,7 @@ services:
   # Web Service - React + Vite (Staging Build with Nginx)
   # ==========================================================================
   web:
-    image: registry.digitalocean.com/witchcityrope/witchcityrope-web:${IMAGE_TAG:-staging}
+    image: registry.digitalocean.com/witchcityrope/staging-web-witchcityrope:${IMAGE_TAG:-latest}
     container_name: witchcity-web-staging
     restart: unless-stopped
     networks:
@@ -190,8 +190,8 @@ services:
 #
 # Docker Registry:
 #   - Images pushed to: registry.digitalocean.com/witchcityrope/
-#   - API image: registry.digitalocean.com/witchcityrope/witchcityrope-api:staging
-#   - Web image: registry.digitalocean.com/witchcityrope/witchcityrope-web:staging
+#   - API image: registry.digitalocean.com/witchcityrope/staging-api-witchcityrope:latest
+#   - Web image: registry.digitalocean.com/witchcityrope/staging-web-witchcityrope:latest
 #
 # Deployment Commands:
 #   cd /opt/witchcityrope/staging
