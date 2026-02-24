@@ -19,8 +19,13 @@ export function useAuthRefresh() {
       try {
         console.log('🔄 Attempting automatic token refresh...')
 
-        // Use apiClient for consistent error handling and CSRF protection
-        await apiClient.post('/api/auth/refresh')
+        // Use apiClient for consistent error handling and CSRF protection.
+        // skipAutoRedirect: true prevents the API interceptor from redirecting to /login
+        // on 401. Token refresh is speculative — if the user isn't authenticated, 401 simply
+        // means "nothing to refresh" and should not trigger a login redirect. Without this,
+        // unauthenticated users on non-public routes (like the 404 page) get bounced to login
+        // 5 seconds after page load when this initial refresh fires.
+        await apiClient.post('/api/auth/refresh', null, { skipAutoRedirect: true })
         console.log('✅ Token refresh successful')
       } catch (error: any) {
         if (error.response?.status === 401) {

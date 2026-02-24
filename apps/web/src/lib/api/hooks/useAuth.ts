@@ -16,12 +16,20 @@ export function useCurrentUser(enabled: boolean = true) {
     queryKey: authKeys.me(),
     queryFn: async (): Promise<UserDto> => {
       // Try the protected welcome endpoint first (existing pattern)
+      // skipAutoRedirect: true prevents the API interceptor from redirecting to /login
+      // on 401 responses. This is a "check if logged in" call — 401 means "not logged in"
+      // and should be handled locally, not trigger a redirect (which would break pages
+      // like the 404 page that are visible to unauthenticated users).
       try {
-        const { data } = await apiClient.get<{ user: UserDto }>('/api/protected/welcome')
+        const { data } = await apiClient.get<{ user: UserDto }>('/api/protected/welcome', {
+          skipAutoRedirect: true,
+        })
         return data.user
-      } catch (error) {
+      } catch {
         // Fallback to dedicated user endpoint
-        const { data } = await apiClient.get<UserDto>('/api/auth/user')
+        const { data } = await apiClient.get<UserDto>('/api/auth/user', {
+          skipAutoRedirect: true,
+        })
         return data
       }
     },

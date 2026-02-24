@@ -1,14 +1,21 @@
 import { useRouteError, isRouteErrorResponse, Link } from 'react-router-dom';
 import { Box, Title, Text, Button, Group, Paper } from '@mantine/core';
+import { NotFoundPage } from '../../pages/NotFoundPage';
 
 /**
  * Root Error Boundary for React Router v7
- * 
+ *
  * Handles different types of routing errors:
- * - HTTP status errors (404, 403, etc.)
- * - Generic JavaScript errors
- * - Network/API errors
- * 
+ * - HTTP 404 errors → renders branded NotFoundPage
+ * - HTTP 403 errors → shows login prompt
+ * - Other HTTP errors → shows status code and message
+ * - Generic JavaScript errors → shows error details (stack trace in dev only)
+ * - Network/API errors → shows generic error message
+ *
+ * This component is used as `errorElement` in the router config, which means
+ * it renders within the router context and has access to useNavigate() and
+ * other router hooks. NotFoundPage can safely use useNavigate() here.
+ *
  * Pattern from: /docs/functional-areas/routing-validation/requirements/functional-specification.md
  * Section 4.4 - Error handling patterns
  */
@@ -17,6 +24,14 @@ export const RootErrorBoundary: React.FC = () => {
 
   // Handle HTTP status errors (404, 403, etc.)
   if (isRouteErrorResponse(error)) {
+    // For 404 errors, render the branded NotFoundPage component
+    // instead of the generic error UI. This provides a consistent
+    // 404 experience regardless of whether the error comes from
+    // a route-level throw or an unmatched URL pattern.
+    if (error.status === 404) {
+      return <NotFoundPage />;
+    }
+
     return (
       <Box
         style={{
@@ -31,7 +46,7 @@ export const RootErrorBoundary: React.FC = () => {
           <Title order={1} c="red" mb="md">
             {error.status} {error.statusText}
           </Title>
-          
+
           <Text size="lg" mb="xl" c="dimmed">
             {error.data || 'Something went wrong'}
           </Text>
@@ -47,18 +62,7 @@ export const RootErrorBoundary: React.FC = () => {
                 Login Required
               </Button>
             )}
-            
-            {error.status === 404 && (
-              <Button
-                component={Link}
-                to="/"
-                variant="filled"
-                color="violet"
-              >
-                Return Home
-              </Button>
-            )}
-            
+
             <Button
               variant="outline"
               onClick={() => window.location.reload()}
@@ -72,8 +76,8 @@ export const RootErrorBoundary: React.FC = () => {
   }
 
   // Handle generic JavaScript errors
-  const errorMessage = error instanceof Error 
-    ? error.message 
+  const errorMessage = error instanceof Error
+    ? error.message
     : 'An unexpected error occurred';
 
   const errorStack = error instanceof Error && error.stack
@@ -94,11 +98,11 @@ export const RootErrorBoundary: React.FC = () => {
         <Title order={1} c="red" mb="md">
           Something went wrong
         </Title>
-        
+
         <Text size="lg" mb="md" c="dimmed">
           {errorMessage}
         </Text>
-        
+
         {process.env.NODE_ENV === 'development' && errorStack && (
           <Box
             style={{
@@ -128,7 +132,7 @@ export const RootErrorBoundary: React.FC = () => {
           >
             Return Home
           </Button>
-          
+
           <Button
             variant="outline"
             onClick={() => window.location.reload()}

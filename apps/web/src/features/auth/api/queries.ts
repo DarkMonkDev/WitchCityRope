@@ -16,7 +16,14 @@ export function useCurrentUser() {
   return useQuery<UserDto>({
     queryKey: ['auth', 'user'],
     queryFn: async (): Promise<UserDto> => {
-      const response = await apiClient.get<UserDto>('/api/auth/user')
+      // skipAutoRedirect: true prevents the API interceptor from redirecting to /login
+      // on 401. This is a "check if logged in" query — 401 simply means "not authenticated"
+      // and should be handled by TanStack Query's error state, not a page redirect.
+      // Without this, unauthenticated users on non-public routes (like the 404 page)
+      // get incorrectly bounced to the login page.
+      const response = await apiClient.get<UserDto>('/api/auth/user', {
+        skipAutoRedirect: true,
+      })
       return response.data  // API returns UserDto directly, not wrapped in ApiResponse
     },
     staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
@@ -37,7 +44,11 @@ export function useProtectedWelcome() {
   return useQuery<ProtectedWelcomeData>({
     queryKey: ['protected', 'welcome'],
     queryFn: async (): Promise<ProtectedWelcomeData> => {
-      const response = await apiClient.get<ProtectedWelcomeData>('/api/protected/welcome')
+      // skipAutoRedirect: true — same pattern as useCurrentUser above.
+      // Auth check queries should never trigger login redirects.
+      const response = await apiClient.get<ProtectedWelcomeData>('/api/protected/welcome', {
+        skipAutoRedirect: true,
+      })
       return response.data
     },
     staleTime: 30 * 1000, // Consider data stale after 30 seconds

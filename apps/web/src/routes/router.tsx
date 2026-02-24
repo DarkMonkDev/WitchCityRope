@@ -25,6 +25,7 @@ import { LowercaseUrlRedirect } from './guards/LowercaseUrlRedirect'
 import { authLoader } from './loaders/authLoader'
 import { adminLoader } from './loaders/adminLoader'
 import { UnauthorizedPage } from '../pages/UnauthorizedPage'
+import { NotFoundPage } from '../pages/NotFoundPage'
 
 // Events system pages
 import { EventsListPage } from '../pages/events/EventsListPage'
@@ -340,12 +341,23 @@ export const router = createBrowserRouter([
         loader: adminLoader,
       },
 
-      // Dynamic CMS route - MUST BE LAST to avoid matching static routes
+      // Dynamic CMS route - must be SECOND TO LAST to avoid matching static routes
       // Matches any single-level path that doesn't match routes above
       // Examples: /resources, /about-us, /terms-of-service, /faq, etc.
+      // Note: CmsDynamicPage handles its own 404 when a slug doesn't exist in the CMS
       {
         path: ':slug',
         element: <CmsDynamicPage />,
+      },
+
+      // 404 catch-all route - MUST BE ABSOLUTELY LAST
+      // Catches multi-segment unknown URLs (e.g., /foo/bar/baz) that don't match
+      // any explicit route or the single-segment CMS :slug route above.
+      // Single-segment unknown URLs (e.g., /asdfgh) are caught by :slug and
+      // CmsDynamicPage renders NotFoundPage when the CMS API returns 404.
+      {
+        path: '*',
+        element: <NotFoundPage />,
       },
     ],
   },
