@@ -417,7 +417,6 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
                     styles={{
                       root: {
                         fontWeight: 600,
-                        height: '32px',
                         fontSize: '12px',
                         lineHeight: '1.2'
                       }

@@ -57,7 +57,7 @@ export const AdminPaymentsPage: React.FC = () => {
       {/* Page Header */}
       <Title
         order={1}
-        mb="xl"
+        mb={0}
         c="wcr.7"
         size="2.5rem"
       >
