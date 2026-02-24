@@ -87,6 +87,18 @@ public interface ISafetyServiceExtended : ISafetyService
         bool isAdmin,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Update incident title
+    /// Creates system note on update
+    /// Authorization: Admin or assigned coordinator
+    /// </summary>
+    Task<Result<UpdateTitleResponse>> UpdateTitleAsync(
+        Guid incidentId,
+        UpdateTitleRequest request,
+        Guid userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default);
+
     #endregion
 
     #region Phase 4: Notes System

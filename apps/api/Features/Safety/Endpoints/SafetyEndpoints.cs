@@ -436,6 +436,61 @@ public static class SafetyEndpoints
         .ProducesProblem(422)
         .ProducesProblem(500);
 
+        // Update incident title
+        group.MapPut("/admin/incidents/{incidentId:guid}/title", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
+            Guid incidentId,
+            UpdateTitleRequest request,
+            [FromServices] ISafetyServiceExtended safetyService,
+            [FromServices] IValidator<UpdateTitleRequest> validator,
+            ClaimsPrincipal user,
+            CancellationToken cancellationToken) =>
+        {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
+            var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException());
+            var isAdmin = user.IsInRole("Administrator");
+
+            var result = await safetyService.UpdateTitleAsync(incidentId, request, userId, isAdmin, cancellationToken);
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.Problem(
+                    title: "Title Update Failed",
+                    detail: result.Error,
+                    statusCode: result.Error.Contains("Access denied") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+        })
+        .WithName("UpdateIncidentTitle")
+        .WithSummary("Update incident title")
+        .WithDescription("Update the title of an incident (Admin/Coordinator)")
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
+        .Produces<UpdateTitleResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(422)
+        .ProducesProblem(500);
+
         #endregion
 
         #region Notes System (Phase 4)

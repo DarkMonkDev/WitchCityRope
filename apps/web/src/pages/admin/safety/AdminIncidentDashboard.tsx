@@ -39,7 +39,7 @@ export const AdminIncidentDashboard: React.FC = () => {
     pageSize: 25,
     searchQuery: '',
     statusFilters: ['ReportSubmitted', 'InformationGathering', 'ReviewingFinalReport'],
-    sortBy: 'reportedAt',
+    sortBy: 'lastUpdatedAt',
     sortDirection: 'desc'
   });
 
@@ -92,7 +92,7 @@ export const AdminIncidentDashboard: React.FC = () => {
       pageSize: 25,
       searchQuery: '',
       statusFilters: [],
-      sortBy: 'reportedAt',
+      sortBy: 'lastUpdatedAt',
       sortDirection: 'desc'
     });
   }, []);
@@ -263,6 +263,13 @@ export const AdminIncidentDashboard: React.FC = () => {
                   </Group>
                 </Table.Th>
 
+                {/* Submitted By column - shows reporter name or "Anonymous" */}
+                <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
+                  <Text fw={600} size="sm" c="white" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Submitted By
+                  </Text>
+                </Table.Th>
+
                 {/* Status column - sortable */}
                 <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('status')}>
                   <Group gap={4} justify="flex-start">
@@ -284,12 +291,12 @@ export const AdminIncidentDashboard: React.FC = () => {
                 </Table.Th>
 
                 {/* Last Updated column - sortable */}
-                <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('reportedAt')}>
+                <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('lastUpdatedAt')}>
                   <Group gap={4} justify="flex-start">
                     <Text fw={600} size="sm" c="white" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Last Updated
                     </Text>
-                    {getSortIcon('reportedAt')}
+                    {getSortIcon('lastUpdatedAt')}
                   </Group>
                 </Table.Th>
               </Table.Tr>
@@ -313,6 +320,12 @@ export const AdminIncidentDashboard: React.FC = () => {
                       </Text>
                     </Box>
                   </Table.Td>
+                  {/* Submitted By - reporter name or "Anonymous" for anonymous reports */}
+                  <Table.Td>
+                    <Text size="sm" c={incident.isAnonymous ? 'dimmed' : undefined} style={incident.isAnonymous ? undefined : { color: '#2B2B2B' }}>
+                      {incident.isAnonymous ? 'Anonymous' : (incident.reporterName || 'Unknown')}
+                    </Text>
+                  </Table.Td>
                   <Table.Td>
                     <Badge color={getStatusColor(incident.status || '')}>
                       {formatStatus(incident.status || 'Unknown')}
@@ -325,7 +338,7 @@ export const AdminIncidentDashboard: React.FC = () => {
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm" style={{ color: '#2B2B2B' }}>
-                      {formatDate(incident.reportedAt!)}
+                      {formatDate(incident.lastUpdatedAt || incident.reportedAt!)}
                     </Text>
                   </Table.Td>
                 </Table.Tr>

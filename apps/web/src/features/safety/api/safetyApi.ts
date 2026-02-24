@@ -149,6 +149,18 @@ export const safetyApi = {
   },
 
   /**
+   * Update incident title (admin/coordinator only)
+   * PUT /api/safety/admin/incidents/{id}/title
+   */
+  async updateIncidentTitle(incidentId: string, title: string): Promise<{ id: string; title: string; lastUpdatedAt: string }> {
+    const { data } = await apiClient.put<{ id: string; title: string; lastUpdatedAt: string }>(
+      `/api/safety/admin/incidents/${incidentId}/title`,
+      { title }
+    );
+    return data;
+  },
+
+  /**
    * Delete an incident (admin only)
    */
   async deleteIncident(incidentId: string): Promise<void> {

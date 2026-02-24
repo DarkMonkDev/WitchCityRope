@@ -5,6 +5,7 @@ import { IconArrowLeft, IconUserPlus, IconAlertCircle, IconCheck, IconClock, Ico
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
 import { apiClient } from '@/lib/api/client';
+import { safetyApi } from '@/features/safety/api/safetyApi';
 import { IncidentDetailsCard } from '@/features/safety/components/IncidentDetailsCard';
 import { PeopleInvolvedCard } from '@/features/safety/components/PeopleInvolvedCard';
 import { InvestigationNotes, InvestigationNotesRef } from '@/features/safety/components/InvestigationNotes';
@@ -178,15 +179,45 @@ export const AdminIncidentDetailPage: React.FC = () => {
     setIsEditingTitle(true);
   };
 
+  // Title update mutation - calls PUT /api/safety/admin/incidents/{id}/title
+  const titleMutation = useMutation<
+    { id: string; title: string; lastUpdatedAt: string },
+    Error,
+    string
+  >({
+    mutationFn: (newTitle: string) => safetyApi.updateIncidentTitle(id!, newTitle),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['safety', 'incident', id] });
+      queryClient.invalidateQueries({ queryKey: ['safety', 'incidents'] });
+      // Refetch notes to show new system-generated note for title change
+      notesRef.current?.refetch();
+      showNotification({
+        title: 'Success',
+        message: 'Title updated successfully',
+        color: 'green',
+      });
+      setIsEditingTitle(false);
+    },
+    onError: (error: Error) => {
+      showNotification({
+        title: 'Error',
+        message: error instanceof Error ? error.message : 'Failed to update title',
+        color: 'red',
+      });
+    }
+  });
+
   const handleSaveTitle = () => {
-    // TODO: Add API endpoint for updating incident title
-    // For now, just close the edit mode
-    showNotification({
-      title: 'Not Implemented',
-      message: 'Title update endpoint not yet implemented',
-      color: 'orange',
-    });
-    setIsEditingTitle(false);
+    const trimmedTitle = editedTitle.trim();
+    if (!trimmedTitle) {
+      showNotification({
+        title: 'Validation Error',
+        message: 'Title cannot be empty',
+        color: 'orange',
+      });
+      return;
+    }
+    titleMutation.mutate(trimmedTitle);
   };
 
   const handleCancelEditTitle = () => {
