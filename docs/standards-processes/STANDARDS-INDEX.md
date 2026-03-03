@@ -22,7 +22,8 @@
 |----------|---------|--------------|------|
 | [backend/service-layer-patterns.md](./backend/service-layer-patterns.md) | Service implementation patterns, API controllers | Implementing services/endpoints | 206 lines |
 | [backend/api-design-patterns.md](./backend/api-design-patterns.md) | REST API design, HTTP methods, endpoint conventions | Designing/implementing API endpoints | 400 lines |
-| [backend/error-handling-patterns.md](./backend/error-handling-patterns.md) | Result pattern, structured logging, exception handling | Implementing error handling | 160 lines |
+| [backend/error-handling-patterns.md](./backend/error-handling-patterns.md) | Result pattern, exception handling | Implementing error handling | 100 lines |
+| [backend/serilog-logging-guide.md](./backend/serilog-logging-guide.md) | Structured logging, PostgreSQL sink, enrichers, gotchas | Any logging work, new API endpoints | ~200 lines |
 | [backend/database-patterns.md](./backend/database-patterns.md) | EF Core query patterns, migrations reference | Database queries, data access | 100 lines |
 | [backend/vertical-slice-architecture.md](./backend/vertical-slice-architecture.md) | Feature-based code organization patterns | Understanding project structure, new features | 150 lines |
 | [backend/performance-standards.md](./backend/performance-standards.md) | Performance benchmarks, query optimization, caching | Performance work, optimization | 162 lines |
@@ -117,7 +118,8 @@ Read:
 1. CODING_STANDARDS.md (general principles)
 2. backend/service-layer-patterns.md (service implementation)
 3. backend/error-handling-patterns.md (error handling)
-4. development-standards/entity-framework-patterns.md (database queries)
+4. backend/serilog-logging-guide.md (logging patterns)
+5. development-standards/entity-framework-patterns.md (database queries)
 ```
 
 **Task**: Fix database query performance

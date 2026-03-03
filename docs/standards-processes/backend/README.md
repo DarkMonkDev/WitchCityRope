@@ -7,12 +7,12 @@ This folder contains comprehensive backend API coding standards, implementation 
 
 ### Implementation Guides
 - **vertical-slice-implementation-guide.md**: Complete guide for Simple Vertical Slice Architecture pattern used in WitchCityRope API
+- **serilog-logging-guide.md**: Structured logging with Serilog — message templates, auto-enrichment, PostgreSQL sink, frontend error capture, deployment gotchas
 
 ### Future Standards (To Be Added)
 - Error handling patterns and standards
 - Database query optimization guidelines
 - Caching strategies and implementation
-- Logging standards and best practices
 - Testing patterns for backend services
 - Security implementation guidelines
 - Performance optimization techniques
@@ -64,4 +64,4 @@ Backend standards are actively maintained and updated based on:
 **Created**: 2025-10-23
 **Owner**: Backend Development Team
 **Status**: Active
-**Last Updated**: 2025-10-23
+**Last Updated**: 2026-03-02

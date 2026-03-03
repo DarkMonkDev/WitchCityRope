@@ -4360,6 +4360,37 @@
         }
       }
     },
+    "/api/client-errors": {
+      "post": {
+        "tags": [
+          "Logging"
+        ],
+        "summary": "Ingest frontend error reports",
+        "description": "Receives a batch of client-side error reports for server-side logging and analysis",
+        "operationId": "ReportClientErrors",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientErrorBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/test-helpers/users": {
       "post": {
         "tags": [
@@ -9771,6 +9802,254 @@
         }
       }
     },
+    "/api/admin/logs": {
+      "get": {
+        "tags": [
+          "Admin Logs"
+        ],
+        "summary": "Query application logs",
+        "description": "Search and filter raw application logs with pagination. Returns logs ordered by timestamp descending.",
+        "operationId": "QueryLogs",
+        "parameters": [
+          {
+            "name": "From",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "Level",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SourceContext",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "UserId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "CorrelationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogQueryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/logs/summaries": {
+      "get": {
+        "tags": [
+          "Admin Logs"
+        ],
+        "summary": "Query daily log summaries",
+        "description": "Retrieve aggregated daily log summaries with optional category filter.",
+        "operationId": "QueryDailyLogSummaries",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DailyLogSummaryDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/logs/summaries/cc-failures": {
+      "get": {
+        "tags": [
+          "Admin Logs"
+        ],
+        "summary": "Query credit card failure summaries",
+        "description": "Convenience endpoint to retrieve daily credit card failure summaries.",
+        "operationId": "QueryCcFailureSummaries",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DailyLogSummaryDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/backup": {
       "post": {
         "tags": [
@@ -12491,6 +12770,65 @@
           }
         }
       },
+      "ClientErrorBatch": {
+        "required": [
+          "errors"
+        ],
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientErrorReport"
+            }
+          }
+        }
+      },
+      "ClientErrorReport": {
+        "required": [
+          "message",
+          "type",
+          "url",
+          "timestamp",
+          "userAgent"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "stack": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "componentStack": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "metadata": {
+            "type": [
+              "null",
+              "object"
+            ]
+          }
+        }
+      },
       "CmsPageSummaryDto": {
         "type": "object",
         "properties": {
@@ -13416,6 +13754,34 @@
             "type": "string"
           },
           "authCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DailyLogSummaryDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "category": {
+            "type": "string"
+          },
+          "subcategory": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "metadata": {
             "type": [
               "null",
               "string"
@@ -14758,6 +15124,57 @@
           "OtherConcern"
         ]
       },
+      "LogEntryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "levelName": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "exception": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sourceContext": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "correlationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requestPath": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "LoginRequest": {
         "required": [
           "emailOrSceneName",
@@ -14797,6 +15214,39 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "LogQueryResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogEntryDto"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
           }
         }
       },
@@ -18986,6 +19436,9 @@
       "name": "Refunds"
     },
     {
+      "name": "Logging"
+    },
+    {
       "name": "Testing"
     },
     {
@@ -19011,6 +19464,9 @@
     },
     {
       "name": "CMS"
+    },
+    {
+      "name": "Admin Logs"
     },
     {
       "name": "Backup"

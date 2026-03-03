@@ -30,6 +30,7 @@ You are a senior code reviewer for WitchCityRope, the guardian of code quality a
 - **Backend Patterns**: `/docs/lessons-learned/backend-developer-lessons-learned.md`
 - **Entity Framework**: `/docs/standards-processes/development-standards/entity-framework-patterns.md`
 - **Vertical Slice**: `/docs/architecture/react-migration/vertical-slice-architecture-guide.md`
+- **Serilog Logging**: `/docs/standards-processes/backend/serilog-logging-guide.md` - Logging patterns and structured message templates
 
 ### For React Code Review (Components, Hooks, State):
 - **React Patterns**: `/docs/standards-processes/development-standards/react-patterns.md`
@@ -192,7 +193,9 @@ REVIEW CHECKLIST:
 - [ ] Dependency injection used
 - [ ] Async all the way
 - [ ] Proper error handling
-- [ ] Logging implemented
+- [ ] Logging uses message templates, not string interpolation
+- [ ] No manual CorrelationId/UserId properties (middleware injects these)
+- [ ] Sensitive data not logged raw (passwords, tokens, keys)
 - [ ] Transactions where needed
 - [ ] Cache invalidation
 ```

@@ -1,6 +1,6 @@
 # Current Technology Stack
 
-**Last Updated**: 2025-10-08
+**Last Updated**: 2026-03-02
 **Status**: Active
 **Owner**: Architecture Team
 
@@ -64,6 +64,16 @@ This document serves as the single source of truth for all technologies currentl
 - **Security**: httpOnly cookies, XSS protection, CSRF protection
 - **Session Management**: Silent token refresh
 - **Documentation**: `/docs/functional-areas/authentication/`
+
+### Logging
+- **Framework**: Serilog 10.0 (drop-in for ILogger<T>, structured logging)
+- **Persistence**: PostgreSQL sink (Serilog.Sinks.Postgresql.Alternative 4.2.0) — non-Development only
+- **Storage**: `logging` schema, `application_logs` table (same database as application)
+- **Enrichment**: CorrelationId middleware, UserContext middleware, sensitive data masking
+- **Retention**: 90-day raw logs (auto-cleanup), permanent daily summaries
+- **Frontend Capture**: POST /api/client-errors (batch endpoint, rate-limited)
+- **Admin Queries**: GET /api/admin/logs, GET /api/admin/logs/summaries
+- **Documentation**: `/docs/standards-processes/backend/serilog-logging-guide.md`
 
 ## Testing Technologies
 
@@ -190,6 +200,7 @@ All technology decisions must:
 
 | Date | Change | Reason | Impact |
 |------|--------|--------|--------|
+| 2026-03-02 | Serilog structured logging with PostgreSQL persistence | Replace console-only output, enable queryable logs | New logging infrastructure |
 | 2025-10-08 | @mantine/tiptap replaced TinyMCE | API key management, testing quotas | No breaking changes |
 | 2025-09-14 | React migration complete | Frontend modernization | Complete UI rewrite |
 | 2025-09-14 | PayPal integration complete | Payment processing | New payment capabilities |

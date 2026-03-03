@@ -54,69 +54,12 @@ public async Task<Result<VettingDecision>> ProcessVettingApplicationAsync(int ap
 
 ## Structured Logging
 
-Use structured logging with proper context and correlation:
+See the **[Serilog Logging Guide](./serilog-logging-guide.md)** for all logging patterns and standards.
 
-```csharp
-/// <summary>
-/// Processes event registration with comprehensive logging for troubleshooting
-/// and business intelligence. Logs include user context, event details, and
-/// outcome for complete audit trail.
-/// </summary>
-public async Task<RegistrationResult> RegisterForEventAsync(int userId, int eventId)
-{
-    using var scope = _logger.BeginScope(new Dictionary<string, object>
-    {
-        ["UserId"] = userId,
-        ["EventId"] = eventId,
-        ["OperationType"] = "EventRegistration"
-    });
-
-    _logger.LogInformation("Starting event registration process for user {UserId} and event {EventId}",
-        userId, eventId);
-
-    try
-    {
-        // Check user eligibility
-        var eligibilityCheck = await CheckUserEligibilityAsync(userId, eventId);
-        if (!eligibilityCheck.IsEligible)
-        {
-            _logger.LogWarning("User {UserId} not eligible for event {EventId}: {Reason}",
-                userId, eventId, eligibilityCheck.Reason);
-            return RegistrationResult.NotEligible(eligibilityCheck.Reason);
-        }
-
-        // Check event capacity
-        var capacityCheck = await CheckEventCapacityAsync(eventId);
-        if (!capacityCheck.HasCapacity)
-        {
-            _logger.LogInformation("Event {EventId} at capacity, adding user {UserId} to waitlist",
-                eventId, userId);
-            return await AddToWaitlistAsync(userId, eventId);
-        }
-
-        // Process registration
-        var registration = await CreateRegistrationAsync(userId, eventId);
-
-        _logger.LogInformation("Successfully registered user {UserId} for event {EventId}. " +
-            "Registration ID: {RegistrationId}",
-            userId, eventId, registration.Id);
-
-        return RegistrationResult.Success(registration);
-    }
-    catch (PaymentException ex)
-    {
-        _logger.LogError(ex, "Payment failed for user {UserId} registering for event {EventId}",
-            userId, eventId);
-        return RegistrationResult.PaymentFailed(ex.Message);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Unexpected error during event registration for user {UserId} and event {EventId}",
-            userId, eventId);
-        return RegistrationResult.SystemError("Registration could not be completed at this time");
-    }
-}
-```
+**Quick rules for endpoint handlers:**
+- Use message templates, not string interpolation: `"User {UserId} registered"` not `$"User {userId} registered"`
+- `CorrelationId`, `UserId`, and `RequestPath` are injected by middleware — do not add them manually
+- `_logger.BeginScope()` still works but `LogContext.PushProperty` is preferred for middleware-level enrichment
 
 ## Exception Handling Guidelines
 

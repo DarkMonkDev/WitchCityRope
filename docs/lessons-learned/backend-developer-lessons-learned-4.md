@@ -967,3 +967,21 @@ curl 'http://localhost:5173/api/events/{eventId}/participation' -b cookies.txt |
 **Tags**: #critical #ticketpurchase #eventattendance #foreign-key #selective-cancellation #multi-session-tickets #payment-tracking #financial-records #attendance-tracking #database-relationships
 
 ---
+
+## Serilog PostgreSQL Sink: 3 Staging Deployment Issues (2026-03-02)
+
+### PgBouncer Transaction Pooling Incompatibility with COPY Protocol
+**Problem**: Setting `useCopy: true` on the Serilog PostgreSQL sink causes silent failures in staging/production because PgBouncer transaction-mode pooling does not support the streaming COPY protocol.
+**Solution**: Always use `useCopy: false`; the sink uses batch INSERTs instead which are PgBouncer-compatible.
+
+### UUID Column Type Mismatch for LogContext Properties
+**Problem**: Pushing a string value via `LogContext.PushProperty("UserId", userId.ToString())` causes `InvalidCastException` at the sink because the `user_id` column is PostgreSQL UUID and the sink uses `NpgsqlDbType.Uuid`.
+**Solution**: Always call `Guid.TryParse()` before pushing UUID-typed properties, then push the `Guid` value, not the string. See `CorrelationIdMiddleware.cs` and `UserContextMiddleware.cs` for the correct pattern.
+
+### Sink Fails Silently if Table Does Not Pre-Exist
+**Problem**: Setting `needAutoCreateTable: true` causes the sink to attempt table creation at startup, which either fails (wrong permissions) or creates a table with a different schema than the EF Core migration expects.
+**Solution**: Always use `needAutoCreateTable: false` and ensure the `logging.application_logs` table is created by EF Core migration before deploying.
+
+**Reference**: `/docs/standards-processes/backend/serilog-logging-guide.md`
+
+**Tags**: #serilog #postgresql #pgbouncer #logging #uuid #deployment #staging

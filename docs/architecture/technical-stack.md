@@ -63,8 +63,10 @@ Witch City Rope uses a pragmatic, simplified technical stack optimized for a sin
     <!-- Caching (included in ASP.NET Core) -->
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.*" />
     
-    <!-- Utilities -->
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.*" />
+    <!-- Logging -->
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Postgresql.Alternative" Version="4.2.0" />
+    <PackageReference Include="Serilog.Enrichers.Sensitive" Version="2.1.0" />
 
     <!-- Testing -->
     <PackageReference Include="xUnit" Version="2.6.*" />

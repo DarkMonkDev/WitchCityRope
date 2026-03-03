@@ -125,6 +125,7 @@ This restriction exists because:
 ### For API Development (Endpoints, Controllers, Services):
 - **Vertical Slice Architecture**: `/docs/architecture/react-migration/vertical-slice-architecture-guide.md`
 - **API Design Patterns**: Review DTO alignment strategy
+- **Serilog Logging**: `/docs/standards-processes/backend/serilog-logging-guide.md` - Message templates, auto-enriched properties, sensitive masking
 
 ### For Authentication/Security Work:
 - **Security Patterns**: `/docs/standards-processes/backend/security-patterns.md` (if exists)
@@ -144,7 +145,8 @@ This restriction exists because:
 - "Add new migration for User table" → Read Database Migrations guide only
 - "Debug Docker compilation errors" → Read Docker Workflows + use container-restart skill
 - "Refactor authentication service" → Read CODING_STANDARDS.md + Security Patterns
-- "Add new API endpoint" → Read CODING_STANDARDS.md + Vertical Slice Architecture
+- "Add new API endpoint" → Read CODING_STANDARDS.md + Vertical Slice Architecture + Serilog Logging
+- "Add structured logging to a service" → Read Serilog Logging guide only
 
 **Principle**: Read only what you need for THIS specific task. Don't waste context on standards you won't use.
 
