@@ -47,9 +47,7 @@ public class TicketPurchase
     /// <summary>
     /// Payment processing status
     /// </summary>
-    [Required]
-    [MaxLength(20)]
-    public string PaymentStatus { get; set; } = "Pending";
+    public TicketPurchasePaymentStatus PaymentStatus { get; set; } = TicketPurchasePaymentStatus.Pending;
 
     /// <summary>
     /// Payment method used (e.g., "PayPal", "Stripe", "Cash")
@@ -68,6 +66,12 @@ public class TicketPurchase
     /// For door cash payments, may include cash tracking information.
     /// </summary>
     public string Notes { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Structured metadata for processor response codes, gateway references, and extensible data.
+    /// Stored as JSONB in PostgreSQL.
+    /// </summary>
+    public Dictionary<string, object> Metadata { get; set; } = new();
 
     // ========================================
     // PayPal Integration Fields
@@ -211,11 +215,10 @@ public class TicketPurchase
     /// Includes "PartiallyRefunded" because partially refunded payments are still valid completed payments
     /// that can receive additional refunds (there's still money to refund!)
     /// </summary>
-    // Case-insensitive comparison prevents silent failures if payment gateway returns different casing
     public bool IsPaymentCompleted =>
-        string.Equals(PaymentStatus, "Completed", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(PaymentStatus, "Confirmed", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(PaymentStatus, "PartiallyRefunded", StringComparison.OrdinalIgnoreCase);
+        PaymentStatus is TicketPurchasePaymentStatus.Completed
+                      or TicketPurchasePaymentStatus.Confirmed
+                      or TicketPurchasePaymentStatus.PartiallyRefunded;
 
     /// <summary>
     /// Gets whether this purchase represents an RSVP (free ticket)

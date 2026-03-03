@@ -4,6 +4,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Payments.Models.Requests;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Payments.Commands;
 
@@ -22,7 +23,7 @@ public class ProcessVariableRefund
     {
         public Guid RefundId { get; set; }
         public decimal Amount { get; set; }
-        public string Currency { get; set; } = "USD";
+        public string Currency { get; set; } = PaymentConstants.Currency;
         public string Status { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public decimal RemainingRefundableAmount { get; set; }
@@ -161,7 +162,7 @@ public class ProcessVariableRefund
         var refundRequest = new ProcessRefundRequest
         {
             TicketPurchaseId = ticketPurchase.Id,
-            RefundAmount = Money.Create(request.RefundAmount, "USD"),
+            RefundAmount = Money.Create(request.RefundAmount, PaymentConstants.Currency),
             RefundReason = request.RefundReason.Trim(),
             ProcessedByUserId = currentUserId,
             IpAddress = "admin-action",
@@ -209,11 +210,11 @@ public class ProcessVariableRefund
         // Determine new payment status
         if (newTotalRefunded >= ticketPurchase.TotalPrice)
         {
-            ticketPurchase.PaymentStatus = "Refunded";  // Full amount refunded
+            ticketPurchase.PaymentStatus = TicketPurchasePaymentStatus.Refunded;  // Full amount refunded
         }
         else
         {
-            ticketPurchase.PaymentStatus = "PartiallyRefunded";  // Partial refund
+            ticketPurchase.PaymentStatus = TicketPurchasePaymentStatus.PartiallyRefunded;  // Partial refund
         }
 
         // Add refund note (details in PaymentRefund table)
@@ -239,7 +240,7 @@ public class ProcessVariableRefund
                 ? "Partial refund processed successfully. RSVP/Ticket NOT cancelled."
                 : "Full refund processed successfully. RSVP/Ticket NOT cancelled.",
             RemainingRefundableAmount = remainingAfterRefund,
-            PaymentStatus = ticketPurchase.PaymentStatus
+            PaymentStatus = ticketPurchase.PaymentStatus.ToString()
         });
     }
 }

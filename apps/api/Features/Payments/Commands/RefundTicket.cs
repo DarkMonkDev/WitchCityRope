@@ -3,6 +3,7 @@ using System.Security.Claims;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
+using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Models;
@@ -23,7 +24,7 @@ public class RefundTicket
     {
         public Guid RefundId { get; set; }
         public decimal Amount { get; set; }
-        public string Currency { get; set; } = "USD";
+        public string Currency { get; set; } = PaymentConstants.Currency;
         public string Status { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
     }
@@ -108,16 +109,19 @@ public class RefundTicket
                 statusCode: 500);
         }
 
-        // 6. CHECK FOR EXISTING REFUND
-        var existingRefund = await dbContext.PaymentRefunds
-            .Where(pr => pr.TicketPurchaseId == ticketPurchase.Id)
-            .FirstOrDefaultAsync(cancellationToken);
+        // 6. CHECK REMAINING REFUNDABLE AMOUNT (supports multiple refunds)
+        var totalRefunded = await dbContext.PaymentRefunds
+            .Where(pr => pr.TicketPurchaseId == ticketPurchase.Id
+                && pr.RefundStatus == RefundStatus.Completed)
+            .SumAsync(pr => pr.RefundAmountValue, cancellationToken);
 
-        if (existingRefund != null)
+        var remainingRefundable = ticketPurchase.TotalPrice - totalRefunded;
+
+        if (remainingRefundable <= 0)
         {
             return Results.Problem(
-                title: "Already Refunded",
-                detail: "This ticket has already been refunded",
+                title: "Fully Refunded",
+                detail: "This ticket has been fully refunded",
                 statusCode: 400);
         }
 
@@ -126,7 +130,7 @@ public class RefundTicket
         var refundRequest = new ProcessRefundRequest
         {
             TicketPurchaseId = ticketPurchase.Id,
-            RefundAmount = Money.Create(ticketPurchase.TotalPrice, "USD"),
+            RefundAmount = Money.Create(remainingRefundable, PaymentConstants.Currency),
             RefundReason = request.RefundReason.Trim(),
             ProcessedByUserId = currentUserId,
             IpAddress = "admin-action",
@@ -141,8 +145,8 @@ public class RefundTicket
 
         // 9. PROCESS REFUND USING REFUNDSERVICE
         logger.LogInformation(
-            "Processing refund for ticket {TicketId}, user {UserId}, amount {Amount}",
-            ticketId, ticketPurchase.UserId, ticketPurchase.TotalPrice);
+            "Processing refund for ticket {TicketId}, user {UserId}, amount {Amount} (remaining refundable of {TotalPrice})",
+            ticketId, ticketPurchase.UserId, remainingRefundable, ticketPurchase.TotalPrice);
 
         var refundResult = await refundService.ProcessRefundAsync(refundRequest, cancellationToken);
 
@@ -165,7 +169,10 @@ public class RefundTicket
             paymentRefund.Id, ticketId, paymentRefund.RefundStatus);
 
         // 10. UPDATE TICKET PURCHASE STATUS
-        ticketPurchase.PaymentStatus = "Refunded";
+        var newTotalRefunded = totalRefunded + remainingRefundable;
+        ticketPurchase.PaymentStatus = newTotalRefunded >= ticketPurchase.TotalPrice
+            ? TicketPurchasePaymentStatus.Refunded
+            : TicketPurchasePaymentStatus.PartiallyRefunded;
         ticketPurchase.Notes += $"\n[REFUNDED {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC by {userRole}]: {request.RefundReason}";
         ticketPurchase.UpdatedAt = DateTime.UtcNow;
         await dbContext.SaveChangesAsync(cancellationToken);

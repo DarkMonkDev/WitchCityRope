@@ -652,6 +652,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
             entity.Property(p => p.PaymentStatus)
                   .IsRequired()
+                  .HasConversion<string>()
                   .HasMaxLength(20);
 
             entity.Property(p => p.PaymentMethod)
@@ -662,6 +663,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
             entity.Property(p => p.Notes)
                   .HasMaxLength(500);
+
+            entity.Property(p => p.Metadata)
+                  .HasColumnType("jsonb")
+                  .HasDefaultValueSql("'{}'");
 
             // PayPal encrypted fields configuration
             entity.Property(p => p.EncryptedPayPalOrderId)

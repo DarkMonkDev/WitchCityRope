@@ -167,7 +167,7 @@ public class CheckInService : ICheckInService
                         _context.TicketPurchases
                         .Any(tp => tp.UserId == ea.UserId &&
                                    tp.TicketType!.EventId == ea.EventId &&
-                                   tp.PaymentStatus.ToLower() == "completed")
+                                   tp.PaymentStatus == TicketPurchasePaymentStatus.Completed)
                 })
                 .ToListAsync(cancellationToken);
 
@@ -891,7 +891,7 @@ public class CheckInService : ICheckInService
                 PurchaseDate = DateTime.UtcNow,
                 Quantity = 1,
                 TotalPrice = request.Amount,
-                PaymentStatus = "Completed",
+                PaymentStatus = TicketPurchasePaymentStatus.Completed,
                 PaymentMethod = "Cash",
                 PaymentReference = $"DOOR-{DateTime.UtcNow:yyyyMMddHHmmss}",
                 Notes = request.Notes ?? string.Empty,

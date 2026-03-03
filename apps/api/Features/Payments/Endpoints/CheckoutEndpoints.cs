@@ -10,6 +10,7 @@ using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Payments.Endpoints;
 
@@ -126,8 +127,7 @@ public class CheckoutEndpoints : ControllerBase
 
             if (existingPurchase != null)
             {
-                // Case-insensitive payment status check to prevent silent failures from casing mismatches
-                if (string.Equals(existingPurchase.PaymentStatus, "Completed", StringComparison.OrdinalIgnoreCase) || string.Equals(existingPurchase.PaymentStatus, "Confirmed", StringComparison.OrdinalIgnoreCase))
+                if (existingPurchase.PaymentStatus is TicketPurchasePaymentStatus.Completed or TicketPurchasePaymentStatus.Confirmed)
                 {
                     _logger.LogInformation(
                         "[Checkout:{CorrelationId}] Idempotent duplicate detected. Returning cached success for TicketPurchase {TicketPurchaseId}",
@@ -143,7 +143,7 @@ public class CheckoutEndpoints : ControllerBase
                     });
                 }
 
-                if (string.Equals(existingPurchase.PaymentStatus, "Failed", StringComparison.OrdinalIgnoreCase))
+                if (existingPurchase.PaymentStatus == TicketPurchasePaymentStatus.Failed)
                 {
                     _logger.LogInformation(
                         "[Checkout:{CorrelationId}] Previous attempt with same key failed. Allowing retry.",
@@ -274,7 +274,7 @@ public class CheckoutEndpoints : ControllerBase
                         : null;
                     tp.CreditCardLastFour = request.LastFourDigits;
                     tp.CreditCardType = request.CardType;
-                    tp.PaymentStatus = "Completed";
+                    tp.PaymentStatus = TicketPurchasePaymentStatus.Completed;
                     tp.PaymentMethod = "authorize-net";
                     tp.ProcessedAt = DateTime.UtcNow;
                     tp.UpdatedAt = DateTime.UtcNow;
@@ -367,7 +367,7 @@ public class CheckoutEndpoints : ControllerBase
 
             foreach (var tp in purchases)
             {
-                tp.PaymentStatus = "Failed";
+                tp.PaymentStatus = TicketPurchasePaymentStatus.Failed;
                 tp.UpdatedAt = DateTime.UtcNow;
             }
 

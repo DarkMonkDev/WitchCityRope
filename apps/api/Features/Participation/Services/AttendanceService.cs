@@ -853,7 +853,7 @@ public class AttendanceService : IAttendanceService
                     UserId = userId,
                     Quantity = 1,
                     TotalPrice = ticketType.Price ?? 0m,
-                    PaymentStatus = "Pending",
+                    PaymentStatus = TicketPurchasePaymentStatus.Pending,
                     PaymentMethod = request.PaymentMethodId ?? "Unknown",
                     PaymentReference = $"WCR-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                     Notes = request.Notes ?? $"Ticket purchase - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",

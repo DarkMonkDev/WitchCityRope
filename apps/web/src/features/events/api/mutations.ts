@@ -189,7 +189,7 @@ export function usePurchaseTicket() {
 
   return useMutation({
     mutationFn: async (ticketData: TicketPurchaseData): Promise<EventRegistration> => {
-      const response = await apiClient.post(`/api/events/${ticketData.eventId}/purchase-ticket`, ticketData)
+      const response = await apiClient.post(`/api/events/${ticketData.eventId}/tickets`, ticketData)
       return response.data
     },
     onMutate: async (ticketData: TicketPurchaseData) => {

@@ -310,7 +310,7 @@ public class KioskPaymentEndpoints : ControllerBase
                 UserId = request.AttendeeId,
                 Quantity = 1,
                 TotalPrice = request.Amount,
-                PaymentStatus = "Completed",
+                PaymentStatus = TicketPurchasePaymentStatus.Completed,
                 PaymentMethod = "Cash",
                 PaymentReference = $"DOOR-{DateTime.UtcNow:yyyyMMddHHmmss}",
                 RecordedByStaffId = sessionTokenEntity.CreatedByUserId,
@@ -367,7 +367,7 @@ public class KioskPaymentEndpoints : ControllerBase
                 AttendeeId = request.AttendeeId,
                 EventId = eventId,
                 Amount = request.Amount,
-                Currency = "USD"
+                Currency = PaymentConstants.Currency
             };
 
             return Ok(response);
@@ -488,5 +488,5 @@ public class CashPaymentResponse
     /// <summary>
     /// Payment currency (always USD)
     /// </summary>
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = PaymentConstants.Currency;
 }

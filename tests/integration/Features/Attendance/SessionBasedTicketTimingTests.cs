@@ -93,7 +93,7 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
 
         // Act: Attempt to purchase ticket
         var request = new { EventId = eventEntity.Id, TicketTypeId = ticketType.Id, EventWaiverAccepted = true };
-        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
+        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
         // Assert: Should succeed because Session 2 (tomorrow) is > 12 hours away
         response.StatusCode.Should().Be(HttpStatusCode.Created,
@@ -139,7 +139,7 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
 
         // Act: Attempt purchase
         var request = new { EventId = eventEntity.Id, TicketTypeId = ticketType.Id, EventWaiverAccepted = true };
-        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
+        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
         // Assert: Should fail because no future sessions exist
         var content = await response.Content.ReadAsStringAsync();
@@ -192,7 +192,7 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
 
         // Act: Attempt purchase
         var request = new { EventId = eventEntity.Id, TicketTypeId = ticketType.Id, EventWaiverAccepted = true };
-        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
+        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
         // Assert: Should fail because within close window (6 hours < 12 hours)
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,

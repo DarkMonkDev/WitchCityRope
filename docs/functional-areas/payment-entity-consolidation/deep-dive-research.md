@@ -1,8 +1,9 @@
 # Payment System Deep Dive Research
 
 **Date**: 2026-03-02
-**Status**: Research Complete - Awaiting Decision
+**Status**: Research Complete — All identified issues resolved or documented as future work
 **Supersedes**: Initial README.md research (still valid but incomplete)
+**Implementation**: See [implementation-plan.md](./implementation-plan.md) for what was done
 
 ## Executive Summary
 
@@ -615,56 +616,53 @@ But TicketPurchase uses raw `decimal TotalPrice` with no currency field. The Mon
 
 ## 12. Recommended Fix Priority
 
+> **Update (2026-03-03)**: Items 1-6 and 10 have been resolved by the 7-phase implementation plan.
+> See [implementation-plan.md](./implementation-plan.md) for details.
+> Items 3 (duplicate route), 7, 8, 9 remain as future work — documented in [README.md](./README.md).
+
 ### Priority 1: Critical Bug Fix (Must Fix)
 
-1. **Fix ParticipationEndpoints admin refund** (Section 1)
-   - Either: Make it use TicketPurchase directly (like RefundTicket)
-   - Or: Remove this endpoint entirely (RefundTicket already handles this)
+1. **~~Fix ParticipationEndpoints admin refund~~** ✅ RESOLVED (Phase 1)
+   - Fixed: Now queries TicketPurchase via `ticketParticipation.TicketPurchaseId`
 
 ### Priority 2: High Impact Cleanup (Should Fix)
 
-2. **Migrate cash payments to TicketPurchase** (KioskPaymentEndpoints)
-   - Cash door sales should create TicketPurchase, not Payment
-   - Otherwise cash sales are invisible in admin payment list
+2. **~~Migrate cash payments to TicketPurchase~~** ✅ RESOLVED (Phase 2)
+   - KioskPaymentEndpoints now creates TicketPurchase + EventAttendance
 
-3. **Remove or archive dead code**
-   - PaymentFailure entity + configuration + DbSet
-   - PaymentMethod entity + configuration + DbSet (Stripe-based, never used)
-   - Duplicate `/api/events/{id}/purchase-ticket` route
+3. **~~Remove or archive dead code~~** ✅ RESOLVED (Phases 4, 5, 6, 7)
+   - All dead entities, services, endpoints, and frontend code removed
+   - Database tables dropped via migrations
+   - **Remaining**: Duplicate `/api/events/{id}/purchase-ticket` route NOT removed (deferred)
 
-4. **Fix CreditCardEndpoints design flaws**
-   - Either: Make it follow CheckoutEndpoints pattern (create pending → charge → finalize)
-   - Or: Remove it entirely if CheckoutEndpoints handles all CC cases
+4. **~~Fix CreditCardEndpoints design flaws~~** ✅ RESOLVED (Phase 4)
+   - CreditCardEndpoints.cs deleted entirely (confirmed dead — frontend never calls it)
 
 ### Priority 3: Architecture Consolidation (Plan Carefully)
 
-5. **Deprecate/remove Payment entity**
-   - Requires migrating KioskPaymentEndpoints to TicketPurchase first
-   - Requires deciding what to do with PaymentAuditLog
-   - Requires updating/removing PaymentService, PaymentEndpoints
-   - 103 file references need cleanup
+5. **~~Deprecate/remove Payment entity~~** ✅ RESOLVED (Phase 7)
+   - Payment entity, configuration, and Payments table fully removed
 
-6. **Rename ProcessRefundRequest.PaymentId to TicketPurchaseId**
-   - Prevents future bugs from ambiguous naming
-   - Requires updating all callers
+6. **~~Rename ProcessRefundRequest.PaymentId to TicketPurchaseId~~** ✅ RESOLVED (Phase 3)
+   - Renamed across all callers
 
-7. **Consolidate refund flows**
+7. **Consolidate refund flows** — NOT ADDRESSED (future work)
    - Three refund endpoints is confusing
    - Consider: One flexible endpoint with parameters for full/partial/with-rsvp-cancel
 
 ### Priority 4: Nice-to-Have Improvements (Future)
 
-8. **Migrate TicketPurchase to enum-based PaymentStatus**
+8. **Migrate TicketPurchase to enum-based PaymentStatus** — NOT ADDRESSED (future work)
    - Replace string comparisons with type-safe enum
    - Preserve "Confirmed" as alias for Completed during migration
 
-9. **Add currency field to TicketPurchase**
+9. **Add currency field to TicketPurchase** — NOT ADDRESSED (future work)
    - Currently assumes USD everywhere
    - Or formalize USD-only as a business rule
 
-10. **Clean up frontend payment types**
-    - Remove manual types that overlap with auto-generated
-    - Remove frontend API calls to non-existent endpoints
+10. **~~Clean up frontend payment types~~** ✅ PARTIALLY RESOLVED (Phase 5)
+    - Dead types, hooks, pages, and API calls removed
+    - Auto-generated types remain as source of truth
 
 ---
 

@@ -3198,8 +3198,7 @@
                 "$ref": "#/components/schemas/CreateTicketPurchaseRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -3259,8 +3258,7 @@
                 "$ref": "#/components/schemas/CreateTicketPurchaseRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -3579,8 +3577,7 @@
                 "$ref": "#/components/schemas/AdminRefundTicketRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {

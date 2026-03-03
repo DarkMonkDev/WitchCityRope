@@ -2,7 +2,7 @@
 
 **Date**: 2026-03-02
 **Last Updated**: 2026-03-03
-**Status**: Complete (All 7 Phases Done — Migrations Not Yet Applied)
+**Status**: Complete (All 7 Phases Done — Deployed to Dev & Staging 2026-03-03)
 **Based On**: deep-dive-research.md, dead-code-liveness-analysis.md
 
 ---
@@ -421,9 +421,9 @@ Check these files and delete if no longer referenced by active code:
 
 **Phase 2**: KioskPaymentEndpoints.RecordCashPayment now creates TicketPurchase + EventAttendance instead of Payment entity. Auto-creates "Door Sale" TicketType per event. Removed all Payment/PaymentStatus/PaymentMethodType imports. CashPaymentResponse.PaymentId renamed to TicketPurchaseId.
 
-**Phase 6**: Generated migration `20260303051802_DropDeadPaymentTables` which drops PaymentAuditLog, PaymentFailures, PaymentMethods tables and the orphaned PaymentId column/FK from PaymentRefunds. Migration not yet applied to any database.
+**Phase 6**: Generated migration `20260303051802_DropDeadPaymentTables` which drops PaymentAuditLog, PaymentFailures, PaymentMethods tables and the orphaned PaymentId column/FK from PaymentRefunds. Applied to dev and staging databases on 2026-03-03.
 
-**Phase 7**: Deleted Payment.cs, PaymentConfiguration.cs, PaymentStatus.cs enum, PaymentMethodType.cs enum, PaymentResponse.cs (dead model). Removed DbSet<Payment>, ApplyConfiguration(PaymentConfiguration), and ChangeTracker.Entries<Payment> block from ApplicationDbContext.cs. Generated migration `20260303053611_DropPaymentsTable` to drop the Payments table. Migration not yet applied to any database.
+**Phase 7**: Deleted Payment.cs, PaymentConfiguration.cs, PaymentStatus.cs enum, PaymentMethodType.cs enum, PaymentResponse.cs (dead model). Removed DbSet<Payment>, ApplyConfiguration(PaymentConfiguration), and ChangeTracker.Entries<Payment> block from ApplicationDbContext.cs. Generated migration `20260303053611_DropPaymentsTable` to drop the Payments table. Applied to dev and staging databases on 2026-03-03.
 
 ### Decisions Made
 

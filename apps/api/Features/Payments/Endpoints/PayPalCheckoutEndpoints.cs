@@ -8,6 +8,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Payments.Endpoints;
 
@@ -184,7 +185,7 @@ public class PayPalCheckoutEndpoints : ControllerBase
             ticketPurchase.EncryptedPayPalPayerId = capture.PayerId != null
                 ? await _encryptionService.EncryptAsync(capture.PayerId)
                 : null;
-            ticketPurchase.PaymentStatus = "Completed";
+            ticketPurchase.PaymentStatus = TicketPurchasePaymentStatus.Completed;
             ticketPurchase.PaymentMethod = "PayPal";
             ticketPurchase.ProcessedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);

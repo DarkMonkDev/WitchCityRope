@@ -116,7 +116,13 @@ public class PaymentListService : IPaymentListService
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                     .Select(s => s.ToUpper())
                     .ToList();
-                query = query.Where(tp => statuses.Contains(tp.PaymentStatus.ToUpper()));
+                // Convert string filter values to enum for comparison
+                var parsedStatuses = statuses
+                    .Select(s => Enum.TryParse<TicketPurchasePaymentStatus>(s, ignoreCase: true, out var ps) ? ps : (TicketPurchasePaymentStatus?)null)
+                    .Where(ps => ps.HasValue)
+                    .Select(ps => ps!.Value)
+                    .ToList();
+                query = query.Where(tp => parsedStatuses.Contains(tp.PaymentStatus));
             }
 
             // Apply amount range filter (TotalPrice)
@@ -192,16 +198,16 @@ public class PaymentListService : IPaymentListService
                         // Payment details from TicketPurchase
                         PaymentMethod = tp.PaymentMethod,
                         Amount = tp.TotalPrice,
-                        Currency = "USD", // All prices are USD
-                        Status = tp.PaymentStatus,
+                        Currency = PaymentConstants.Currency, // All prices are USD
+                        Status = tp.PaymentStatus.ToString(),
 
                         // Refund info - populated from PaymentRefunds table
                         // IsRefundable: Payment can be refunded if:
                         // - Status is Completed or PartiallyRefunded
                         // - Has money remaining to refund (TotalPrice > TotalRefunded)
                         // - Payment method supports refunds (all methods now support refunds via variable refund)
-                        IsRefundable = (tp.PaymentStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase)
-                                        || tp.PaymentStatus.Equals("PartiallyRefunded", StringComparison.OrdinalIgnoreCase))
+                        IsRefundable = (tp.PaymentStatus == TicketPurchasePaymentStatus.Completed
+                                        || tp.PaymentStatus == TicketPurchasePaymentStatus.PartiallyRefunded)
                                        && tp.TotalPrice > 0
                                        && remainingRefundable > 0,
 

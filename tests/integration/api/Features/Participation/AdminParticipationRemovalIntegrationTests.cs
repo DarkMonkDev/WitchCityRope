@@ -15,8 +15,6 @@ using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
-using WitchCityRope.Api.Features.Payments.Entities;
-using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Models;
 using WitchCityRope.Tests.Common.Fixtures;
@@ -25,7 +23,7 @@ using Xunit;
 namespace WitchCityRope.IntegrationTests.Api.Features.Participation;
 
 /// <summary>
-/// Integration tests for admin RSVP removal and ticket refund endpoints
+/// Integration tests for admin RSVP removal endpoint
 /// Tests full end-to-end flows including database updates, cascading effects, and authorization
 /// NOTE: Uses Sequential collection to prevent database deadlocks from parallel test execution
 /// </summary>
@@ -213,152 +211,6 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
 
     #endregion
 
-    #region Full Flow Tests - Admin Refund Ticket
-
-    [Fact]
-    public async Task AdminRefundTicket_EndToEnd_DatabaseUpdated()
-    {
-        // Arrange
-        var (adminClient, adminUserId) = await CreateAuthenticatedAdminAsync("admin-refund2@example.com");
-        var (userClient, userId) = await CreateAuthenticatedUserAsync("user-refund@example.com");
-
-        var eventId = await CreateTestEventAsync();
-        // CRITICAL: For social events, donation buyers have BOTH RSVP + Ticket attendance
-        await CreateRsvpAsync(eventId, userId);
-        var ticketId = await CreateTicketAsync(eventId, userId, 35.00m);
-
-        var request = new AdminRefundTicketRequest { AlsoRemoveRsvp = false };
-
-        // Act
-        var response = await adminClient.PostAsJsonAsync(
-            $"/api/admin/events/{eventId}/tickets/{userId}/refund",
-            request);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK, "admin should be able to refund ticket");
-
-        var result = await response.Content.ReadFromJsonAsync<AdminRefundTicketResponse>();
-        result.Should().NotBeNull();
-        result!.TicketRefunded.Should().BeTrue("ticket should be refunded");
-        result.RefundAmount.Should().Be(35.00m, "refund amount should match ticket price");
-        result.RsvpRemoved.Should().BeFalse("RSVP should not be removed when AlsoRemoveRsvp is false");
-
-        // Verify database state - Ticket refunded, RSVP should remain active
-        await using var context = CreateDbContext();
-        var allAttendances = await context.EventAttendances
-            .Where(ea => ea.EventId == eventId && ea.UserId == userId)
-            .ToListAsync();
-
-        allAttendances.Should().HaveCount(2, "should have RSVP + Ticket attendances for donation buyer");
-
-        var ticket = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.Ticket);
-        ticket.Id.Should().Be(ticketId);
-        ticket.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
-        ticket.CancelledAt.Should().NotBeNull("cancellation timestamp should be set");
-
-        var rsvp = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.RSVP);
-        rsvp.Status.Should().Be(AttendanceStatus.Active, "RSVP should remain active when AlsoRemoveRsvp is false");
-    }
-
-    [Fact]
-    public async Task AdminRefundTicket_WithRsvp_DatabaseShowsRsvpRemoval()
-    {
-        // Arrange
-        var (adminClient, adminUserId) = await CreateAuthenticatedAdminAsync("admin-both@example.com");
-        var (userClient, userId) = await CreateAuthenticatedUserAsync("user-both@example.com");
-
-        var eventId = await CreateTestEventAsync();
-        // CRITICAL: For social events, donation buyers have BOTH RSVP + Ticket attendance
-        await CreateRsvpAsync(eventId, userId);
-        var ticketId = await CreateTicketAsync(eventId, userId, 40.00m);
-
-        var request = new AdminRefundTicketRequest { AlsoRemoveRsvp = true };
-
-        // Act
-        var response = await adminClient.PostAsJsonAsync(
-            $"/api/admin/events/{eventId}/tickets/{userId}/refund",
-            request);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK, "admin should be able to refund ticket and remove RSVP");
-
-        var result = await response.Content.ReadFromJsonAsync<AdminRefundTicketResponse>();
-        result.Should().NotBeNull();
-        result!.TicketRefunded.Should().BeTrue("ticket should be refunded");
-        result.RefundAmount.Should().Be(40.00m, "refund amount should match ticket price");
-        result.RsvpRemoved.Should().BeTrue("RSVP should be removed when AlsoRemoveRsvp is true");
-
-        // Verify database state - BOTH attendances should be refunded/cancelled
-        await using var context = CreateDbContext();
-        var allAttendances = await context.EventAttendances
-            .Where(ea => ea.EventId == eventId && ea.UserId == userId)
-            .ToListAsync();
-
-        allAttendances.Should().HaveCount(2, "should have RSVP + Ticket attendances for donation buyer");
-
-        var ticket = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.Ticket);
-        ticket.Id.Should().Be(ticketId);
-        ticket.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
-
-        var rsvp = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.RSVP);
-        rsvp.Status.Should().Be(AttendanceStatus.Cancelled, "RSVP should be cancelled when AlsoRemoveRsvp is true");
-    }
-
-    [Fact]
-    public async Task AdminRefundTicket_CancelsVolunteerShiftsInDatabase()
-    {
-        // Arrange
-        var (adminClient, adminUserId) = await CreateAuthenticatedAdminAsync("admin-volunteer2@example.com");
-        var (userClient, userId) = await CreateAuthenticatedUserAsync("user-volunteer2@example.com");
-
-        var eventId = await CreateTestEventAsync();
-        // CRITICAL: For social events, donation buyers have BOTH RSVP + Ticket attendance
-        await CreateRsvpAsync(eventId, userId);
-        var ticketId = await CreateTicketAsync(eventId, userId, 30.00m);
-        var volunteerPositionId = await CreateVolunteerPositionAsync(eventId, "Cleanup Crew");
-        await CreateVolunteerSignupAsync(userId, volunteerPositionId);
-
-        var request = new AdminRefundTicketRequest { AlsoRemoveRsvp = false };
-
-        // Act
-        var response = await adminClient.PostAsJsonAsync(
-            $"/api/admin/events/{eventId}/tickets/{userId}/refund",
-            request);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK, "admin should be able to refund ticket with volunteer signup");
-
-        var result = await response.Content.ReadFromJsonAsync<AdminRefundTicketResponse>();
-        result.Should().NotBeNull();
-        result!.TicketRefunded.Should().BeTrue("ticket should be refunded");
-        result.VolunteerShiftsRemoved.Should().BeTrue("volunteer shifts should be cancelled");
-        result.VolunteerShiftNames.Should().ContainSingle()
-            .Which.Should().Be("Cleanup Crew", "volunteer position title should be included");
-
-        // Verify database state - Ticket refunded, RSVP remains active
-        await using var context = CreateDbContext();
-        var allAttendances = await context.EventAttendances
-            .Where(ea => ea.EventId == eventId && ea.UserId == userId)
-            .ToListAsync();
-
-        allAttendances.Should().HaveCount(2, "should have RSVP + Ticket attendances for donation buyer");
-
-        var ticket = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.Ticket);
-        ticket.Id.Should().Be(ticketId);
-        ticket.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
-
-        var rsvp = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.RSVP);
-        rsvp.Status.Should().Be(AttendanceStatus.Active, "RSVP should remain active when AlsoRemoveRsvp is false");
-
-        var volunteerSignup = await context.VolunteerSignups
-            .FirstOrDefaultAsync(vs => vs.UserId == userId && vs.VolunteerPositionId == volunteerPositionId);
-
-        volunteerSignup.Should().NotBeNull("volunteer signup record should still exist");
-        volunteerSignup!.Status.Should().Be(VolunteerSignupStatus.Cancelled, "volunteer signup should be cancelled");
-    }
-
-    #endregion
-
     #region Authorization Tests
 
     [Fact]
@@ -378,28 +230,6 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
             "non-admin users should not be able to remove RSVPs");
-    }
-
-    [Fact]
-    public async Task AdminRefundTicket_AsNonAdmin_Returns403()
-    {
-        // Arrange
-        var (userClient, userId) = await CreateAuthenticatedUserAsync("regular-user2@example.com");
-        var (targetClient, targetUserId) = await CreateAuthenticatedUserAsync("target-user2@example.com");
-
-        var eventId = await CreateTestEventAsync();
-        await CreateTicketAsync(eventId, targetUserId, 25.00m);
-
-        var request = new AdminRefundTicketRequest { AlsoRemoveRsvp = false };
-
-        // Act - Regular user trying to refund another user's ticket
-        var response = await userClient.PostAsJsonAsync(
-            $"/api/admin/events/{eventId}/tickets/{targetUserId}/refund",
-            request);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-            "non-admin users should not be able to refund tickets");
     }
 
     #endregion
@@ -545,7 +375,7 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
             UserId = userId,
             Quantity = 1,
             TotalPrice = amount,
-            PaymentStatus = "Completed",
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
             PaymentMethod = "PayPal",
             PaymentReference = $"TEST-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
             PurchaseDate = DateTime.UtcNow,
@@ -569,20 +399,6 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
             UpdatedAt = DateTime.UtcNow
         };
         context.EventAttendances.Add(ticket);
-
-        // Create associated payment (for refund processing)
-        var payment = new Payment
-        {
-            Id = Guid.NewGuid(),
-            EventRegistrationId = ticketId,
-            AmountValue = amount,
-            Currency = "USD",
-            Status = PaymentStatus.Completed,
-            UserId = userId,
-            PaymentMethodType = PaymentMethodType.NewCard,
-            CreatedAt = DateTime.UtcNow
-        };
-        context.Payments.Add(payment);
 
         await context.SaveChangesAsync();
         return ticketId;

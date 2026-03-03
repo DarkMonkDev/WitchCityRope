@@ -60,7 +60,7 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
 
         // Act - Ticket purchase uses same registration window as RSVP
         var request = new { EventWaiverAccepted = true };  // Waiver required for ticket purchase
-        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
+        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created, "Ticket purchase should return 201 Created within registration window");
@@ -79,7 +79,7 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
 
         // Act
         var request = new { EventWaiverAccepted = true };  // Waiver required for ticket purchase
-        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
+        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest, "Ticket purchase should fail before registration opens");
@@ -101,7 +101,7 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
 
         // Act
         var request = new { EventWaiverAccepted = true };  // Waiver required for ticket purchase
-        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
+        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest, "Ticket purchase should fail after registration closes");
@@ -123,7 +123,7 @@ public class TicketTimingTests : IntegrationTestBase, IDisposable
 
         // Act
         var request = new { EventWaiverAccepted = true };  // Waiver required for ticket purchase
-        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/purchase-ticket", request);
+        var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created,

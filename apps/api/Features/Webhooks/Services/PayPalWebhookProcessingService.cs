@@ -130,7 +130,7 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
                 ticketPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(captureId);
             }
 
-            ticketPurchase.PaymentStatus = "Completed";
+            ticketPurchase.PaymentStatus = TicketPurchasePaymentStatus.Completed;
             ticketPurchase.ProcessedAt ??= DateTime.UtcNow;
             await _context.SaveChangesAsync(ct);
 
@@ -166,7 +166,7 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
 
             if (ticketPurchase != null)
             {
-                ticketPurchase.PaymentStatus = "Failed";
+                ticketPurchase.PaymentStatus = TicketPurchasePaymentStatus.Failed;
                 await _context.SaveChangesAsync(ct);
 
                 _logger.LogWarning(

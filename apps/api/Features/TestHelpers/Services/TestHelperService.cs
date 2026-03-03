@@ -251,7 +251,9 @@ public class TestHelperService : ITestHelperService
                 UserId = userId,
                 Quantity = request.Quantity,
                 TotalPrice = request.TotalPrice,
-                PaymentStatus = request.PaymentStatus,
+                PaymentStatus = Enum.TryParse<TicketPurchasePaymentStatus>(request.PaymentStatus, ignoreCase: true, out var parsedStatus)
+                    ? parsedStatus
+                    : TicketPurchasePaymentStatus.Completed,
                 PaymentMethod = request.PaymentMethod,
                 PaymentReference = paymentReference,
                 Notes = request.Notes ?? $"E2E Test Payment - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",

@@ -145,7 +145,7 @@ public class TicketPurchaseSeeder
                 // - 5% Refunded (user requested refund after successful payment)
                 // - 5% PartiallyRefunded (user got partial refund)
                 // CRITICAL: Status assigned PER USER-EVENT, ensuring one user = one payment state per event
-                var paymentStatus = isRSVP ? "Completed" : GetRandomPaymentStatus();
+                var paymentStatus = isRSVP ? TicketPurchasePaymentStatus.Completed : GetRandomPaymentStatus();
 
                 var purchase = new TicketPurchase
                 {
@@ -311,7 +311,7 @@ public class TicketPurchaseSeeder
                     PurchaseDate = DateTime.UtcNow.AddDays(-5),
                     Quantity = 1,
                     TotalPrice = purchasePrice,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = TicketPurchasePaymentStatus.Completed,
                     PaymentMethod = "PayPal",
                     PaymentReference = $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Sliding scale pricing applied",
@@ -328,7 +328,7 @@ public class TicketPurchaseSeeder
                     upcomingWorkshop.Id,
                     vettedUser.Id,
                     paidTicket,
-                    "Completed",
+                    TicketPurchasePaymentStatus.Completed,
                     "PayPal",
                     attendancesToAdd,
                     attendeesToAdd,
@@ -356,7 +356,7 @@ public class TicketPurchaseSeeder
                     PurchaseDate = DateTime.UtcNow.AddDays(-3),
                     Quantity = 1,
                     TotalPrice = 0,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = TicketPurchasePaymentStatus.Completed,
                     PaymentMethod = "Free",
                     PaymentReference = $"FREE_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Free RSVP - looking forward to this!"
@@ -370,7 +370,7 @@ public class TicketPurchaseSeeder
                     upcomingSocial.Id,
                     vettedUser.Id,
                     freeTicket,
-                    "Completed",
+                    TicketPurchasePaymentStatus.Completed,
                     "Free",
                     attendancesToAdd,
                     attendeesToAdd,
@@ -412,7 +412,7 @@ public class TicketPurchaseSeeder
                     PurchaseDate = purchaseDate,
                     Quantity = 1,
                     TotalPrice = totalPrice,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = TicketPurchasePaymentStatus.Completed,
                     PaymentMethod = isPaid ? "PayPal" : "Free",
                     PaymentReference = isPaid ? $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}" : $"FREE_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Attended - great event!"
@@ -434,7 +434,7 @@ public class TicketPurchaseSeeder
                     pastEvent.Id,
                     vettedUser.Id,
                     pastTicketType,
-                    "Completed",
+                    TicketPurchasePaymentStatus.Completed,
                     isPaid ? "PayPal" : "Free",
                     attendancesToAdd,
                     attendeesToAdd,
@@ -478,7 +478,7 @@ public class TicketPurchaseSeeder
                     PurchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(2, 10)),
                     Quantity = 1,
                     TotalPrice = price,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = TicketPurchasePaymentStatus.Completed,
                     PaymentMethod = isSocialEvent ? "Free" : "Venmo",
                     PaymentReference = isSocialEvent ? $"FREE_{Guid.NewGuid().ToString()[..8]}" : $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
                     Notes = isSocialEvent ? null! : "Can't wait for this class!"
@@ -492,7 +492,7 @@ public class TicketPurchaseSeeder
                     additionalEvent.Id,
                     vettedUser.Id,
                     ticketType,
-                    "Completed",
+                    TicketPurchasePaymentStatus.Completed,
                     isSocialEvent ? "Free" : "Venmo",
                     attendancesToAdd,
                     attendeesToAdd,
@@ -561,19 +561,19 @@ public class TicketPurchaseSeeder
 
         // Create diverse historical purchases with different statuses and users
         // Format: (daysAgo, user, paymentStatus, refundAmount, notes)
-        var historicalPurchases = new[]
+        var historicalPurchases = new (int DaysAgo, ApplicationUser? User, TicketPurchasePaymentStatus Status, decimal RefundAmount, string Notes)[]
         {
             // Old completed purchases (can't be refunded - >90 days)
-            (95, adminUser, "Completed", 0m, "Historical completed - 95 days old"),
-            (120, teacherUser, "Completed", 0m, "Historical completed - 120 days old"),
+            (95, adminUser, TicketPurchasePaymentStatus.Completed, 0m, "Historical completed - 95 days old"),
+            (120, teacherUser, TicketPurchasePaymentStatus.Completed, 0m, "Historical completed - 120 days old"),
 
             // Full refunds (different ages)
-            (30, vettedUser, "Refunded", paidTicket.Price ?? 25m, "Full refund - 30 days old"),
-            (60, memberUser, "Refunded", paidTicket.Price ?? 25m, "Full refund - 60 days old"),
+            (30, vettedUser, TicketPurchasePaymentStatus.Refunded, paidTicket.Price ?? 25m, "Full refund - 30 days old"),
+            (60, memberUser, TicketPurchasePaymentStatus.Refunded, paidTicket.Price ?? 25m, "Full refund - 60 days old"),
 
             // Partial refunds (different amounts)
-            (15, adminUser, "PartiallyRefunded", (paidTicket.Price ?? 25m) * 0.5m, "Partial refund (50%) - 15 days old"),
-            (45, teacherUser, "PartiallyRefunded", (paidTicket.Price ?? 25m) * 0.3m, "Partial refund (30%) - 45 days old"),
+            (15, adminUser, TicketPurchasePaymentStatus.PartiallyRefunded, (paidTicket.Price ?? 25m) * 0.5m, "Partial refund (50%) - 15 days old"),
+            (45, teacherUser, TicketPurchasePaymentStatus.PartiallyRefunded, (paidTicket.Price ?? 25m) * 0.3m, "Partial refund (30%) - 45 days old"),
         };
 
         foreach (var (daysAgo, user, status, refundAmount, notes) in historicalPurchases)
@@ -628,13 +628,13 @@ public class TicketPurchaseSeeder
             else if (existingAttendee)
             {
                 // User has EventAttendee but no Ticket attendance yet - create only EventAttendance
-                if (status != "Failed")
+                if (status != TicketPurchasePaymentStatus.Failed)
                 {
                     var attendanceStatus = status switch
                     {
-                        "Completed" => AttendanceStatus.Active,
-                        "PartiallyRefunded" => AttendanceStatus.Active,
-                        "Refunded" => AttendanceStatus.Refunded,
+                        TicketPurchasePaymentStatus.Completed => AttendanceStatus.Active,
+                        TicketPurchasePaymentStatus.PartiallyRefunded => AttendanceStatus.Active,
+                        TicketPurchasePaymentStatus.Refunded => AttendanceStatus.Refunded,
                         _ => AttendanceStatus.Active
                     };
 
@@ -657,7 +657,7 @@ public class TicketPurchaseSeeder
                                 Metadata = $"{{\"ticketType\":\"{paidTicket.Name}\",\"price\":{historicalPurchase.TotalPrice},\"paymentMethod\":\"PayPal\"}}"
                             };
 
-                            if (status == "Refunded")
+                            if (status == TicketPurchasePaymentStatus.Refunded)
                             {
                                 attendance.CancelledAt = purchaseDate.AddDays(Random.Shared.Next(1, 7));
                                 attendance.CancellationReason = "User requested refund";
@@ -681,7 +681,7 @@ public class TicketPurchaseSeeder
                             Metadata = $"{{\"ticketType\":\"{paidTicket.Name}\",\"price\":{historicalPurchase.TotalPrice},\"paymentMethod\":\"PayPal\"}}"
                         };
 
-                        if (status == "Refunded")
+                        if (status == TicketPurchasePaymentStatus.Refunded)
                         {
                             attendance.CancelledAt = purchaseDate.AddDays(Random.Shared.Next(1, 7));
                             attendance.CancellationReason = "User requested refund";
@@ -732,7 +732,7 @@ public class TicketPurchaseSeeder
         Guid eventId,
         Guid userId,
         TicketType ticketType,
-        string paymentStatus,
+        TicketPurchasePaymentStatus paymentStatus,
         string paymentMethod,
         List<EventAttendance> attendancesToAdd,
         List<EventAttendee> attendeesToAdd,
@@ -740,7 +740,7 @@ public class TicketPurchaseSeeder
         string ticketPrefix = "TKT")
     {
         // Only create attendance for non-Failed payments
-        if (paymentStatus == "Failed")
+        if (paymentStatus == TicketPurchasePaymentStatus.Failed)
         {
             return;
         }
@@ -748,9 +748,9 @@ public class TicketPurchaseSeeder
         // Determine attendance status based on payment status
         var attendanceStatus = paymentStatus switch
         {
-            "Completed" => AttendanceStatus.Active,
-            "PartiallyRefunded" => AttendanceStatus.Active,
-            "Refunded" => AttendanceStatus.Refunded,
+            TicketPurchasePaymentStatus.Completed => AttendanceStatus.Active,
+            TicketPurchasePaymentStatus.PartiallyRefunded => AttendanceStatus.Active,
+            TicketPurchasePaymentStatus.Refunded => AttendanceStatus.Refunded,
             _ => AttendanceStatus.Active
         };
 
@@ -774,7 +774,7 @@ public class TicketPurchaseSeeder
                 };
 
                 // If refunded, set cancellation details
-                if (paymentStatus == "Refunded")
+                if (paymentStatus == TicketPurchasePaymentStatus.Refunded)
                 {
                     attendance.CancelledAt = purchase.PurchaseDate.AddDays(Random.Shared.Next(1, 7));
                     attendance.CancellationReason = "User requested refund";
@@ -799,7 +799,7 @@ public class TicketPurchaseSeeder
             };
 
             // If refunded, set cancellation details
-            if (paymentStatus == "Refunded")
+            if (paymentStatus == TicketPurchasePaymentStatus.Refunded)
             {
                 attendance.CancelledAt = purchase.PurchaseDate.AddDays(Random.Shared.Next(1, 7));
                 attendance.CancellationReason = "User requested refund";
@@ -819,7 +819,7 @@ public class TicketPurchaseSeeder
         }
 
         var ticketCounter = ticketCountersByEvent[eventId];
-        var attendeeStatus = paymentStatus == "Refunded" ? "cancelled" : "confirmed";
+        var attendeeStatus = paymentStatus == TicketPurchasePaymentStatus.Refunded ? "cancelled" : "confirmed";
 
         var attendee = new EventAttendee(eventId, userId, attendeeStatus)
         {
@@ -829,7 +829,7 @@ public class TicketPurchaseSeeder
             UpdatedAt = purchase.PurchaseDate,
             CreatedBy = userId,
             UpdatedBy = userId,
-            HasCompletedWaiver = paymentStatus != "Refunded"
+            HasCompletedWaiver = paymentStatus != TicketPurchasePaymentStatus.Refunded
         };
 
         attendeesToAdd.Add(attendee);
@@ -846,24 +846,24 @@ public class TicketPurchaseSeeder
     /// Business Rule: ONE user = ONE payment state per event
     /// This ensures no duplicate active tickets for same user-event combination
     /// </summary>
-    private string GetRandomPaymentStatus()
+    private TicketPurchasePaymentStatus GetRandomPaymentStatus()
     {
         var statuses = new[]
         {
             // 80% Completed
-            "Completed", "Completed", "Completed", "Completed",
-            "Completed", "Completed", "Completed", "Completed",
-            "Completed", "Completed", "Completed", "Completed",
-            "Completed", "Completed", "Completed", "Completed",
+            TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed,
+            TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed,
+            TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed,
+            TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed, TicketPurchasePaymentStatus.Completed,
 
             // 10% Failed
-            "Failed", "Failed",
+            TicketPurchasePaymentStatus.Failed, TicketPurchasePaymentStatus.Failed,
 
             // 5% Refunded
-            "Refunded",
+            TicketPurchasePaymentStatus.Refunded,
 
             // 5% PartiallyRefunded
-            "PartiallyRefunded"
+            TicketPurchasePaymentStatus.PartiallyRefunded
         };
         return statuses[Random.Shared.Next(statuses.Length)];
     }
@@ -938,7 +938,7 @@ public class TicketPurchaseSeeder
         int globalTicketCounter = 1; // Global counter for all tickets in this event
 
         // Track user-event combinations to enforce business rule: ONE user = ONE ticket per event
-        var userEventTickets = new Dictionary<Guid, string>(); // userId -> payment status
+        var userEventTickets = new Dictionary<Guid, TicketPurchasePaymentStatus>(); // userId -> payment status
 
         // 3. Create active tickets for each ticket type
         foreach (var (ticketTypeName, purchaseCount) in purchasesByType)
@@ -1146,7 +1146,7 @@ public class TicketPurchaseSeeder
                         UserId = canceledUser.Id,
                         Quantity = 1,
                         TotalPrice = canceledType.Price ?? 0m,
-                        PaymentStatus = "Refunded",
+                        PaymentStatus = TicketPurchasePaymentStatus.Refunded,
                         PaymentMethod = "PayPal",
                         PaymentReference = $"REFUND-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                         PurchaseDate = canceledPurchaseDate,
@@ -1371,7 +1371,7 @@ public class TicketPurchaseSeeder
                     UserId = user.Id,
                     Quantity = 1,
                     TotalPrice = purchaseAmount,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = TicketPurchasePaymentStatus.Completed,
                     PaymentMethod = "PayPal",
                     PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                     PurchaseDate = purchaseDate,
@@ -1389,7 +1389,7 @@ public class TicketPurchaseSeeder
                     eventItem.Id,
                     user.Id,
                     bothDaysTicket,
-                    "Completed",
+                    TicketPurchasePaymentStatus.Completed,
                     "PayPal",
                     attendancesToAdd,
                     attendeesToAdd,
@@ -1426,7 +1426,7 @@ public class TicketPurchaseSeeder
                     UserId = user.Id,
                     Quantity = 1,
                     TotalPrice = purchaseAmount,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = TicketPurchasePaymentStatus.Completed,
                     PaymentMethod = SeedingHelpers.GetRandomPaymentMethod(),
                     PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                     PurchaseDate = purchaseDate,
@@ -1448,7 +1448,7 @@ public class TicketPurchaseSeeder
                     eventItem.Id,
                     user.Id,
                     dayOneTicket,
-                    "Completed",
+                    TicketPurchasePaymentStatus.Completed,
                     ticketPurchase.PaymentMethod,
                     attendancesToAdd,
                     attendeesToAdd,
@@ -1485,7 +1485,7 @@ public class TicketPurchaseSeeder
                     UserId = user.Id,
                     Quantity = 1,
                     TotalPrice = purchaseAmount,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = TicketPurchasePaymentStatus.Completed,
                     PaymentMethod = SeedingHelpers.GetRandomPaymentMethod(),
                     PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                     PurchaseDate = purchaseDate,
@@ -1507,7 +1507,7 @@ public class TicketPurchaseSeeder
                     eventItem.Id,
                     user.Id,
                     dayTwoTicket,
-                    "Completed",
+                    TicketPurchasePaymentStatus.Completed,
                     ticketPurchase.PaymentMethod,
                     attendancesToAdd,
                     attendeesToAdd,
@@ -1541,7 +1541,7 @@ public class TicketPurchaseSeeder
                         UserId = ropeEnthusiast.Id,
                         Quantity = 1,
                         TotalPrice = 25.00m,
-                        PaymentStatus = "Completed",
+                        PaymentStatus = TicketPurchasePaymentStatus.Completed,
                         PaymentMethod = "PayPal",
                         PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                         PurchaseDate = dayOnePurchaseDate,
@@ -1560,7 +1560,7 @@ public class TicketPurchaseSeeder
                         eventItem.Id,
                         ropeEnthusiast.Id,
                         dayOneTicket,
-                        "Completed",
+                        TicketPurchasePaymentStatus.Completed,
                         "PayPal",
                         attendancesToAdd,
                         attendeesToAdd,
@@ -1579,7 +1579,7 @@ public class TicketPurchaseSeeder
                     UserId = ropeEnthusiast.Id,
                     Quantity = 1,
                     TotalPrice = 28.00m,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = TicketPurchasePaymentStatus.Completed,
                     PaymentMethod = "PayPal",
                     PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                     PurchaseDate = dayTwoPurchaseDate,
@@ -1638,7 +1638,7 @@ public class TicketPurchaseSeeder
                         UserId = user.Id,
                         Quantity = 1,
                         TotalPrice = purchaseAmount,
-                        PaymentStatus = "Refunded",
+                        PaymentStatus = TicketPurchasePaymentStatus.Refunded,
                         PaymentMethod = "PayPal",
                         PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                         PurchaseDate = purchaseDate,
@@ -1658,7 +1658,7 @@ public class TicketPurchaseSeeder
                         eventItem.Id,
                         user.Id,
                         bothDaysTicket,
-                        "Refunded",
+                        TicketPurchasePaymentStatus.Refunded,
                         "PayPal",
                         attendancesToAdd,
                         attendeesToAdd,
@@ -1724,7 +1724,7 @@ public class TicketPurchaseSeeder
                 UserId = user.Id,
                 Quantity = 1,
                 TotalPrice = purchaseAmount,
-                PaymentStatus = "Completed",
+                PaymentStatus = TicketPurchasePaymentStatus.Completed,
                 PaymentMethod = paymentMethod,
                 PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                 PurchaseDate = purchaseDate,
@@ -1749,7 +1749,7 @@ public class TicketPurchaseSeeder
                 eventItem.Id,
                 user.Id,
                 ticketType,
-                "Completed",
+                TicketPurchasePaymentStatus.Completed,
                 paymentMethod,
                 attendancesToAdd,
                 attendeesToAdd,
@@ -1841,7 +1841,7 @@ public class TicketPurchaseSeeder
                     UserId = user.Id,
                     Quantity = 1,
                     TotalPrice = donationAmount,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = TicketPurchasePaymentStatus.Completed,
                     PaymentMethod = paymentMethod,
                     PaymentReference = $"DN-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                     PurchaseDate = purchaseDate,
@@ -1866,7 +1866,7 @@ public class TicketPurchaseSeeder
                     eventItem.Id,
                     user.Id,
                     donationTicketType,
-                    "Completed",
+                    TicketPurchasePaymentStatus.Completed,
                     paymentMethod,
                     attendancesToAdd,
                     attendeesToAdd,

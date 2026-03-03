@@ -7,6 +7,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Participation.Services;
+using WitchCityRope.Api.Features.Payments;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Vetting.Services;
@@ -222,7 +223,7 @@ public static class ParticipationEndpoints
         // - Cancelling ticket also cancels the associated RSVP
         // - User can manually RSVP again after cancelling (creates NEW record)
         //
-        // ENDPOINTS: Both /tickets and /purchase-ticket routes supported for compatibility
+        // ENDPOINT: POST /api/events/{eventId}/tickets - purchase ticket for class event
         // SECURITY: CSRF protection for financial transactions (ticket purchases)
         app.MapPost("/api/events/{eventId:guid}/tickets",
             [Authorize] async (
@@ -329,118 +330,6 @@ public static class ParticipationEndpoints
             .WithName("PurchaseTicket")
             .WithSummary("Purchase ticket for class event")
             .WithDescription("Purchases a ticket for a class event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.")
-            .WithTags("Participation")
-            .Produces<ParticipationStatusDto>(201)
-            .Produces(400)
-            .Produces(401)
-            .Produces(403)
-            .Produces(404)
-            .Produces(409)
-            .Produces(500);
-
-        // Alias endpoint for compatibility with tests
-        app.MapPost("/api/events/{eventId:guid}/purchase-ticket",
-            [Authorize] async (
-                HttpContext context,
-                IAntiforgery antiforgery,
-                Guid eventId,
-                CreateTicketPurchaseRequest request,
-                [FromServices] IAttendanceService attendanceService,
-                [FromServices] IVettingAccessControlService vettingAccessControlService,
-                ClaimsPrincipal user,
-                [FromServices] ILogger<IAttendanceService> logger,
-                CancellationToken cancellationToken) =>
-            {
-                // CSRF validation - MUST be first (financial transaction)
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
-
-                if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
-                {
-                    return Results.Problem(
-                        title: "Unauthorized",
-                        detail: "User authentication failed - missing or invalid user identifier",
-                        statusCode: 401);
-                }
-
-                var accessCheckResult = await vettingAccessControlService.CanUserPurchaseTicketAsync(userId, eventId, cancellationToken);
-
-                if (!accessCheckResult.IsSuccess)
-                {
-                    logger.LogError(
-                        "Vetting access check failed for user {UserId} on event {EventId}: {Error}",
-                        userId, eventId, accessCheckResult.Error);
-
-                    return Results.Problem(
-                        title: "Access check failed",
-                        detail: "Unable to verify ticket purchase eligibility at this time",
-                        statusCode: 500);
-                }
-
-                var accessControl = accessCheckResult.Value!;
-
-                if (!accessControl.IsAllowed)
-                {
-                    logger.LogWarning(
-                        "User {UserId} denied ticket purchase access to event {EventId}. Reason: {Reason}, Status: {VettingStatus}",
-                        userId, eventId, accessControl.DenialReason ?? "Unknown", accessControl.VettingStatus);
-
-                    return Results.Json(new
-                    {
-                        error = accessControl.DenialReason,
-                        message = accessControl.UserMessage,
-                        vettingStatus = accessControl.VettingStatus?.ToString()
-                    }, statusCode: 403);
-                }
-
-                request.EventId = eventId;
-
-                var result = await attendanceService.CreateTicketPurchaseAsync(request, userId, cancellationToken);
-
-                if (!result.IsSuccess)
-                {
-                    if (result.Error.Contains("not found"))
-                    {
-                            return Results.Problem(
-                            title: "Resource Not Found",
-                            detail: result.Error,
-                            statusCode: 404);
-                    }
-                    if (result.Error.Contains("already"))
-                    {
-                        return Results.Problem(
-                            title: "Conflict",
-                            detail: result.Error,
-                            statusCode: 409);
-                    }
-                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window") || result.Error.Contains("sessions"))
-                    {
-                        return Results.Problem(
-                            title: "Bad Request",
-                            detail: result.Error,
-                            statusCode: 400);
-                    }
-
-                    return Results.Problem(
-                        title: "Failed to purchase ticket",
-                        detail: result.Error,
-                        statusCode: 500);
-                }
-
-                return Results.Created($"/api/events/{eventId}/participation", result.Value);
-            })
-            .WithName("PurchaseTicketAlias")
-            .WithSummary("Purchase ticket (alias)")
-            .WithDescription("Alias for /api/events/{id}/tickets endpoint")
             .WithTags("Participation")
             .Produces<ParticipationStatusDto>(201)
             .Produces(400)
@@ -964,7 +853,7 @@ public static class ParticipationEndpoints
                             var refundRequest = new ProcessRefundRequest
                             {
                                 TicketPurchaseId = ticketPurchase.Id,
-                                RefundAmount = Money.Create(ticketPurchase.TotalPrice, "USD"),
+                                RefundAmount = Money.Create(ticketPurchase.TotalPrice, PaymentConstants.Currency),
                                 RefundReason = $"Admin removed RSVP for user {userId}",
                                 ProcessedByUserId = adminUserId,
                                 IpAddress = "admin-action"
@@ -1055,186 +944,6 @@ public static class ParticipationEndpoints
             .WithDescription("Removes user's RSVP and processes ticket refund if exists. Auto-cancels volunteer shifts. Admin role required.")
             .WithTags("Admin", "Participation")
             .Produces<AdminRemoveRsvpResponse>(200)
-            .Produces(401)
-            .Produces(403)
-            .Produces(404)
-            .Produces(500);
-
-        // Admin endpoint: Refund ticket with optional RSVP removal
-        app.MapPost("/api/admin/events/{eventId:guid}/tickets/{userId:guid}/refund",
-            [Authorize(Roles = "Administrator")] async (
-                Guid eventId,
-                Guid userId,
-                AdminRefundTicketRequest request,
-                [FromServices] ApplicationDbContext context,
-                [FromServices] IRefundService refundService,
-                [FromServices] IVolunteerAssignmentService volunteerAssignmentService,
-                ClaimsPrincipal user,
-                [FromServices] ILogger<IAttendanceService> logger,
-                CancellationToken cancellationToken) =>
-            {
-                if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
-                {
-                    return Results.Problem(
-                        title: "Unauthorized",
-                        detail: "Admin authentication failed - missing or invalid user identifier",
-                        statusCode: 401);
-                }
-
-                logger.LogInformation(
-                    "Admin {AdminUserId} refunding ticket for user {UserId} from event {EventId}. AlsoRemoveRsvp: {AlsoRemoveRsvp}",
-                    adminUserId, userId, eventId, request.AlsoRemoveRsvp);
-
-                // Find ticket participation
-                var ticketParticipation = await context.EventAttendances
-                    .FirstOrDefaultAsync(ea =>
-                        ea.EventId == eventId &&
-                        ea.UserId == userId &&
-                        ea.AttendanceType == AttendanceType.Ticket &&
-                        ea.Status == AttendanceStatus.Active,
-                        cancellationToken);
-
-                if (ticketParticipation == null)
-                {
-                    return Results.Problem(
-                        title: "Ticket Not Found",
-                        detail: "No active ticket found for this user and event",
-                        statusCode: 404);
-                }
-
-                var response = new AdminRefundTicketResponse
-                {
-                    TicketRefunded = false,
-                    RsvpRemoved = false,
-                    VolunteerShiftsRemoved = false,
-                    VolunteerShiftNames = new List<string>()
-                };
-
-                // Fetch volunteer shift names BEFORE cancellation (for response details)
-                var volunteerSignups = await context.VolunteerSignups
-                    .Include(vs => vs.VolunteerPosition)
-                    .Where(vs => vs.UserId == userId &&
-                                vs.VolunteerPosition.EventId == eventId &&
-                                vs.Status == VolunteerSignupStatus.Confirmed)
-                    .ToListAsync(cancellationToken);
-
-                response.VolunteerShiftNames = volunteerSignups
-                    .Select(vs => vs.VolunteerPosition.Title)
-                    .ToList();
-
-                // Find associated ticket purchase via EventAttendance link
-                if (!ticketParticipation.TicketPurchaseId.HasValue)
-                {
-                    return Results.Problem(
-                        title: "Ticket Purchase Not Found",
-                        detail: "No ticket purchase linked to this attendance record",
-                        statusCode: 404);
-                }
-
-                var ticketPurchase = await context.TicketPurchases
-                    .FirstOrDefaultAsync(tp => tp.Id == ticketParticipation.TicketPurchaseId.Value,
-                        cancellationToken);
-
-                if (ticketPurchase == null || !ticketPurchase.IsPaymentCompleted)
-                {
-                    return Results.Problem(
-                        title: "Payment Not Found",
-                        detail: "No completed payment found for this ticket",
-                        statusCode: 404);
-                }
-
-                // Process refund (RefundService auto-cancels volunteer shifts)
-                var refundRequest = new ProcessRefundRequest
-                {
-                    TicketPurchaseId = ticketPurchase.Id,
-                    RefundAmount = Money.Create(ticketPurchase.TotalPrice, "USD"),
-                    RefundReason = request.RefundReason,
-                    ProcessedByUserId = adminUserId,
-                    IpAddress = "admin-action"
-                };
-
-                var refundResult = await refundService.ProcessRefundAsync(refundRequest, cancellationToken);
-
-                if (!refundResult.IsSuccess)
-                {
-                    logger.LogError(
-                        "Failed to process refund for ticketPurchase {TicketPurchaseId}: {Error}",
-                        ticketPurchase.Id, refundResult.ErrorMessage);
-
-                    return Results.Problem(
-                        title: "Refund Failed",
-                        detail: $"Failed to process ticket refund: {refundResult.ErrorMessage}",
-                        statusCode: 500);
-                }
-
-                response.TicketRefunded = true;
-                response.RefundAmount = ticketPurchase.TotalPrice;
-                response.VolunteerShiftsRemoved = volunteerSignups.Count > 0;
-
-                // Remove ticket attendance
-                ticketParticipation.Status = AttendanceStatus.Refunded;
-                ticketParticipation.CancelledAt = DateTime.UtcNow;
-                ticketParticipation.CancellationReason = $"Refunded by admin {adminUserId}";
-                ticketParticipation.UpdatedBy = adminUserId;
-                context.EventAttendances.Update(ticketParticipation);
-
-                // Remove RSVP if requested
-                if (request.AlsoRemoveRsvp)
-                {
-                    var rsvpParticipation = await context.EventAttendances
-                        .FirstOrDefaultAsync(ea =>
-                            ea.EventId == eventId &&
-                            ea.UserId == userId &&
-                            ea.AttendanceType == AttendanceType.RSVP &&
-                            ea.Status == AttendanceStatus.Active,
-                            cancellationToken);
-
-                    if (rsvpParticipation != null)
-                    {
-                        rsvpParticipation.Status = AttendanceStatus.Cancelled;
-                        rsvpParticipation.CancelledAt = DateTime.UtcNow;
-                        rsvpParticipation.CancellationReason = $"Removed by admin {adminUserId} during ticket refund";
-                        rsvpParticipation.UpdatedBy = adminUserId;
-                        context.EventAttendances.Update(rsvpParticipation);
-                        response.RsvpRemoved = true;
-                    }
-                }
-
-                // Update EventAttendee status if no active attendances remain
-                var hasActiveAttendance = await context.EventAttendances
-                    .AnyAsync(ea =>
-                        ea.EventId == eventId &&
-                        ea.UserId == userId &&
-                        ea.Status == AttendanceStatus.Active,
-                        cancellationToken);
-
-                if (!hasActiveAttendance)
-                {
-                    var eventAttendee = await context.EventAttendees
-                        .FirstOrDefaultAsync(ea => ea.EventId == eventId && ea.UserId == userId, cancellationToken);
-
-                    if (eventAttendee != null)
-                    {
-                        eventAttendee.RegistrationStatus = "cancelled";
-                        eventAttendee.UpdatedAt = DateTime.UtcNow;
-                        context.EventAttendees.Update(eventAttendee);
-                    }
-                }
-
-                await context.SaveChangesAsync(cancellationToken);
-
-                logger.LogInformation(
-                    "Admin {AdminUserId} successfully refunded ticket for user {UserId} from event {EventId}. " +
-                    "Amount: {RefundAmount}, RSVP removed: {RsvpRemoved}, Volunteer shifts removed: {VolunteerShiftsRemoved}",
-                    adminUserId, userId, eventId, response.RefundAmount, response.RsvpRemoved, response.VolunteerShiftsRemoved);
-
-                return Results.Ok(response);
-            })
-            .WithName("AdminRefundTicket")
-            .WithSummary("Refund ticket with optional RSVP removal (admin only)")
-            .WithDescription("Refunds user's ticket and optionally removes RSVP. Auto-cancels volunteer shifts. Admin role required.")
-            .WithTags("Admin", "Participation")
-            .Produces<AdminRefundTicketResponse>(200)
             .Produces(401)
             .Produces(403)
             .Produces(404)
