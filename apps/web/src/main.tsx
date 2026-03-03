@@ -16,6 +16,9 @@ import { wcrTheme } from './theme'
 import { queryClient } from './lib/api/queryClient'
 import { enableMocking } from './mocks'
 import { debugLog, debugError } from './utils/debug'
+import { initializeErrorReporting, reportError } from './lib/errorReporting'
+
+initializeErrorReporting()
 
 debugLog('🔍 Starting React app initialization...')
 
@@ -35,8 +38,17 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
     return { hasError: true, error }
   }
 
-  componentDidCatch(_error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: any) {
     debugError('🚨 React Error Boundary - Component stack:', errorInfo)
+    reportError({
+      message: error.message,
+      stack: error.stack,
+      type: 'react_error',
+      url: window.location.href,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      componentStack: errorInfo?.componentStack,
+    })
   }
 
   render() {

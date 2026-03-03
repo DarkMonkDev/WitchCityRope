@@ -9,4 +9,6 @@ public class AuthorizeNetPaymentResponse
     public string? ErrorCode { get; set; }
     public string? ErrorMessage { get; set; }
     public string? Message { get; set; }
+    public string? AvsResultCode { get; set; }
+    public string? CvvResultCode { get; set; }
 }

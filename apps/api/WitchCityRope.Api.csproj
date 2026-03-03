@@ -42,6 +42,13 @@
 
     <!-- OpenAPI generation and export -->
     <PackageReference Include="NSwag.AspNetCore" />
+
+    <!-- Structured logging -->
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.Postgresql.Alternative" />
+    <PackageReference Include="Serilog.Enrichers.Environment" />
+    <PackageReference Include="Serilog.Enrichers.Thread" />
+    <PackageReference Include="Serilog.Enrichers.Sensitive" />
   </ItemGroup>
 
   <!-- Post-build: Export OpenAPI specification -->

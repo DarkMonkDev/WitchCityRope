@@ -78,10 +78,10 @@ services:
       # Development CORS - allow multiple origins
       CORS__AllowedOrigins: "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://web:5173"
 
-      # Development logging
-      Logging__LogLevel__Default: Debug
-      Logging__LogLevel__Microsoft.EntityFrameworkCore: Information
-      Logging__LogLevel__WitchCityRope: Debug
+      # Development logging (Serilog)
+      Serilog__MinimumLevel__Default: Debug
+      Serilog__MinimumLevel__Override__Microsoft.EntityFrameworkCore: Information
+      Serilog__MinimumLevel__Override__WitchCityRope.Api: Debug
 
       # Development features
       ASPNETCORE_DETAILEDERRORS: "true"

@@ -337,7 +337,8 @@ public class UserManagementService : IUserManagementService
 
             var response = new UserDto(user);
 
-            _logger.LogInformation("User updated successfully by admin: {UserId} ({SceneName})", userId, user.SceneName);
+            _logger.LogInformation("Admin user update. TargetUserId={TargetUserId}, SceneName={SceneName}, Action={Action}",
+                userId, user.SceneName, "UpdateUser");
             return (true, response, string.Empty);
         }
         catch (Exception ex)
@@ -460,8 +461,8 @@ public class UserManagementService : IUserManagementService
 
             var response = new UserDto(updatedUser);
 
-            _logger.LogInformation("User roles updated successfully by admin: {UserId} ({SceneName}) - Old: '{OldRole}' -> New: '{NewRole}'",
-                userId, user.SceneName, oldRole, newRole);
+            _logger.LogInformation("Admin role change. TargetUserId={TargetUserId}, SceneName={SceneName}, OldRole={OldRole}, NewRole={NewRole}, Action={Action}",
+                userId, user.SceneName, oldRole, newRole, "UpdateRoles");
 
             return (true, response, string.Empty);
         }

@@ -9,9 +9,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - Logging__LogLevel__Default=Debug
-      - Logging__LogLevel__Microsoft=Information
-      - Logging__LogLevel__Microsoft.Hosting.Lifetime=Information
+      - Serilog__MinimumLevel__Default=Debug
+      - Serilog__MinimumLevel__Override__Microsoft=Information
+      - Serilog__MinimumLevel__Override__Microsoft.Hosting.Lifetime=Information
     volumes:
       - ../src/WitchCityRope.Api:/app/src/WitchCityRope.Api
       - ../src/WitchCityRope.Core:/app/src/WitchCityRope.Core
@@ -30,7 +30,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ApiSettings__BaseUrl=http://api:8080
-      - Logging__LogLevel__Default=Debug
+      - Serilog__MinimumLevel__Default=Debug
     volumes:
       - ../src/WitchCityRope.Web:/app/src/WitchCityRope.Web
       - ../src/WitchCityRope.Core:/app/src/WitchCityRope.Core

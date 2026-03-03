@@ -137,8 +137,8 @@ public class AuthorizeNetService : IAuthorizeNetService
                 if (txnResponse.responseCode == "1")
                 {
                     _logger.LogInformation(
-                        "Authorize.NET payment APPROVED. TransactionId: {TransactionId}, AuthCode: {AuthCode}",
-                        txnResponse.transId, txnResponse.authCode);
+                        "Authorize.NET payment APPROVED. TransactionId={TransactionId}, AuthCode={AuthCode}, AVS={AvsResultCode}, CVV={CvvResultCode}",
+                        txnResponse.transId, txnResponse.authCode, txnResponse.avsResultCode, txnResponse.cvvResultCode);
 
                     return Task.FromResult(new AuthorizeNetPaymentResponse
                     {
@@ -146,23 +146,30 @@ public class AuthorizeNetService : IAuthorizeNetService
                         TransactionId = txnResponse.transId,
                         AuthCode = txnResponse.authCode,
                         ResponseCode = txnResponse.responseCode,
-                        Message = "Transaction approved"
+                        Message = "Transaction approved",
+                        AvsResultCode = txnResponse.avsResultCode,
+                        CvvResultCode = txnResponse.cvvResultCode
                     });
                 }
                 else
                 {
                     var errorMessage = ExtractErrorMessage(txnResponse);
+                    var errorCode = txnResponse.errors?.FirstOrDefault()?.errorCode;
 
                     _logger.LogWarning(
-                        "Authorize.NET payment DECLINED/ERROR. ResponseCode: {ResponseCode}, Message: {Message}",
-                        txnResponse.responseCode, errorMessage);
+                        "Authorize.NET payment DECLINED. ResponseCode={AuthNetResponseCode}, ErrorCode={AuthNetErrorCode}, " +
+                        "Message={AuthNetErrorMessage}, AVS={AvsResultCode}, CVV={CvvResultCode}",
+                        txnResponse.responseCode, errorCode, errorMessage,
+                        txnResponse.avsResultCode, txnResponse.cvvResultCode);
 
                     return Task.FromResult(new AuthorizeNetPaymentResponse
                     {
                         Success = false,
                         ResponseCode = txnResponse.responseCode,
-                        ErrorCode = txnResponse.errors?.FirstOrDefault()?.errorCode,
-                        ErrorMessage = errorMessage
+                        ErrorCode = errorCode,
+                        ErrorMessage = errorMessage,
+                        AvsResultCode = txnResponse.avsResultCode,
+                        CvvResultCode = txnResponse.cvvResultCode
                     });
                 }
             }

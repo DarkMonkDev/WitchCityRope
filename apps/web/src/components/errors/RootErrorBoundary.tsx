@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { useRouteError, isRouteErrorResponse, Link } from 'react-router-dom';
 import { Box, Title, Text, Button, Group, Paper } from '@mantine/core';
 import { NotFoundPage } from '../../pages/NotFoundPage';
+import { reportError } from '../../lib/errorReporting';
 
 /**
  * Root Error Boundary for React Router v7
@@ -21,6 +23,28 @@ import { NotFoundPage } from '../../pages/NotFoundPage';
  */
 export const RootErrorBoundary: React.FC = () => {
   const error = useRouteError();
+
+  useEffect(() => {
+    if (error instanceof Error) {
+      reportError({
+        message: error.message,
+        stack: error.stack,
+        type: 'react_error',
+        url: window.location.href,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+      });
+    } else if (isRouteErrorResponse(error)) {
+      reportError({
+        message: `${error.status} ${error.statusText}`,
+        type: 'react_error',
+        url: window.location.href,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        metadata: { status: error.status, data: error.data },
+      });
+    }
+  }, [error]);
 
   // Handle HTTP status errors (404, 403, etc.)
   if (isRouteErrorResponse(error)) {

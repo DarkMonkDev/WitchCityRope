@@ -15,6 +15,7 @@ using WitchCityRope.Api.Features.Metadata.Endpoints;
 using WitchCityRope.Api.Features.Admin.Settings.Endpoints;
 using WitchCityRope.Api.Features.EmailTemplates.Endpoints;
 using WitchCityRope.Api.Features.Payments.Endpoints;
+using WitchCityRope.Api.Features.Logging.Endpoints;
 using WitchCityRope.Api.Endpoints.Admin;
 using WitchCityRope.Api.Endpoints;
 
@@ -85,6 +86,12 @@ public static class WebApplicationExtensions
 
         // CMS feature endpoints
         app.MapCmsEndpoints();
+
+        // Logging feature endpoints (client error ingestion)
+        app.MapClientErrorEndpoints();
+
+        // Logging feature endpoints (admin log queries)
+        app.MapAdminLogEndpoints();
 
         // Test Helper endpoints (Development/Test only)
         app.MapTestHelperEndpoints();

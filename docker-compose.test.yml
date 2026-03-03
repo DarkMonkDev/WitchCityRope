@@ -98,10 +98,10 @@ services:
       # Safety encryption key for testing (DO NOT use in production)
       Safety__EncryptionKey: "NAQntjSAGLxD4SAO59B9VwRm7gUfv31+1F1R2F51zDg="
 
-      # Test logging - reduced verbosity
-      Logging__LogLevel__Default: Warning
-      Logging__LogLevel__Microsoft: Error
-      Logging__LogLevel__WitchCityRope: Information
+      # Test logging - reduced verbosity (Serilog)
+      Serilog__MinimumLevel__Default: Warning
+      Serilog__MinimumLevel__Override__Microsoft: Error
+      Serilog__MinimumLevel__Override__WitchCityRope.Api: Information
 
       # Test features
       ASPNETCORE_DETAILEDERRORS: "false"

@@ -233,8 +233,11 @@ public class CheckoutEndpoints : ControllerBase
             if (!paymentResult.Success)
             {
                 _logger.LogWarning(
-                    "[Checkout:{CorrelationId}] STAGE 3 FAILED: Payment declined. Error={Error}, ErrorCode={ErrorCode}. Rolling back pending tickets.",
-                    correlationId, paymentResult.ErrorMessage, paymentResult.ErrorCode);
+                    "[Checkout:{CorrelationId}] STAGE 3 FAILED: Payment declined. " +
+                    "ResponseCode={AuthNetResponseCode}, ErrorCode={AuthNetErrorCode}, Error={AuthNetErrorMessage}, " +
+                    "Amount={Amount}, EventId={EventId}, AVS={AvsResultCode}, CVV={CvvResultCode}. Rolling back pending tickets.",
+                    correlationId, paymentResult.ResponseCode, paymentResult.ErrorCode, paymentResult.ErrorMessage,
+                    request.Amount, request.EventId, paymentResult.AvsResultCode, paymentResult.CvvResultCode);
 
                 // Roll back: cancel the pending ticket purchases and attendance records
                 await RollbackPendingPurchasesAsync(ticketPurchaseIds, correlationId, cancellationToken);

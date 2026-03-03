@@ -148,10 +148,10 @@ services:
       CORS__AllowedOrigins: https://witchcityrope.com
       CORS__AllowCredentials: true
       
-      # Production logging
-      Logging__LogLevel__Default: Warning
-      Logging__LogLevel__Microsoft: Error
-      Logging__LogLevel__WitchCityRope: Information
+      # Production logging (Serilog)
+      Serilog__MinimumLevel__Default: Warning
+      Serilog__MinimumLevel__Override__Microsoft: Error
+      Serilog__MinimumLevel__Override__WitchCityRope.Api: Information
       
       # Security headers
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: true

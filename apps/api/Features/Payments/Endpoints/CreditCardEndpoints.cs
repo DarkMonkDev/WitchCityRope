@@ -85,8 +85,11 @@ public class CreditCardEndpoints : ControllerBase
         if (!result.Success)
         {
             _logger.LogWarning(
-                "Credit card payment failed for user {UserId}: {Error}",
-                userId, result.ErrorMessage);
+                "Credit card payment failed for user {UserId}. ResponseCode={AuthNetResponseCode}, " +
+                "ErrorCode={AuthNetErrorCode}, Error={AuthNetErrorMessage}, Amount={Amount}, " +
+                "TicketPurchaseId={TicketPurchaseId}, AVS={AvsResultCode}, CVV={CvvResultCode}",
+                userId, result.ResponseCode, result.ErrorCode, result.ErrorMessage,
+                request.Amount, request.TicketPurchaseId, result.AvsResultCode, result.CvvResultCode);
 
             return Problem(
                 title: "Payment Failed",

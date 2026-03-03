@@ -110,10 +110,10 @@ services:
       CORS__AllowedOrigins: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
       CORS__AllowCredentials: "true"
       
-      # Logging configuration
-      Logging__LogLevel__Default: ${LOG_LEVEL:-Information}
-      Logging__LogLevel__Microsoft: Warning
-      Logging__LogLevel__Microsoft.Hosting.Lifetime: Information
+      # Logging configuration (Serilog)
+      Serilog__MinimumLevel__Default: ${LOG_LEVEL:-Information}
+      Serilog__MinimumLevel__Override__Microsoft: Warning
+      Serilog__MinimumLevel__Override__Microsoft.Hosting.Lifetime: Information
     
     # Health check for service availability
     healthcheck:

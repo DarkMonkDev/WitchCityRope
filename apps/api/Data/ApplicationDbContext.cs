@@ -15,6 +15,8 @@ using WitchCityRope.Api.Features.Cms.Entities;
 using WitchCityRope.Api.Features.Cms.Configuration;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Entities.Configuration;
+using WitchCityRope.Api.Features.Logging.Entities;
+using WitchCityRope.Api.Features.Logging.Configuration;
 
 namespace WitchCityRope.Api.Data;
 
@@ -292,6 +294,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// EmailTriggerLogs table for automated email audit trail
     /// </summary>
     public DbSet<EmailTriggerLog> EmailTriggerLogs { get; set; }
+
+    /// <summary>
+    /// Application logs table (read-only, written by Serilog PostgreSQL sink)
+    /// </summary>
+    public DbSet<ApplicationLog> ApplicationLogs { get; set; }
+
+    /// <summary>
+    /// Daily log summaries table (written by Hangfire aggregation jobs)
+    /// </summary>
+    public DbSet<DailyLogSummary> DailyLogSummaries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1151,6 +1163,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new SentAdHocEmailConfiguration());
         modelBuilder.ApplyConfiguration(new AdHocEmailTemplateConfiguration());
         modelBuilder.ApplyConfiguration(new EmailTriggerLogConfiguration());
+
+        // Apply Logging configurations
+        modelBuilder.ApplyConfiguration(new ApplicationLogConfiguration());
+        modelBuilder.ApplyConfiguration(new DailyLogSummaryConfiguration());
 
         // Settings entity configuration
         modelBuilder.Entity<WitchCityRope.Api.Core.Entities.Setting>(entity =>

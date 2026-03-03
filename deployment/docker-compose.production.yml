@@ -41,8 +41,8 @@ services:
       - Authentication__ExpiryMinutes=60
       - CORS__AllowedOrigins=https://prod.notfai.com,https://prod.witchcityrope.com,https://witchcityrope.com,https://www.witchcityrope.com
       - CORS__AllowCredentials=true
-      - Logging__LogLevel__Default=Information
-      - Logging__LogLevel__Microsoft=Warning
+      - Serilog__MinimumLevel__Default=Information
+      - Serilog__MinimumLevel__Override__Microsoft=Warning
       # PayPal Configuration (reads from .env.production)
       - PayPal__ClientId=${PAYPAL_CLIENT_ID}
       - PayPal__Secret=${PAYPAL_SECRET}

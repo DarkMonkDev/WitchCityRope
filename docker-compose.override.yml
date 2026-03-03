@@ -73,11 +73,11 @@ services:
       # Detailed errors for development
       - DetailedErrors=true
       
-      # Development logging
-      - Logging__LogLevel__Default=Debug
-      - Logging__LogLevel__Microsoft=Information
-      - Logging__LogLevel__Microsoft.AspNetCore.SignalR=Debug
-      - Logging__LogLevel__Microsoft.AspNetCore.Components=Debug
+      # Development logging (Serilog)
+      - Serilog__MinimumLevel__Default=Debug
+      - Serilog__MinimumLevel__Override__Microsoft=Information
+      - Serilog__MinimumLevel__Override__Microsoft.AspNetCore.SignalR=Debug
+      - Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Components=Debug
       
       # API endpoint for internal Docker network
       - ApiBaseUrl=http://api:8080/

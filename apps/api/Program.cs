@@ -17,13 +17,87 @@ using WitchCityRope.Api.Features.Backup.Services;
 using WitchCityRope.Api.Features.Backup.Jobs;
 using WitchCityRope.Api.Features.Backup.Models;
 using WitchCityRope.Api.Features.Backup.Endpoints;
+using WitchCityRope.Api.Features.Logging.Jobs;
+using WitchCityRope.Api.Features.Logging.Middleware;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire.Dashboard;
 using SendGrid;
 using Npgsql;
+using System.Threading.RateLimiting;
+using Serilog;
+using Serilog.Enrichers.Sensitive;
+using Serilog.Events;
+using Serilog.Sinks.PostgreSQL;
+using Serilog.Sinks.PostgreSQL.ColumnWriters;
+using NpgsqlTypes;
+
+// Serilog two-stage initialization
+// Stage 1: Bootstrap logger captures startup/config errors before DI is available
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
+try
+{
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Serilog Stage 2: Full configuration from appsettings + services
+var serilogConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+var columnWriters = new Dictionary<string, ColumnWriterBase>
+{
+    { "timestamp", new TimestampColumnWriter() },
+    { "level", new LevelColumnWriter(true, NpgsqlDbType.Smallint) },
+    { "level_name", new LevelColumnWriter() },
+    { "message", new RenderedMessageColumnWriter() },
+    { "message_template", new MessageTemplateColumnWriter() },
+    { "exception", new ExceptionColumnWriter() },
+    { "source_context", new SinglePropertyColumnWriter("SourceContext", PropertyWriteMethod.Raw, NpgsqlDbType.Varchar) },
+    { "properties", new PropertiesColumnWriter(NpgsqlDbType.Jsonb) },
+    { "user_id", new SinglePropertyColumnWriter("UserId", PropertyWriteMethod.Raw, NpgsqlDbType.Uuid) },
+    { "correlation_id", new SinglePropertyColumnWriter("CorrelationId", PropertyWriteMethod.Raw, NpgsqlDbType.Uuid) },
+    { "request_path", new SinglePropertyColumnWriter("RequestPath", PropertyWriteMethod.Raw, NpgsqlDbType.Varchar) },
+    { "machine_name", new SinglePropertyColumnWriter("MachineName", PropertyWriteMethod.Raw, NpgsqlDbType.Varchar) }
+};
+
+builder.Services.AddSerilog((services, lc) =>
+{
+    lc.ReadFrom.Configuration(builder.Configuration)
+      .ReadFrom.Services(services)
+      .Enrich.FromLogContext()
+      .Enrich.WithSensitiveDataMasking(options =>
+      {
+          options.MaskProperties.AddRange(new[]
+          {
+              new MaskProperty { Name = "password" },
+              new MaskProperty { Name = "token" },
+              new MaskProperty { Name = "secret" },
+              new MaskProperty { Name = "key" },
+              new MaskProperty { Name = "authorization" },
+              new MaskProperty { Name = "cookie" },
+              new MaskProperty { Name = "nonce" },
+              new MaskProperty { Name = "creditcard" }
+          });
+      });
+
+    // PostgreSQL sink for non-Development environments
+    if (!builder.Environment.IsDevelopment() && !string.IsNullOrEmpty(serilogConnectionString))
+    {
+        lc.WriteTo.PostgreSQL(
+            connectionString: serilogConnectionString,
+            tableName: "application_logs",
+            columnOptions: columnWriters,
+            schemaName: "logging",
+            needAutoCreateTable: false,
+            useCopy: true,
+            batchSizeLimit: 50,
+            period: TimeSpan.FromSeconds(5));
+    }
+});
 
 // Add services to the container
 builder.Services.AddControllers()
@@ -284,6 +358,10 @@ builder.Services.AddScoped<BackupOrchestrationService>();
 builder.Services.AddScoped<BackupJob>();
 builder.Services.AddScoped<RestoreJob>();
 
+// Logging background jobs
+builder.Services.AddScoped<DailyLogSummaryJob>();
+builder.Services.AddScoped<LogRetentionCleanupJob>();
+
 // Health checks for database monitoring
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")
@@ -330,6 +408,20 @@ builder.Services.AddAntiforgery(options =>
     options.Cookie.Path = "/";
 });
 
+// Rate limiting for abuse prevention (client error endpoint)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("client-errors", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
+
 // Validate environment configuration
 var environment = builder.Environment.EnvironmentName;
 var useMocks = builder.Configuration.GetValue<bool>("USE_MOCK_PAYMENT_SERVICE");
@@ -345,8 +437,7 @@ if (environment == "Test" && !useMocks)
     Console.WriteLine("⚠️ Warning: Test environment should use mock services for CI/CD");
 }
 
-var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger<Program>();
-logger.LogInformation($"Environment: {environment}, Using Mock PayPal: {useMocks}");
+Log.Information("Environment: {EnvironmentName}, Using Mock PayPal: {UseMocks}", environment, useMocks);
 
 var app = builder.Build();
 
@@ -374,6 +465,40 @@ app.UseCors(corsPolicy);
 // CRITICAL: Enable Anti-Forgery (CSRF) Protection middleware
 // MUST be placed AFTER UseCors() and BEFORE UseAuthentication()
 app.UseAntiforgery();
+
+// Rate limiting middleware - placed after CORS/antiforgery, before auth
+app.UseRateLimiter();
+
+// Serilog request logging - replaces per-request debug middleware
+app.UseSerilogRequestLogging(options =>
+{
+    options.GetLevel = (httpContext, elapsed, ex) =>
+    {
+        // Exclude health check endpoints from request logging
+        var path = httpContext.Request.Path.Value;
+        if (path == "/health-check" || path == "/healthz")
+            return LogEventLevel.Verbose;
+
+        if (ex != null || httpContext.Response.StatusCode >= 500)
+            return LogEventLevel.Error;
+        if (httpContext.Response.StatusCode >= 400)
+            return LogEventLevel.Warning;
+        return LogEventLevel.Information;
+    };
+
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault());
+        diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress?.ToString());
+    };
+
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
+
+// CorrelationId middleware - adds correlation ID to all log entries
+// Placed before auth so unauthenticated requests also get correlation IDs
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 // CSRF token generation endpoint for React SPA
 // Microsoft standard pattern for .NET 10 Minimal APIs with JSON
@@ -403,45 +528,13 @@ app.MapGet("/api/antiforgery/token", (IAntiforgery antiforgery, HttpContext cont
 .Produces<object>(200)
 .Produces(401);
 
-// CRITICAL FIX: Simple test middleware
-// Removed simple logout middleware - proper logout endpoint handles this in AuthenticationEndpoints.cs
-
-// Add debugging middleware for CORS issues in development
-if (app.Environment.IsDevelopment())
-{
-    app.Use(async (context, next) =>
-    {
-        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-
-        // Log incoming request details
-        logger.LogInformation("Request: {Method} {Path} from Origin: {Origin}",
-            context.Request.Method,
-            context.Request.Path,
-            context.Request.Headers.Origin.FirstOrDefault() ?? "none");
-
-        await next();
-
-        // Log response headers for CORS debugging
-        var corsHeaders = context.Response.Headers
-            .Where(h => h.Key.StartsWith("Access-Control"))
-            .ToDictionary(h => h.Key, h => string.Join(", ", h.Value.ToArray()));
-
-        if (corsHeaders.Any())
-        {
-            logger.LogInformation("Response CORS headers: {Headers}",
-                string.Join("; ", corsHeaders.Select(kvp => $"{kvp.Key}: {kvp.Value}")));
-        }
-        else
-        {
-            logger.LogWarning("No CORS headers in response for {Method} {Path}",
-                context.Request.Method, context.Request.Path);
-        }
-    });
-}
-
 // Authentication middleware must come before authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// UserContext middleware - enriches logs with authenticated user info
+// Placed after auth so user claims are available
+app.UseMiddleware<UserContextMiddleware>();
 
 // Existing controller endpoints (to be migrated)
 app.MapControllers();
@@ -485,7 +578,33 @@ RecurringJob.AddOrUpdate<BackupJob>(
     new RecurringJobOptions { TimeZone = TimeZoneInfo.Local }
 );
 
+// Schedule daily log summary aggregation at 1 AM UTC
+RecurringJob.AddOrUpdate<DailyLogSummaryJob>(
+    "daily-log-summary",
+    job => job.ExecuteAsync(CancellationToken.None),
+    "0 1 * * *",
+    new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
+);
+
+// Schedule log retention cleanup at 3 AM UTC (deletes logs older than 90 days)
+RecurringJob.AddOrUpdate<LogRetentionCleanupJob>(
+    "log-retention-cleanup",
+    job => job.ExecuteAsync(CancellationToken.None),
+    "0 3 * * *",
+    new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
+);
+
 app.Run();
+
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 // Make Program class accessible for testing
 public partial class Program { }

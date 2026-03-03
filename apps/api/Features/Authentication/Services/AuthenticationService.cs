@@ -130,7 +130,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (user == null)
             {
-                _logger.LogWarning("Login attempt with non-existent email or scene name: {Identifier}", request.EmailOrSceneName);
+                _logger.LogWarning("Login failed. Reason={Reason}, Identifier={Identifier}", "UserNotFound", request.EmailOrSceneName);
                 return (false, null, "Invalid email/scene name or password");
             }
 
@@ -139,7 +139,7 @@ public class AuthenticationService : IAuthenticationService
             // Phase 2: Check email confirmation after password validation
             if (result.Succeeded && !user.EmailConfirmed)
             {
-                _logger.LogWarning("Login blocked for unverified email: {Email}", user.Email);
+                _logger.LogWarning("Login failed. Reason={Reason}, Identifier={Identifier}", "EmailNotVerified", user.Email);
                 return (false, null, "Please verify your email address before logging in. Check your inbox for the verification link.");
             }
 
@@ -184,17 +184,17 @@ public class AuthenticationService : IAuthenticationService
                     ReturnUrl = validatedReturnUrl // Null if not provided or validation failed
                 };
 
-                _logger.LogInformation("User logged in successfully: {Email}", user.Email);
+                _logger.LogInformation("User logged in successfully. Email={Email}, Method={Method}, UserId={UserId}", user.Email, "Password", user.Id);
                 return (true, response, string.Empty);
             }
 
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("Account locked out for user: {Identifier}", request.EmailOrSceneName);
+                _logger.LogWarning("Login failed. Reason={Reason}, Identifier={Identifier}", "AccountLockedOut", request.EmailOrSceneName);
                 return (false, null, "Account is temporarily locked due to failed login attempts");
             }
 
-            _logger.LogWarning("Invalid login attempt for {Identifier}", request.EmailOrSceneName);
+            _logger.LogWarning("Login failed. Reason={Reason}, Identifier={Identifier}", "InvalidPassword", request.EmailOrSceneName);
             return (false, null, "Invalid email/scene name or password");
         }
         catch (Exception ex)
