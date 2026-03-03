@@ -14,11 +14,12 @@ public class CorrelationIdMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var correlationId = context.Request.Headers[CorrelationIdHeader].FirstOrDefault()
-            ?? Guid.NewGuid().ToString();
+        var headerValue = context.Request.Headers[CorrelationIdHeader].FirstOrDefault();
+        var correlationId = Guid.TryParse(headerValue, out var parsed) ? parsed : Guid.NewGuid();
 
-        context.Response.Headers[CorrelationIdHeader] = correlationId;
+        context.Response.Headers[CorrelationIdHeader] = correlationId.ToString();
 
+        // Push as Guid so the PostgreSQL sink can write to UUID column
         using (LogContext.PushProperty("CorrelationId", correlationId))
         {
             await _next(context);

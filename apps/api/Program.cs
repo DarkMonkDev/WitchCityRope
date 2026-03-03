@@ -55,7 +55,7 @@ var columnWriters = new Dictionary<string, ColumnWriterBase>
 {
     { "timestamp", new TimestampColumnWriter() },
     { "level", new LevelColumnWriter(false, NpgsqlDbType.Smallint) },
-    { "level_name", new LevelColumnWriter() },
+    { "level_name", new LevelColumnWriter(true, NpgsqlDbType.Text) },
     { "message", new RenderedMessageColumnWriter() },
     { "message_template", new MessageTemplateColumnWriter() },
     { "exception", new ExceptionColumnWriter() },

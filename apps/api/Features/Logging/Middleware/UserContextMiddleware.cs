@@ -28,8 +28,9 @@ public class UserContextMiddleware
 
         try
         {
-            if (userId != null)
-                disposables.Add(LogContext.PushProperty("UserId", userId));
+            // Push UserId as Guid so the PostgreSQL sink can write to UUID column
+            if (userId != null && Guid.TryParse(userId, out var userGuid))
+                disposables.Add(LogContext.PushProperty("UserId", userGuid));
             if (email != null)
                 disposables.Add(LogContext.PushProperty("UserEmail", email));
             if (role != null)
