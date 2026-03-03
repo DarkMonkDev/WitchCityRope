@@ -32,6 +32,9 @@ using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
 using NpgsqlTypes;
 
+// Enable Serilog self-diagnostics so sink errors appear in stderr
+Serilog.Debugging.SelfLog.Enable(Console.Error);
+
 // Serilog two-stage initialization
 // Stage 1: Bootstrap logger captures startup/config errors before DI is available
 Log.Logger = new LoggerConfiguration()
@@ -93,7 +96,7 @@ builder.Services.AddSerilog((services, lc) =>
             columnOptions: columnWriters,
             schemaName: "logging",
             needAutoCreateTable: false,
-            useCopy: true,
+            useCopy: false, // PgBouncer transaction pooling does not support COPY protocol
             batchSizeLimit: 50,
             period: TimeSpan.FromSeconds(5));
     }
