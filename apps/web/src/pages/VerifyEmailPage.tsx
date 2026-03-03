@@ -160,6 +160,7 @@ export const VerifyEmailPage: React.FC = () => {
             boxShadow: '0 20px 25px rgba(0,0,0,0.1)',
             width: '100%',
             maxWidth: '600px',
+            overflow: 'hidden',
           }}
         >
           {/* Success header with plum gradient */}

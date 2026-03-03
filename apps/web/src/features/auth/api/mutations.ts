@@ -112,21 +112,17 @@ export function useLogin() {
  * Connects to the working API endpoint from vertical slice
  */
 export function useRegister() {
-  const navigate = useNavigate()
-
   return useMutation({
     // apiClient interceptor extracts RFC 9457 error message to error.message automatically
     mutationFn: async (credentials: RegisterCredentials): Promise<UserDto> => {
       const response = await apiClient.post('/api/auth/register', credentials)
       return response.data
     },
-    onSuccess: (_userData: UserDto) => {
-      // Handle flat response structure from API
-      // Registration doesn't return JWT token - user needs to login
-      // Just navigate to login page with success message
-      
-      // Navigate to login page after successful registration
-      navigate('/login?message=Registration successful. Please log in.', { replace: true })
+    onSuccess: () => {
+      // Don't navigate away - let RegisterPage show its built-in success screen
+      // which tells the user to check their email for a verification link.
+      // The RegisterPage checks registerMutation.isSuccess && registeredEmail
+      // to conditionally render the "Registration Successful" view.
     },
     onError: (error: Error) => {
       console.error('Registration failed:', error)
