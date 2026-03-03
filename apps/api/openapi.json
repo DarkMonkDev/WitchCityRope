@@ -3198,67 +3198,8 @@
                 "$ref": "#/components/schemas/CreateTicketPurchaseRequest"
               }
             }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ParticipationStatusDto"
-                }
-              }
-            }
           },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "409": {
-            "description": "Conflict"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/api/events/{eventId}/purchase-ticket": {
-      "post": {
-        "tags": [
-          "Participation"
-        ],
-        "summary": "Purchase ticket (alias)",
-        "description": "Alias for /api/events/{id}/tickets endpoint",
-        "operationId": "PurchaseTicketAlias",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateTicketPurchaseRequest"
-              }
-            }
-          }
+          "required": true
         },
         "responses": {
           "201": {
@@ -3522,70 +3463,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminRemoveRsvpResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/api/admin/events/{eventId}/tickets/{userId}/refund": {
-      "post": {
-        "tags": [
-          "Admin",
-          "Participation"
-        ],
-        "summary": "Refund ticket with optional RSVP removal (admin only)",
-        "description": "Refunds user's ticket and optionally removes RSVP. Auto-cancels volunteer shifts. Admin role required.",
-        "operationId": "AdminRefundTicket",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdminRefundTicketRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminRefundTicketResponse"
                 }
               }
             }
@@ -11033,30 +10910,6 @@
           },
           "refundReason": {
             "type": "string"
-          }
-        }
-      },
-      "AdminRefundTicketResponse": {
-        "type": "object",
-        "properties": {
-          "ticketRefunded": {
-            "type": "boolean"
-          },
-          "refundAmount": {
-            "type": "number",
-            "format": "double"
-          },
-          "rsvpRemoved": {
-            "type": "boolean"
-          },
-          "volunteerShiftsRemoved": {
-            "type": "boolean"
-          },
-          "volunteerShiftNames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
