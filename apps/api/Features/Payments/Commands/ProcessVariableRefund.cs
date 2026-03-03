@@ -160,7 +160,7 @@ public class ProcessVariableRefund
         // 10. PREPARE REFUND REQUEST
         var refundRequest = new ProcessRefundRequest
         {
-            PaymentId = ticketPurchase.Id,
+            TicketPurchaseId = ticketPurchase.Id,
             RefundAmount = Money.Create(request.RefundAmount, "USD"),
             RefundReason = request.RefundReason.Trim(),
             ProcessedByUserId = currentUserId,

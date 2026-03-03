@@ -67,7 +67,7 @@ public interface IRefundService
 /// </summary>
 public class ProcessRefundRequest
 {
-    public Guid PaymentId { get; set; }
+    public Guid TicketPurchaseId { get; set; }
     public Money RefundAmount { get; set; } = null!;
     public string RefundReason { get; set; } = string.Empty;
     public Guid ProcessedByUserId { get; set; }

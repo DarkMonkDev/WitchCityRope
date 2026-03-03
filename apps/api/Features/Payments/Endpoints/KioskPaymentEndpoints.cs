@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using WitchCityRope.Api.Features.Payments.Services;
-using WitchCityRope.Api.Features.Payments.Entities;
-using WitchCityRope.Api.Features.Payments.Models;
+using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Models;
 using WitchCityRope.Api.Features.CheckIn.Services;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Data;
@@ -277,44 +278,65 @@ public class KioskPaymentEndpoints : ControllerBase
                 return NotFound("Attendee not found or not registered for this event");
             }
 
-            // Create payment record
-            var payment = new Payment
+            // Find or create "Door Sale" ticket type for this event
+            var doorSaleTicketType = await _dbContext.TicketTypes
+                .FirstOrDefaultAsync(tt =>
+                    tt.EventId == eventId &&
+                    tt.Name == "Door Sale",
+                    cancellationToken);
+
+            if (doorSaleTicketType == null)
+            {
+                doorSaleTicketType = new TicketType
+                {
+                    Id = Guid.NewGuid(),
+                    EventId = eventId,
+                    Name = "Door Sale",
+                    Description = "Door admission - cash payment",
+                    PricingType = PricingType.Fixed,
+                    Price = 0,
+                    Available = 999,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _dbContext.TicketTypes.Add(doorSaleTicketType);
+            }
+
+            // Create ticket purchase record
+            var ticketPurchase = new TicketPurchase
             {
                 Id = Guid.NewGuid(),
-                EventRegistrationId = attendee.Id, // Link to registration, not user directly
+                TicketTypeId = doorSaleTicketType.Id,
                 UserId = request.AttendeeId,
-                AmountValue = request.Amount,
-                Currency = "USD",
-                SlidingScalePercentage = 0, // Cash payments don't use sliding scale
-                Status = PaymentStatus.Completed, // Cash payments are immediately completed
-                PaymentMethodType = PaymentMethodType.Cash,
+                Quantity = 1,
+                TotalPrice = request.Amount,
+                PaymentStatus = "Completed",
+                PaymentMethod = "Cash",
+                PaymentReference = $"DOOR-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                RecordedByStaffId = sessionTokenEntity.CreatedByUserId,
                 ProcessedAt = DateTime.UtcNow,
+                Notes = request.Notes ?? "Cash payment recorded at door",
+                PurchaseDate = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+            _dbContext.TicketPurchases.Add(ticketPurchase);
 
-            // Add metadata
-            if (!string.IsNullOrWhiteSpace(request.Notes))
+            // Create EventAttendance record for attendance tracking
+            var attendance = new EventAttendance(eventId, request.AttendeeId, AttendanceType.Ticket)
             {
-                payment.Metadata["notes"] = request.Notes;
-            }
-            payment.Metadata["recordedBy"] = sessionTokenEntity.CreatedByUserId.ToString();
-            payment.Metadata["sessionToken"] = sessionToken;
-            payment.Metadata["paymentSource"] = "DoorCash";
+                TicketPurchaseId = ticketPurchase.Id,
+                Notes = request.Notes,
+                CreatedBy = sessionTokenEntity.CreatedByUserId
+            };
+            _dbContext.EventAttendances.Add(attendance);
 
-            // If session token was provided in request, store it for potential SSE notification
-            if (!string.IsNullOrWhiteSpace(request.SessionToken))
-            {
-                payment.Metadata["kioskSessionToken"] = request.SessionToken;
-            }
-
-            // Save payment
-            _dbContext.Set<Payment>().Add(payment);
+            // Save all records in single transaction
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Cash payment {PaymentId} recorded: Attendee {AttendeeId}, Amount ${Amount}, Event {EventId}",
-                payment.Id, request.AttendeeId, request.Amount, eventId);
+                "Cash payment {TicketPurchaseId} recorded: Attendee {AttendeeId}, Amount ${Amount}, Event {EventId}",
+                ticketPurchase.Id, request.AttendeeId, request.Amount, eventId);
 
             // If session token provided, send SSE notification
             if (!string.IsNullOrWhiteSpace(request.SessionToken))
@@ -323,15 +345,15 @@ public class KioskPaymentEndpoints : ControllerBase
                     request.SessionToken,
                     request.AttendeeId,
                     eventId,
-                    payment.Id,
+                    ticketPurchase.Id,
                     request.Amount,
                     "Cash");
 
                 if (notificationSent)
                 {
                     _logger.LogInformation(
-                        "SSE notification sent for cash payment {PaymentId}",
-                        payment.Id);
+                        "SSE notification sent for cash payment {TicketPurchaseId}",
+                        ticketPurchase.Id);
                 }
             }
 
@@ -339,8 +361,8 @@ public class KioskPaymentEndpoints : ControllerBase
             var response = new CashPaymentResponse
             {
                 Success = true,
-                PaymentId = payment.Id,
-                Timestamp = payment.CreatedAt,
+                TicketPurchaseId = ticketPurchase.Id,
+                Timestamp = ticketPurchase.CreatedAt,
                 Message = "Cash payment recorded",
                 AttendeeId = request.AttendeeId,
                 EventId = eventId,
@@ -434,9 +456,9 @@ public class CashPaymentResponse
     public bool Success { get; set; }
 
     /// <summary>
-    /// Payment record ID
+    /// Ticket purchase record ID
     /// </summary>
-    public Guid PaymentId { get; set; }
+    public Guid TicketPurchaseId { get; set; }
 
     /// <summary>
     /// When payment was recorded (UTC)

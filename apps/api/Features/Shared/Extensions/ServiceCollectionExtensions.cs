@@ -12,7 +12,6 @@ using WitchCityRope.Api.Features.Vetting.Services;
 // using WitchCityRope.Api.Features.Vetting.Validators;
 using WitchCityRope.Api.Features.VettingHold.Services;
 using WitchCityRope.Api.Features.Payments.Services;
-using WitchCityRope.Api.Features.Payments.Validators;
 using WitchCityRope.Api.Features.Payments.Models.AuthorizeNet;
 using WitchCityRope.Api.Features.Webhooks.Services;
 using WitchCityRope.Api.Features.Participation.Services;
@@ -92,7 +91,6 @@ public static class ServiceCollectionExtensions
         // services.AddValidatorsFromAssemblyContaining<CreateApplicationValidator>();
 
         // Payment feature services
-        services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPaymentListService, PaymentListService>();
         services.AddSingleton<IPaymentNotificationService, PaymentNotificationService>(); // Singleton for in-memory SSE channel management
 
@@ -131,9 +129,6 @@ public static class ServiceCollectionExtensions
         // PayPal webhook services
         services.AddScoped<IPayPalWebhookVerificationService, PayPalWebhookVerificationService>();
         services.AddScoped<IPayPalWebhookProcessingService, PayPalWebhookProcessingService>();
-
-        // FluentValidation for Payment feature
-        services.AddValidatorsFromAssemblyContaining<ProcessPaymentApiRequestValidator>();
 
         // Attendance feature services (renamed from Participation)
         services.AddScoped<IAttendanceService, AttendanceService>();

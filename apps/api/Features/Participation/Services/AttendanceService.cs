@@ -1909,7 +1909,7 @@ public class AttendanceService : IAttendanceService
             // Create refund request
             var refundRequest = new ProcessRefundRequest
             {
-                PaymentId = ticketPurchase.Id, // Now references TicketPurchase
+                TicketPurchaseId = ticketPurchase.Id,
                 RefundAmount = Money.Create(ticketPurchase.TotalPrice, "USD"),
                 RefundReason = refundReason,
                 ProcessedByUserId = userId, // User cancelling their own ticket

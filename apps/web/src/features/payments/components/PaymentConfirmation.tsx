@@ -19,7 +19,7 @@ import {
 import { useMediaQuery } from '@mantine/hooks';
 import { IconCheck, IconMapPin, IconTicket, IconCreditCard, IconMail, IconDownload } from '@tabler/icons-react';
 import type { PaymentResponse, PaymentEventInfo } from '../types/payment.types';
-import { paymentUtils } from '../api/paymentApi';
+import { paymentUtils } from '../utils/paymentUtils';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface PurchasedTicketSession {

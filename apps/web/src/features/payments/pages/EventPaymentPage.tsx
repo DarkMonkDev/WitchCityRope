@@ -27,7 +27,6 @@ import { SlidingScaleSelector } from '../components/SlidingScaleSelector';
 import { PaymentForm } from '../components/PaymentForm';
 import { PaymentConfirmation } from '../components/PaymentConfirmation';
 import { PaymentSummary } from '../components/PaymentSummary';
-import { usePayment } from '../hooks/usePayment';
 import { useSlidingScale } from '../hooks/useSlidingScale';
 import { useCheckout } from '../../../lib/api/hooks/usePayments';
 import type { CheckoutResponse } from '../../../lib/api/services/payments';
@@ -75,12 +74,6 @@ export const EventPaymentPage: React.FC = () => {
   // Track the price for each selected ticket (ticketId -> price)
   const [ticketPrices, setTicketPrices] = useState<Record<string, number>>({});
   const [checkoutErrorDismissed, setCheckoutErrorDismissed] = useState(false);
-
-  // Payment processing
-  const {
-    paymentData,
-    resetProcessingState
-  } = usePayment(registrationId);
 
   // Sliding scale management
   const {
@@ -338,7 +331,6 @@ export const EventPaymentPage: React.FC = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
       setCompletedPayment(null); // Reset completed payment
-      resetProcessingState();
     } else {
       navigate(-1);
     }
@@ -865,9 +857,9 @@ export const EventPaymentPage: React.FC = () => {
             )}
 
             {/* Step 3: Confirmation */}
-            {currentStep === 2 && (completedPayment || paymentData) && (
+            {currentStep === 2 && completedPayment && (
               <PaymentConfirmation
-                payment={completedPayment || paymentData || {} as any}
+                payment={completedPayment}
                 eventInfo={eventInfo}
                 purchasedTickets={selectedTickets.map(ticket => ({
                   id: ticket.id || '',

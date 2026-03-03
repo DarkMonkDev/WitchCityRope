@@ -2,7 +2,7 @@
 // Manages sliding scale pricing logic and calculations
 
 import { useState, useCallback, useMemo } from 'react';
-import { paymentUtils } from '../api/paymentApi';
+import { paymentUtils } from '../utils/paymentUtils';
 import type { SlidingScaleCalculation } from '../types/payment.types';
 
 /**

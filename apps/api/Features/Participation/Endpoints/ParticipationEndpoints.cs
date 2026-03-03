@@ -951,42 +951,43 @@ public static class ParticipationEndpoints
                 // If ticket exists, process refund (which will auto-cancel volunteer shifts)
                 if (ticketParticipation != null)
                 {
-                    // Find associated payment
-                    var payment = await context.Payments
-                        .FirstOrDefaultAsync(p =>
-                            p.EventRegistrationId == ticketParticipation.Id &&
-                            p.Status == WitchCityRope.Api.Features.Payments.Models.PaymentStatus.Completed,
-                            cancellationToken);
-
-                    if (payment != null)
+                    // Find associated ticket purchase via EventAttendance link
+                    if (ticketParticipation.TicketPurchaseId.HasValue)
                     {
-                        // Process refund (RefundService auto-cancels volunteer shifts)
-                        var refundRequest = new ProcessRefundRequest
+                        var ticketPurchase = await context.TicketPurchases
+                            .FirstOrDefaultAsync(tp => tp.Id == ticketParticipation.TicketPurchaseId.Value,
+                                cancellationToken);
+
+                        if (ticketPurchase != null && ticketPurchase.IsPaymentCompleted)
                         {
-                            PaymentId = payment.Id,
-                            RefundAmount = Money.Create(payment.AmountValue, payment.Currency),
-                            RefundReason = $"Admin removed RSVP for user {userId}",
-                            ProcessedByUserId = adminUserId,
-                            IpAddress = "admin-action"
-                        };
+                            // Process refund (RefundService auto-cancels volunteer shifts)
+                            var refundRequest = new ProcessRefundRequest
+                            {
+                                TicketPurchaseId = ticketPurchase.Id,
+                                RefundAmount = Money.Create(ticketPurchase.TotalPrice, "USD"),
+                                RefundReason = $"Admin removed RSVP for user {userId}",
+                                ProcessedByUserId = adminUserId,
+                                IpAddress = "admin-action"
+                            };
 
-                        var refundResult = await refundService.ProcessRefundAsync(refundRequest, cancellationToken);
+                            var refundResult = await refundService.ProcessRefundAsync(refundRequest, cancellationToken);
 
-                        if (!refundResult.IsSuccess)
-                        {
-                            logger.LogError(
-                                "Failed to process refund for payment {PaymentId}: {Error}",
-                                payment.Id, refundResult.ErrorMessage);
+                            if (!refundResult.IsSuccess)
+                            {
+                                logger.LogError(
+                                    "Failed to process refund for ticketPurchase {TicketPurchaseId}: {Error}",
+                                    ticketPurchase.Id, refundResult.ErrorMessage);
 
-                            return Results.Problem(
-                                title: "Refund Failed",
-                                detail: $"Failed to process ticket refund: {refundResult.ErrorMessage}",
-                                statusCode: 500);
+                                return Results.Problem(
+                                    title: "Refund Failed",
+                                    detail: $"Failed to process ticket refund: {refundResult.ErrorMessage}",
+                                    statusCode: 500);
+                            }
+
+                            response.TicketRefunded = true;
+                            response.RefundAmount = ticketPurchase.TotalPrice;
+                            response.VolunteerShiftsRemoved = volunteerSignups.Count > 0;
                         }
-
-                        response.TicketRefunded = true;
-                        response.RefundAmount = payment.AmountValue;
-                        response.VolunteerShiftsRemoved = volunteerSignups.Count > 0;
                     }
                 }
                 else
@@ -1121,14 +1122,20 @@ public static class ParticipationEndpoints
                     .Select(vs => vs.VolunteerPosition.Title)
                     .ToList();
 
-                // Find associated payment
-                var payment = await context.Payments
-                    .FirstOrDefaultAsync(p =>
-                        p.EventRegistrationId == ticketParticipation.Id &&
-                        p.Status == WitchCityRope.Api.Features.Payments.Models.PaymentStatus.Completed,
+                // Find associated ticket purchase via EventAttendance link
+                if (!ticketParticipation.TicketPurchaseId.HasValue)
+                {
+                    return Results.Problem(
+                        title: "Ticket Purchase Not Found",
+                        detail: "No ticket purchase linked to this attendance record",
+                        statusCode: 404);
+                }
+
+                var ticketPurchase = await context.TicketPurchases
+                    .FirstOrDefaultAsync(tp => tp.Id == ticketParticipation.TicketPurchaseId.Value,
                         cancellationToken);
 
-                if (payment == null)
+                if (ticketPurchase == null || !ticketPurchase.IsPaymentCompleted)
                 {
                     return Results.Problem(
                         title: "Payment Not Found",
@@ -1139,8 +1146,8 @@ public static class ParticipationEndpoints
                 // Process refund (RefundService auto-cancels volunteer shifts)
                 var refundRequest = new ProcessRefundRequest
                 {
-                    PaymentId = payment.Id,
-                    RefundAmount = Money.Create(payment.AmountValue, payment.Currency),
+                    TicketPurchaseId = ticketPurchase.Id,
+                    RefundAmount = Money.Create(ticketPurchase.TotalPrice, "USD"),
                     RefundReason = request.RefundReason,
                     ProcessedByUserId = adminUserId,
                     IpAddress = "admin-action"
@@ -1151,8 +1158,8 @@ public static class ParticipationEndpoints
                 if (!refundResult.IsSuccess)
                 {
                     logger.LogError(
-                        "Failed to process refund for payment {PaymentId}: {Error}",
-                        payment.Id, refundResult.ErrorMessage);
+                        "Failed to process refund for ticketPurchase {TicketPurchaseId}: {Error}",
+                        ticketPurchase.Id, refundResult.ErrorMessage);
 
                     return Results.Problem(
                         title: "Refund Failed",
@@ -1161,7 +1168,7 @@ public static class ParticipationEndpoints
                 }
 
                 response.TicketRefunded = true;
-                response.RefundAmount = payment.AmountValue;
+                response.RefundAmount = ticketPurchase.TotalPrice;
                 response.VolunteerShiftsRemoved = volunteerSignups.Count > 0;
 
                 // Remove ticket attendance

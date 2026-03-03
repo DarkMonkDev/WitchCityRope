@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WitchCityRope.Api.Data;
@@ -11,9 +12,11 @@ using WitchCityRope.Api.Data;
 namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260303051802_DropDeadPaymentTables")]
+    partial class DropDeadPaymentTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1609,6 +1612,150 @@ namespace WitchCityRope.Api.Migrations
                             t.HasCheckConstraint("CHK_EventAttendances_CancelledAt_Logic", "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)");
 
                             t.HasCheckConstraint("CHK_EventAttendances_Status", "\"Status\" IN (1, 2, 3, 4)");
+                        });
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Payments.Entities.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AmountValue")
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("AmountValue");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasDefaultValue("USD")
+                        .HasColumnName("Currency");
+
+                    b.Property<string>("EncryptedPayPalCaptureId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedPayPalOrderId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedPayPalPayerId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedPayPalRefundId")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("EventRegistrationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Metadata")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'");
+
+                    b.Property<int>("PaymentMethodType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<decimal?>("RefundAmountValue")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("RefundCurrency")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<string>("RefundReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("RefundedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("SlidingScalePercentage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0.00m);
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("VenmoUsername")
+                        .HasMaxLength(20)
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_Payments_PendingStatus")
+                        .HasFilter("\"Status\" = 0");
+
+                    b.HasIndex("EventRegistrationId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Payments_EventRegistration_Completed")
+                        .HasFilter("\"Status\" = 1");
+
+                    b.HasIndex("Metadata")
+                        .HasDatabaseName("IX_Payments_Metadata_Gin");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Metadata"), "gin");
+
+                    b.HasIndex("ProcessedAt")
+                        .HasDatabaseName("IX_Payments_FailedStatus")
+                        .HasFilter("\"Status\" = 2");
+
+                    b.HasIndex("RefundedAt")
+                        .HasDatabaseName("IX_Payments_RefundedStatus")
+                        .HasFilter("\"RefundedAt\" IS NOT NULL");
+
+                    b.HasIndex("RefundedByUserId");
+
+                    b.HasIndex("SlidingScalePercentage")
+                        .HasDatabaseName("IX_Payments_SlidingScalePercentage");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_Payments_Status");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_Payments_UserId");
+
+                    b.ToTable("Payments", "public", t =>
+                        {
+                            t.HasCheckConstraint("CHK_Payments_AmountValue_NonNegative", "\"AmountValue\" >= 0");
+
+                            t.HasCheckConstraint("CHK_Payments_CurrencyConsistency", "(\"RefundCurrency\" IS NULL) OR (\"RefundCurrency\" = \"Currency\")");
+
+                            t.HasCheckConstraint("CHK_Payments_Currency_Valid", "\"Currency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
+
+                            t.HasCheckConstraint("CHK_Payments_RefundAmount_NotExceedOriginal", "\"RefundAmountValue\" IS NULL OR \"RefundAmountValue\" <= \"AmountValue\"");
+
+                            t.HasCheckConstraint("CHK_Payments_RefundCurrency_Valid", "\"RefundCurrency\" IS NULL OR \"RefundCurrency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
+
+                            t.HasCheckConstraint("CHK_Payments_RefundRequiresOriginalPayment", "(\"RefundAmountValue\" IS NULL AND \"RefundedAt\" IS NULL) OR (\"RefundAmountValue\" IS NOT NULL AND \"RefundedAt\" IS NOT NULL)");
+
+                            t.HasCheckConstraint("CHK_Payments_SlidingScalePercentage_Range", "\"SlidingScalePercentage\" >= 0 AND \"SlidingScalePercentage\" <= 75.00");
                         });
                 });
 
@@ -3547,6 +3694,24 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("TicketPurchase");
 
                     b.Navigation("UpdatedByUser");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Payments.Entities.Payment", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "RefundedByUser")
+                        .WithMany()
+                        .HasForeignKey("RefundedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RefundedByUser");
 
                     b.Navigation("User");
                 });

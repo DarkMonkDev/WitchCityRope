@@ -125,7 +125,7 @@ public class RefundTicket
         // ARCHITECTURE FIX: Now uses TicketPurchase ID instead of Payment ID
         var refundRequest = new ProcessRefundRequest
         {
-            PaymentId = ticketPurchase.Id, // Now references TicketPurchase
+            TicketPurchaseId = ticketPurchase.Id,
             RefundAmount = Money.Create(ticketPurchase.TotalPrice, "USD"),
             RefundReason = request.RefundReason.Trim(),
             ProcessedByUserId = currentUserId,

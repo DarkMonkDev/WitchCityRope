@@ -68,8 +68,6 @@ import { CmsRevisionDetailPage } from '../features/cms/pages/CmsRevisionDetailPa
 // Payment system pages
 import { EventPaymentPage } from '../features/payments'
 import { PaymentTestPage } from '../pages/PaymentTestPage'
-import { PaymentSuccessPage } from '../pages/payments/PaymentSuccessPage'
-import { PaymentCancelPage } from '../pages/payments/PaymentCancelPage'
 
 /**
  * React Router v7 configuration following validated patterns
@@ -176,15 +174,6 @@ export const router = createBrowserRouter([
         element: <EventPaymentPage />,
         loader: authLoader,
       },
-      {
-        path: 'payment/success',
-        element: <PaymentSuccessPage />,
-      },
-      {
-        path: 'payment/cancel',
-        element: <PaymentCancelPage />,
-      },
-
       // Test/Development routes (public for now)
       {
         path: 'form-test',

@@ -56,13 +56,13 @@ public class RefundService : IRefundService
         {
             _logger.LogInformation(
                 "Processing refund for ticket {TicketId}, amount {RefundAmount}, processed by {UserId}",
-                request.PaymentId, request.RefundAmount.ToDisplayString(), request.ProcessedByUserId);
+                request.TicketPurchaseId, request.RefundAmount.ToDisplayString(), request.ProcessedByUserId);
 
             // Get the ticket purchase with User for email notification
             // ARCHITECTURE FIX: Now queries TicketPurchases instead of Payments
             var ticketPurchase = await _context.TicketPurchases
                 .Include(tp => tp.User)
-                .FirstOrDefaultAsync(tp => tp.Id == request.PaymentId, cancellationToken);
+                .FirstOrDefaultAsync(tp => tp.Id == request.TicketPurchaseId, cancellationToken);
 
             if (ticketPurchase == null)
             {
@@ -76,7 +76,7 @@ public class RefundService : IRefundService
             }
 
             // Calculate maximum refund amount available
-            var maxRefundResult = await GetMaximumRefundAmountAsync(request.PaymentId, cancellationToken);
+            var maxRefundResult = await GetMaximumRefundAmountAsync(request.TicketPurchaseId, cancellationToken);
             if (!maxRefundResult.IsSuccess || maxRefundResult.Value == null)
             {
                 return Result<PaymentRefund>.Failure($"Unable to calculate maximum refund amount: {maxRefundResult.ErrorMessage}");
@@ -101,7 +101,7 @@ public class RefundService : IRefundService
             // Create refund record
             var refund = new PaymentRefund
             {
-                TicketPurchaseId = request.PaymentId, // Now references TicketPurchase
+                TicketPurchaseId = request.TicketPurchaseId, // Now references TicketPurchase
                 ProcessedByUserId = request.ProcessedByUserId,
                 RefundReason = request.RefundReason.Trim(),
                 RefundStatus = RefundStatus.Processing,
@@ -127,7 +127,7 @@ public class RefundService : IRefundService
 
                     _logger.LogInformation(
                         "Processing PayPal refund for ticket {TicketId} with capture ID (encrypted), idempotency key {IdempotencyKey}",
-                        request.PaymentId, idempotencyKey);
+                        request.TicketPurchaseId, idempotencyKey);
 
                     // Process refund with PayPal using retry logic
                     var paypalRefundResult = await RefundWithRetryAsync(
@@ -160,7 +160,7 @@ public class RefundService : IRefundService
 
                         _logger.LogInformation(
                             "PayPal refund completed successfully for ticket {TicketId}, refund ID: {RefundId}",
-                            request.PaymentId, refund.Id);
+                            request.TicketPurchaseId, refund.Id);
                     }
                     else
                     {
@@ -171,7 +171,7 @@ public class RefundService : IRefundService
                         refund.MarkFailed(errorMessage);
 
                         _logger.LogError("PayPal refund failed for ticket {TicketId}: {Error}",
-                            request.PaymentId, paypalRefundResult.ErrorMessage);
+                            request.TicketPurchaseId, paypalRefundResult.ErrorMessage);
                     }
                 }
                 catch (MaxRetriesExceededException ex)
@@ -180,7 +180,7 @@ public class RefundService : IRefundService
                     await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
 
                     refund.MarkFailed(errorMessage);
-                    _logger.LogError(ex, "Max retries exceeded for PayPal refund, ticket {TicketId}", request.PaymentId);
+                    _logger.LogError(ex, "Max retries exceeded for PayPal refund, ticket {TicketId}", request.TicketPurchaseId);
                 }
                 catch (Exception ex)
                 {
@@ -188,7 +188,7 @@ public class RefundService : IRefundService
                     await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
 
                     refund.MarkFailed(errorMessage);
-                    _logger.LogError(ex, "Error processing PayPal refund for ticket {TicketId}", request.PaymentId);
+                    _logger.LogError(ex, "Error processing PayPal refund for ticket {TicketId}", request.TicketPurchaseId);
                 }
             }
             else if (!string.IsNullOrEmpty(ticketPurchase.EncryptedAuthNetTransactionId))
@@ -209,7 +209,7 @@ public class RefundService : IRefundService
 
                         _logger.LogInformation(
                             "Processing Authorize.net refund for ticket {TicketId}, idempotency key {IdempotencyKey}",
-                            request.PaymentId, idempotencyKey);
+                            request.TicketPurchaseId, idempotencyKey);
 
                         var authNetResult = await _authorizeNetService.RefundAsync(
                             transactionId,
@@ -225,7 +225,7 @@ public class RefundService : IRefundService
 
                             _logger.LogInformation(
                                 "Authorize.net refund completed for ticket {TicketId}, refund transaction: {TransactionId}",
-                                request.PaymentId, authNetResult.TransactionId);
+                                request.TicketPurchaseId, authNetResult.TransactionId);
                         }
                         else
                         {
@@ -234,7 +234,7 @@ public class RefundService : IRefundService
                             refund.MarkFailed(errorMessage);
 
                             _logger.LogError("Authorize.net refund failed for ticket {TicketId}: {Error}",
-                                request.PaymentId, authNetResult.ErrorMessage);
+                                request.TicketPurchaseId, authNetResult.ErrorMessage);
                         }
                     }
                     catch (Exception ex)
@@ -242,7 +242,7 @@ public class RefundService : IRefundService
                         var errorMessage = $"Authorize.net processing error: {ex.Message}";
                         await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
                         refund.MarkFailed(errorMessage);
-                        _logger.LogError(ex, "Error processing Authorize.net refund for ticket {TicketId}", request.PaymentId);
+                        _logger.LogError(ex, "Error processing Authorize.net refund for ticket {TicketId}", request.TicketPurchaseId);
                     }
                 }
             }
@@ -252,7 +252,7 @@ public class RefundService : IRefundService
                 _logger.LogWarning(
                     "Ticket {TicketId} has PayPal Order ID but no Capture ID. " +
                     "Cannot process automatic refund. Manual refund required.",
-                    request.PaymentId);
+                    request.TicketPurchaseId);
 
                 var errorMessage = "Legacy payment without Capture ID. Manual refund required through PayPal dashboard.";
                 await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
@@ -275,14 +275,14 @@ public class RefundService : IRefundService
 
                 _logger.LogInformation(
                     "Manual refund marked complete for ticket {TicketId} (payment method: {PaymentMethod})",
-                    request.PaymentId, ticketPurchase.PaymentMethod);
+                    request.TicketPurchaseId, ticketPurchase.PaymentMethod);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Refund {RefundId} processed successfully for ticket {TicketId}, status: {RefundStatus}",
-                refund.Id, request.PaymentId, refund.RefundStatus);
+                refund.Id, request.TicketPurchaseId, refund.RefundStatus);
 
             // Auto-cancel volunteer signups if refund was completed
             if (refund.RefundStatus == RefundStatus.Completed)
@@ -300,7 +300,7 @@ public class RefundService : IRefundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing refund for ticket {TicketId}", request.PaymentId);
+            _logger.LogError(ex, "Error processing refund for ticket {TicketId}", request.TicketPurchaseId);
             return Result<PaymentRefund>.Failure($"An error occurred while processing the refund: {ex.Message}");
         }
     }
