@@ -450,12 +450,6 @@ Log.Information("Environment: {EnvironmentName}, Using Mock PayPal: {UseMocks}",
 
 var app = builder.Build();
 
-// Hangfire Dashboard (Admin-only access)
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
-{
-    Authorization = new[] { new HangfireAuthorizationFilter() }
-});
-
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -513,6 +507,13 @@ app.MapGet("/api/antiforgery/token", (IAntiforgery antiforgery, HttpContext cont
 // Authentication middleware must come before authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Hangfire Dashboard - MUST be after UseAuthentication/UseAuthorization
+// so the auth filter can check httpContext.User.Identity.IsAuthenticated
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireAuthorizationFilter() }
+});
 
 // UserContext middleware - enriches logs with authenticated user info
 // Placed after auth so user claims are available
