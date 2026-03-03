@@ -174,7 +174,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         MaxAutoPrepare = 0                // PgBouncer transaction mode doesn't persist prepared statements
     }.ToString();
 
-    options.UseNpgsql(connectionString, npgsqlOptions =>
+    // Build NpgsqlDataSource with dynamic JSON support for JSONB columns (e.g., TicketPurchase.Metadata)
+    var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+    dataSourceBuilder.EnableDynamicJson();
+    var dataSource = dataSourceBuilder.Build();
+
+    options.UseNpgsql(dataSource, npgsqlOptions =>
     {
         // Command timeout for migrations (longer for large migrations)
         npgsqlOptions.CommandTimeout(120);
