@@ -472,33 +472,6 @@ app.UseAntiforgery();
 // Rate limiting middleware - placed after CORS/antiforgery, before auth
 app.UseRateLimiter();
 
-// Serilog request logging - replaces per-request debug middleware
-app.UseSerilogRequestLogging(options =>
-{
-    options.GetLevel = (httpContext, elapsed, ex) =>
-    {
-        // Exclude health check endpoints from request logging
-        var path = httpContext.Request.Path.Value;
-        if (path == "/health-check" || path == "/healthz")
-            return LogEventLevel.Verbose;
-
-        if (ex != null || httpContext.Response.StatusCode >= 500)
-            return LogEventLevel.Error;
-        if (httpContext.Response.StatusCode >= 400)
-            return LogEventLevel.Warning;
-        return LogEventLevel.Information;
-    };
-
-    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
-    {
-        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-        diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault());
-        diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress?.ToString());
-    };
-
-    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-});
-
 // CorrelationId middleware - adds correlation ID to all log entries
 // Placed before auth so unauthenticated requests also get correlation IDs
 app.UseMiddleware<CorrelationIdMiddleware>();
@@ -538,6 +511,35 @@ app.UseAuthorization();
 // UserContext middleware - enriches logs with authenticated user info
 // Placed after auth so user claims are available
 app.UseMiddleware<UserContextMiddleware>();
+
+// Serilog request logging - MUST be after CorrelationId and UserContext middleware
+// so that LogContext properties (CorrelationId, UserId) are in scope when the
+// request completion log event is written
+app.UseSerilogRequestLogging(options =>
+{
+    options.GetLevel = (httpContext, elapsed, ex) =>
+    {
+        // Exclude health check endpoints from request logging
+        var path = httpContext.Request.Path.Value;
+        if (path == "/health-check" || path == "/healthz")
+            return LogEventLevel.Verbose;
+
+        if (ex != null || httpContext.Response.StatusCode >= 500)
+            return LogEventLevel.Error;
+        if (httpContext.Response.StatusCode >= 400)
+            return LogEventLevel.Warning;
+        return LogEventLevel.Information;
+    };
+
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault());
+        diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress?.ToString());
+    };
+
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
 
 // Existing controller endpoints (to be migrated)
 app.MapControllers();
