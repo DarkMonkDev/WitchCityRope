@@ -54,7 +54,7 @@ var serilogConnectionString = builder.Configuration.GetConnectionString("Default
 var columnWriters = new Dictionary<string, ColumnWriterBase>
 {
     { "timestamp", new TimestampColumnWriter() },
-    { "level", new LevelColumnWriter(true, NpgsqlDbType.Smallint) },
+    { "level", new LevelColumnWriter(false, NpgsqlDbType.Smallint) },
     { "level_name", new LevelColumnWriter() },
     { "message", new RenderedMessageColumnWriter() },
     { "message_template", new MessageTemplateColumnWriter() },
