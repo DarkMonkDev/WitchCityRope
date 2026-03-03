@@ -44,10 +44,9 @@ ALTER USER postgres PASSWORD 'WitchCity2024!';
 # Start Docker
 sudo systemctl start docker
 
-# Build and run with Docker
-cd /home/chad/repos/witchcityrope/WitchCityRope
-docker build -t witchcityrope .
-docker run -p 5000:8080 witchcityrope
+# Build and run with Docker - use restart-dev-containers skill or:
+cd /home/chad/repos/witchcityrope
+./dev.sh
 
 # Note: After adding user to docker group, logout/login required
 ```
@@ -116,7 +115,7 @@ google-chrome --remote-debugging-port=9222
 
 ### .NET Issues
 ```bash
-# Verify .NET 9.0
+# Verify .NET 10.0
 ~/.dotnet/dotnet --version
 
 # Add to PATH permanently

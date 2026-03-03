@@ -561,7 +561,7 @@ Revision saved with user attribution + timestamp
 - Existing `MantineTiptapEditor.tsx` component (already integrated)
 
 **Backend**:
-- .NET 9 Minimal API
+- .NET 10 Minimal API
 - Vertical slice architecture pattern
 - Entity Framework Core for database access
 - HtmlSanitizer.NET for XSS prevention

@@ -46,7 +46,7 @@ This document serves as the single source of truth for all technologies currentl
 ## Backend Technologies
 
 ### API Service
-- **Framework**: ASP.NET Core Minimal API (.NET 9)
+- **Framework**: ASP.NET Core Minimal API (.NET 10)
 - **ORM**: Entity Framework Core 9.0
 - **Database**: PostgreSQL 16
 - **Authentication**: ASP.NET Core Identity with JWT + HttpOnly Cookies
@@ -70,7 +70,7 @@ This document serves as the single source of truth for all technologies currentl
 ### End-to-End Testing
 - **Framework**: Playwright
 - **Test Location**: `/tests/`
-- **Run Command**: `npm run test:e2e:playwright`
+- **Run Command**: Use `test-environment` skill
 - **Status**: 100% pass rate on launch-critical tests (as of 2025-10-08)
 
 ### React Unit Testing
@@ -111,7 +111,7 @@ This document serves as the single source of truth for all technologies currentl
 ### Required Software
 - **Docker**: Latest stable version
 - **Docker Compose**: Latest stable version
-- **.NET SDK**: .NET 9
+- **.NET SDK**: .NET 10
 - **Node.js**: v18+ (for React development)
 - **npm**: v9+
 
@@ -149,7 +149,7 @@ This document serves as the single source of truth for all technologies currentl
 
 | Frontend | Backend | Database | Status |
 |----------|---------|----------|--------|
-| React 18.3.1 | .NET 9 | PostgreSQL 16 | ✅ Production |
+| React 18.3.1 | .NET 10 | PostgreSQL 16 | ✅ Production |
 | TypeScript 5.2.2 | EF Core 9.0 | Npgsql 8.x | ✅ Production |
 | Mantine v7 | - | - | ✅ Production |
 | @mantine/tiptap 7.x | - | - | ✅ Production |
@@ -162,7 +162,7 @@ This document serves as the single source of truth for all technologies currentl
 - **Review cycle**: Quarterly for major updates
 
 ### Backend (.csproj)
-- **Framework**: Pin to LTS versions (.NET 9)
+- **Framework**: Pin to LTS versions (.NET 10)
 - **Packages**: Allow minor version updates
 - **Review cycle**: With .NET release schedule
 

@@ -2,12 +2,12 @@
 
 ## Overview
 
-This document provides comprehensive design specifications for containerizing the WitchCityRope .NET 9 Minimal API with multi-stage Docker builds, hot reload development support, and production optimization. The design preserves existing JWT + HttpOnly cookie authentication while enabling efficient containerized development and secure production deployment.
+This document provides comprehensive design specifications for containerizing the WitchCityRope .NET 10 Minimal API with multi-stage Docker builds, hot reload development support, and production optimization. The design preserves existing JWT + HttpOnly cookie authentication while enabling efficient containerized development and secure production deployment.
 
 ## Current State Analysis
 
 **Working API Configuration:**
-- .NET 9 Minimal API running on localhost:5655
+- .NET 10 Minimal API running on localhost:5655
 - JWT authentication with service-to-service patterns
 - HttpOnly cookies for user authentication bridge
 - ASP.NET Core Identity with PostgreSQL

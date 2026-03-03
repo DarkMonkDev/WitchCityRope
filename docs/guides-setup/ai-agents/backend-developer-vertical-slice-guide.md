@@ -28,7 +28,7 @@ The backend standards folder now contains:
 
 This move is part of the **API Standards & Best Practices Audit (October 2025)**:
 - **Audit Folder**: `/docs/standards-processes/backend-api-audit-2025-10-23/`
-- **Purpose**: Organize standards before comprehensive validation against latest .NET 9 best practices
+- **Purpose**: Organize standards before comprehensive validation against latest .NET 10 best practices
 - **Goal**: Consolidated, easily discoverable backend standards
 
 ---

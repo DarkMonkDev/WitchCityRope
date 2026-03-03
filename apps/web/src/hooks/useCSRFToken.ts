@@ -1,5 +1,5 @@
 /**
- * CSRF Token Hook - Standard .NET 9 + React Pattern
+ * CSRF Token Hook - Standard .NET 10 + React Pattern
  *
  * Backend generates token at /api/antiforgery/token
  * Token stored in XSRF-TOKEN cookie (non-httpOnly, JS can read)

@@ -1,4 +1,4 @@
-# Authentication Strategies for React Frontend with .NET 9 Backend
+# Authentication Strategies for React Frontend with .NET 10 Backend
 ## Analysis for Small-Scale Application (10,000 users, 10 concurrent)
 
 Based on extensive research of 2024-2025 best practices, here are four viable authentication strategies with detailed comparisons.
@@ -9,7 +9,7 @@ Based on extensive research of 2024-2025 best practices, here are four viable au
 ### **Complexity: LOW | Setup Time: 1-2 days | Best for: Simplicity**
 
 ### Technology Stack
-- **Backend**: ASP.NET Core Identity (.NET 9 built-in)
+- **Backend**: ASP.NET Core Identity (.NET 10 built-in)
 - **Frontend**: React with fetch API (credentials: 'include')
 - **Storage**: HttpOnly, Secure, SameSite cookies
 - **Session**: Server-side session management
@@ -44,7 +44,7 @@ const response = await fetch('/api/data', {
 ```
 
 ### Advantages
-- ✅ **Simplest implementation** - Built into .NET 9, minimal configuration
+- ✅ **Simplest implementation** - Built into .NET 10, minimal configuration
 - ✅ **Excellent security** - HttpOnly cookies prevent XSS attacks
 - ✅ **Automatic CSRF protection** with anti-forgery tokens
 - ✅ **Immediate session revocation** capability
@@ -75,7 +75,7 @@ const response = await fetch('/api/data', {
 ### **Complexity: MEDIUM | Setup Time: 3-5 days | Best for: Modern SPAs**
 
 ### Technology Stack
-- **Backend**: .NET 9 with Microsoft.AspNetCore.Authentication.JwtBearer
+- **Backend**: .NET 10 with Microsoft.AspNetCore.Authentication.JwtBearer
 - **Frontend**: React with Axios interceptors
 - **Access Token**: Stored in memory (JavaScript variable)
 - **Refresh Token**: Stored in HttpOnly cookie
@@ -196,7 +196,7 @@ class AuthService {
 
 ### Technology Stack
 - **Frontend**: Next.js with NextAuth.js v4 (stable) or v5 (beta)
-- **Backend**: .NET 9 Web API
+- **Backend**: .NET 10 Web API
 - **Session**: JWT stored in encrypted HttpOnly cookies
 - **Provider**: Custom credentials provider
 
@@ -290,7 +290,7 @@ async function refreshAccessToken(token) {
 ```
 
 ```csharp
-// .NET 9 API Endpoints
+// .NET 10 API Endpoints
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase {
@@ -359,7 +359,7 @@ public class AuthController : ControllerBase {
 ### Technology Stack
 - **Identity Provider**: Microsoft Entra ID (formerly Azure AD)
 - **Frontend**: React with MSAL React library
-- **Backend**: .NET 9 with Microsoft.Identity.Web
+- **Backend**: .NET 10 with Microsoft.Identity.Web
 - **Protocol**: OAuth 2.0 + OpenID Connect
 - **Flow**: Authorization Code Flow with PKCE
 
@@ -426,7 +426,7 @@ async function callApi() {
 ```
 
 ```csharp
-// .NET 9 - Program.cs
+// .NET 10 - Program.cs
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
@@ -514,7 +514,7 @@ public class DataController : ControllerBase {
 Given your requirements:
 - 10,000 users maximum
 - 10 concurrent users typical
-- React frontend with .NET 9 backend
+- React frontend with .NET 10 backend
 - Balance between simplicity and security
 
 ### **Recommended: Strategy 1 - ASP.NET Core Identity with HttpOnly Cookies**

@@ -72,10 +72,10 @@ await authService.login(credentials)
 WitchCityRope uses a **hybrid authentication pattern** combining:
 - **TanStack Query v5 mutations** for auth operations (login, logout, register)
 - **Zustand v4 store** for global authentication state
-- **.NET 9 httpOnly cookies** for session management
+- **.NET 10 httpOnly cookies** for session management
 - **CSRF token validation** for state-changing operations
 
-This pattern was selected after comprehensive research (November 2025) as the industry standard for .NET 9 + React applications.
+This pattern was selected after comprehensive research (November 2025) as the industry standard for .NET 10 + React applications.
 
 ### Why This Pattern?
 
@@ -111,7 +111,7 @@ This pattern was selected after comprehensive research (November 2025) as the in
          │ HTTP Request
          ↓
 ┌─────────────────────────────────┐
-│  .NET 9 Minimal API Backend     │
+│  .NET 10 Minimal API Backend     │
 │  - Validates CSRF token         │
 │  - Sets httpOnly cookie         │
 │  - Returns user data            │

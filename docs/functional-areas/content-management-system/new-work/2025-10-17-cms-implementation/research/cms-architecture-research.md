@@ -32,7 +32,7 @@
 - **Admin-only access**: Strict authorization, no public creation
 - **Revision history**: Track changes with user attribution
 - **Text-only content**: No image upload for MVP
-- **Minimal API backend**: .NET 9 vertical slice pattern
+- **Minimal API backend**: .NET 10 vertical slice pattern
 - **TipTap integration**: Use existing MantineTiptapEditor.tsx component
 
 ### Success Criteria
@@ -1088,7 +1088,7 @@ sanitizer.AllowedCssProperties.UnionWith(new[] {
 - Route-based page identification
 - Cache-based state management
 
-**Backend (.NET 9 Minimal API)**:
+**Backend (.NET 10 Minimal API)**:
 - Vertical slice architecture
 - PostgreSQL TEXT column for content
 - Separate revisions table for history

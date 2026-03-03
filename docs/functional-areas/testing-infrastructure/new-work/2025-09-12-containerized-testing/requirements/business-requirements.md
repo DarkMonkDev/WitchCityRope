@@ -140,7 +140,7 @@ The WitchCityRope platform faces critical testing infrastructure challenges that
 ### Constraints
 **Technical:**
 - Must build upon existing TestContainers v4.7.0 infrastructure
-- Must maintain compatibility with .NET 9 and Entity Framework Core 9.0
+- Must maintain compatibility with .NET 10 and Entity Framework Core 9.0
 - Must work within GitHub Actions ubuntu-latest runner limitations
 - Must support both React frontend and .NET API testing scenarios
 
@@ -278,7 +278,7 @@ The WitchCityRope platform faces critical testing infrastructure challenges that
 - [x] **Mobile experience considered** - Mobile API testing and responsive performance validation included
 - [x] **Examples provided** - Five comprehensive scenarios covering happy paths, critical paths, and edge cases
 - [x] **Success metrics defined** - Zero orphaned containers, 100% CI pass rate, measurable performance thresholds
-- [x] **Existing infrastructure acknowledged** - Builds upon TestContainers v4.7.0, Respawn 6.2.1, .NET 9 foundation
+- [x] **Existing infrastructure acknowledged** - Builds upon TestContainers v4.7.0, Respawn 6.2.1, .NET 10 foundation
 - [x] **Community-specific considerations** - Member safety, privacy, vetting workflows, community trust requirements
 - [x] **Risk mitigation addressed** - Cleanup automation, monitoring, rollback procedures, resource management
 - [x] **Implementation feasibility validated** - Research confirms technical viability and team capability

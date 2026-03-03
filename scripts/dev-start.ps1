@@ -66,7 +66,7 @@ try {
 }
 catch {
     Write-Error ".NET SDK not found!"
-    Write-Info "Please install .NET 9.0 SDK from https://dotnet.microsoft.com/download"
+    Write-Info "Please install .NET 10.0 SDK from https://dotnet.microsoft.com/download"
     exit 1
 }
 

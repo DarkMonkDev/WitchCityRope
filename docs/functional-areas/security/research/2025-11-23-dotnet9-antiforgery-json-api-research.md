@@ -1,4 +1,4 @@
-# Technology Research: .NET 9 Antiforgery for JSON APIs
+# Technology Research: .NET 10 Antiforgery for JSON APIs
 <!-- Last Updated: 2025-11-23 -->
 <!-- Version: 1.0 -->
 <!-- Owner: Technology Researcher Agent -->
@@ -6,12 +6,12 @@
 
 ## Executive Summary
 
-**Decision Required**: How should WitchCityRope implement CSRF protection for its .NET 9 Minimal API serving a React SPA?
+**Decision Required**: How should WitchCityRope implement CSRF protection for its .NET 10 Minimal API serving a React SPA?
 
 **Recommendation**: **Implement custom token endpoint pattern** (95% confidence)
 
 **Key Findings**:
-1. `.NET 9 middleware does NOT automatically generate tokens` - custom endpoints are required
+1. `.NET 10 middleware does NOT automatically generate tokens` - custom endpoints are required
 2. `SameSite=Strict + httpOnly cookies alone are INSUFFICIENT` per OWASP guidance
 3. **Standard industry pattern**: Cookie-to-header token with custom endpoint
 4. **No magic NuGet package** - Microsoft's built-in `IAntiforgery` is the standard approach
@@ -20,7 +20,7 @@
 ## Research Scope
 
 ### Requirements
-- CSRF protection for .NET 9 Minimal API serving JSON to React frontend
+- CSRF protection for .NET 10 Minimal API serving JSON to React frontend
 - Cookie-based authentication with `httpOnly` cookies (security requirement)
 - `SameSite=Strict` already configured
 - React SPA must include tokens in requests
@@ -41,7 +41,7 @@
 
 ## Critical Discovery: Middleware Does NOT Auto-Generate Tokens
 
-**MOST IMPORTANT FINDING**: The `.NET 9 AddAntiforgery()` and `UseAntiforgery()` middleware **validate** tokens but **DO NOT automatically generate or distribute them** to clients.
+**MOST IMPORTANT FINDING**: The `.NET 10 AddAntiforgery()` and `UseAntiforgery()` middleware **validate** tokens but **DO NOT automatically generate or distribute them** to clients.
 
 From Microsoft's official documentation:
 > "The antiforgery middleware does not short-circuit the execution of the rest of the request pipeline. You must explicitly call `GetAndStoreTokens()` to create tokens."
@@ -52,8 +52,8 @@ From Microsoft's official documentation:
 
 ### Option 1: Microsoft IAntiforgery with Custom Endpoint (RECOMMENDED)
 
-**Overview**: Use built-in .NET 9 `IAntiforgery` interface with custom token endpoint
-**Version Evaluated**: .NET 9.0 (released November 2024)
+**Overview**: Use built-in .NET 10 `IAntiforgery` interface with custom token endpoint
+**Version Evaluated**: .NET 10.0 (released November 2024)
 **Documentation Quality**: 9/10 - Official Microsoft docs comprehensive, extensive community examples
 
 #### Complete Implementation Pattern
@@ -441,7 +441,7 @@ const App = () => {
 
 **Rationale**:
 
-1. **Industry Standard** - This is THE recommended approach from Microsoft for .NET 9 JSON APIs with SPAs. Verified through:
+1. **Industry Standard** - This is THE recommended approach from Microsoft for .NET 10 JSON APIs with SPAs. Verified through:
    - [Official Microsoft Anti-Forgery Documentation](https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-9.0)
    - [OWASP CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
    - Multiple production implementations on GitHub

@@ -23,7 +23,7 @@ Before you begin, ensure you have the following installed on your system:
   - Download from [https://nodejs.org/](https://nodejs.org/)
   - Verify installation: `node --version` and `npm --version`
 
-- **.NET 9.0 SDK or later** (for API)
+- **.NET 10.0 SDK or later** (for API)
   - Download from [https://dotnet.microsoft.com/download](https://dotnet.microsoft.com/download)
   - Verify installation: `dotnet --version`
 
@@ -159,12 +159,8 @@ npm run dev
 ### Docker Start (Alternative)
 
 ```bash
-# Start all services with Docker
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-dotnet run
-
-# Or run with hot reload enabled
-dotnet watch run
+# Use the restart-dev-containers skill or:
+./dev.sh
 ```
 
 ### Step 3: Access the Application
@@ -261,14 +257,8 @@ dotnet ef migrations script
 ### Docker Development
 
 ```bash
-# Build the Docker image
-docker build -t witchcityrope .
-
-# Run the container
-docker run -p 5000:80 -e ASPNETCORE_ENVIRONMENT=Development witchcityrope
-
-# Use Docker Compose
-docker-compose up --build
+# Use the restart-dev-containers skill or:
+./dev.sh
 ```
 
 ## Troubleshooting

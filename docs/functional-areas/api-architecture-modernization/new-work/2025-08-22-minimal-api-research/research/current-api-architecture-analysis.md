@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-The current WitchCityRope API follows a **traditional Controller-based ASP.NET Core architecture** with well-structured layered organization. The implementation demonstrates **production-ready patterns** with robust authentication, proper data access layers, and comprehensive testing infrastructure. However, the architecture presents **modernization opportunities** aligned with .NET 9 best practices and minimal API patterns.
+The current WitchCityRope API follows a **traditional Controller-based ASP.NET Core architecture** with well-structured layered organization. The implementation demonstrates **production-ready patterns** with robust authentication, proper data access layers, and comprehensive testing infrastructure. However, the architecture presents **modernization opportunities** aligned with .NET 10 best practices and minimal API patterns.
 
 **Key Findings**:
 - **Current Pattern**: Controller + Service + Repository architecture with ASP.NET Core Identity
@@ -30,7 +30,7 @@ The current WitchCityRope API follows a **traditional Controller-based ASP.NET C
 ```
 
 ### **Technology Stack**
-- **Framework**: .NET 9 ASP.NET Core Web API
+- **Framework**: .NET 10 ASP.NET Core Web API
 - **Authentication**: ASP.NET Core Identity + JWT Bearer tokens
 - **Database**: PostgreSQL with Entity Framework Core 9.0
 - **Testing**: xUnit + FluentAssertions + TestContainers + Respawn

@@ -32,14 +32,14 @@ Current challenge: No real-time notification mechanism exists to update kiosk UI
 
 | Technology | Score | Pros | Cons | Recommendation |
 |------------|-------|------|------|----------------|
-| **SSE** | 9.25/10 | Native .NET 9 support, simple (70 lines), auto-reconnect, cookie auth works | 6 connection limit (not an issue) | **PRIMARY** |
+| **SSE** | 9.25/10 | Native .NET 10 support, simple (70 lines), auto-reconnect, cookie auth works | 6 connection limit (not an issue) | **PRIMARY** |
 | **SignalR** | 6.95/10 | Mature, bidirectional | Overkill, 2-3x more code, complex auth config | NOT RECOMMENDED |
 | **Polling** | 7.35/10 | Simple, familiar | 5-10s delays, wasted API calls | FALLBACK ONLY |
 | **Hybrid** | 5.95/10 | N/A | Worst of both worlds | NOT RECOMMENDED |
 
 ### Key Discovery: ASP.NET Core 9 Native SSE Support
 
-**Critical Finding**: Microsoft added `TypedResults.ServerSentEvents()` in .NET 9, providing native framework support for SSE without external dependencies.
+**Critical Finding**: Microsoft added `TypedResults.ServerSentEvents()` in .NET 10, providing native framework support for SSE without external dependencies.
 
 **Impact**:
 - No NuGet packages needed

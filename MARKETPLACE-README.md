@@ -33,7 +33,7 @@ This is an internal Claude Code plugin marketplace for WitchCityRope and company
 
 **Development (4 agents):**
 - `react-developer` - React + TypeScript + Mantine v7 development
-- `backend-developer` - .NET 9 API + Entity Framework + PostgreSQL
+- `backend-developer` - .NET 10 API + Entity Framework + PostgreSQL
 - `database-designer` - Schema design and optimization
 - `ui-designer` - UI/UX design with Mantine framework
 
@@ -118,8 +118,8 @@ Use the code-reviewer agent
 ## Project Stack
 
 - **Frontend**: React 18 + TypeScript + Vite + Mantine v7
-- **Backend**: .NET 9 Minimal API + C# 12
-- **Database**: PostgreSQL 15+ + Entity Framework Core 9
+- **Backend**: .NET 10 Minimal API + C# 12
+- **Database**: PostgreSQL 15+ + Entity Framework Core 10
 - **Testing**: Playwright (E2E), Vitest (React), xUnit (API)
 - **Architecture**: Microservices (Web + API), Vertical slice pattern
 

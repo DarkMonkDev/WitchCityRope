@@ -79,8 +79,8 @@ If containers need restart, use:
 
 ## Build Details
 - **Project**: WitchCityRope.Api
-- **Target Framework**: .NET 9.0
-- **Output**: /home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/WitchCityRope.Api.dll
+- **Target Framework**: .NET 10.0
+- **Output**: /home/chad/repos/witchcityrope/apps/api/bin/Debug/net10.0/WitchCityRope.Api.dll
 - **OpenAPI Spec**: 113 endpoint paths exported
 - **Compilation Time**: ~3-4 seconds
 - **Errors**: 0

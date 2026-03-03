@@ -1035,7 +1035,7 @@ jobs:
     - name: E2E Tests
       run: |
         # Install Playwright
-        pwsh tests/WitchCityRope.E2E.Tests/bin/Debug/net9.0/playwright.ps1 install
+        pwsh tests/WitchCityRope.E2E.Tests/bin/Debug/net10.0/playwright.ps1 install
         
         # Run E2E tests
         dotnet test tests/WitchCityRope.E2E.Tests \

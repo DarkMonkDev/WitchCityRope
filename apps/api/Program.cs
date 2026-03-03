@@ -49,7 +49,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 
-// Configure Microsoft's native OpenAPI support (.NET 9+)
+// Configure Microsoft's native OpenAPI support (.NET 10+)
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
@@ -315,7 +315,7 @@ builder.Services.AddCors(options =>
 });
 
 // Configure Anti-Forgery (CSRF) Protection
-// Microsoft standard pattern for .NET 9 with JSON APIs
+// Microsoft standard pattern for .NET 10 with JSON APIs
 builder.Services.AddAntiforgery(options =>
 {
     // Header name that React will use to send CSRF token
@@ -376,7 +376,7 @@ app.UseCors(corsPolicy);
 app.UseAntiforgery();
 
 // CSRF token generation endpoint for React SPA
-// Microsoft standard pattern for .NET 9 Minimal APIs with JSON
+// Microsoft standard pattern for .NET 10 Minimal APIs with JSON
 app.MapGet("/api/antiforgery/token", (IAntiforgery antiforgery, HttpContext context) =>
 {
     var tokens = antiforgery.GetAndStoreTokens(context);

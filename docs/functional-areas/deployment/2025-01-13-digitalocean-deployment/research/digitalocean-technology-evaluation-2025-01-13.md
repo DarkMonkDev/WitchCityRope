@@ -343,7 +343,7 @@ graph TB
 **Confidence Level**: High (85%)
 
 **Rationale**:
-1. **Proven Success Pattern**: DarkMonk project demonstrates this architecture handles production workloads effectively with similar technology stack (.NET 9, PostgreSQL, Docker)
+1. **Proven Success Pattern**: DarkMonk project demonstrates this architecture handles production workloads effectively with similar technology stack (.NET 10, PostgreSQL, Docker)
 
 2. **Cost Optimization**: At $114/month total, this solution costs 60% less than App Platform equivalent while providing identical functionality for WitchCityRope's scale
 

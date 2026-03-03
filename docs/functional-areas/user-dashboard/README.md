@@ -15,7 +15,7 @@ This folder contains all documentation for implementing the user dashboard featu
 
 ### Prerequisites
 
-- .NET 9.0 SDK
+- .NET 10.0 SDK
 - Node.js 18+ (for MCP tools)
 - Docker Desktop (for PostgreSQL)
 - Visual Studio 2022 or VS Code
@@ -136,7 +136,7 @@ This folder contains all documentation for implementing the user dashboard featu
 
 ## Technical Stack
 
-- **Frontend**: Blazor Server (.NET 9)
+- **Frontend**: Blazor Server (.NET 10)
 - **UI Components**: Syncfusion Blazor
 - **Styling**: CSS3 with CSS Variables
 - **Icons**: Font Awesome 6
@@ -196,7 +196,7 @@ dotnet test --filter "Category=Dashboard&Category=Unit"
 dotnet watch test --filter "Dashboard"
 
 # E2E tests
-pwsh tests/WitchCityRope.E2E.Tests/bin/Debug/net9.0/playwright.ps1 install
+pwsh tests/WitchCityRope.E2E.Tests/bin/Debug/net10.0/playwright.ps1 install
 dotnet test tests/WitchCityRope.E2E.Tests --filter "Feature=Dashboard"
 ```
 

@@ -50,7 +50,7 @@ The Payment System design phase is complete with comprehensive documentation cov
 - **Dignified presentation**: Mutual support, not charity
 
 ### 2. Technology Stack
-- **Backend**: .NET 9 Minimal API with Vertical Slice Architecture
+- **Backend**: .NET 10 Minimal API with Vertical Slice Architecture
 - **Frontend**: React + TypeScript + Mantine v7
 - **Database**: PostgreSQL with Entity Framework Core 9
 - **Payment Provider**: Stripe (PCI compliance)

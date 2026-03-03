@@ -275,7 +275,7 @@ COPY ../../tsconfig.json ../../
 - Project Path: `/home/chad/repos/witchcityrope-react`
 
 **Container Images**:
-- API: .NET 9 SDK (development target)
+- API: .NET 10 SDK (development target)
 - Web: Node 20 Alpine with Vite
 - Database: PostgreSQL 16 Alpine
 

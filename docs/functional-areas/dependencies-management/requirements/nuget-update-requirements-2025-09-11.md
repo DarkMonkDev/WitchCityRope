@@ -96,7 +96,7 @@ The API service is experiencing NuGet package version conflicts that manifest as
 ### Package Update Standards
 1. **Semantic Versioning Compliance**: All updates must respect semantic versioning to prevent breaking changes
 2. **Security Priority**: Security updates take precedence over feature updates
-3. **Compatibility Matrix**: Packages must maintain compatibility with .NET 9.0 target framework
+3. **Compatibility Matrix**: Packages must maintain compatibility with .NET 10.0 target framework
 4. **Testing Requirements**: Each package update requires regression testing of affected API endpoints
 
 ### Version Selection Criteria
@@ -120,7 +120,7 @@ The API service is experiencing NuGet package version conflicts that manifest as
 ## Constraints & Assumptions
 
 ### Technical Constraints
-- **Framework Lock**: Must remain on .NET 9.0 (established in current architecture)
+- **Framework Lock**: Must remain on .NET 10.0 (established in current architecture)
 - **Database Compatibility**: Package updates cannot break PostgreSQL Entity Framework integration
 - **Authentication Integration**: Must maintain compatibility with ASP.NET Core Identity + JWT pattern
 - **Existing API Contracts**: Package updates cannot modify API response structures

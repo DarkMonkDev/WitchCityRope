@@ -94,7 +94,7 @@
 
 ### Technical Constraints:
 - **Foundation Requirement**: MUST build upon existing TestContainers v4.7.0 infrastructure
-- **Compatibility Requirement**: MUST work with .NET 9 and Entity Framework Core 9.0
+- **Compatibility Requirement**: MUST work with .NET 10 and Entity Framework Core 9.0
 - **Platform Requirement**: MUST support GitHub Actions ubuntu-latest runner limitations
 - **Integration Requirement**: MUST support both React frontend + .NET API testing scenarios
 

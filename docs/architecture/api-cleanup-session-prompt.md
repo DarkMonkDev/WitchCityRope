@@ -38,7 +38,7 @@ Before starting ANY work, you MUST:
 ### Primary Active API (KEEP THIS ONE)
 - **Location**: `/apps/api/` 
 - **Port**: 5655
-- **Technology**: ASP.NET Core Minimal API (.NET 9)
+- **Technology**: ASP.NET Core Minimal API (.NET 10)
 - **Architecture**: Vertical Slice Architecture  
 - **Status**: **CURRENTLY SERVING REACT FRONTEND**
 - **Performance**: 49ms response times achieved

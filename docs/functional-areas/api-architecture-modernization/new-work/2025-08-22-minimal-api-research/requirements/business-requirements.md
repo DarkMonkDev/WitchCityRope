@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-WitchCityRope's current controller-based API architecture requires modernization to align with .NET 9 minimal API patterns, improve developer productivity, and optimize performance for our mobile-first community members. This initiative will migrate from traditional MVC controllers to a **simple vertical slice architecture** using minimal APIs with direct Entity Framework services, while maintaining all existing functionality and preserving our robust NSwag type generation workflow.
+WitchCityRope's current controller-based API architecture requires modernization to align with .NET 10 minimal API patterns, improve developer productivity, and optimize performance for our mobile-first community members. This initiative will migrate from traditional MVC controllers to a **simple vertical slice architecture** using minimal APIs with direct Entity Framework services, while maintaining all existing functionality and preserving our robust NSwag type generation workflow.
 
 **Key Revision**: Based on stakeholder feedback, this approach emphasizes **simplicity over architectural complexity**, removing MediatR/CQRS overhead in favor of direct Entity Framework services organized by feature.
 
@@ -17,8 +17,8 @@ WitchCityRope's current controller-based API architecture requires modernization
 **Developer Experience Challenges**:
 1. **Boilerplate Overhead**: Current controller architecture requires 15-20 lines of ceremonial code per endpoint, slowing feature development
 2. **Horizontal Coupling**: Controller → Service → Repository pattern creates cross-feature dependencies that complicate testing and maintenance
-3. **Performance Gap**: 15% slower request processing and 93% higher memory usage compared to .NET 9 minimal API standards impacts mobile user experience
-4. **Architecture Drift**: Using .NET 8 patterns in .NET 9 environment creates technical debt and reduces long-term maintainability
+3. **Performance Gap**: 15% slower request processing and 93% higher memory usage compared to .NET 10 minimal API standards impacts mobile user experience
+4. **Architecture Drift**: Using .NET 8 patterns in .NET 10 environment creates technical debt and reduces long-term maintainability
 5. **Unnecessary Complexity**: Current CQRS-like patterns add overhead where Entity Framework can handle everything more simply
 
 **Community Impact**: 
@@ -464,7 +464,7 @@ Features/
 - [x] **Business value clearly defined** - 40-60% development speed increase through simplicity
 - [x] **Edge cases considered** - AI agent learning, API contract changes, simple testing
 - [x] **Security requirements documented** - Authentication, authorization, data protection preserved
-- [x] **Compliance requirements checked** - OpenAPI, .NET 9 standards, simplified development processes
+- [x] **Compliance requirements checked** - OpenAPI, .NET 10 standards, simplified development processes
 - [x] **Performance expectations set** - 170ms response time target, memory reduction goals
 - [x] **Mobile experience considered** - Primary focus on mobile user performance improvements
 - [x] **Examples provided** - Simple Entity Framework patterns, direct service calls
@@ -478,7 +478,7 @@ Features/
 
 **Stakeholder Feedback Integration**: This revised requirements document incorporates critical feedback emphasizing simplicity over architectural complexity. The approach removes MediatR/CQRS overhead, focuses on AI agent training, and allows beneficial API contract improvements while maintaining the core business value proposition.
 
-**Research Foundation**: Built on comprehensive .NET 9 minimal API research with stakeholder preference for practical, maintainable solutions over complex architectural patterns.
+**Research Foundation**: Built on comprehensive .NET 10 minimal API research with stakeholder preference for practical, maintainable solutions over complex architectural patterns.
 
 **Next Phase**: Upon approval, this document will be used to create implementation plans focused on simple Entity Framework services and AI agent training materials.
 

@@ -61,16 +61,13 @@ The `./dev.sh` script provides an interactive menu:
 
 **For container startup/restart**: Use **restart-dev-containers skill** for correct procedure with health checks and compilation validation.
 
-**For other operations**, always include both compose files:
+**For other operations**, use `docker logs` directly:
 
 ```bash
-# View logs
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
-
-# View specific service logs
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f web
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f api
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f postgres
+# View logs for specific containers
+docker logs -f witchcity-web
+docker logs -f witchcity-api
+docker logs -f witchcity-postgres
 
 # Stop services
 docker-compose down
@@ -85,7 +82,7 @@ docker-compose exec postgres psql -U postgres -d witchcityrope_db
 
 ### Known Issue
 
-.NET 9 Blazor Server hot reload in Docker containers is notoriously unreliable, especially for:
+.NET 10 Blazor Server hot reload in Docker containers is notoriously unreliable, especially for:
 - Authentication changes
 - Layout modifications
 - Render mode changes
@@ -165,15 +162,9 @@ docker exec witchcity-postgres psql -U postgres -d witchcityrope_db -c "SELECT t
    ```
 
 2. **Clean up existing containers:**
-   ```bash
-   docker-compose down
-   docker ps -a | grep witchcity | awk '{print $1}' | xargs -r docker rm -f
-   ```
+   Use the `restart-dev-containers` skill which handles shutdown, cleanup, and restart.
 
-3. **Check Docker logs:**
-   ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs web
-   ```
+3. **Check Docker logs:** Run `docker logs <container-name>` (e.g., witchcity-web, witchcity-api)
 
 ### Changes Not Reflected
 
@@ -232,7 +223,7 @@ The project provides scripts to handle common issues:
 ### 4. Monitor Logs
 Keep logs open in a terminal to catch issues early:
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f web
+docker logs -f witchcity-web
 ```
 
 ### 5. Clean Up Resources

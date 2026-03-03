@@ -124,7 +124,7 @@ The WitchCityRope authentication system is fully functional in the development e
 ### Constraints
 - **Technical**: Must use existing authentication codebase without modifications
 - **Technical**: Must preserve React + TypeScript + Vite development setup
-- **Technical**: Must maintain .NET 9 Minimal API with ASP.NET Core Identity
+- **Technical**: Must maintain .NET 10 Minimal API with ASP.NET Core Identity
 - **Technical**: Must use PostgreSQL with existing schema
 - **Business**: Zero budget for commercial authentication services
 - **Business**: Must not disrupt current development workflow
@@ -220,7 +220,7 @@ The WitchCityRope authentication system is fully functional in the development e
 6. Authentication state preserved through API restart
 
 ### Scenario 3: E2E Test Execution
-1. QA runs `npm run test:e2e:playwright` against containers
+1. QA runs E2E tests against containers (use `test-environment` skill)
 2. All authentication test scenarios pass
 3. Test results match baseline from native environment
 4. Test infrastructure accessible at localhost:8080

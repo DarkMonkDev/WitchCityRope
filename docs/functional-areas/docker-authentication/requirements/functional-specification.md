@@ -15,7 +15,7 @@ Containerize the EXISTING WORKING authentication system (React + .NET API + Post
 ### Microservices Architecture
 **CRITICAL**: This is a Web+API microservices architecture:
 - **Web Service** (React + Vite): UI/Auth at http://localhost:5173 → Container port 3000
-- **API Service** (.NET 9 Minimal API): Business logic at http://localhost:5655 → Container port 8080
+- **API Service** (.NET 10 Minimal API): Business logic at http://localhost:5655 → Container port 8080
 - **Database** (PostgreSQL): localhost:5433 → Container port 5432
 - **Test Infrastructure**: localhost:8080 → Container port 80
 - **Pattern**: React → HTTP → API → Database (NEVER React → Database directly)
@@ -263,7 +263,7 @@ export default defineConfig({
 })
 ```
 
-### API Container (.NET 9 Development)
+### API Container (.NET 10 Development)
 
 #### Dockerfile.api
 ```dockerfile
@@ -525,12 +525,10 @@ if [[ ! -f "docker-compose.yml" ]]; then
     exit 1
 fi
 
-# Build and start services
-echo "📦 Building containers..."
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
-
-echo "🚀 Starting services..."
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Build and start services using the restart-dev-containers skill
+# The skill handles compose overlay, project isolation, and health checks
+echo "📦 Starting dev environment..."
+./dev.sh
 
 # Wait for services to be ready
 echo "⏳ Waiting for services to be ready..."

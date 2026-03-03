@@ -7,20 +7,20 @@
 ## Executive Summary
 **Decision Required**: Update NuGet packages to latest stable versions for improved security, compatibility, and performance
 **Recommendation**: Immediate updates recommended for 8/10 packages with staggered implementation approach
-**Key Factors**: Security improvements, .NET 9 compatibility, breaking change management
+**Key Factors**: Security improvements, .NET 10 compatibility, breaking change management
 
 ## Research Scope
 
 ### Requirements
 - Identify latest stable versions for all current NuGet packages
-- Ensure .NET 9 compatibility for all packages  
+- Ensure .NET 10 compatibility for all packages  
 - Identify security vulnerabilities and fixes in newer versions
 - Assess breaking changes and migration complexity
 - Provide dependency conflict analysis
 
 ### Success Criteria
 - Zero security vulnerabilities in updated packages
-- Full .NET 9 compatibility maintained
+- Full .NET 10 compatibility maintained
 - No breaking changes that impact current functionality
 - Clear migration path with minimal development effort
 
@@ -56,7 +56,7 @@
 **Pros**:
 - Three security/stability patches since current version
 - Enhanced OpenAPI 3.1 support with JSON Schema draft 2020-12
-- Built-in .NET 9 integration eliminates need for external dependencies
+- Built-in .NET 10 integration eliminates need for external dependencies
 - Support for multiple OpenAPI documents from single app
 - Improved transformer APIs for document customization
 
@@ -80,15 +80,15 @@
 **Documentation Quality**: Good, but Microsoft recommends migration
 
 **Pros**:
-- Latest version includes .NET 9 compatibility fixes
+- Latest version includes .NET 10 compatibility fixes
 - Bug fixes and performance improvements since 7.2.0
 - Community-maintained with active development
 
 **Cons**:
-- 🚨 **Microsoft no longer includes Swashbuckle in .NET 9 templates**
+- 🚨 **Microsoft no longer includes Swashbuckle in .NET 10 templates**
 - Major version jump (7.2.0 → 9.0.4) indicates breaking changes
 - Future support uncertain as Microsoft moves to native OpenAPI
-- Potential compatibility issues with .NET 9's built-in OpenAPI
+- Potential compatibility issues with .NET 10's built-in OpenAPI
 
 **WitchCityRope Fit**:
 - Safety/Privacy: 🟡 Moderate - No new features, maintenance mode
@@ -108,7 +108,7 @@
 
 **Pros**:
 - Patch release with bug fixes and stability improvements
-- Full .NET 9 and EF Core 9 compatibility
+- Full .NET 10 and EF Core 9 compatibility
 - Sequential GUID generation (v7) for better database performance
 - Enhanced NativeAOT and trimming support
 - Direct SSL support for PostgreSQL 17
@@ -134,7 +134,7 @@
 **Pros**:
 - Nine patches worth of bug fixes and improvements
 - Enhanced migration tooling and design-time services
-- Better integration with .NET 9 development tools
+- Better integration with .NET 10 development tools
 - Improved Code First migration generation
 
 **Cons**:
@@ -253,7 +253,7 @@
 
 **Pros**:
 - Already on latest stable version
-- Full .NET 9 compatibility
+- Full .NET 10 compatibility
 - Active monitoring of PostgreSQL database health
 - No breaking changes needed
 
@@ -273,7 +273,7 @@
 | Criteria | Weight | Current State | Updated State | Improvement |
 |----------|--------|---------------|---------------|-------------|
 | Security Posture | 30% | 6/10 | 9/10 | +30% |
-| .NET 9 Compatibility | 25% | 8/10 | 10/10 | +25% |
+| .NET 10 Compatibility | 25% | 8/10 | 10/10 | +25% |
 | Maintenance Burden | 20% | 7/10 | 9/10 | +20% |
 | Developer Experience | 15% | 8/10 | 9/10 | +15% |
 | Community Support | 10% | 8/10 | 9/10 | +10% |
@@ -377,7 +377,7 @@
 
 **Rationale**:
 1. **Security Imperative**: Multiple packages have security improvements (Identity, JWT Bearer, OpenAPI)  
-2. **.NET 9 Optimization**: Updated packages provide better .NET 9 integration and performance
+2. **.NET 10 Optimization**: Updated packages provide better .NET 10 integration and performance
 3. **Future-Proofing**: Migration from deprecated System.IdentityModel.Tokens.Jwt prevents future security risks
 4. **Performance Gains**: 13% bundle size reduction + 5-30% runtime performance improvements
 
@@ -397,9 +397,9 @@
 
 ## Research Sources
 - Microsoft NuGet Package Gallery (nuget.org)
-- Microsoft Learn Documentation (.NET 9 compatibility)
+- Microsoft Learn Documentation (.NET 10 compatibility)
 - Npgsql Official Documentation (PostgreSQL provider updates)
-- Microsoft Developer Blogs (.NET 9 OpenAPI improvements)
+- Microsoft Developer Blogs (.NET 10 OpenAPI improvements)
 - Microsoft Security Advisories (JWT handling recommendations)
 - BCrypt.Net GitHub Repository (community package status)
 - AspNetCore.Diagnostics.HealthChecks GitHub (health check updates)

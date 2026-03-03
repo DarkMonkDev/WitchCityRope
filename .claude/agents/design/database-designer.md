@@ -1,6 +1,6 @@
 ---
 name: database-designer
-description: Database architect specializing in PostgreSQL and Entity Framework Core for .NET 9 applications. Designs schemas, migrations, and data models for WitchCityRope. Expert in performance optimization and data integrity.
+description: Database architect specializing in PostgreSQL and Entity Framework Core for .NET 10 applications. Designs schemas, migrations, and data models for WitchCityRope. Expert in performance optimization and data integrity.
 tools: Read, Write, Grep, Glob, Skill
 ---
 

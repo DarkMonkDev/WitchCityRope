@@ -105,7 +105,7 @@ check_prerequisites() {
     
     # Check dotnet
     if ! command -v dotnet &> /dev/null; then
-        log ERROR "dotnet CLI not found. Please install .NET 9.0"
+        log ERROR "dotnet CLI not found. Please install .NET 10.0"
         exit 1
     fi
     

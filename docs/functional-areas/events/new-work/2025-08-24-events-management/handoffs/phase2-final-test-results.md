@@ -20,7 +20,7 @@
 **Evidence**: 
 ```bash
 Passed!  - Failed: 0, Passed: 202, Skipped: 1, Total: 203
-Duration: 291 ms - WitchCityRope.Core.Tests.dll (net9.0)
+Duration: 291 ms - WitchCityRope.Core.Tests.dll (net10.0)
 ```
 **Impact**: All domain logic and core business rules are functioning correctly
 

@@ -283,7 +283,7 @@ Use Claude for:
 ## Technical Decisions for Solo Development
 
 ### Recommended Stack (Updated)
-- **Framework:** ASP.NET 9 with Blazor Server
+- **Framework:** ASP.NET 10 with Blazor Server
 - **Database:** SQLite (simpler than PostgreSQL for MVP)
 - **UI Library:** Syncfusion Blazor components
 - **Payments:** PayPal Checkout SDK

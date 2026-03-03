@@ -7,7 +7,7 @@ Context7 is a Model Context Protocol (MCP) server that provides up-to-date, vers
 ## Why Context7 is Essential for This Project
 
 WitchCityRope uses cutting-edge technologies that evolve rapidly:
-- **.NET 9** - The latest version with new features and APIs
+- **.NET 10** - The latest version with new features and APIs
 - **Blazor Server** - Constantly evolving component model
 - **Entity Framework Core 9** - New query capabilities and performance improvements
 - **ASP.NET Core Identity** - Security updates and new authentication features
@@ -43,7 +43,7 @@ Simply add "use context7" to any prompt where you need current documentation. Co
 
 ### ASP.NET Core Identity
 ```
-"How do I implement two-factor authentication with ASP.NET Core Identity in .NET 9? use context7"
+"How do I implement two-factor authentication with ASP.NET Core Identity in .NET 10? use context7"
 ```
 
 ### Entity Framework Core
@@ -53,7 +53,7 @@ Simply add "use context7" to any prompt where you need current documentation. Co
 
 ### Blazor Server Components
 ```
-"What's the correct lifecycle for Blazor Server components in .NET 9? use context7"
+"What's the correct lifecycle for Blazor Server components in .NET 10? use context7"
 ```
 
 ### Syncfusion Components
@@ -73,7 +73,7 @@ Simply add "use context7" to any prompt where you need current documentation. Co
 
 ### Minimal APIs
 ```
-"Show me best practices for organizing minimal APIs in .NET 9 use context7"
+"Show me best practices for organizing minimal APIs in .NET 10 use context7"
 ```
 
 ## Project-Specific Use Cases
@@ -86,7 +86,7 @@ This ensures you get the latest patterns for the project's role-based access con
 
 ### 2. Blazor Form Validation
 ```
-"Show me how to create custom validation components in Blazor Server .NET 9 use context7"
+"Show me how to create custom validation components in Blazor Server .NET 10 use context7"
 ```
 Essential for maintaining the WCR validation component pattern.
 
@@ -104,7 +104,7 @@ Crucial for the ongoing PostgreSQL migration.
 
 ### 5. Performance Optimization
 ```
-"What are the latest performance optimization techniques for Blazor Server in .NET 9? use context7"
+"What are the latest performance optimization techniques for Blazor Server in .NET 10? use context7"
 ```
 Stay updated with the latest performance improvements.
 
@@ -131,13 +131,13 @@ Stay updated with the latest performance improvements.
 Context7 works seamlessly with other MCP servers:
 
 1. **With FileSystem MCP**:
-   - Read existing code, then ask: "How can I modernize this to .NET 9 patterns? use context7"
+   - Read existing code, then ask: "How can I modernize this to .NET 10 patterns? use context7"
 
 2. **With Memory MCP**:
    - Store architectural decisions with current documentation context
 
 3. **With Docker MCP**:
-   - "What's the recommended Docker configuration for .NET 9 apps? use context7"
+   - "What's the recommended Docker configuration for .NET 10 apps? use context7"
 
 ## Troubleshooting
 

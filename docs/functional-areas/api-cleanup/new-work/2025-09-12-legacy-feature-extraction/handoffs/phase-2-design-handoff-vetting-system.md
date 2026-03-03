@@ -55,7 +55,7 @@ Successfully completed all design and architecture documentation for the Vetting
    - No PII in logs or notifications
 
 2. **Technology Stack**
-   - Backend: .NET 9 Minimal API
+   - Backend: .NET 10 Minimal API
    - Frontend: React + TypeScript + Mantine v7
    - Database: PostgreSQL with EF Core 9
    - Testing: TestContainers for all DB tests

@@ -75,7 +75,7 @@ WitchCityRope needs production deployment to serve Salem's rope bondage communit
 
 ### Technology Stack
 - **Frontend**: React + TypeScript + Vite
-- **Backend**: .NET 9 Minimal API
+- **Backend**: .NET 10 Minimal API
 - **Database**: PostgreSQL 16 (Managed)
 - **Container**: Docker + Docker Compose
 - **Proxy**: Nginx + Let's Encrypt

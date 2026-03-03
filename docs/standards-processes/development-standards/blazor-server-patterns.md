@@ -21,7 +21,7 @@ This document defines the mandatory patterns and standards for Blazor Server dev
 - Blazor components (`.razor` files in `/Components/Pages/` or `/Features/`)
 - `App.razor` as the root HTML document (contains DOCTYPE, head, body)
 - Pure Blazor Server with `MapRazorComponents<App>().AddInteractiveServerRenderMode()`
-- .NET 9 Blazor Server patterns with proper antiforgery token integration
+- .NET 10 Blazor Server patterns with proper antiforgery token integration
 
 ### Correct Program.cs Configuration
 
@@ -63,14 +63,14 @@ Pages that only display content can use default server-side rendering:
 - Static information display
 - Pages without user interaction
 
-### .NET 9 Render Mode Syntax
+### .NET 10 Render Mode Syntax
 
 **✅ REQUIRED Syntax for This Project:**
 ```razor
 @rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode())
 ```
 
-**Note**: While `@rendermode InteractiveServer` is valid .NET 9 syntax, this project uses the explicit instantiation syntax for consistency.
+**Note**: While `@rendermode InteractiveServer` is valid .NET 10 syntax, this project uses the explicit instantiation syntax for consistency.
 
 ### Layout Component Restrictions
 
@@ -226,7 +226,7 @@ Organize components by feature, not by type:
 ## Common Pitfalls to Avoid
 
 1. **Creating Razor Pages** - This breaks the pure Blazor Server architecture
-2. **Using old render mode syntax** - Always use .NET 9 syntax
+2. **Using old render mode syntax** - Always use .NET 10 syntax
 3. **Adding render modes to layouts** - Layouts cannot be interactive
 4. **Direct database access from Web** - Always go through the API
 5. **Forgetting CSS escaping** - Double @ is required in Blazor
@@ -250,5 +250,5 @@ Run the architecture validation script to check for common issues:
 
 ### Microsoft Documentation
 - [Microsoft Blazor Server Documentation](https://docs.microsoft.com/blazor)
-- [.NET 9 Blazor Updates](https://docs.microsoft.com/dotnet/core/whats-new/dotnet-9)
+- [.NET 10 Blazor Updates](https://docs.microsoft.com/dotnet/core/whats-new/dotnet-9)
 - [ASP.NET Core Authentication](https://docs.microsoft.com/aspnet/core/security/authentication)

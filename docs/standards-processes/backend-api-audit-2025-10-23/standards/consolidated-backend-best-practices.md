@@ -7,7 +7,7 @@
 
 ## Document Purpose
 
-This document consolidates research from Milan Jovanović (October 2025), Microsoft .NET 9 official guidance, and analysis of our current implementation into a **single source of truth** for backend API development at WitchCityRope.
+This document consolidates research from Milan Jovanović (October 2025), Microsoft .NET 10 official guidance, and analysis of our current implementation into a **single source of truth** for backend API development at WitchCityRope.
 
 **Supersedes:** Individual research documents (retained for reference)
 **Audience:** Backend developers, code reviewers, AI agents
@@ -253,7 +253,7 @@ app.MapGet("/api/users/{id}", async (Guid id, UserService service) =>
 
 ### 3.2 Route Groups for Organization
 
-**.NET 9 Pattern (Recommended):**
+**.NET 10 Pattern (Recommended):**
 ```csharp
 public static class EventEndpoints
 {
@@ -918,7 +918,7 @@ public async Task<List<string>> GetRolesAsync()
 }
 ```
 
-**Future Consideration:** HybridCache in .NET 9 for multi-server deployments
+**Future Consideration:** HybridCache in .NET 10 for multi-server deployments
 
 **Priority:** 🟡 LOW - Current single-server deployment doesn't require caching
 
@@ -1809,7 +1809,7 @@ public class ResourceService
 - **Effort:** 2-3 hours
 
 **8. Rate Limiting** 🟢 LOW PRIORITY
-- Implement .NET 9 rate limiting
+- Implement .NET 10 rate limiting
 - Protect against abuse
 - **Impact:** Security improvement
 - **Effort:** 2-3 hours
@@ -1822,7 +1822,7 @@ public class ResourceService
 
 **Primary Sources:**
 - Milan Jovanović patterns (October 2025) - Complexity filtered for pragmatism
-- Microsoft .NET 9 official documentation - Native features and best practices
+- Microsoft .NET 10 official documentation - Native features and best practices
 - WitchCityRope implementation analysis (82/100 compliance baseline)
 - DTO alignment strategy (62/100 compliance, improvement roadmap)
 

@@ -19,7 +19,7 @@ Before you begin, ensure you have the following installed on your system:
 
 ### Required Software
 
-- **.NET 9.0 SDK or later**
+- **.NET 10.0 SDK or later**
   - Download from [https://dotnet.microsoft.com/download](https://dotnet.microsoft.com/download)
   - Verify installation: `dotnet --version`
 
@@ -277,11 +277,8 @@ docker-compose down -v  # Remove database volume
 ### Docker Development
 
 ```bash
-# Build the Docker image
-docker build -t witchcityrope .
-
-# Run the container
-docker run -p 5000:80 -e ASPNETCORE_ENVIRONMENT=Development witchcityrope
+# Use the restart-dev-containers skill or manually:
+./dev.sh
 
 # Use Docker Compose
 docker-compose up --build

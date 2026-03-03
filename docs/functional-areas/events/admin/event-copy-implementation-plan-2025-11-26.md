@@ -1048,7 +1048,7 @@ Each agent must document:
 ## 9. Dependencies and Constraints
 
 ### Technical Dependencies
-- **.NET 9 API**: Backend must be .NET 9 compatible
+- **.NET 10 API**: Backend must be .NET 10 compatible
 - **Entity Framework Core**: For database operations
 - **PostgreSQL**: Database backend
 - **React 18**: Frontend framework

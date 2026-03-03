@@ -338,7 +338,7 @@ TypeScript types generated for frontend:
 **Build Output**:
 ```
 Build succeeded.
-WitchCityRope.Api -> /home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/WitchCityRope.Api.dll
+WitchCityRope.Api -> /home/chad/repos/witchcityrope/apps/api/bin/Debug/net10.0/WitchCityRope.Api.dll
 OpenAPI spec exported to openapi.json
 Spec contains 129 endpoint paths
 ```

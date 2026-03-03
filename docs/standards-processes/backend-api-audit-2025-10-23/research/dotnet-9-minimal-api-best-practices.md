@@ -1,23 +1,23 @@
-# .NET 9 Minimal API Best Practices - October 2025
+# .NET 10 Minimal API Best Practices - October 2025
 
 **Research Date:** 2025-10-23
-**Primary Sources:** Microsoft Learn (.NET 9 Official Documentation)
+**Primary Sources:** Microsoft Learn (.NET 10 Official Documentation)
 **Secondary Sources:** Community articles, DevBlogs
 **Researcher:** Technology-Researcher Agent
 **Audit Context:** API Standards & Best Practices Audit
 
 ## Executive Summary
 
-.NET 9 represents a significant maturation of the Minimal API approach, with **native OpenAPI support**, **performance improvements**, and **simplified development workflows**. Microsoft now recommends Minimal APIs as the default choice for new HTTP APIs, with controller-based APIs remaining available for specific scenarios requiring advanced model binding.
+.NET 10 represents a significant maturation of the Minimal API approach, with **native OpenAPI support**, **performance improvements**, and **simplified development workflows**. Microsoft now recommends Minimal APIs as the default choice for new HTTP APIs, with controller-based APIs remaining available for specific scenarios requiring advanced model binding.
 
 ### Key Takeaways:
-1. **Minimal APIs are the recommended approach** for new .NET 9 projects
+1. **Minimal APIs are the recommended approach** for new .NET 10 projects
 2. **Native OpenAPI support** eliminates need for Swashbuckle (Microsoft.AspNetCore.OpenApi)
-3. **Performance gains** from .NET 9 runtime improvements (free upgrades)
+3. **Performance gains** from .NET 10 runtime improvements (free upgrades)
 4. **Simplified workflows** with route groups, parameter binding improvements
 5. **Production-ready** for all but the most complex model binding scenarios
 
-## .NET 9 Release Overview
+## .NET 10 Release Overview
 
 ### Release Information
 - **GA Release**: November 12-14, 2024 (.NET Conf 2024)
@@ -36,12 +36,12 @@
 
 **Our Impact:** ✅ Minimal - We use PostgreSQL, not Cosmos DB
 
-## Minimal API Features in .NET 9
+## Minimal API Features in .NET 10
 
 ### 1. Native OpenAPI Support
 
 **What Changed:**
-.NET 9 introduces `Microsoft.AspNetCore.OpenApi` package for built-in OpenAPI document generation, eliminating the need for Swashbuckle.
+.NET 10 introduces `Microsoft.AspNetCore.OpenApi` package for built-in OpenAPI document generation, eliminating the need for Swashbuckle.
 
 ```csharp
 // .NET 8 (Swashbuckle)
@@ -51,7 +51,7 @@ builder.Services.AddSwaggerGen();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// .NET 9 (Native)
+// .NET 10 (Native)
 builder.Services.AddOpenApi();
 
 app.MapOpenApi();  // Generates OpenAPI document at /openapi/v1.json
@@ -104,11 +104,11 @@ app.MapOpenApi();  // ✅ Already implemented
 app.UseSwaggerUi(); // NSwag UI still works
 ```
 
-**Status:** ✅ Already compliant with .NET 9 best practices
+**Status:** ✅ Already compliant with .NET 10 best practices
 
 ### 2. Performance Improvements
 
-**.NET 9 Runtime Enhancements (Free Performance):**
+**.NET 10 Runtime Enhancements (Free Performance):**
 
 #### JIT Compiler Optimizations
 
@@ -140,14 +140,14 @@ app.UseSwaggerUi(); // NSwag UI still works
 - Memory usage: 10-20% reduction (DATAS)
 - Startup time: Modest improvement (faster JIT)
 
-**Action Required:** ✅ None - Automatic on .NET 9 upgrade
+**Action Required:** ✅ None - Automatic on .NET 10 upgrade
 
 ### 3. Route Groups and Organization
 
 **Enhanced Route Group Features:**
 
 ```csharp
-// .NET 9 improvements
+// .NET 10 improvements
 var events = app.MapGroup("/api/events")
     .WithTags("Events")
     .RequireAuthorization()
@@ -196,7 +196,7 @@ public static void MapEventEndpoints(this IEndpointRouteBuilder app)
 
 ### 4. Parameter Binding Improvements
 
-**.NET 9 Enhanced Parameter Binding:**
+**.NET 10 Enhanced Parameter Binding:**
 
 ```csharp
 // Automatic binding from multiple sources
@@ -238,7 +238,7 @@ Already using simplified parameter binding effectively.
 
 ### 5. OpenAPI Metadata Enhancements
 
-**.NET 9 Metadata Extensions:**
+**.NET 10 Metadata Extensions:**
 
 ```csharp
 app.MapGet("/api/events/{id}", GetEventAsync)
@@ -278,7 +278,7 @@ Add `.Produces<T>()` for all endpoints to improve OpenAPI specs for NSwag.
 ### When to Use Minimal APIs (Microsoft Recommendation)
 
 **✅ Use Minimal APIs for:**
-- New projects starting with .NET 9
+- New projects starting with .NET 10
 - Microservices and lightweight APIs
 - APIs with straightforward routing
 - Projects prioritizing performance
@@ -303,7 +303,7 @@ Add `.Produces<T>()` for all endpoints to improve OpenAPI specs for NSwag.
 
 **Decision:** ✅ Continue with Minimal APIs - Perfect fit
 
-## .NET 9 Performance Benchmarks
+## .NET 10 Performance Benchmarks
 
 ### Official Microsoft Benchmarks
 
@@ -312,7 +312,7 @@ Add `.Produces<T>()` for all endpoints to improve OpenAPI specs for NSwag.
 - 93% less memory allocation per request
 - Higher throughput (requests per second)
 
-**.NET 9 Specific Improvements:**
+**.NET 10 Specific Improvements:**
 - JIT optimizations: Additional 5-10% improvement
 - GC improvements: Reduced pause times
 - Startup time: Faster assembly loading
@@ -323,7 +323,7 @@ Add `.Produces<T>()` for all endpoints to improve OpenAPI specs for NSwag.
 - Typical API response: 50-200ms (database-bound)
 - Memory per request: ~2MB (EF Core tracking)
 
-**Expected .NET 9 Improvements:**
+**Expected .NET 10 Improvements:**
 - JIT optimizations: 5-10ms faster (low-computation endpoints)
 - Memory: 200-400KB reduction per request (GC improvements)
 - Throughput: 10-15% more concurrent requests
@@ -333,7 +333,7 @@ Add `.Produces<T>()` for all endpoints to improve OpenAPI specs for NSwag.
 - Network latency (varies)
 - Business logic complexity
 
-**Action:** ✅ Upgrade to .NET 9 for free performance, focus optimization on database queries
+**Action:** ✅ Upgrade to .NET 10 for free performance, focus optimization on database queries
 
 ## Best Practices Summary
 
@@ -593,7 +593,7 @@ builder.Services.AddCors(options =>
 
 **Our Status:** ✅ Development CORS configured, production policy ready
 
-### 3. Rate Limiting (.NET 9 Feature)
+### 3. Rate Limiting (.NET 10 Feature)
 
 ```csharp
 // Built-in rate limiting
@@ -645,7 +645,7 @@ app.UseRateLimiter();
 
 5. **Implement Rate Limiting**
    - Protect against abuse
-   - Built-in .NET 9 feature
+   - Built-in .NET 10 feature
    - Production requirement
 
 6. **Enhanced OpenAPI Metadata**
@@ -666,7 +666,7 @@ app.UseRateLimiter();
 
 ## Compliance Checklist
 
-### Our Current Status Against .NET 9 Best Practices
+### Our Current Status Against .NET 10 Best Practices
 
 | Practice | Recommendation | Our Status | Action |
 |----------|----------------|------------|--------|
@@ -686,25 +686,25 @@ app.UseRateLimiter();
 ## Sources
 
 ### Primary Sources (Microsoft Official):
-- "APIs overview - Minimal APIs" - Microsoft Learn (.NET 9)
+- "APIs overview - Minimal APIs" - Microsoft Learn (.NET 10)
   https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/overview?view=aspnetcore-9.0
 
-- "Minimal APIs quick reference" - Microsoft Learn (.NET 9)
+- "Minimal APIs quick reference" - Microsoft Learn (.NET 10)
   https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis?view=aspnetcore-9.0
 
 - "What's New in ASP.NET Core 9" - Microsoft Learn
   https://learn.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-9.0
 
-- ".NET 9 Performance Improvements" - Microsoft DevBlogs
+- ".NET 10 Performance Improvements" - Microsoft DevBlogs
   https://devblogs.microsoft.com/dotnet/dotnet9-performance/
 
-- "Generate OpenAPI documents" - Microsoft Learn (.NET 9)
+- "Generate OpenAPI documents" - Microsoft Learn (.NET 10)
   https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi
 
 ### Secondary Sources:
 - "Building a Minimal API in .NET Core 9.0" - Medium (2025)
-- "Exploring .NET 9 Minimal APIs With Examples" - Medium (May 2025)
-- ABP.IO - ".NET 9 Performance Improvements Summary"
+- "Exploring .NET 10 Minimal APIs With Examples" - Medium (May 2025)
+- ABP.IO - ".NET 10 Performance Improvements Summary"
 
 ---
 

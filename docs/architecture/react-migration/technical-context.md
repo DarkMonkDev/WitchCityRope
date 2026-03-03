@@ -32,10 +32,10 @@
 
 ### Current Technology Stack
 
-**Backend (.NET 9)**:
+**Backend (.NET 10)**:
 ```csharp
 // Core Framework
-- .NET 9 (LTS release)
+- .NET 10 (LTS release)
 - ASP.NET Core (Web + API)
 - Entity Framework Core 8.0
 - PostgreSQL with Npgsql driver

@@ -150,7 +150,7 @@ Features/Authentication/
 2. **Feature-Based Organization**: All related code in one location
 3. **Simple Caching**: Entity Framework query optimization (no CQRS complexity)
 4. **Direct Database Access**: No repository pattern overhead
-5. **Minimal API Patterns**: Leverage .NET 9 performance optimizations
+5. **Minimal API Patterns**: Leverage .NET 10 performance optimizations
 
 ---
 

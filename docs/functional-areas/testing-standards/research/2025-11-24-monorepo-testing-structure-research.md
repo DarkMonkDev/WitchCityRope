@@ -21,7 +21,7 @@
 
 **Functional Requirements**:
 - Organize 320+ existing tests scattered across multiple locations
-- Support .NET 9 Minimal API + React 18 + TypeScript test ecosystems
+- Support .NET 10 Minimal API + React 18 + TypeScript test ecosystems
 - Enable efficient test execution with caching and selective running
 - Maintain clear separation between test types (unit, integration, E2E)
 
@@ -66,7 +66,7 @@
 
 **Overview**: All tests organized in root-level `/tests/` directory with separate projects for each test type and source project.
 
-**Version Evaluated**: .NET 9 Best Practices (November 2024)
+**Version Evaluated**: .NET 10 Best Practices (November 2024)
 
 **Documentation Quality**: Excellent - Official Microsoft Learn documentation with examples
 
@@ -74,7 +74,7 @@
 ```
 /
 ├── apps/
-│   ├── api/                    # .NET 9 Minimal API
+│   ├── api/                    # .NET 10 Minimal API
 │   └── web/                    # React + TypeScript + Vite
 ├── packages/
 │   └── shared-types/           # Auto-generated DTOs
@@ -190,7 +190,7 @@
 ```
 /
 ├── apps/
-│   ├── api/                      # .NET 9 Minimal API (NO tests here)
+│   ├── api/                      # .NET 10 Minimal API (NO tests here)
 │   └── web/
 │       └── src/
 │           ├── components/

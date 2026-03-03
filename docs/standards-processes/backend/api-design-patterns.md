@@ -6,7 +6,7 @@
 
 ## API Architecture
 
-**Pattern**: Minimal API (.NET 9)
+**Pattern**: Minimal API (.NET 10)
 **Base URL**: `http://localhost:5655/api` (development)
 **Authentication**: JWT + HttpOnly Cookies
 

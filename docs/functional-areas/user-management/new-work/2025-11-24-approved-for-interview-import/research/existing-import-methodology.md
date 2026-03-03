@@ -92,7 +92,7 @@ Reference #1 response,Reference #2 response
 
 **Coverage**: 289 lines comprehensive documentation
 - Tool overview and purpose
-- Prerequisites (.NET 9, PostgreSQL)
+- Prerequisites (.NET 10, PostgreSQL)
 - CSV export instructions from Google Sheet
 - Configuration (connection strings for Local/Staging/Production)
 - Usage examples (dry-run, actual import)

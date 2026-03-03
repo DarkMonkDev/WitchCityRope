@@ -618,7 +618,7 @@ test('kiosk updates when payment completes', async ({ page }) => {
 **Rationale**:
 1. **Perfect Use Case Match**: Unidirectional server→client push is exactly what SSE is designed for. We don't need bidirectional communication (attendee doesn't send messages back over the real-time channel).
 
-2. **Native ASP.NET Core 9 Support**: Microsoft added `TypedResults.ServerSentEvents()` in .NET 10 preview 4 (backported to .NET 9 patterns). This eliminates external dependencies and provides official support guarantee.
+2. **Native ASP.NET Core 9 Support**: Microsoft added `TypedResults.ServerSentEvents()` in .NET 10 preview 4 (backported to .NET 10 patterns). This eliminates external dependencies and provides official support guarantee.
 
 3. **Session Token Compatibility**: Browser EventSource API automatically sends cookies with requests. Since WitchCityRope uses httpOnly cookies for kiosk session tokens, authentication "just works" without custom configuration.
 
@@ -820,7 +820,7 @@ export const usePaymentStatusPolling = (qrCodeId: string) => {
 ### Official Documentation
 1. **ASP.NET Core Server-Sent Events** (2025-01-15)
    - https://antondevtips.com/blog/real-time-server-sent-events-in-asp-net-core
-   - Native SSE implementation in .NET 9/10 with code examples
+   - Native SSE implementation in .NET 10/10 with code examples
 
 2. **Server-Sent Events ASP.NET Core** (Code Maze)
    - https://code-maze.com/aspnetcore-using-server-sent-events-for-realtime-updates/

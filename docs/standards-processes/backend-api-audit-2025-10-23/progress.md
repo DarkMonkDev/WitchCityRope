@@ -11,7 +11,7 @@ This is NOT a new migration or architecture change. This is an audit and validat
 
 ### Primary Deliverables
 
-1. **Best Practices Research**: Latest .NET 9 Minimal API + Vertical Slice patterns (Milan Jovanovic + authoritative sources)
+1. **Best Practices Research**: Latest .NET 10 Minimal API + Vertical Slice patterns (Milan Jovanovic + authoritative sources)
 2. **Gap Analysis**: Compare current implementation against best practices
 3. **Technical Debt Inventory**: Identify orphaned code, pattern violations, inconsistencies
 4. **DTO Audit**: Identify manual DTOs vs auto-generated types
@@ -49,7 +49,7 @@ This is NOT a new migration or architecture change. This is an audit and validat
 **Target Completion**: TBD
 
 **Research Topics**:
-- [ ] Latest .NET 9 features relevant to Minimal API (October 2025)
+- [ ] Latest .NET 10 features relevant to Minimal API (October 2025)
 - [ ] Milan Jovanovic patterns (primary authoritative source)
   - [ ] Vertical Slice Architecture principles
   - [ ] CQRS simplification patterns
@@ -293,7 +293,7 @@ This is NOT a new migration or architecture change. This is an audit and validat
 - **Primary Source**: Milan Jovanovic (Pragmatic Clean Architecture)
 - **Critical Thinking**: Question complexity recommendations
 - **Simplicity Preference**: Maintain "SIMPLICITY ABOVE ALL" philosophy
-- **October 2025 Context**: Latest .NET 9 and EF 9 features available
+- **October 2025 Context**: Latest .NET 10 and EF 9 features available
 
 ### Current Implementation Status
 - **Location**: `/apps/api/Features/` (modern vertical slice architecture)

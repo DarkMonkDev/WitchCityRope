@@ -375,7 +375,7 @@ The authentication system is ready for continued development work. The React-spe
 **Environment**: Docker containerized development setup
 **Network**: witchcity-dev network
 **Database**: PostgreSQL 16 with auth schema
-**API**: .NET 9 Minimal API with JWT authentication
+**API**: .NET 10 Minimal API with JWT authentication
 **Frontend**: React 18 with Vite dev server
 
 ---

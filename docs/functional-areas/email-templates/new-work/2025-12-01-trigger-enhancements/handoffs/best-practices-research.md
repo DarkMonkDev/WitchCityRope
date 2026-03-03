@@ -48,7 +48,7 @@
 Hangfire provides persistent background job scheduling and execution. MediatR domain events notify subscribers when domain state changes (ticket purchase, cancellation, etc.). Events trigger Hangfire jobs for immediate/delayed email sending.
 
 **Version Evaluated**:
-Hangfire 1.8+ (current production-grade), MediatR 12+, .NET 9
+Hangfire 1.8+ (current production-grade), MediatR 12+, .NET 10
 
 **Documentation Quality**: Excellent - both have comprehensive docs and active communities
 
@@ -82,7 +82,7 @@ Hangfire 1.8+ (current production-grade), MediatR 12+, .NET 9
 Quartz.NET provides advanced CRON-based scheduling with distributed support. Similar domain event pattern as Option 1 but uses Quartz instead of Hangfire for job execution.
 
 **Version Evaluated**:
-Quartz.NET 3.10+, .NET 9
+Quartz.NET 3.10+, .NET 10
 
 **Documentation Quality**: Good - official documentation is comprehensive
 
@@ -111,7 +111,7 @@ Quartz.NET 3.10+, .NET 9
 Background service that periodically queries database for pending emails/triggers and executes them. No external job scheduler - pure polling approach.
 
 **Version Evaluated**:
-.NET 9 BackgroundService, standard library
+.NET 10 BackgroundService, standard library
 
 **Documentation Quality**: Good - Microsoft documentation covers BackgroundService well
 
@@ -491,7 +491,7 @@ public async Task SendSessionReminderAsync_ShouldNotSendIfAlreadyProcessed()
 ### Technology Stack
 - **Hangfire 1.8+** for job scheduling and execution
 - **MediatR 12+** for domain events (already in use)
-- **.NET 9 Minimal APIs** for Hangfire dashboard endpoint
+- **.NET 10 Minimal APIs** for Hangfire dashboard endpoint
 - **System.Text.Json** with JsonPolymorphic attributes for trigger config
 - **xUnit + Moq** for testing (existing test stack)
 

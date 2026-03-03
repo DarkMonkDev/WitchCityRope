@@ -1,11 +1,11 @@
 # Research Folder - API Standards Audit October 2025
 
 ## Purpose
-This folder holds the latest best practices research for .NET 9 Minimal API and Vertical Slice Architecture patterns.
+This folder holds the latest best practices research for .NET 10 Minimal API and Vertical Slice Architecture patterns.
 
 ## Contents
 Research documents created by the technology-researcher agent focusing on:
-- .NET 9 Minimal API best practices (October 2025)
+- .NET 10 Minimal API best practices (October 2025)
 - Milan Jovanovic patterns and principles (primary authoritative source)
 - Entity Framework 9 optimizations and patterns
 - Vertical Slice Architecture evolution and updates
@@ -17,7 +17,7 @@ Research documents created by the technology-researcher agent focusing on:
 
 ## Research Sources Priority
 1. **PRIMARY**: Milan Jovanovic (Pragmatic Clean Architecture, Vertical Slice patterns)
-2. Microsoft official .NET 9 documentation
+2. Microsoft official .NET 10 documentation
 3. Entity Framework Core 9 documentation
 4. Industry-standard architectural patterns
 5. Performance benchmarking studies

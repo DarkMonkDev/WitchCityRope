@@ -404,7 +404,7 @@
 ### Compatibility
 
 **Version Compatibility**:
-- .NET 9 compatible
+- .NET 10 compatible
 - Entity Framework Core 9 compatible
 - PostgreSQL compatible
 - Docker development ready

@@ -39,12 +39,12 @@
 **Current Dependencies** (from `tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj`):
 - `Testcontainers.PostgreSql` Version="4.7.0" (Latest as of December 2024)
 - `Respawn` Version="6.2.1" (Database state cleanup between tests)
-- `Microsoft.EntityFrameworkCore` Version="9.0.6" (.NET 9 EF Core)
+- `Microsoft.EntityFrameworkCore` Version="9.0.6" (.NET 10 EF Core)
 - `Npgsql.EntityFrameworkCore.PostgreSQL` Version="9.0.4" (PostgreSQL provider)
 
 **Architecture Foundation**: 
 - ✅ Test Common library with shared TestContainers setup
-- ✅ Modern dependencies aligned with .NET 9 migration
+- ✅ Modern dependencies aligned with .NET 10 migration
 - ✅ Database cleanup patterns with Respawn library
 - ✅ xUnit integration patterns established
 
@@ -58,7 +58,7 @@
 **Pros**:
 - **Zero Learning Curve**: Team already familiar with TestContainers patterns
 - **Infrastructure Ready**: All dependencies installed and configured
-- **Modern Versions**: Latest TestContainers.PostgreSql 4.7.0 with .NET 9 support
+- **Modern Versions**: Latest TestContainers.PostgreSql 4.7.0 with .NET 10 support
 - **Proven Patterns**: Respawn integration for database state management
 - **Production Parity**: Same PostgreSQL engine as production (critical for safety-focused platform)
 - **GitHub Actions Compatible**: Existing CI/CD already supports Docker containers

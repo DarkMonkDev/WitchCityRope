@@ -34,7 +34,7 @@ Witch City Rope uses a pragmatic, simplified technical stack optimized for a sin
 ```xml
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -563,62 +563,11 @@ networks:
     driver: bridge
 ```
 
-### GitHub Actions CI/CD
-```yaml
-name: Build and Deploy
+### CI/CD Deployment
 
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 9.0.x
-        
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build --no-restore
-      
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-      
-    - name: Build Docker image
-      run: docker build -t witchcityrope:latest -f Dockerfile --target final .
-      
-    - name: Login to Docker Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ${{ secrets.DOCKER_REGISTRY }}
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        
-    - name: Push Docker image
-      run: |
-        docker tag witchcityrope:latest ${{ secrets.DOCKER_REGISTRY }}/witchcityrope:latest
-        docker push ${{ secrets.DOCKER_REGISTRY }}/witchcityrope:latest
-      
-    - name: Deploy to VPS
-      uses: appleboy/ssh-action@v0.1.5
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_KEY }}
-        script: |
-          cd /opt/witchcityrope
-          docker-compose -f docker-compose.prod.yml pull
-          docker-compose -f docker-compose.prod.yml up -d
-          docker-compose -f docker-compose.prod.yml exec -T web dotnet ef database update
-```
+> **NOTE**: Deployment is now automated via the `staging-deploy` and `production-deploy` skills.
+> GitHub Actions pipeline is no longer used — deployment runs from DigitalOcean.
+> See the deployment skills for the current build, push, and deploy procedures.
 
 ## Performance Optimization
 

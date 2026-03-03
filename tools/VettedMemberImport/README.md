@@ -15,7 +15,7 @@ This tool imports historical vetted member data from a Google Sheet export (CSV)
 
 ## Prerequisites
 
-- .NET 9.0 SDK
+- .NET 10.0 SDK
 - PostgreSQL database (Local, Staging, or Production)
 - CSV export from Google Sheet (Spreadsheet ID: 1HYa3wGFn3My0ehh7IQdF2as0eqe4lQ4Fpjhr7F8svCo)
 

@@ -8,7 +8,7 @@
 
 Based on analysis of WitchCityRope's current API architecture and industry best practices, this document identifies **6 beneficial API contract changes** that would improve consistency across all endpoints during the vertical slice migration. All changes maintain backward compatibility while providing significant long-term benefits for both frontend development and API maintenance.
 
-**Key Finding**: Current API has **inconsistent response patterns** and **missing standardization** that would benefit from modern .NET 9 minimal API patterns.
+**Key Finding**: Current API has **inconsistent response patterns** and **missing standardization** that would benefit from modern .NET 10 minimal API patterns.
 
 **Recommendation**: Implement **4 high-priority improvements** during migration for immediate benefits, defer 2 lower-priority items for future iterations.
 

@@ -274,7 +274,7 @@ return Results.Ok(new ApiResponse<EventDto>
 ```
 
 **WHY PATTERN B IS THE STANDARD**:
-1. **Industry Best Practice**: Milan Jovanović (2025), Microsoft .NET 9 guidance, RFC 9457 compliance
+1. **Industry Best Practice**: Milan Jovanović (2025), Microsoft .NET 10 guidance, RFC 9457 compliance
 2. **Direct Results**: Cleaner, simpler, less ceremony
 3. **RFC 9457 Compliance**: Standardized error format (Problem Details)
 4. **No Double Wrapping**: Frontend doesn't need to unwrap twice
@@ -369,7 +369,7 @@ lsof -i :5655 | grep -v docker || echo "No conflicts"
 
 ---
 
-## 🚨 CRITICAL: .NET 9 CSRF Token Validation Does NOT Work Automatically for JSON APIs (2025-11-23)
+## 🚨 CRITICAL: .NET 10 CSRF Token Validation Does NOT Work Automatically for JSON APIs (2025-11-23)
 
 **Problem**: `app.UseAntiforgery()` middleware does NOT automatically validate CSRF tokens for JSON API endpoints - validation must be manually implemented using `IAntiforgery.ValidateRequestAsync()`.
 
@@ -380,7 +380,7 @@ lsof -i :5655 | grep -v docker || echo "No conflicts"
 - `app.UseAntiforgery()` middleware only provides infrastructure for anti-forgery validation
 - It does NOT automatically validate POST/PUT/DELETE/PATCH endpoints with JSON payloads
 - Automatic validation only applies to endpoints with `[FromForm]` parameters (form submissions)
-- .NET 9 Minimal APIs with JSON require manual validation via `IAntiforgery` service
+- .NET 10 Minimal APIs with JSON require manual validation via `IAntiforgery` service
 
 **Why This is Critical**:
 - Security vulnerability - endpoints appear protected but aren't
@@ -417,7 +417,7 @@ app.MapPost("/api/auth/logout", (
 
 **Wrong Implementation** (Non-Existent Method):
 ```csharp
-// ❌ WRONG - .RequireAntiforgery() does not exist in .NET 9 Minimal APIs
+// ❌ WRONG - .RequireAntiforgery() does not exist in .NET 10 Minimal APIs
 app.MapPost("/api/auth/logout", (...) => { ... })
     .RequireAntiforgery(); // ← COMPILE ERROR!
 // RouteHandlerBuilder does not contain a definition for 'RequireAntiforgery'
@@ -574,7 +574,7 @@ curl -b /tmp/test.txt -X POST http://localhost:5655/api/auth/logout \
 - ❌ Relying on middleware alone - it provides infrastructure but doesn't validate JSON APIs
 
 **Microsoft Documentation References**:
-- .NET 9 anti-forgery is designed for forms (`[FromForm]` parameters)
+- .NET 10 anti-forgery is designed for forms (`[FromForm]` parameters)
 - JSON APIs require manual validation via `IAntiforgery.ValidateRequestAsync()`
 - Middleware only sets up token generation infrastructure
 
@@ -1458,18 +1458,18 @@ var deletedValues = new
 
 ---
 
-## 🚨 CRITICAL: .NET 9 Minimal API CSRF Protection - Middleware Auto-Validation, NOT .RequireAntiforgery() (2025-11-23)
+## 🚨 CRITICAL: .NET 10 Minimal API CSRF Protection - Middleware Auto-Validation, NOT .RequireAntiforgery() (2025-11-23)
 
-**Problem**: Previous implementation incorrectly claimed to add CSRF protection by calling `.RequireAntiforgery()` on 76+ endpoints. This method **DOES NOT EXIST** in .NET 9 Minimal APIs. The code only had documentation comments, providing NO actual protection.
+**Problem**: Previous implementation incorrectly claimed to add CSRF protection by calling `.RequireAntiforgery()` on 76+ endpoints. This method **DOES NOT EXIST** in .NET 10 Minimal APIs. The code only had documentation comments, providing NO actual protection.
 
 **Date Discovered**: November 23, 2025 during security audit
 **Context**: Complete security re-audit revealed endpoints were completely unprotected despite claims of CSRF protection
 
 **Root Cause**:
-- `.RequireAntiforgery()` extension method **DOES NOT EXIST** in .NET 9 for RouteHandlerBuilder
+- `.RequireAntiforgery()` extension method **DOES NOT EXIST** in .NET 10 for RouteHandlerBuilder
 - Previous implementation only added comments like `// CSRF protection ENABLED` with no actual code
 - Caused compilation errors when trying to use non-existent method
-- Misunderstanding of how .NET 9 minimal APIs handle CSRF protection
+- Misunderstanding of how .NET 10 minimal APIs handle CSRF protection
 
 **Impact of Incorrect Implementation**:
 - 73 POST/PUT/DELETE/PATCH endpoints across 18 files had ZERO CSRF protection
@@ -1477,7 +1477,7 @@ var deletedValues = new
 - Security testing (curl without CSRF tokens) succeeded when it should have failed
 - Critical endpoints (logout, role elevation, database restore, settings update) were exploitable via CSRF attacks
 
-**Microsoft's .NET 9 Standard Approach**:
+**Microsoft's .NET 10 Standard Approach**:
 
 According to Microsoft documentation (https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-9.0):
 
@@ -1502,7 +1502,7 @@ app.UseAntiforgery(); // MUST be after UseCors() and before UseAuthentication()
 - NO explicit method call needed on endpoints (`.RequireAntiforgery()` doesn't exist)
 - To DISABLE protection for specific endpoints (file uploads, anonymous endpoints), use `.DisableAntiforgery()`
 
-**Correct Implementation** (.NET 9 Pattern):
+**Correct Implementation** (.NET 10 Pattern):
 
 ```csharp
 // ✅ CORRECT - CSRF protection automatically enabled by middleware
@@ -1537,7 +1537,7 @@ app.MapPost("/api/public/webhook", async (HttpContext context) =>
 **Wrong Implementation** (What Was Done Previously):
 
 ```csharp
-// ❌ WRONG - .RequireAntiforgery() does NOT exist in .NET 9 minimal APIs
+// ❌ WRONG - .RequireAntiforgery() does NOT exist in .NET 10 minimal APIs
 app.MapPost("/api/auth/logout", async (HttpContext context) =>
 {
     // Endpoint logic
@@ -1572,7 +1572,7 @@ curl -X POST http://localhost:5655/api/auth/logout \
 |---------|----------------|----------------------|
 | **MVC Controllers** | Use `[ValidateAntiForgeryToken]` attribute | YES - attribute required |
 | **Razor Pages** | Automatic validation via page model | NO - automatic by default |
-| **.NET 9 Minimal APIs** | Automatic validation via middleware | NO - automatic when UseAntiforgery() enabled |
+| **.NET 10 Minimal APIs** | Automatic validation via middleware | NO - automatic when UseAntiforgery() enabled |
 
 **Prevention Checklist**:
 - [ ] **Verify Program.cs has `builder.Services.AddAntiforgery()`** - Service registration required
@@ -1595,7 +1595,7 @@ curl -X POST http://localhost:5655/api/auth/logout \
 - Settings/configuration changes
 - File uploads (can include CSRF token in form data or header)
 
-**Summary - The Truth About .NET 9 CSRF Protection**:
+**Summary - The Truth About .NET 10 CSRF Protection**:
 1. ✅ **Antiforgery services ARE configured** (`builder.Services.AddAntiforgery()`)
 2. ✅ **Antiforgery middleware IS enabled** (`app.UseAntiforgery()`)
 3. ✅ **ALL POST/PUT/DELETE/PATCH endpoints ARE protected automatically** by middleware
@@ -1635,7 +1635,7 @@ dotnet build apps/api/WitchCityRope.Api.csproj
 
 ---
 
-## Problem: .NET 9 Antiforgery Middleware Doesn't Auto-Generate Tokens
+## Problem: .NET 10 Antiforgery Middleware Doesn't Auto-Generate Tokens
 
 **Date**: 2025-11-23
 **Context**: Implementing CSRF protection for JSON API serving React SPA
@@ -1655,7 +1655,7 @@ Microsoft standard pattern requires custom endpoint:
 
 ```csharp
 // CSRF token generation endpoint for React SPA
-// Microsoft standard pattern for .NET 9 Minimal APIs with JSON
+// Microsoft standard pattern for .NET 10 Minimal APIs with JSON
 app.MapGet("/api/antiforgery/token", (IAntiforgery antiforgery, HttpContext context) =>
 {
     var tokens = antiforgery.GetAndStoreTokens(context);

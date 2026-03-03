@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2026-02-23 -->
-<!-- Version: 4.553 -->
+<!-- Last Updated: 2026-03-02 -->
+<!-- Version: 4.554 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,8 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2026-03-02 | /docs/functional-areas/logging-observability/README.md | CREATED | Comprehensive audit and project plan for site-wide logging infrastructure | E19 - CC failure logging investigation | ACTIVE | N/A |
+| 2026-03-02 | /docs/functional-areas/payment-entity-consolidation/README.md | CREATED | Comprehensive audit and project plan for consolidating dual payment entities | E19 - CC failure logging investigation | ACTIVE | N/A |
 | 2026-02-23 | /apps/web/src/lib/utils/sanitizeHtml.ts | CREATED | DOMPurify HTML sanitization utility for XSS prevention | Security Audit Remediation | ACTIVE | Never |
 | 2026-02-23 | /nginx/production.conf | CREATED | Production-grade nginx config with full security headers, CSP, rate limiting | Security Audit Remediation | ACTIVE | Never |
 | 2026-02-23 | /docs/functional-areas/security/audit/security-audit-report-2026-02-23.md | CREATED | Full security audit findings with severity ratings and fix status | Security Audit Remediation | ACTIVE | Never |

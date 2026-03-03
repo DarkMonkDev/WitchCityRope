@@ -169,7 +169,7 @@ Functional specifications must never specify manual DTO interface creation. All 
 **Severity**: Critical
 
 ### Context
-When creating functional specifications that involve .NET 9 technologies, use these curated, authoritative sources for research and validation.
+When creating functional specifications that involve .NET 10 technologies, use these curated, authoritative sources for research and validation.
 
 ### Approved Sources
 1. **Milan Jovanović's Blog** (https://www.milanjovanovic.tech/)
@@ -193,8 +193,8 @@ When creating functional specifications that involve .NET 9 technologies, use th
    - New feature documentation
 
 ### Research Guidelines
-- **ALWAYS verify article date** - Must be published within last 6 months for .NET 9
-- **CHECK .NET version compatibility** - Ensure content applies to .NET 9
+- **ALWAYS verify article date** - Must be published within last 6 months for .NET 10
+- **CHECK .NET version compatibility** - Ensure content applies to .NET 10
 - **CROSS-REFERENCE sources** - Validate recommendations across multiple authorities
 
 ### Tags

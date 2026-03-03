@@ -15,7 +15,7 @@ Milan Jovanović continues to advocate for **Vertical Slice Architecture** as a 
 2. **Simplification Trend**: Latest guidance emphasizes single-file slices for simpler features
 3. **Critical Evaluation**: Distinguish "shared because it should be" from "shared because patterns say so"
 4. **Pragmatic Adoption**: Gradual migration, not big-bang refactoring
-5. **Performance Focus**: .NET 9 features (HybridCache, compiled queries) offer free performance gains
+5. **Performance Focus**: .NET 10 features (HybridCache, compiled queries) offer free performance gains
 
 ## Detailed Analysis by Topic
 
@@ -315,13 +315,13 @@ public async Task<Event?> GetEventAsync(Guid id)
 #### Our Current Implementation:
 Already using AsNoTracking() widely. Consider compiled queries for hot paths like event listings, check-ins, attendee lookups.
 
-### 6. Caching Strategies (HybridCache in .NET 9)
+### 6. Caching Strategies (HybridCache in .NET 10)
 
 **Milan's Latest (October 2025):**
 HybridCache solves the speed vs scalability trade-off by combining L1 (in-memory) and L2 (distributed) caching.
 
 **Quote:**
-> "I got tired of choosing between speed and reliability in my caching strategy. HybridCache in .NET 9 gives you both."
+> "I got tired of choosing between speed and reliability in my caching strategy. HybridCache in .NET 10 gives you both."
 
 ```csharp
 // HybridCache pattern
@@ -353,7 +353,7 @@ public async Task<List<EventDto>> GetUpcomingEventsAsync()
 - Transparent L1/L2 coordination
 
 **Costs:**
-- .NET 9 required
+- .NET 10 required
 - Redis infrastructure for L2
 - Configuration complexity
 - Debugging distributed cache issues
@@ -525,7 +525,7 @@ public async Task GetEvent_WhenExists_ReturnsEvent()
 | Pattern | Milan Recommends | Our Decision | Rationale |
 |---------|------------------|--------------|-----------|
 | Compiled Queries | ✅ Hot paths | 🟡 Profile first | Optimize when proven bottleneck |
-| HybridCache | ✅ .NET 9 | 🟡 Future | When multi-server needed |
+| HybridCache | ✅ .NET 10 | 🟡 Future | When multi-server needed |
 | Automatic Endpoint Discovery | ✅ Convenience | 🟡 Nice-to-have | Current manual registration works |
 
 ## Alignment with August 2025 Research
@@ -550,7 +550,7 @@ Our simplified implementation (no MediatR, no CQRS) now aligns BETTER with Milan
 3. Direct EF Core usage (no repository abstraction needed)
 4. Pragmatic adoption (gradual, not big-bang)
 
-## .NET 9 Specific Features (October 2025)
+## .NET 10 Specific Features (October 2025)
 
 ### New Features Milan Highlights:
 
@@ -567,7 +567,7 @@ Our simplified implementation (no MediatR, no CQRS) now aligns BETTER with Milan
 **3. Performance Improvements**
 - JIT compiler enhancements (inlining, loop optimizations)
 - Garbage collection improvements (DATAS by default)
-- Our benefit: ✅ Free performance on .NET 9 upgrade
+- Our benefit: ✅ Free performance on .NET 10 upgrade
 
 **4. Compiled Queries Enhancement**
 - Better query plan caching
@@ -708,7 +708,7 @@ app.MapPost("/api/events", async (
 - Community articles on Minimal APIs + VSA (2025)
 
 ### Official Microsoft Documentation:
-- .NET 9 Performance Improvements (November 2024)
+- .NET 10 Performance Improvements (November 2024)
 - Entity Framework Core 9 Release Notes (November 2024)
 - ASP.NET Core 9 Minimal APIs Overview (2024)
 

@@ -211,7 +211,7 @@ public static class AuthenticationEndpoints
 
         // Logout endpoint with cookie clearing and token blacklisting
         // CRITICAL SECURITY: CSRF protection REQUIRED to prevent logout CSRF attacks
-        // .NET 9 Minimal APIs with JSON do NOT validate CSRF automatically - must inject IAntiforgery and validate manually
+        // .NET 10 Minimal APIs with JSON do NOT validate CSRF automatically - must inject IAntiforgery and validate manually
         app.MapPost("/api/auth/logout", async (
             HttpContext context,
             IAntiforgery antiforgery,
@@ -438,7 +438,7 @@ public static class AuthenticationEndpoints
 
         // Refresh token endpoint for silent token refresh
         // SECURITY: CSRF protection REQUIRED to prevent session hijacking via CSRF
-        // .NET 9 Minimal APIs with JSON do NOT validate CSRF automatically - must inject IAntiforgery and validate manually
+        // .NET 10 Minimal APIs with JSON do NOT validate CSRF automatically - must inject IAntiforgery and validate manually
         app.MapPost("/api/auth/refresh", async (
             HttpContext context,
             IAntiforgery antiforgery,

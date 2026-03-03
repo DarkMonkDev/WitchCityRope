@@ -50,7 +50,7 @@
 ### 3. Implementation Speed
 
 **ASP.NET Core Identity + JWT**: 1-2 days to working authentication
-- Built into .NET 9 - no external dependencies
+- Built into .NET 10 - no external dependencies
 - Cookie configuration is straightforward
 - JWT service can reuse existing patterns
 - React integration via standard fetch with `credentials: 'include'`
@@ -66,7 +66,7 @@
 ```
 ┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
 │   React SPA     │  HTTP   │   Web Service   │  JWT    │   API Service   │
-│                 │ Cookies │  (.NET 9 Core)  │ Bearer  │  (Minimal API)  │
+│                 │ Cookies │  (.NET 10 Core)  │ Bearer  │  (Minimal API)  │
 │ • Login UI      │ ◄──────►│ • Identity      │ ◄──────►│ • Auth Service  │
 │ • Role Guards   │         │ • JWT Service   │         │ • Business API  │
 │ • API Calls     │         │ • Token Handler │         │ • Role Control  │

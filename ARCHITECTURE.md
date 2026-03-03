@@ -56,7 +56,7 @@ WitchCityRope uses a **Web+API microservices architecture** with the following s
      - Variable insertion support for email templates
 
 2. **API Service (apps/api)**
-   - **Technology**: ASP.NET Core Minimal API (.NET 9)
+   - **Technology**: ASP.NET Core Minimal API (.NET 10)
    - **Purpose**: Business logic, data operations, authentication endpoints
    - **Database Access**: Full access to all business entities and Identity
    - **Port**: 5655 (HTTP) - Development and Docker
@@ -360,10 +360,8 @@ npm run dev
 
 **Docker Development**:
 ```bash
-# Use development build for hot reload
+# Use the restart-dev-containers skill, or manually:
 ./dev.sh
-# OR
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
 **📊 Test Accounts Available Immediately**:
@@ -404,8 +402,8 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 # ❌ WRONG - Uses production build, will fail
 docker-compose up
 
-# ✅ CORRECT - Uses development build with hot reload
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# ✅ CORRECT - Use the restart-dev-containers skill or ./dev.sh
+./dev.sh
 ```
 
 ### 2. Incorrect API Communication

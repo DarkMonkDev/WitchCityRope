@@ -22,7 +22,7 @@ This document provides the comprehensive technical architecture for the WitchCit
 └─────────────────────────────────────────────────────────────────────────────────┘
                                     ↓ HTTPS/Cookie Auth
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                            .NET 9 Minimal API                                    │
+│                            .NET 10 Minimal API                                    │
 │  ┌─────────────────────────────────────────────────────────────────────────────┐ │
 │  │                    /apps/api/Features/Vetting/                               │ │
 │  │                                                                             │ │
@@ -60,14 +60,14 @@ This document provides the comprehensive technical architecture for the WitchCit
 | Layer | Technology | Version | Purpose |
 |-------|------------|---------|---------|
 | **Frontend** | React + TypeScript + Vite | React 18, TS 5.x | User interface and interactions |
-| **API** | .NET 9 Minimal API | .NET 9.0 | RESTful API endpoints |
-| **Authentication** | ASP.NET Core Identity + Cookies | .NET 9.0 | Cookie-based authentication |
+| **API** | .NET 10 Minimal API | .NET 10.0 | RESTful API endpoints |
+| **Authentication** | ASP.NET Core Identity + Cookies | .NET 10.0 | Cookie-based authentication |
 | **Data Layer** | Entity Framework Core | EF 9.0 | ORM and database operations |
 | **Database** | PostgreSQL | 16.x | Primary data storage |
-| **Caching** | IMemoryCache | .NET 9.0 | In-memory application caching |
-| **Encryption** | AES-256-GCM | .NET 9.0 | PII encryption at rest |
+| **Caching** | IMemoryCache | .NET 10.0 | In-memory application caching |
+| **Encryption** | AES-256-GCM | .NET 10.0 | PII encryption at rest |
 | **Validation** | FluentValidation | 11.x | Input validation and business rules |
-| **Logging** | ILogger + Serilog | .NET 9.0 | Structured logging and audit trails |
+| **Logging** | ILogger + Serilog | .NET 10.0 | Structured logging and audit trails |
 
 ## Service Layer Architecture
 
@@ -237,7 +237,7 @@ public async Task<Result<ApplicationSubmissionResponse>> SubmitApplicationAsync(
 
 ### 1. Endpoint Structure
 
-Using .NET 9 Minimal API patterns with endpoint groups:
+Using .NET 10 Minimal API patterns with endpoint groups:
 
 ```csharp
 namespace WitchCityRope.Api.Features.Vetting.Endpoints;

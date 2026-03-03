@@ -38,7 +38,7 @@ Each agent is specifically trained for your tech stack:
 - Blazor Server (NOT WebAssembly)
 - PostgreSQL (NOT SQL Server)
 - Syncfusion (NOT MudBlazor)
-- .NET 9 with Entity Framework Core
+- .NET 10 with Entity Framework Core
 - Playwright for E2E testing
 
 ## Critical Questions Requiring Your Decision

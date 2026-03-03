@@ -12,14 +12,14 @@
 
 ## Executive Summary
 
-This document outlines a comprehensive plan to modernize the DarkMonk application from its current state to a modern .NET 9 modular monolith architecture with PostgreSQL database, Docker containerization, and adherence to SOLID principles.
+This document outlines a comprehensive plan to modernize the DarkMonk application from its current state to a modern .NET 10 modular monolith architecture with PostgreSQL database, Docker containerization, and adherence to SOLID principles.
 
 **Target State:**
 - Modular monolith architecture organized by business domains
 - PostgreSQL database with Entity Framework Core
 - Docker containerization for all environments
 - Full test coverage with unit, integration, and E2E tests
-- Modern .NET 9 features and coding standards
+- Modern .NET 10 features and coding standards
 - Production-ready with monitoring and observability
 
 **Timeline:** 12-16 weeks
@@ -33,7 +33,7 @@ This document outlines a comprehensive plan to modernize the DarkMonk applicatio
 5. [Docker Containerization](#docker-containerization)
 6. [Testing Strategy](#testing-strategy)
 7. [SOLID Principles Implementation](#solid-principles-implementation)
-8. [Modern .NET 9 Features](#modern-net-9-features)
+8. [Modern .NET 10 Features](#modern-net-9-features)
 9. [Implementation Roadmap](#implementation-roadmap)
 10. [Risk Management](#risk-management)
 
@@ -940,7 +940,7 @@ public class ShipEngineService : IShippingService { }
 public class SendGridEmailService : IEmailService { }
 ```
 
-## Modern .NET 9 Features
+## Modern .NET 10 Features
 
 ### Primary Constructors
 ```csharp
@@ -1093,7 +1093,7 @@ products.MapPost("/", async (CreateProductDto dto, IProductService service) =>
 ## Current Status (2025-06-27)
 
 ### ✅ Completed Milestones
-1. **VB.NET to .NET 9 Migration**: Successfully migrated entire codebase from VB.NET to C# .NET 9
+1. **VB.NET to .NET 10 Migration**: Successfully migrated entire codebase from VB.NET to C# .NET 10
 2. **Modular Monolith Architecture**: Implemented clean separation of concerns with 9 modules
 3. **Database Migration**: PostgreSQL implemented with Entity Framework Core
 4. **UI Migration**: Blazor Server UI modules created for all major components
@@ -1153,7 +1153,7 @@ products.MapPost("/", async (CreateProductDto dto, IProductService service) =>
 ## Appendix
 
 ### Tools & Technologies
-- **.NET 9** - Latest framework
+- **.NET 10** - Latest framework
 - **PostgreSQL 16** - Database (all environments)
 - **EF Core In-Memory** - Testing database
 - **Docker & Docker Compose** - Containerization and orchestration
@@ -1169,7 +1169,7 @@ products.MapPost("/", async (CreateProductDto dto, IProductService service) =>
 - **DigitalOcean Container Registry** - Docker image repository
 
 ### References
-- [.NET 9 Documentation](https://docs.microsoft.com/dotnet)
+- [.NET 10 Documentation](https://docs.microsoft.com/dotnet)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [DigitalOcean Droplets](https://docs.digitalocean.com/products/droplets/)

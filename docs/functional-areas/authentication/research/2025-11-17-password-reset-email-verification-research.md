@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-**Decision Required**: Implement password reset and email verification features for WitchCityRope's .NET 9 + React stack
+**Decision Required**: Implement password reset and email verification features for WitchCityRope's .NET 10 + React stack
 
 **Recommendation**: Use ASP.NET Core Identity's built-in token generation with SendGrid integration and extended token lifespans
 - **Confidence Level**: High (95%)
@@ -27,7 +27,7 @@
 - SendGrid email integration with testable local development
 - Security compliance with OWASP recommendations
 - React + TypeScript frontend forms
-- .NET 9 Minimal API backend endpoints
+- .NET 10 Minimal API backend endpoints
 - httpOnly cookie authentication compatibility
 
 ### Success Criteria
@@ -50,7 +50,7 @@
 
 **Overview**: Use Identity's `GeneratePasswordResetTokenAsync` and `GenerateEmailConfirmationTokenAsync`
 
-**Version Evaluated**: .NET 9 (current)
+**Version Evaluated**: .NET 10 (current)
 **Documentation Quality**: Excellent - Official Microsoft docs + extensive community resources
 
 **Pros**:
@@ -358,7 +358,7 @@
 2. **Zero Additional Complexity**: The token system is already part of ASP.NET Core Identity, which WitchCityRope currently uses. No new dependencies, no custom security code to maintain, no additional attack surface. The team can leverage existing knowledge rather than learning a new system.
 
 3. **Perfect Fit for Stack**:
-   - .NET 9 Minimal API backend already uses UserManager/SignInManager
+   - .NET 10 Minimal API backend already uses UserManager/SignInManager
    - React frontend already has authentication patterns established
    - httpOnly cookie authentication is fully compatible
    - SendGrid integration is straightforward with official SDK

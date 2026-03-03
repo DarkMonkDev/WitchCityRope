@@ -184,7 +184,7 @@
 - Existing `MantineTiptapEditor.tsx` component (DO NOT create new editor)
 
 **Backend**:
-- .NET 9 Minimal API
+- .NET 10 Minimal API
 - Vertical slice architecture (`/apps/api/Features/Cms/CmsEndpoints.cs`)
 - Entity Framework Core + PostgreSQL
 - HtmlSanitizer.NET NuGet package

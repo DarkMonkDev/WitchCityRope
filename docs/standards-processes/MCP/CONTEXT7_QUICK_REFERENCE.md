@@ -12,7 +12,7 @@ Just add "use context7" to any prompt needing documentation!
 
 ### Blazor Server
 ```
-"Show me Blazor Server component lifecycle in .NET 9 use context7"
+"Show me Blazor Server component lifecycle in .NET 10 use context7"
 ```
 
 ### Entity Framework Core

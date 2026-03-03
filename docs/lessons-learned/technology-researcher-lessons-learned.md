@@ -338,7 +338,7 @@ Provides framework for preventing costly architectural mismatches while building
 **Severity**: Critical
 
 ### Context
-Curated list of high-quality, authoritative sources for .NET 9 and C# research. These websites provide current, accurate information from recognized experts in the .NET ecosystem.
+Curated list of high-quality, authoritative sources for .NET 10 and C# research. These websites provide current, accurate information from recognized experts in the .NET ecosystem.
 
 ### Approved Sources
 1. **Milan Jovanović's Blog** (https://www.milanjovanovic.tech/)
@@ -366,8 +366,8 @@ Curated list of high-quality, authoritative sources for .NET 9 and C# research. 
    - Best practices from the .NET team
 
 ### Research Guidelines
-- **ALWAYS verify article date** - Must be published within last 6 months for .NET 9 topics
-- **CHECK .NET version compatibility** - Ensure content applies to .NET 9, not older versions
+- **ALWAYS verify article date** - Must be published within last 6 months for .NET 10 topics
+- **CHECK .NET version compatibility** - Ensure content applies to .NET 10, not older versions
 - **USE search features** - Most sites have search fields to find specific topics
 - **CROSS-REFERENCE sources** - Validate recommendations across multiple authorities
 - **PRIORITIZE official Microsoft docs** for API specifications and breaking changes

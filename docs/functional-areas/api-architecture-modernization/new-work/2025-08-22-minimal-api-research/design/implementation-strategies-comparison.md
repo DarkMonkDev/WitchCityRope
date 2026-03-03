@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-This document compares three distinct implementation strategies for modernizing WitchCityRope's API architecture from traditional MVC controllers to .NET 9 minimal APIs. Each strategy offers different risk/benefit profiles, complexity levels, and alignment with our business requirements.
+This document compares three distinct implementation strategies for modernizing WitchCityRope's API architecture from traditional MVC controllers to .NET 10 minimal APIs. Each strategy offers different risk/benefit profiles, complexity levels, and alignment with our business requirements.
 
 **Key Decision Factors**:
 - **Performance Requirements**: 15% API response improvement needed for mobile users
@@ -275,7 +275,7 @@ public async Task GetEvents_ReturnsPublishedEvents()
 **Core Architectural Principles**:
 - **Feature-Centric Organization**: All related code (endpoint, validation, business logic) grouped by feature
 - **CQRS Pattern Adoption**: Clear separation of commands (writes) and queries (reads)
-- **Minimal API Modernization**: Complete migration to .NET 9 minimal API patterns
+- **Minimal API Modernization**: Complete migration to .NET 10 minimal API patterns
 - **Dependency Minimization**: Features self-contained with minimal cross-feature coupling
 
 **Alignment with Business Requirements**: **High (89%)**
@@ -717,7 +717,7 @@ public class RegisterEndpointTests : IClassFixture<CustomWebApplicationFactory>
 - **Excellent Developer Experience**: 40-60% reduction in development time
 - **Superior Testing**: Feature isolation enables focused, fast unit tests
 - **Clean Architecture**: CQRS pattern provides excellent separation of concerns
-- **Future-Proof**: Aligned with modern .NET 9 and industry best practices
+- **Future-Proof**: Aligned with modern .NET 10 and industry best practices
 - **Reduced Coupling**: Features can evolve independently
 - **Better Documentation**: Self-documenting code with clear feature boundaries
 
@@ -1259,7 +1259,7 @@ public class EventEndpointsTests : IClassFixture<CustomWebApplicationFactory>
 **1. Business Value Maximization**
 - **Complete Performance Benefits**: 15% API response improvement across all endpoints directly supports mobile-first community members
 - **Maximum Productivity Gains**: 40-60% reduction in endpoint development time enables faster delivery of safety and educational features
-- **Future-Proof Investment**: Alignment with .NET 9 industry standards ensures long-term platform viability
+- **Future-Proof Investment**: Alignment with .NET 10 industry standards ensures long-term platform viability
 
 **2. Technical Excellence**
 - **Industry Best Practices**: Vertical slice architecture with CQRS is the current industry standard for maintainable APIs
@@ -1304,7 +1304,7 @@ public class EventEndpointsTests : IClassFixture<CustomWebApplicationFactory>
 #### **Why Not Recommended**
 - **Limited Business Value**: Only partial performance improvements don't address mobile user needs
 - **Technical Debt Creation**: Mixed architectural patterns create long-term maintenance burden
-- **Missed Opportunity**: Doesn't capitalize on .NET 9 modernization benefits
+- **Missed Opportunity**: Doesn't capitalize on .NET 10 modernization benefits
 
 #### **Only Consider If**
 - **Extreme Risk Aversion**: No tolerance for any learning curve or complexity

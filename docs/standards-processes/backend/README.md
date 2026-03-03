@@ -48,7 +48,7 @@ This folder contains comprehensive backend API coding standards, implementation 
 Current standards are being validated through comprehensive audit:
 - **Audit Location**: `/docs/standards-processes/backend-api-audit-2025-10-23/`
 - **Start Date**: 2025-10-23
-- **Purpose**: Validate implementation against latest .NET 9 best practices
+- **Purpose**: Validate implementation against latest .NET 10 best practices
 - **Primary Sources**: Milan Jovanovic, Microsoft official documentation
 
 ## Maintenance

@@ -116,13 +116,13 @@
 ## Infrastructure Dependencies
 
 ### Runtime
-- **.NET 9.0 Runtime** (included in Docker image)
+- **.NET 10.0 Runtime** (included in Docker image)
 - **SQLite** (embedded, no separate installation)
 
 ### Development Tools
 - **Docker Desktop** (for containerization)
 - **Visual Studio 2022** or **VS Code**
-- **.NET 9.0 SDK**
+- **.NET 10.0 SDK**
 
 ### Deployment
 - **Docker** (single container)

@@ -6,7 +6,7 @@ This guide explains how to use Docker for local development of the Witch City Ro
 
 - Docker Desktop (Windows/Mac) or Docker Engine (Linux)
 - Docker Compose v2.0+
-- .NET 9.0 SDK (optional, for IDE support)
+- .NET 10.0 SDK (optional, for IDE support)
 - Visual Studio 2022 or VS Code (recommended)
 
 ## Quick Start

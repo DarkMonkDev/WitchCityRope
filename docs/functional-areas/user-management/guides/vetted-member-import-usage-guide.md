@@ -27,7 +27,7 @@ The VettedMemberImport tool is a console application for importing vetted member
 ## Prerequisites
 
 ### Required Software
-- .NET 9.0 SDK or higher
+- .NET 10.0 SDK or higher
 - PostgreSQL database access
 - Terminal/command line access
 

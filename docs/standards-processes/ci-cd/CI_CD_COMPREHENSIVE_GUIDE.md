@@ -14,7 +14,7 @@ This comprehensive guide covers all CI/CD practices for the WitchCityRope React 
 
 ### Current Architecture (React Migration)
 - **Frontend**: React + TypeScript + Vite
-- **Backend**: .NET 9 Minimal API
+- **Backend**: .NET 10 Minimal API
 - **Database**: PostgreSQL
 - **Container**: Docker + Docker Compose
 - **Testing**: Playwright (E2E) + Vitest (Unit) + xUnit (.NET)

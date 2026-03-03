@@ -107,13 +107,13 @@ app.MapPost("/api/admin/users/{userId}/roles", async (
 #### ❌ WRONG: Using Non-Existent Method
 
 ```csharp
-// COMPILATION ERROR: .RequireAntiforgery() does NOT exist in .NET 9!
+// COMPILATION ERROR: .RequireAntiforgery() does NOT exist in .NET 10!
 app.MapPost("/api/events", async (...) => { ... })
     .RequireAuthorization()
     .RequireAntiforgery(); // ← Method doesn't exist!
 ```
 
-**Why Wrong**: `.RequireAntiforgery()` is not a valid method in .NET 9 Minimal APIs.
+**Why Wrong**: `.RequireAntiforgery()` is not a valid method in .NET 10 Minimal APIs.
 
 #### ✅ CORRECT: Manual Validation
 

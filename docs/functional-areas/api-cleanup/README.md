@@ -79,12 +79,12 @@ During the React migration in August 2025, a new simplified API was created at `
 - **Pattern**: Vertical slice architecture
 - **Benefits**: Simplified development, faster response times
 - **Current Features**: Health, Auth, Events (basic), Users (basic)
-- **Technology**: .NET 9 Minimal API + Entity Framework Core
+- **Technology**: .NET 10 Minimal API + Entity Framework Core
 
 ### Legacy API (/src/WitchCityRope.Api/)
 - **Pattern**: Enterprise patterns with MediatR/CQRS
 - **Features**: Unknown comprehensive inventory needed
-- **Technology**: .NET 9 with complex layering
+- **Technology**: .NET 10 with complex layering
 - **Status**: Dormant but contains valuable features
 
 ## Documentation Standards

@@ -17,13 +17,13 @@ WitchCityRope is a membership and event management platform for Salem's rope bon
 Our containerized system consists of:
 
 - **React Container** (Port 5173): Vite-powered React + TypeScript frontend with hot module replacement
-- **API Container** (Port 5655): .NET 9 Minimal API with ASP.NET Core Identity and hot reload
+- **API Container** (Port 5655): .NET 10 Minimal API with ASP.NET Core Identity and hot reload
 - **PostgreSQL Database** (Port 5433): PostgreSQL 16 Alpine with automated initialization
 - **Test Container** (Port 8080): Nginx serving test pages for authentication validation
 
 ### Technology Stack Summary
 - **Frontend**: React 18 + TypeScript + Vite (migrated from Blazor Server)
-- **Backend**: .NET 9 Minimal API + ASP.NET Core Identity + Entity Framework Core
+- **Backend**: .NET 10 Minimal API + ASP.NET Core Identity + Entity Framework Core
 - **Database**: PostgreSQL 16 with automated schema migrations
 - **Authentication**: Hybrid JWT + HttpOnly Cookies pattern (service-to-service + browser security)
 - **Containerization**: Docker + Docker Compose with multi-environment support
@@ -41,7 +41,7 @@ docker --version          # Docker 20.10+
 docker-compose --version  # Docker Compose 2.0+
 node --version            # Node.js 18+
 npm --version             # npm 9+
-dotnet --version          # .NET 9.0+
+dotnet --version          # .NET 10.0+
 git --version             # Git 2.30+
 ```
 
@@ -60,7 +60,7 @@ sudo apt install docker-compose-plugin
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
 
-# Install .NET 9
+# Install .NET 10
 wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 sudo dpkg -i packages-microsoft-prod.deb
 sudo apt update
@@ -227,14 +227,9 @@ dotnet test
 ```
 
 **E2E Tests (Playwright):**
-```bash
-# Run E2E tests against containerized environment
-cd apps/web
-npm run test:e2e:playwright
 
-# Run specific test file
-npx playwright test auth.spec.ts
-```
+> Use the `test-environment` skill to run E2E tests in isolated containers.
+> It handles container startup, health checks, test execution, and cleanup.
 
 **Authentication Testing:**
 ```bash
@@ -311,16 +306,10 @@ services:
 
 We support multiple environments with layered Docker Compose files:
 
-```bash
-# Development (default)
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
-
-# Testing
-docker-compose -f docker-compose.yml -f docker-compose.test.yml up
-
-# Production
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
-```
+> **Use skills for environment management:**
+> - **Development**: `restart-dev-containers` skill or `./dev.sh`
+> - **Testing**: `restart-test-containers` skill
+> - **Staging/Production**: `staging-deploy` / `production-deploy` skills
 
 **Configuration Levels:**
 - **Base** (`docker-compose.yml`): Common service definitions
@@ -334,14 +323,8 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
 
 **Standard Startup:**
 ```bash
-# Start with health checks and dependency order
+# Use the restart-dev-containers skill or:
 ./dev.sh
-
-# Start specific environment
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-
-# Start and follow logs
-docker-compose up
 ```
 
 **Graceful Shutdown:**

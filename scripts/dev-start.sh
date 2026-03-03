@@ -62,7 +62,7 @@ fi
 print_info "Checking .NET SDK..."
 if ! command -v dotnet &> /dev/null; then
     print_error ".NET SDK not found!"
-    print_info "Please install .NET 9.0 SDK from https://dotnet.microsoft.com/download"
+    print_info "Please install .NET 10.0 SDK from https://dotnet.microsoft.com/download"
     exit 1
 fi
 

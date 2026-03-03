@@ -7,7 +7,7 @@
 
 ## Overview
 
-This functional area focuses on modernizing the WitchCityRope API architecture to align with .NET 9 best practices and implement vertical slice architecture patterns for improved maintainability, performance, and developer experience.
+This functional area focuses on modernizing the WitchCityRope API architecture to align with .NET 10 best practices and implement vertical slice architecture patterns for improved maintainability, performance, and developer experience.
 
 ## Current Status
 
@@ -18,7 +18,7 @@ This functional area focuses on modernizing the WitchCityRope API architecture t
 ## Project Scope
 
 ### Primary Objectives
-1. **Modernize API Architecture**: Implement .NET 9 minimal API patterns
+1. **Modernize API Architecture**: Implement .NET 10 minimal API patterns
 2. **Vertical Slice Architecture**: Adopt feature-based organization over traditional layered architecture  
 3. **Performance Optimization**: Improve API response times and scalability
 4. **Developer Experience**: Enhance maintainability and development velocity
@@ -56,7 +56,7 @@ This functional area focuses on modernizing the WitchCityRope API architecture t
 ### Active Development
 - **Progress Tracking**: [progress.md](./new-work/2025-08-22-minimal-api-research/progress.md) - Real-time phase tracking with quality gates
 - **Requirements**: [requirements/](./new-work/2025-08-22-minimal-api-research/requirements/) - Business requirements and research findings
-- **Research**: [research/](./new-work/2025-08-22-minimal-api-research/research/) - .NET 9 and vertical slice architecture analysis
+- **Research**: [research/](./new-work/2025-08-22-minimal-api-research/research/) - .NET 10 and vertical slice architecture analysis
 - **Design**: [design/](./new-work/2025-08-22-minimal-api-research/design/) - Architecture patterns and migration strategies
 
 ### Future Documentation
@@ -67,7 +67,7 @@ This functional area focuses on modernizing the WitchCityRope API architecture t
 
 ## Key Research Areas
 
-### .NET 9 Minimal APIs
+### .NET 10 Minimal APIs
 - Performance improvements and benchmarking
 - Built-in validation and serialization enhancements
 - OpenAPI/Swagger integration improvements
@@ -91,7 +91,7 @@ This functional area focuses on modernizing the WitchCityRope API architecture t
 ## Technology Stack Integration
 
 ### Current Stack Compatibility
-- **.NET 9**: Target framework for minimal API implementation
+- **.NET 10**: Target framework for minimal API implementation
 - **PostgreSQL**: Database integration with Entity Framework Core
 - **React + TypeScript**: Frontend integration patterns
 - **NSwag**: Type generation pipeline compatibility
@@ -136,7 +136,7 @@ This functional area focuses on modernizing the WitchCityRope API architecture t
 
 1. **Immediate**: Begin comprehensive requirements gathering and technology research
 2. **Week 1**: Complete current state analysis and business requirements
-3. **Week 2**: Finalize .NET 9 minimal API and vertical slice architecture research
+3. **Week 2**: Finalize .NET 10 minimal API and vertical slice architecture research
 4. **Week 3**: Stakeholder review and approval for architecture design phase
 5. **Week 4+**: Begin detailed architecture design and proof of concept planning
 

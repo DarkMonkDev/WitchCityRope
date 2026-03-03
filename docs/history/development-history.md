@@ -379,7 +379,7 @@ The authentication backend is fully functional. The next phase focuses on implem
    - All tools verified working in native Ubuntu environment
 
 #### Technical Notes
-- .NET 9.0 required manual installation (not in Ubuntu repos yet)
+- .NET 10.0 required manual installation (not in Ubuntu repos yet)
 - Docker group membership requires logout/login to take effect  
 - Chrome DevTools accessible directly at localhost:9222
 - No incognito mode enforcement needed (was WSL workaround)

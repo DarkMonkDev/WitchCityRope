@@ -11,7 +11,7 @@ This document describes the OpenAPI-based contract validation system that preven
 ```
 ┌─────────────────────┐
 │   Backend API       │
-│   (C# .NET 9)       │
+│   (C# .NET 10)       │
 └──────────┬──────────┘
            │
            │ Swagger generates

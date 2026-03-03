@@ -31,10 +31,7 @@ curl -f http://localhost:5174             # React dev server
 
 ### 2. Quick Functionality Test (< 1 minute)
 
-```bash
-# Run critical path test
-npm run test:e2e:playwright -- --grep "login and access dashboard"
-```
+Use the `test-environment` skill to run the critical path test (login and access dashboard).
 
 **Expected Result**: Test passes with green checkmark, confirming authentication flow works.
 
@@ -128,7 +125,7 @@ docker system prune -f
 ### If Tests Are Failing:
 1. Check if services are running (`./dev.sh`)
 2. Verify database is initialized (API health check)
-3. Run single test first: `npm run test:e2e:playwright -- --grep "basic login"`
+3. Run single test first using `test-environment` skill or Playwright CLI directly
 4. Check recent commits for breaking changes
 
 ### If API Calls Fail:
@@ -190,7 +187,7 @@ docker system prune -f
 
 ### Technology Stack (Confirmed Working):
 - **Frontend**: React 18.3.1 + TypeScript + Vite 5.3.1 + Mantine v7
-- **Backend**: .NET 9 Minimal API + Entity Framework Core
+- **Backend**: .NET 10 Minimal API + Entity Framework Core
 - **Database**: PostgreSQL 15+ in Docker
 - **Testing**: Playwright E2E + Vitest unit tests
 - **Authentication**: JWT + httpOnly cookies pattern

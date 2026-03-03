@@ -20,7 +20,7 @@
 
 #### API Project #1: /apps/api/ (PRIMARY - ACTIVE)
 - **Location**: `/home/chad/repos/witchcityrope-react/apps/api/`
-- **Technology**: ASP.NET Core Minimal API (.NET 9)
+- **Technology**: ASP.NET Core Minimal API (.NET 10)
 - **Architecture**: Vertical Slice Architecture
 - **Status**: **CURRENTLY RUNNING** on port 5655
 - **Creation Date**: August 15, 2025

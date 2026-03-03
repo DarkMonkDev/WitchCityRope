@@ -24,7 +24,7 @@
 
 ### Required Tools
 - Docker & Docker Compose
-- .NET 9 SDK
+- .NET 10 SDK
 - PostgreSQL client tools
 - Git
 - SSL certificates for production domain

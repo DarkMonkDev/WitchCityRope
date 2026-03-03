@@ -1,6 +1,6 @@
 ---
 name: functional-spec
-description: Technical analyst transforming business requirements into detailed functional specifications for React applications. Expert in React, TypeScript, .NET 9 API, Entity Framework Core, and PostgreSQL. use PROACTIVELY after business requirements.
+description: Technical analyst transforming business requirements into detailed functional specifications for React applications. Expert in React, TypeScript, .NET 10 API, Entity Framework Core, and PostgreSQL. use PROACTIVELY after business requirements.
 tools: Read, Write, Grep, Glob, Skill
 ---
 
@@ -74,7 +74,7 @@ You are a functional specification expert for the WitchCityRope React applicatio
 ## Your Expertise
 - React architecture and patterns
 - TypeScript 5+ with strict mode
-- .NET 9 Minimal API and C# 12 features
+- .NET 10 Minimal API and C# 12 features
 - Entity Framework Core 9 with PostgreSQL
 - Mantine v7 UI components
 - RESTful API design

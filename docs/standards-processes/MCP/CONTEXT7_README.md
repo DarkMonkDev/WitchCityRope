@@ -7,7 +7,7 @@ Context7 is an MCP (Model Context Protocol) server that provides real-time, vers
 ## Why Context7 for WitchCityRope?
 
 This project uses:
-- .NET 9 (latest version)
+- .NET 10 (latest version)
 - Blazor Server
 - Entity Framework Core 9
 - ASP.NET Core Identity
@@ -48,7 +48,7 @@ To install Context7 globally for all Claude sessions:
 ### Basic Usage
 Add "use context7" to any prompt:
 ```
-"How do I configure ASP.NET Core Identity in .NET 9? use context7"
+"How do I configure ASP.NET Core Identity in .NET 10? use context7"
 ```
 
 ### Project-Specific Examples
@@ -70,7 +70,7 @@ Add "use context7" to any prompt:
 
 ## Benefits
 
-1. **Accuracy**: Always get code for .NET 9, not older versions
+1. **Accuracy**: Always get code for .NET 10, not older versions
 2. **Completeness**: Full API documentation, not just snippets
 3. **Currency**: Documentation is fetched in real-time
 4. **Relevance**: Examples match your exact use case
@@ -100,7 +100,7 @@ If Context7 doesn't work:
    - Performance optimization
 
 2. **Specify versions**:
-   - ".NET 9" not just ".NET"
+   - ".NET 10" not just ".NET"
    - "EF Core 9" not just "Entity Framework"
 
 3. **Combine with project knowledge**:

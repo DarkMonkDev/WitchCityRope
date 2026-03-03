@@ -17,7 +17,7 @@
 ## Requirements Summary
 
 ### Import Tool Requirements
-1. Console application targeting .NET 9
+1. Console application targeting .NET 10
 2. Must support connection strings for: Local, Staging (DigitalOcean), Production (DigitalOcean)
 3. Read Google Sheet "Accepted" tab via MCP tool
 4. Import 140+ users with vetting status = Approved

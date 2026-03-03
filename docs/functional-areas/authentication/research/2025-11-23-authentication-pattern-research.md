@@ -1,4 +1,4 @@
-# Technology Research: React + .NET 9 Authentication Pattern Standardization
+# Technology Research: React + .NET 10 Authentication Pattern Standardization
 <!-- Last Updated: 2025-11-23 -->
 <!-- Version: 1.0 -->
 <!-- Owner: Technology Researcher Agent -->
@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-**Decision Required**: Standardize on ONE authentication pattern for React 18 + .NET 9 Minimal API
+**Decision Required**: Standardize on ONE authentication pattern for React 18 + .NET 10 Minimal API
 **Recommendation**: **TanStack Query Mutations + Zustand Store (Hybrid Pattern B+)**
 **Confidence Level**: High (85%)
 **Migration Complexity**: Medium (2-3 days of focused work)
@@ -359,7 +359,7 @@ export function useLogin() {
 
 ## Industry Best Practices Research
 
-### Microsoft Official Guidance (.NET 9 + React SPAs)
+### Microsoft Official Guidance (.NET 10 + React SPAs)
 
 **Source**: [Microsoft Learn - Use Identity to secure a Web API backend for SPAs](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization?view=aspnetcore-9.0)
 
@@ -410,13 +410,13 @@ export function useLogin() {
 **Sources**:
 - [Auth0 - BFF Pattern with ASP.NET Core](https://auth0.com/blog/backend-for-frontend-pattern-with-auth0-and-dotnet/)
 - [Medium - BFF with YARP and .NET Minimal APIs](https://medium.com/@amhemanth/implementing-the-backends-for-frontends-bff-pattern-with-microsofts-yarp-and-net-minimal-apis-41c391974f43)
-- [GitHub - JWT cookie auth API .NET 9](https://github.com/kenstanley37/jwt-cookie-auth-api)
+- [GitHub - JWT cookie auth API .NET 10](https://github.com/kenstanley37/jwt-cookie-auth-api)
 
 **Key Findings**:
 - ✅ WitchCityRope already uses BFF pattern (React → .NET API → Database)
 - ✅ HttpOnly cookies represent server-side sessions
 - ✅ CSRF protection via antiforgery tokens
-- ✅ Modern implementations use .NET 9 Minimal APIs
+- ✅ Modern implementations use .NET 10 Minimal APIs
 - ✅ Cookie flags: HttpOnly=true, Secure=Always, SameSite=Strict
 
 ### Logout and Cache Clearing Patterns
@@ -892,8 +892,8 @@ test('Logout clears all cached data', async ({ page }) => {
 - [Medium - React Context with TanStack Query](https://medium.com/@michael.vogt_11705/react-context-with-tanstack-query-10ba87ed49a1)
 - [JavaScript in Plain English - Zustand and TanStack Query](https://javascript.plainenglish.io/zustand-and-tanstack-query-the-dynamic-duo-that-simplified-my-react-state-management-e71b924efb90)
 
-### .NET 9 + HttpOnly Cookies
-- [GitHub - jwt-cookie-auth-api .NET 9](https://github.com/kenstanley37/jwt-cookie-auth-api)
+### .NET 10 + HttpOnly Cookies
+- [GitHub - jwt-cookie-auth-api .NET 10](https://github.com/kenstanley37/jwt-cookie-auth-api)
 - [Medium - BFF Pattern with YARP and .NET Minimal APIs](https://medium.com/@amhemanth/implementing-the-backends-for-frontends-bff-pattern-with-microsofts-yarp-and-net-minimal-apis-41c391974f43)
 - [Auth0 - Cookies, Tokens, JWT: ASP.NET Core Identity](https://auth0.com/blog/cookies-tokens-jwt-the-aspnet-core-identity-dilemma/)
 - [Code Maze - Cookie Authentication ASP.NET Core Angular](https://code-maze.com/cookie-authentication-aspnetcore-angular/)

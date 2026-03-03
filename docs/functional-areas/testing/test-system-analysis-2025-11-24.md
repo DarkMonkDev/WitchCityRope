@@ -341,7 +341,7 @@ The technology-researcher agent completed comprehensive research documented at:
 ```
 /
 ├── apps/
-│   ├── api/                              # .NET 9 Minimal API (NO tests here)
+│   ├── api/                              # .NET 10 Minimal API (NO tests here)
 │   └── web/
 │       └── src/
 │           ├── components/
@@ -493,7 +493,7 @@ The technology-researcher agent completed comprehensive research documented at:
    - Document in TESTING_GUIDE.md
 
 **Verification**:
-- Run `npm test` in `/tests/playwright/` - all E2E tests passing
+- Run E2E tests using `test-environment` skill - all tests passing
 - Check Playwright report generates correctly in `/test-results/playwright/`
 - Verify no E2E tests exist outside designated directory
 

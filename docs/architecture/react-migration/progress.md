@@ -75,7 +75,7 @@
 ### Working Systems ✅
 - **Monorepo**: Turborepo orchestration functional
 - **React App**: Vite dev server with hot reload
-- **API**: .NET 9 with health endpoint
+- **API**: .NET 10 with health endpoint
 - **Documentation**: Complete AI workflow system
 - **Sub-Agents**: All configured for React development
 - **Quality Gates**: Lint and Prettier integrated
@@ -87,7 +87,7 @@
 - **State**: Zustand 5.0.7 + TanStack Query 5.85.3
 - **Routing**: React Router 7.8.1
 - **Forms**: React Hook Form 7.62.0 + Zod 4.0.17
-- **Backend**: .NET 9 Web API with Swagger
+- **Backend**: .NET 10 Web API with Swagger
 - **Database**: PostgreSQL (configured in Docker)
 - **Testing**: Vitest + Testing Library + Playwright
 

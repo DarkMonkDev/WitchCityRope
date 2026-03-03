@@ -1,11 +1,11 @@
-# Technology Research: .NET 9 Minimal API Architecture Patterns and Best Practices
+# Technology Research: .NET 10 Minimal API Architecture Patterns and Best Practices
 <!-- Last Updated: 2025-08-22 -->
 <!-- Version: 1.0 -->
 <!-- Owner: Technology Researcher Agent -->
 <!-- Status: Complete -->
 
 ## Executive Summary
-**Decision Required**: Modernize WitchCityRope API architecture to align with current .NET 9 industry standards and best practices  
+**Decision Required**: Modernize WitchCityRope API architecture to align with current .NET 10 industry standards and best practices  
 **Primary Recommendation**: **Hybrid Approach - Vertical Slice Architecture with Minimal APIs** (Confidence Level: **92%**)  
 **Key Factors**: 
 1. **Performance**: 15% faster request processing and 93% less memory usage vs .NET 8, superior to controllers
@@ -16,7 +16,7 @@
 ### Requirements
 - Research current industry consensus on Controllers vs Endpoints for Minimal APIs
 - Evaluate Vertical Slice Architecture patterns for API organization
-- Identify modern folder organization best practices for .NET 9
+- Identify modern folder organization best practices for .NET 10
 - Assess documentation standards and OpenAPI integration
 - Determine performance and maintainability implications
 
@@ -36,7 +36,7 @@
 
 ### Option 1: Maintain Current Controller-Based Architecture
 **Overview**: Continue with existing MVC Controller pattern with service layer  
-**Version Evaluated**: ASP.NET Core MVC Controllers in .NET 9  
+**Version Evaluated**: ASP.NET Core MVC Controllers in .NET 10  
 **Documentation Quality**: Extensive - Microsoft's mature, well-documented approach
 
 **Pros**:
@@ -47,7 +47,7 @@
 - **Organization**: Natural grouping of related endpoints in controller classes
 
 **Cons**:
-- **Performance Gap**: 15% slower request processing, 93% more memory usage vs Minimal APIs in .NET 9
+- **Performance Gap**: 15% slower request processing, 93% more memory usage vs Minimal APIs in .NET 10
 - **Architectural Misalignment**: Horizontal layering conflicts with modern Vertical Slice Architecture principles
 - **Boilerplate Overhead**: Additional ceremony and scaffolding requirements
 - **Modern Development Gap**: Industry trend moving toward functional, feature-based approaches
@@ -60,8 +60,8 @@
 - Community Values: **Good** - Stable, proven approach
 
 ### Option 2: Vertical Slice Architecture with Minimal APIs
-**Overview**: Feature-based organization using .NET 9 Minimal APIs with CQRS patterns  
-**Version Evaluated**: .NET 9 Minimal APIs with Vertical Slice Architecture  
+**Overview**: Feature-based organization using .NET 10 Minimal APIs with CQRS patterns  
+**Version Evaluated**: .NET 10 Minimal APIs with Vertical Slice Architecture  
 **Documentation Quality**: Very Good - Strong community adoption with Microsoft backing
 
 **Pros**:
@@ -88,7 +88,7 @@
 
 ### Option 3: Hybrid Approach - Gradual Migration
 **Overview**: Maintain controllers for complex features, use Minimal APIs for new simple endpoints  
-**Version Evaluated**: Mixed .NET 9 Controllers + Minimal APIs  
+**Version Evaluated**: Mixed .NET 10 Controllers + Minimal APIs  
 **Documentation Quality**: Good - Microsoft supports both approaches
 
 **Pros**:
@@ -289,7 +289,7 @@ public static class EndpointExtensions
 - **Bundle Size Impact**: Minimal APIs reduce assembly size by ~15-20KB through reduced controller scaffolding
 - **Runtime Performance**: 15% faster request processing, 93% less memory allocation vs controllers
 - **Memory Usage**: Significantly reduced allocations per request (~1.18MB vs 2.13MB for controllers)
-- **Throughput**: Higher requests per second capacity in .NET 9
+- **Throughput**: Higher requests per second capacity in .NET 10
 
 ## Risk Assessment
 
@@ -334,7 +334,7 @@ public static class EndpointExtensions
   - Less disruption to existing development workflow
   - Suitable if team training resources are limited
 
-- **Future Consideration**: Full Controller Migration to .NET 9 - **65% confidence**
+- **Future Consideration**: Full Controller Migration to .NET 10 - **65% confidence**
   - Lowest risk option maintaining current patterns
   - Consider only if performance requirements are not critical
   - May require future architectural debt payment
@@ -351,12 +351,12 @@ public static class EndpointExtensions
 - **Milan Jovanović Blog**: "Vertical Slice Architecture: Structuring Vertical Slices" (June 2024)
 - **Milan Jovanović Blog**: "How To Structure Minimal APIs" (2024)
 - **Milan Jovanović Blog**: "Automatically Register Minimal APIs in ASP.NET Core" (February 2024)
-- **Microsoft Documentation**: "Choose between controller-based APIs and minimal APIs" (.NET 9)
-- **Microsoft DevBlog**: "OpenAPI document generation in .NET 9" (2024)
+- **Microsoft Documentation**: "Choose between controller-based APIs and minimal APIs" (.NET 10)
+- **Microsoft DevBlog**: "OpenAPI document generation in .NET 10" (2024)
 - **Treblle Blog**: "Minimal API with Vertical slice architecture" (2024)
 - **Performance Benchmarks**: Steven Giesel's "Comparing the performance between the Minimal API and classic Controllers" (2024)
-- **GitHub Templates**: nadirbad/VerticalSliceArchitecture (.NET 9 template)
-- **GitHub Templates**: mehdihadeli/vertical-slice-api-template (.NET 9 with VSA)
+- **GitHub Templates**: nadirbad/VerticalSliceArchitecture (.NET 10 template)
+- **GitHub Templates**: mehdihadeli/vertical-slice-api-template (.NET 10 with VSA)
 
 ## Questions for Technical Team
 - [ ] **Training Timeline**: Can we allocate 2 weeks for team training on CQRS patterns and MediatR?

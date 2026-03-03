@@ -16,7 +16,7 @@ The codebase currently contains two complete API implementations:
 #### Modern API (Primary - To Be Retained)
 - **Location**: `/apps/api/`
 - **Port**: 5655
-- **Technology**: ASP.NET Core Minimal API (.NET 9)
+- **Technology**: ASP.NET Core Minimal API (.NET 10)
 - **Architecture**: Vertical Slice Architecture with simplified patterns
 - **Status**: ACTIVE - Currently serving React frontend
 - **Performance**: Achieving <50ms response times

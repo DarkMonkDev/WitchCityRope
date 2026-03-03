@@ -57,7 +57,7 @@ The User Dashboard is a **React-based, user-focused dashboard** that displays re
 - **State Management**: TanStack Query v5 + Zustand
 - **Routing**: React Router v7
 - **Type Generation**: NSwag (from API OpenAPI spec)
-- **Backend**: .NET 9 Minimal API
+- **Backend**: .NET 10 Minimal API
 - **Database**: PostgreSQL 16 with Entity Framework Core 9
 
 ### Component Structure

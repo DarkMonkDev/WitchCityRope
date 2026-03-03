@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-WitchCityRope implements **end-to-end CSRF (Cross-Site Request Forgery) protection** using the standard .NET 9 antiforgery system with React frontend integration. This guide documents the complete implementation architecture, covering backend token generation, frontend integration, and testing infrastructure.
+WitchCityRope implements **end-to-end CSRF (Cross-Site Request Forgery) protection** using the standard .NET 10 antiforgery system with React frontend integration. This guide documents the complete implementation architecture, covering backend token generation, frontend integration, and testing infrastructure.
 
 **Status**: ✅ **PRODUCTION READY** - All components implemented, tested, and documented.
 
@@ -262,7 +262,7 @@ app.MapPost("/api/events", async (
 ```
 
 **Why Manual Validation**:
-- `.NET 9 Minimal APIs` don't have `.RequireAntiforgery()` extension method
+- `.NET 10 Minimal APIs` don't have `.RequireAntiforgery()` extension method
 - Manual `await antiforgery.ValidateRequestAsync(context)` provides explicit control
 - Throws `AntiforgeryValidationException` on failure (caught by middleware)
 - Returns `400 Bad Request` with message "CSRF Validation Failed"
@@ -759,7 +759,7 @@ app.MapPost("/api/vetting/public/applications", async (...) => { ... })
   - 95% confidence recommendation for standard pattern
 
 - **Backend Lessons Learned**: `/docs/lessons-learned/backend-developer-lessons-learned-4.md` (lines 1068-1213)
-  - Critical lesson: .NET 9 middleware auto-validates, NO `.RequireAntiforgery()` method exists
+  - Critical lesson: .NET 10 middleware auto-validates, NO `.RequireAntiforgery()` method exists
   - Manual validation pattern using `await antiforgery.ValidateRequestAsync(context)`
   - Why previous `.RequireAntiforgery()` implementation was incorrect
 
@@ -799,7 +799,7 @@ app.MapPost("/api/vetting/public/applications", async (...) => { ... })
 
 ## Conclusion
 
-WitchCityRope now has **production-ready, end-to-end CSRF protection** using Microsoft's standard .NET 9 antiforgery system. The implementation follows industry best practices with:
+WitchCityRope now has **production-ready, end-to-end CSRF protection** using Microsoft's standard .NET 10 antiforgery system. The implementation follows industry best practices with:
 
 - ✅ **38 protected endpoints** using manual validation
 - ✅ **2 public endpoints** with explicit disable

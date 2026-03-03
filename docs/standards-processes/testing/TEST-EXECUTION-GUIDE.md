@@ -34,7 +34,7 @@ This guide teaches you HOW TO RUN tests for WitchCityRope:
 
 Before running tests:
 - [ ] Docker must be installed and running
-- [ ] .NET 9.0 SDK installed
+- [ ] .NET 10.0 SDK installed
 - [ ] Node.js 18+ installed (for E2E tests)
 - [ ] Read [Docker-Only Testing Standard](docker-only-testing-standard.md)
 
@@ -97,8 +97,7 @@ dotnet test tests/WitchCityRope.Core.Tests/
 # Integration tests (requires Docker)
 dotnet test tests/WitchCityRope.IntegrationTests/
 
-# E2E tests (requires running application)
-npx playwright test
+# E2E tests - use the test-environment skill for isolated execution
 
 # All .NET tests
 dotnet test
@@ -150,11 +149,11 @@ Use **container-restart** skill before running tests in dev environment:
 
 ```bash
 # Restart dev containers with health verification
-Use container-restart skill
+Use restart-dev-containers skill
 
-# Then run tests manually
+# Then run .NET tests manually
 dotnet test
-npx playwright test
+# For E2E tests, use the test-environment skill
 ```
 
 ### Method 2: Manual Execution
@@ -167,9 +166,8 @@ docker ps
 # 2. Start containers if needed
 ./dev.sh
 
-# 3. Verify ports
-docker ps --format "table {{.Names}}\t{{.Ports}}" | grep witchcity
-# Should show:
+# 3. Verify ports - all 3 containers should be on correct ports:
+docker ps --format "table {{.Names}}\t{{.Ports}}"
 # witchcity-web: 0.0.0.0:5173->3000/tcp
 # witchcity-api: 0.0.0.0:5655->8080/tcp
 # witchcity-postgres: 0.0.0.0:5433->5432/tcp
@@ -183,12 +181,11 @@ dotnet test tests/WitchCityRope.Core.Tests/
 # Integration tests only (slower, requires Docker)
 dotnet test tests/WitchCityRope.IntegrationTests/
 
-# E2E tests
-npx playwright test
+# E2E tests - use the test-environment skill for isolated execution
+# For specific test files, the skill accepts filter arguments
 
-# Specific test file
+# Specific .NET test
 dotnet test --filter "FullyQualifiedName~AuthenticationTests"
-npx playwright test auth/login.spec.ts
 
 # With detailed logging
 dotnet test -v normal
@@ -234,24 +231,12 @@ docker-compose -p witchcityrope-test up -d
 
 **Use container-restart skill** for proper restart with verification:
 
-```bash
-# Skill handles:
-# 1. docker-compose down
-# 2. docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-# 3. Health check endpoints (React, API, database)
-# 4. API compilation verification
-# 5. Frontend build verification
-```
+The skill handles shutdown, dev overlay startup, health checks, and compilation verification.
 
 **Manual restart** (if skill unavailable):
 ```bash
-# Stop containers
-docker-compose down
-
-# Start with dev overlay
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-
-# Verify health
+./dev.sh
+# Then verify health:
 curl -f http://localhost:5173/
 curl -f http://localhost:5655/health
 ```
@@ -279,8 +264,7 @@ docker exec witchcity-db psql -U postgres -d witchcityrope -c "
 # Restart API to trigger seeding
 docker restart witchcity-api
 
-# Verify seeding
-docker logs witchcity-api | grep "Seeding"
+# Verify seeding completed by checking API container logs for "Seeding" entries
 ```
 
 ---
@@ -293,8 +277,8 @@ docker logs witchcity-api | grep "Seeding"
 
 ```bash
 # 1. Verify Docker containers running
-docker ps --format "table {{.Names}}\t{{.Ports}}" | grep witchcity
-# MUST show all 3 containers on correct ports
+docker ps --format "table {{.Names}}\t{{.Ports}}"
+# MUST show all 3 witchcity containers on correct ports
 
 # 2. Kill any rogue local dev servers
 ./scripts/kill-local-dev-servers.sh
@@ -389,45 +373,21 @@ dotnet test --filter "FullyQualifiedName~Authentication"
 - Requires running application
 - Tests complete user workflows
 
-```bash
-# All E2E tests
-npx playwright test
+**Primary method**: Use the `test-environment` skill which handles container isolation, health checks, and execution.
 
-# Specific file
-npx playwright test auth/login.spec.ts
+**Playwright CLI reference** (for manual debugging from `apps/web/` directory):
+- All tests: `playwright test`
+- Specific file: `playwright test auth/login.spec.ts`
+- Specific test: `playwright test -g "should login with valid credentials"`
+- Headed mode: `playwright test --headed`
+- UI mode: `playwright test --ui`
+- Specific browser: `playwright test --project=chromium`
+- Worker count: `playwright test --workers=5`
+- Update snapshots: `playwright test --update-snapshots`
 
-# Specific test
-npx playwright test -g "should login with valid credentials"
+> See [Playwright CLI docs](https://playwright.dev/docs/test-cli) for full reference.
 
-# Headed mode (see browser)
-npx playwright test --headed
-
-# UI mode (interactive debugging)
-npx playwright test --ui
-
-# Specific browser
-npx playwright test --project=chromium
-
-# Parallel execution (default: 10 workers)
-npx playwright test --workers=10
-
-# Override worker count
-npx playwright test --workers=5
-
-# Update snapshots
-npx playwright test --update-snapshots
-```
-
-**Working directory (CRITICAL)**:
-```bash
-# ✅ CORRECT - Run from project root
-cd /home/chad/repos/witchcityrope/apps/web
-npx playwright test
-
-# ❌ WRONG - Running from test subdirectory will miss tests
-cd /home/chad/repos/witchcityrope/apps/web/tests
-npx playwright test  # Only finds tests in current directory
-```
+**Working directory (CRITICAL)**: Always run from `apps/web/`, not from a test subdirectory.
 
 **Test structure**:
 ```
@@ -466,45 +426,16 @@ npm test Button.test.tsx
 
 ### Playwright Debugging
 
-**UI Mode** (recommended):
-```bash
-# Interactive debugging with time-travel
-npx playwright test --ui
+**UI Mode** (recommended): Run with `--ui` flag for interactive time-travel debugging.
+Features: step through execution, inspect DOM, view network requests, live test editing.
 
-# Features:
-# - Step through test execution
-# - Inspect DOM at each step
-# - View network requests
-# - Time-travel debugging
-# - Live test editing
-```
+**Debug Mode**: Run with `--debug` flag to attach debugger. Add test path for specific tests.
 
-**Debug Mode**:
-```bash
-# Runs test with debugger attached
-npx playwright test --debug
+**Screenshots on Failure**: Automatic screenshots saved to `/test-results/[test-name]/`.
 
-# Specific test
-npx playwright test --debug auth/login.spec.ts
-```
+**Verbose Output**: Set `DEBUG=pw:api` env var for network request logging. Use `--headed` for browser console visibility.
 
-**Screenshots on Failure**:
-```bash
-# Automatic screenshots saved to /test-results/
-npx playwright test
-
-# Screenshots saved at:
-# /test-results/[test-name]/[failure-screenshot].png
-```
-
-**Verbose Output**:
-```bash
-# See all network requests
-DEBUG=pw:api npx playwright test
-
-# See browser console logs
-npx playwright test --headed
-```
+> See [Playwright Debugging docs](https://playwright.dev/docs/debug) for full reference.
 
 ### .NET Test Debugging
 
@@ -618,66 +549,12 @@ Manual update (if skill unavailable):
 
 ## CI/CD Integration
 
-### GitHub Actions Configuration
+### CI/CD Configuration
 
-```yaml
-name: Tests
-
-on: [push, pull_request]
-
-jobs:
-  unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Run Unit Tests
-        run: dotnet test tests/WitchCityRope.Core.Tests/ --logger "trx"
-
-  integration-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-
-      - name: Run Health Checks
-        run: dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck"
-
-      - name: Run Integration Tests
-        run: dotnet test tests/WitchCityRope.IntegrationTests/ --logger "trx"
-
-  e2e-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install Playwright
-        run: npx playwright install --with-deps
-
-      - name: Start Application
-        run: ./dev.sh
-        timeout-minutes: 2
-
-      - name: Run E2E Tests
-        run: npx playwright test
-
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: playwright-report
-          path: test-results/
-```
+> **NOTE**: CI/CD pipeline is not currently active via GitHub Actions.
+> Tests are run locally using the `test-environment` skill which handles
+> container isolation, health checks, and Playwright execution.
+> See the skill documentation for the authoritative test execution flow.
 
 ### Test Environment Variables
 
@@ -698,14 +575,8 @@ export PLAYWRIGHT_BROWSERS_PATH=0  # Install to system location
 ### Common Issues
 
 **"React app not loading"**
-```bash
-# Check Docker container
-docker ps | grep witchcity-web
-
-# If not running, use container-restart skill
-# Or manually:
-./dev.sh
-```
+- Check if the web container is running: `docker ps`
+- If not running, use the `restart-dev-containers` skill or `./dev.sh`
 
 **"API endpoints returning 404"**
 ```bash
@@ -731,13 +602,8 @@ Use container-restart skill
 ```
 
 **"Connection refused errors"**
-```bash
-# Restart containers with health checks
-Use container-restart skill
-
-# Verify all healthy
-docker ps --format "table {{.Names}}\t{{.Status}}" | grep witchcity
-```
+- Use the `restart-dev-containers` skill to restart with health checks
+- Verify all containers are healthy: `docker ps --format "table {{.Names}}\t{{.Status}}"`
 
 **"Database already exists" errors**
 ```bash
@@ -758,13 +624,8 @@ await page.waitForTimeout(2000);  // Flaky
 ```
 
 **"Only 8 of 855 tests running"**
-```bash
-# ALWAYS run from project root
-cd /home/chad/repos/witchcityrope/apps/web
-npx playwright test
-
-# NOT from test subdirectory
-```
+- ALWAYS run Playwright from `apps/web/` directory, NOT from a test subdirectory
+- Use the `test-environment` skill which handles correct working directory
 
 ### Emergency Protocols
 
@@ -785,9 +646,9 @@ npx playwright test
 **If tests fail unexpectedly**:
 1. Run health checks FIRST
 2. Check container status: `docker ps`
-3. Review logs: `docker logs witchcity-api`
+3. Review API container logs for errors
 4. Enable verbose logging: `dotnet test -v detailed`
-5. Use Playwright UI mode: `npx playwright test --ui`
+5. Use Playwright UI mode (`--ui` flag) for interactive debugging
 
 ---
 

@@ -17,7 +17,7 @@ This document provides the complete docker-compose configuration design for Witc
 
 ### Service Architecture
 - **react-web**: React + Vite frontend with hot reload (dev) / Nginx static serving (prod)
-- **api-service**: .NET 9 Minimal API with JWT authentication
+- **api-service**: .NET 10 Minimal API with JWT authentication
 - **postgres-db**: PostgreSQL 16 with proper connection pooling
 - **test-server**: Python HTTP server for development testing (dev only)
 
@@ -71,7 +71,7 @@ docker-compose.prod.yml           # Production deployment
 - **Test**: Separate test database with fixtures, no external access
 - **Production**: Resource limits, security hardening, backup mounts
 
-### API Service (.NET 9)
+### API Service (.NET 10)
 - **Base**: Minimal API with JWT authentication and CORS
 - **Development**: Hot reload with `dotnet watch`, debug ports, relaxed security
 - **Test**: Built containers for consistency, test-specific configuration
@@ -200,16 +200,10 @@ test-server → api-service, react-web
 ## Usage Commands and Workflows
 
 ### Development Workflow
-```bash
-# Start development environment
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
-# Monitor logs
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
-
-# Rebuild specific service
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml build api-service
-```
+> **NOTE**: Use the `restart-dev-containers` skill for starting/restarting the dev environment.
+> It handles the correct compose overlay, project isolation, compilation checks, and health verification.
+> For log viewing, use `docker logs <container-name>` directly.
 
 ### Test Workflow
 ```bash

@@ -36,7 +36,7 @@
 
 ## Technical Overview
 
-This specification implements **Simple Vertical Slice Architecture** for modernizing WitchCityRope's API from traditional MVC controllers to .NET 9 minimal APIs using **direct Entity Framework services**. The modernization maintains all existing functionality while achieving 15% performance improvements and 40-60% developer productivity gains through **simplicity, not complexity**.
+This specification implements **Simple Vertical Slice Architecture** for modernizing WitchCityRope's API from traditional MVC controllers to .NET 10 minimal APIs using **direct Entity Framework services**. The modernization maintains all existing functionality while achieving 15% performance improvements and 40-60% developer productivity gains through **simplicity, not complexity**.
 
 **Stakeholder Priority**: Keep it SIMPLE and maintainable - no unnecessary architectural overhead for a small site.
 
