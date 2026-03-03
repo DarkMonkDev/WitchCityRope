@@ -2,7 +2,7 @@
 
 **Date**: 2026-03-02
 **Last Updated**: 2026-03-03
-**Status**: Complete (All 7 Phases Done — Deployed to Dev & Staging 2026-03-03)
+**Status**: Complete (All 7 Phases + Follow-Up Tech Debt — Deployed to Dev & Staging 2026-03-03)
 **Based On**: deep-dive-research.md, dead-code-liveness-analysis.md
 
 ---
@@ -432,6 +432,29 @@ Check these files and delete if no longer referenced by active code:
 3. **Production Payment data**: Accept data loss when dropping Payments table (records are orphaned, never updated, invisible in admin UI)
 4. **CreditCardEndpoints**: Removed in Phase 4 (confirmed dead — frontend never calls it)
 
-### Remaining Open Questions
+### Follow-Up Tech Debt (Completed 2026-03-03)
 
-1. **Duplicate route**: Should we also remove `/api/events/{id}/purchase-ticket` (duplicate of `/api/events/{id}/tickets`) in this work, or defer to a separate cleanup?
+All 9 remaining issues from the deep-dive research were resolved in a follow-up session:
+
+**Phase 1 (Quick Fixes):**
+- Removed duplicate `/purchase-ticket` route, updated frontend and integration tests to use `/tickets`
+- Added missing `CancellationToken` to `RefundService.LogRefundRetryAsync`
+- Created `PaymentConstants.Currency` constant, replaced all hardcoded "USD" strings
+
+**Phase 2 (PaymentStatus Enum):**
+- Created `TicketPurchasePaymentStatus` enum with string-backed EF value converter (no migration needed)
+- Updated ~15 files from string literals to enum values
+
+**Phase 3 (Metadata JSONB Column):**
+- Added `Dictionary<string, object> Metadata` to TicketPurchase with JSONB storage
+- Migration: `20260303063750_AddTicketPurchaseMetadata`
+- Added `EnableDynamicJson()` to `NpgsqlDataSourceBuilder` in Program.cs
+
+**Phase 4 (Refund Architecture):**
+- RefundTicket now supports multiple refunds (remaining balance pattern)
+- Removed Flow 1 refund endpoint from ParticipationEndpoints (no frontend caller), moved EventAttendee status update into RefundService
+- Wrapped RefundService.ProcessRefundAsync in `IDbContextTransaction`
+- Deleted `AdminRefundTicketResponse.cs`, cleaned up test files
+
+**New files**: `PaymentConstants.cs`, `TicketPurchasePaymentStatus.cs`, migration
+**Modified**: ~30 files total (4,500 additions, 1,600 deletions)

@@ -1,6 +1,6 @@
 # Payment Entity Consolidation Project
 
-**Status**: Complete — All 7 Phases Done, Deployed to Dev & Staging (2026-03-03)
+**Status**: Complete — All Work Done, Deployed to Dev & Staging (2026-03-03)
 **Priority**: High (Technical Debt - causes data integrity confusion)
 **Created**: 2026-03-02
 **Last Updated**: 2026-03-03
@@ -19,8 +19,10 @@
 | Phase 5: Remove dead frontend code (4 files deleted) | **Complete** |
 | Phase 6: DB migration to drop dead tables | **Complete** (applied to dev & staging) |
 | Phase 7: Remove Payment entity and Payments table | **Complete** (applied to dev & staging) |
+| Follow-up: Remaining tech debt (9 items) | **Complete** (deployed 2026-03-03) |
 
 **Total dead code removed**: ~5,300 lines across 21 files deleted and 14 files modified.
+**Follow-up tech debt**: ~4,500 additions, ~1,600 deletions across 30 files.
 
 ## What Was Done
 
@@ -53,39 +55,35 @@ The codebase had a **dual-entity payment architecture** where `TicketPurchase` (
 
 ---
 
-## Known Remaining Issues (Not Addressed in This Project)
+## Follow-Up Tech Debt (All Resolved 2026-03-03)
 
-These items were identified during deep-dive research but are **out of scope** for this consolidation project. They should be tracked as separate work items.
+These 9 items were identified during deep-dive research and addressed in a follow-up session.
 
-### Should Fix (Medium Priority)
+### Resolved — Should Fix (Medium Priority)
 
-1. **Duplicate ticket purchase route**: `/api/events/{id}/purchase-ticket` is an exact duplicate of `/api/events/{id}/tickets` (comment says "for compatibility with tests"). Should be removed.
+1. **~~Duplicate ticket purchase route~~** — Removed `/purchase-ticket` route, updated frontend and tests to use `/tickets`
+2. **~~Three separate refund endpoints~~** — Reduced to 2: removed Flow 1 (ParticipationEndpoints refund, had no frontend caller), preserved its EventAttendee status update logic in RefundService
+3. **~~RefundTicket blocks multiple refunds~~** — RefundTicket now calculates remaining refundable amount (same pattern as ProcessVariableRefund)
+4. **~~Transaction safety in RefundService~~** — Wrapped ProcessRefundAsync in `IDbContextTransaction` with commit/rollback
+5. **~~Missing cancellationToken in LogRefundRetryAsync~~** — Added parameter and passed through to FindAsync and SaveChangesAsync
 
-2. **Three separate refund endpoint patterns**: RefundTicket, ProcessVariableRefund, and ParticipationEndpoints each handle refunds differently. Could be consolidated into one flexible endpoint.
+### Resolved — Nice-to-Have (Low Priority)
 
-3. **RefundTicket blocks multiple refunds**: `RefundTicket.cs` checks for ANY existing refund and blocks. Only `ProcessVariableRefund` supports multiple partial refunds. This is a functional limitation.
-
-4. **Transaction safety in RefundService**: Multiple `SaveChangesAsync` calls without explicit `IDbContextTransaction`. Partial state can be persisted on failure.
-
-5. **RefundService.LogRefundRetryAsync missing cancellationToken**: Line 598, parameter not passed through.
-
-### Nice-to-Have (Low Priority)
-
-6. **Migrate TicketPurchase.PaymentStatus from string to enum**: Currently uses magic strings ("Completed", "Failed", etc.). The deleted Payment entity had a proper enum — could adopt that pattern.
-
-7. **Add currency field to TicketPurchase**: Currently assumes USD everywhere (hardcoded in PaymentListService and other places). Either add the field or formalize USD-only as a documented business rule.
-
-8. **Add Money value object pattern to TicketPurchase**: TicketPurchase uses raw `decimal TotalPrice`. The Money value object exists but is only used in service-layer calculations.
-
-9. **Add JSONB metadata column to TicketPurchase**: The deleted Payment entity had a useful `Metadata` JSONB column. TicketPurchase only has a `Notes` string field.
+6. **~~PaymentStatus string → enum~~** — Created `TicketPurchasePaymentStatus` enum with string-backed EF value converter (no migration needed)
+7. **~~Hardcoded USD currency~~** — Created `PaymentConstants.Currency` constant, replaced all hardcoded "USD" strings
+8. *Money value object on TicketPurchase* — Deferred (not worth schema change for current usage)
+9. **~~JSONB metadata column~~** — Added `Dictionary<string, object> Metadata` to TicketPurchase with JSONB storage, migration applied
 
 ---
 
 ## Key Files Reference (Post-Consolidation)
 
 ### Active Entities
-- `apps/api/Models/TicketPurchase.cs` — Single source of truth for payment data
+- `apps/api/Models/TicketPurchase.cs` — Single source of truth for payment data (PaymentStatus enum, Metadata JSONB)
+- `apps/api/Models/TicketPurchasePaymentStatus.cs` — PaymentStatus enum (Pending, Completed, Confirmed, Failed, PartiallyRefunded, Refunded)
 - `apps/api/Features/Payments/Entities/PaymentRefund.cs` — Refund records (FK → TicketPurchase)
+- `apps/api/Features/Payments/ValueObjects/Money.cs` — Value object for currency amounts
+- `apps/api/Features/Payments/PaymentConstants.cs` — Currency constant (USD-only business rule)
 
 ### Active Services
 - `apps/api/Features/Payments/Services/AuthorizeNetService.cs` — CC processing
@@ -102,14 +100,20 @@ These items were identified during deep-dive research but are **out of scope** f
 - `apps/api/Features/Payments/Endpoints/AdminPaymentEndpoints.cs` — Admin payment list
 - `apps/api/Features/Payments/Endpoints/RefundEndpoints.cs` — Refund processing
 - `apps/api/Features/Payments/Endpoints/WebhookEndpoints.cs` — PayPal webhooks
-- `apps/api/Features/Participation/Endpoints/ParticipationEndpoints.cs` — Ticket/RSVP/admin refunds
+- `apps/api/Features/Participation/Endpoints/ParticipationEndpoints.cs` — Ticket/RSVP management (refund endpoint removed)
+
+### Refund Endpoints (Post-Consolidation)
+Only 2 refund flows remain:
+- `POST /api/admin/refunds/{ticketId}` — Full refund via `RefundTicket.cs` (supports multiple refunds, cancels RSVP if requested)
+- `POST /api/payments/transactions/{transactionId}/refund` — Variable amount refund via `ProcessVariableRefund.cs` (does NOT cancel RSVP)
 
 ### Migrations (This Project)
 - `apps/api/Migrations/20260303051802_DropDeadPaymentTables.cs` — Drops PaymentAuditLog, PaymentFailures, PaymentMethods + PaymentRefunds.PaymentId
 - `apps/api/Migrations/20260303053611_DropPaymentsTable.cs` — Drops Payments table
+- `apps/api/Migrations/20260303063750_AddTicketPurchaseMetadata.cs` — Adds Metadata JSONB column to TicketPurchases
 
 ---
 
 ## Related Documentation
 - [Implementation Plan](./implementation-plan.md) — Detailed phase-by-phase plan with completion notes
-- [Deep Dive Research](./deep-dive-research.md) — Full research findings (some items still relevant for future work)
+- [Deep Dive Research](./deep-dive-research.md) — Full research findings (all items resolved)

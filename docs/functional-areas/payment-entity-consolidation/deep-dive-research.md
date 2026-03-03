@@ -1,9 +1,9 @@
 # Payment System Deep Dive Research
 
 **Date**: 2026-03-02
-**Status**: Research Complete — All identified issues resolved or documented as future work
+**Status**: Research Complete — All identified issues resolved
 **Supersedes**: Initial README.md research (still valid but incomplete)
-**Implementation**: See [implementation-plan.md](./implementation-plan.md) for what was done
+**Implementation**: See [implementation-plan.md](./implementation-plan.md) for the original 7-phase plan. All 9 remaining items from Section 12 were resolved in a follow-up session on 2026-03-03.
 
 ## Executive Summary
 
@@ -617,8 +617,8 @@ But TicketPurchase uses raw `decimal TotalPrice` with no currency field. The Mon
 ## 12. Recommended Fix Priority
 
 > **Update (2026-03-03)**: Items 1-6 and 10 have been resolved by the 7-phase implementation plan.
-> See [implementation-plan.md](./implementation-plan.md) for details.
-> Items 3 (duplicate route), 7, 8, 9 remain as future work — documented in [README.md](./README.md).
+> See [implementation-plan.md](./implementation-plan.md) for the original 7-phase plan.
+> All remaining items were resolved in a follow-up session on 2026-03-03 — see [README.md](./README.md).
 
 ### Priority 1: Critical Bug Fix (Must Fix)
 
@@ -630,10 +630,10 @@ But TicketPurchase uses raw `decimal TotalPrice` with no currency field. The Mon
 2. **~~Migrate cash payments to TicketPurchase~~** ✅ RESOLVED (Phase 2)
    - KioskPaymentEndpoints now creates TicketPurchase + EventAttendance
 
-3. **~~Remove or archive dead code~~** ✅ RESOLVED (Phases 4, 5, 6, 7)
+3. **~~Remove or archive dead code~~** ✅ RESOLVED (Phases 4, 5, 6, 7 + follow-up)
    - All dead entities, services, endpoints, and frontend code removed
    - Database tables dropped via migrations
-   - **Remaining**: Duplicate `/api/events/{id}/purchase-ticket` route NOT removed (deferred)
+   - Duplicate `/purchase-ticket` route removed, Flow 1 refund endpoint removed (follow-up session)
 
 4. **~~Fix CreditCardEndpoints design flaws~~** ✅ RESOLVED (Phase 4)
    - CreditCardEndpoints.cs deleted entirely (confirmed dead — frontend never calls it)
@@ -646,23 +646,26 @@ But TicketPurchase uses raw `decimal TotalPrice` with no currency field. The Mon
 6. **~~Rename ProcessRefundRequest.PaymentId to TicketPurchaseId~~** ✅ RESOLVED (Phase 3)
    - Renamed across all callers
 
-7. **Consolidate refund flows** — NOT ADDRESSED (future work)
-   - Three refund endpoints is confusing
-   - Consider: One flexible endpoint with parameters for full/partial/with-rsvp-cancel
+7. **~~Consolidate refund flows~~** ✅ RESOLVED (follow-up session)
+   - Reduced from 3 to 2: removed Flow 1 (ParticipationEndpoints refund, no frontend caller)
+   - Preserved EventAttendee status update by moving into RefundService
+   - RefundTicket now supports multiple refunds (remaining balance pattern)
+   - Added IDbContextTransaction for atomicity, added missing CancellationToken to LogRefundRetryAsync
 
 ### Priority 4: Nice-to-Have Improvements (Future)
 
-8. **Migrate TicketPurchase to enum-based PaymentStatus** — NOT ADDRESSED (future work)
-   - Replace string comparisons with type-safe enum
-   - Preserve "Confirmed" as alias for Completed during migration
+8. **~~Migrate TicketPurchase to enum-based PaymentStatus~~** ✅ RESOLVED (follow-up session)
+   - Created `TicketPurchasePaymentStatus` enum with string-backed EF value converter
+   - Preserves "Confirmed" as first-class enum value (legacy PayPal status)
 
-9. **Add currency field to TicketPurchase** — NOT ADDRESSED (future work)
-   - Currently assumes USD everywhere
-   - Or formalize USD-only as a business rule
+9. **~~Formalize USD-only currency~~** ✅ RESOLVED (follow-up session)
+   - Created `PaymentConstants.Currency` constant, replaced all hardcoded "USD" strings
+   - Added JSONB Metadata column to TicketPurchase for future extensibility
 
-10. **~~Clean up frontend payment types~~** ✅ PARTIALLY RESOLVED (Phase 5)
+10. **~~Clean up frontend payment types~~** ✅ RESOLVED (Phase 5 + follow-up)
     - Dead types, hooks, pages, and API calls removed
     - Auto-generated types remain as source of truth
+    - Frontend `/purchase-ticket` caller updated to use `/tickets`
 
 ---
 
