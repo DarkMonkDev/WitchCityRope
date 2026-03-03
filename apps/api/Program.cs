@@ -31,6 +31,7 @@ using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
 using NpgsqlTypes;
+using WitchCityRope.Api.Features.Logging.Infrastructure;
 
 // Enable Serilog self-diagnostics so sink errors appear in stderr
 Serilog.Debugging.SelfLog.Enable(Console.Error);
@@ -61,8 +62,8 @@ var columnWriters = new Dictionary<string, ColumnWriterBase>
     { "exception", new ExceptionColumnWriter() },
     { "source_context", new SinglePropertyColumnWriter("SourceContext", PropertyWriteMethod.Raw, NpgsqlDbType.Varchar) },
     { "properties", new PropertiesColumnWriter(NpgsqlDbType.Jsonb) },
-    { "user_id", new SinglePropertyColumnWriter("UserId", PropertyWriteMethod.Raw, NpgsqlDbType.Uuid) },
-    { "correlation_id", new SinglePropertyColumnWriter("CorrelationId", PropertyWriteMethod.Raw, NpgsqlDbType.Uuid) },
+    { "user_id", new GuidColumnWriter("UserId") },
+    { "correlation_id", new GuidColumnWriter("CorrelationId") },
     { "request_path", new SinglePropertyColumnWriter("RequestPath", PropertyWriteMethod.Raw, NpgsqlDbType.Varchar) },
     { "machine_name", new SinglePropertyColumnWriter("MachineName", PropertyWriteMethod.Raw, NpgsqlDbType.Varchar) }
 };
