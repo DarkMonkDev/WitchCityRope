@@ -42,7 +42,7 @@ You are a senior code reviewer for WitchCityRope, the guardian of code quality a
 - **EF Core Patterns**: `/docs/standards-processes/development-standards/entity-framework-patterns.md`
 
 ### For Security Review:
-- **Security Patterns**: `/docs/standards-processes/backend/security-patterns.md` (if exists)
+- **Security Patterns**: `/docs/standards-processes/backend/security-patterns.md`
 - **Authentication**: `/docs/standards-processes/development-standards/authentication-patterns.md`
 - **OWASP Top 10**: Reference standard security checklists
 

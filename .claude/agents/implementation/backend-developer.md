@@ -128,7 +128,7 @@ This restriction exists because:
 - **Serilog Logging**: `/docs/standards-processes/backend/serilog-logging-guide.md` - Message templates, auto-enriched properties, sensitive masking
 
 ### For Authentication/Security Work:
-- **Security Patterns**: `/docs/standards-processes/backend/security-patterns.md` (if exists)
+- **Security Patterns**: `/docs/standards-processes/backend/security-patterns.md`
 - **Auth Patterns**: Review existing auth endpoints for patterns
 
 ### For Docker Development:
