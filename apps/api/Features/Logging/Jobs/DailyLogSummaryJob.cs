@@ -90,6 +90,27 @@ public class DailyLogSummaryJob
                 "properties->>'ErrorType'",
                 cancellationToken);
 
+            // Aggregate email automation successes by template type
+            await AggregateByCategoryAsync(summaries, yesterday, startUtc, endUtc,
+                "email_sent",
+                "source_context LIKE '%Email%' AND level <= 2 AND (message LIKE '%email sent%' OR message LIKE '%Webhook updated%Completed%' OR message LIKE '%post-purchase%' OR message LIKE '%catch-up%')",
+                "properties->>'TemplateType'",
+                cancellationToken);
+
+            // Aggregate email automation failures by template type
+            await AggregateByCategoryAsync(summaries, yesterday, startUtc, endUtc,
+                "email_failure",
+                "source_context LIKE '%Email%' AND level >= 3",
+                "properties->>'TemplateType'",
+                cancellationToken);
+
+            // Aggregate email scheduler job runs
+            await AggregateByCategoryAsync(summaries, yesterday, startUtc, endUtc,
+                "email_scheduler",
+                "source_context LIKE '%EmailScheduler%'",
+                null,
+                cancellationToken);
+
             // Upsert all summaries using the unique constraint
             foreach (var summary in summaries)
             {

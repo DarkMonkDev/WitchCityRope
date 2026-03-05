@@ -70,6 +70,7 @@ public class EmailTemplateService : IEmailTemplateService
                 TriggerType = t.TriggerType,
                 TriggerEnabled = t.TriggerEnabled,
                 TimingOffsetDays = t.TimingOffsetDays,
+                TimingOffsetHours = t.TimingOffsetHours,
                 RecipientGroup = t.RecipientGroup
             }).ToList();
 
@@ -114,6 +115,7 @@ public class EmailTemplateService : IEmailTemplateService
                 TriggerType = template.TriggerType,
                 TriggerEnabled = template.TriggerEnabled,
                 TimingOffsetDays = template.TimingOffsetDays,
+                TimingOffsetHours = template.TimingOffsetHours,
                 RecipientGroup = template.RecipientGroup
             };
 
@@ -171,6 +173,7 @@ public class EmailTemplateService : IEmailTemplateService
                 TriggerType = template.TriggerType,
                 TriggerEnabled = template.TriggerEnabled,
                 TimingOffsetDays = template.TimingOffsetDays,
+                TimingOffsetHours = template.TimingOffsetHours,
                 RecipientGroup = template.RecipientGroup
             };
 
@@ -223,6 +226,7 @@ public class EmailTemplateService : IEmailTemplateService
             template.TriggerType = request.TriggerType;
             template.TriggerEnabled = request.TriggerEnabled;
             template.TimingOffsetDays = request.TimingOffsetDays;
+            template.TimingOffsetHours = request.TimingOffsetHours;
             template.RecipientGroup = request.RecipientGroup;
             template.UpdatedAt = DateTime.UtcNow;
             template.Version++;
@@ -250,6 +254,7 @@ public class EmailTemplateService : IEmailTemplateService
                 TriggerType = template.TriggerType,
                 TriggerEnabled = template.TriggerEnabled,
                 TimingOffsetDays = template.TimingOffsetDays,
+                TimingOffsetHours = template.TimingOffsetHours,
                 RecipientGroup = template.RecipientGroup
             };
 
@@ -295,6 +300,7 @@ public class EmailTemplateService : IEmailTemplateService
                 TriggerType = t.TriggerType,
                 TriggerEnabled = t.TriggerEnabled,
                 TimingOffsetDays = t.TimingOffsetDays,
+                TimingOffsetHours = t.TimingOffsetHours,
                 RecipientGroup = t.RecipientGroup
             }).ToList();
 
@@ -987,6 +993,73 @@ public class EmailTemplateService : IEmailTemplateService
         {
             _logger.LogError(ex, "Error deleting ad-hoc template {TemplateId}", templateId);
             return Result.Failure("Failed to delete template");
+        }
+    }
+
+    // ========================================
+    // Email Trigger Logs (Admin Visibility)
+    // ========================================
+
+    public async Task<Result<List<EmailTriggerLogDto>>> GetTriggerLogsAsync(
+        Guid? eventId = null,
+        string? status = null,
+        string? templateType = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        int limit = 50,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = _context.EmailTriggerLogs
+                .AsNoTracking()
+                .Include(l => l.Event)
+                .Include(l => l.Session)
+                .AsQueryable();
+
+            if (eventId.HasValue)
+                query = query.Where(l => l.EventId == eventId.Value);
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(l => l.Status == status);
+
+            if (!string.IsNullOrEmpty(templateType))
+                query = query.Where(l => l.TemplateType == templateType);
+
+            if (fromDate.HasValue)
+                query = query.Where(l => l.TriggeredAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(l => l.TriggeredAt <= toDate.Value);
+
+            var logs = await query
+                .OrderByDescending(l => l.TriggeredAt)
+                .Take(Math.Min(limit, 200))
+                .Select(l => new EmailTriggerLogDto
+                {
+                    Id = l.Id,
+                    TemplateId = l.TemplateId,
+                    EventId = l.EventId,
+                    EventTitle = l.Event != null ? l.Event.Title : null,
+                    SessionId = l.SessionId,
+                    SessionTitle = l.Session != null ? l.Session.Name : null,
+                    TemplateType = l.TemplateType,
+                    TriggerType = l.TriggerType,
+                    RecipientGroup = l.RecipientGroup,
+                    RecipientCount = l.RecipientCount,
+                    TriggeredAt = l.TriggeredAt,
+                    SentAt = l.SentAt,
+                    Status = l.Status,
+                    ErrorMessage = l.ErrorMessage
+                })
+                .ToListAsync(cancellationToken);
+
+            return Result<List<EmailTriggerLogDto>>.Success(logs);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve email trigger logs");
+            return Result<List<EmailTriggerLogDto>>.Failure("Failed to retrieve trigger logs");
         }
     }
 

@@ -26,6 +26,7 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
 {
     private readonly ApplicationDbContext _context;
     private readonly IEncryptionService _encryptionService;
+    private readonly WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService _eventEmailService;
     private readonly IPaymentNotificationService _notificationService;
     private readonly IMemoryCache _cache;
     private readonly ILogger<PayPalWebhookProcessingService> _logger;
@@ -33,12 +34,14 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
     public PayPalWebhookProcessingService(
         ApplicationDbContext context,
         IEncryptionService encryptionService,
+        WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService eventEmailService,
         IPaymentNotificationService notificationService,
         IMemoryCache cache,
         ILogger<PayPalWebhookProcessingService> logger)
     {
         _context = context;
         _encryptionService = encryptionService;
+        _eventEmailService = eventEmailService;
         _notificationService = notificationService;
         _cache = cache;
         _logger = logger;
@@ -140,6 +143,19 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
 
             // Send SSE notification if kiosk session
             await TrySendSseNotificationAsync(webhookEvent, ticketPurchase);
+
+            // Post-purchase emails (non-fatal side effect)
+            try
+            {
+                await _eventEmailService.SendPostPurchaseEmailsAsync(
+                    ticketPurchase.UserId, new List<Guid> { ticketPurchase.Id }, ct);
+            }
+            catch (Exception emailEx)
+            {
+                _logger.LogError(emailEx,
+                    "Post-purchase email failed (non-fatal). TicketPurchase={Id}",
+                    ticketPurchase.Id);
+            }
 
             return Result.Success();
         }

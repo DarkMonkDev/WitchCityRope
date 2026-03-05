@@ -18,6 +18,10 @@ public class EventEmailTemplateConfiguration : IEntityTypeConfiguration<EventEma
                 "\"OverrideTimingOffsetDays\" IS NULL OR (\"OverrideTimingOffsetDays\" >= -365 AND \"OverrideTimingOffsetDays\" <= 365)"
             );
             t.HasCheckConstraint(
+                "CHK_EventEmailTemplates_OverrideTimingOffsetHours",
+                "\"OverrideTimingOffsetHours\" IS NULL OR (\"OverrideTimingOffsetHours\" >= -23 AND \"OverrideTimingOffsetHours\" <= 23)"
+            );
+            t.HasCheckConstraint(
                 "CHK_EventEmailTemplates_OverrideRecipientGroup",
                 "\"OverrideRecipientGroup\" IS NULL OR \"OverrideRecipientGroup\" IN (0, 1, 2, 3)"
             );
@@ -125,6 +129,9 @@ public class EventEmailTemplateConfiguration : IEntityTypeConfiguration<EventEma
             .IsRequired(false); // Nullable
 
         builder.Property(e => e.OverrideTimingOffsetDays)
+            .IsRequired(false); // Nullable
+
+        builder.Property(e => e.OverrideTimingOffsetHours)
             .IsRequired(false); // Nullable
 
         builder.Property(e => e.OverrideRecipientGroup)

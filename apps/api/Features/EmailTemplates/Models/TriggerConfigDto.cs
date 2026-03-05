@@ -27,6 +27,11 @@ public class TriggerConfigDto
     public int? TimingOffsetDays { get; set; }
 
     /// <summary>
+    /// Hours offset for sub-day precision in time-based triggers
+    /// </summary>
+    public int? TimingOffsetHours { get; set; }
+
+    /// <summary>
     /// Target recipient group for Events category
     /// Null for other categories
     /// </summary>

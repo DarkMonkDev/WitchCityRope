@@ -22,6 +22,10 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
                 "\"TimingOffsetDays\" IS NULL OR (\"TimingOffsetDays\" >= -365 AND \"TimingOffsetDays\" <= 365)"
             );
             t.HasCheckConstraint(
+                "CHK_GlobalEmailTemplates_TimingOffsetHours",
+                "\"TimingOffsetHours\" IS NULL OR (\"TimingOffsetHours\" >= -23 AND \"TimingOffsetHours\" <= 23)"
+            );
+            t.HasCheckConstraint(
                 "CHK_GlobalEmailTemplates_RecipientGroup",
                 "\"RecipientGroup\" IS NULL OR \"RecipientGroup\" IN (0, 1, 2, 3)"
             );
@@ -138,6 +142,9 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
             .HasDefaultValue(true);
 
         builder.Property(e => e.TimingOffsetDays)
+            .IsRequired(false); // Nullable
+
+        builder.Property(e => e.TimingOffsetHours)
             .IsRequired(false); // Nullable
 
         builder.Property(e => e.RecipientGroup)

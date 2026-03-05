@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Models;
 
@@ -28,6 +29,7 @@ public class CheckoutEndpoints : ControllerBase
     private readonly IAuthorizeNetService _authorizeNetService;
     private readonly ApplicationDbContext _context;
     private readonly IEncryptionService _encryptionService;
+    private readonly IEventEmailService _eventEmailService;
     private readonly ILogger<CheckoutEndpoints> _logger;
 
     public CheckoutEndpoints(
@@ -35,12 +37,14 @@ public class CheckoutEndpoints : ControllerBase
         IAuthorizeNetService authorizeNetService,
         ApplicationDbContext context,
         IEncryptionService encryptionService,
+        IEventEmailService eventEmailService,
         ILogger<CheckoutEndpoints> logger)
     {
         _attendanceService = attendanceService;
         _authorizeNetService = authorizeNetService;
         _context = context;
         _encryptionService = encryptionService;
+        _eventEmailService = eventEmailService;
         _logger = logger;
     }
 
@@ -285,6 +289,18 @@ public class CheckoutEndpoints : ControllerBase
                 _logger.LogInformation(
                     "[Checkout:{CorrelationId}] STAGE 4 COMPLETE: All ticket purchases finalized successfully. ConfirmationNumber={ConfirmationNumber}",
                     correlationId, confirmationNumber);
+
+                // Post-purchase emails (non-fatal side effect)
+                try
+                {
+                    await _eventEmailService.SendPostPurchaseEmailsAsync(userId, ticketPurchaseIds, cancellationToken);
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx,
+                        "[Checkout:{CorrelationId}] Post-purchase email failed (non-fatal). Purchases=[{Ids}]",
+                        correlationId, string.Join(", ", ticketPurchaseIds));
+                }
             }
             catch (Exception ex)
             {

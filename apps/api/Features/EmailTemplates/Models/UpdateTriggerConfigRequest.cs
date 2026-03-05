@@ -24,6 +24,13 @@ public class UpdateTriggerConfigRequest
     public int? TimingOffsetDays { get; set; }
 
     /// <summary>
+    /// Hours offset for sub-day precision in time-based triggers
+    /// Must be between -23 and 23
+    /// </summary>
+    [Range(-23, 23, ErrorMessage = "Timing offset hours must be between -23 and 23")]
+    public int? TimingOffsetHours { get; set; }
+
+    /// <summary>
     /// Target recipient group for Events category
     /// Required when TriggerType is not Manual
     /// </summary>

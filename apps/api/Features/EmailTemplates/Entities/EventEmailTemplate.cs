@@ -80,6 +80,13 @@ public class EventEmailTemplate
     public int? OverrideTimingOffsetDays { get; set; }
 
     /// <summary>
+    /// Override for timing offset hours (sub-day precision)
+    /// Null: use global template setting
+    /// Value: override with event-specific hours offset
+    /// </summary>
+    public int? OverrideTimingOffsetHours { get; set; }
+
+    /// <summary>
     /// Override for recipient group
     /// Null: use global template setting
     /// Value: override with event-specific recipients

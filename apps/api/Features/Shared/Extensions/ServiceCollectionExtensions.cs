@@ -142,6 +142,8 @@ public static class ServiceCollectionExtensions
 
         // Email Templates feature services
         services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+        services.AddScoped<IEventRecipientService, EventRecipientService>();
+        services.AddScoped<IEventEmailService, EventEmailService>();
 
         // CMS feature services
         services.AddCmsServices();

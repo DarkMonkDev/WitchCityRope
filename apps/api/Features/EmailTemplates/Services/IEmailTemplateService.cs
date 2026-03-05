@@ -162,6 +162,22 @@ public interface IEmailTemplateService
         CancellationToken cancellationToken = default);
 
     // ========================================
+    // Email Trigger Logs (Admin Visibility)
+    // ========================================
+
+    /// <summary>
+    /// Get email trigger log entries with optional filtering
+    /// </summary>
+    Task<Result<List<EmailTriggerLogDto>>> GetTriggerLogsAsync(
+        Guid? eventId = null,
+        string? status = null,
+        string? templateType = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        int limit = 50,
+        CancellationToken cancellationToken = default);
+
+    // ========================================
     // Scheduled Ad Hoc Emails
     // ========================================
 

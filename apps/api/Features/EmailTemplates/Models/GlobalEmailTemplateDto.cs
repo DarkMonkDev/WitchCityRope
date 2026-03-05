@@ -63,6 +63,12 @@ public class GlobalEmailTemplateDto
     public int? TimingOffsetDays { get; set; }
 
     /// <summary>
+    /// Hours offset for sub-day precision in time-based triggers
+    /// Used with TimingOffsetDays: totalOffsetHours = (TimingOffsetDays ?? 0) * 24 + (TimingOffsetHours ?? 0)
+    /// </summary>
+    public int? TimingOffsetHours { get; set; }
+
+    /// <summary>
     /// Target recipient group for Events category
     /// Null for other categories
     /// </summary>

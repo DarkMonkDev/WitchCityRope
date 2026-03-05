@@ -8,6 +8,7 @@ using WitchCityRope.Models;
 using WitchCityRope.Api.Features.CheckIn.Services;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.EmailTemplates.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace WitchCityRope.Api.Features.Payments.Endpoints;
@@ -28,17 +29,20 @@ public class KioskPaymentEndpoints : ControllerBase
     private readonly IPaymentNotificationService _notificationService;
     private readonly ISessionTokenService _sessionTokenService;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IEventEmailService _eventEmailService;
     private readonly ILogger<KioskPaymentEndpoints> _logger;
 
     public KioskPaymentEndpoints(
         IPaymentNotificationService notificationService,
         ISessionTokenService sessionTokenService,
         ApplicationDbContext dbContext,
+        IEventEmailService eventEmailService,
         ILogger<KioskPaymentEndpoints> logger)
     {
         _notificationService = notificationService;
         _sessionTokenService = sessionTokenService;
         _dbContext = dbContext;
+        _eventEmailService = eventEmailService;
         _logger = logger;
     }
 
@@ -355,6 +359,19 @@ public class KioskPaymentEndpoints : ControllerBase
                         "SSE notification sent for cash payment {TicketPurchaseId}",
                         ticketPurchase.Id);
                 }
+            }
+
+            // Post-purchase emails (non-fatal side effect)
+            try
+            {
+                await _eventEmailService.SendPostPurchaseEmailsAsync(
+                    request.AttendeeId, new List<Guid> { ticketPurchase.Id }, cancellationToken);
+            }
+            catch (Exception emailEx)
+            {
+                _logger.LogError(emailEx,
+                    "Post-purchase email failed (non-fatal). TicketPurchase={Id}",
+                    ticketPurchase.Id);
             }
 
             // Build response

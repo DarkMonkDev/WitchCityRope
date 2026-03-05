@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
+using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Models;
 
@@ -25,17 +26,20 @@ public class PayPalCheckoutEndpoints : ControllerBase
     private readonly IPayPalService _payPalService;
     private readonly ApplicationDbContext _context;
     private readonly IEncryptionService _encryptionService;
+    private readonly IEventEmailService _eventEmailService;
     private readonly ILogger<PayPalCheckoutEndpoints> _logger;
 
     public PayPalCheckoutEndpoints(
         IPayPalService payPalService,
         ApplicationDbContext context,
         IEncryptionService encryptionService,
+        IEventEmailService eventEmailService,
         ILogger<PayPalCheckoutEndpoints> logger)
     {
         _payPalService = payPalService;
         _context = context;
         _encryptionService = encryptionService;
+        _eventEmailService = eventEmailService;
         _logger = logger;
     }
 
@@ -193,6 +197,19 @@ public class PayPalCheckoutEndpoints : ControllerBase
             _logger.LogInformation(
                 "PayPal capture persisted to TicketPurchase {TicketPurchaseId}",
                 ticketPurchase.Id);
+
+            // Post-purchase emails (non-fatal side effect)
+            try
+            {
+                await _eventEmailService.SendPostPurchaseEmailsAsync(
+                    ticketPurchase.UserId, new List<Guid> { ticketPurchase.Id }, cancellationToken);
+            }
+            catch (Exception emailEx)
+            {
+                _logger.LogError(emailEx,
+                    "Post-purchase email failed (non-fatal). TicketPurchase={Id}",
+                    ticketPurchase.Id);
+            }
         }
         else
         {

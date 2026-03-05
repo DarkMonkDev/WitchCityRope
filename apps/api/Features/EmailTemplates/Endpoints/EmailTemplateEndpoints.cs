@@ -259,6 +259,22 @@ public static class EmailTemplateEndpoints
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
 
         // ========================================
+        // Email Trigger Logs (Admin Visibility)
+        // ========================================
+
+        /// <summary>
+        /// Get email trigger log entries with optional filtering
+        /// </summary>
+        group.MapGet("/trigger-logs", GetTriggerLogs)
+            .WithName("GetTriggerLogs")
+            .WithSummary("Get email trigger log entries")
+            .WithDescription("Returns email trigger log entries with optional filtering by event, status, template type, and date range. Admin access required.")
+            .Produces<List<EmailTriggerLogDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        // ========================================
         // Scheduled Ad Hoc Emails
         // ========================================
 
@@ -758,6 +774,30 @@ public static class EmailTemplateEndpoints
         }
 
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetTriggerLogs(
+        [FromQuery] Guid? eventId,
+        [FromQuery] string? status,
+        [FromQuery] string? templateType,
+        [FromQuery] DateTime? fromDate,
+        [FromQuery] DateTime? toDate,
+        [FromQuery] int? limit,
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.GetTriggerLogsAsync(
+            eventId, status, templateType, fromDate, toDate, limit ?? 50, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Retrieve Trigger Logs",
+                detail: result.Error,
+                statusCode: 400);
+        }
+
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> ScheduleAdHocEmail(

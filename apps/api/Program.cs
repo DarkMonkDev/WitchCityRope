@@ -17,6 +17,7 @@ using WitchCityRope.Api.Features.Backup.Services;
 using WitchCityRope.Api.Features.Backup.Jobs;
 using WitchCityRope.Api.Features.Backup.Models;
 using WitchCityRope.Api.Features.Backup.Endpoints;
+using WitchCityRope.Api.Features.EmailTemplates.Jobs;
 using WitchCityRope.Api.Features.Logging.Jobs;
 using WitchCityRope.Api.Features.Logging.Middleware;
 using Hangfire;
@@ -619,6 +620,14 @@ RecurringJob.AddOrUpdate<LogRetentionCleanupJob>(
     "log-retention-cleanup",
     job => job.ExecuteAsync(CancellationToken.None),
     "0 3 * * *",
+    new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
+);
+
+// Schedule event email automation (reminders, thank-you) hourly for 2-hour precision
+RecurringJob.AddOrUpdate<EmailSchedulerJob>(
+    "event-email-scheduler",
+    job => job.ExecuteAsync(CancellationToken.None),
+    "0 * * * *",
     new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
 );
 

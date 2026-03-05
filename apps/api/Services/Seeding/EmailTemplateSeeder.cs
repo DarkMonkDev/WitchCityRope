@@ -62,6 +62,9 @@ public class EmailTemplateSeeder
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Update trigger configs on existing templates that may not have them set
+        await UpdateTriggerConfigsAsync(cancellationToken);
+
         _logger.LogInformation("Email template seeding completed");
     }
 
@@ -194,6 +197,8 @@ public class EmailTemplateSeeder
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for registering for <strong>{{event_title}}</strong>!</p><p><strong>Event Details:</strong><br>Date: {{event_date}}<br>Time: {{event_time}}<br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><p><strong>Ticket Type:</strong> {{ticket_type}}<br><strong>Total Paid:</strong> {{total_paid}}<br><strong>Confirmation Number:</strong> {{confirmation_number}}</p><p>We look forward to seeing you!</p><p>Questions? Email events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nThank you for registering for {{event_title}}!\n\nEvent Details:\nDate: {{event_date}}\nTime: {{event_time}}\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nTicket Type: {{ticket_type}}\nTotal Paid: {{total_paid}}\nConfirmation Number: {{confirmation_number}}\n\nWe look forward to seeing you!\n\nQuestions? Email events@witchcityrope.com",
                 Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{event_time}}", "{{venue_name}}", "{{venue_address}}", "{{ticket_type}}", "{{total_paid}}", "{{confirmation_number}}" }),
+                TriggerType = TemplateTriggerType.FixedEvent,
+                RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -208,6 +213,9 @@ public class EmailTemplateSeeder
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>Just a friendly reminder that <strong>{{event_title}}</strong> is coming up in one week!</p><p><strong>Event Details:</strong><br>Date: {{event_date}}<br>Time: {{event_time}}<br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><p>We're looking forward to seeing you there!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nJust a friendly reminder that {{event_title}} is coming up in one week!\n\nEvent Details:\nDate: {{event_date}}\nTime: {{event_time}}\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nWe're looking forward to seeing you there!",
                 Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{event_time}}", "{{venue_name}}", "{{venue_address}}" }),
+                TriggerType = TemplateTriggerType.TimeBased,
+                TimingOffsetDays = 7,
+                RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -222,6 +230,9 @@ public class EmailTemplateSeeder
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p><strong>{{event_title}}</strong> is tomorrow!</p><p><strong>When:</strong> {{event_date}} at {{event_time}}<br><strong>Where:</strong> {{venue_name}}<br>{{venue_address}}</p><p>See you there!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\n{{event_title}} is tomorrow!\n\nWhen: {{event_date}} at {{event_time}}\nWhere: {{venue_name}}\n{{venue_address}}\n\nSee you there!",
                 Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{event_time}}", "{{venue_name}}", "{{venue_address}}" }),
+                TriggerType = TemplateTriggerType.TimeBased,
+                TimingOffsetDays = 1,
+                RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -236,6 +247,10 @@ public class EmailTemplateSeeder
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p><strong>{{event_title}}</strong> starts in 2 hours!</p><p><strong>Time:</strong> {{event_time}}<br><strong>Location:</strong> {{venue_name}}</p><p>See you soon!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\n{{event_title}} starts in 2 hours!\n\nTime: {{event_time}}\nLocation: {{venue_name}}\n\nSee you soon!",
                 Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_time}}", "{{venue_name}}" }),
+                TriggerType = TemplateTriggerType.TimeBased,
+                TimingOffsetDays = 0,
+                TimingOffsetHours = 2,
+                RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -250,6 +265,8 @@ public class EmailTemplateSeeder
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>We regret to inform you that <strong>{{event_title}}</strong> scheduled for {{event_date}} has been cancelled.</p><p>{{custom_message}}</p><p>If you have any questions, please contact events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nWe regret to inform you that {{event_title}} scheduled for {{event_date}} has been cancelled.\n\n{{custom_message}}\n\nIf you have any questions, please contact events@witchcityrope.com",
                 Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{custom_message}}" }),
+                TriggerType = TemplateTriggerType.FixedEvent,
+                RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -264,6 +281,8 @@ public class EmailTemplateSeeder
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>There has been an update to the session <strong>{{session_name}}</strong> for <strong>{{event_title}}</strong>.</p><p><strong>New Date/Time:</strong> {{event_date}} at {{event_time}}</p><p>{{custom_message}}</p><p>Thank you for your understanding.</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nThere has been an update to the session {{session_name}} for {{event_title}}.\n\nNew Date/Time: {{event_date}} at {{event_time}}\n\n{{custom_message}}\n\nThank you for your understanding.",
                 Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{event_date}}", "{{event_time}}", "{{custom_message}}" }),
+                TriggerType = TemplateTriggerType.FixedEvent,
+                RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -278,6 +297,9 @@ public class EmailTemplateSeeder
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for attending <strong>{{event_title}}</strong> on {{event_date}}!</p><p>We hope you had a wonderful experience and learned new skills. If you have any feedback or questions, please don't hesitate to reach out to events@witchcityrope.com</p><p>We look forward to seeing you at future events!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nThank you for attending {{event_title}} on {{event_date}}!\n\nWe hope you had a wonderful experience and learned new skills. If you have any feedback or questions, please don't hesitate to reach out to events@witchcityrope.com\n\nWe look forward to seeing you at future events!",
                 Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}" }),
+                TriggerType = TemplateTriggerType.TimeBased,
+                TimingOffsetDays = -1,
+                RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -665,6 +687,53 @@ WitchCityRope • Salem, MA • {{system_url}}",
         else
         {
             _logger.LogInformation("Ad Hoc template already exists: {TemplateType}", template.TemplateType);
+        }
+    }
+
+    private async Task UpdateTriggerConfigsAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Updating trigger configs for existing Events templates...");
+
+        var triggerConfigs = new Dictionary<string, (TemplateTriggerType TriggerType, int? OffsetDays, int? OffsetHours, EventRecipientGroup Group)>
+        {
+            ["Confirmation"] = (TemplateTriggerType.FixedEvent, null, null, EventRecipientGroup.RSVPTicketHolders),
+            ["Reminder1Week"] = (TemplateTriggerType.TimeBased, 7, null, EventRecipientGroup.RSVPTicketHolders),
+            ["Reminder1Day"] = (TemplateTriggerType.TimeBased, 1, null, EventRecipientGroup.RSVPTicketHolders),
+            ["Reminder2Hours"] = (TemplateTriggerType.TimeBased, 0, 2, EventRecipientGroup.RSVPTicketHolders),
+            ["ThankYou"] = (TemplateTriggerType.TimeBased, -1, null, EventRecipientGroup.RSVPTicketHolders),
+            ["Cancellation"] = (TemplateTriggerType.FixedEvent, null, null, EventRecipientGroup.RSVPTicketHolders),
+            ["SessionChange"] = (TemplateTriggerType.FixedEvent, null, null, EventRecipientGroup.RSVPTicketHolders),
+        };
+
+        var templates = await _context.GlobalEmailTemplates
+            .Where(t => t.Category == EmailCategory.Events && t.IsActive)
+            .ToListAsync(cancellationToken);
+
+        var updated = 0;
+        foreach (var template in templates)
+        {
+            if (!triggerConfigs.TryGetValue(template.TemplateType, out var config))
+                continue;
+
+            // Only update if RecipientGroup is not yet set (avoids overwriting admin changes)
+            if (template.RecipientGroup.HasValue)
+                continue;
+
+            template.TriggerType = config.TriggerType;
+            template.TimingOffsetDays = config.OffsetDays;
+            template.TimingOffsetHours = config.OffsetHours;
+            template.RecipientGroup = config.Group;
+            updated++;
+        }
+
+        if (updated > 0)
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Updated trigger configs for {Count} Events templates", updated);
+        }
+        else
+        {
+            _logger.LogInformation("All Events templates already have trigger configs");
         }
     }
 }
