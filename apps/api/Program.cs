@@ -145,8 +145,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured. Set via environment variable or user secrets.");
 
     // Environment-specific configuration
+    // MaxPoolSize must stay within PgBouncer's client connection limits.
+    // Staging PgBouncer pool = 10 connections, Production = 12 connections.
+    // With Hangfire + Serilog sink also consuming connections, keeping this low
+    // prevents the "no more connections allowed (max_client_conn)" death spiral.
+    // See: /docs/architecture/postgresql-connection-pool-exhaustion-research.md
     var environment = builder.Environment;
-    var poolSize = environment.IsDevelopment() ? 20 : 100;
+    var poolSize = environment.IsDevelopment() ? 20 : 10;
     var commandTimeout = environment.IsDevelopment() ? 30 : 60;
 
     // Build optimized connection string with pooling configuration
@@ -154,8 +159,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
         // Connection pooling configuration
         Pooling = true,
-        MaxPoolSize = poolSize,          // 20 for dev, 100 for prod
-        MinPoolSize = 5,                 // Maintain minimum connections
+        MaxPoolSize = poolSize,          // 20 for dev, 10 for staging/prod (PgBouncer limited)
+        MinPoolSize = environment.IsDevelopment() ? 5 : 2, // Low min to avoid hoarding connections
         ConnectionLifetime = 300,        // 5 minutes - prevent stale connections
 
         // Timeout configuration
@@ -167,7 +172,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
         // Performance tuning
         NoResetOnClose = !environment.IsDevelopment(), // true for staging/prod (PgBouncer handles reset)
-        Enlist = true,                    // Support distributed transactions
+        Enlist = false,                   // Disabled: TransactionScope has known Npgsql connection leak (GitHub #4963).
+                                          // Use explicit EF Core transactions instead (context.Database.BeginTransactionAsync).
 
         // PgBouncer compatibility (staging/prod use PgBouncer transaction pooling)
         Multiplexing = false,             // Conflicts with PgBouncer's own connection multiplexing
@@ -212,7 +218,17 @@ builder.Services.AddHangfire(config => config
         SchemaName = "hangfire"
     }));
 
-builder.Services.AddHangfireServer();
+// Limit Hangfire workers to prevent connection pool exhaustion.
+// Default is Environment.ProcessorCount (4 on this droplet), and each worker
+// holds ~13 connections for polling/job processing/LISTEN-NOTIFY.
+// 4 workers = ~52 connections, which alone exceeds PgBouncer's pool capacity.
+// 1 worker is sufficient for our low-volume background jobs (daily backups, log summaries).
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = 1;
+    options.ServerTimeout = TimeSpan.FromMinutes(5);
+    options.HeartbeatInterval = TimeSpan.FromSeconds(30);
+});
 
 // SendGrid Email Service (null-safe for development)
 builder.Services.AddSingleton<ISendGridClient>(sp =>
