@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../client'
 import type { MemberDetailsResponse, VettingDetailsResponse, VettingDetailsResponseExtended, EventHistoryResponse, VolunteerHistoryResponse, MemberIncidentsResponse, UserNoteResponse, MemberNoteHistoryResponse, CreateUserNoteRequest, UpdateMemberStatusRequest } from '../types/member-details.types'
+import { membersKeys } from '../../../features/admin/members/hooks/useMembers'
 
 // Query keys for caching
 export const memberDetailsKeys = {
@@ -186,9 +187,10 @@ export function useUpdateMemberStatus() {
       await apiClient.put(`/api/users/${userId}/status`, request)
     },
     onSuccess: (_data: void, variables: { userId: string; request: UpdateMemberStatusRequest }) => {
-      // Invalidate all member details queries
+      // Invalidate member details and admin members list so navigation back shows updated data
       queryClient.invalidateQueries({ queryKey: memberDetailsKeys.details(variables.userId) })
       queryClient.invalidateQueries({ queryKey: memberDetailsKeys.notes(variables.userId) })
+      queryClient.invalidateQueries({ queryKey: membersKeys.all })
     },
     onError: (error: Error) => {
       console.error('Failed to update status:', error)
@@ -211,8 +213,9 @@ export function useUpdateMemberRole() {
       await apiClient.put(`/api/admin/users/${userId}/roles`, request)
     },
     onSuccess: (_data: void, variables: { userId: string; request: { roles: string[] } }) => {
-      // Invalidate member details
+      // Invalidate member details and admin members list so navigation back shows updated role
       queryClient.invalidateQueries({ queryKey: memberDetailsKeys.details(variables.userId) })
+      queryClient.invalidateQueries({ queryKey: membersKeys.all })
     },
     onError: (error: Error) => {
       console.error('Failed to update role:', error)
