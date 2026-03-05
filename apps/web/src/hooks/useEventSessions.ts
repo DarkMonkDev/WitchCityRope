@@ -31,6 +31,7 @@ const transformEventSession = (dto: EventSessionDto): EventSession => ({
   sessionIdentifier: dto.sessionIdentifier,
   name: dto.name,
   startDate: dto.startDate,
+  endDate: dto.endDate, // End date for multi-day sessions (derived from EndTime on backend)
   startTime: dto.startTime,
   endTime: dto.endTime,
   capacity: dto.capacity,

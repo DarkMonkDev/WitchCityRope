@@ -52,6 +52,7 @@ interface ApiEventSession {
   sessionIdentifier: string
   name: string
   startDate: string  // Renamed from date to match backend SessionDto
+  endDate?: string   // End date for multi-day sessions (derived from EndTime on backend)
   startTime: string
   endTime: string
   capacity: number
@@ -82,6 +83,7 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     sessionIdentifier: session.sessionIdentifier,
     name: session.name,
     startDate: session.startDate, // Renamed from date
+    endDate: session.endDate, // End date for multi-day sessions (derived from EndTime on backend)
     startTime: session.startTime,
     endTime: session.endTime,
     capacity: session.capacity,

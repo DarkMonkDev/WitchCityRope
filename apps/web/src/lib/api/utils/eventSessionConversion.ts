@@ -16,6 +16,7 @@ export function convertEventSessionFromDto(dto: SessionDto): EventSession {
     sessionIdentifier: dto.sessionIdentifier,
     name: dto.name,
     startDate: dto.startDate?.split('T')[0] || '', // Extract date part if datetime format
+    endDate: dto.endDate, // End date for multi-day sessions (derived from EndTime on backend)
     startTime: startDateTime.toTimeString().slice(0, 5), // HH:MM format
     endTime: endDateTime.toTimeString().slice(0, 5), // HH:MM format
     capacity: dto.capacity,
