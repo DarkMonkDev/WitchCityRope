@@ -35,20 +35,27 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${PROD_DB_CONNECTION_STRING}
-      - Authentication__JwtSecret=${JWT_SECRET}
-      - Authentication__Issuer=https://witchcityrope.com
-      - Authentication__Audience=https://witchcityrope.com
-      - Authentication__ExpiryMinutes=60
+      # JWT config must match Jwt:* paths read by Program.cs and JwtService.cs
+      - Jwt__SecretKey=${JWT_SECRET}
+      - Jwt__Issuer=https://witchcityrope.com
+      - Jwt__Audience=https://witchcityrope.com
+      - Jwt__ExpirationMinutes=60
       - CORS__AllowedOrigins=https://prod.notfai.com,https://prod.witchcityrope.com,https://witchcityrope.com,https://www.witchcityrope.com
       - CORS__AllowCredentials=true
       - Serilog__MinimumLevel__Default=Information
       - Serilog__MinimumLevel__Override__Microsoft=Warning
-      # PayPal Configuration (reads from .env.production)
+      # Authorize.Net Configuration - reads from .env
+      - CreditCardProcessor__ActiveProcessor=AuthorizeNet
+      - CreditCardProcessor__AuthorizeNet__ApiLoginId=${AUTHORIZENET_API_LOGIN_ID}
+      - CreditCardProcessor__AuthorizeNet__TransactionKey=${AUTHORIZENET_TRANSACTION_KEY}
+      - CreditCardProcessor__AuthorizeNet__ClientKey=${AUTHORIZENET_CLIENT_KEY:-}
+      - CreditCardProcessor__AuthorizeNet__TestMode=false
+      # PayPal Configuration - reads from .env
       - PayPal__ClientId=${PAYPAL_CLIENT_ID}
       - PayPal__Secret=${PAYPAL_SECRET}
       - PayPal__Mode=${PAYPAL_MODE:-live}
       - PayPal__WebhookId=${PAYPAL_WEBHOOK_ID}
-      # Email Configuration (SendGrid) - reads from .env.production
+      # Email Configuration (SendGrid) - reads from .env
       - Vetting__EmailEnabled=${Vetting__EmailEnabled:-true}
       - Vetting__SendGridApiKey=${Vetting__SendGridApiKey}
       - Vetting__SendGridSandboxMode=${Vetting__SendGridSandboxMode:-false}
