@@ -23,5 +23,11 @@ public enum AttendanceStatus
     /// <summary>
     /// Waitlisted attendance
     /// </summary>
-    Waitlisted = 4
+    Waitlisted = 4,
+
+    /// <summary>
+    /// Pending payment - attendance created but payment not yet confirmed.
+    /// Transitions to Active on payment completion, or Cancelled on payment failure/timeout.
+    /// </summary>
+    PendingPayment = 5
 }

@@ -73,4 +73,12 @@ public interface IAttendanceService
     Task<Result<List<EventParticipationDto>>> GetEventParticipationsAsync(
         Guid eventId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Activate attendance records for completed ticket purchases.
+    /// Transitions PendingPayment attendance to Active after payment confirmation.
+    /// </summary>
+    Task<Result> ActivateAttendanceForPurchasesAsync(
+        List<Guid> ticketPurchaseIds,
+        CancellationToken cancellationToken = default);
 }

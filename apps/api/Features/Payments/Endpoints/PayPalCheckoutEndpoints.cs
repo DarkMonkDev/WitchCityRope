@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Payments.Endpoints;
@@ -27,6 +28,7 @@ public class PayPalCheckoutEndpoints : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IEncryptionService _encryptionService;
     private readonly IEventEmailService _eventEmailService;
+    private readonly IAttendanceService _attendanceService;
     private readonly ILogger<PayPalCheckoutEndpoints> _logger;
 
     public PayPalCheckoutEndpoints(
@@ -34,12 +36,14 @@ public class PayPalCheckoutEndpoints : ControllerBase
         ApplicationDbContext context,
         IEncryptionService encryptionService,
         IEventEmailService eventEmailService,
+        IAttendanceService attendanceService,
         ILogger<PayPalCheckoutEndpoints> logger)
     {
         _payPalService = payPalService;
         _context = context;
         _encryptionService = encryptionService;
         _eventEmailService = eventEmailService;
+        _attendanceService = attendanceService;
         _logger = logger;
     }
 
@@ -197,6 +201,16 @@ public class PayPalCheckoutEndpoints : ControllerBase
             _logger.LogInformation(
                 "PayPal capture persisted to TicketPurchase {TicketPurchaseId}",
                 ticketPurchase.Id);
+
+            // Activate attendance records now that payment is confirmed
+            var activateResult = await _attendanceService.ActivateAttendanceForPurchasesAsync(
+                new List<Guid> { ticketPurchase.Id }, cancellationToken);
+            if (!activateResult.IsSuccess)
+            {
+                _logger.LogError(
+                    "Failed to activate attendance for TicketPurchase {TicketPurchaseId}: {Error}",
+                    ticketPurchase.Id, activateResult.Error);
+            }
 
             // Post-purchase emails (non-fatal side effect)
             try

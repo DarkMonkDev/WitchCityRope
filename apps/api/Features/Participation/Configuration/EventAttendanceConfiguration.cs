@@ -143,7 +143,7 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
 
         builder.ToTable(t => t.HasCheckConstraint(
             "CHK_EventAttendances_Status",
-            "\"Status\" IN (1, 2, 3, 4)"));
+            "\"Status\" IN (1, 2, 3, 4, 5)"));
 
         builder.ToTable(t => t.HasCheckConstraint(
             "CHK_EventAttendances_CancelledAt_Logic",

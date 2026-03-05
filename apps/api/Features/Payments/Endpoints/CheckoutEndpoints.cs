@@ -290,6 +290,16 @@ public class CheckoutEndpoints : ControllerBase
                     "[Checkout:{CorrelationId}] STAGE 4 COMPLETE: All ticket purchases finalized successfully. ConfirmationNumber={ConfirmationNumber}",
                     correlationId, confirmationNumber);
 
+                // Activate attendance records now that payment is confirmed
+                var activateResult = await _attendanceService.ActivateAttendanceForPurchasesAsync(
+                    ticketPurchaseIds, cancellationToken);
+                if (!activateResult.IsSuccess)
+                {
+                    _logger.LogError(
+                        "[Checkout:{CorrelationId}] Failed to activate attendance for purchases [{Ids}]: {Error}",
+                        correlationId, string.Join(", ", ticketPurchaseIds), activateResult.Error);
+                }
+
                 // Post-purchase emails (non-fatal side effect)
                 try
                 {

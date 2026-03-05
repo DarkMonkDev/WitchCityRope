@@ -104,9 +104,11 @@ public class AttendanceService : IAttendanceService
                 return Result<EnhancedParticipationStatusDto?>.Failure("Event not found");
             }
 
-            // Get all ACTIVE attendances for this event (for capacity calculation)
+            // Get all ACTIVE + PendingPayment attendances for this event (for capacity calculation)
+            // PendingPayment reserves capacity during the payment window
             var activeAttendancesCount = await _context.EventAttendances
-                .Where(ea => ea.EventId == eventId && ea.Status == AttendanceStatus.Active)
+                .Where(ea => ea.EventId == eventId &&
+                    (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingPayment))
                 .CountAsync(cancellationToken);
 
             // Get user's owned session IDs and ticket purchase mappings (sessions they have tickets for)
@@ -280,11 +282,12 @@ public class AttendanceService : IAttendanceService
                             ea.AttendanceType == AttendanceType.RSVP)
                 .FirstOrDefaultAsync(cancellationToken);
 
+            // Include PendingPayment so UI correctly shows user has a ticket in progress
             var ticketAttendance = await _context.EventAttendances
                 .AsNoTracking()
                 .Where(ea => ea.EventId == eventId &&
                             ea.UserId == userId &&
-                            ea.Status == AttendanceStatus.Active &&
+                            (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingPayment) &&
                             ea.AttendanceType == AttendanceType.Ticket)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -806,11 +809,12 @@ public class AttendanceService : IAttendanceService
             }
 
             // Check if user already has a ticket for ANY of these sessions
+            // Include PendingPayment to prevent duplicate purchases during payment window
             var overlappingAttendance = await _context.EventAttendances
                 .AsNoTracking()
                 .Where(ea =>
                     ea.UserId == userId &&
-                    ea.Status == AttendanceStatus.Active &&
+                    (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingPayment) &&
                     ea.AttendanceType == AttendanceType.Ticket &&
                     ea.SessionId.HasValue &&
                     allRequestedSessionIds.Contains(ea.SessionId.Value))
@@ -829,8 +833,10 @@ public class AttendanceService : IAttendanceService
             }
 
             // Check event capacity (rough check - detailed per-session capacity not enforced here)
+            // Include PendingPayment to reserve capacity during payment window
             var currentAttendanceCount = await _context.EventAttendances
-                .CountAsync(ea => ea.EventId == request.EventId && ea.Status == AttendanceStatus.Active, cancellationToken);
+                .CountAsync(ea => ea.EventId == request.EventId &&
+                    (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingPayment), cancellationToken);
 
             if (currentAttendanceCount >= eventEntity.Capacity)
             {
@@ -876,6 +882,7 @@ public class AttendanceService : IAttendanceService
                     {
                         SessionId = session.Id,
                         TicketPurchaseId = ticketPurchase.Id,
+                        Status = AttendanceStatus.PendingPayment,
                         Notes = request.Notes,
                         EventWaiverAccepted = true,
                         EventWaiverAcceptedAt = DateTime.UtcNow,
@@ -923,45 +930,8 @@ public class AttendanceService : IAttendanceService
                     ticketPurchase.Id, ticketType.Name, sessionIds.Count);
             }
 
-            // Create or update EventAttendee record so user appears in check-in system
-            var ticketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
-            var existingAttendee = await _context.EventAttendees
-                .FirstOrDefaultAsync(ea => ea.EventId == request.EventId && ea.UserId == userId, cancellationToken);
-
-            if (existingAttendee == null)
-            {
-                var attendee = new CheckIn.Entities.EventAttendee
-                {
-                    Id = Guid.NewGuid(),
-                    EventId = request.EventId,
-                    UserId = userId,
-                    TicketNumber = ticketNumber,
-                    RegistrationStatus = "confirmed",
-                    HasCompletedWaiver = true,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    CreatedBy = userId
-                };
-
-                _context.EventAttendees.Add(attendee);
-            }
-            else
-            {
-                existingAttendee.TicketNumber = ticketNumber;
-
-                // Case-insensitive status check ensures cancelled attendees are properly detected
-                if (string.Equals(existingAttendee.RegistrationStatus, "cancelled", StringComparison.OrdinalIgnoreCase))
-                {
-                    _logger.LogInformation(
-                        "Re-activating EventAttendee {AttendeeId} from 'cancelled' to 'confirmed' for user {UserId} purchasing ticket for event {EventId}",
-                        existingAttendee.Id, userId, request.EventId);
-                    existingAttendee.RegistrationStatus = "confirmed";
-                    existingAttendee.HasCompletedWaiver = true;
-                }
-
-                existingAttendee.UpdatedAt = DateTime.UtcNow;
-                _context.EventAttendees.Update(existingAttendee);
-            }
+            // EventAttendee (check-in system) creation is deferred to ActivateAttendanceForPurchasesAsync
+            // which is called after payment is confirmed. This prevents unpaid users from appearing in check-in.
 
             // Auto-RSVP for events that allow RSVPs
             if (eventEntity.AllowRsvps)
@@ -1837,6 +1807,90 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogError(ex, "Error getting attendances for event {EventId}", eventId);
             return Result<List<EventParticipationDto>>.Failure("Failed to get event attendances", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Activate attendance records for completed ticket purchases.
+    /// Transitions PendingPayment attendance to Active after payment confirmation.
+    /// Also creates/updates EventAttendee records for the check-in system.
+    /// </summary>
+    public async Task<Result> ActivateAttendanceForPurchasesAsync(
+        List<Guid> ticketPurchaseIds,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var attendances = await _context.EventAttendances
+                .Where(ea => ea.TicketPurchaseId.HasValue
+                    && ticketPurchaseIds.Contains(ea.TicketPurchaseId.Value)
+                    && ea.Status == AttendanceStatus.PendingPayment)
+                .ToListAsync(cancellationToken);
+
+            if (attendances.Count == 0)
+            {
+                _logger.LogWarning(
+                    "No PendingPayment attendances found for ticket purchases [{TicketPurchaseIds}]",
+                    string.Join(", ", ticketPurchaseIds));
+                return Result.Success();
+            }
+
+            foreach (var attendance in attendances)
+            {
+                attendance.Status = AttendanceStatus.Active;
+                attendance.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Create/update EventAttendee records for the check-in system
+            var userEventPairs = attendances
+                .Select(a => new { a.UserId, a.EventId })
+                .Distinct()
+                .ToList();
+
+            foreach (var pair in userEventPairs)
+            {
+                var existingAttendee = await _context.EventAttendees
+                    .FirstOrDefaultAsync(ea => ea.EventId == pair.EventId && ea.UserId == pair.UserId, cancellationToken);
+
+                if (existingAttendee == null)
+                {
+                    var ticketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+                    var attendee = new CheckIn.Entities.EventAttendee
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = pair.EventId,
+                        UserId = pair.UserId,
+                        TicketNumber = ticketNumber,
+                        RegistrationStatus = "confirmed",
+                        HasCompletedWaiver = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedBy = pair.UserId
+                    };
+                    _context.EventAttendees.Add(attendee);
+                }
+                else if (string.Equals(existingAttendee.RegistrationStatus, "cancelled", StringComparison.OrdinalIgnoreCase))
+                {
+                    existingAttendee.RegistrationStatus = "confirmed";
+                    existingAttendee.HasCompletedWaiver = true;
+                    existingAttendee.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Activated {Count} attendance record(s) for ticket purchases [{TicketPurchaseIds}]",
+                attendances.Count, string.Join(", ", ticketPurchaseIds));
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error activating attendances for ticket purchases [{TicketPurchaseIds}]",
+                string.Join(", ", ticketPurchaseIds));
+            return Result.Failure("Failed to activate attendance records", ex.Message);
         }
     }
 
