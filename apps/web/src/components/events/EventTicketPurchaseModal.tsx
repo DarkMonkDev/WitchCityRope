@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Title, Text, Stack, Group, Button, Card, Badge, NumberInput, Divider, Radio, Alert, Box } from '@mantine/core';
 import { IconTicket, IconCreditCard, IconAlertCircle } from '@tabler/icons-react'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
+import type { EventTicketType } from './EventTicketTypesGrid';
 
 export interface TicketPurchaseData {
   eventId: string;
@@ -9,23 +10,6 @@ export interface TicketPurchaseData {
   quantity: number;
   paymentMethod: 'paypal' | 'venmo';
   totalAmount: number;
-}
-
-interface EventTicketType {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  sessionsIncluded: string[];
-  quantityAvailable: number;
-  quantitySold: number;
-  allowMultiplePurchase: boolean;
-  isEarlyBird: boolean;
-  earlyBirdDiscount?: number;
-  canPurchase?: boolean;
-  referenceSessionId?: string | null;
-  referenceSessionName?: string | null;
-  availabilityMessage?: string;
 }
 
 interface EventInfo {
@@ -62,13 +46,11 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
   const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'venmo'>('paypal');
 
   const selectedTicketType = ticketTypes.find(t => t.id === selectedTicketTypeId);
-  const available = selectedTicketType 
-    ? selectedTicketType.quantityAvailable - selectedTicketType.quantitySold 
+  const available = selectedTicketType
+    ? (selectedTicketType.quantityAvailable ?? 0) - (selectedTicketType.quantitySold ?? 0)
     : 0;
   
-  const effectivePrice = selectedTicketType && selectedTicketType.isEarlyBird && selectedTicketType.earlyBirdDiscount
-    ? selectedTicketType.price * (1 - selectedTicketType.earlyBirdDiscount / 100)
-    : selectedTicketType?.price || 0;
+  const effectivePrice = selectedTicketType?.price || 0;
   
   const totalAmount = effectivePrice * quantity;
 
@@ -77,7 +59,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
 
     onPurchase({
       eventId: event.id,
-      ticketTypeId: selectedTicketType.id,
+      ticketTypeId: selectedTicketType.id || '',
       quantity,
       paymentMethod,
       totalAmount,
@@ -93,7 +75,8 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
   };
 
   const isFormValid = selectedTicketTypeId && quantity > 0 && quantity <= available;
-  const canPurchaseQuantity = selectedTicketType?.allowMultiplePurchase || quantity === 1;
+  // Currently only 1 ticket per customer is supported
+  const canPurchaseQuantity = quantity === 1;
 
   return (
     <Modal
@@ -130,13 +113,11 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
           <Title order={5}>Select Ticket Type</Title>
           
           {ticketTypes.map((ticket) => {
-            const ticketAvailable = ticket.quantityAvailable - ticket.quantitySold;
+            const ticketAvailable = (ticket.quantityAvailable ?? 0) - (ticket.quantitySold ?? 0);
             const isTicketSoldOut = ticketAvailable <= 0;
             const isNotPurchasable = ticket.canPurchase === false;
             const isDisabled = isTicketSoldOut || isNotPurchasable;
-            const ticketEffectivePrice = ticket.isEarlyBird && ticket.earlyBirdDiscount
-              ? ticket.price * (1 - ticket.earlyBirdDiscount / 100)
-              : ticket.price;
+            const ticketPrice = ticket.price ?? 0;
 
             return (
               <Card
@@ -154,20 +135,17 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                       : 'white',
                   opacity: isDisabled ? 0.6 : 1,
                 }}
-                onClick={() => !isDisabled && setSelectedTicketTypeId(ticket.id)}
+                onClick={() => !isDisabled && setSelectedTicketTypeId(ticket.id || '')}
               >
                 <Group justify="space-between" align="flex-start">
                   <Stack gap="xs" style={{ flex: 1 }}>
                     <Group gap="sm">
                       <Radio
                         checked={selectedTicketTypeId === ticket.id}
-                        onChange={() => !isDisabled && setSelectedTicketTypeId(ticket.id)}
+                        onChange={() => !isDisabled && setSelectedTicketTypeId(ticket.id || '')}
                         disabled={isDisabled}
                       />
                       <Text fw={600} size="lg">{ticket.name}</Text>
-                      {ticket.isEarlyBird && !isNotPurchasable && (
-                        <Badge color="green" size="sm" variant="light">Early Bird</Badge>
-                      )}
                       {isTicketSoldOut && (
                         <Badge color="red" size="sm" variant="light">Sold Out</Badge>
                       )}
@@ -175,10 +153,6 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                         <Badge color="gray" size="sm" variant="light">Not Available</Badge>
                       )}
                     </Group>
-
-                    <Text size="sm" c="dimmed" ml="30px">
-                      {ticket.description}
-                    </Text>
 
                     {/* Show availability message for non-purchasable tickets */}
                     {isNotPurchasable && ticket.availabilityMessage && (
@@ -196,7 +170,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
 
                     <Group gap="sm" ml="30px">
                       <Text size="xs" c="dimmed">
-                        Sessions: {ticket.sessionsIncluded.join(', ')}
+                        Sessions: {(ticket.sessionIdentifiers || []).join(', ')}
                       </Text>
                       {!isNotPurchasable && (
                         <Text size="xs" c="dimmed">
@@ -205,25 +179,11 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                       )}
                     </Group>
                   </Stack>
-                  
+
                   <Box ta="right">
-                    {ticket.isEarlyBird && ticket.earlyBirdDiscount ? (
-                      <Stack gap={2} align="flex-end">
-                        <Text size="sm" c="dimmed" td="line-through">
-                          ${ticket.price.toFixed(2)}
-                        </Text>
-                        <Text fw={600} size="xl" c="green">
-                          ${ticketEffectivePrice.toFixed(2)}
-                        </Text>
-                        <Text size="xs" c="green">
-                          Save {ticket.earlyBirdDiscount}%
-                        </Text>
-                      </Stack>
-                    ) : (
-                      <Text fw={600} size="xl" style={{ color: '#880124' }}>
-                        ${ticketEffectivePrice.toFixed(2)}
-                      </Text>
-                    )}
+                    <Text fw={600} size="xl" style={{ color: '#880124' }}>
+                      ${ticketPrice.toFixed(2)}
+                    </Text>
                   </Box>
                 </Group>
               </Card>
@@ -243,15 +203,13 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                   value={quantity}
                   onChange={(value) => setQuantity(Number(value) || 1)}
                   min={1}
-                  max={Math.min(available, selectedTicketType.allowMultiplePurchase ? 10 : 1)}
+                  max={Math.min(available, 1)}
                   style={{ width: '120px' }}
-                  disabled={!selectedTicketType.allowMultiplePurchase && quantity === 1}
+                  disabled={quantity === 1}
                 />
-                {!selectedTicketType.allowMultiplePurchase && (
-                  <Text size="xs" c="dimmed" mt="xs">
-                    Limit 1 per person
-                  </Text>
-                )}
+                <Text size="xs" c="dimmed" mt="xs">
+                  Limit 1 per person
+                </Text>
               </Box>
               
               <Box ta="right">

@@ -48,21 +48,12 @@ export function convertEventSessionToCreateDto(session: EventSession): {
 }
 
 /**
- * Converts backend TicketTypeDto to frontend EventTicketType interface
+ * Converts backend TicketTypeDto to frontend EventTicketType.
+ * Now that EventTicketType IS TicketTypeDto (auto-generated), this is a pass-through.
+ * Using spread prevents field-dropping bugs when backend adds new fields.
  */
 export function convertEventTicketTypeFromDto(dto: TicketTypeDto, _sessions: EventSession[] = []): EventTicketType {
-  // TicketTypeDto already has sessionIdentifiers
-  return {
-    id: dto.id ?? '',
-    name: dto.name ?? '',
-    pricingType: dto.pricingType ?? 'Fixed', // Direct mapping as enum values match
-    sessionIdentifiers: dto.sessionIdentifiers || [],
-    minPrice: dto.minPrice ?? undefined,
-    maxPrice: dto.maxPrice ?? undefined,
-    quantityAvailable: dto.quantityAvailable,
-    // ✅ REMOVED: salesEndDate field removed from backend DTO
-    // salesEndDate: dto.salesEndDate
-  }
+  return { ...dto }
 }
 
 /**
@@ -81,25 +72,22 @@ export function convertEventTicketTypeToCreateDto(
   maxPrice?: number
   defaultPrice?: number
   quantityAvailable?: number
-  salesEndDate?: string
   sessionIds: string[]
 } {
   // Convert session identifiers to session IDs
-  const sessionIds = ticketType.sessionIdentifiers.map(identifier => {
+  const sessionIds = (ticketType.sessionIdentifiers || []).map(identifier => {
     const session = sessions.find(s => s.sessionIdentifier === identifier)
     return session?.id || identifier
   })
 
   return {
-    name: ticketType.name,
-    pricingType: ticketType.pricingType, // Direct mapping as enum values match
-    price: ticketType.price,
-    minPrice: ticketType.minPrice,
-    maxPrice: ticketType.maxPrice,
-    defaultPrice: ticketType.defaultPrice,
+    name: ticketType.name || '',
+    pricingType: ticketType.pricingType || 'Fixed',
+    price: ticketType.price ?? undefined,
+    minPrice: ticketType.minPrice ?? undefined,
+    maxPrice: ticketType.maxPrice ?? undefined,
+    defaultPrice: ticketType.defaultPrice ?? undefined,
     quantityAvailable: ticketType.quantityAvailable,
-    // ✅ REMOVED: salesEndDate field removed from backend DTO
-    // salesEndDate: ticketType.salesEndDate,
     sessionIds
   }
 }

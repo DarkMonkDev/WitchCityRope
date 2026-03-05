@@ -36,7 +36,7 @@ interface ApiEvent {
   isPublished?: boolean
   // New fields added by backend
   sessions?: ApiEventSession[]
-  ticketTypes?: ApiEventTicketType[]
+  ticketTypes?: EventTicketTypeDto[]
   teacherIds?: string[]
   // Timing control fields
   registrationOpenHours?: number | null
@@ -59,20 +59,8 @@ interface ApiEventSession {
   registrationCount: number // Fixed: API returns registrationCount, not registeredCount
 }
 
-// API ticket type structure (matches actual API response)
-interface ApiEventTicketType {
-  id: string
-  name: string
-  pricingType: string
-  sessionIdentifiers: string[]
-  price?: number
-  minPrice?: number
-  maxPrice?: number
-  defaultPrice?: number
-  quantityAvailable: number
-  quantitySold: number // Fixed: API returns quantitySold
-  salesEndDate?: string | null
-}
+// Ticket type uses auto-generated TicketTypeDto — no manual interface needed
+// API response fields flow through directly via spread operator
 
 // Transform API event to frontend EventDto
 function transformApiEvent(apiEvent: ApiEvent): EventDto {
@@ -91,20 +79,9 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     description: '' // Add default description
   }));
 
-  // Transform ticket types to match frontend structure
-  const transformedTicketTypes: EventTicketTypeDto[] = (apiEvent.ticketTypes || []).map(ticket => ({
-    id: ticket.id,
-    name: ticket.name,
-    pricingType: ticket.pricingType as 'Fixed' | 'SlidingScale',
-    price: ticket.price,
-    minPrice: ticket.minPrice,
-    maxPrice: ticket.maxPrice,
-    defaultPrice: ticket.defaultPrice,
-    quantityAvailable: ticket.quantityAvailable,
-    quantitySold: ticket.quantitySold, // Fixed: map quantitySold from API
-    sessionIdentifiers: ticket.sessionIdentifiers,
-    salesEndDate: ticket.salesEndDate || undefined
-  }));
+  // Pass ticket types through directly — auto-generated TicketTypeDto already matches API response
+  // Using spread prevents field-dropping bugs when backend adds new fields
+  const transformedTicketTypes: EventTicketTypeDto[] = apiEvent.ticketTypes || [];
 
   // Transform volunteer positions - now using consistent field names
   const transformedVolunteerPositions = (apiEvent.volunteerPositions || []).map((vp: any) => ({

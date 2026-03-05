@@ -1,25 +1,9 @@
 import React from 'react';
-import { Modal, TextInput, NumberInput, Group, Button, Stack, MultiSelect, Textarea, Switch, Alert, Radio, Text } from '@mantine/core';
+import { Modal, TextInput, NumberInput, Group, Button, Stack, MultiSelect, Alert, Radio, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle } from '@tabler/icons-react';
-import type { components } from '@witchcityrope/shared-types';
 import type { EventSession } from './EventSessionsGrid';
-
-// Define the modal's own EventTicketType interface
-export interface EventTicketType {
-  id: string;
-  name: string;
-  description: string;
-  pricingType: components["schemas"]["PricingType"]; // Use generated type from backend
-  price?: number; // For fixed price tickets
-  minPrice?: number; // For sliding scale tickets
-  maxPrice?: number; // For sliding scale tickets
-  defaultPrice?: number; // Default/suggested price for sliding scale
-  sessionsIncluded: string[];
-  quantityAvailable: number;
-  quantitySold: number;
-  allowMultiplePurchase: boolean;
-}
+import type { EventTicketType } from './EventTicketTypesGrid';
 
 interface TicketTypeFormModalProps {
   opened: boolean;
@@ -39,16 +23,14 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
   const form = useForm({
     initialValues: {
       name: '',
-      description: '',
-      pricingType: 'Fixed' as components["schemas"]["PricingType"],
+      pricingType: 'Fixed' as 'Fixed' | 'SlidingScale',
       price: 0,
       minPrice: 0,
       maxPrice: 0,
       defaultPrice: 0,
-      sessionsIncluded: [] as string[],
+      sessionIdentifiers: [] as string[],
       quantityAvailable: 100,
       quantitySold: 0,
-      allowMultiplePurchase: false,
     },
     validate: {
       name: (value) => (!value ? 'Ticket name is required' : null),
@@ -82,7 +64,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
         }
         return null;
       },
-      sessionsIncluded: (value) => {
+      sessionIdentifiers: (value) => {
         if (!value || value.length === 0) return 'At least one session must be selected';
         return null;
       },
@@ -95,18 +77,17 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
   });
 
   const handleSubmit = form.onSubmit((values) => {
+    // Build ticket data matching the auto-generated TicketTypeDto structure
     const ticketData: Omit<EventTicketType, 'id'> = {
       name: values.name,
-      description: values.description,
       pricingType: values.pricingType,
       price: values.pricingType === 'Fixed' ? values.price : undefined,
       minPrice: values.pricingType === 'SlidingScale' ? values.minPrice : undefined,
       maxPrice: values.pricingType === 'SlidingScale' ? values.maxPrice : undefined,
       defaultPrice: values.pricingType === 'SlidingScale' ? values.defaultPrice : undefined,
-      sessionsIncluded: values.sessionsIncluded,
+      sessionIdentifiers: values.sessionIdentifiers,
       quantityAvailable: values.quantityAvailable,
       quantitySold: values.quantitySold,
-      allowMultiplePurchase: values.allowMultiplePurchase,
     };
     onSubmit(ticketData);
     form.reset();
@@ -134,7 +115,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
 
   // Handle sessions selection
   const handleSessionsChange = (value: string[]) => {
-    form.setFieldValue('sessionsIncluded', value || []);
+    form.setFieldValue('sessionIdentifiers', value || []);
   };
 
   // Handle modal opening and data population
@@ -142,18 +123,17 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     if (opened) {
       if (ticketType) {
         // Populate form with existing ticket type data for editing
+        // Uses auto-generated TicketTypeDto fields directly — no field name conversion needed
         form.setValues({
-          name: ticketType.name,
-          description: ticketType.description || '',
+          name: ticketType.name || '',
           pricingType: ticketType.pricingType || 'Fixed',
-          price: ticketType.price || 0,
-          minPrice: ticketType.minPrice || 0,
-          maxPrice: ticketType.maxPrice || 0,
-          defaultPrice: ticketType.defaultPrice || 0,
-          sessionsIncluded: ticketType.sessionsIncluded,
-          quantityAvailable: ticketType.quantityAvailable,
-          quantitySold: ticketType.quantitySold,
-          allowMultiplePurchase: ticketType.allowMultiplePurchase,
+          price: ticketType.price ?? 0,
+          minPrice: ticketType.minPrice ?? 0,
+          maxPrice: ticketType.maxPrice ?? 0,
+          defaultPrice: ticketType.defaultPrice ?? 0,
+          sessionIdentifiers: ticketType.sessionIdentifiers || [],
+          quantityAvailable: ticketType.quantityAvailable ?? 100,
+          quantitySold: ticketType.quantitySold ?? 0,
         });
       } else {
         // Reset form for new ticket type
@@ -187,13 +167,6 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
             {...form.getInputProps('name')}
           />
 
-          <Textarea
-            label="Description"
-            placeholder="Brief description of what's included with this ticket"
-            minRows={2}
-            {...form.getInputProps('description')}
-          />
-
           <MultiSelect
             label="Sessions Included"
             placeholder="Select sessions this ticket grants access to"
@@ -201,9 +174,9 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
             required
             searchable
             clearable
-            value={form.values.sessionsIncluded}
+            value={form.values.sessionIdentifiers}
             onChange={handleSessionsChange}
-            error={form.errors.sessionsIncluded}
+            error={form.errors.sessionIdentifiers}
           />
 
           {/* Pricing Type Selection */}
@@ -213,7 +186,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
             </Text>
             <Radio.Group
               value={form.values.pricingType}
-              onChange={(value) => form.setFieldValue('pricingType', value as components["schemas"]["PricingType"])}
+              onChange={(value) => form.setFieldValue('pricingType', value as 'Fixed' | 'SlidingScale')}
             >
               <Group mt="xs">
                 <Radio value="Fixed" label="Fixed Price" />
@@ -300,12 +273,6 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
               {...form.getInputProps('quantitySold')}
             />
           )}
-
-          <Switch
-            label="Allow multiple purchases per customer (Coming soon)"
-            checked={form.values.allowMultiplePurchase}
-            {...form.getInputProps('allowMultiplePurchase', { type: 'checkbox' })}
-          />
 
           <Group justify="flex-end" mt="md">
             <Button variant="outline" onClick={onClose}>

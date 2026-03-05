@@ -72,7 +72,7 @@ export type EventParticipationDto = components['schemas']['EventParticipationDto
  *
  * TODO: Migrate components to use UpdateEventRequest directly with separate id parameter
  */
-export interface UpdateEventDto extends Omit<UpdateEventRequest, 'ticketTypes' | 'volunteerPositions'> {
+export interface UpdateEventDto extends Omit<UpdateEventRequest, 'volunteerPositions'> {
   /** Event ID (not in generated UpdateEventRequest - passed separately in API) */
   id: string
 
@@ -84,12 +84,6 @@ export interface UpdateEventDto extends Omit<UpdateEventRequest, 'ticketTypes' |
 
   /** Restrict to vetted members only */
   vettedMembersOnly?: boolean
-
-  /** Ticket types with frontend field names */
-  ticketTypes?: Array<Omit<EventTicketTypeDto, 'minPrice'> & {
-    /** Price field (maps to minPrice in backend) */
-    price: number
-  }>
 
   /** Volunteer positions with frontend fields */
   volunteerPositions?: Array<EventVolunteerPositionDto & {

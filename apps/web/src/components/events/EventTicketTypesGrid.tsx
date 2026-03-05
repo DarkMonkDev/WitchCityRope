@@ -4,18 +4,9 @@ import { IconTrash } from '@tabler/icons-react';
 import { WCRButton } from '../ui';
 import type { components } from '@witchcityrope/shared-types';
 
-export interface EventTicketType {
-  id: string;
-  name: string;
-  pricingType: components["schemas"]["PricingType"]; // Use generated type from backend
-  sessionIdentifiers: string[]; // ['S1', 'S2', 'S3']
-  price?: number; // For fixed price tickets
-  minPrice?: number; // For sliding scale tickets
-  maxPrice?: number; // For sliding scale tickets
-  defaultPrice?: number; // Default/suggested price for sliding scale
-  quantityAvailable?: number;
-  quantitySold?: number; // Number of tickets sold
-}
+// Use auto-generated TicketTypeDto from backend instead of manual interface
+// This prevents field-dropping bugs where manual interfaces miss new backend fields
+export type EventTicketType = components['schemas']['TicketTypeDto'];
 
 interface EventTicketTypesGridProps {
   ticketTypes: EventTicketType[];
@@ -41,9 +32,9 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
         maximumFractionDigits: 2,
       }).format(price);
 
-    if (ticketType.pricingType === 'Fixed' && ticketType.price !== undefined) {
+    if (ticketType.pricingType === 'Fixed' && ticketType.price != null) {
       return formatPrice(ticketType.price);
-    } else if (ticketType.pricingType === 'SlidingScale' && ticketType.minPrice !== undefined && ticketType.maxPrice !== undefined) {
+    } else if (ticketType.pricingType === 'SlidingScale' && ticketType.minPrice != null && ticketType.maxPrice != null) {
       if (ticketType.minPrice === ticketType.maxPrice) {
         return formatPrice(ticketType.minPrice);
       }
@@ -52,8 +43,8 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
     return 'N/A';
   };
 
-  const formatSessions = (sessionIdentifiers: string[]) => {
-    if (sessionIdentifiers.length === 0) return 'None';
+  const formatSessions = (sessionIdentifiers?: string[]) => {
+    if (!sessionIdentifiers || sessionIdentifiers.length === 0) return 'None';
     return sessionIdentifiers.join(', ');
   };
 
@@ -113,7 +104,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
               data-testid="tickettype-row"
             >
               <Table.Td
-                onClick={() => onEditTicketType(ticketType.id)}
+                onClick={() => onEditTicketType(ticketType.id || '')}
                 style={{ cursor: 'pointer' }}
               >
                 <Text size="sm" fw={500}>
@@ -121,7 +112,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                 </Text>
               </Table.Td>
               <Table.Td
-                onClick={() => onEditTicketType(ticketType.id)}
+                onClick={() => onEditTicketType(ticketType.id || '')}
                 style={{ textAlign: 'center', cursor: 'pointer' }}
               >
                 <Badge
@@ -133,7 +124,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                 </Badge>
               </Table.Td>
               <Table.Td
-                onClick={() => onEditTicketType(ticketType.id)}
+                onClick={() => onEditTicketType(ticketType.id || '')}
                 style={{ cursor: 'pointer' }}
               >
                 <Text size="sm" fw={500}>
@@ -141,7 +132,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                 </Text>
               </Table.Td>
               <Table.Td
-                onClick={() => onEditTicketType(ticketType.id)}
+                onClick={() => onEditTicketType(ticketType.id || '')}
                 style={{ cursor: 'pointer' }}
               >
                 <Text size="sm">
@@ -149,7 +140,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                 </Text>
               </Table.Td>
               <Table.Td
-                onClick={() => onEditTicketType(ticketType.id)}
+                onClick={() => onEditTicketType(ticketType.id || '')}
                 style={{ textAlign: 'center', cursor: 'pointer' }}
               >
                 <Text size="sm">
@@ -157,7 +148,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                 </Text>
               </Table.Td>
               <Table.Td
-                onClick={() => onEditTicketType(ticketType.id)}
+                onClick={() => onEditTicketType(ticketType.id || '')}
                 style={{ textAlign: 'center', cursor: 'pointer' }}
               >
                 <Text size="sm" fw={700}>
@@ -171,7 +162,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                   color="gray"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDeleteTicketType(ticketType.id);
+                    onDeleteTicketType(ticketType.id || '');
                   }}
                   aria-label={`Delete ${ticketType.name}`}
                   styles={{

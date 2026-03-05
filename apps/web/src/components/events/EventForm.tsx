@@ -11,7 +11,7 @@ import type { components } from '@witchcityrope/shared-types'
 import { EventSessionsGrid, EventSession } from './EventSessionsGrid'
 import { EventTicketTypesGrid, EventTicketType } from './EventTicketTypesGrid'
 import { SessionFormModal } from './SessionFormModal'
-import { TicketTypeFormModal, EventTicketType as ModalTicketType } from './TicketTypeFormModal'
+import { TicketTypeFormModal } from './TicketTypeFormModal'
 import { VolunteerPositionsGrid } from './VolunteerPositionsGrid'
 import { VolunteerPosition } from './VolunteerPositionFormModal'
 import { RemoveRsvpModal } from './RemoveRsvpModal'
@@ -929,34 +929,21 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }
 
-  const handleTicketTypeSubmit = async (ticketTypeData: Omit<ModalTicketType, 'id'>) => {
-    // Convert from modal format to grid format
-    const gridFormatTicketType: Omit<EventTicketType, 'id'> = {
-      name: ticketTypeData.name,
-      pricingType: ticketTypeData.pricingType,
-      sessionIdentifiers: ticketTypeData.sessionsIncluded,
-      price: ticketTypeData.price,
-      minPrice: ticketTypeData.minPrice,
-      maxPrice: ticketTypeData.maxPrice,
-      defaultPrice: ticketTypeData.defaultPrice,
-      quantityAvailable: ticketTypeData.quantityAvailable,
-      // ✅ REMOVED: salesEndDate field removed from backend DTO
-      // salesEndDate: ticketTypeData.saleEndDate?.toISOString(),
-    }
-
+  const handleTicketTypeSubmit = async (ticketTypeData: Omit<EventTicketType, 'id'>) => {
+    // Modal now uses the same auto-generated TicketTypeDto type — no format conversion needed
     let updatedTicketTypes: EventTicketType[]
 
     if (editingTicketType) {
-      // Update existing ticket type
+      // Update existing ticket type, preserving server-computed fields from the original
       updatedTicketTypes = form.values.ticketTypes.map((ticketType) =>
         ticketType.id === editingTicketType.id
-          ? { ...gridFormatTicketType, id: editingTicketType.id }
+          ? { ...ticketType, ...ticketTypeData }
           : ticketType
       )
     } else {
-      // Add new ticket type
+      // Add new ticket type with a client-generated ID
       const newTicketType: EventTicketType = {
-        ...gridFormatTicketType,
+        ...ticketTypeData,
         id: generateUUID(),
       }
       updatedTicketTypes = [...form.values.ticketTypes, newTicketType]
@@ -1022,25 +1009,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }
 
-  // Convert grid format to modal format for editing
-  const convertTicketTypeForModal = (ticketType: EventTicketType): ModalTicketType => {
-    return {
-      id: ticketType.id,
-      name: ticketType.name,
-      description: '', // Not stored in grid format currently
-      pricingType: ticketType.pricingType || 'Fixed',
-      price: ticketType.price,
-      minPrice: ticketType.minPrice,
-      maxPrice: ticketType.maxPrice,
-      defaultPrice: ticketType.defaultPrice,
-      sessionsIncluded: ticketType.sessionIdentifiers,
-      quantityAvailable: ticketType.quantityAvailable || 100,
-      quantitySold: ticketType.quantitySold ?? 0,
-      allowMultiplePurchase: false, // Match modal's default for new tickets
-      // ✅ REMOVED: salesEndDate field removed from backend DTO
-      // saleEndDate: ticketType.salesEndDate ? new Date(ticketType.salesEndDate) : undefined,
-    }
-  }
+  // No conversion needed — modal now uses the same auto-generated TicketTypeDto type
 
   // Convert volunteer positions from frontend format to API format
   // Now a simple pass-through since frontend stores sessionId directly (no lookup needed)
@@ -2799,7 +2768,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           setEditingTicketType(null)
         }}
         onSubmit={handleTicketTypeSubmit}
-        ticketType={editingTicketType ? convertTicketTypeForModal(editingTicketType) : null}
+        ticketType={editingTicketType || null}
         availableSessions={form.values.sessions || []}
       />
 

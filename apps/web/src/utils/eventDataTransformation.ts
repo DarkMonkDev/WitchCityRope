@@ -43,34 +43,15 @@ export function convertEventFormDataToUpdateDto(
   }
 
   // Include sessions data (always include even if empty to allow clearing)
+  // Using spread to pass through all SessionDto fields and prevent field-dropping bugs
   if (formData.sessions !== undefined) {
-    updateDto.sessions = formData.sessions.map(session => ({
-      id: session.id,
-      sessionIdentifier: session.sessionIdentifier, // API requires this field
-      name: session.name,
-      startDate: session.startDate, // API requires this field (renamed from date)
-      endDate: session.endDate, // End date for multi-day sessions (derived from EndTime on backend)
-      startTime: session.startTime,
-      endTime: session.endTime,
-      capacity: session.capacity,
-      registrationCount: session.registrationCount || 0, // Fixed: use registrationCount
-      description: (session as any).description || ''
-    }));
+    updateDto.sessions = formData.sessions.map(session => ({ ...session }));
   }
 
   // Include ticket types data (always include even if empty to allow clearing)
+  // Using spread to pass through all TicketTypeDto fields and prevent field-dropping bugs
   if (formData.ticketTypes !== undefined) {
-    updateDto.ticketTypes = formData.ticketTypes.map(ticket => ({
-      id: ticket.id,
-      name: ticket.name,
-      pricingType: ticket.pricingType,
-      price: ticket.price ?? 0,
-      minPrice: ticket.minPrice ?? undefined,
-      maxPrice: ticket.maxPrice ?? undefined,
-      defaultPrice: ticket.defaultPrice ?? undefined,
-      quantityAvailable: ticket.quantityAvailable ?? 0,
-      sessionIdentifiers: ticket.sessionIdentifiers
-    }));
+    updateDto.ticketTypes = formData.ticketTypes.map(ticket => ({ ...ticket }));
   }
 
   // Include teacher IDs (always include even if empty to allow clearing)
@@ -231,35 +212,16 @@ export function getChangedEventFields(
   const currentSessionsStr = JSON.stringify(current.sessions || []);
   const initialSessionsStr = JSON.stringify(initial.sessions || []);
   if (currentSessionsStr !== initialSessionsStr) {
-    changes.sessions = (current.sessions || []).map(session => ({
-      id: session.id,
-      sessionIdentifier: session.sessionIdentifier, // API requires this field
-      name: session.name,
-      startDate: session.startDate, // API requires this field (renamed from date)
-      endDate: session.endDate, // End date for multi-day sessions (derived from EndTime on backend)
-      startTime: session.startTime,
-      endTime: session.endTime,
-      capacity: session.capacity,
-      registrationCount: session.registrationCount || 0, // Fixed: use registrationCount
-      description: (session as any).description || ''
-    }));
+    // Using spread to pass through all SessionDto fields and prevent field-dropping bugs
+    changes.sessions = (current.sessions || []).map(session => ({ ...session }));
   }
 
   // Check array fields - ticket types (always include if changed, even if empty)
   const currentTicketTypesStr = JSON.stringify(current.ticketTypes || []);
   const initialTicketTypesStr = JSON.stringify(initial.ticketTypes || []);
   if (currentTicketTypesStr !== initialTicketTypesStr) {
-    changes.ticketTypes = (current.ticketTypes || []).map(ticket => ({
-      id: ticket.id,
-      name: ticket.name,
-      pricingType: ticket.pricingType,
-      price: ticket.price ?? 0,
-      minPrice: ticket.minPrice ?? undefined,
-      maxPrice: ticket.maxPrice ?? undefined,
-      defaultPrice: ticket.defaultPrice ?? undefined,
-      quantityAvailable: ticket.quantityAvailable ?? 0,
-      sessionIdentifiers: ticket.sessionIdentifiers
-    }));
+    // Using spread to pass through all TicketTypeDto fields and prevent field-dropping bugs
+    changes.ticketTypes = (current.ticketTypes || []).map(ticket => ({ ...ticket }));
   }
 
   // Check array fields - teacher IDs (always include if changed, even if empty)
