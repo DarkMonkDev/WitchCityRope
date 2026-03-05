@@ -389,49 +389,47 @@ echo "   Recent API logs:"
 ssh -i $SSH_KEY $USER@$SERVER "docker logs witchcity-api-staging --tail 20"
 echo ""
 
-# Step 9: Health checks
-echo "9️⃣  Running health checks..."
+# Step 9: Internal health checks (via SSH, bypasses nginx/maintenance mode)
+echo "9️⃣  Running internal health checks (localhost via SSH)..."
 echo ""
 
-# Web health
-echo "   Checking web service..."
-if curl -f -s https://staging.notfai.com/ > /dev/null; then
-    echo "   ✅ Web service healthy (https://staging.notfai.com/)"
-else
-    echo "   ❌ Web health check failed"
-    echo ""
-    echo "💡 Consider rollback - use staging-rollback skill"
-    echo "   See: .claude/skills/staging-deploy/SKILL.md (Common Issues)"
-    exit 1
-fi
-
-# API health
-echo ""
-echo "   Checking API service..."
-if curl -f -s https://staging.notfai.com/api/health > /dev/null; then
-    echo "   ✅ API service healthy (https://staging.notfai.com/api/health)"
+# API health (localhost:5002)
+echo "   Checking API service (localhost:5002/health)..."
+if ssh -i $SSH_KEY $USER@$SERVER "curl -f -s http://localhost:5002/health" > /dev/null 2>&1; then
+    echo "   ✅ API container healthy"
 else
     echo "   ❌ API health check failed"
     echo ""
-    echo "💡 Consider rollback - use staging-rollback skill"
-    echo "   See: .claude/skills/staging-deploy/SKILL.md (Common Issues)"
+    echo "💡 Containers are unhealthy - maintenance mode stays ON to protect users"
+    echo "   Consider rollback - use staging-rollback skill"
+    echo "   Check logs: ssh $USER@$SERVER 'docker logs witchcity-api-staging --tail 50'"
     exit 1
 fi
 
-# Database health (via API) - Check databaseConnected field in /api/health response
-echo ""
-echo "   Checking database connectivity..."
-if curl -s https://staging.notfai.com/api/health | grep -q '"databaseConnected":true'; then
+# Web health (localhost:3002)
+echo "   Checking web service (localhost:3002)..."
+if ssh -i $SSH_KEY $USER@$SERVER "curl -f -s http://localhost:3002/" > /dev/null 2>&1; then
+    echo "   ✅ Web container healthy"
+else
+    echo "   ❌ Web health check failed"
+    echo ""
+    echo "💡 Containers are unhealthy - maintenance mode stays ON to protect users"
+    echo "   Consider rollback - use staging-rollback skill"
+    exit 1
+fi
+
+# Database health (via API localhost)
+echo "   Checking database connectivity (localhost:5002/health)..."
+if ssh -i $SSH_KEY $USER@$SERVER "curl -s http://localhost:5002/health" 2>/dev/null | grep -q '"databaseConnected":true'; then
     echo "   ✅ Database connected"
 else
-    echo "   ⚠️  Database connectivity check failed"
-    echo "   Note: This is non-critical if API logs show successful DB connectivity"
-    echo "   Continuing deployment - verify database connectivity in API logs above"
+    echo "   ⚠️  Database connectivity check inconclusive"
+    echo "   Continuing - verify in API logs above"
 fi
 
 echo ""
 
-# Step 9b: Disable maintenance mode now that health checks passed
+# Step 9b: Disable maintenance mode now that internal health checks passed
 if [ "$MAINTENANCE_ENABLED" = "true" ]; then
     echo "9️⃣b Disabling maintenance mode..."
     SKIP_CONFIRMATION=true bash "$MAINTENANCE_SCRIPT" --off --env staging || {
