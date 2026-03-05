@@ -1,0 +1,173 @@
+/* WitchCityRope Maintenance Page Styles
+ * Matches the actual site's design system v7 patterns:
+ * - Hero gradient background (midnight -> burgundy-dark)
+ * - Ivory card with burgundy header band (login page pattern)
+ * - Montserrat headings, Source Sans 3 body, Satisfy accent
+ * This file is served by nginx from /opt/witchcityrope/maintenance/
+ * and referenced via the /maintenance-assets/ alias.
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* Hero gradient from HeroSection.tsx: midnight -> burgundy-dark */
+    background: linear-gradient(180deg, #1A1A2E 0%, #660018 100%);
+    color: #2B2B2B; /* charcoal */
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-attachment: fixed;
+}
+
+.container {
+    max-width: 480px;
+    width: 100%;
+    /* Login card pattern: ivory bg, rounded, shadow */
+    background: #FFF8F0; /* ivory */
+    border-radius: 24px;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Header band - matches login page burgundy-to-plum gradient */
+.header-band {
+    background: linear-gradient(135deg, #880124 0%, #614B79 100%);
+    padding: 48px 40px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle radial overlay effect (matches login page) */
+.header-band::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+
+h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    color: #FFFFFF;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.tagline {
+    font-family: 'Satisfy', cursive;
+    font-size: 22px;
+    color: #B76D75; /* rose-gold */
+    position: relative;
+}
+
+/* Card body content */
+.card-body {
+    padding: 40px;
+    text-align: center;
+}
+
+h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #880124; /* burgundy - matches site heading color */
+    margin-bottom: 16px;
+}
+
+.message {
+    font-size: 1.05rem;
+    color: #2B2B2B; /* charcoal */
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+
+.divider {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #B76D75, transparent);
+    margin: 24px auto;
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(136, 1, 36, 0.15); /* burgundy faint ring */
+    border-top-color: #880124; /* burgundy active arc */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.eta {
+    font-size: 0.85rem;
+    color: #8B8680; /* stone */
+    margin-bottom: 8px;
+}
+
+/* Footer area - matches login page footer pattern */
+.card-footer {
+    text-align: center;
+    padding: 16px 40px 24px;
+    background: #FAF6F2; /* cream */
+    border-top: 1px solid #B8B0A8; /* taupe */
+}
+
+.contact {
+    font-size: 0.9rem;
+    color: #4A4A4A; /* smoke */
+}
+
+.contact a {
+    color: #880124; /* burgundy */
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.contact a:hover {
+    color: #660018; /* burgundy-dark */
+    text-decoration: underline;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .header-band {
+        padding: 32px 20px 24px;
+    }
+
+    .card-body {
+        padding: 24px 20px;
+    }
+
+    .card-footer {
+        padding: 16px 20px 20px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    .tagline {
+        font-size: 18px;
+    }
+}

@@ -315,6 +315,26 @@ fi
 echo "   ✅ Images pulled"
 echo ""
 
+# Step 5b: Enable maintenance mode before container restart
+# This shows a branded maintenance page to users while containers are restarting,
+# instead of showing ugly 502/504 errors. Disabled automatically after health checks pass.
+echo "5️⃣b Enabling maintenance mode..."
+MAINTENANCE_SCRIPT="$SCRIPT_DIR/../maintenance-mode/execute.sh"
+if [ -f "$MAINTENANCE_SCRIPT" ]; then
+    # Enable maintenance mode (non-interactive)
+    SKIP_CONFIRMATION=true bash "$MAINTENANCE_SCRIPT" --on --env staging || {
+        echo "   WARNING: Could not enable maintenance mode (continuing anyway)"
+        echo "   Users may see brief errors during container restart"
+    }
+    MAINTENANCE_ENABLED=true
+    echo "   Maintenance mode enabled - users see maintenance page"
+else
+    echo "   WARNING: Maintenance mode skill not found at $MAINTENANCE_SCRIPT"
+    echo "   Skipping maintenance mode (users may see errors during restart)"
+    MAINTENANCE_ENABLED=false
+fi
+echo ""
+
 # Step 6: Deploy (restart containers)
 echo "6️⃣  Deploying containers..."
 echo "   Forcing container recreation with latest images..."
@@ -410,6 +430,17 @@ else
 fi
 
 echo ""
+
+# Step 9b: Disable maintenance mode now that health checks passed
+if [ "$MAINTENANCE_ENABLED" = "true" ]; then
+    echo "9️⃣b Disabling maintenance mode..."
+    SKIP_CONFIRMATION=true bash "$MAINTENANCE_SCRIPT" --off --env staging || {
+        echo "   WARNING: Could not disable maintenance mode automatically"
+        echo "   MANUAL ACTION REQUIRED: bash .claude/skills/maintenance-mode/execute.sh --off --env staging"
+    }
+    echo "   Maintenance mode disabled - site is live"
+    echo ""
+fi
 
 # Step 10: Smoke tests
 echo "🔟  Running smoke tests..."
