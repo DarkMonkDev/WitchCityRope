@@ -78,11 +78,11 @@ public class UserEventDto
     public int AdditionalSessionsAvailable { get; set; }
 
     /// <summary>
-    /// True if the event has paid ticket types available for purchase.
+    /// True if the event has any ticket types available (paid or donation/free).
     /// Used to show "Purchase Ticket" button for RSVP users who haven't bought a ticket yet.
     /// Avoids the frontend needing to fetch full event details just to check this.
     /// </summary>
-    public bool HasPaidTickets { get; set; }
+    public bool HasAvailableTickets { get; set; }
 
     /// <summary>
     /// Tickets the user has purchased for this event.

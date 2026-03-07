@@ -2,7 +2,7 @@
 /* tslint:disable */
 /**
  * Helper functions for working with the generated API types
- * Generated on: 2026-03-07T17:20:26.628Z
+ * Generated on: 2026-03-07T18:01:41.250Z
  */
 
 import type { paths, components } from './api-types';

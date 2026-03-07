@@ -5842,7 +5842,7 @@ export interface components {
             eventSessions?: components["schemas"]["UserSessionDto"][];
             /** Format: int32 */
             additionalSessionsAvailable?: number;
-            hasPaidTickets?: boolean;
+            hasAvailableTickets?: boolean;
             tickets?: components["schemas"]["UserTicketDto"][];
         };
         UserListResponse: {

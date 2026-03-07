@@ -40,10 +40,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
     })
   // Show "Purchase Ticket" button when:
   // - User has RSVP but no ticket purchased yet
-  // - Event has paid ticket types available (from backend DTO, no extra API call needed)
+  // - Event has ticket types available (paid or donation, from backend DTO)
   const showPurchaseButton = !event.hasTicket &&
                               event.registrationStatus === 'RSVP Confirmed' &&
-                              (event as any).hasPaidTickets === true
+                              (event as any).hasAvailableTickets === true
 
   const formatShiftTime = (timeString?: string) => {
     if (!timeString) return ''
@@ -278,42 +278,69 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
         )}
 
 
-        {/* Tickets Section - Show ticket types the user purchased for this event */}
+        {/* Tickets Section - Show purchased tickets OR "no tickets" indicator */}
         {(() => {
-          // Access tickets from the API response (auto-generated type includes this field)
           const tickets = (event as any).tickets as Array<{ ticketTypeName?: string; sessionName?: string | null }> | undefined;
-          if (!tickets || tickets.length === 0) return null;
+          const hasTickets = tickets && tickets.length > 0;
+          const hasAvailableTickets = (event as any).hasAvailableTickets === true;
 
-          return (
-            <Box
-              style={{
-                background: 'linear-gradient(135deg, rgba(34, 139, 34, 0.08) 0%, rgba(46, 125, 50, 0.08) 100%)',
-                borderRadius: '8px',
-                padding: 'var(--space-xs)',
-                border: '1px solid rgba(34, 139, 34, 0.2)',
-              }}
-            >
-              <Group gap="xs" mb={4}>
-                <IconTicket size={16} color="var(--mantine-color-green-7)" />
-                <Text fw={600} size="sm" c="var(--mantine-color-green-7)">
-                  {tickets.length === 1 ? 'Ticket' : 'Tickets'}
+          // User has purchased tickets — show green box with ticket details
+          if (hasTickets) {
+            return (
+              <Box
+                style={{
+                  background: 'linear-gradient(135deg, rgba(34, 139, 34, 0.08) 0%, rgba(46, 125, 50, 0.08) 100%)',
+                  borderRadius: '8px',
+                  padding: 'var(--space-xs)',
+                  border: '1px solid rgba(34, 139, 34, 0.2)',
+                }}
+              >
+                <Group gap="xs" mb={4}>
+                  <IconTicket size={16} color="var(--mantine-color-green-7)" />
+                  <Text fw={600} size="sm" c="var(--mantine-color-green-7)">
+                    {tickets!.length === 1 ? 'Ticket' : 'Tickets'}
+                  </Text>
+                </Group>
+                <Stack gap={4}>
+                  {tickets!.map((ticket, index) => {
+                    const showSession = ticket.sessionName && !ticket.sessionName.includes('Main Session');
+                    return (
+                      <Text key={index} size="sm" fw={500} c="var(--color-charcoal)">
+                        {ticket.ticketTypeName || 'Ticket'}
+                        {showSession && ` \u2022 ${ticket.sessionName}`}
+                      </Text>
+                    );
+                  })}
+                </Stack>
+              </Box>
+            );
+          }
+
+          // User has RSVP but no tickets, and event has ticket types — show "no tickets" indicator
+          if (!event.hasTicket && hasAvailableTickets) {
+            return (
+              <Box
+                style={{
+                  background: 'linear-gradient(135deg, rgba(218, 165, 32, 0.08) 0%, rgba(184, 134, 11, 0.08) 100%)',
+                  borderRadius: '8px',
+                  padding: 'var(--space-xs)',
+                  border: '1px solid rgba(218, 165, 32, 0.25)',
+                }}
+              >
+                <Group gap="xs">
+                  <IconTicket size={16} color="var(--mantine-color-yellow-8)" />
+                  <Text fw={600} size="sm" c="var(--mantine-color-yellow-8)">
+                    No tickets purchased
+                  </Text>
+                </Group>
+                <Text size="xs" c="dimmed" mt={2}>
+                  Tickets are available for this event
                 </Text>
-              </Group>
-              <Stack gap={4}>
-                {tickets.map((ticket, index) => {
-                  // Only show session name if it exists and isn't "Main Session"
-                  const showSession = ticket.sessionName && !ticket.sessionName.includes('Main Session');
+              </Box>
+            );
+          }
 
-                  return (
-                    <Text key={index} size="sm" fw={500} c="var(--color-charcoal)">
-                      {ticket.ticketTypeName || 'Ticket'}
-                      {showSession && ` \u2022 ${ticket.sessionName}`}
-                    </Text>
-                  );
-                })}
-              </Stack>
-            </Box>
-          );
+          return null;
         })()}
 
         {/* Description */}

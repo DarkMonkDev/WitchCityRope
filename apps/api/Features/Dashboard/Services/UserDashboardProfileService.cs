@@ -133,12 +133,12 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 // Calculate additional sessions available (sessions user doesn't have tickets for)
                 eventDto.AdditionalSessionsAvailable = allSessions.Count - registeredSessions.Count;
 
-                // Check if the event has paid ticket types available.
+                // Check if the event has any ticket types available (paid or donation/free).
                 // Used by frontend to show "Purchase Ticket" button for RSVP users without tickets,
                 // without needing a separate API call to fetch full event details.
-                eventDto.HasPaidTickets = await _context.TicketTypes
+                eventDto.HasAvailableTickets = await _context.TicketTypes
                     .AsNoTracking()
-                    .Where(tt => tt.EventId == eventDto.Id && (tt.MaxPrice ?? 0) > 0)
+                    .Where(tt => tt.EventId == eventDto.Id)
                     .AnyAsync(cancellationToken);
 
                 // Get user's purchased tickets for this event.
