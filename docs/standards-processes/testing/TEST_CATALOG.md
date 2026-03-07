@@ -112,6 +112,32 @@
 
 ---
 
+## BACKEND INTEGRATION TESTS
+
+### RsvpPreservationOnTicketCancellationTests (5 tests) - NEW 2026-03-07
+
+**File**: `tests/integration/api/Features/Participation/RsvpPreservationOnTicketCancellationTests.cs`
+
+**Purpose**: Verifies RSVP preservation logic during partial ticket cancellation in `AttendanceService.CancelTicketPurchasesAsync`.
+
+**Bug Fixed**: RSVP was unconditionally cancelled whenever any ticket was cancelled. Now only cancels RSVP if no active tickets remain.
+
+| Test | Description | Status |
+|------|-------------|--------|
+| CancelOneTicket_WithOtherActiveTickets_PreservesRsvp | Cancel 1 of 2 tickets, RSVP stays Active | NEW |
+| CancelLastTicket_NoRemainingTickets_CancelsRsvp | Cancel only ticket, RSVP auto-cancelled | NEW |
+| CancelAllTickets_MultipleSessions_CancelsRsvp | Cancel all tickets in one call, RSVP cancelled | NEW |
+| CancelOneTicket_NoRsvpExists_Succeeds | Cancel ticket when no RSVP exists, no error | NEW |
+| CancelOneOfThreeTickets_PreservesRsvp | Cancel 1 of 3 tickets, RSVP stays Active | NEW |
+
+### AttendanceServiceCancellationTests (5 tests)
+
+**File**: `tests/integration/api/Features/Participation/AttendanceServiceCancellationTests.cs`
+
+**Purpose**: Tests per-ticket-purchase cancellation eligibility flags in `GetParticipationStatusAsync`.
+
+---
+
 ## TEST ENVIRONMENT
 
 **Execution Method**: `test-environment` skill (isolated containers)
