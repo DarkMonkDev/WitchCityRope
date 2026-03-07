@@ -195,14 +195,15 @@ export const EventDetailPage: React.FC = () => {
   };
 
   // Only show ticket types that have future sessions (canPurchase or referenceSessionId exists)
+  // AND the user doesn't already own a ticket covering any of this ticket's sessions —
+  // if they do, the ticket type is no longer relevant and is hidden entirely.
   const displayableTickets = ticketTypes.filter((tt: any) =>
-    tt.canPurchase || tt.referenceSessionId
+    (tt.canPurchase || tt.referenceSessionId) && !isTicketOwnedByUser(tt)
   );
 
-  // Separate into three categories based on ownership and timing
-  const purchasedTickets = displayableTickets.filter((tt: any) => isTicketOwnedByUser(tt));
-  const purchasableTickets = displayableTickets.filter((tt: any) => tt.canPurchase && !isTicketOwnedByUser(tt));
-  const unavailableTickets = displayableTickets.filter((tt: any) => !tt.canPurchase && !isTicketOwnedByUser(tt));
+  // Separate into purchasable and unavailable tickets
+  const purchasableTickets = displayableTickets.filter((tt: any) => tt.canPurchase);
+  const unavailableTickets = displayableTickets.filter((tt: any) => !tt.canPurchase);
 
   // Determine volunteer box visibility
   const hasVolunteerPositions = Array.isArray(volunteerPositions) && volunteerPositions.length > 0;
@@ -465,52 +466,9 @@ export const EventDetailPage: React.FC = () => {
           {displayableTickets.length > 0 && (
             <ContentSection title="Ticket Options" isMobile={isMobile}>
               <Stack gap="md">
-                {/* Purchased Tickets — user already owns a ticket covering at least one session */}
-                {purchasedTickets.length > 0 && (
-                  <Stack gap="sm">
-                    {purchasedTickets.map((ticket: any) => (
-                      <Paper
-                        key={ticket.id}
-                        p="md"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(34, 139, 34, 0.06) 0%, rgba(46, 125, 50, 0.06) 100%)',
-                          border: '1px solid rgba(34, 139, 34, 0.25)',
-                          borderRadius: '8px'
-                        }}
-                      >
-                        <Group justify="space-between" align="flex-start" wrap="nowrap">
-                          <Box style={{ flex: 1 }}>
-                            <Text fw={600} size="md" mb="xs">{ticket.name}</Text>
-                            {ticket.pricingType === 'SlidingScale' ? (
-                              <Text size="sm" c="dimmed">
-                                ${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)
-                              </Text>
-                            ) : (
-                              <Text size="sm" c="dimmed">
-                                ${ticket.price}
-                              </Text>
-                            )}
-                            {ticket.referenceSessionName && (
-                              <Text size="xs" c="dimmed" mt="xs">
-                                For: {ticket.referenceSessionName}
-                              </Text>
-                            )}
-                          </Box>
-                          <Badge color="green" variant="filled">
-                            Purchased
-                          </Badge>
-                        </Group>
-                      </Paper>
-                    ))}
-                  </Stack>
-                )}
-
                 {/* Purchasable Tickets — available and user does not own any overlapping sessions */}
                 {purchasableTickets.length > 0 && (
                   <Stack gap="sm">
-                    {purchasedTickets.length > 0 && (
-                      <Text size="sm" c="dimmed" mt="md">Other ticket options:</Text>
-                    )}
                     {purchasableTickets.map((ticket: any) => (
                       <Paper
                         key={ticket.id}
@@ -554,12 +512,8 @@ export const EventDetailPage: React.FC = () => {
                 {/* Unavailable Tickets (not yet open or closed, and not already owned) */}
                 {unavailableTickets.length > 0 && (
                   <>
-                    {(purchasableTickets.length > 0 || purchasedTickets.length > 0) && (
-                      <Text size="sm" c="dimmed" mt="md">
-                        {purchasedTickets.length > 0 && purchasableTickets.length === 0
-                          ? 'Other ticket options:'
-                          : 'Unavailable ticket options:'}
-                      </Text>
+                    {purchasableTickets.length > 0 && (
+                      <Text size="sm" c="dimmed" mt="md">Other ticket options:</Text>
                     )}
                     <Stack gap="sm">
                       {unavailableTickets.map((ticket: any) => (
