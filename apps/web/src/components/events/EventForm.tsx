@@ -1194,25 +1194,33 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }
 
-  const handleRefundTicketConfirm = async (refundAmount: number, refundReason: string) => {
-    if (!selectedParticipant || !selectedParticipant.id) {
+  const handleRefundTicketConfirm = async (
+    refundAmount: number,
+    refundReason: string,
+    cancelTicket: boolean,
+    alsoRemoveRsvp: boolean
+  ) => {
+    // Use ticketId (TicketPurchaseId) for the refund endpoint, not the attendance id
+    const ticketPurchaseId = selectedParticipant?.ticketId ?? selectedParticipant?.id
+    if (!selectedParticipant || !ticketPurchaseId) {
       throw new Error('No transaction ID available for refund')
     }
 
     try {
       const response = await apiClient.post(
-        `/api/payments/transactions/${selectedParticipant.id}/refund`,
+        `/api/payments/transactions/${ticketPurchaseId}/refund`,
         {
           refundAmount,
           refundReason,
+          cancelTicket,
+          alsoRemoveRsvp,
         }
       )
 
       if (response.status !== 200) {
-        throw new Error('Failed to process refund')
+        throw new Error('Failed to process request')
       }
 
-      // Success notification is handled by RefundConfirmationModal
       // Refetch participations to update the tables
       if (eventId) {
         queryClient.invalidateQueries({ queryKey: eventKeys.participations(eventId) })
@@ -1222,8 +1230,8 @@ export const EventForm: React.FC<EventFormProps> = ({
       setRefundTicketModalOpen(false)
       setSelectedParticipant(null)
     } catch (error: any) {
-      // Error notification is handled by RefundConfirmationModal
-      throw error // Re-throw to let modal handle the error display
+      // Re-throw to let modal handle the error display
+      throw error
     }
   }
 
@@ -2681,50 +2689,113 @@ export const EventForm: React.FC<EventFormProps> = ({
                             return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
                           }
                         })
-                        .map((participation) => (
-                          <Table.Tr key={participation.id}>
-                            <Table.Td>
-                              <Text fw={500}>{participation.userSceneName}</Text>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text size="sm">{participation.ticketTypeName ?? 'RSVP'}</Text>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text
-                                size="sm"
-                                c={participation.status === 'Active' ? 'green' : 'red'}
-                              >
-                                {participation.status}
-                              </Text>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text size="sm">{participation.sessionNames}</Text>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text size="sm">
-                                {new Date(participation.participationDate ?? '').toLocaleDateString()}
-                              </Text>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text size="sm" fw={500}>
-                                ${(participation.amountPaid ?? 0).toFixed(2)}
-                              </Text>
-                            </Table.Td>
-                            <Table.Td>
-                              {participation.status === 'Active' && participation.ticketId && (
-                                <Text
-                                  size="sm"
-                                  c="red"
-                                  style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                                  onClick={() => handleRefundTicketClick(participation)}
-                                  data-testid={`refund-ticket-${participation.id}`}
-                                >
-                                  Cancel/Refund
+                        .flatMap((participation) => {
+                          // Build array: parent ticket row + refund sub-rows
+                          // Using flatMap ensures sub-rows stay attached to parent during sorting
+                          const rows = [];
+
+                          // Determine status display
+                          const statusColor = participation.status === 'Active'
+                            ? 'green'
+                            : participation.status === 'Cancelled'
+                              ? 'red'
+                              : 'orange';
+
+                          const statusLabel = participation.status === 'Active' && (participation.totalRefunded ?? 0) > 0
+                            ? `Active (Partially Refunded)`
+                            : participation.status;
+
+                          // Parent ticket row
+                          rows.push(
+                            <Table.Tr key={participation.id}>
+                              <Table.Td>
+                                <Text fw={500}>{participation.userSceneName}</Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="sm">{participation.ticketTypeName ?? 'RSVP'}</Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Badge size="sm" color={statusColor} variant="light">
+                                  {statusLabel}
+                                </Badge>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="sm">{participation.sessionNames}</Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="sm">
+                                  {new Date(participation.participationDate ?? '').toLocaleDateString()}
                                 </Text>
-                              )}
-                            </Table.Td>
-                          </Table.Tr>
-                        ))
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="sm" fw={500}>
+                                  ${(participation.amountPaid ?? 0).toFixed(2)}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
+                                {participation.status === 'Active' && participation.ticketId && (
+                                  <Text
+                                    size="sm"
+                                    c="red"
+                                    style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                    onClick={() => handleRefundTicketClick(participation)}
+                                    data-testid={`refund-ticket-${participation.id}`}
+                                  >
+                                    Cancel/Refund
+                                  </Text>
+                                )}
+                                {participation.status === 'Cancelled' && (
+                                  <Text size="xs" c="dimmed">Cancelled</Text>
+                                )}
+                              </Table.Td>
+                            </Table.Tr>
+                          );
+
+                          // Refund sub-rows (indented, stay attached to parent)
+                          if (participation.refundHistory && participation.refundHistory.length > 0) {
+                            participation.refundHistory.forEach((refund: any, idx: number) => {
+                              rows.push(
+                                <Table.Tr
+                                  key={`${participation.id}-refund-${refund.id ?? idx}`}
+                                  style={{ backgroundColor: '#FFF8F0' }}
+                                >
+                                  <Table.Td>
+                                    <Text size="xs" c="dimmed" pl="md">
+                                      ↳ Refund #{idx + 1}
+                                    </Text>
+                                  </Table.Td>
+                                  <Table.Td />
+                                  <Table.Td>
+                                    <Badge
+                                      size="xs"
+                                      color={refund.status === 'Completed' ? 'green' : refund.status === 'Failed' ? 'red' : 'yellow'}
+                                      variant="light"
+                                    >
+                                      {refund.status}
+                                    </Badge>
+                                  </Table.Td>
+                                  <Table.Td colSpan={2}>
+                                    <Text size="xs" c="dimmed" lineClamp={1} title={refund.reason}>
+                                      {refund.reason}
+                                    </Text>
+                                  </Table.Td>
+                                  <Table.Td>
+                                    <Text size="xs" fw={500} c="red">
+                                      -${refund.amount.toFixed(2)}
+                                    </Text>
+                                  </Table.Td>
+                                  <Table.Td>
+                                    <Text size="xs" c="dimmed">
+                                      {new Date(refund.processedAt).toLocaleDateString()}
+                                    </Text>
+                                  </Table.Td>
+                                </Table.Tr>
+                              );
+                            });
+                          }
+
+                          return rows;
+                        })
                     ) : (
                       <Table.Tr>
                         <Table.Td colSpan={6}>
@@ -2798,7 +2869,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         />
       )}
 
-      {/* Ticket Refund Modal */}
+      {/* Ticket Refund / Cancel Modal */}
       {selectedParticipant && (
         <RefundConfirmationModal
           opened={refundTicketModalOpen}
@@ -2807,7 +2878,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             setSelectedParticipant(null)
           }}
           payment={{
-            id: selectedParticipant.id ?? '',
+            id: selectedParticipant.ticketId ?? selectedParticipant.id ?? '',
             userName: selectedParticipant.userSceneName ?? '',
             userEmail: selectedParticipant.userEmail ?? '',
             amount: Number(selectedParticipant.amountPaid ?? 0),
@@ -2817,8 +2888,27 @@ export const EventForm: React.FC<EventFormProps> = ({
               selectedParticipant.sessionNames !== 'All Sessions'
                 ? `Sessions: ${selectedParticipant.sessionNames}`
                 : undefined,
-            remainingRefundableAmount: Number(selectedParticipant.amountPaid ?? 0),
+            remainingRefundableAmount: Number(selectedParticipant.remainingRefundable ?? selectedParticipant.amountPaid ?? 0),
+            refundHistory: selectedParticipant.refundHistory?.map((r: any) => ({
+              id: r.id,
+              amount: r.amount,
+              reason: r.reason,
+              status: r.status,
+              processedAt: r.processedAt,
+              processedByName: r.processedByName,
+            })),
+            totalRefunded: selectedParticipant.totalRefunded,
           }}
+          allowRsvps={form.values.allowRsvps}
+          hasRsvp={
+            // Check if this user has an active RSVP for this event
+            (participationsData as EventParticipationDto[])?.some(
+              (p) =>
+                p.userId === selectedParticipant.userId &&
+                p.participationType === 'RSVP' &&
+                p.status === 'Active'
+            ) ?? false
+          }
           onConfirm={handleRefundTicketConfirm}
         />
       )}

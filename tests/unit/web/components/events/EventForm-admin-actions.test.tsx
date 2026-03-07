@@ -132,7 +132,7 @@ describe.skip('EventForm - Admin Actions', () => {
     });
   });
 
-  it('opens RefundTicketModal when Refund clicked', async () => {
+  it('opens RefundConfirmationModal when Refund clicked', async () => {
     const user = userEvent.setup();
     renderWithProviders();
 
@@ -149,10 +149,9 @@ describe.skip('EventForm - Admin Actions', () => {
     const refundLink = screen.getByTestId('refund-ticket-attendance-3');
     await user.click(refundLink);
 
-    // RefundTicketModal should be visible
+    // RefundConfirmationModal should be visible (unified refund/cancel modal)
     await waitFor(() => {
-      expect(screen.getByTestId('refund-ticket-modal')).toBeInTheDocument();
-      expect(screen.getByText(/Refund Ticket?/i)).toBeInTheDocument();
+      expect(screen.getByTestId('refund-confirmation-modal')).toBeInTheDocument();
     });
   });
 
@@ -180,7 +179,7 @@ describe.skip('EventForm - Admin Actions', () => {
     });
   });
 
-  it('passes correct participant data to RefundTicketModal', async () => {
+  it('passes correct participant data to RefundConfirmationModal', async () => {
     const user = userEvent.setup();
     renderWithProviders();
 
@@ -199,9 +198,8 @@ describe.skip('EventForm - Admin Actions', () => {
 
     // Modal should show participant name and amount
     await waitFor(() => {
-      expect(screen.getByTestId('refund-ticket-modal')).toBeInTheDocument();
+      expect(screen.getByTestId('refund-confirmation-modal')).toBeInTheDocument();
       expect(screen.getByText('Bob Builder')).toBeInTheDocument();
-      expect(screen.getByText('$35.00')).toBeInTheDocument();
     });
   });
 

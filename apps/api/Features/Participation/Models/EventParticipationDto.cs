@@ -1,10 +1,12 @@
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Payments.Models;
 
 namespace WitchCityRope.Api.Features.Participation.Models;
 
 /// <summary>
-/// DTO for admin view of event participations
-/// Auto-generated as TypeScript interface by NSwag
+/// DTO for admin view of event participations.
+/// Includes refund history so admins can see past refunds before issuing new ones.
+/// Auto-generated as TypeScript interface by NSwag.
 /// </summary>
 public class EventParticipationDto
 {
@@ -93,7 +95,7 @@ public class EventParticipationDto
     /// <summary>
     /// TicketPurchase ID for refund processing
     /// Null for free RSVPs (no associated TicketPurchase)
-    /// Required by frontend to call /api/admin/refunds/{ticketId} endpoint
+    /// Required by frontend to call /api/payments/transactions/{transactionId}/refund endpoint
     /// </summary>
     public Guid? TicketId { get; set; }
 
@@ -108,4 +110,23 @@ public class EventParticipationDto
     /// Empty list if not checked into any sessions
     /// </summary>
     public List<string> CheckedInSessions { get; set; } = new List<string>();
+
+    /// <summary>
+    /// History of all refunds issued against this ticket purchase.
+    /// Empty for RSVPs (no associated TicketPurchase) or tickets with no refunds.
+    /// Ordered by ProcessedAt descending (most recent first).
+    /// </summary>
+    public List<RefundHistoryDto> RefundHistory { get; set; } = new List<RefundHistoryDto>();
+
+    /// <summary>
+    /// Total amount already refunded for this ticket purchase.
+    /// Sum of all Completed refunds. 0 for RSVPs or tickets with no refunds.
+    /// </summary>
+    public decimal TotalRefunded { get; set; }
+
+    /// <summary>
+    /// Remaining refundable amount (AmountPaid - TotalRefunded).
+    /// 0 for RSVPs, fully refunded tickets, or free tickets.
+    /// </summary>
+    public decimal RemainingRefundable { get; set; }
 }

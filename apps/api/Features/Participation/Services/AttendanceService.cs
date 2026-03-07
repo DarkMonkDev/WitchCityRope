@@ -1732,15 +1732,19 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogInformation("Getting attendances for event {EventId}", eventId);
 
-            // Join with EventAttendees to get check-in status from CheckIns table
-            // FILTER: Only include Active attendances (exclude cancelled)
+            // Join with EventAttendees to get check-in status from CheckIns table.
+            // Include Active AND Cancelled/Refunded attendances so admins can see
+            // cancelled tickets with their refund history. Exclude only PendingPayment
+            // and Waitlisted which are transient states not useful in the admin table.
             var attendances = await _context.EventAttendances
                 .AsNoTracking()
                 .Include(ea => ea.User)
                 .Include(ea => ea.TicketPurchase)
                     .ThenInclude(tp => tp.TicketType)
                         .ThenInclude(tt => tt.Sessions)
-                .Where(ea => ea.EventId == eventId && ea.Status == AttendanceStatus.Active)
+                .Where(ea => ea.EventId == eventId
+                    && ea.Status != AttendanceStatus.PendingPayment
+                    && ea.Status != AttendanceStatus.Waitlisted)
                 .GroupJoin(
                     _context.EventAttendees
                         .Include(attendee => attendee.CheckIns)
@@ -1763,33 +1767,26 @@ public class AttendanceService : IAttendanceService
                     Status = x.Attendance.Status,
                     ParticipationDate = x.Attendance.CreatedAt,
                     Notes = x.Attendance.Notes,
+                    // Only active tickets/RSVPs can be cancelled or refunded
                     CanCancel = x.Attendance.Status == AttendanceStatus.Active,
                     Metadata = x.Attendance.Metadata,
-                    // Check-in status: true if EventAttendee has ANY CheckIn records
                     HasCheckedIn = x.Attendee != null && x.Attendee.CheckIns.Any(),
-                    // Check-in time from most recent CheckIn record
                     CheckInTime = x.Attendee != null && x.Attendee.CheckIns.Any()
                                   ? x.Attendee.CheckIns.OrderByDescending(c => c.CheckInTime).First().CheckInTime
                                   : (DateTime?)null,
-                    // Ticket type name from TicketPurchase navigation (null for RSVPs)
                     TicketTypeName = x.Attendance.TicketPurchase != null
                                      ? x.Attendance.TicketPurchase.TicketType.Name
                                      : null,
-                    // Session names from TicketType.Sessions (many-to-many)
                     SessionNames = x.Attendance.TicketPurchase != null && x.Attendance.TicketPurchase.TicketType.Sessions.Any()
                                    ? string.Join(", ", x.Attendance.TicketPurchase.TicketType.Sessions.OrderBy(s => s.StartTime).Select(s => s.Name))
                                    : "No Sessions",
-                    // Amount paid from TicketPurchase.TotalPrice (null for free RSVPs without TicketPurchase)
                     AmountPaid = x.Attendance.TicketPurchase != null
                                  ? x.Attendance.TicketPurchase.TotalPrice
                                  : (decimal?)null,
-                    // TicketPurchase ID for refund processing (null for free RSVPs without TicketPurchase)
                     TicketId = x.Attendance.TicketPurchaseId,
-                    // Payment method (generic for paid tickets, null for free RSVPs)
                     PaymentMethod = x.Attendance.TicketPurchase != null && x.Attendance.TicketPurchase.TotalPrice > 0
                                     ? "PayPal/Venmo/Cash"
                                     : null,
-                    // List of session names user has checked into
                     CheckedInSessions = x.Attendee != null
                                         ? x.Attendee.CheckIns
                                             .Where(c => c.Session != null)
@@ -1798,6 +1795,61 @@ public class AttendanceService : IAttendanceService
                                         : new List<string>()
                 })
                 .ToListAsync(cancellationToken);
+
+            // Second pass: populate refund history for tickets that have a TicketPurchase.
+            // Done in-memory to avoid complex nested subqueries in the main LINQ projection.
+            var ticketPurchaseIds = attendances
+                .Where(a => a.TicketId.HasValue)
+                .Select(a => a.TicketId!.Value)
+                .Distinct()
+                .ToList();
+
+            if (ticketPurchaseIds.Count > 0)
+            {
+                // Fetch all refunds for all ticket purchases in one query
+                var refundsByTicketPurchase = await _context.PaymentRefunds
+                    .AsNoTracking()
+                    .Include(pr => pr.ProcessedByUser)
+                    .Where(pr => ticketPurchaseIds.Contains(pr.TicketPurchaseId))
+                    .OrderByDescending(pr => pr.ProcessedAt)
+                    .ToListAsync(cancellationToken);
+
+                // Group refunds by TicketPurchaseId for O(1) lookup
+                var refundLookup = refundsByTicketPurchase
+                    .GroupBy(r => r.TicketPurchaseId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                foreach (var attendance in attendances)
+                {
+                    if (attendance.TicketId.HasValue)
+                    {
+                        if (refundLookup.TryGetValue(attendance.TicketId.Value, out var refunds))
+                        {
+                            attendance.RefundHistory = refunds.Select(r => new Features.Payments.Models.RefundHistoryDto
+                            {
+                                Id = r.Id,
+                                Amount = r.RefundAmountValue,
+                                Reason = r.RefundReason,
+                                Status = r.RefundStatus.ToString(),
+                                ProcessedAt = r.ProcessedAt,
+                                ProcessedByName = r.ProcessedByUser?.SceneName ?? r.ProcessedByUser?.Email ?? "System"
+                            }).ToList();
+
+                            var completedRefundTotal = refunds
+                                .Where(r => r.RefundStatus == Features.Payments.Models.RefundStatus.Completed)
+                                .Sum(r => r.RefundAmountValue);
+
+                            attendance.TotalRefunded = completedRefundTotal;
+                            attendance.RemainingRefundable = (attendance.AmountPaid ?? 0) - completedRefundTotal;
+                        }
+                        else
+                        {
+                            // No refunds yet — full amount is still refundable
+                            attendance.RemainingRefundable = attendance.AmountPaid ?? 0;
+                        }
+                    }
+                }
+            }
 
             _logger.LogInformation("Found {Count} attendances for event {EventId}", attendances.Count, eventId);
 

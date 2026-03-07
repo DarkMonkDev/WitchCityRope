@@ -132,7 +132,12 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
     setRefundModalOpened(true);
   };
 
-  const handleRefundConfirm = async (refundAmount: number, refundReason: string) => {
+  const handleRefundConfirm = async (
+    refundAmount: number,
+    refundReason: string,
+    cancelTicket: boolean,
+    alsoRemoveRsvp: boolean
+  ) => {
     if (!selectedPayment?.id) {
       throw new Error('No transaction ID available for refund');
     }
@@ -140,7 +145,9 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
     await refundMutation.mutateAsync({
       transactionId: selectedPayment.id,
       refundAmount,
-      refundReason
+      refundReason,
+      cancelTicket,
+      alsoRemoveRsvp
     });
   };
 

@@ -4114,66 +4114,6 @@
         }
       }
     },
-    "/api/admin/refunds/{ticketId}": {
-      "post": {
-        "tags": [
-          "Admin",
-          "Payments",
-          "Refunds"
-        ],
-        "summary": "Process PayPal refund for a ticket purchase",
-        "description": "Processes a full refund for a PayPal ticket purchase. Optionally removes RSVP. Requires Admin or Teacher role.",
-        "operationId": "RefundTicketById",
-        "parameters": [
-          {
-            "name": "ticketId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdminRefundTicketRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RefundResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
     "/api/payments/transactions/{transactionId}/refund": {
       "post": {
         "tags": [
@@ -4181,8 +4121,8 @@
           "Refunds",
           "Admin"
         ],
-        "summary": "Process variable amount refund for a payment transaction",
-        "description": "Processes a partial or full refund for a PayPal payment without canceling RSVP/ticket. Requires Admin or Teacher role.",
+        "summary": "Process refund and/or cancel ticket for a payment transaction",
+        "description": "Processes a partial or full refund, optionally cancels the ticket (revokes event access), and optionally removes the RSVP. Supports $0 cancellations (cancel without refund). Requires Admin or Teacher role.",
         "operationId": "ProcessVariableRefund",
         "parameters": [
           {
@@ -9457,6 +9397,99 @@
         }
       }
     },
+    "/api/email-templates/trigger-logs": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get email trigger log entries",
+        "description": "Returns email trigger log entries with optional filtering by event, status, template type, and date range. Admin access required.",
+        "operationId": "GetTriggerLogs",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "templateType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmailTriggerLogDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/email-templates/ad-hoc/schedule": {
       "post": {
         "tags": [
@@ -10902,17 +10935,6 @@
           }
         }
       },
-      "AdminRefundTicketRequest": {
-        "type": "object",
-        "properties": {
-          "alsoRemoveRsvp": {
-            "type": "boolean"
-          },
-          "refundReason": {
-            "type": "string"
-          }
-        }
-      },
       "AdminRemoveRsvpResponse": {
         "type": "object",
         "properties": {
@@ -11507,7 +11529,8 @@
           "Active",
           "Cancelled",
           "Refunded",
-          "Waitlisted"
+          "Waitlisted",
+          "PendingPayment"
         ]
       },
       "AttendanceType": {
@@ -13293,6 +13316,78 @@
           }
         }
       },
+      "EmailTriggerLogDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "eventTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sessionTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "templateType": {
+            "type": "string"
+          },
+          "triggerType": {
+            "type": "string"
+          },
+          "recipientGroup": {
+            "type": "string"
+          },
+          "recipientCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "triggeredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "EnhancedParticipationStatusDto": {
         "type": "object",
         "properties": {
@@ -13814,6 +13909,20 @@
             "items": {
               "type": "string"
             }
+          },
+          "refundHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RefundHistoryDto"
+            }
+          },
+          "totalRefunded": {
+            "type": "number",
+            "format": "double"
+          },
+          "remainingRefundable": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -13980,6 +14089,13 @@
             "type": "boolean"
           },
           "timingOffsetDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "timingOffsetHours": {
             "type": [
               "null",
               "integer"
@@ -15512,10 +15628,10 @@
           }
         }
       },
-      "RefundResponse": {
+      "RefundHistoryDto": {
         "type": "object",
         "properties": {
-          "refundId": {
+          "id": {
             "type": "string",
             "format": "uuid"
           },
@@ -15523,13 +15639,17 @@
             "type": "number",
             "format": "double"
           },
-          "currency": {
+          "reason": {
             "type": "string"
           },
           "status": {
             "type": "string"
           },
-          "message": {
+          "processedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "processedByName": {
             "type": "string"
           }
         }
@@ -17207,6 +17327,15 @@
             ],
             "format": "int32"
           },
+          "timingOffsetHours": {
+            "maximum": 23,
+            "minimum": -23,
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
           "recipientGroup": {
             "oneOf": [
               {
@@ -17839,13 +17968,19 @@
         "type": "object",
         "properties": {
           "refundAmount": {
-            "minimum": 0.01,
+            "minimum": 0,
             "type": "number",
             "format": "double"
           },
           "refundReason": {
             "minLength": 10,
             "type": "string"
+          },
+          "cancelTicket": {
+            "type": "boolean"
+          },
+          "alsoRemoveRsvp": {
+            "type": "boolean"
           }
         }
       },
@@ -17875,6 +18010,12 @@
           },
           "paymentStatus": {
             "type": "string"
+          },
+          "ticketCancelled": {
+            "type": "boolean"
+          },
+          "rsvpRemoved": {
+            "type": "boolean"
           }
         }
       },

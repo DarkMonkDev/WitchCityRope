@@ -1,13 +1,13 @@
-using Microsoft.AspNetCore.Authorization;
-using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Payments.Commands;
 using WitchCityRope.Api.Features.Payments.Models.Requests;
 
 namespace WitchCityRope.Api.Features.Payments.Endpoints;
 
 /// <summary>
-/// Refund endpoints for admin ticket refund operations
-/// Follows vertical slice architecture with direct service injection
+/// Refund endpoints for admin ticket refund and cancellation operations.
+/// Single unified endpoint supports: partial/full refunds, ticket cancellation,
+/// and optional RSVP removal — all in one request.
+/// Follows vertical slice architecture with direct service injection.
 /// </summary>
 public static class RefundEndpoints
 {
@@ -16,36 +16,21 @@ public static class RefundEndpoints
     /// </summary>
     public static void MapRefundEndpoints(this IEndpointRouteBuilder app)
     {
-        // EXISTING: Admin endpoint for full refund with RSVP cancellation
-        // SECURITY: CSRF protection enabled automatically via middleware
-        // CRITICAL: Financial transactions must validate CSRF tokens to prevent unauthorized refunds
-        app.MapPost("/api/admin/refunds/{ticketId:guid}", RefundTicket.Execute)
-            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Teacher"))
-            .WithName("RefundTicketById")
-            .WithSummary("Process PayPal refund for a ticket purchase")
-            .WithDescription("Processes a full refund for a PayPal ticket purchase. Optionally removes RSVP. Requires Admin or Teacher role.")
-            .WithTags("Admin", "Payments", "Refunds")
-            .Produces<RefundTicket.RefundResponse>(200)
-            .Produces(400) // Bad request (validation, already refunded, not PayPal)
-            .Produces(401) // Unauthorized
-            .Produces(403) // Forbidden (wrong role)
-            .Produces(404) // Ticket not found
-            .Produces(500); // Internal server error (refund failed)
-
-        // NEW: Variable refund endpoint (partial or full, NO RSVP cancellation)
+        // Unified refund + cancellation endpoint
+        // Supports: partial refund, full refund, ticket cancellation, RSVP removal
         // SECURITY: CSRF protection enabled automatically via middleware
         // CRITICAL: Financial transactions must validate CSRF tokens to prevent unauthorized refunds
         app.MapPost("/api/payments/transactions/{transactionId:guid}/refund", ProcessVariableRefund.Execute)
             .RequireAuthorization(policy => policy.RequireRole("Administrator", "Teacher"))
             .WithName("ProcessVariableRefund")
-            .WithSummary("Process variable amount refund for a payment transaction")
-            .WithDescription("Processes a partial or full refund for a PayPal payment without canceling RSVP/ticket. Requires Admin or Teacher role.")
+            .WithSummary("Process refund and/or cancel ticket for a payment transaction")
+            .WithDescription("Processes a partial or full refund, optionally cancels the ticket (revokes event access), and optionally removes the RSVP. Supports $0 cancellations (cancel without refund). Requires Admin or Teacher role.")
             .WithTags("Payments", "Refunds", "Admin")
             .Produces<ProcessVariableRefund.VariableRefundResponse>(200)
-            .Produces(400) // Bad request (validation errors, amount exceeds remaining, etc.)
-            .Produces(401) // Unauthorized
-            .Produces(403) // Forbidden (wrong role)
-            .Produces(404) // Transaction not found
-            .Produces(500); // Internal server error (refund processing failed)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(500);
     }
 }

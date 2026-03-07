@@ -1052,26 +1052,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/events/{eventId}/purchase-ticket": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Purchase ticket (alias)
-         * @description Alias for /api/events/{id}/tickets endpoint
-         */
-        post: operations["PurchaseTicketAlias"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/attendance/{attendanceId}": {
         parameters: {
             query?: never;
@@ -1167,26 +1147,6 @@ export interface paths {
          * @description Removes user's RSVP and processes ticket refund if exists. Auto-cancels volunteer shifts. Admin role required.
          */
         delete: operations["AdminRemoveRsvp"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/events/{eventId}/tickets/{userId}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Refund ticket with optional RSVP removal (admin only)
-         * @description Refunds user's ticket and optionally removes RSVP. Auto-cancels volunteer shifts. Admin role required.
-         */
-        post: operations["AdminRefundTicket"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1336,26 +1296,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/refunds/{ticketId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Process PayPal refund for a ticket purchase
-         * @description Processes a full refund for a PayPal ticket purchase. Optionally removes RSVP. Requires Admin or Teacher role.
-         */
-        post: operations["RefundTicketById"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/payments/transactions/{transactionId}/refund": {
         parameters: {
             query?: never;
@@ -1366,10 +1306,30 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Process variable amount refund for a payment transaction
-         * @description Processes a partial or full refund for a PayPal payment without canceling RSVP/ticket. Requires Admin or Teacher role.
+         * Process refund and/or cancel ticket for a payment transaction
+         * @description Processes a partial or full refund, optionally cancels the ticket (revokes event access), and optionally removes the RSVP. Supports $0 cancellations (cancel without refund). Requires Admin or Teacher role.
          */
         post: operations["ProcessVariableRefund"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client-errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ingest frontend error reports
+         * @description Receives a batch of client-side error reports for server-side logging and analysis
+         */
+        post: operations["ReportClientErrors"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2988,6 +2948,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email-templates/trigger-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get email trigger log entries
+         * @description Returns email trigger log entries with optional filtering by event, status, template type, and date range. Admin access required.
+         */
+        get: operations["GetTriggerLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/email-templates/ad-hoc/schedule": {
         parameters: {
             query?: never;
@@ -3080,6 +3060,66 @@ export interface paths {
          * @description Lists all content pages with revision counts. Requires Administrator role.
          */
         get: operations["GetAllCmsPages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query application logs
+         * @description Search and filter raw application logs with pagination. Returns logs ordered by timestamp descending.
+         */
+        get: operations["QueryLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/logs/summaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query daily log summaries
+         * @description Retrieve aggregated daily log summaries with optional category filter.
+         */
+        get: operations["QueryDailyLogSummaries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/logs/summaries/cc-failures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query credit card failure summaries
+         * @description Convenience endpoint to retrieve daily credit card failure summaries.
+         */
+        get: operations["QueryCcFailureSummaries"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3307,65 +3347,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/payments/credit-card": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreditCardPaymentRequest"];
-                    "text/json": components["schemas"]["CreditCardPaymentRequest"];
-                    "application/*+json": components["schemas"]["CreditCardPaymentRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["CreditCardPaymentResponse"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/kiosk/payment-stream/{sessionToken}": {
         parameters: {
             query?: never;
@@ -3517,300 +3498,6 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/process": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["ProcessPaymentApiRequest"];
-                    "text/json": components["schemas"]["ProcessPaymentApiRequest"];
-                    "application/*+json": components["schemas"]["ProcessPaymentApiRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["PaymentResponse"];
-                        "application/json": components["schemas"]["PaymentResponse"];
-                        "text/json": components["schemas"]["PaymentResponse"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ValidationProblemDetails"];
-                        "application/json": components["schemas"]["ValidationProblemDetails"];
-                        "text/json": components["schemas"]["ValidationProblemDetails"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/{paymentId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    paymentId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["PaymentResponse"];
-                        "application/json": components["schemas"]["PaymentResponse"];
-                        "text/json": components["schemas"]["PaymentResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/registration/{eventRegistrationId}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    eventRegistrationId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["PaymentStatusResponse"];
-                        "application/json": components["schemas"]["PaymentStatusResponse"];
-                        "text/json": components["schemas"]["PaymentStatusResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/{paymentId}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    paymentId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["ProcessRefundApiRequest"];
-                    "text/json": components["schemas"]["ProcessRefundApiRequest"];
-                    "application/*+json": components["schemas"]["ProcessRefundApiRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["RefundResponse"];
-                        "application/json": components["schemas"]["RefundResponse"];
-                        "text/json": components["schemas"]["RefundResponse"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ValidationProblemDetails"];
-                        "application/json": components["schemas"]["ValidationProblemDetails"];
-                        "text/json": components["schemas"]["ValidationProblemDetails"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
         delete?: never;
         options?: never;
         head?: never;
@@ -4162,18 +3849,6 @@ export interface components {
             recentIncidents?: components["schemas"]["IncidentSummaryResponse"][];
             pendingActions?: components["schemas"]["ActionItem"][];
         };
-        AdminRefundTicketRequest: {
-            alsoRemoveRsvp?: boolean;
-            refundReason?: string;
-        };
-        AdminRefundTicketResponse: {
-            ticketRefunded?: boolean;
-            /** Format: double */
-            refundAmount?: number;
-            rsvpRemoved?: boolean;
-            volunteerShiftsRemoved?: boolean;
-            volunteerShiftNames?: string[];
-        };
         AdminRemoveRsvpResponse: {
             rsvpRemoved?: boolean;
             ticketRefunded?: boolean;
@@ -4363,7 +4038,7 @@ export interface components {
             userId?: string;
         };
         /** @enum {unknown} */
-        AttendanceStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted";
+        AttendanceStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted" | "PendingPayment";
         /** @enum {unknown} */
         AttendanceType: "RSVP" | "Ticket";
         AttendeeResponse: {
@@ -4561,6 +4236,19 @@ export interface components {
             authCode?: null | string;
             /** Format: double */
             amountCharged?: number;
+        };
+        ClientErrorBatch: {
+            errors: components["schemas"]["ClientErrorReport"][];
+        };
+        ClientErrorReport: {
+            message: string;
+            stack?: null | string;
+            type: string;
+            url: string;
+            timestamp: string;
+            userAgent: string;
+            componentStack?: null | string;
+            metadata?: null | Record<string, never>;
         };
         CmsPageSummaryDto: {
             /** Format: int32 */
@@ -4804,20 +4492,14 @@ export interface components {
             venueInformation?: null | string;
             location?: null | string;
         };
-        CreditCardPaymentRequest: {
-            nonce?: string;
-            dataDescriptor?: string;
-            /** Format: double */
-            amount?: number;
-            /** Format: uuid */
-            ticketPurchaseId?: null | string;
-            lastFourDigits?: null | string;
-            cardType?: null | string;
-        };
-        CreditCardPaymentResponse: {
-            transactionId?: string;
-            status?: string;
-            authCode?: null | string;
+        DailyLogSummaryDto: {
+            /** Format: date */
+            date?: string;
+            category?: string;
+            subcategory?: null | string;
+            /** Format: int32 */
+            count?: number;
+            metadata?: null | string;
         };
         DashboardResponse: {
             eventId?: string;
@@ -4874,6 +4556,29 @@ export interface components {
             /** Format: int32 */
             userCount?: number;
             version?: string;
+        };
+        EmailTriggerLogDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            templateId?: string;
+            /** Format: uuid */
+            eventId?: null | string;
+            eventTitle?: null | string;
+            /** Format: uuid */
+            sessionId?: null | string;
+            sessionTitle?: null | string;
+            templateType?: string;
+            triggerType?: string;
+            recipientGroup?: string;
+            /** Format: int32 */
+            recipientCount?: number;
+            /** Format: date-time */
+            triggeredAt?: string;
+            /** Format: date-time */
+            sentAt?: null | string;
+            status?: string;
+            errorMessage?: null | string;
         };
         EnhancedParticipationStatusDto: {
             hasRSVP?: boolean;
@@ -5040,6 +4745,11 @@ export interface components {
             ticketId?: null | string;
             paymentMethod?: null | string;
             checkedInSessions?: string[];
+            refundHistory?: components["schemas"]["RefundHistoryDto"][];
+            /** Format: double */
+            totalRefunded?: number;
+            /** Format: double */
+            remainingRefundable?: number;
         };
         /** @enum {unknown} */
         EventRecipientGroup: "SessionAttendees" | "RSVPTicketHolders" | "SessionVolunteers" | "Teachers" | null;
@@ -5095,6 +4805,8 @@ export interface components {
             triggerEnabled?: boolean;
             /** Format: int32 */
             timingOffsetDays?: null | number;
+            /** Format: int32 */
+            timingOffsetHours?: null | number;
             recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
         GoogleDriveUpdateResponse: {
@@ -5232,6 +4944,21 @@ export interface components {
         };
         /** @enum {unknown} */
         IncidentType: "SafetyConcern" | "BoundaryViolation" | "Harassment" | "OtherConcern";
+        LogEntryDto: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: date-time */
+            timestamp?: string;
+            levelName?: string;
+            message?: string;
+            exception?: null | string;
+            sourceContext?: null | string;
+            /** Format: uuid */
+            userId?: null | string;
+            /** Format: uuid */
+            correlationId?: null | string;
+            requestPath?: null | string;
+        };
         LoginRequest: {
             emailOrSceneName: string;
             password: string;
@@ -5243,6 +4970,19 @@ export interface components {
             expiresAt?: string;
             user?: components["schemas"]["AuthUserResponse"];
             returnUrl?: null | string;
+        };
+        LogQueryResponse: {
+            items?: components["schemas"]["LogEntryDto"][];
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            hasPreviousPage?: boolean;
+            hasNextPage?: boolean;
         };
         ManualEntryData: {
             name: string;
@@ -5431,52 +5171,6 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
-        /** @enum {unknown} */
-        PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo" | "Cash";
-        PaymentResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            eventRegistrationId?: string;
-            /** Format: uuid */
-            userId?: string;
-            /** Format: double */
-            amount?: number;
-            currency?: string;
-            displayAmount?: string;
-            /** Format: double */
-            originalAmount?: null | number;
-            /** Format: double */
-            slidingScalePercentage?: number;
-            /** Format: double */
-            discountAmount?: null | number;
-            status?: components["schemas"]["PaymentStatus"];
-            statusDescription?: string;
-            paymentMethodType?: components["schemas"]["PaymentMethodType"];
-            /** Format: date-time */
-            processedAt?: null | string;
-            /** Format: date-time */
-            createdAt?: string;
-            refundInfo?: null | components["schemas"]["RefundInfoResponse"];
-            clientSecret?: null | string;
-        };
-        /** @enum {unknown} */
-        PaymentStatus: "Pending" | "Completed" | "Failed" | "Refunded" | "PartiallyRefunded";
-        PaymentStatusResponse: {
-            /** Format: uuid */
-            paymentId?: string;
-            /** Format: uuid */
-            eventRegistrationId?: string;
-            status?: components["schemas"]["PaymentStatus"];
-            statusDescription?: string;
-            isCompleted?: boolean;
-            isRefunded?: boolean;
-            /** Format: double */
-            amount?: number;
-            currency?: string;
-            /** Format: date-time */
-            processedAt?: null | string;
-        };
         PaymentTransactionDto: {
             /** Format: uuid */
             id?: string;
@@ -5522,27 +5216,6 @@ export interface components {
             status?: null | number;
             detail?: null | string;
             instance?: null | string;
-        };
-        ProcessPaymentApiRequest: {
-            /** Format: uuid */
-            eventRegistrationId?: string;
-            /** Format: double */
-            originalAmount?: number;
-            currency?: string;
-            /** Format: double */
-            slidingScalePercentage?: number;
-            paymentMethodType?: components["schemas"]["PaymentMethodType"];
-            returnUrl?: null | string;
-            cancelUrl?: null | string;
-        };
-        ProcessRefundApiRequest: {
-            /** Format: uuid */
-            paymentId?: string;
-            /** Format: double */
-            refundAmount?: number;
-            currency?: string;
-            refundReason?: string;
-            metadata?: Record<string, never>;
         };
         ProfileChangeHistoryDto: {
             /** Format: date-time */
@@ -5615,26 +5288,16 @@ export interface components {
             /** Format: date-time */
             respondedAt?: null | string;
         };
-        RefundInfoResponse: {
-            /** Format: double */
-            refundedAmount?: number;
-            currency?: string;
-            displayAmount?: string;
-            /** Format: date-time */
-            refundedAt?: null | string;
-            refundReason?: null | string;
-            /** Format: int32 */
-            refundCount?: number;
-            isPartialRefund?: boolean;
-        };
-        RefundResponse: {
+        RefundHistoryDto: {
             /** Format: uuid */
-            refundId?: string;
+            id?: string;
             /** Format: double */
             amount?: number;
-            currency?: string;
+            reason?: string;
             status?: string;
-            message?: string;
+            /** Format: date-time */
+            processedAt?: string;
+            processedByName?: string;
         };
         RegisterRequest: {
             email: string;
@@ -6108,6 +5771,8 @@ export interface components {
             triggerEnabled: boolean;
             /** Format: int32 */
             timingOffsetDays?: null | number;
+            /** Format: int32 */
+            timingOffsetHours?: null | number;
             recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
         UpdateUserRequest: {
@@ -6302,17 +5967,6 @@ export interface components {
             shiftEndTime?: null | string;
             canCancel?: boolean;
         };
-        ValidationProblemDetails: {
-            type?: null | string;
-            title?: null | string;
-            /** Format: int32 */
-            status?: null | number;
-            detail?: null | string;
-            instance?: null | string;
-            errors?: {
-                [key: string]: string[];
-            };
-        };
         ValidRolesResponse: {
             roles?: string[];
         };
@@ -6320,6 +5974,8 @@ export interface components {
             /** Format: double */
             refundAmount: number;
             refundReason: string;
+            cancelTicket?: boolean;
+            alsoRemoveRsvp?: boolean;
         };
         VariableRefundResponse: {
             /** Format: uuid */
@@ -6332,6 +5988,8 @@ export interface components {
             /** Format: double */
             remainingRefundableAmount?: number;
             paymentStatus?: string;
+            ticketCancelled?: boolean;
+            rsvpRemoved?: boolean;
         };
         VenueDto: {
             /** Format: int32 */
@@ -9277,74 +8935,6 @@ export interface operations {
             };
         };
     };
-    PurchaseTicketAlias: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateTicketPurchaseRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ParticipationStatusDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     CancelAttendanceById: {
         parameters: {
             query?: {
@@ -9553,61 +9143,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminRemoveRsvpResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AdminRefundTicket: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdminRefundTicketRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminRefundTicketResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -10151,67 +9686,6 @@ export interface operations {
             };
         };
     };
-    RefundTicketById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                ticketId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdminRefundTicketRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RefundResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     ProcessVariableRefund: {
         parameters: {
             query?: never;
@@ -10266,6 +9740,42 @@ export interface operations {
             };
             /** @description Internal Server Error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReportClientErrors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientErrorBatch"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Too Many Requests */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -14477,6 +13987,51 @@ export interface operations {
             };
         };
     };
+    GetTriggerLogs: {
+        parameters: {
+            query?: {
+                eventId?: string;
+                status?: string;
+                templateType?: string;
+                fromDate?: string;
+                toDate?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailTriggerLogDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     ScheduleAdHocEmail: {
         parameters: {
             query?: never;
@@ -14664,6 +14219,137 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    QueryLogs: {
+        parameters: {
+            query: {
+                From?: string;
+                To?: string;
+                Level?: string;
+                SourceContext?: string;
+                UserId?: string;
+                CorrelationId?: string;
+                Search?: string;
+                Page: number;
+                PageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogQueryResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    QueryDailyLogSummaries: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                category?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyLogSummaryDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    QueryCcFailureSummaries: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyLogSummaryDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
