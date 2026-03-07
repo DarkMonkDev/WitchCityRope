@@ -560,12 +560,11 @@ public class MemberDetailsSecurityIntegrationTests : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData("Admin")]
     [InlineData("Teacher")]
-    [InlineData("VettedMember")]
-    [InlineData("Member")]
-    [InlineData("Guest")]
     [InlineData("SafetyTeam")]
+    [InlineData("Administrator")]
+    [InlineData("EventOrganizer")]
+    [InlineData("DungeonMonitor")]
     public async Task UpdateMemberRole_AllowsAllValidRoles(string validRole)
     {
         // Arrange

@@ -10,6 +10,9 @@ using WitchCityRope.Api.Features.Payments.Endpoints;
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.EmailTemplates.Services;
+using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
 using FluentAssertions;
 using NSubstitute;
@@ -23,38 +26,44 @@ namespace WitchCityRope.UnitTests.Api.Features.Payments;
 /// <summary>
 /// Unit tests for KioskPaymentEndpoints (Pattern B)
 /// Tests cash payment recording, health check endpoints
-/// Note: SSE stream testing requires integration tests as it's difficult to unit test SSE properly
+/// Uses TestContainers PostgreSQL via DatabaseTestFixture (NOT InMemoryDatabase)
 /// </summary>
-public class KioskPaymentEndpointsTests : IDisposable
+[Collection("Database")]
+public class KioskPaymentEndpointsTests : IAsyncLifetime
 {
+    private readonly DatabaseTestFixture _fixture;
     private readonly IPaymentNotificationService _mockNotificationService;
     private readonly ISessionTokenService _mockSessionTokenService;
-    private readonly ApplicationDbContext _dbContext;
+    private ApplicationDbContext _dbContext = null!;
+    private readonly IEventEmailService _mockEventEmailService;
     private readonly ILogger<KioskPaymentEndpoints> _mockLogger;
-    private readonly KioskPaymentEndpoints _sut;
+    private KioskPaymentEndpoints _sut = null!;
 
-    public KioskPaymentEndpointsTests()
+    public KioskPaymentEndpointsTests(DatabaseTestFixture fixture)
     {
+        _fixture = fixture;
         _mockNotificationService = Substitute.For<IPaymentNotificationService>();
         _mockSessionTokenService = Substitute.For<ISessionTokenService>();
+        _mockEventEmailService = Substitute.For<IEventEmailService>();
         _mockLogger = Substitute.For<ILogger<KioskPaymentEndpoints>>();
+    }
 
-        // Create in-memory database for testing
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        _dbContext = new ApplicationDbContext(options);
+    public async Task InitializeAsync()
+    {
+        _dbContext = _fixture.CreateDbContext();
 
         _sut = new KioskPaymentEndpoints(
             _mockNotificationService,
             _mockSessionTokenService,
             _dbContext,
+            _mockEventEmailService,
             _mockLogger);
     }
 
-    public void Dispose()
+    public async Task DisposeAsync()
     {
-        _dbContext.Dispose();
+        _dbContext?.Dispose();
+        await _fixture.ResetDatabaseAsync();
     }
 
     #region RecordCashPayment Tests
@@ -77,10 +86,8 @@ public class KioskPaymentEndpointsTests : IDisposable
             SessionToken = null
         };
 
-        // Setup test data
         await SetupTestDataAsync(eventId, attendeeId, sessionToken, staffId);
 
-        // Mock session token validation
         var tokenValidationResult = new TokenValidationResult
         {
             EventId = eventId,
@@ -106,7 +113,7 @@ public class KioskPaymentEndpointsTests : IDisposable
 
         var response = (KioskCashPaymentResponse)okResult.Value!;
         response.Success.Should().BeTrue();
-        response.PaymentId.Should().NotBeEmpty();
+        response.TicketPurchaseId.Should().NotBeEmpty();
         response.AttendeeId.Should().Be(attendeeId);
         response.EventId.Should().Be(eventId);
         response.Amount.Should().Be(amount);
@@ -114,16 +121,15 @@ public class KioskPaymentEndpointsTests : IDisposable
         response.Message.Should().Be("Cash payment recorded");
 
         // Verify payment was created in database
-        var payment = await _dbContext.Set<Payment>()
-            .FirstOrDefaultAsync(p => p.Id == response.PaymentId);
+        var payment = await _dbContext.TicketPurchases
+            .FirstOrDefaultAsync(p => p.Id == response.TicketPurchaseId);
         payment.Should().NotBeNull();
-        payment!.AmountValue.Should().Be(amount);
+        payment!.TotalPrice.Should().Be(amount);
         payment.UserId.Should().Be(attendeeId);
-        payment.Status.Should().Be(WitchCityRope.Api.Features.Payments.Models.PaymentStatus.Completed);
-        payment.PaymentMethodType.Should().Be(WitchCityRope.Api.Features.Payments.Models.PaymentMethodType.Cash);
-        payment.Metadata["recordedBy"].Should().Be(staffId.ToString());
-        payment.Metadata["sessionToken"].Should().Be(sessionToken);
-        payment.Metadata["paymentSource"].Should().Be("DoorCash");
+        payment.PaymentStatus.Should().Be(TicketPurchasePaymentStatus.Completed);
+        payment.PaymentMethod.Should().Be("Cash");
+        payment.RecordedByStaffId.Should().Be(staffId);
+        payment.PaymentReference.Should().StartWith("DOOR-");
     }
 
     [Fact]
@@ -138,7 +144,6 @@ public class KioskPaymentEndpointsTests : IDisposable
         };
 
         var httpContext = new DefaultHttpContext();
-        // No X-CheckIn-Token header
 
         // Act
         var result = await CallRecordCashPayment(eventId, request, httpContext);
@@ -199,7 +204,7 @@ public class KioskPaymentEndpointsTests : IDisposable
 
         var tokenValidationResult = new TokenValidationResult
         {
-            EventId = differentEventId, // Different event
+            EventId = differentEventId,
             CreatedByStaffId = Guid.NewGuid()
         };
         _mockSessionTokenService.ValidateTokenAsync(sessionToken, Arg.Any<CancellationToken>())
@@ -230,7 +235,7 @@ public class KioskPaymentEndpointsTests : IDisposable
         var request = new KioskCashPaymentRequest
         {
             AttendeeId = Guid.NewGuid(),
-            Amount = 0.00m // Below minimum
+            Amount = 0.00m
         };
 
         var tokenValidationResult = new TokenValidationResult
@@ -266,7 +271,7 @@ public class KioskPaymentEndpointsTests : IDisposable
         var request = new KioskCashPaymentRequest
         {
             AttendeeId = Guid.NewGuid(),
-            Amount = 1001.00m // Exceeds maximum
+            Amount = 1001.00m
         };
 
         var tokenValidationResult = new TokenValidationResult
@@ -344,12 +349,17 @@ public class KioskPaymentEndpointsTests : IDisposable
             Amount = 20.00m
         };
 
+        // Create event infrastructure for FK constraints
+        await CreateEventInfrastructureAsync(eventId, staffId);
+
         // Only create session token, not the attendee
+        var session = await _dbContext.Sessions.FirstAsync(s => s.EventId == eventId);
         var sessionTokenEntity = new CheckInSessionToken
         {
             Id = Guid.NewGuid(),
             Token = sessionToken,
             EventId = eventId,
+            SessionId = session.Id,
             CreatedByUserId = staffId,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddHours(12)
@@ -397,22 +407,42 @@ public class KioskPaymentEndpointsTests : IDisposable
             Amount = 20.00m
         };
 
+        // Create event infrastructure for FK constraints
+        await CreateEventInfrastructureAsync(eventId, staffId);
+        await CreateEventInfrastructureAsync(differentEventId);
+
+        // Create attendee user
+        var attendeeUser = new ApplicationUser
+        {
+            Id = attendeeId,
+            Email = $"attendee-{attendeeId:N}@test.com",
+            UserName = $"attendee-{attendeeId:N}@test.com",
+            SceneName = $"Attendee",
+            EmailConfirmed = true,
+            Role = "",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Users.Add(attendeeUser);
+
         // Create attendee for DIFFERENT event
         var attendee = new EventAttendee
         {
             Id = Guid.NewGuid(),
             UserId = attendeeId,
-            EventId = differentEventId, // Different event
+            EventId = differentEventId,
             RegistrationStatus = "confirmed"
         };
         _dbContext.Set<EventAttendee>().Add(attendee);
 
         // Create session token
+        var session = await _dbContext.Sessions.FirstAsync(s => s.EventId == eventId);
         var sessionTokenEntity = new CheckInSessionToken
         {
             Id = Guid.NewGuid(),
             Token = sessionToken,
             EventId = eventId,
+            SessionId = session.Id,
             CreatedByUserId = staffId,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddHours(12)
@@ -459,7 +489,7 @@ public class KioskPaymentEndpointsTests : IDisposable
         {
             AttendeeId = attendeeId,
             Amount = amount,
-            SessionToken = kioskSessionToken // This should trigger SSE notification
+            SessionToken = kioskSessionToken
         };
 
         await SetupTestDataAsync(eventId, attendeeId, sessionToken, staffId);
@@ -492,7 +522,6 @@ public class KioskPaymentEndpointsTests : IDisposable
         var actionResult = (ActionResult<KioskCashPaymentResponse>)result;
         actionResult.Result.Should().BeOfType<OkObjectResult>();
 
-        // Verify SSE notification was sent
         await _mockNotificationService.Received(1).NotifyPaymentComplete(
             kioskSessionToken,
             attendeeId,
@@ -501,12 +530,12 @@ public class KioskPaymentEndpointsTests : IDisposable
             amount,
             "Cash");
 
-        // Verify payment metadata includes kiosk session token
         var okResult = (OkObjectResult)actionResult.Result!;
         var response = (KioskCashPaymentResponse)okResult.Value!;
-        var payment = await _dbContext.Set<Payment>()
-            .FirstOrDefaultAsync(p => p.Id == response.PaymentId);
-        payment!.Metadata["kioskSessionToken"].Should().Be(kioskSessionToken);
+        var payment = await _dbContext.TicketPurchases
+            .FirstOrDefaultAsync(p => p.Id == response.TicketPurchaseId);
+        payment.Should().NotBeNull();
+        payment!.PaymentMethod.Should().Be("Cash");
     }
 
     [Fact]
@@ -549,11 +578,10 @@ public class KioskPaymentEndpointsTests : IDisposable
 
         var okResult = (OkObjectResult)actionResult.Result!;
         var response = (KioskCashPaymentResponse)okResult.Value!;
-        var payment = await _dbContext.Set<Payment>()
-            .FirstOrDefaultAsync(p => p.Id == response.PaymentId);
+        var payment = await _dbContext.TicketPurchases
+            .FirstOrDefaultAsync(p => p.Id == response.TicketPurchaseId);
         payment.Should().NotBeNull();
-        payment!.Metadata.Should().ContainKey("notes");
-        payment.Metadata["notes"].Should().Be(notes);
+        payment!.Notes.Should().Be(notes);
     }
 
     #endregion
@@ -575,11 +603,9 @@ public class KioskPaymentEndpointsTests : IDisposable
         var okResult = (OkObjectResult)result;
         okResult.StatusCode.Should().Be(200);
 
-        // Verify response contains expected properties
         var value = okResult.Value;
         value.Should().NotBeNull();
 
-        // Use reflection to check anonymous object properties
         var statusProp = value!.GetType().GetProperty("status");
         statusProp.Should().NotBeNull();
         statusProp!.GetValue(value).Should().Be("healthy");
@@ -620,12 +646,69 @@ public class KioskPaymentEndpointsTests : IDisposable
 
     #region Helper Methods
 
-    /// <summary>
-    /// Sets up test data including session token and event attendee
-    /// </summary>
     private async Task SetupTestDataAsync(Guid eventId, Guid attendeeId, string sessionToken, Guid staffId)
     {
-        // Create event attendee (registration)
+        // Create users for FK constraints
+        var attendeeUser = new ApplicationUser
+        {
+            Id = attendeeId,
+            Email = $"attendee-{attendeeId:N}@test.com",
+            UserName = $"attendee-{attendeeId:N}@test.com",
+            SceneName = $"Attendee{attendeeId.ToString()[..8]}",
+            EmailConfirmed = true,
+            Role = "",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        var staffUser = new ApplicationUser
+        {
+            Id = staffId,
+            Email = $"staff-{staffId:N}@test.com",
+            UserName = $"staff-{staffId:N}@test.com",
+            SceneName = $"Staff{staffId.ToString()[..8]}",
+            EmailConfirmed = true,
+            Role = "Administrator",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Users.AddRange(attendeeUser, staffUser);
+
+        // Create Venue → Event → Session chain for FK constraints
+        var venue = new Venue
+        {
+            Name = $"KioskTestVenue-{Guid.NewGuid():N}"[..30],
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Venues.Add(venue);
+        await _dbContext.SaveChangesAsync();
+
+        var testEvent = new Event
+        {
+            Id = eventId,
+            Title = "Kiosk Payment Test Event",
+            Description = "Test",
+            VenueId = venue.Id,
+            StartDate = DateTime.UtcNow.AddDays(1),
+            EndDate = DateTime.UtcNow.AddDays(1).AddHours(3),
+            Capacity = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Events.Add(testEvent);
+
+        var session = new Session
+        {
+            Id = Guid.NewGuid(),
+            EventId = eventId,
+            StartTime = testEvent.StartDate,
+            EndTime = testEvent.EndDate,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Sessions.Add(session);
+
         var attendee = new EventAttendee
         {
             Id = Guid.NewGuid(),
@@ -635,12 +718,12 @@ public class KioskPaymentEndpointsTests : IDisposable
         };
         _dbContext.Set<EventAttendee>().Add(attendee);
 
-        // Create session token entity
         var sessionTokenEntity = new CheckInSessionToken
         {
             Id = Guid.NewGuid(),
             Token = sessionToken,
             EventId = eventId,
+            SessionId = session.Id,
             CreatedByUserId = staffId,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddHours(12)
@@ -651,14 +734,73 @@ public class KioskPaymentEndpointsTests : IDisposable
     }
 
     /// <summary>
-    /// Simulates calling RecordCashPayment endpoint
+    /// Creates minimum event infrastructure (Venue → Event → Session) for tests that don't need full attendee setup
     /// </summary>
+    private async Task CreateEventInfrastructureAsync(Guid eventId, Guid? staffId = null)
+    {
+        // Create staff user if provided
+        if (staffId.HasValue)
+        {
+            var existingUser = await _dbContext.Users.FindAsync(staffId.Value);
+            if (existingUser == null)
+            {
+                var staff = new ApplicationUser
+                {
+                    Id = staffId.Value,
+                    Email = $"staff-{staffId.Value:N}@test.com",
+                    UserName = $"staff-{staffId.Value:N}@test.com",
+                    SceneName = $"Staff{staffId.Value.ToString()[..8]}",
+                    EmailConfirmed = true,
+                    Role = "Administrator",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _dbContext.Users.Add(staff);
+            }
+        }
+
+        var venue = new Venue
+        {
+            Name = $"Venue-{Guid.NewGuid():N}"[..30],
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Venues.Add(venue);
+        await _dbContext.SaveChangesAsync();
+
+        var testEvent = new Event
+        {
+            Id = eventId,
+            Title = "Test Event",
+            Description = "Test",
+            VenueId = venue.Id,
+            StartDate = DateTime.UtcNow.AddDays(1),
+            EndDate = DateTime.UtcNow.AddDays(1).AddHours(3),
+            Capacity = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Events.Add(testEvent);
+
+        var session = new Session
+        {
+            Id = Guid.NewGuid(),
+            EventId = eventId,
+            StartTime = testEvent.StartDate,
+            EndTime = testEvent.EndDate,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Sessions.Add(session);
+        await _dbContext.SaveChangesAsync();
+    }
+
     private async Task<ActionResult<KioskCashPaymentResponse>> CallRecordCashPayment(
         Guid eventId,
         KioskCashPaymentRequest request,
         HttpContext httpContext)
     {
-        // Set controller context
         _sut.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext

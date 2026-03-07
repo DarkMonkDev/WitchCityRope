@@ -30,26 +30,7 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
     public EmailTemplateEndpointsIntegrationTests(DatabaseTestFixture fixture)
         : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Remove the app's DbContext registration
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    // Add DbContext using the test container's connection string
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     public void Dispose()
@@ -75,7 +56,7 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<List<GlobalEmailTemplateDto>>();
+        var result = await response.Content.ReadFromJsonAsync<List<GlobalEmailTemplateDto>>(JsonOptions);
         result.Should().NotBeNull();
         result.Should().NotBeNullOrEmpty();
         result!.Count.Should().BeGreaterThanOrEqualTo(2);
@@ -130,7 +111,7 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<GlobalEmailTemplateDto>();
+        var result = await response.Content.ReadFromJsonAsync<GlobalEmailTemplateDto>(JsonOptions);
         result.Should().NotBeNull();
         result!.Subject.Should().Be("Updated Subject Line");
         result.Version.Should().BeGreaterThan(1);
@@ -483,7 +464,7 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
             VenueId = venueId,
-            EventType = WitchCityRope.Api.Enums.EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,

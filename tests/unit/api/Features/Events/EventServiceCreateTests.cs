@@ -22,7 +22,7 @@ namespace WitchCityRope.Api.Tests.Features.Events;
 [Collection("Database")]
 public class EventServiceCreateTests : DatabaseTestBase
 {
-    private readonly EventService _sut;
+    private EventService _sut = null!;
     private readonly Mock<ILogger<EventService>> _mockLogger;
     private readonly Mock<ITimeZoneService> _mockTimeZoneService;
     private int _testVenueId;
@@ -31,12 +31,14 @@ public class EventServiceCreateTests : DatabaseTestBase
     {
         _mockLogger = new Mock<ILogger<EventService>>();
         _mockTimeZoneService = new Mock<ITimeZoneService>();
-        _sut = new EventService(DbContext, _mockLogger.Object, _mockTimeZoneService.Object);
     }
 
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
+
+        // Create SUT after DbContext is initialized
+        _sut = new EventService(DbContext, _mockLogger.Object, _mockTimeZoneService.Object);
 
         // Create test venue for FK constraint
         var venue = new Venue

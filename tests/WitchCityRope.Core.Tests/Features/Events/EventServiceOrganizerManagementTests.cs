@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
@@ -38,6 +37,21 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
         _context = _fixture.CreateDbContext();
         await _fixture.ResetDatabaseAsync();
 
+        // Ensure test venue exists (required FK for Events)
+        var existingVenue = await _context.Venues.FindAsync(1);
+        if (existingVenue == null)
+        {
+            _context.Venues.Add(new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                Location = "123 Test St, Salem, MA",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
         _mockLogger = new Mock<ILogger<EventService>>();
         _mockTimeZoneService = new Mock<ITimeZoneService>();
         _mockTimeZoneService.Setup(x => x.GetEventTimeZoneAsync(It.IsAny<CancellationToken>()))
@@ -56,7 +70,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_AddOrganizers_AssignsOrganizersSuccessfully()
     {
         // Arrange - Create event and teacher users
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         _context.Events.Add(testEvent);
 
         var teacher1 = CreateTestUser("teacher1@test.com", "Teacher One");
@@ -97,7 +111,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_RemoveOrganizers_RemovesOrganizersSuccessfully()
     {
         // Arrange - Create event with existing organizers
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var teacher1 = CreateTestUser("teacher1@test.com", "Teacher One");
         var teacher2 = CreateTestUser("teacher2@test.com", "Teacher Two");
         testEvent.Organizers.Add(teacher1);
@@ -138,7 +152,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_ReplaceOrganizers_UpdatesOrganizersSuccessfully()
     {
         // Arrange - Create event with existing organizer
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var oldTeacher = CreateTestUser("old@test.com", "Old Teacher");
         var newTeacher = CreateTestUser("new@test.com", "New Teacher");
         testEvent.Organizers.Add(oldTeacher);
@@ -178,7 +192,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_AddOrganizerToEventWithExistingOrganizers_AddsAdditionalOrganizer()
     {
         // Arrange - Create event with one organizer, add another
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var existingTeacher = CreateTestUser("existing@test.com", "Existing Teacher");
         var newTeacher = CreateTestUser("new@test.com", "New Teacher");
         testEvent.Organizers.Add(existingTeacher);
@@ -219,22 +233,22 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_AddVolunteerPositions_CreatesPositionsSuccessfully()
     {
         // Arrange - Create event without volunteer positions
-        var testEvent = CreateTestEvent(EventType.Social);
+        var testEvent = CreateTestEvent();
         _context.Events.Add(testEvent);
         await _context.SaveChangesAsync();
 
         var updateRequest = new UpdateEventRequest
         {
-            VolunteerPositions = new List<VolunteerPositionDto>
+            VolunteerPositions = new List<EventVolunteerPositionDto>
             {
-                new VolunteerPositionDto
+                new EventVolunteerPositionDto
                 {
                     Title = "Setup Crew",
                     Description = "Help set up the venue. Must be available 2 hours before event",
                     SlotsNeeded = 5,
                     SlotsFilled = 0
                 },
-                new VolunteerPositionDto
+                new EventVolunteerPositionDto
                 {
                     Title = "Safety Monitor",
                     Description = "Monitor participant safety during event. Previous safety monitoring experience required",
@@ -265,7 +279,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_UpdateVolunteerPositions_ModifiesPositionsSuccessfully()
     {
         // Arrange - Create event with existing volunteer position
-        var testEvent = CreateTestEvent(EventType.Social);
+        var testEvent = CreateTestEvent();
         var volunteerPosition = new VolunteerPosition
         {
             Id = Guid.NewGuid(),
@@ -281,9 +295,9 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
 
         var updateRequest = new UpdateEventRequest
         {
-            VolunteerPositions = new List<VolunteerPositionDto>
+            VolunteerPositions = new List<EventVolunteerPositionDto>
             {
-                new VolunteerPositionDto
+                new EventVolunteerPositionDto
                 {
                     Id = volunteerPosition.Id.ToString(),
                     Title = "Updated Position",
@@ -315,7 +329,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_RemoveVolunteerPositions_DeletesPositionsSuccessfully()
     {
         // Arrange - Create event with multiple volunteer positions
-        var testEvent = CreateTestEvent(EventType.Social);
+        var testEvent = CreateTestEvent();
         var position1 = new VolunteerPosition
         {
             Id = Guid.NewGuid(),
@@ -341,9 +355,9 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
 
         var updateRequest = new UpdateEventRequest
         {
-            VolunteerPositions = new List<VolunteerPositionDto>
+            VolunteerPositions = new List<EventVolunteerPositionDto>
             {
-                new VolunteerPositionDto
+                new EventVolunteerPositionDto
                 {
                     Id = position1.Id.ToString(),
                     Title = "Keep This Position",
@@ -378,7 +392,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_LinkVolunteerPositionToSession_CreatesSessionLinkSuccessfully()
     {
         // Arrange - Create event with session and volunteer position
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var session = new Session
         {
             Id = Guid.NewGuid(),
@@ -409,9 +423,9 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
                     RegistrationCount = 0
                 }
             },
-            VolunteerPositions = new List<VolunteerPositionDto>
+            VolunteerPositions = new List<EventVolunteerPositionDto>
             {
-                new VolunteerPositionDto
+                new EventVolunteerPositionDto
                 {
                     Title = "Session Helper",
                     Description = "Help with session setup and cleanup",
@@ -457,7 +471,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
         // TODO: Fix EventService.UpdateEventAsync to handle complex multi-entity updates atomically
 
         // Arrange - Create event and related users
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var teacher = CreateTestUser("teacher@test.com", "Workshop Teacher");
 
         _context.Events.Add(testEvent);
@@ -481,9 +495,9 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
                     RegistrationCount = 0
                 }
             },
-            VolunteerPositions = new List<VolunteerPositionDto>
+            VolunteerPositions = new List<EventVolunteerPositionDto>
             {
-                new VolunteerPositionDto
+                new EventVolunteerPositionDto
                 {
                     Title = "Workshop Assistant",
                     Description = "Assist teacher during workshop. Previous workshop experience preferred",
@@ -543,7 +557,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task GetEventAsync_WithOrganizersAndVolunteerPositions_ReturnsCompleteData()
     {
         // Arrange - Create event with all related data
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var teacher = CreateTestUser("teacher@test.com", "Community Teacher");
         var volunteerPosition = new VolunteerPosition
         {
@@ -578,7 +592,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
 
     #region Helper Methods
 
-    private Event CreateTestEvent(EventType eventType, string title = "Test Event")
+    private Event CreateTestEvent(string title = "Test Event")
     {
         return new Event
         {
@@ -587,8 +601,9 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
             Description = "Test event description",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            EventType = eventType,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

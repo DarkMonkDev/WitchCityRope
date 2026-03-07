@@ -28,7 +28,7 @@ export default defineConfig({
     ['html', { outputFolder: './test-results/html-report', open: 'never' }]
   ],
   // Output directory for test artifacts (screenshots, videos, traces)
-  outputDir: './test-results',
+  outputDir: './test-results/artifacts',
   use: {
     // DOCKER-ONLY: Must use Docker web service on port 5173
     // In test containers, use internal service name (http://web:5173) via WEB_BASE_URL

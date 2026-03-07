@@ -13,6 +13,8 @@ using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Features.Volunteers.Services;
+using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
 using FluentAssertions;
 using NSubstitute;
@@ -22,32 +24,31 @@ namespace WitchCityRope.UnitTests.Api.Features.Participation;
 /// <summary>
 /// Unit tests for ParticipationEndpoints (Pattern B - Minimal API)
 /// Tests all 8 participation/RSVP/ticket endpoints with comprehensive coverage
+/// Uses TestContainers PostgreSQL via DatabaseTestFixture (NOT InMemoryDatabase)
 /// </summary>
-public class ParticipationEndpointsTests : IDisposable
+[Collection("Database")]
+public class ParticipationEndpointsTests : IAsyncLifetime
 {
+    private readonly DatabaseTestFixture _fixture;
     private readonly IAttendanceService _mockAttendanceService;
     private readonly IVettingAccessControlService _mockVettingService;
     private readonly WitchCityRope.Api.Features.Payments.Services.IRefundService _mockRefundService;
     private readonly IVolunteerAssignmentService _mockVolunteerService;
     private readonly ILogger<IAttendanceService> _mockLogger;
-    private readonly ApplicationDbContext _context;
+    private ApplicationDbContext _context = null!;
     private readonly DefaultHttpContext _httpContext;
     private readonly Guid _testUserId;
     private readonly Guid _testEventId;
 
-    public ParticipationEndpointsTests()
+    public ParticipationEndpointsTests(DatabaseTestFixture fixture)
     {
+        _fixture = fixture;
+
         _mockAttendanceService = Substitute.For<IAttendanceService>();
         _mockVettingService = Substitute.For<IVettingAccessControlService>();
         _mockRefundService = Substitute.For<WitchCityRope.Api.Features.Payments.Services.IRefundService>();
         _mockVolunteerService = Substitute.For<IVolunteerAssignmentService>();
         _mockLogger = Substitute.For<ILogger<IAttendanceService>>();
-
-        // Setup in-memory database
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        _context = new ApplicationDbContext(options);
 
         // Setup HttpContext with authenticated user
         _httpContext = new DefaultHttpContext();
@@ -58,16 +59,60 @@ public class ParticipationEndpointsTests : IDisposable
         _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
     }
 
-    public void Dispose()
+    public async Task InitializeAsync()
+    {
+        await _fixture.ResetDatabaseAsync();
+        _context = _fixture.CreateDbContext();
+
+        // Create test user for FK constraints
+        var testUser = new ApplicationUser
+        {
+            Id = _testUserId,
+            Email = $"test-{_testUserId:N}@test.com",
+            UserName = $"test-{_testUserId:N}@test.com",
+            SceneName = $"TestUser{_testUserId.ToString()[..8]}",
+            EmailConfirmed = true,
+            Role = "",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Users.Add(testUser);
+
+        // Create Venue → Event for FK constraints
+        var venue = new Venue
+        {
+            Name = $"TestVenue-{Guid.NewGuid():N}"[..30],
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Venues.Add(venue);
+        await _context.SaveChangesAsync();
+
+        var testEvent = new Event
+        {
+            Id = _testEventId,
+            Title = "Participation Test Event",
+            Description = "Test",
+            VenueId = venue.Id,
+            StartDate = DateTime.UtcNow.AddDays(7),
+            EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
+            Capacity = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Events.Add(testEvent);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DisposeAsync()
     {
         _context?.Dispose();
+        await _fixture.ResetDatabaseAsync();
     }
 
     #region GetParticipationStatus Tests
 
-    /// <summary>
-    /// Test: GetParticipationStatus with valid user returns 200 OK with status DTO
-    /// </summary>
     [Fact]
     public async Task GetParticipationStatus_WithValidUser_Returns200OkWithStatus()
     {
@@ -93,9 +138,6 @@ public class ParticipationEndpointsTests : IDisposable
         okResult.Value.Should().BeEquivalentTo(expectedStatus);
     }
 
-    /// <summary>
-    /// Test: GetParticipationStatus with missing user claim returns 401 Unauthorized
-    /// </summary>
     [Fact]
     public async Task GetParticipationStatus_WithMissingUserClaim_Returns401Unauthorized()
     {
@@ -113,9 +155,6 @@ public class ParticipationEndpointsTests : IDisposable
         problemResult.ProblemDetails.Detail.Should().Contain("missing or invalid user identifier");
     }
 
-    /// <summary>
-    /// Test: GetParticipationStatus with invalid user ID format returns 401 Unauthorized
-    /// </summary>
     [Fact]
     public async Task GetParticipationStatus_WithInvalidUserIdFormat_Returns401Unauthorized()
     {
@@ -133,9 +172,6 @@ public class ParticipationEndpointsTests : IDisposable
         problemResult.ProblemDetails.Title.Should().Be("Unauthorized");
     }
 
-    /// <summary>
-    /// Test: GetParticipationStatus when service fails returns 500 InternalServerError
-    /// </summary>
     [Fact]
     public async Task GetParticipationStatus_WhenServiceFails_Returns500InternalServerError()
     {
@@ -158,9 +194,6 @@ public class ParticipationEndpointsTests : IDisposable
 
     #region CreateRSVP Tests
 
-    /// <summary>
-    /// Test: CreateRSVP with valid request returns 201 Created
-    /// </summary>
     [Fact]
     public async Task CreateRSVP_WithValidRequest_Returns201Created()
     {
@@ -198,9 +231,6 @@ public class ParticipationEndpointsTests : IDisposable
         createdResult.Value.Should().BeEquivalentTo(expectedDto);
     }
 
-    /// <summary>
-    /// Test: CreateRSVP with vetting denied returns 403 Forbidden
-    /// </summary>
     [Fact]
     public async Task CreateRSVP_WithVettingDenied_Returns403Forbidden()
     {
@@ -220,16 +250,12 @@ public class ParticipationEndpointsTests : IDisposable
         var result = await CreateRSVP(_testEventId, request, _httpContext.User);
 
         // Assert
-        // FIXED: Result is JsonHttpResult with anonymous type, check as IResult with status code
         result.Should().BeAssignableTo<IResult>();
         var jsonResult = result as IStatusCodeHttpResult;
         jsonResult.Should().NotBeNull();
         jsonResult!.StatusCode.Should().Be(403);
     }
 
-    /// <summary>
-    /// Test: CreateRSVP with event not found returns 404 NotFound
-    /// </summary>
     [Fact]
     public async Task CreateRSVP_WithEventNotFound_Returns404NotFound()
     {
@@ -254,9 +280,6 @@ public class ParticipationEndpointsTests : IDisposable
         problemResult.ProblemDetails.Detail.Should().Be("Event not found");
     }
 
-    /// <summary>
-    /// Test: CreateRSVP with already existing RSVP returns 409 Conflict
-    /// </summary>
     [Fact]
     public async Task CreateRSVP_WithExistingRSVP_Returns409Conflict()
     {
@@ -281,9 +304,6 @@ public class ParticipationEndpointsTests : IDisposable
         problemResult.ProblemDetails.Detail.Should().Contain("already");
     }
 
-    /// <summary>
-    /// Test: CreateRSVP with capacity exceeded returns 400 BadRequest
-    /// </summary>
     [Fact]
     public async Task CreateRSVP_WithCapacityExceeded_Returns400BadRequest()
     {
@@ -308,9 +328,6 @@ public class ParticipationEndpointsTests : IDisposable
         problemResult.ProblemDetails.Detail.Should().Contain("capacity");
     }
 
-    /// <summary>
-    /// Test: CreateRSVP with vetting service failure returns 500 InternalServerError
-    /// </summary>
     [Fact]
     public async Task CreateRSVP_WithVettingServiceFailure_Returns500InternalServerError()
     {
@@ -335,9 +352,6 @@ public class ParticipationEndpointsTests : IDisposable
 
     #region CreateTicketPurchase Tests
 
-    /// <summary>
-    /// Test: PurchaseTicket with valid request returns 201 Created
-    /// </summary>
     [Fact]
     public async Task PurchaseTicket_WithValidRequest_Returns201Created()
     {
@@ -370,9 +384,6 @@ public class ParticipationEndpointsTests : IDisposable
         createdResult.Value.Should().BeEquivalentTo(expectedDto);
     }
 
-    /// <summary>
-    /// Test: PurchaseTicket with vetting on hold returns 403 Forbidden
-    /// </summary>
     [Fact]
     public async Task PurchaseTicket_WithVettingOnHold_Returns403Forbidden()
     {
@@ -392,16 +403,12 @@ public class ParticipationEndpointsTests : IDisposable
         var result = await PurchaseTicket(_testEventId, request, _httpContext.User);
 
         // Assert
-        // FIXED: Result is JsonHttpResult with anonymous type, check as IResult with status code
         result.Should().BeAssignableTo<IResult>();
         var jsonResult = result as IStatusCodeHttpResult;
         jsonResult.Should().NotBeNull();
         jsonResult!.StatusCode.Should().Be(403);
     }
 
-    /// <summary>
-    /// Test: PurchaseTicket with non-class event returns 400 BadRequest
-    /// </summary>
     [Fact]
     public async Task PurchaseTicket_WithNonClassEvent_Returns400BadRequest()
     {
@@ -430,9 +437,6 @@ public class ParticipationEndpointsTests : IDisposable
 
     #region CancelParticipation Tests
 
-    /// <summary>
-    /// Test: CancelParticipation with valid request returns 204 NoContent
-    /// </summary>
     [Fact]
     public async Task CancelParticipation_WithValidRequest_Returns204NoContent()
     {
@@ -449,9 +453,6 @@ public class ParticipationEndpointsTests : IDisposable
         noContentResult.StatusCode.Should().Be(204);
     }
 
-    /// <summary>
-    /// Test: CancelParticipation with RSVP type specified returns 204 NoContent
-    /// </summary>
     [Fact]
     public async Task CancelParticipation_WithRSVPType_Returns204NoContent()
     {
@@ -468,9 +469,6 @@ public class ParticipationEndpointsTests : IDisposable
         noContentResult.StatusCode.Should().Be(204);
     }
 
-    /// <summary>
-    /// Test: CancelParticipation with no active attendance returns 404 NotFound
-    /// </summary>
     [Fact]
     public async Task CancelParticipation_WithNoActiveAttendance_Returns404NotFound()
     {
@@ -485,9 +483,6 @@ public class ParticipationEndpointsTests : IDisposable
         result.Should().BeOfType<NotFound>();
     }
 
-    /// <summary>
-    /// Test: CancelParticipation with non-cancellable attendance returns 400 BadRequest
-    /// </summary>
     [Fact]
     public async Task CancelParticipation_WithNonCancellableAttendance_Returns400BadRequest()
     {
@@ -508,9 +503,6 @@ public class ParticipationEndpointsTests : IDisposable
 
     #region GetUserParticipations Tests
 
-    /// <summary>
-    /// Test: GetUserParticipations with valid user returns 200 OK with list
-    /// </summary>
     [Fact]
     public async Task GetUserParticipations_WithValidUser_Returns200OkWithList()
     {
@@ -540,9 +532,6 @@ public class ParticipationEndpointsTests : IDisposable
         okResult.Value.Should().BeEquivalentTo(expectedParticipations);
     }
 
-    /// <summary>
-    /// Test: GetUserParticipations with no participations returns 200 OK with empty list
-    /// </summary>
     [Fact]
     public async Task GetUserParticipations_WithNoParticipations_Returns200OkWithEmptyList()
     {
@@ -563,9 +552,6 @@ public class ParticipationEndpointsTests : IDisposable
 
     #region CancelRSVP (Backward Compatibility) Tests
 
-    /// <summary>
-    /// Test: CancelRSVP (backward compatibility) returns 204 NoContent
-    /// </summary>
     [Fact]
     public async Task CancelRSVP_BackwardCompatibility_Returns204NoContent()
     {
@@ -584,9 +570,6 @@ public class ParticipationEndpointsTests : IDisposable
 
     #region AdminGetEventParticipations Tests
 
-    /// <summary>
-    /// Test: AdminGetEventParticipations with valid event returns 200 OK with list
-    /// </summary>
     [Fact]
     public async Task AdminGetEventParticipations_WithValidEvent_Returns200OkWithList()
     {
@@ -616,9 +599,6 @@ public class ParticipationEndpointsTests : IDisposable
         okResult.Value.Should().BeEquivalentTo(expectedParticipations);
     }
 
-    /// <summary>
-    /// Test: AdminGetEventParticipations when service fails returns 500 InternalServerError
-    /// </summary>
     [Fact]
     public async Task AdminGetEventParticipations_WhenServiceFails_Returns500InternalServerError()
     {
@@ -641,9 +621,6 @@ public class ParticipationEndpointsTests : IDisposable
 
     #region AdminRemoveParticipation Tests
 
-    /// <summary>
-    /// Test: AdminRemoveParticipation with valid request returns 204 NoContent
-    /// </summary>
     [Fact]
     public async Task AdminRemoveParticipation_WithValidRequest_Returns204NoContent()
     {
@@ -652,7 +629,22 @@ public class ParticipationEndpointsTests : IDisposable
         var adminClaims = new[] { new Claim(ClaimTypes.NameIdentifier, adminUserId.ToString()) };
         var adminUser = new ClaimsPrincipal(new ClaimsIdentity(adminClaims, "TestAuth"));
 
-        // Create test data in in-memory database
+        // Create admin user in DB for FK constraint (UpdatedBy references Users)
+        var adminEntity = new ApplicationUser
+        {
+            Id = adminUserId,
+            Email = $"admin-{adminUserId:N}@test.com",
+            UserName = $"admin-{adminUserId:N}@test.com",
+            SceneName = "Admin",
+            EmailConfirmed = true,
+            Role = "Administrator",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Users.Add(adminEntity);
+        await _context.SaveChangesAsync();
+
+        // Create test data in database
         var attendance = new EventAttendance
         {
             Id = Guid.NewGuid(),
@@ -680,9 +672,6 @@ public class ParticipationEndpointsTests : IDisposable
         updatedAttendance.UpdatedBy.Should().Be(adminUserId);
     }
 
-    /// <summary>
-    /// Test: AdminRemoveParticipation with no active attendance returns 404 NotFound
-    /// </summary>
     [Fact]
     public async Task AdminRemoveParticipation_WithNoActiveAttendance_Returns404NotFound()
     {

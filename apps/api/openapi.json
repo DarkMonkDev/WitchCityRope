@@ -17566,9 +17566,24 @@
               "$ref": "#/components/schemas/UserSessionDto"
             }
           },
+          "eventSessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserSessionDto"
+            }
+          },
           "additionalSessionsAvailable": {
             "type": "integer",
             "format": "int32"
+          },
+          "hasPaidTickets": {
+            "type": "boolean"
+          },
+          "tickets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserTicketDto"
+            }
           }
         }
       },
@@ -17897,6 +17912,20 @@
           "endTime": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "UserTicketDto": {
+        "type": "object",
+        "properties": {
+          "ticketTypeName": {
+            "type": "string"
+          },
+          "sessionName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

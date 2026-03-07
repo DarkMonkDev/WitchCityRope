@@ -38,14 +38,13 @@ public class TimeZoneServiceSessionTimingTests
     #region GetReferenceSessionForTicketType Tests
 
     [Fact]
-    public void GetReferenceSessionForTicketType_MultiSessionTicket_ReturnsFirstFutureSession()
+    public void GetReferenceSessionForTicketType_MultiSessionTicket_ReturnsEarliestSession()
     {
-        // Arrange: Ticket that covers multiple sessions (via Sessions collection)
+        // Arrange: Ticket that covers all sessions (Sessions collection empty = multi-session)
         var ticketType = new TicketType
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
-            // Multi-session ticket - Sessions collection will be populated below
             Name = "All Access Pass",
             Available = 10
         };
@@ -56,14 +55,14 @@ public class TimeZoneServiceSessionTimingTests
             {
                 Id = Guid.NewGuid(),
                 Name = "Session 1",
-                StartTime = DateTime.UtcNow.AddDays(-1), // Past
+                StartTime = DateTime.UtcNow.AddDays(-1), // Past (earliest)
                 EndTime = DateTime.UtcNow.AddDays(-1).AddHours(2)
             },
             new Session
             {
                 Id = Guid.NewGuid(),
                 Name = "Session 2",
-                StartTime = DateTime.UtcNow.AddDays(1), // Future (earliest)
+                StartTime = DateTime.UtcNow.AddDays(1), // Future
                 EndTime = DateTime.UtcNow.AddDays(1).AddHours(2)
             },
             new Session
@@ -78,20 +77,19 @@ public class TimeZoneServiceSessionTimingTests
         // Act
         var result = _sut.GetReferenceSessionForTicketType(ticketType, sessions);
 
-        // Assert
-        result.Should().NotBeNull("Multi-session ticket should return first future session");
-        result!.Name.Should().Be("Session 2", "Should return the earliest future session, not a past session");
+        // Assert: Returns earliest session overall (IsActionAllowedForSession handles timing window)
+        result.Should().NotBeNull("Multi-session ticket should return earliest session");
+        result!.Name.Should().Be("Session 1", "Should return the absolute earliest session for timing window calculation");
     }
 
     [Fact]
-    public void GetReferenceSessionForTicketType_AllSessionsPassed_ReturnsNull()
+    public void GetReferenceSessionForTicketType_AllSessionsPassed_ReturnsEarliestSession()
     {
-        // Arrange: Ticket with all past sessions
+        // Arrange: Ticket with all past sessions (multi-session = empty Sessions collection)
         var ticketType = new TicketType
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
-            // Multi-session ticket - Sessions collection will be populated below
             Name = "Past Event Pass",
             Available = 10
         };
@@ -117,25 +115,34 @@ public class TimeZoneServiceSessionTimingTests
         // Act
         var result = _sut.GetReferenceSessionForTicketType(ticketType, sessions);
 
-        // Assert
-        result.Should().BeNull("Should return null when all sessions have passed");
+        // Assert: Returns earliest session even if past (IsActionAllowedForSession will reject the action)
+        result.Should().NotBeNull("Should return earliest session even if past - timing window check is separate");
+        result!.Name.Should().Be("Session 1");
     }
 
     [Fact]
     public void GetReferenceSessionForTicketType_SingleSessionTicket_ReturnsThatSession()
     {
-        // Arrange: Ticket for specific session
+        // Arrange: Ticket for specific session (Sessions collection populated)
         var sessionId = Guid.NewGuid();
+        var session2 = new Session
+        {
+            Id = sessionId,
+            Name = "Session 2",
+            StartTime = DateTime.UtcNow.AddDays(7),
+            EndTime = DateTime.UtcNow.AddDays(7).AddHours(2)
+        };
+
         var ticketType = new TicketType
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
-            // Single-session ticket - Sessions collection will contain one session
             Name = "Session 2 Ticket",
-            Available = 10
+            Available = 10,
+            Sessions = new List<Session> { session2 }
         };
 
-        var sessions = new List<Session>
+        var allSessions = new List<Session>
         {
             new Session
             {
@@ -144,17 +151,11 @@ public class TimeZoneServiceSessionTimingTests
                 StartTime = DateTime.UtcNow.AddDays(1),
                 EndTime = DateTime.UtcNow.AddDays(1).AddHours(2)
             },
-            new Session
-            {
-                Id = sessionId,
-                Name = "Session 2",
-                StartTime = DateTime.UtcNow.AddDays(7),
-                EndTime = DateTime.UtcNow.AddDays(7).AddHours(2)
-            }
+            session2
         };
 
         // Act
-        var result = _sut.GetReferenceSessionForTicketType(ticketType, sessions);
+        var result = _sut.GetReferenceSessionForTicketType(ticketType, allSessions);
 
         // Assert
         result.Should().NotBeNull();
@@ -163,35 +164,35 @@ public class TimeZoneServiceSessionTimingTests
     }
 
     [Fact]
-    public void GetReferenceSessionForTicketType_SingleSessionPassed_ReturnsNull()
+    public void GetReferenceSessionForTicketType_SingleSessionPassed_ReturnsSession()
     {
-        // Arrange: Ticket for past session
+        // Arrange: Ticket for past session (Sessions collection populated)
         var sessionId = Guid.NewGuid();
+        var pastSession = new Session
+        {
+            Id = sessionId,
+            Name = "Past Session",
+            StartTime = DateTime.UtcNow.AddDays(-1), // Past
+            EndTime = DateTime.UtcNow.AddDays(-1).AddHours(2)
+        };
+
         var ticketType = new TicketType
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
-            // Single-session ticket - Sessions collection will contain one session
             Name = "Past Session Ticket",
-            Available = 10
+            Available = 10,
+            Sessions = new List<Session> { pastSession }
         };
 
-        var sessions = new List<Session>
-        {
-            new Session
-            {
-                Id = sessionId,
-                Name = "Past Session",
-                StartTime = DateTime.UtcNow.AddDays(-1), // Past
-                EndTime = DateTime.UtcNow.AddDays(-1).AddHours(2)
-            }
-        };
+        var allSessions = new List<Session> { pastSession };
 
         // Act
-        var result = _sut.GetReferenceSessionForTicketType(ticketType, sessions);
+        var result = _sut.GetReferenceSessionForTicketType(ticketType, allSessions);
 
-        // Assert
-        result.Should().BeNull("Should return null when single session has passed");
+        // Assert: Returns the session even if past (IsActionAllowedForSession handles timing)
+        result.Should().NotBeNull("Should return session even if past - timing check is separate");
+        result!.Id.Should().Be(sessionId);
     }
 
     #endregion

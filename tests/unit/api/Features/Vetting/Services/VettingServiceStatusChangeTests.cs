@@ -245,8 +245,9 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     #region UpdateApplicationStatusAsync - Invalid Transitions
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_FromApprovedToAnyStatus_Fails()
+    public async Task UpdateApplicationStatusAsync_FromApprovedToUnderReview_Succeeds()
     {
+        // Business requirement: Admins can change vetting status from any state to any other state
         // Arrange
         var admin = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication(VettingStatus.Approved);
@@ -255,17 +256,19 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         var result = await _service.UpdateApplicationStatusAsync(
             application.Id,
             VettingStatus.UnderReview,
-            "This should fail",
+            "Re-opening for review",
             admin.Id);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("Cannot modify terminal state");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.Status.Should().Be("UnderReview");
     }
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_FromDeniedToAnyStatus_Fails()
+    public async Task UpdateApplicationStatusAsync_FromDeniedToUnderReview_Succeeds()
     {
+        // Business requirement: Admins can change vetting status from any state to any other state
         // Arrange
         var admin = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication(VettingStatus.Denied);
@@ -274,17 +277,19 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         var result = await _service.UpdateApplicationStatusAsync(
             application.Id,
             VettingStatus.UnderReview,
-            "This should fail",
+            "Re-opening denied application",
             admin.Id);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("Cannot modify terminal state");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.Status.Should().Be("UnderReview");
     }
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_FromUnderReviewToApproved_Fails()
+    public async Task UpdateApplicationStatusAsync_FromUnderReviewToApproved_Succeeds()
     {
+        // Business requirement: Admins can skip intermediate steps and approve directly
         // Arrange
         var admin = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
@@ -293,12 +298,13 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         var result = await _service.UpdateApplicationStatusAsync(
             application.Id,
             VettingStatus.Approved,
-            "Skipping interview and final review - not allowed",
+            "Direct approval by admin",
             admin.Id);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("Invalid status transition");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.Status.Should().Be("Approved");
     }
 
     [Fact]

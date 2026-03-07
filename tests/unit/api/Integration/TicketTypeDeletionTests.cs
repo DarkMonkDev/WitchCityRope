@@ -1,13 +1,13 @@
 using Xunit;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Tests.Fixtures;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -17,24 +17,27 @@ namespace WitchCityRope.Api.Tests.Integration;
 /// Integration tests for ticket type deletion functionality
 /// Tests verify the CheckTicketTypeDeletionAsync and DeleteTicketTypeAsync methods
 /// CRITICAL: These tests verify proper blocking logic for ticket types with sales
+/// Uses TestContainers PostgreSQL via DatabaseTestFixture (NOT InMemoryDatabase)
 /// </summary>
-public class TicketTypeDeletionTests : IDisposable
+[Collection("Database")]
+public class TicketTypeDeletionTests : IAsyncLifetime
 {
-    private readonly ApplicationDbContext _context;
-    private readonly EventService _eventService;
-    private readonly Guid _testEventId = Guid.NewGuid();
-    private readonly Guid _testUserId = Guid.NewGuid();
+    private readonly DatabaseTestFixture _fixture;
+    private ApplicationDbContext _context = null!;
+    private EventService _eventService = null!;
+    private Guid _testEventId;
+    private Guid _testUserId;
 
-    public TicketTypeDeletionTests()
+    public TicketTypeDeletionTests(DatabaseTestFixture fixture)
     {
-        // Setup in-memory database for integration testing
-        // Configure to suppress transaction warnings (in-memory DB doesn't support transactions)
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
+        _fixture = fixture;
+    }
 
-        _context = new ApplicationDbContext(options);
+    public async Task InitializeAsync()
+    {
+        _context = _fixture.CreateDbContext();
+        _testEventId = Guid.NewGuid();
+        _testUserId = Guid.NewGuid();
 
         var mockTimeZoneService = new Mock<ITimeZoneService>();
 
@@ -43,16 +46,35 @@ public class TicketTypeDeletionTests : IDisposable
             new Mock<ILogger<EventService>>().Object,
             mockTimeZoneService.Object);
 
+        // Ensure venue exists for FK constraint
+        var venue = await _context.Venues.FindAsync(1);
+        if (venue == null)
+        {
+            venue = new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.Venues.Add(venue);
+            await _context.SaveChangesAsync();
+        }
+
         // Seed test user
         var testUser = new ApplicationUser
         {
             Id = _testUserId,
-            Email = "test@example.com",
-            SceneName = "TestUser"
+            Email = $"test-{Guid.NewGuid():N}@example.com",
+            SceneName = "TestUser",
+            UserName = $"test-{Guid.NewGuid():N}@example.com",
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
-
         _context.Users.Add(testUser);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         // Seed test event
         var testEvent = new Event
@@ -70,9 +92,14 @@ public class TicketTypeDeletionTests : IDisposable
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-
         _context.Events.Add(testEvent);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        _context?.Dispose();
+        await _fixture.ResetDatabaseAsync();
     }
 
     [Fact]
@@ -245,19 +272,15 @@ public class TicketTypeDeletionTests : IDisposable
 
     private async Task AddTicketPurchaseAsync(Guid ticketTypeId)
     {
-        // Need to get the ticket type to set navigation property
-        var ticketType = await _context.TicketTypes.FindAsync(ticketTypeId);
-
         var ticketPurchase = new TicketPurchase
         {
             Id = Guid.NewGuid(),
             UserId = _testUserId,
             TicketTypeId = ticketTypeId,
-            TicketType = ticketType,  // Set navigation property for in-memory DB
             PurchaseDate = DateTime.UtcNow,
             TotalPrice = 25.00m,
             Quantity = 1,
-            PaymentStatus = "Completed",
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -273,17 +296,11 @@ public class TicketTypeDeletionTests : IDisposable
             AttendanceType = AttendanceType.Ticket,
             Status = AttendanceStatus.Active,
             TicketPurchaseId = ticketPurchase.Id,
-            TicketPurchase = ticketPurchase,  // Set navigation property for in-memory DB
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         _context.Set<EventAttendance>().Add(attendance);
         await _context.SaveChangesAsync();
-    }
-
-    public void Dispose()
-    {
-        _context?.Dispose();
     }
 }

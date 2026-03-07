@@ -32,26 +32,7 @@ public class VettingProfileUpdateIntegrationTests : IntegrationTestBase, IDispos
     public VettingProfileUpdateIntegrationTests(DatabaseTestFixture fixture)
         : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Remove the app's DbContext registration
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    // Add DbContext using the test container's connection string
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     /// <summary>

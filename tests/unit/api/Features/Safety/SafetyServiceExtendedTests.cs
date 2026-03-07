@@ -455,10 +455,10 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
     [Fact]
     public async Task GetAllUsersForAssignmentAsync_ReturnsAllUsers()
     {
-        // Arrange
-        await CreateTestUserAsync("User1");
-        await CreateTestUserAsync("User2");
-        await CreateTestUserAsync("User3");
+        // Arrange - Only SafetyTeam users are returned for coordinator assignment
+        await CreateTestUserAsync("User1", role: "SafetyTeam");
+        await CreateTestUserAsync("User2", role: "SafetyTeam");
+        await CreateTestUserAsync("User3", role: "SafetyTeam");
 
         // Act
         var result = await _sut.GetAllUsersForAssignmentAsync();
@@ -472,8 +472,8 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
     [Fact]
     public async Task GetAllUsersForAssignmentAsync_IncludesActiveIncidentCounts()
     {
-        // Arrange
-        var coordinator = await CreateTestUserAsync("Coordinator");
+        // Arrange - Only SafetyTeam users are returned for coordinator assignment
+        var coordinator = await CreateTestUserAsync("Coordinator", role: "SafetyTeam");
 
         // Create 3 active incidents and 1 closed
         await CreateTestIncidentAsync(coordinatorId: coordinator.Id, status: IncidentStatus.ReportSubmitted);
@@ -861,7 +861,8 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Notes.Should().HaveCount(3);
+        // 3 manually created notes + 1 system-generated note from incident creation
+        result.Value!.Notes.Should().HaveCount(4);
     }
 
     [Fact]

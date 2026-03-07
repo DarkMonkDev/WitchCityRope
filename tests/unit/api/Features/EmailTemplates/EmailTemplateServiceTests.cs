@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -10,6 +9,7 @@ using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
 using Result = WitchCityRope.Api.Features.Shared.Models.Result;
 
@@ -18,26 +18,43 @@ namespace WitchCityRope.Api.Tests.Services;
 /// <summary>
 /// Unit tests for EmailTemplateService focusing on post-import email workflow functionality
 /// Tests NewImportedUsers segment, per-user variable replacement, and token generation
+/// Uses TestContainers PostgreSQL via DatabaseTestFixture (NOT InMemoryDatabase)
 /// </summary>
+[Collection("Database")]
 public class EmailTemplateServiceTests : IAsyncLifetime
 {
+    private readonly DatabaseTestFixture _fixture;
     private ApplicationDbContext _context = null!;
     private UserManager<ApplicationUser> _userManager = null!;
     private IEmailService _emailService = null!;
     private IConfiguration _configuration = null!;
     private ILogger<EmailTemplateService> _logger = null!;
     private EmailTemplateService _sut = null!;
-    private string _connectionString = null!;
+    private Guid _senderUserId;
+
+    public EmailTemplateServiceTests(DatabaseTestFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     public async Task InitializeAsync()
     {
-        // Setup in-memory database
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
+        _context = _fixture.CreateDbContext();
 
-        _context = new ApplicationDbContext(options);
-        await _context.Database.EnsureCreatedAsync();
+        // Create a sender user in the database to satisfy FK constraint on SentAdHocEmail.SentBy
+        var sender = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = $"sender-{Guid.NewGuid():N}@test.com",
+            UserName = $"sender-{Guid.NewGuid():N}@test.com",
+            EmailConfirmed = true,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Users.Add(sender);
+        await _context.SaveChangesAsync();
+        _senderUserId = sender.Id;
 
         // Setup UserManager dependencies
         var userStore = Substitute.For<IUserStore<ApplicationUser>>();
@@ -91,8 +108,10 @@ public class EmailTemplateServiceTests : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await _context.DisposeAsync();
+        if (_context != null)
+            await _context.DisposeAsync();
         _userManager?.Dispose();
+        await _fixture.ResetDatabaseAsync();
     }
 
     #region Helper Methods
@@ -287,7 +306,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Act
         var result = await _sut.SendAdHocEmailAsync(
             request,
-            Guid.NewGuid(),
+            _senderUserId,
             CancellationToken.None);
 
         // Assert
@@ -306,8 +325,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     public async Task SendAdHocEmailAsync_WithUserNameVariable_FallsBackToEmailWhenSceneNameEmpty()
     {
         // Arrange - SceneName is non-nullable string, so use empty string to test fallback
+        var uniqueEmail = $"test-{Guid.NewGuid():N}@example.com";
         var user = await CreateTestUserAsync(
-            email: "test@example.com",
+            email: uniqueEmail,
             sceneName: "", // Empty scene name - should fall back to email
             vettingStatus: 3,
             emailConfirmed: false,
@@ -325,7 +345,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Act
         var result = await _sut.SendAdHocEmailAsync(
             request,
-            Guid.NewGuid(),
+            _senderUserId,
             CancellationToken.None);
 
         // Assert
@@ -335,8 +355,8 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         await _emailService.Received(1).SendEmailAsync(
             user.Email!,
             "Welcome",
-            Arg.Is<string>(html => html.Contains("Hello test@example.com!")),
-            Arg.Is<string?>(text => text != null && text.Contains("Hello test@example.com!")),
+            Arg.Is<string>(html => html.Contains($"Hello {uniqueEmail}!")),
+            Arg.Is<string?>(text => text != null && text.Contains($"Hello {uniqueEmail}!")),
             Arg.Any<CancellationToken>());
     }
 
@@ -350,7 +370,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             isActive: true);
 
         // Configure UserManager to return a unique token for any user
-        // Note: Service queries DB and gets a different instance, so use Arg.Any
         var expectedToken = "unique-reset-token-123";
         _userManager.GeneratePasswordResetTokenAsync(Arg.Any<ApplicationUser>())
             .Returns(Task.FromResult(expectedToken));
@@ -367,7 +386,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Act
         var result = await _sut.SendAdHocEmailAsync(
             request,
-            Guid.NewGuid(),
+            _senderUserId,
             CancellationToken.None);
 
         // Assert
@@ -404,7 +423,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             isActive: true);
 
         // Configure token generation for any user
-        // Note: Service queries DB and gets different instances, so use Arg.Any
         _userManager.GeneratePasswordResetTokenAsync(Arg.Any<ApplicationUser>())
             .Returns(Task.FromResult("unique-token"));
 
@@ -420,7 +438,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Act
         var result = await _sut.SendAdHocEmailAsync(
             request,
-            Guid.NewGuid(),
+            _senderUserId,
             CancellationToken.None);
 
         // Assert
@@ -451,7 +469,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             isActive: true);
 
         // Configure UserManager to return a token for any user
-        // Note: Service queries DB and gets a different instance, so use Arg.Any
         var expectedToken = "email-confirmation-token-456";
         _userManager.GenerateEmailConfirmationTokenAsync(Arg.Any<ApplicationUser>())
             .Returns(Task.FromResult(expectedToken));
@@ -468,7 +485,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Act
         var result = await _sut.SendAdHocEmailAsync(
             request,
-            Guid.NewGuid(),
+            _senderUserId,
             CancellationToken.None);
 
         // Assert
@@ -511,7 +528,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Act
         var result = await _sut.SendAdHocEmailAsync(
             request,
-            Guid.NewGuid(),
+            _senderUserId,
             CancellationToken.None);
 
         // Assert
@@ -561,7 +578,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Act
         var result = await _sut.SendAdHocEmailAsync(
             request,
-            Guid.NewGuid(),
+            _senderUserId,
             CancellationToken.None);
 
         // Assert
@@ -618,7 +635,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Act
         var result = await _sut.SendAdHocEmailAsync(
             request,
-            Guid.NewGuid(),
+            _senderUserId,
             CancellationToken.None);
 
         // Assert
@@ -641,8 +658,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     public async Task SendAdHocEmailAsync_WithMultiplePerUserVariables_ReplacesAllVariables()
     {
         // Arrange
+        var uniqueEmail = $"test-{Guid.NewGuid():N}@example.com";
         var user = await CreateTestUserAsync(
-            email: "test@example.com",
+            email: uniqueEmail,
             sceneName: "TestUser",
             vettingStatus: 3,
             emailConfirmed: false,
@@ -665,7 +683,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Act
         var result = await _sut.SendAdHocEmailAsync(
             request,
-            Guid.NewGuid(),
+            _senderUserId,
             CancellationToken.None);
 
         // Assert

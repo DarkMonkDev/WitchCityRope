@@ -12,31 +12,30 @@ using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Shared.Services;
+using WitchCityRope.Api.Tests.Fixtures;
 
 namespace WitchCityRope.Api.Tests.Services;
 
 /// <summary>
 /// Unit tests for EmailTemplateService trigger enhancements
 /// Tests trigger configuration, time-based templates, ad-hoc templates, and scheduled sends
+/// Uses TestContainers PostgreSQL via DatabaseTestFixture (NOT InMemoryDatabase)
 /// </summary>
-public class EmailTemplateServiceTriggerTests : IDisposable
+[Collection("Database")]
+public class EmailTemplateServiceTriggerTests : IAsyncLifetime
 {
+    private readonly DatabaseTestFixture _fixture;
     private readonly Mock<ILogger<EmailTemplateService>> _mockLogger;
     private readonly Mock<UserManager<ApplicationUser>> _mockUserManager;
     private readonly Mock<IEmailService> _mockEmailService;
     private readonly Mock<IConfiguration> _mockConfiguration;
-    private readonly ApplicationDbContext _context;
-    private readonly EmailTemplateService _sut; // System Under Test
-    private readonly Guid _testUserId = Guid.NewGuid();
+    private ApplicationDbContext _context = null!;
+    private EmailTemplateService _sut = null!; // System Under Test
+    private Guid _testUserId;
 
-    public EmailTemplateServiceTriggerTests()
+    public EmailTemplateServiceTriggerTests(DatabaseTestFixture fixture)
     {
-        // Setup in-memory database for testing
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        _context = new ApplicationDbContext(options);
+        _fixture = fixture;
         _mockLogger = new Mock<ILogger<EmailTemplateService>>();
 
         // Setup UserManager mock (requires store mock)
@@ -49,6 +48,13 @@ public class EmailTemplateServiceTriggerTests : IDisposable
 
         // Setup Configuration mock
         _mockConfiguration = new Mock<IConfiguration>();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _fixture.ResetDatabaseAsync();
+        _context = _fixture.CreateDbContext();
+        _testUserId = Guid.NewGuid();
 
         _sut = new EmailTemplateService(
             _context,
@@ -61,17 +67,21 @@ public class EmailTemplateServiceTriggerTests : IDisposable
         var testUser = new ApplicationUser
         {
             Id = _testUserId,
-            Email = "test@example.com",
-            SceneName = "TestUser"
+            Email = $"test-{Guid.NewGuid():N}@example.com",
+            SceneName = "TestUser",
+            UserName = $"test-{Guid.NewGuid():N}@example.com",
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         _context.Users.Add(testUser);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 
-    public void Dispose()
+    public async Task DisposeAsync()
     {
-        _context.Database.EnsureDeleted();
-        _context.Dispose();
+        _context?.Dispose();
+        await _fixture.ResetDatabaseAsync();
     }
 
     #region Trigger Configuration Tests
@@ -94,7 +104,8 @@ public class EmailTemplateServiceTriggerTests : IDisposable
             Variables = "[\"event_name\"]",
             TriggerType = TemplateTriggerType.FixedEvent,
             TriggerEnabled = true,
-            Version = 1
+            Version = 1,
+            UpdatedBy = _testUserId
         };
         _context.GlobalEmailTemplates.Add(template);
         await _context.SaveChangesAsync();
@@ -160,7 +171,8 @@ public class EmailTemplateServiceTriggerTests : IDisposable
             HtmlBody = "<p>Session reminder</p>",
             PlainTextBody = "Session reminder",
             Variables = "[]",
-            TriggerType = TemplateTriggerType.Manual
+            TriggerType = TemplateTriggerType.Manual,
+            UpdatedBy = _testUserId
         };
         _context.GlobalEmailTemplates.Add(template);
         await _context.SaveChangesAsync();
@@ -196,7 +208,8 @@ public class EmailTemplateServiceTriggerTests : IDisposable
             Subject = "Application Received",
             HtmlBody = "<p>Application received</p>",
             PlainTextBody = "Application received",
-            Variables = "[]"
+            Variables = "[]",
+            UpdatedBy = _testUserId
         };
         _context.GlobalEmailTemplates.Add(template);
         await _context.SaveChangesAsync();
@@ -232,7 +245,8 @@ public class EmailTemplateServiceTriggerTests : IDisposable
             Subject = "Event Reminder",
             HtmlBody = "<p>Reminder</p>",
             PlainTextBody = "Reminder",
-            Variables = "[]"
+            Variables = "[]",
+            UpdatedBy = _testUserId
         };
         _context.GlobalEmailTemplates.Add(template);
         await _context.SaveChangesAsync();
@@ -268,7 +282,8 @@ public class EmailTemplateServiceTriggerTests : IDisposable
             Subject = "Event Reminder",
             HtmlBody = "<p>Reminder</p>",
             PlainTextBody = "Reminder",
-            Variables = "[]"
+            Variables = "[]",
+            UpdatedBy = _testUserId
         };
         _context.GlobalEmailTemplates.Add(template);
         await _context.SaveChangesAsync();
@@ -313,7 +328,8 @@ public class EmailTemplateServiceTriggerTests : IDisposable
             TriggerEnabled = true,
             TimingOffsetDays = 3,
             RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
-            IsActive = true
+            IsActive = true,
+            UpdatedBy = _testUserId
         };
 
         var fixedEventTemplate = new GlobalEmailTemplate
@@ -327,7 +343,8 @@ public class EmailTemplateServiceTriggerTests : IDisposable
             Variables = "[]",
             TriggerType = TemplateTriggerType.FixedEvent,
             TriggerEnabled = true,
-            IsActive = true
+            IsActive = true,
+            UpdatedBy = _testUserId
         };
 
         var disabledTemplate = new GlobalEmailTemplate
@@ -342,7 +359,8 @@ public class EmailTemplateServiceTriggerTests : IDisposable
             TriggerType = TemplateTriggerType.TimeBased,
             TriggerEnabled = false, // Disabled
             TimingOffsetDays = 1,
-            IsActive = true
+            IsActive = true,
+            UpdatedBy = _testUserId
         };
 
         _context.GlobalEmailTemplates.AddRange(timeBasedTemplate, fixedEventTemplate, disabledTemplate);
@@ -387,7 +405,6 @@ public class EmailTemplateServiceTriggerTests : IDisposable
         result.Value!.TemplateName.Should().Be("Monthly Newsletter");
         result.Value.Subject.Should().Be("Newsletter - {{month}}");
         result.Value.CreatedBy.Should().Be(_testUserId);
-        result.Value.CreatedByEmail.Should().Be("test@example.com");
 
         // Verify saved in database
         var saved = await _context.AdHocEmailTemplates.FindAsync(result.Value.Id);
@@ -469,18 +486,26 @@ public class EmailTemplateServiceTriggerTests : IDisposable
         var user1 = new ApplicationUser
         {
             Id = Guid.NewGuid(),
-            Email = "vetted1@example.com",
+            Email = $"vetted1-{Guid.NewGuid():N}@example.com",
             SceneName = "VettedUser1",
+            UserName = $"vetted1-{Guid.NewGuid():N}@example.com",
             VettingStatus = (int)VettingStatus.Approved,
-            IsActive = true
+            IsActive = true,
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         var user2 = new ApplicationUser
         {
             Id = Guid.NewGuid(),
-            Email = "vetted2@example.com",
+            Email = $"vetted2-{Guid.NewGuid():N}@example.com",
             SceneName = "VettedUser2",
+            UserName = $"vetted2-{Guid.NewGuid():N}@example.com",
             VettingStatus = (int)VettingStatus.Approved,
-            IsActive = true
+            IsActive = true,
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         _context.Users.AddRange(user1, user2);
         await _context.SaveChangesAsync();

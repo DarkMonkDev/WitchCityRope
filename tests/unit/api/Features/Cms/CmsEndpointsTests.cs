@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,7 @@ using WitchCityRope.Api.Features.Cms.Dtos;
 using WitchCityRope.Api.Features.Cms.Entities;
 using WitchCityRope.Api.Features.Cms.Services;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
 using FluentAssertions;
 using NSubstitute;
@@ -17,22 +19,20 @@ namespace WitchCityRope.UnitTests.Api.Features.Cms;
 /// <summary>
 /// Unit tests for CmsEndpoints (Pattern B - Minimal API)
 /// Tests content page retrieval, updates with XSS prevention, revision management, and admin page listing
+/// Uses TestContainers PostgreSQL via DatabaseTestFixture (NOT InMemoryDatabase)
 /// </summary>
-public class CmsEndpointsTests : IDisposable
+[Collection("Database")]
+public class CmsEndpointsTests : IAsyncLifetime
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly DatabaseTestFixture _fixture;
+    private ApplicationDbContext _dbContext = null!;
     private readonly IContentSanitizer _sanitizer;
     private readonly ILogger<Program> _mockLogger;
     private readonly CancellationToken _cancellationToken = CancellationToken.None;
 
-    public CmsEndpointsTests()
+    public CmsEndpointsTests(DatabaseTestFixture fixture)
     {
-        // Setup in-memory database
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: $"CmsEndpointsTests_{Guid.NewGuid()}")
-            .Options;
-
-        _dbContext = new ApplicationDbContext(options);
+        _fixture = fixture;
 
         // Use real ContentSanitizer (concrete class with parameterless constructor)
         _sanitizer = new ContentSanitizer();
@@ -41,10 +41,15 @@ public class CmsEndpointsTests : IDisposable
         _mockLogger = Substitute.For<ILogger<Program>>();
     }
 
-    public void Dispose()
+    public async Task InitializeAsync()
     {
-        _dbContext.Database.EnsureDeleted();
-        _dbContext.Dispose();
+        _dbContext = _fixture.CreateDbContext();
+    }
+
+    public async Task DisposeAsync()
+    {
+        _dbContext?.Dispose();
+        await _fixture.ResetDatabaseAsync();
     }
 
     #region GetPageBySlug Tests
@@ -60,8 +65,11 @@ public class CmsEndpointsTests : IDisposable
         var user = new ApplicationUser
         {
             Id = userId,
-            Email = "admin@witchcityrope.com",
-            UserName = "admin@witchcityrope.com"
+            Email = $"admin-{Guid.NewGuid():N}@witchcityrope.com",
+            UserName = $"admin-{Guid.NewGuid():N}@witchcityrope.com",
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         await _dbContext.Users.AddAsync(user);
 
@@ -84,7 +92,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result.GetType().Name.Should().Contain("Ok");
+        GetStatusCode(result).Should().Be(200);
 
         // Extract value from Ok result
         dynamic dynamicResult = result!;
@@ -97,7 +105,7 @@ public class CmsEndpointsTests : IDisposable
         dto.Title.Should().Be("Test Page");
         dto.Content.Should().Be("<p>This is test content</p>");
         dto.IsPublished.Should().BeTrue();
-        dto.LastModifiedBy.Should().Be("admin@witchcityrope.com");
+        dto.LastModifiedBy.Should().Be(user.Email);
     }
 
     /// <summary>
@@ -111,7 +119,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("NotFound");
+        GetStatusCode(result).Should().Be(404);
     }
 
     /// <summary>
@@ -122,6 +130,17 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
+        var user = new ApplicationUser
+        {
+            Id = userId,
+            Email = $"user-{Guid.NewGuid():N}@example.com",
+            UserName = $"user-{Guid.NewGuid():N}@example.com",
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        await _dbContext.Users.AddAsync(user);
+
         var page = new ContentPage
         {
             Slug = "unpublished-page",
@@ -141,7 +160,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("NotFound");
+        GetStatusCode(result).Should().Be(404);
     }
 
     /// <summary>
@@ -155,8 +174,11 @@ public class CmsEndpointsTests : IDisposable
         var userWithoutEmail = new ApplicationUser
         {
             Id = userId,
-            UserName = "user-no-email",
-            Email = null  // User with no email
+            UserName = $"user-no-email-{Guid.NewGuid():N}",
+            Email = null,  // User with no email
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         await _dbContext.Users.AddAsync(userWithoutEmail);
 
@@ -210,7 +232,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("Unauthorized");
+        GetStatusCode(result).Should().Be(401);
     }
 
     /// <summary>
@@ -237,7 +259,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("Unauthorized");
+        GetStatusCode(result).Should().Be(401);
     }
 
     /// <summary>
@@ -261,7 +283,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("NotFound");
+        GetStatusCode(result).Should().Be(404);
     }
 
     /// <summary>
@@ -272,11 +294,11 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = await CreateUserInDatabase(userId, "admin@witchcityrope.com");
+        var user = await CreateUserInDatabase(userId, $"admin-{Guid.NewGuid():N}@witchcityrope.com");
 
         var page = new ContentPage
         {
-            Slug = "test-page",
+            Slug = "test-page-empty",
             Title = "Test Page",
             Content = "<p>Original content</p>",
             IsPublished = true,
@@ -302,7 +324,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("BadRequest");
+        GetStatusCode(result).Should().Be(400);
     }
 
     /// <summary>
@@ -313,11 +335,11 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = await CreateUserInDatabase(userId, "admin@witchcityrope.com");
+        var user = await CreateUserInDatabase(userId, $"admin-{Guid.NewGuid():N}@witchcityrope.com");
 
         var page = new ContentPage
         {
-            Slug = "test-page",
+            Slug = "test-page-xss",
             Title = "Test Page",
             Content = "<p>Original content</p>",
             IsPublished = true,
@@ -343,7 +365,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("Ok");
+        GetStatusCode(result).Should().Be(200);
 
         // Verify content was sanitized (script tag removed)
         var updatedPage = await _dbContext.ContentPages.FindAsync(page.Id);
@@ -360,11 +382,11 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = await CreateUserInDatabase(userId, "admin@witchcityrope.com");
+        var user = await CreateUserInDatabase(userId, $"admin-{Guid.NewGuid():N}@witchcityrope.com");
 
         var page = new ContentPage
         {
-            Slug = "test-page",
+            Slug = "test-page-revision",
             Title = "Original Title",
             Content = "<p>Original content</p>",
             IsPublished = true,
@@ -392,7 +414,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("Ok");
+        GetStatusCode(result).Should().Be(200);
 
         // Verify revision was created
         var revisionCount = await _dbContext.ContentRevisions.CountAsync();
@@ -419,11 +441,12 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = await CreateUserInDatabase(userId, "admin@witchcityrope.com");
+        var email = $"admin-{Guid.NewGuid():N}@witchcityrope.com";
+        var user = await CreateUserInDatabase(userId, email);
 
         var page = new ContentPage
         {
-            Slug = "test-page",
+            Slug = "test-page-update",
             Title = "Original Title",
             Content = "<p>Original content</p>",
             IsPublished = true,
@@ -449,7 +472,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("Ok");
+        GetStatusCode(result).Should().Be(200);
 
         // Extract DTO from result
         dynamic dynamicResult = result;
@@ -460,7 +483,7 @@ public class CmsEndpointsTests : IDisposable
         dto.Id.Should().Be(page.Id);
         dto.Title.Should().Be("Updated Title");
         dto.Content.Should().Be("<p>Updated content</p>");
-        dto.LastModifiedBy.Should().Be("admin@witchcityrope.com");
+        dto.LastModifiedBy.Should().Be(email);
     }
 
     /// <summary>
@@ -471,11 +494,11 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = await CreateUserInDatabase(userId, "admin@witchcityrope.com");
+        var user = await CreateUserInDatabase(userId, $"admin-{Guid.NewGuid():N}@witchcityrope.com");
 
         var page = new ContentPage
         {
-            Slug = "test-page",
+            Slug = "test-page-argex",
             Title = "Original Title",
             Content = "<p>Original content</p>",
             IsPublished = true,
@@ -501,7 +524,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("BadRequest");
+        GetStatusCode(result).Should().Be(400);
     }
 
     #endregion
@@ -516,11 +539,11 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = await CreateUserInDatabase(userId, "admin@witchcityrope.com");
+        var user = await CreateUserInDatabase(userId, $"admin-{Guid.NewGuid():N}@witchcityrope.com");
 
         var page = new ContentPage
         {
-            Slug = "test-page",
+            Slug = "test-page-revisions",
             Title = "Test Page",
             Content = "<p>Current content</p>",
             IsPublished = true,
@@ -532,26 +555,29 @@ public class CmsEndpointsTests : IDisposable
         await _dbContext.ContentPages.AddAsync(page);
         await _dbContext.SaveChangesAsync();
 
-        // Add revisions
+        // Add revisions - save separately to ensure ordering by DB-generated Id
         var revision1 = new ContentRevision
         {
             ContentPageId = page.Id,
             Content = "<p>Old content version 1</p>",
             Title = "Old Title 1",
-            CreatedAt = DateTime.UtcNow.AddHours(-2),
+            CreatedAt = DateTime.UtcNow.AddDays(-2),
             CreatedBy = userId,
             ChangeDescription = "First update"
         };
+        await _dbContext.ContentRevisions.AddAsync(revision1);
+        await _dbContext.SaveChangesAsync();
+
         var revision2 = new ContentRevision
         {
             ContentPageId = page.Id,
             Content = "<p>Old content version 2</p>",
             Title = "Old Title 2",
-            CreatedAt = DateTime.UtcNow.AddHours(-1),
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
             CreatedBy = userId,
             ChangeDescription = "Second update"
         };
-        await _dbContext.ContentRevisions.AddRangeAsync(revision1, revision2);
+        await _dbContext.ContentRevisions.AddAsync(revision2);
         await _dbContext.SaveChangesAsync();
 
         // Act
@@ -559,7 +585,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("Ok");
+        GetStatusCode(result).Should().Be(200);
 
         // Extract list from result
         dynamic dynamicResult = result;
@@ -589,7 +615,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("NotFound");
+        GetStatusCode(result).Should().Be(404);
     }
 
     /// <summary>
@@ -600,9 +626,20 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
+        var user = new ApplicationUser
+        {
+            Id = userId,
+            Email = $"user-{Guid.NewGuid():N}@example.com",
+            UserName = $"user-{Guid.NewGuid():N}@example.com",
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        await _dbContext.Users.AddAsync(user);
+
         var page = new ContentPage
         {
-            Slug = "new-page",
+            Slug = "new-page-no-revisions",
             Title = "New Page",
             Content = "<p>No revisions yet</p>",
             IsPublished = true,
@@ -619,7 +656,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("Ok");
+        GetStatusCode(result).Should().Be(200);
 
         // Extract list from result
         dynamic dynamicResult = result;
@@ -642,7 +679,8 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = await CreateUserInDatabase(userId, "admin@witchcityrope.com");
+        var email = $"admin-{Guid.NewGuid():N}@witchcityrope.com";
+        var user = await CreateUserInDatabase(userId, email);
 
         var page1 = new ContentPage
         {
@@ -686,7 +724,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("Ok");
+        GetStatusCode(result).Should().Be(200);
 
         // Extract list from result
         dynamic dynamicResult = result;
@@ -705,7 +743,7 @@ public class CmsEndpointsTests : IDisposable
         dtoList[1].RevisionCount.Should().Be(0);
 
         // Verify LastModifiedBy
-        dtoList[0].LastModifiedBy.Should().Be("admin@witchcityrope.com");
+        dtoList[0].LastModifiedBy.Should().Be(email);
     }
 
     /// <summary>
@@ -719,7 +757,7 @@ public class CmsEndpointsTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.GetType().Name.Should().Contain("Ok");
+        GetStatusCode(result).Should().Be(200);
 
         // Extract list from result
         dynamic dynamicResult = result;
@@ -738,7 +776,7 @@ public class CmsEndpointsTests : IDisposable
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = await CreateUserInDatabase(userId, "test@witchcityrope.com");
+        var user = await CreateUserInDatabase(userId, $"test-{Guid.NewGuid():N}@witchcityrope.com");
 
         var page1 = new ContentPage
         {
@@ -826,7 +864,14 @@ public class CmsEndpointsTests : IDisposable
         var method = endpointsType.GetMethod("UpdatePage", BindingFlags.NonPublic | BindingFlags.Static);
         if (method == null) return null;
 
-        var result = method.Invoke(null, new object?[] { id, request, user, _dbContext, _sanitizer, _mockLogger, _cancellationToken });
+        // Create mock HttpContext with user principal
+        var httpContext = new DefaultHttpContext { User = user };
+
+        // Create mock IAntiforgery that always validates successfully
+        var antiforgery = Substitute.For<IAntiforgery>();
+        antiforgery.ValidateRequestAsync(Arg.Any<HttpContext>()).Returns(Task.CompletedTask);
+
+        var result = method.Invoke(null, new object?[] { httpContext, antiforgery, id, request, user, _dbContext, _sanitizer, _mockLogger, _cancellationToken });
         if (result is Task<IResult> task)
         {
             return await task;
@@ -876,6 +921,34 @@ public class CmsEndpointsTests : IDisposable
     }
 
     /// <summary>
+    /// Helper: Gets the HTTP status code from an IResult (handles Ok, Problem, NotFound, etc.)
+    /// </summary>
+    private int? GetStatusCode(IResult? result)
+    {
+        if (result == null) return null;
+        var type = result.GetType();
+
+        // Check StatusCode property (ProblemHttpResult, etc.)
+        var statusCodeProp = type.GetProperty("StatusCode");
+        if (statusCodeProp != null)
+        {
+            var val = statusCodeProp.GetValue(result);
+            if (val is int intVal) return intVal;
+        }
+
+        // Check for Ok result (200)
+        if (type.Name.Contains("Ok")) return 200;
+        // Check for NotFound (404)
+        if (type.Name.Contains("NotFound")) return 404;
+        // Check for BadRequest (400)
+        if (type.Name.Contains("BadRequest")) return 400;
+        // Check for Unauthorized (401)
+        if (type.Name.Contains("Unauthorized")) return 401;
+
+        return null;
+    }
+
+    /// <summary>
     /// Helper: Creates authenticated user with ClaimsPrincipal
     /// </summary>
     private ClaimsPrincipal CreateAuthenticatedUser(Guid userId)
@@ -890,7 +963,7 @@ public class CmsEndpointsTests : IDisposable
     }
 
     /// <summary>
-    /// Helper: Creates user in database
+    /// Helper: Creates user in database with required PostgreSQL fields
     /// </summary>
     private async Task<ApplicationUser> CreateUserInDatabase(Guid userId, string email)
     {
@@ -899,7 +972,10 @@ public class CmsEndpointsTests : IDisposable
             Id = userId,
             Email = email,
             UserName = email,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         await _dbContext.Users.AddAsync(user);
         await _dbContext.SaveChangesAsync();

@@ -190,8 +190,14 @@ namespace WitchCityRope.Tests.Common.Fixtures
 
         public ApplicationDbContext CreateDbContext()
         {
+            // Build NpgsqlDataSource with EnableDynamicJson (required for Dictionary<string, object> JSONB columns)
+            // This matches the production configuration in Program.cs
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
+            dataSourceBuilder.EnableDynamicJson();
+            var dataSource = dataSourceBuilder.Build();
+
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseNpgsql(ConnectionString)
+                .UseNpgsql(dataSource)
                 .ConfigureWarnings(warnings =>
                 {
                     // Ignore pending model changes warning in test environment

@@ -22,29 +22,7 @@ public abstract class DtoMappingTestBase : IntegrationTestBase, IDisposable
 
     protected DtoMappingTestBase(DatabaseTestFixture fixture) : base(fixture)
     {
-        // Create web application factory for API testing
-        Factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Replace database with test database
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                        options.EnableSensitiveDataLogging();
-                        options.EnableDetailedErrors();
-                    });
-                });
-            });
+        Factory = CreateTestWebApplicationFactory();
     }
 
     /// <summary>

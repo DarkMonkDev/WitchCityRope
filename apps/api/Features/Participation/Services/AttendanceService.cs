@@ -746,12 +746,6 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("Event not found");
             }
 
-            // CRITICAL: Validate Event Waiver acceptance
-            if (!request.EventWaiverAccepted)
-            {
-                return Result<ParticipationStatusDto>.Failure("You must accept the Event Waiver to purchase a ticket");
-            }
-
             // Check if user exists
             var user = await _context.Users
                 .AsNoTracking()
@@ -760,6 +754,19 @@ public class AttendanceService : IAttendanceService
             if (user == null)
             {
                 return Result<ParticipationStatusDto>.Failure("User not found");
+            }
+
+            // VETTING ENFORCEMENT: Check if event requires vetted members
+            // Must run before waiver/timing checks so non-vetted users get clear denial message
+            if (eventEntity.VettedMembersOnly && !user.IsVetted)
+            {
+                return Result<ParticipationStatusDto>.Failure("This event is limited to vetted members only");
+            }
+
+            // CRITICAL: Validate Event Waiver acceptance
+            if (!request.EventWaiverAccepted)
+            {
+                return Result<ParticipationStatusDto>.Failure("You must accept the Event Waiver to purchase a ticket");
             }
 
             // Load all ticket types with their sessions

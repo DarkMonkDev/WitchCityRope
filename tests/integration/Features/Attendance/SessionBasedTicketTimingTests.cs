@@ -4,12 +4,11 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Tests.Common.Fixtures;
 using WitchCityRope.Models;
+using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
 
 namespace WitchCityRope.IntegrationTests.Features.Attendance;
@@ -31,32 +30,15 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
 
     public SessionBasedTicketTimingTests(DatabaseTestFixture fixture) : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     #region Multi-Session Ticket Purchase Tests
 
     [Fact]
-    public async Task PurchaseTicket_MultiSessionTicket_UsesFirstFutureSession()
+    public async Task PurchaseTicket_MultiSessionTicket_UsesEarliestSession()
     {
-        // Arrange: Create event with 3 sessions
+        // Arrange: Create event with 3 future sessions
         var (client, userId) = await CreateAuthenticatedUserAsync($"multi-session-user-{Guid.NewGuid():N}@test.com");
         var venueId = await CreateTestVenueAsync();
 
@@ -65,12 +47,12 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
             Id = Guid.NewGuid(),
             Title = $"Multi-Session Event {Guid.NewGuid():N}",
             Description = "Test multi-session event",
-            StartDate = DateTime.UtcNow.AddDays(-1), // Yesterday (will auto-update to Session 2)
+            StartDate = DateTime.UtcNow.AddDays(1),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             VenueId = venueId,
-            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true,
+            RequireTicketPurchase = true,
             RegistrationOpenHours = 168, // Opens 7 days before
             RegistrationCloseHours = 12,  // Closes 12 hours before
             CreatedAt = DateTime.UtcNow,
@@ -83,21 +65,21 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
             await context.SaveChangesAsync();
         }
 
-        // Create 3 sessions: Past, Future (tomorrow), Future (next week)
-        var session1 = await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(-1), "Session 1"); // Past
-        var session2 = await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(1), "Session 2");  // Future (tomorrow)
-        var session3 = await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(7), "Session 3"); // Future (next week)
+        // Create 3 future sessions — timing uses earliest session
+        var session1 = await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(1), "Session 1");  // Tomorrow
+        var session2 = await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(3), "Session 2");  // 3 days
+        var session3 = await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(7), "Session 3");  // Next week
 
-        // Create ticket type for ALL sessions (SessionId = null)
+        // Create ticket type linked to ALL sessions
         var ticketType = await CreateTestTicketTypeAsync(eventEntity.Id, null, "All Access Pass");
 
         // Act: Attempt to purchase ticket
-        var request = new { EventId = eventEntity.Id, TicketTypeId = ticketType.Id, EventWaiverAccepted = true };
+        var request = new { EventId = eventEntity.Id, TicketTypeIds = new[] { ticketType.Id }, EventWaiverAccepted = true };
         var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
-        // Assert: Should succeed because Session 2 (tomorrow) is > 12 hours away
+        // Assert: Should succeed because earliest session (tomorrow) is > 12 hours away
         response.StatusCode.Should().Be(HttpStatusCode.Created,
-            "Ticket purchase should succeed when first future session (Session 2) is beyond RegistrationCloseHours");
+            "Ticket purchase should succeed when earliest session is beyond RegistrationCloseHours");
     }
 
     [Fact]
@@ -115,9 +97,9 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
             StartDate = DateTime.UtcNow.AddDays(-7), // Last week
             EndDate = DateTime.UtcNow.AddDays(-5),
             VenueId = venueId,
-            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true,
+            RequireTicketPurchase = true,
             RegistrationOpenHours = 168,
             RegistrationCloseHours = 12,
             CreatedAt = DateTime.UtcNow,
@@ -138,7 +120,7 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
         var ticketType = await CreateTestTicketTypeAsync(eventEntity.Id, null, "Past Event Pass");
 
         // Act: Attempt purchase
-        var request = new { EventId = eventEntity.Id, TicketTypeId = ticketType.Id, EventWaiverAccepted = true };
+        var request = new { EventId = eventEntity.Id, TicketTypeIds = new[] { ticketType.Id }, EventWaiverAccepted = true };
         var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
         // Assert: Should fail because no future sessions exist
@@ -150,8 +132,8 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
         }
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
             $"Ticket purchase should fail when all sessions have passed. Response: {content}");
-        content.Should().Contain("All sessions for this ticket have passed",
-            "Error message should explain that no future sessions exist");
+        content.Should().Contain("purchase window",
+            "Error message should indicate the purchase window is not open");
     }
 
     [Fact]
@@ -169,9 +151,9 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
             StartDate = DateTime.UtcNow.AddHours(6), // 6 hours away
             EndDate = DateTime.UtcNow.AddHours(8),
             VenueId = venueId,
-            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true,
+            RequireTicketPurchase = true,
             RegistrationOpenHours = 168,
             RegistrationCloseHours = 12, // Closes 12 hours before (6 hours < 12 = closed)
             CreatedAt = DateTime.UtcNow,
@@ -191,7 +173,7 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
         var ticketType = await CreateTestTicketTypeAsync(eventEntity.Id, null, "Last Minute Ticket");
 
         // Act: Attempt purchase
-        var request = new { EventId = eventEntity.Id, TicketTypeId = ticketType.Id, EventWaiverAccepted = true };
+        var request = new { EventId = eventEntity.Id, TicketTypeIds = new[] { ticketType.Id }, EventWaiverAccepted = true };
         var response = await client.PostAsJsonAsync($"/api/events/{eventEntity.Id}/tickets", request);
 
         // Assert: Should fail because within close window (6 hours < 12 hours)
@@ -221,9 +203,9 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
             StartDate = DateTime.UtcNow.AddDays(3), // 3 days away
             EndDate = DateTime.UtcNow.AddDays(3).AddHours(2),
             VenueId = venueId,
-            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true,
+            RequireTicketPurchase = true,
             CancellationCloseHours = 24, // Closes 24 hours before
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -265,9 +247,9 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
             StartDate = DateTime.UtcNow.AddHours(12), // 12 hours away
             EndDate = DateTime.UtcNow.AddHours(14),
             VenueId = venueId,
-            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true,
+            RequireTicketPurchase = true,
             CancellationCloseHours = 24, // Closes 24 hours before (12 < 24 = closed)
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -328,11 +310,21 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
     {
         await using var context = CreateDbContext();
 
+        // Load event's sessions to link with ticket type
+        var sessions = await context.Sessions
+            .Where(s => s.EventId == eventId)
+            .ToListAsync();
+
+        // If sessionId specified, link only that session; otherwise link ALL event sessions
+        var linkedSessions = sessionId.HasValue
+            ? sessions.Where(s => s.Id == sessionId.Value).ToList()
+            : sessions;
+
         var ticketType = new TicketType
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
-            // Sessions collection handles many-to-many relationship (sessionId param indicates which session to link)
+            Sessions = linkedSessions,
             Name = name,
             Description = "Test ticket type",
             PricingType = PricingType.Fixed,
@@ -371,7 +363,7 @@ public class SessionBasedTicketTimingTests : IntegrationTestBase, IDisposable
             UserId = userId,
             TotalPrice = 25.00m,
             PaymentMethod = "Cash",
-            PaymentStatus = "Completed",
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

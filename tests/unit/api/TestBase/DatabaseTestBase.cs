@@ -103,11 +103,14 @@ public abstract class DatabaseTestBase : IAsyncLifetime
     {
         // Create fresh DbContext for each test
         DbContext = DatabaseFixture.CreateDbContext();
-        
+
+        // Ensure a default venue exists for FK satisfaction
+        await CreateTestVenueAsync();
+
         // Setup scoped services to return real DbContext
         MockScopeServiceProvider.Setup(x => x.GetService(typeof(ApplicationDbContext)))
             .Returns(DbContext);
-        
+
         // Setup other scoped services
         MockScopeServiceProvider.Setup(x => x.GetService(typeof(IHostEnvironment)))
             .Returns(MockHostEnvironment.Object);
@@ -234,6 +237,27 @@ public abstract class DatabaseTestBase : IAsyncLifetime
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+    }
+
+    /// <summary>
+    /// Creates a test venue in the database for FK constraint satisfaction.
+    /// Called automatically during InitializeAsync to ensure VenueId=1 exists.
+    /// </summary>
+    protected async Task<int> CreateTestVenueAsync(string? name = null)
+    {
+        var venue = new Venue
+        {
+            Name = name ?? $"Test Venue {Guid.NewGuid():N}"[..30],
+            Directions = "Test directions",
+            VenueInformation = "Test venue for unit testing",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        DbContext.Venues.Add(venue);
+        await DbContext.SaveChangesAsync();
+        return venue.Id;
     }
 
     /// <summary>

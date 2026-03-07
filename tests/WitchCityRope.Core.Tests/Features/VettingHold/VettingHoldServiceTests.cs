@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Data.Entities;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.VettingHold.Services;
@@ -38,6 +37,21 @@ public class VettingHoldServiceTests : IAsyncLifetime
     {
         _context = _fixture.CreateDbContext();
         await _fixture.ResetDatabaseAsync();
+
+        // Ensure test venue exists (required FK for Events)
+        var existingVenue = await _context.Venues.FindAsync(1);
+        if (existingVenue == null)
+        {
+            _context.Venues.Add(new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                Location = "123 Test St, Salem, MA",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
 
         _mockLogger = new Mock<ILogger<VettingHoldService>>();
         _mockConfig = new Mock<IConfiguration>();
@@ -80,11 +94,13 @@ public class VettingHoldServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task PlaceMembershipOnHoldAsync_CreatesUserNoteWithCorrectContent()
+    public async Task PlaceMembershipOnHoldAsync_CreatesAuditLogEntriesWithCorrectContent()
     {
         // Arrange
         var user = CreateTestUser(VettingStatus_Approved);
+        var application = CreateTestVettingApplication(user.Id, VettingStatus.Approved);
         _context.Users.Add(user);
+        _context.VettingApplications.Add(application);
         await _context.SaveChangesAsync();
 
         var reason = "Personal reasons";
@@ -92,15 +108,23 @@ public class VettingHoldServiceTests : IAsyncLifetime
         // Act
         await _service.PlaceMembershipOnHoldAsync(user.Id, reason);
 
-        // Assert
-        var userNote = await _context.UserNotes
-            .FirstOrDefaultAsync(n => n.UserId == user.Id && n.NoteType == "StatusChange");
+        // Assert - Service creates VettingAuditLog entries (not UserNotes)
+        var auditLogs = await _context.VettingAuditLogs
+            .Where(a => a.ApplicationId == application.Id)
+            .OrderBy(a => a.PerformedAt)
+            .ToListAsync();
 
-        userNote.Should().NotBeNull();
-        userNote!.Content.Should().Contain("Membership placed on hold");
-        userNote.Content.Should().Contain(reason);
-        userNote.NoteType.Should().Be("StatusChange");
-        userNote.AuthorId.Should().Be(user.Id);
+        auditLogs.Should().HaveCount(2);
+
+        // Status change entry
+        var statusLog = auditLogs.Single(a => a.Action == "Status Changed");
+        statusLog.OldValue.Should().Be("Approved");
+        statusLog.NewValue.Should().Be("OnHold");
+        statusLog.PerformedBy.Should().Be(user.Id);
+
+        // Note entry with reason
+        var noteLog = auditLogs.Single(a => a.Action == "Note Added");
+        noteLog.Notes.Should().Be(reason);
     }
 
     [Fact]
@@ -118,17 +142,22 @@ public class VettingHoldServiceTests : IAsyncLifetime
         // Act
         await _service.PlaceMembershipOnHoldAsync(user.Id, reason);
 
-        // Assert
-        var auditLog = await _context.VettingAuditLogs
-            .FirstOrDefaultAsync(a => a.ApplicationId == application.Id);
+        // Assert - Service creates two audit log entries: "Status Changed" and "Note Added"
+        var auditLogs = await _context.VettingAuditLogs
+            .Where(a => a.ApplicationId == application.Id)
+            .OrderBy(a => a.PerformedAt)
+            .ToListAsync();
 
-        auditLog.Should().NotBeNull();
-        auditLog!.Action.Should().Be("StatusChange");
-        auditLog.PerformedBy.Should().Be(user.Id);
-        auditLog.OldValue.Should().Be("Approved");
-        auditLog.NewValue.Should().Be("OnHold");
-        auditLog.Notes.Should().Be(reason);
-        auditLog.PerformedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
+        auditLogs.Count.Should().BeGreaterThanOrEqualTo(2);
+
+        var statusLog = auditLogs.First(a => a.Action == "Status Changed");
+        statusLog.PerformedBy.Should().Be(user.Id);
+        statusLog.OldValue.Should().Be("Approved");
+        statusLog.NewValue.Should().Be("OnHold");
+        statusLog.PerformedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
+
+        var noteLog = auditLogs.First(a => a.Action == "Note Added");
+        noteLog.Notes.Should().Be(reason);
     }
 
     [Fact]
@@ -285,10 +314,8 @@ public class VettingHoldServiceTests : IAsyncLifetime
         var auditLogCount = await _context.VettingAuditLogs.CountAsync();
         auditLogCount.Should().Be(0);
 
-        // But UserNote should still be created
-        var userNote = await _context.UserNotes
-            .FirstOrDefaultAsync(n => n.UserId == user.Id);
-        userNote.Should().NotBeNull();
+        // Service does not create UserNotes - only VettingAuditLog entries (which require an application)
+        // Without a VettingApplication, no audit records are created but the status change still succeeds
     }
 
     #endregion
@@ -322,11 +349,13 @@ public class VettingHoldServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RequestReinstatementAsync_CreatesUserNoteWithCorrectContent()
+    public async Task RequestReinstatementAsync_CreatesAuditLogEntriesWithCorrectContent()
     {
         // Arrange
         var user = CreateTestUser(VettingStatus_OnHold);
+        var application = CreateTestVettingApplication(user.Id, VettingStatus.OnHold);
         _context.Users.Add(user);
+        _context.VettingApplications.Add(application);
         await _context.SaveChangesAsync();
 
         var reason = "Ready to return";
@@ -334,15 +363,23 @@ public class VettingHoldServiceTests : IAsyncLifetime
         // Act
         await _service.RequestReinstatementAsync(user.Id, reason);
 
-        // Assert
-        var userNote = await _context.UserNotes
-            .FirstOrDefaultAsync(n => n.UserId == user.Id && n.NoteType == "StatusChange");
+        // Assert - Service creates VettingAuditLog entries (not UserNotes)
+        var auditLogs = await _context.VettingAuditLogs
+            .Where(a => a.ApplicationId == application.Id)
+            .OrderBy(a => a.PerformedAt)
+            .ToListAsync();
 
-        userNote.Should().NotBeNull();
-        userNote!.Content.Should().Contain("Reinstatement requested");
-        userNote.Content.Should().Contain(reason);
-        userNote.NoteType.Should().Be("StatusChange");
-        userNote.AuthorId.Should().Be(user.Id);
+        auditLogs.Should().HaveCount(2);
+
+        // Status change entry
+        var statusLog = auditLogs.Single(a => a.Action == "Status Changed");
+        statusLog.OldValue.Should().Be("OnHold");
+        statusLog.NewValue.Should().Be("FinalReview");
+        statusLog.PerformedBy.Should().Be(user.Id);
+
+        // Note entry with reason
+        var noteLog = auditLogs.Single(a => a.Action == "Note Added");
+        noteLog.Notes.Should().Be(reason);
     }
 
     [Fact]
@@ -380,16 +417,21 @@ public class VettingHoldServiceTests : IAsyncLifetime
         // Act
         await _service.RequestReinstatementAsync(user.Id, reason);
 
-        // Assert
-        var auditLog = await _context.VettingAuditLogs
-            .FirstOrDefaultAsync(a => a.ApplicationId == application.Id);
+        // Assert - Service creates two audit log entries: "Status Changed" and "Note Added"
+        var auditLogs = await _context.VettingAuditLogs
+            .Where(a => a.ApplicationId == application.Id)
+            .OrderBy(a => a.PerformedAt)
+            .ToListAsync();
 
-        auditLog.Should().NotBeNull();
-        auditLog!.Action.Should().Be("StatusChange");
-        auditLog.PerformedBy.Should().Be(user.Id);
-        auditLog.OldValue.Should().Be("OnHold");
-        auditLog.NewValue.Should().Be("FinalReview");
-        auditLog.Notes.Should().Be(reason);
+        auditLogs.Count.Should().BeGreaterThanOrEqualTo(2);
+
+        var statusLog = auditLogs.First(a => a.Action == "Status Changed");
+        statusLog.PerformedBy.Should().Be(user.Id);
+        statusLog.OldValue.Should().Be("OnHold");
+        statusLog.NewValue.Should().Be("FinalReview");
+
+        var noteLog = auditLogs.First(a => a.Action == "Note Added");
+        noteLog.Notes.Should().Be(reason);
     }
 
     [Fact]
@@ -532,14 +574,19 @@ public class VettingHoldServiceTests : IAsyncLifetime
             userId: user.Id,
             content: "Status changed to OnHold",
             noteType: "StatusChange",
-            authorId: user.Id)
-        {
-            CreatedAt = statusChangeDate
-        };
+            authorId: user.Id);
 
         _context.Users.Add(user);
         _context.UserNotes.Add(userNote);
         await _context.SaveChangesAsync();
+
+        // ApplicationDbContext.SaveChangesAsync overrides CreatedAt to DateTime.UtcNow on insert,
+        // so update it afterward via raw SQL to simulate an older status change date
+        await _context.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE \"UserNotes\" SET \"CreatedAt\" = {statusChangeDate} WHERE \"Id\" = {userNote.Id}");
+
+        // Detach to avoid stale cached entity
+        _context.ChangeTracker.Clear();
 
         // Act
         var result = await _service.GetHoldStatusAsync(user.Id);
@@ -626,7 +673,9 @@ public class VettingHoldServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             Title = $"Test Social Event {Guid.NewGuid():N}"[..20],
             Description = "Test event",
-            EventType = EventType.Social,
+            AllowRsvps = true,
+            VettedMembersOnly = true,
+            VenueId = 1,
             StartDate = startDate,
             EndDate = startDate.AddHours(2),
             CreatedAt = DateTime.UtcNow,
@@ -641,7 +690,8 @@ public class VettingHoldServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             Title = $"Test Class Event {Guid.NewGuid():N}"[..20],
             Description = "Test event",
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
+            VenueId = 1,
             StartDate = startDate,
             EndDate = startDate.AddHours(2),
             CreatedAt = DateTime.UtcNow,

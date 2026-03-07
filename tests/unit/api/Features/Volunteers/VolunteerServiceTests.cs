@@ -45,8 +45,12 @@ public class VolunteerServiceTests : IAsyncLifetime
         await _container.StartAsync();
         _connectionString = _container.GetConnectionString();
 
+        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(_connectionString);
+        dataSourceBuilder.EnableDynamicJson();
+        var dataSource = dataSourceBuilder.Build();
+
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseNpgsql(_connectionString)
+            .UseNpgsql(dataSource)
             .Options;
 
         _context = new ApplicationDbContext(options);
@@ -55,8 +59,17 @@ public class VolunteerServiceTests : IAsyncLifetime
         // Setup logger
         _logger = Substitute.For<ILogger<VolunteerService>>();
 
-        // Setup timezone service mock
+        // Setup timezone service mock - return future session for timing validation
         _timeZoneService = Substitute.For<ITimeZoneService>();
+        _timeZoneService.GetEarliestFutureSession(Arg.Any<IEnumerable<Session>>())
+            .Returns(callInfo =>
+            {
+                var sessions = callInfo.Arg<IEnumerable<Session>>();
+                return sessions.FirstOrDefault(s => s.StartTime > DateTime.UtcNow);
+            });
+        _timeZoneService.IsActionAllowedForSession(
+            Arg.Any<Session?>(), Arg.Any<decimal?>(), Arg.Any<decimal?>())
+            .Returns(true);
 
         // Create service instance
         _service = new VolunteerService(_context, _logger, _timeZoneService);
@@ -111,8 +124,8 @@ public class VolunteerServiceTests : IAsyncLifetime
             Title = title,
             Description = $"Description for {title}",
             VenueId = 1, // References venue created above
-            AllowRsvps = false,
-            RequireTicketPurchase = true,
+            AllowRsvps = true,
+            RequireTicketPurchase = false, // Don't require tickets for volunteer signup tests
             VettedMembersOnly = false,
             Capacity = capacity,
             IsPublished = true,
@@ -123,6 +136,19 @@ public class VolunteerServiceTests : IAsyncLifetime
         };
 
         _context.Events.Add(eventEntity);
+        await _context.SaveChangesAsync();
+
+        // Create a session for the event (required by VolunteerService timing validation)
+        var session = new Session
+        {
+            Id = Guid.NewGuid(),
+            EventId = eventEntity.Id,
+            StartTime = eventEntity.StartDate,
+            EndTime = eventEntity.EndDate,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Sessions.Add(session);
         await _context.SaveChangesAsync();
 
         return eventEntity;
@@ -167,7 +193,7 @@ public class VolunteerServiceTests : IAsyncLifetime
             SceneName = sceneName,
             EmailConfirmed = true,
             CreatedAt = DateTime.UtcNow,
-            Role = "Member"
+            Role = ""
         };
 
         _context.Users.Add(user);

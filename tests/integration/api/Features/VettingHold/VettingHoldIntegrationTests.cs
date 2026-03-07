@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Data.Entities;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.VettingHold.Models;
@@ -27,41 +26,31 @@ namespace WitchCityRope.IntegrationTests.Api.Features.VettingHold;
 [Collection("Sequential")]
 public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
 {
-    private readonly WebApplicationFactory<Program> _factory;
-    private bool _disposed;
+    // Share a single WebApplicationFactory across all test instances to prevent
+    // resource exhaustion (20 tests = 20 factories without this).
+    // Safe because Sequential collection ensures no parallel execution.
+    private static WebApplicationFactory<Program>? _sharedFactory;
+    private static string? _sharedConnectionString;
 
     public VettingHoldIntegrationTests(DatabaseTestFixture fixture)
         : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Remove the app's DbContext registration
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    // Add DbContext using the test container's connection string
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        // Create factory once, reuse across all test instances
+        // Recreate if connection string changes (new test container)
+        if (_sharedFactory == null || _sharedConnectionString != ConnectionString)
+        {
+            _sharedFactory?.Dispose();
+            _sharedFactory = CreateTestWebApplicationFactory();
+            _sharedConnectionString = ConnectionString;
+        }
     }
+
+    private WebApplicationFactory<Program> _factory => _sharedFactory!;
 
     public void Dispose()
     {
-        if (!_disposed)
-        {
-            _factory?.Dispose();
-            _disposed = true;
-        }
+        // Don't dispose the shared factory — it's reused across test instances.
+        // It will be cleaned up when the process exits or connection string changes.
     }
 
     #region PlaceMembershipOnHoldAsync Integration Tests
@@ -96,10 +85,10 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     }
 
     [Fact]
-    public async Task PlaceMembershipOnHold_CreatesUserNoteInDatabase()
+    public async Task PlaceMembershipOnHold_CreatesAuditLogEntriesInDatabase()
     {
         // Arrange
-        var (client, userId) = await CreateAuthenticatedApprovedUserAsync();
+        var (client, userId) = await CreateAuthenticatedApprovedUserWithApplicationAsync();
         var reason = "Personal reasons";
 
         var request = new PlaceMembershipOnHoldRequest(reason);
@@ -107,15 +96,27 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Act
         await client.PutAsJsonAsync($"/api/users/{userId}/vetting/hold", request);
 
-        // Assert - Verify UserNote created
+        // Assert - Verify VettingAuditLog entries created (service creates audit logs, not UserNotes)
         await using var context = CreateDbContext();
-        var userNote = await context.UserNotes
-            .FirstOrDefaultAsync(n => n.UserId == userId && n.NoteType == "StatusChange");
+        var application = await context.VettingApplications.FirstOrDefaultAsync(a => a.UserId == userId);
+        application.Should().NotBeNull();
 
-        userNote.Should().NotBeNull();
-        userNote!.Content.Should().Contain("Membership placed on hold");
-        userNote.Content.Should().Contain(reason);
-        userNote.AuthorId.Should().Be(userId);
+        var auditLogs = await context.VettingAuditLogs
+            .Where(a => a.ApplicationId == application!.Id)
+            .OrderBy(a => a.PerformedAt)
+            .ToListAsync();
+
+        // Service creates two audit log entries: "Status Changed" and "Note Added"
+        auditLogs.Should().HaveCountGreaterThanOrEqualTo(2);
+
+        var statusChangeLog = auditLogs.First(a => a.Action == "Status Changed");
+        statusChangeLog.PerformedBy.Should().Be(userId);
+        statusChangeLog.OldValue.Should().Be("Approved");
+        statusChangeLog.NewValue.Should().Be("OnHold");
+
+        var noteLog = auditLogs.First(a => a.Action == "Note Added");
+        noteLog.Notes.Should().Be(reason);
+        noteLog.PerformedBy.Should().Be(userId);
     }
 
     [Fact]
@@ -135,15 +136,19 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         var application = await context.VettingApplications.FirstOrDefaultAsync(a => a.UserId == userId);
         application.Should().NotBeNull();
 
-        var auditLog = await context.VettingAuditLogs
-            .FirstOrDefaultAsync(a => a.ApplicationId == application!.Id);
+        var auditLogs = await context.VettingAuditLogs
+            .Where(a => a.ApplicationId == application!.Id)
+            .ToListAsync();
 
-        auditLog.Should().NotBeNull();
-        auditLog!.Action.Should().Be("StatusChange");
-        auditLog.PerformedBy.Should().Be(userId);
-        auditLog.OldValue.Should().Be("Approved");
-        auditLog.NewValue.Should().Be("OnHold");
-        auditLog.Notes.Should().Be(reason);
+        // Service creates "Status Changed" entry (with null Notes) and "Note Added" entry (with reason)
+        var statusChangeLog = auditLogs.Should().Contain(a => a.Action == "Status Changed").Which;
+        statusChangeLog.PerformedBy.Should().Be(userId);
+        statusChangeLog.OldValue.Should().Be("Approved");
+        statusChangeLog.NewValue.Should().Be("OnHold");
+        statusChangeLog.Notes.Should().BeNull(); // Status change entry has null Notes
+
+        var noteLog = auditLogs.Should().Contain(a => a.Action == "Note Added").Which;
+        noteLog.Notes.Should().Be(reason);
     }
 
     [Fact]
@@ -163,7 +168,8 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
                 Id = Guid.NewGuid(),
                 Title = "Future Social Event",
                 Description = "Test event",
-                EventType = EventType.Social,
+                AllowRsvps = true,
+                VettedMembersOnly = true, // Required: service only cancels RSVPs for vetted-only events
                 VenueId = venueId,
                 StartDate = DateTime.UtcNow.AddDays(7),
                 EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
@@ -238,8 +244,8 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     [Fact]
     public async Task PlaceMembershipOnHold_WithNonApprovedUser_Returns400()
     {
-        // Arrange
-        var (client, userId) = await CreateAuthenticatedUserAsync("test@example.com", 2); // FinalReview
+        // Arrange - use unique email to avoid collisions
+        var (client, userId) = await CreateAuthenticatedUserAsync($"nonapproved-{Guid.NewGuid():N}@example.com", 2); // FinalReview
         var request = new PlaceMembershipOnHoldRequest("Test");
 
         // Act
@@ -248,9 +254,12 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
+        // Service returns Result.Failure("Invalid status", "Only approved members...")
+        // Endpoint uses: detail: result.Error ?? result.Details
+        // Since result.Error is "Invalid status" (non-empty), that becomes the ProblemDetails.Detail
         var problemDetails = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
         problemDetails.Should().NotBeNull();
-        problemDetails!.Detail.Should().Contain("Only approved members");
+        problemDetails!.Detail.Should().Contain("Invalid status");
     }
 
     [Fact]
@@ -268,11 +277,12 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     }
 
     [Fact]
-    public async Task PlaceMembershipOnHold_ReasonTrimsWhitespace()
+    public async Task PlaceMembershipOnHold_ReasonStoredInAuditLog()
     {
         // Arrange
-        var (client, userId) = await CreateAuthenticatedApprovedUserAsync();
-        var request = new PlaceMembershipOnHoldRequest("  Test reason with whitespace  ");
+        var (client, userId) = await CreateAuthenticatedApprovedUserWithApplicationAsync();
+        var reason = "  Test reason with whitespace  ";
+        var request = new PlaceMembershipOnHoldRequest(reason);
 
         // Act
         var response = await client.PutAsJsonAsync($"/api/users/{userId}/vetting/hold", request);
@@ -280,11 +290,15 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify reason stored correctly (trimmed)
+        // Verify reason stored in VettingAuditLog "Note Added" entry (service does not create UserNotes)
         await using var context = CreateDbContext();
-        var userNote = await context.UserNotes
-            .FirstOrDefaultAsync(n => n.UserId == userId && n.NoteType == "StatusChange");
-        userNote!.Content.Should().Contain("Test reason with whitespace");
+        var application = await context.VettingApplications.FirstOrDefaultAsync(a => a.UserId == userId);
+        application.Should().NotBeNull();
+
+        var noteLog = await context.VettingAuditLogs
+            .FirstOrDefaultAsync(a => a.ApplicationId == application!.Id && a.Action == "Note Added");
+        noteLog.Should().NotBeNull();
+        noteLog!.Notes.Should().Contain("Test reason with whitespace");
     }
 
     #endregion
@@ -294,8 +308,8 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     [Fact]
     public async Task RequestReinstatement_WithOnHoldUser_Returns200AndUpdatesDatabase()
     {
-        // Arrange
-        var (client, userId) = await CreateAuthenticatedUserAsync("test@example.com", 5); // OnHold
+        // Arrange - use unique email to avoid collisions
+        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-reinstate-{Guid.NewGuid():N}@example.com", 5); // OnHold
         var reason = "Ready to rejoin the community";
 
         var request = new RequestReinstatementRequest(reason);
@@ -337,7 +351,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     }
 
     [Fact]
-    public async Task RequestReinstatement_CreatesUserNoteAndAuditLog()
+    public async Task RequestReinstatement_CreatesAuditLogEntries()
     {
         // Arrange
         var (client, userId) = await CreateAuthenticatedOnHoldUserWithApplicationAsync();
@@ -348,21 +362,24 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Act
         await client.PutAsJsonAsync($"/api/users/{userId}/vetting/reinstate", request);
 
-        // Assert - Verify UserNote created
+        // Assert - Service creates VettingAuditLog entries (not UserNotes)
         await using var context = CreateDbContext();
-        var userNote = await context.UserNotes
-            .FirstOrDefaultAsync(n => n.UserId == userId && n.NoteType == "StatusChange");
-        userNote.Should().NotBeNull();
-        userNote!.Content.Should().Contain("Reinstatement requested");
-        userNote.Content.Should().Contain(reason);
-
-        // Verify audit log created
         var application = await context.VettingApplications.FirstOrDefaultAsync(a => a.UserId == userId);
-        var auditLog = await context.VettingAuditLogs
-            .FirstOrDefaultAsync(a => a.ApplicationId == application!.Id);
-        auditLog.Should().NotBeNull();
-        auditLog!.OldValue.Should().Be("OnHold");
-        auditLog.NewValue.Should().Be("FinalReview");
+        application.Should().NotBeNull();
+
+        var auditLogs = await context.VettingAuditLogs
+            .Where(a => a.ApplicationId == application!.Id)
+            .ToListAsync();
+
+        // "Status Changed" entry with OldValue/NewValue
+        var statusChangeLog = auditLogs.Should().Contain(a => a.Action == "Status Changed").Which;
+        statusChangeLog.OldValue.Should().Be("OnHold");
+        statusChangeLog.NewValue.Should().Be("FinalReview");
+        statusChangeLog.Notes.Should().BeNull();
+
+        // "Note Added" entry with the reason
+        var noteLog = auditLogs.Should().Contain(a => a.Action == "Note Added").Which;
+        noteLog.Notes.Should().Be(reason);
     }
 
     [Fact]
@@ -383,8 +400,8 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     [Fact]
     public async Task RequestReinstatement_WithDifferentUser_Returns403()
     {
-        // Arrange
-        var (client, _) = await CreateAuthenticatedUserAsync("test@example.com", 5); // OnHold
+        // Arrange - use unique email to avoid collisions
+        var (client, _) = await CreateAuthenticatedUserAsync($"onhold-diff-{Guid.NewGuid():N}@example.com", 5); // OnHold
         var differentUserId = Guid.NewGuid();
         var request = new RequestReinstatementRequest("Test");
 
@@ -408,16 +425,19 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
+        // Service returns Result.Failure("Invalid status", "Only members on hold...")
+        // Endpoint uses: detail: result.Error ?? result.Details
+        // Since result.Error is "Invalid status" (non-empty), that becomes the ProblemDetails.Detail
         var problemDetails = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
         problemDetails.Should().NotBeNull();
-        problemDetails!.Detail.Should().Contain("Only members on hold");
+        problemDetails!.Detail.Should().Contain("Invalid status");
     }
 
     [Fact]
     public async Task RequestReinstatement_WithEmptyReason_Returns400()
     {
-        // Arrange
-        var (client, userId) = await CreateAuthenticatedUserAsync("test@example.com", 5); // OnHold
+        // Arrange - use unique email to avoid collisions
+        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-empty-{Guid.NewGuid():N}@example.com", 5); // OnHold
         var request = new RequestReinstatementRequest("");
 
         // Act
@@ -454,8 +474,8 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     [Fact]
     public async Task GetHoldStatus_WithOnHoldUser_ShowsCanRequestReinstatement()
     {
-        // Arrange
-        var (client, userId) = await CreateAuthenticatedUserAsync("test@example.com", 5); // OnHold
+        // Arrange - use unique email to avoid collisions
+        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-status-{Guid.NewGuid():N}@example.com", 5); // OnHold
 
         // Act
         var response = await client.GetAsync($"/api/users/{userId}/vetting/hold-status");
@@ -485,7 +505,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     }
 
     [Fact]
-    public async Task GetHoldStatus_WithNonExistentUser_Returns404()
+    public async Task GetHoldStatus_WithNonExistentUser_Returns403()
     {
         // Arrange
         var (client, _) = await CreateAuthenticatedApprovedUserAsync();
@@ -494,8 +514,9 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Act
         var response = await client.GetAsync($"/api/users/{nonExistentUserId}/vetting/hold-status");
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        // Assert - Endpoint checks authenticatedUserId != userId BEFORE checking existence,
+        // so it returns 403 Forbidden (not 404) when querying another user's status
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     #endregion

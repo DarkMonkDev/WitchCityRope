@@ -1,0 +1,860 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="9a54af29-a93f-413a-8419-7b8bf8b0ae16" name="@Unbutu-Ai-Chads-PC 2026-03-07 05:55:11" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-03-07T05:55:11.9092152-05:00" queuing="2026-03-07T05:55:11.9092153-05:00" start="2026-03-07T05:55:03.4533223-05:00" finish="2026-03-07T05:55:11.9129853-05:00" />
+  <TestSettings name="default" id="79185581-807f-4c6e-9c14-2aba22fb9219">
+    <Deployment runDeploymentRoot="_Unbutu-Ai-Chads-PC_2026-03-07_05_55_11" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="be5f63d8-4da3-4069-beaa-c7fc3f18a443" testId="e26632a0-bc69-4d62-c28f-a5773c66c560" testName="WitchCityRope.UnitTests.Api.Features.Payments.Services.RefundServiceEmailTests.ProcessRefundAsync_ProcessedAt_TimestampIsSet" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.4095012" startTime="2026-03-07T05:55:10.8615683-05:00" endTime="2026-03-07T05:55:11.6084062-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="be5f63d8-4da3-4069-beaa-c7fc3f18a443">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.
+---- System.InvalidCastException : Writing values of 'System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]' is not supported for parameters having NpgsqlDbType 'Jsonb'.
+-------- System.NotSupportedException : Type 'Dictionary`2' required dynamic JSON serialization, which requires an explicit opt-in; call 'EnableDynamicJson' on 'NpgsqlDataSourceBuilder' or NpgsqlConnection.GlobalTypeMapper (see https://www.npgsql.org/doc/types/json.html and the 8.0 release notes for more details). Alternatively, if you meant to use Newtonsoft JSON.NET instead of System.Text.Json, call UseJsonNet() instead.
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at WitchCityRope.Api.Data.ApplicationDbContext.SaveChangesAsync(CancellationToken cancellationToken) in /home/chad/repos/witchcityrope/apps/api/Data/ApplicationDbContext.cs:line 1251
+   at WitchCityRope.UnitTests.Api.Features.Payments.Services.RefundServiceEmailTests.CreateAndSaveTestTicketPurchaseAsync(String paymentMethod) in /home/chad/repos/witchcityrope/tests/unit/api/Features/Payments/Services/RefundServiceEmailTests.cs:line 675
+   at WitchCityRope.UnitTests.Api.Features.Payments.Services.RefundServiceEmailTests.ProcessRefundAsync_ProcessedAt_TimestampIsSet() in /home/chad/repos/witchcityrope/tests/unit/api/Features/Payments/Services/RefundServiceEmailTests.cs:line 512
+--- End of stack trace from previous location ---
+----- Inner Stack Trace -----
+   at Npgsql.Internal.AdoSerializerHelpers.&lt;GetTypeInfoForWriting&gt;g__ThrowWritingNotSupported|1_0(Type type, PgSerializerOptions options, Nullable`1 pgTypeId, Nullable`1 npgsqlDbType, Exception inner)
+   at Npgsql.Internal.AdoSerializerHelpers.GetTypeInfoForWriting(Type type, Nullable`1 pgTypeId, PgSerializerOptions options, Nullable`1 npgsqlDbType)
+   at Npgsql.NpgsqlParameter.ResolveTypeInfo(PgSerializerOptions options, IDbTypeResolver dbTypeResolver)
+   at Npgsql.NpgsqlParameterCollection.ProcessParameters(ReloadableState reloadableState, Boolean validateValues, CommandType commandType)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+----- Inner Stack Trace -----
+   at Npgsql.Internal.ResolverFactories.JsonDynamicTypeInfoResolverFactory.Support.ThrowIfUnsupported[TBuilder](Type type, Nullable`1 dataTypeName)
+   at Npgsql.Internal.ResolverFactories.UnsupportedTypeInfoResolver`1.GetTypeInfo(Type type, Nullable`1 dataTypeName, PgSerializerOptions options)
+   at Npgsql.Internal.ChainTypeInfoResolver.GetTypeInfo(Type type, Nullable`1 dataTypeName, PgSerializerOptions options)
+   at Npgsql.Internal.TypeInfoCache`1.&lt;GetOrAddInfo&gt;g__CreateInfo|6_3(Type type, Nullable`1 typeId, PgSerializerOptions options, Boolean validatePgTypeIds)
+   at Npgsql.Internal.TypeInfoCache`1.&lt;GetOrAddInfo&gt;g__AddEntryById|6_2(Type type, TPgTypeId pgTypeId, ValueTuple`2[] infos)
+   at Npgsql.Internal.TypeInfoCache`1.GetOrAddInfo(Type type, Nullable`1 pgTypeId)
+   at Npgsql.Internal.PgSerializerOptions.GetTypeInfoCore(Type type, Nullable`1 pgTypeId)
+   at Npgsql.Internal.PgSerializerOptions.GetTypeInfoInternal(Type type, Nullable`1 pgTypeId)
+   at Npgsql.Internal.AdoSerializerHelpers.GetTypeInfoForWriting(Type type, Nullable`1 pgTypeId, PgSerializerOptions options, Nullable`1 npgsqlDbType)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="WitchCityRope.UnitTests.Api.Features.Payments.Services.RefundServiceEmailTests.ProcessRefundAsync_ProcessedAt_TimestampIsSet" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net10.0/witchcityrope.api.tests.dll" id="e26632a0-bc69-4d62-c28f-a5773c66c560">
+      <Execution id="be5f63d8-4da3-4069-beaa-c7fc3f18a443" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net10.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="WitchCityRope.UnitTests.Api.Features.Payments.Services.RefundServiceEmailTests" name="ProcessRefundAsync_ProcessedAt_TimestampIsSet" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="e26632a0-bc69-4d62-c28f-a5773c66c560" executionId="be5f63d8-4da3-4069-beaa-c7fc3f18a443" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.2)
+[xUnit.net 00:00:00.08]   Discovering: WitchCityRope.Api.Tests
+[xUnit.net 00:00:00.19]   Discovered:  WitchCityRope.Api.Tests
+[xUnit.net 00:00:00.20]   Starting:    WitchCityRope.Api.Tests
+[testcontainers.org 00:00:00.07] Connected to Docker:
+  Host: unix:///var/run/docker.sock
+  Server Version: 28.2.2
+  Kernel Version: 6.17.0-14-generic
+  API Version: 1.50
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 62.72 GB
+[testcontainers.org 00:00:00.14] Docker container 3de270a4a5cd created
+[testcontainers.org 00:00:00.17] Start Docker container 3de270a4a5cd
+[testcontainers.org 00:00:00.37] Wait for Docker container 3de270a4a5cd to complete readiness checks
+[testcontainers.org 00:00:00.37] Docker container 3de270a4a5cd ready
+[testcontainers.org 00:00:02.39] Docker container 6e0cc3f70b57 created
+[testcontainers.org 00:00:02.40] Start Docker container 6e0cc3f70b57
+[testcontainers.org 00:00:02.50] Wait for Docker container 6e0cc3f70b57 to complete readiness checks
+[testcontainers.org 00:00:02.50] Execute "pg_isready --host localhost --dbname witchcityrope_test --username testuser" at Docker container 6e0cc3f70b57
+[testcontainers.org 00:00:03.56] Execute "pg_isready --host localhost --dbname witchcityrope_test --username testuser" at Docker container 6e0cc3f70b57
+[testcontainers.org 00:00:03.61] Docker container 6e0cc3f70b57 ready
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10400]
+      Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'PaymentRefund.Metadata' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[20601]
+      The 'TemplateTriggerType' property 'TriggerType' on entity type 'GlobalEmailTemplate' is configured with a database-generated default, but has no configured sentinel value. The database-generated default will always be used for inserts when the property has the value 'Manual', since this is the CLR default for the 'TemplateTriggerType' type. Consider using a nullable type, using a nullable backing field, or setting the sentinel value for the property to ensure the database default is used when, and only when, appropriate. See https://aka.ms/efcore-docs-default-values for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[20601]
+      The 'BulkOperationStatus' property 'Status' on entity type 'VettingBulkOperation' is configured with a database-generated default, but has no configured sentinel value. The database-generated default will always be used for inserts when the property has the value '0', since this is the CLR default for the 'BulkOperationStatus' type. Consider using a nullable type, using a nullable backing field, or setting the sentinel value for the property to ensure the database default is used when, and only when, appropriate. See https://aka.ms/efcore-docs-default-values for more information.
+fail: Microsoft.EntityFrameworkCore.Database.Command[20102]
+      Failed executing DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251127064731_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251127085617_RemoveFullNameFields'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251129205937_IncreaseApplicationNumberLength'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251130183540_RemoveExperienceLevelAndYearsExperience'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251130221435_RemoveCancellationOpenHours'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251201014300_AddSessionIdToCheckInTables'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP INDEX public."IX_CheckInSessionTokens_EventId_ExpiresAt_Active";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP INDEX public."UQ_CheckIns_EventAttendee";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."CheckInSessionTokens" ADD "SessionId" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."CheckIns" ADD "SessionId" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_CheckInSessionTokens_SessionId" ON public."CheckInSessionTokens" ("SessionId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_CheckInSessionTokens_SessionId_ExpiresAt_Active" ON public."CheckInSessionTokens" ("SessionId", "ExpiresAt") WHERE "IsRevoked" = false;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_CheckIns_Session_Time" ON public."CheckIns" ("SessionId", "CheckInTime");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_CheckIns_SessionId" ON public."CheckIns" ("SessionId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX "UQ_CheckIns_EventAttendee_Session" ON public."CheckIns" ("EventAttendeeId", "SessionId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."CheckIns" ADD CONSTRAINT "FK_CheckIns_Sessions_SessionId" FOREIGN KEY ("SessionId") REFERENCES public."Sessions" ("Id") ON DELETE RESTRICT;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."CheckInSessionTokens" ADD CONSTRAINT "FK_CheckInSessionTokens_Sessions_SessionId" FOREIGN KEY ("SessionId") REFERENCES public."Sessions" ("Id") ON DELETE CASCADE;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251201014300_AddSessionIdToCheckInTables', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251202024901_AddEmailTriggerEnhancements'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "SentAdHocEmails" ADD "ScheduledSendAt" timestamptz;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "GlobalEmailTemplates" ADD "RecipientGroup" integer;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "GlobalEmailTemplates" ADD "TimingOffsetDays" integer;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "GlobalEmailTemplates" ADD "TriggerEnabled" boolean NOT NULL DEFAULT TRUE;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "GlobalEmailTemplates" ADD "TriggerType" integer NOT NULL DEFAULT 1;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "EventEmailTemplates" ADD "OverrideRecipientGroup" integer;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "EventEmailTemplates" ADD "OverrideTimingOffsetDays" integer;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "EventEmailTemplates" ADD "OverrideTriggerEnabled" boolean;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "AdHocEmailTemplates" (
+          "Id" uuid NOT NULL DEFAULT (gen_random_uuid()),
+          "TemplateName" character varying(200) NOT NULL,
+          "Subject" character varying(200) NOT NULL,
+          "HtmlBody" text NOT NULL,
+          "PlainTextBody" text NOT NULL,
+          "CreatedAt" timestamptz NOT NULL DEFAULT (NOW()),
+          "CreatedBy" uuid NOT NULL,
+          CONSTRAINT "PK_AdHocEmailTemplates" PRIMARY KEY ("Id"),
+          CONSTRAINT "CHK_AdHocEmailTemplates_HtmlBody_NotEmpty" CHECK (LENGTH(TRIM("HtmlBody")) &gt; 0),
+          CONSTRAINT "CHK_AdHocEmailTemplates_PlainTextBody_NotEmpty" CHECK (LENGTH(TRIM("PlainTextBody")) &gt; 0),
+          CONSTRAINT "CHK_AdHocEmailTemplates_Subject_NotEmpty" CHECK (LENGTH(TRIM("Subject")) &gt; 0),
+          CONSTRAINT "CHK_AdHocEmailTemplates_TemplateName_NotEmpty" CHECK (LENGTH(TRIM("TemplateName")) &gt; 0),
+          CONSTRAINT "FK_AdHocEmailTemplates_Users_CreatedBy" FOREIGN KEY ("CreatedBy") REFERENCES public."Users" ("Id") ON DELETE RESTRICT
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "EmailTriggerLogs" (
+          "Id" uuid NOT NULL DEFAULT (gen_random_uuid()),
+          "TemplateId" uuid NOT NULL,
+          "EventId" uuid,
+          "SessionId" uuid,
+          "TemplateType" character varying(50) NOT NULL,
+          "TriggerType" character varying(20) NOT NULL,
+          "RecipientGroup" character varying(50) NOT NULL,
+          "RecipientCount" integer NOT NULL,
+          "TriggeredAt" timestamptz NOT NULL DEFAULT (NOW()),
+          "SentAt" timestamptz,
+          "Status" character varying(20) NOT NULL DEFAULT 'Sent',
+          "ErrorMessage" text,
+          CONSTRAINT "PK_EmailTriggerLogs" PRIMARY KEY ("Id"),
+          CONSTRAINT "CHK_EmailTriggerLogs_RecipientCount" CHECK ("RecipientCount" &gt;= 0),
+          CONSTRAINT "CHK_EmailTriggerLogs_Status" CHECK ("Status" IN ('Sent', 'Failed', 'Skipped')),
+          CONSTRAINT "FK_EmailTriggerLogs_Events_EventId" FOREIGN KEY ("EventId") REFERENCES public."Events" ("Id") ON DELETE SET NULL,
+          CONSTRAINT "FK_EmailTriggerLogs_Sessions_SessionId" FOREIGN KEY ("SessionId") REFERENCES public."Sessions" ("Id") ON DELETE SET NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_SentAdHocEmails_Scheduled_Pending" ON "SentAdHocEmails" ("ScheduledSendAt", "DeliveryStatus") WHERE "ScheduledSendAt" IS NOT NULL AND "DeliveryStatus" = 'Pending';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_GlobalEmailTemplates_Category_TriggerType" ON "GlobalEmailTemplates" ("Category", "TriggerType");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_GlobalEmailTemplates_TriggerType_Enabled" ON "GlobalEmailTemplates" ("TriggerType", "TriggerEnabled") WHERE "TriggerEnabled" = TRUE;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "GlobalEmailTemplates" ADD CONSTRAINT "CHK_GlobalEmailTemplates_RecipientGroup" CHECK ("RecipientGroup" IS NULL OR "RecipientGroup" IN (0, 1, 2, 3));
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "GlobalEmailTemplates" ADD CONSTRAINT "CHK_GlobalEmailTemplates_TimingOffsetDays" CHECK ("TimingOffsetDays" IS NULL OR ("TimingOffsetDays" &gt;= -365 AND "TimingOffsetDays" &lt;= 365));
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "GlobalEmailTemplates" ADD CONSTRAINT "CHK_GlobalEmailTemplates_TriggerType" CHECK ("TriggerType" IN (0, 1, 2));
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "EventEmailTemplates" ADD CONSTRAINT "CHK_EventEmailTemplates_OverrideRecipientGroup" CHECK ("OverrideRecipientGroup" IS NULL OR "OverrideRecipientGroup" IN (0, 1, 2, 3));
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "EventEmailTemplates" ADD CONSTRAINT "CHK_EventEmailTemplates_OverrideTimingOffsetDays" CHECK ("OverrideTimingOffsetDays" IS NULL OR ("OverrideTimingOffsetDays" &gt;= -365 AND "OverrideTimingOffsetDays" &lt;= 365));
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_AdHocEmailTemplates_CreatedAt" ON "AdHocEmailTemplates" ("CreatedAt" DESC);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_AdHocEmailTemplates_CreatedBy" ON "AdHocEmailTemplates" ("CreatedBy");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_AdHocEmailTemplates_TemplateName" ON "AdHocEmailTemplates" ("TemplateName");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_EmailTriggerLogs_EventId_SessionId" ON "EmailTriggerLogs" ("EventId", "SessionId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_EmailTriggerLogs_Failed_TriggeredAt" ON "EmailTriggerLogs" ("Status", "TriggeredAt") WHERE "Status" = 'Failed';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_EmailTriggerLogs_SessionId" ON "EmailTriggerLogs" ("SessionId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_EmailTriggerLogs_Status" ON "EmailTriggerLogs" ("Status");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_EmailTriggerLogs_TemplateId" ON "EmailTriggerLogs" ("TemplateId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_EmailTriggerLogs_TriggeredAt" ON "EmailTriggerLogs" ("TriggeredAt" DESC);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX "UQ_EmailTriggerLogs_Idempotency" ON "EmailTriggerLogs" ("TemplateId", "SessionId", "TemplateType") WHERE "SessionId" IS NOT NULL AND "Status" = 'Sent';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251202024901_AddEmailTriggerEnhancements', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251202035223_AddTicketTypeSessionsJoinTable'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE public."TicketTypeSessions" (
+          "TicketTypeId" uuid NOT NULL,
+          "SessionId" uuid NOT NULL,
+          CONSTRAINT "PK_TicketTypeSessions" PRIMARY KEY ("TicketTypeId", "SessionId"),
+          CONSTRAINT "FK_TicketTypeSessions_Sessions_SessionId" FOREIGN KEY ("SessionId") REFERENCES public."Sessions" ("Id") ON DELETE CASCADE,
+          CONSTRAINT "FK_TicketTypeSessions_TicketTypes_TicketTypeId" FOREIGN KEY ("TicketTypeId") REFERENCES public."TicketTypes" ("Id") ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_TicketTypeSessions_SessionId" ON public."TicketTypeSessions" ("SessionId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      INSERT INTO public."TicketTypeSessions" ("TicketTypeId", "SessionId")
+                      SELECT "Id", "SessionId"
+                      FROM public."TicketTypes"
+                      WHERE "SessionId" IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."TicketTypes" DROP CONSTRAINT "FK_TicketTypes_Sessions_SessionId";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP INDEX public."IX_TicketTypes_SessionId";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."TicketTypes" DROP COLUMN "SessionId";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251202035223_AddTicketTypeSessionsJoinTable', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251202050148_AddScheduledDeliveryStatus'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "SentAdHocEmails" DROP CONSTRAINT "CHK_SentAdHocEmails_DeliveryStatus";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "SentAdHocEmails" ADD CONSTRAINT "CHK_SentAdHocEmails_DeliveryStatus" CHECK ("DeliveryStatus" IN ('Pending', 'Scheduled', 'Sent', 'Delivered', 'Failed', 'Bounced'));
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251202050148_AddScheduledDeliveryStatus', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251208052954_RenameVenueNotesToVenueInformation'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."Venues" RENAME COLUMN "Notes" TO "VenueInformation";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251208052954_RenameVenueNotesToVenueInformation', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251208060737_AddSessionIdToEventAttendance'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."EventAttendances" ADD "SessionId" uuid;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_EventAttendances_SessionId" ON public."EventAttendances" ("SessionId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_EventAttendances_SessionId_Status_AttendanceType" ON public."EventAttendances" ("SessionId", "Status", "AttendanceType");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_EventAttendances_UserId_SessionId_Status" ON public."EventAttendances" ("UserId", "SessionId", "Status");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."EventAttendances" ADD CONSTRAINT "FK_EventAttendances_Sessions_SessionId" FOREIGN KEY ("SessionId") REFERENCES public."Sessions" ("Id") ON DELETE CASCADE;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251208060737_AddSessionIdToEventAttendance', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251208074406_UpdateUniqueConstraintForMultiSessionTicketing'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP INDEX public."UQ_EventAttendances_User_Event_Type_Active";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX "UQ_EventAttendances_User_Event_Type_Session_Active" ON public."EventAttendances" ("UserId", "EventId", "AttendanceType", "SessionId") WHERE "Status" = 1;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251208074406_UpdateUniqueConstraintForMultiSessionTicketing', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251210055841_RemoveObsoleteRealNameColumns'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "VettingApplications" DROP COLUMN "RealName";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."Users" DROP COLUMN "RealName";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251210055841_RemoveObsoleteRealNameColumns', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251210063305_SyncModelChanges'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "SentAdHocEmails" SET SCHEMA public;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "GlobalEmailTemplates" SET SCHEMA public;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "EventEmailTemplates" SET SCHEMA public;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "EmailTriggerLogs" SET SCHEMA public;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "AdHocEmailTemplates" SET SCHEMA public;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251210063305_SyncModelChanges', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251213050052_AddCheckInSessionTokenSessions'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."CheckInSessionTokens" DROP CONSTRAINT "FK_CheckInSessionTokens_Sessions_SessionId";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."Events" DROP COLUMN "EventType";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."Events" ADD "AllowRsvps" boolean NOT NULL DEFAULT FALSE;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."Events" ADD "RequireTicketPurchase" boolean NOT NULL DEFAULT TRUE;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."Events" ADD "VettedMembersOnly" boolean NOT NULL DEFAULT FALSE;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."CheckInSessionTokens" ALTER COLUMN "SessionId" DROP NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE public."CheckInSessionTokenSessions" (
+          "TokenId" uuid NOT NULL,
+          "SessionId" uuid NOT NULL,
+          CONSTRAINT "PK_CheckInSessionTokenSessions" PRIMARY KEY ("TokenId", "SessionId"),
+          CONSTRAINT "FK_CheckInSessionTokenSessions_CheckInSessionTokens_TokenId" FOREIGN KEY ("TokenId") REFERENCES public."CheckInSessionTokens" ("Id") ON DELETE CASCADE,
+          CONSTRAINT "FK_CheckInSessionTokenSessions_Sessions_SessionId" FOREIGN KEY ("SessionId") REFERENCES public."Sessions" ("Id") ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_CheckInSessionTokenSessions_SessionId" ON public."CheckInSessionTokenSessions" ("SessionId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."CheckInSessionTokens" ADD CONSTRAINT "FK_CheckInSessionTokens_Sessions_SessionId" FOREIGN KEY ("SessionId") REFERENCES public."Sessions" ("Id");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251213050052_AddCheckInSessionTokenSessions', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251213231742_AddVolunteerPositionTimes'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."VolunteerPositions" ADD "EndTime" character varying(5);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."VolunteerPositions" ADD "StartTime" character varying(5);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251213231742_AddVolunteerPositionTimes', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260223011038_Net10ModelSync'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260223011038_Net10ModelSync', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260223030627_AddCreditCardAndPayPalHashFields'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."TicketPurchases" ADD "CreditCardLastFour" varchar(4);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."TicketPurchases" ADD "CreditCardType" varchar(20);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."TicketPurchases" ADD "EncryptedAuthNetTransactionId" character varying(500);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."TicketPurchases" ADD "PayPalOrderIdHash" varchar(64);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_TicketPurchases_PayPalOrderIdHash" ON public."TicketPurchases" ("PayPalOrderIdHash") WHERE "PayPalOrderIdHash" IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260223030627_AddCreditCardAndPayPalHashFields', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260303032233_AddLoggingInfrastructure'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DO $EF$
+      BEGIN
+          IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'logging') THEN
+              CREATE SCHEMA logging;
+          END IF;
+      END $EF$;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE logging.application_logs (
+          id bigint GENERATED ALWAYS AS IDENTITY,
+          timestamp timestamptz NOT NULL,
+          level smallint NOT NULL,
+          level_name character varying(16) NOT NULL,
+          message text NOT NULL,
+          message_template text,
+          exception text,
+          source_context character varying(512),
+          properties jsonb,
+          user_id uuid,
+          correlation_id uuid,
+          request_path character varying(2048),
+          machine_name character varying(256),
+          CONSTRAINT "PK_application_logs" PRIMARY KEY (id)
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE logging.daily_log_summaries (
+          "Id" bigint GENERATED ALWAYS AS IDENTITY,
+          "Date" date NOT NULL,
+          "Category" character varying(100) NOT NULL,
+          "Subcategory" character varying(200),
+          "Count" integer NOT NULL,
+          "Metadata" jsonb,
+          "CreatedAt" timestamptz NOT NULL DEFAULT (NOW()),
+          CONSTRAINT "PK_daily_log_summaries" PRIMARY KEY ("Id")
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_application_logs_correlation_id" ON logging.application_logs (correlation_id) WHERE correlation_id IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_application_logs_level" ON logging.application_logs (level);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_application_logs_properties_gin" ON logging.application_logs USING gin (properties jsonb_path_ops);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_application_logs_recent_errors" ON logging.application_logs (timestamp, source_context) WHERE level &gt;= 3;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_application_logs_timestamp" ON logging.application_logs USING brin (timestamp);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_application_logs_user_id" ON logging.application_logs (user_id) WHERE user_id IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_daily_log_summaries_category" ON logging.daily_log_summaries ("Category");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_daily_log_summaries_date_category" ON logging.daily_log_summaries ("Date", "Category");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX "UQ_daily_log_summaries_date_category_subcategory" ON logging.daily_log_summaries ("Date", "Category", "Subcategory");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260303032233_AddLoggingInfrastructure', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260303051802_DropDeadPaymentTables'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."PaymentRefunds" DROP CONSTRAINT "FK_PaymentRefunds_Payments_PaymentId";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP TABLE public."PaymentAuditLog";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP TABLE public."PaymentFailures";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP TABLE public."PaymentMethods";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP INDEX public."IX_PaymentRefunds_PaymentId";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."PaymentRefunds" DROP COLUMN "PaymentId";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260303051802_DropDeadPaymentTables', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260303053611_DropPaymentsTable'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP TABLE public."Payments";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260303053611_DropPaymentsTable', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260303063750_AddTicketPurchaseMetadata'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."TicketPurchases" ADD "Metadata" jsonb NOT NULL DEFAULT ('{}');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260303063750_AddTicketPurchaseMetadata', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260305041526_AddTimingOffsetHoursAndConfigureTriggers'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."GlobalEmailTemplates" ADD "TimingOffsetHours" integer;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."EventEmailTemplates" ADD "OverrideTimingOffsetHours" integer;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."GlobalEmailTemplates" ADD CONSTRAINT "CHK_GlobalEmailTemplates_TimingOffsetHours" CHECK ("TimingOffsetHours" IS NULL OR ("TimingOffsetHours" &gt;= -23 AND "TimingOffsetHours" &lt;= 23));
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."EventEmailTemplates" ADD CONSTRAINT "CHK_EventEmailTemplates_OverrideTimingOffsetHours" CHECK ("OverrideTimingOffsetHours" IS NULL OR ("OverrideTimingOffsetHours" &gt;= -23 AND "OverrideTimingOffsetHours" &lt;= 23));
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      UPDATE public."GlobalEmailTemplates"
+                      SET "TriggerType" = 1, "RecipientGroup" = 1
+                      WHERE "Category" = 1 AND "TemplateType" = 'Confirmation';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      UPDATE public."GlobalEmailTemplates"
+                      SET "TriggerType" = 2, "TimingOffsetDays" = 7, "RecipientGroup" = 1
+                      WHERE "Category" = 1 AND "TemplateType" = 'Reminder1Week';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      UPDATE public."GlobalEmailTemplates"
+                      SET "TriggerType" = 2, "TimingOffsetDays" = 1, "RecipientGroup" = 1
+                      WHERE "Category" = 1 AND "TemplateType" = 'Reminder1Day';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      UPDATE public."GlobalEmailTemplates"
+                      SET "TriggerType" = 2, "TimingOffsetDays" = 0, "TimingOffsetHours" = 2, "RecipientGroup" = 1
+                      WHERE "Category" = 1 AND "TemplateType" = 'Reminder2Hours';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      UPDATE public."GlobalEmailTemplates"
+                      SET "TriggerType" = 2, "TimingOffsetDays" = -1, "RecipientGroup" = 1
+                      WHERE "Category" = 1 AND "TemplateType" = 'ThankYou';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      UPDATE public."GlobalEmailTemplates"
+                      SET "TriggerType" = 1, "RecipientGroup" = 1
+                      WHERE "Category" = 1 AND "TemplateType" = 'Cancellation';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      UPDATE public."GlobalEmailTemplates"
+                      SET "TriggerType" = 1, "RecipientGroup" = 1
+                      WHERE "Category" = 1 AND "TemplateType" = 'SessionChange';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260305041526_AddTimingOffsetHoursAndConfigureTriggers', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260305063623_AddPendingPaymentAttendanceStatus'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."EventAttendances" DROP CONSTRAINT "CHK_EventAttendances_Status";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."EventAttendances" ADD CONSTRAINT "CHK_EventAttendances_Status" CHECK ("Status" IN (1, 2, 3, 4, 5));
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260305063623_AddPendingPaymentAttendanceStatus', '10.0.3');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (10ms) [Parameters=[@p0='c77b1a93-c21a-464c-9f67-519fef03e39f', @p1='0', @p2=NULL, @p3='59f5e09c-b2b3-4d24-8dd8-b7530de7358a', @p4='2026-03-07T10:55:11.0485726Z' (DbType = DateTime), @p5='2026-03-07T10:55:10.9032186Z' (DbType = DateTime), @p6=NULL, @p7='test@witchcityrope.com', @p8='True', @p9='' (Nullable = false), @p10=NULL (DbType = DateTime), @p11='' (Nullable = false), @p12='0', @p13=NULL, @p14=NULL, @p15='False', @p16='True', @p17=NULL (DbType = DateTime), @p18=NULL, @p19=NULL (DbType = DateTime), @p20=NULL (DbType = DateTime), @p21='False', @p22=NULL (DbType = DateTime), @p23=NULL, @p24=NULL, @p25=NULL, @p26=NULL, @p27=NULL, @p28='False', @p29='' (Nullable = false), @p30='' (Nullable = false), @p31='' (Nullable = false), @p32='' (Nullable = false), @p33=NULL, @p34=NULL (DbType = DateTime), @p35='False', @p36='2026-03-07T10:55:11.0485729Z' (DbType = DateTime), @p37='TestUser', @p38='0'], CommandType='Text', CommandTimeout='30']
+      INSERT INTO public."Users" ("Id", "AccessFailedCount", "Bio", "ConcurrencyStamp", "CreatedAt", "DateOfBirth", "DiscordName", "Email", "EmailConfirmed", "EmailVerificationToken", "EmailVerificationTokenCreatedAt", "EncryptedLegalName", "FailedLoginAttempts", "FetLifeName", "FirstName", "HasVettingApplication", "IsActive", "LastLoginAt", "LastName", "LastPasswordChangeAt", "LockedOutUntil", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "OtherNames", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "PronouncedName", "Pronouns", "Role", "SceneName", "SecurityStamp", "TermsOfServiceAcceptedAt", "TwoFactorEnabled", "UpdatedAt", "UserName", "VettingStatus")
+      VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21, @p22, @p23, @p24, @p25, @p26, @p27, @p28, @p29, @p30, @p31, @p32, @p33, @p34, @p35, @p36, @p37, @p38)
+      RETURNING "TermsOfServiceAccepted";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p='1'], CommandType='Text', CommandTimeout='30']
+      SELECT v."Id", v."CreatedAt", v."Directions", v."IsActive", v."Location", v."Name", v."UpdatedAt", v."VenueInformation"
+      FROM public."Venues" AS v
+      WHERE v."Id" = @p
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p0='1', @p1='2026-03-07T10:55:11.2856277Z' (DbType = DateTime), @p2=NULL, @p3=NULL, @p4='Test Venue' (Nullable = false), @p5='2026-03-07T10:55:11.2856279Z' (DbType = DateTime), @p6=NULL], CommandType='Text', CommandTimeout='30']
+      INSERT INTO public."Venues" ("Id", "CreatedAt", "Directions", "Location", "Name", "UpdatedAt", "VenueInformation")
+      VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6)
+      RETURNING "IsActive";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[@p0='12354ae3-ad77-4a8f-a508-c219df2b5e0f', @p1=NULL (DbType = Decimal), @p2='20', @p3='2026-03-07T10:55:11.3516455Z' (DbType = DateTime), @p4='Test' (Nullable = false), @p5='2026-03-14T12:55:11.2913572Z' (DbType = DateTime), @p6='True', @p7=NULL, @p8=NULL (DbType = Decimal), @p9=NULL (DbType = Decimal), @p10='False', @p11=NULL, @p12='2026-03-14T10:55:11.2913351Z' (DbType = DateTime), @p13='Test Event' (Nullable = false), @p14='2026-03-07T10:55:11.3516458Z' (DbType = DateTime), @p15='1', @p16=NULL (DbType = Decimal), @p17=NULL (DbType = Decimal)], CommandType='Text', CommandTimeout='30']
+      INSERT INTO public."Events" ("Id", "CancellationCloseHours", "Capacity", "CreatedAt", "Description", "EndDate", "IsPublished", "Policies", "RegistrationCloseHours", "RegistrationOpenHours", "RequireTicketPurchase", "ShortDescription", "StartDate", "Title", "UpdatedAt", "VenueId", "VolunteerCancellationCloseHours", "VolunteerRegistrationCloseHours")
+      VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17)
+      RETURNING "AllowRsvps", "VettedMembersOnly";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[@p0='ca94574f-e99c-4029-979e-6f2ac00d42d4', @p1='20', @p2='2026-03-07T10:55:11.3836986Z' (DbType = DateTime), @p3=NULL (DbType = Decimal), @p4='' (Nullable = false), @p5='12354ae3-ad77-4a8f-a508-c219df2b5e0f', @p6=NULL (DbType = Decimal), @p7=NULL (DbType = Decimal), @p8='Test Ticket' (Nullable = false), @p9='50.00' (Nullable = true), @p10='Fixed' (Nullable = false), @p11='2026-03-07T10:55:11.3836988Z' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      INSERT INTO public."TicketTypes" ("Id", "Available", "CreatedAt", "DefaultPrice", "Description", "EventId", "MaxPrice", "MinPrice", "Name", "Price", "PricingType", "UpdatedAt")
+      VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+fail: Microsoft.EntityFrameworkCore.Database.Command[20102]
+      Failed executing DbCommand (49ms) [Parameters=[@p0='8af0419e-3750-4701-88f9-3fe4ba1118b6', @p1='2026-03-07T10:55:11.4306448Z' (DbType = DateTime), @p2=NULL, @p3=NULL, @p4=NULL, @p5='encrypted_capture_id_12345', @p6=NULL, @p7=NULL, @p8=NULL (DbType = DateTime), @p9=NULL, @p10='System.Collections.Generic.Dictionary`2[System.String,System.Object]' (Nullable = false) (DbType = Object), @p11='' (Nullable = false), @p12=NULL, @p13='PayPal' (Nullable = false), @p14='' (Nullable = false), @p15='Completed' (Nullable = false), @p16='2026-03-06T10:55:11.3899516Z' (Nullable = true) (DbType = DateTime), @p17='2026-03-07T10:55:11.3898292Z' (DbType = DateTime), @p18='1', @p19=NULL (DbType = Guid), @p20='ca94574f-e99c-4029-979e-6f2ac00d42d4', @p21='50.00', @p22='2026-03-07T10:55:11.4306450Z' (DbType = DateTime), @p23='c77b1a93-c21a-464c-9f67-519fef03e39f'], CommandType='Text', CommandTimeout='30']
+      INSERT INTO public."TicketPurchases" ("Id", "CreatedAt", "CreditCardLastFour", "CreditCardType", "EncryptedAuthNetTransactionId", "EncryptedPayPalCaptureId", "EncryptedPayPalOrderId", "EncryptedPayPalPayerId", "EventWaiverAcceptedAt", "IdempotencyKey", "Metadata", "Notes", "PayPalOrderIdHash", "PaymentMethod", "PaymentReference", "PaymentStatus", "ProcessedAt", "PurchaseDate", "Quantity", "RecordedByStaffId", "TicketTypeId", "TotalPrice", "UpdatedAt", "UserId")
+      VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21, @p22, @p23)
+      RETURNING "EventWaiverAccepted", "SlidingScalePercentage";
+fail: Microsoft.EntityFrameworkCore.Update[10000]
+      An exception occurred in the database while saving changes for context type 'WitchCityRope.Api.Data.ApplicationDbContext'.
+      Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+       ---&gt; System.InvalidCastException: Writing values of 'System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]' is not supported for parameters having NpgsqlDbType 'Jsonb'.
+       ---&gt; System.NotSupportedException: Type 'Dictionary`2' required dynamic JSON serialization, which requires an explicit opt-in; call 'EnableDynamicJson' on 'NpgsqlDataSourceBuilder' or NpgsqlConnection.GlobalTypeMapper (see https://www.npgsql.org/doc/types/json.html and the 8.0 release notes for more details). Alternatively, if you meant to use Newtonsoft JSON.NET instead of System.Text.Json, call UseJsonNet() instead.
+         at Npgsql.Internal.ResolverFactories.JsonDynamicTypeInfoResolverFactory.Support.ThrowIfUnsupported[TBuilder](Type type, Nullable`1 dataTypeName)
+         at Npgsql.Internal.ResolverFactories.UnsupportedTypeInfoResolver`1.GetTypeInfo(Type type, Nullable`1 dataTypeName, PgSerializerOptions options)
+         at Npgsql.Internal.ChainTypeInfoResolver.GetTypeInfo(Type type, Nullable`1 dataTypeName, PgSerializerOptions options)
+         at Npgsql.Internal.TypeInfoCache`1.&lt;GetOrAddInfo&gt;g__CreateInfo|6_3(Type type, Nullable`1 typeId, PgSerializerOptions options, Boolean validatePgTypeIds)
+         at Npgsql.Internal.TypeInfoCache`1.&lt;GetOrAddInfo&gt;g__AddEntryById|6_2(Type type, TPgTypeId pgTypeId, ValueTuple`2[] infos)
+         at Npgsql.Internal.TypeInfoCache`1.GetOrAddInfo(Type type, Nullable`1 pgTypeId)
+         at Npgsql.Internal.PgSerializerOptions.GetTypeInfoCore(Type type, Nullable`1 pgTypeId)
+         at Npgsql.Internal.PgSerializerOptions.GetTypeInfoInternal(Type type, Nullable`1 pgTypeId)
+         at Npgsql.Internal.AdoSerializerHelpers.GetTypeInfoForWriting(Type type, Nullable`1 pgTypeId, PgSerializerOptions options, Nullable`1 npgsqlDbType)
+         --- End of inner exception stack trace ---
+         at Npgsql.Internal.AdoSerializerHelpers.&lt;GetTypeInfoForWriting&gt;g__ThrowWritingNotSupported|1_0(Type type, PgSerializerOptions options, Nullable`1 pgTypeId, Nullable`1 npgsqlDbType, Exception inner)
+         at Npgsql.Internal.AdoSerializerHelpers.GetTypeInfoForWriting(Type type, Nullable`1 pgTypeId, PgSerializerOptions options, Nullable`1 npgsqlDbType)
+         at Npgsql.NpgsqlParameter.ResolveTypeInfo(PgSerializerOptions options, IDbTypeResolver dbTypeResolver)
+         at Npgsql.NpgsqlParameterCollection.ProcessParameters(ReloadableState reloadableState, Boolean validateValues, CommandType commandType)
+         at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+         --- End of inner exception stack trace ---
+         at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+         at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+      Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+       ---&gt; System.InvalidCastException: Writing values of 'System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]' is not supported for parameters having NpgsqlDbType 'Jsonb'.
+       ---&gt; System.NotSupportedException: Type 'Dictionary`2' required dynamic JSON serialization, which requires an explicit opt-in; call 'EnableDynamicJson' on 'NpgsqlDataSourceBuilder' or NpgsqlConnection.GlobalTypeMapper (see https://www.npgsql.org/doc/types/json.html and the 8.0 release notes for more details). Alternatively, if you meant to use Newtonsoft JSON.NET instead of System.Text.Json, call UseJsonNet() instead.
+         at Npgsql.Internal.ResolverFactories.JsonDynamicTypeInfoResolverFactory.Support.ThrowIfUnsupported[TBuilder](Type type, Nullable`1 dataTypeName)
+         at Npgsql.Internal.ResolverFactories.UnsupportedTypeInfoResolver`1.GetTypeInfo(Type type, Nullable`1 dataTypeName, PgSerializerOptions options)
+         at Npgsql.Internal.ChainTypeInfoResolver.GetTypeInfo(Type type, Nullable`1 dataTypeName, PgSerializerOptions options)
+         at Npgsql.Internal.TypeInfoCache`1.&lt;GetOrAddInfo&gt;g__CreateInfo|6_3(Type type, Nullable`1 typeId, PgSerializerOptions options, Boolean validatePgTypeIds)
+         at Npgsql.Internal.TypeInfoCache`1.&lt;GetOrAddInfo&gt;g__AddEntryById|6_2(Type type, TPgTypeId pgTypeId, ValueTuple`2[] infos)
+         at Npgsql.Internal.TypeInfoCache`1.GetOrAddInfo(Type type, Nullable`1 pgTypeId)
+         at Npgsql.Internal.PgSerializerOptions.GetTypeInfoCore(Type type, Nullable`1 pgTypeId)
+         at Npgsql.Internal.PgSerializerOptions.GetTypeInfoInternal(Type type, Nullable`1 pgTypeId)
+         at Npgsql.Internal.AdoSerializerHelpers.GetTypeInfoForWriting(Type type, Nullable`1 pgTypeId, PgSerializerOptions options, Nullable`1 npgsqlDbType)
+         --- End of inner exception stack trace ---
+         at Npgsql.Internal.AdoSerializerHelpers.&lt;GetTypeInfoForWriting&gt;g__ThrowWritingNotSupported|1_0(Type type, PgSerializerOptions options, Nullable`1 pgTypeId, Nullable`1 npgsqlDbType, Exception inner)
+         at Npgsql.Internal.AdoSerializerHelpers.GetTypeInfoForWriting(Type type, Nullable`1 pgTypeId, PgSerializerOptions options, Nullable`1 npgsqlDbType)
+         at Npgsql.NpgsqlParameter.ResolveTypeInfo(PgSerializerOptions options, IDbTypeResolver dbTypeResolver)
+         at Npgsql.NpgsqlParameterCollection.ProcessParameters(ReloadableState reloadableState, Boolean validateValues, CommandType commandType)
+         at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+         --- End of inner exception stack trace ---
+         at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+         at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+         at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.
+[xUnit.net 00:00:07.88]       ---- System.InvalidCastException : Writing values of 'System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]' is not supported for parameters having NpgsqlDbType 'Jsonb'.
+[xUnit.net 00:00:07.88]       -------- System.NotSupportedException : Type 'Dictionary`2' required dynamic JSON serialization, which requires an explicit opt-in; call 'EnableDynamicJson' on 'NpgsqlDataSourceBuilder' or NpgsqlConnection.GlobalTypeMapper (see https://www.npgsql.org/doc/types/json.html and the 8.0 release notes for more details). Alternatively, if you meant to use Newtonsoft JSON.NET instead of System.Text.Json, call UseJsonNet() instead.
+[xUnit.net 00:00:07.88]       
+[xUnit.net 00:00:07.88]       Stack Trace:
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]         /home/chad/repos/witchcityrope/apps/api/Data/ApplicationDbContext.cs(1251,0): at WitchCityRope.Api.Data.ApplicationDbContext.SaveChangesAsync(CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]         /home/chad/repos/witchcityrope/tests/unit/api/Features/Payments/Services/RefundServiceEmailTests.cs(675,0): at WitchCityRope.UnitTests.Api.Features.Payments.Services.RefundServiceEmailTests.CreateAndSaveTestTicketPurchaseAsync(String paymentMethod)
+[xUnit.net 00:00:07.88]         /home/chad/repos/witchcityrope/tests/unit/api/Features/Payments/Services/RefundServiceEmailTests.cs(512,0): at WitchCityRope.UnitTests.Api.Features.Payments.Services.RefundServiceEmailTests.ProcessRefundAsync_ProcessedAt_TimestampIsSet()
+[xUnit.net 00:00:07.88]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:07.88]         ----- Inner Stack Trace -----
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.AdoSerializerHelpers.&lt;GetTypeInfoForWriting&gt;g__ThrowWritingNotSupported|1_0(Type type, PgSerializerOptions options, Nullable`1 pgTypeId, Nullable`1 npgsqlDbType, Exception inner)
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.AdoSerializerHelpers.GetTypeInfoForWriting(Type type, Nullable`1 pgTypeId, PgSerializerOptions options, Nullable`1 npgsqlDbType)
+[xUnit.net 00:00:07.88]            at Npgsql.NpgsqlParameter.ResolveTypeInfo(PgSerializerOptions options, IDbTypeResolver dbTypeResolver)
+[xUnit.net 00:00:07.88]            at Npgsql.NpgsqlParameterCollection.ProcessParameters(ReloadableState reloadableState, Boolean validateValues, CommandType commandType)
+[xUnit.net 00:00:07.88]            at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+[xUnit.net 00:00:07.88]         ----- Inner Stack Trace -----
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.ResolverFactories.JsonDynamicTypeInfoResolverFactory.Support.ThrowIfUnsupported[TBuilder](Type type, Nullable`1 dataTypeName)
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.ResolverFactories.UnsupportedTypeInfoResolver`1.GetTypeInfo(Type type, Nullable`1 dataTypeName, PgSerializerOptions options)
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.ChainTypeInfoResolver.GetTypeInfo(Type type, Nullable`1 dataTypeName, PgSerializerOptions options)
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.TypeInfoCache`1.&lt;GetOrAddInfo&gt;g__CreateInfo|6_3(Type type, Nullable`1 typeId, PgSerializerOptions options, Boolean validatePgTypeIds)
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.TypeInfoCache`1.&lt;GetOrAddInfo&gt;g__AddEntryById|6_2(Type type, TPgTypeId pgTypeId, ValueTuple`2[] infos)
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.TypeInfoCache`1.GetOrAddInfo(Type type, Nullable`1 pgTypeId)
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.PgSerializerOptions.GetTypeInfoCore(Type type, Nullable`1 pgTypeId)
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.PgSerializerOptions.GetTypeInfoInternal(Type type, Nullable`1 pgTypeId)
+[xUnit.net 00:00:07.88]            at Npgsql.Internal.AdoSerializerHelpers.GetTypeInfoForWriting(Type type, Nullable`1 pgTypeId, PgSerializerOptions options, Nullable`1 npgsqlDbType)
+[testcontainers.org 00:00:07.60] Stop Docker container 6e0cc3f70b57
+[testcontainers.org 00:00:07.77] Delete Docker container 6e0cc3f70b57
+[xUnit.net 00:00:08.10]   Finished:    WitchCityRope.Api.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2026-03-07T05:55:11.6107972-05:00">
+        <Text>[xUnit.net 00:00:07.88]     WitchCityRope.UnitTests.Api.Features.Payments.Services.RefundServiceEmailTests.ProcessRefundAsync_ProcessedAt_TimestampIsSet [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

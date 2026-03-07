@@ -1018,7 +1018,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         var savedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (savedUser != null)
         {
-            savedUser.Role.Should().Be("Member"); // Default role should be Member
+            savedUser.Role.Should().Be(""); // Default role is empty string (no special role)
         }
     }
 

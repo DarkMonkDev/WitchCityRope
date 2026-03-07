@@ -145,15 +145,32 @@ public class MetadataEndpointsTests
     }
 
     /// <summary>
+    /// Test: GetValidRoles includes DungeonMonitor role
+    /// </summary>
+    [Fact]
+    public void GetValidRoles_IncludesDungeonMonitorRole()
+    {
+        // Act
+        var result = GetValidRoles();
+
+        // Assert
+        dynamic dynamicResult = result;
+        object response = dynamicResult.Value;
+        var rolesResponse = (ValidRolesResponse)response!;
+
+        rolesResponse.Roles.Should().Contain("DungeonMonitor");
+    }
+
+    /// <summary>
     /// Test: GetValidRoles returns expected number of roles
     /// </summary>
     [Fact]
     public void GetValidRoles_ReturnsExpectedRoleCount()
     {
         // Arrange
-        // UserRole enum has: Member, Teacher, SafetyTeam, Administrator, EventOrganizer (5 total)
-        // ValidRoles excludes Member, so expected count is 4
-        var expectedCount = 4;
+        // UserRole enum has: Member, Teacher, SafetyTeam, Administrator, EventOrganizer, DungeonMonitor (6 total)
+        // ValidRoles excludes Member, so expected count is 5
+        var expectedCount = 5;
 
         // Act
         var result = GetValidRoles();

@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Models.Requests;
 using WitchCityRope.Api.Features.Participation.Entities;
@@ -35,32 +34,7 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
 
     public ProcessVariableRefundIntegrationTests(DatabaseTestFixture fixture) : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Replace DbContext with TestContainers connection string
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-
-                    // ✅ FIX HANGFIRE: Use in-memory storage for tests instead of PostgreSQL
-                    // This prevents Hangfire from trying to connect to port 5432
-                    services.AddHangfire(config =>
-                    {
-                        config.UseMemoryStorage();
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     public void Dispose()
@@ -101,7 +75,7 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
         // Verify database state
         await using var context = CreateDbContext();
         var updated = await context.TicketPurchases.FindAsync(ticketPurchase.Id);
-        updated!.PaymentStatus.Should().Be("PartiallyRefunded");
+        updated!.PaymentStatus.Should().Be(TicketPurchasePaymentStatus.PartiallyRefunded);
         updated.Notes.Should().Contain("[REFUND");
 
         var refunds = await context.PaymentRefunds
@@ -394,8 +368,8 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             VenueId = venue.Id,  // ✅ Reference actual Venue
-            EventType = EventType.Class,
             Capacity = 20,
+            RequireTicketPurchase = true,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -424,7 +398,7 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
             Quantity = 1,
             TotalPrice = amount,
             PaymentMethod = paymentMethod,
-            PaymentStatus = "Completed",  // IsPaymentCompleted is computed from this
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,  // IsPaymentCompleted is computed from this
             PurchaseDate = DateTime.UtcNow,
             ProcessedAt = DateTime.UtcNow,  // Payment was processed
             EncryptedPayPalCaptureId = paymentMethod == "PayPal" ? "encrypted-capture-id" : null,

@@ -1,13 +1,13 @@
 using Xunit;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Tests.Fixtures;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -17,24 +17,27 @@ namespace WitchCityRope.Api.Tests.Integration;
 /// Integration tests for session deletion functionality
 /// Tests verify the CheckSessionDeletionAsync and DeleteSessionAsync methods
 /// CRITICAL: These tests verify proper blocking and cascading deletion logic
+/// Uses TestContainers PostgreSQL via DatabaseTestFixture (NOT InMemoryDatabase)
 /// </summary>
-public class SessionDeletionTests : IDisposable
+[Collection("Database")]
+public class SessionDeletionTests : IAsyncLifetime
 {
-    private readonly ApplicationDbContext _context;
-    private readonly EventService _eventService;
-    private readonly Guid _testEventId = Guid.NewGuid();
-    private readonly Guid _testUserId = Guid.NewGuid();
+    private readonly DatabaseTestFixture _fixture;
+    private ApplicationDbContext _context = null!;
+    private EventService _eventService = null!;
+    private Guid _testEventId;
+    private Guid _testUserId;
 
-    public SessionDeletionTests()
+    public SessionDeletionTests(DatabaseTestFixture fixture)
     {
-        // Setup in-memory database for integration testing
-        // Configure to suppress transaction warnings (in-memory DB doesn't support transactions)
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
+        _fixture = fixture;
+    }
 
-        _context = new ApplicationDbContext(options);
+    public async Task InitializeAsync()
+    {
+        _context = _fixture.CreateDbContext();
+        _testEventId = Guid.NewGuid();
+        _testUserId = Guid.NewGuid();
 
         var mockTimeZoneService = new Mock<ITimeZoneService>();
 
@@ -43,16 +46,42 @@ public class SessionDeletionTests : IDisposable
             new Mock<ILogger<EventService>>().Object,
             mockTimeZoneService.Object);
 
+        // Ensure venue exists for FK constraint
+        var venue = await _context.Venues.FindAsync(1);
+        if (venue == null)
+        {
+            venue = new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.Venues.Add(venue);
+            await _context.SaveChangesAsync();
+        }
+
         // Seed test user
         var testUser = new ApplicationUser
         {
             Id = _testUserId,
-            Email = "test@example.com",
-            SceneName = "TestUser"
+            Email = $"test-{Guid.NewGuid():N}@example.com",
+            SceneName = "TestUser",
+            UserName = $"test-{Guid.NewGuid():N}@example.com",
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         _context.Users.Add(testUser);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        _context?.Dispose();
+        await _fixture.ResetDatabaseAsync();
     }
 
     [Fact]
@@ -155,7 +184,7 @@ public class SessionDeletionTests : IDisposable
         // Arrange - Create event with multi-session ticket type that has sales
         var (event1, session1, session2) = await CreateEventWithMultipleSessionsAsync();
 
-        // Create multi-session ticket type for both sessions
+        // Create multi-session ticket type linked to BOTH sessions via TicketTypeSessions join table
         var ticketType = new TicketType
         {
             Id = Guid.NewGuid(),
@@ -163,12 +192,13 @@ public class SessionDeletionTests : IDisposable
             Name = "Multi-Session Pass",
             Price = 50.00m,
             Available = 20,
-            // Multi-session ticket type - Sessions collection covers multiple sessions
+            Sessions = new List<Session> { session1, session2 },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         _context.TicketTypes.Add(ticketType);
+        await _context.SaveChangesAsync();
 
         // Create ticket purchase for this multi-session ticket type
         var ticketPurchase = new TicketPurchase
@@ -176,16 +206,16 @@ public class SessionDeletionTests : IDisposable
             Id = Guid.NewGuid(),
             UserId = _testUserId,
             TicketTypeId = ticketType.Id,
-            TicketType = ticketType,  // Set navigation property for in-memory DB
             PurchaseDate = DateTime.UtcNow,
             TotalPrice = 50.00m,
             Quantity = 1,
-            PaymentStatus = "Completed",
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         _context.TicketPurchases.Add(ticketPurchase);
+        await _context.SaveChangesAsync();
 
         // Create EventAttendance linking to this ticket purchase
         var attendance = new EventAttendance
@@ -196,7 +226,6 @@ public class SessionDeletionTests : IDisposable
             AttendanceType = AttendanceType.Ticket,
             Status = AttendanceStatus.Active,
             TicketPurchaseId = ticketPurchase.Id,
-            TicketPurchase = ticketPurchase,  // Set navigation property for in-memory DB
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -213,8 +242,10 @@ public class SessionDeletionTests : IDisposable
         success.Should().BeTrue();
         response.Should().NotBeNull();
         response!.CanDelete.Should().BeFalse();
-        response.BlockReason.Should().Be("cascadeBlocking");
-        response.AffectedTicketTypes.Should().NotBeNullOrEmpty();
+        // Multi-session ticket types with sales that include this session are caught
+        // by the "ticketsSold" check first (which checks TicketType.Sessions linkage)
+        response.BlockReason.Should().Be("ticketsSold");
+        response.TicketsSoldCount.Should().BeGreaterThan(0);
     }
 
     [Fact]
@@ -226,6 +257,18 @@ public class SessionDeletionTests : IDisposable
         // Add multiple RSVPs
         await AddRsvpAsync(session1.Id, _testUserId);
         var user2Id = Guid.NewGuid();
+        var user2 = new ApplicationUser
+        {
+            Id = user2Id,
+            Email = $"test2-{Guid.NewGuid():N}@example.com",
+            SceneName = "TestUser2",
+            UserName = $"test2-{Guid.NewGuid():N}@example.com",
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Users.Add(user2);
+        await _context.SaveChangesAsync();
         await AddRsvpAsync(session1.Id, user2Id);
 
         // Act
@@ -385,20 +428,25 @@ public class SessionDeletionTests : IDisposable
 
     private async Task AddPaidTicketAsync(Guid sessionId, Guid userId)
     {
-        // Create ticket type for this session
+        // Load the session so we can link it to the ticket type via the many-to-many join table
+        var session = await _context.Sessions.FindAsync(sessionId)
+            ?? throw new InvalidOperationException($"Session {sessionId} not found");
+
+        // Create ticket type for this session, linking via TicketTypeSessions join table
         var ticketType = new TicketType
         {
             Id = Guid.NewGuid(),
             EventId = _testEventId,
-            // Single-session ticket - Sessions collection will link to specific session
             Name = "Session Ticket",
             Price = 25.00m,
             Available = 20,
+            Sessions = new List<Session> { session },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         _context.TicketTypes.Add(ticketType);
+        await _context.SaveChangesAsync();
 
         // Create ticket purchase
         var ticketPurchase = new TicketPurchase
@@ -406,16 +454,16 @@ public class SessionDeletionTests : IDisposable
             Id = Guid.NewGuid(),
             UserId = userId,
             TicketTypeId = ticketType.Id,
-            TicketType = ticketType,  // Set navigation property for in-memory DB
             PurchaseDate = DateTime.UtcNow,
             TotalPrice = 25.00m,
             Quantity = 1,
-            PaymentStatus = "Completed",
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         _context.TicketPurchases.Add(ticketPurchase);
+        await _context.SaveChangesAsync();
 
         // Create EventAttendance linking to this ticket purchase
         var attendance = new EventAttendance
@@ -426,17 +474,11 @@ public class SessionDeletionTests : IDisposable
             AttendanceType = AttendanceType.Ticket,
             Status = AttendanceStatus.Active,
             TicketPurchaseId = ticketPurchase.Id,
-            TicketPurchase = ticketPurchase,  // Set navigation property for in-memory DB
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         _context.Set<EventAttendance>().Add(attendance);
         await _context.SaveChangesAsync();
-    }
-
-    public void Dispose()
-    {
-        _context?.Dispose();
     }
 }

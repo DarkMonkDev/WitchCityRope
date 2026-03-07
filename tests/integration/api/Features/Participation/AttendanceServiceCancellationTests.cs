@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Events;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Participation.Entities;
@@ -42,24 +41,7 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
 
     public AttendanceServiceCancellationTests(DatabaseTestFixture fixture) : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     #region Mixed Cancellation Eligibility Tests
@@ -80,7 +62,7 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
             StartDate = DateTime.UtcNow.AddHours(12), // Will be auto-updated to earliest session
             EndDate = DateTime.UtcNow.AddDays(3).AddHours(2),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             CancellationCloseHours = 24, // 24 hours before session
@@ -174,7 +156,7 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
             StartDate = DateTime.UtcNow.AddDays(3),
             EndDate = DateTime.UtcNow.AddDays(5),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             CancellationCloseHours = 24,
@@ -253,7 +235,7 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
             StartDate = DateTime.UtcNow.AddHours(12),
             EndDate = DateTime.UtcNow.AddHours(20),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             CancellationCloseHours = 24,
@@ -332,7 +314,7 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
             StartDate = DateTime.UtcNow.AddDays(3),
             EndDate = DateTime.UtcNow.AddDays(3).AddHours(2),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             CancellationCloseHours = 24,
@@ -400,7 +382,7 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
             StartDate = DateTime.UtcNow.AddDays(-2),
             EndDate = DateTime.UtcNow.AddDays(-2).AddHours(2),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             CancellationCloseHours = 24,
@@ -551,7 +533,7 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
             Quantity = 1,
             TotalPrice = 25.00m,
             PaymentMethod = "Cash",
-            PaymentStatus = "Completed",
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
             PaymentReference = $"TEST-{Guid.NewGuid():N}"[..16],
             PurchaseDate = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,

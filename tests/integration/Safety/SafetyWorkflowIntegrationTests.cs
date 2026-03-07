@@ -336,19 +336,20 @@ public class SafetyWorkflowIntegrationTests : IClassFixture<DatabaseTestFixture>
         await _sut.AssignCoordinatorAsync(incident1.Id, new AssignCoordinatorRequest { CoordinatorId = coordinator1.Id }, admin.Id);
         await _sut.AssignCoordinatorAsync(incident2.Id, new AssignCoordinatorRequest { CoordinatorId = coordinator2.Id }, admin.Id);
 
-        // Act - Coordinator1 tries to get detail for incident2 (assigned to coordinator2)
-        var unauthorizedResult = await _sut.GetIncidentDetailAsync(incident2.Id, coordinator1.Id);
+        // Act - Coordinator1 accesses incident2 (assigned to coordinator2)
+        // Safety team members can view ANY incident regardless of assignment
+        var crossResult = await _sut.GetIncidentDetailAsync(incident2.Id, coordinator1.Id);
 
-        // Assert - Access denied (coordinator1 cannot access coordinator2's incident)
-        unauthorizedResult.IsSuccess.Should().BeFalse();
-        unauthorizedResult.Error.Should().Contain("Access denied");
+        // Assert - Access granted (safety team members have access to all incidents)
+        crossResult.IsSuccess.Should().BeTrue();
+        crossResult.Value!.Id.Should().Be(incident2.Id);
 
-        // Act - Coordinator1 gets detail for their own incident
-        var authorizedResult = await _sut.GetIncidentDetailAsync(incident1.Id, coordinator1.Id);
+        // Act - Coordinator1 gets detail for their own assigned incident
+        var ownResult = await _sut.GetIncidentDetailAsync(incident1.Id, coordinator1.Id);
 
         // Assert - Access granted
-        authorizedResult.IsSuccess.Should().BeTrue();
-        authorizedResult.Value!.Id.Should().Be(incident1.Id);
+        ownResult.IsSuccess.Should().BeTrue();
+        ownResult.Value!.Id.Should().Be(incident1.Id);
     }
 
     #endregion

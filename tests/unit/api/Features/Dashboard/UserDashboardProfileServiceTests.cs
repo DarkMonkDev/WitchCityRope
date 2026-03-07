@@ -563,7 +563,7 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
             PurchaseDate = DateTime.UtcNow,
             Quantity = 1,
             TotalPrice = 0,
-            PaymentStatus = "Confirmed",
+            PaymentStatus = TicketPurchasePaymentStatus.Confirmed,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

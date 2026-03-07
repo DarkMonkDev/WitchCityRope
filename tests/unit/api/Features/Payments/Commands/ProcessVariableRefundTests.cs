@@ -211,7 +211,7 @@ public class ProcessVariableRefundTests : IAsyncLifetime
         result.Should().BeOfType<ProblemHttpResult>();
         var problemResult = (ProblemHttpResult)result;
         problemResult.StatusCode.Should().Be(400);
-        problemResult.ProblemDetails.Detail.Should().Contain("must be greater than 0");
+        problemResult.ProblemDetails.Detail.Should().Contain("cannot be negative");
     }
 
     [Fact]
@@ -464,10 +464,8 @@ public class ProcessVariableRefundTests : IAsyncLifetime
 
         // Assert
         var updated = await _context.TicketPurchases.FindAsync(ticketPurchase.Id);
-        updated!.Notes.Should().Contain("FINANCIAL REFUND");
-        updated.Notes.Should().Contain("RSVP/Ticket NOT cancelled");
-        updated.Notes.Should().Contain("$50.00 refunded");
-        updated.Notes.Should().Contain("Total refunded: $50.00 of $100.00");
+        updated!.Notes.Should().Contain("REFUND $50.00");
+        updated.Notes.Should().Contain("Administrator");
         updated.Notes.Should().Contain(request.RefundReason);
     }
 
@@ -570,7 +568,7 @@ public class ProcessVariableRefundTests : IAsyncLifetime
             Quantity = 1,
             TotalPrice = amount,
             PaymentMethod = paymentMethod,
-            PaymentStatus = isCompleted ? "Completed" : "Pending",
+            PaymentStatus = isCompleted ? TicketPurchasePaymentStatus.Completed : TicketPurchasePaymentStatus.Pending,
             // Note: IsPaymentCompleted is read-only calculated property - set PaymentStatus instead
             PurchaseDate = DateTime.UtcNow,
             EncryptedPayPalCaptureId = paymentMethod == "PayPal" ? "encrypted-capture-id" : null

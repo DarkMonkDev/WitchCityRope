@@ -9,6 +9,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
 
 namespace WitchCityRope.Core.Tests.Features.Participation;
@@ -16,30 +17,69 @@ namespace WitchCityRope.Core.Tests.Features.Participation;
 /// <summary>
 /// Unit tests for admin RSVP removal endpoint
 /// Tests authorization, cascading effects (volunteer shifts), and response DTOs
-/// NOTE: Uses InMemoryDatabase for DbContext to avoid mocking issues
+/// Uses DatabaseTestFixture with real PostgreSQL for FK constraint enforcement
 /// </summary>
+[Collection("Database")]
 [Trait("Category", "Unit")]
-public class AdminParticipationRemovalTests : IDisposable
+public class AdminParticipationRemovalTests : IAsyncLifetime
 {
-    private readonly ApplicationDbContext _context;
-    private readonly Guid _eventId;
-    private readonly Guid _userId;
+    private readonly DatabaseTestFixture _fixture;
+    private ApplicationDbContext _context = null!;
+    private Guid _eventId;
+    private Guid _userId;
 
-    public AdminParticipationRemovalTests()
+    public AdminParticipationRemovalTests(DatabaseTestFixture fixture)
     {
-        // Create InMemoryDatabase context
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        _context = new ApplicationDbContext(options);
-
-        _eventId = Guid.NewGuid();
-        _userId = Guid.NewGuid();
+        _fixture = fixture;
     }
 
-    public void Dispose()
+    public async Task InitializeAsync()
     {
-        _context?.Dispose();
+        _context = _fixture.CreateDbContext();
+        await _fixture.ResetDatabaseAsync();
+
+        // Ensure test venue exists (required FK for Events)
+        var existingVenue = await _context.Venues.FindAsync(1);
+        if (existingVenue == null)
+        {
+            _context.Venues.Add(new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                Location = "123 Test St, Salem, MA",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
+        // Create test event (required FK for EventAttendances and VolunteerPositions)
+        _eventId = Guid.NewGuid();
+        var testEvent = new Event
+        {
+            Id = _eventId,
+            Title = "Admin Removal Test Event",
+            Description = "Test event for admin participation removal tests",
+            StartDate = DateTime.UtcNow.AddDays(7),
+            EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
+            AllowRsvps = true,
+            Capacity = 20,
+            VenueId = 1,
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Events.Add(testEvent);
+        await _context.SaveChangesAsync();
+
+        // Use an existing seeded user's ID for FK compliance
+        var existingUser = await _context.Users.FirstAsync();
+        _userId = existingUser.Id;
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _context.DisposeAsync();
     }
 
     #region Admin Remove RSVP Tests
@@ -103,10 +143,27 @@ public class AdminParticipationRemovalTests : IDisposable
     {
         // Arrange
         var rsvp = CreateRsvpParticipation();
-        var volunteerSignup = CreateVolunteerSignup("Door Monitor");
+        var volunteerPosition = new VolunteerPosition
+        {
+            Id = Guid.NewGuid(),
+            EventId = _eventId,
+            Title = "Door Monitor",
+            Description = "Description for Door Monitor",
+            CreatedAt = DateTime.UtcNow.AddDays(-10)
+        };
 
         _context.EventAttendances.Add(rsvp);
-        _context.VolunteerPositions.Add(volunteerSignup.VolunteerPosition);
+        _context.VolunteerPositions.Add(volunteerPosition);
+        await _context.SaveChangesAsync();
+
+        var volunteerSignup = new VolunteerSignup
+        {
+            Id = Guid.NewGuid(),
+            UserId = _userId,
+            VolunteerPositionId = volunteerPosition.Id,
+            Status = VolunteerSignupStatus.Confirmed,
+            CreatedAt = DateTime.UtcNow.AddDays(-6)
+        };
         _context.VolunteerSignups.Add(volunteerSignup);
         await _context.SaveChangesAsync();
 
@@ -176,25 +233,71 @@ public class AdminParticipationRemovalTests : IDisposable
     #region Volunteer Shift Naming Tests
 
     [Fact]
-    public void AdminRemoveRsvp_ReturnsVolunteerShiftNames()
+    public async Task AdminRemoveRsvp_ReturnsVolunteerShiftNames()
     {
-        // Arrange
-        var volunteerSignup1 = CreateVolunteerSignup("Registration Desk");
-        var volunteerSignup2 = CreateVolunteerSignup("Floor Monitor");
-        var volunteerSignup3 = CreateVolunteerSignup("Photography");
+        // Arrange - Create volunteer positions first (FK to Event)
+        var position1 = new VolunteerPosition
+        {
+            Id = Guid.NewGuid(),
+            EventId = _eventId,
+            Title = "Registration Desk",
+            Description = "Description for Registration Desk",
+            CreatedAt = DateTime.UtcNow.AddDays(-10)
+        };
+        var position2 = new VolunteerPosition
+        {
+            Id = Guid.NewGuid(),
+            EventId = _eventId,
+            Title = "Floor Monitor",
+            Description = "Description for Floor Monitor",
+            CreatedAt = DateTime.UtcNow.AddDays(-10)
+        };
+        var position3 = new VolunteerPosition
+        {
+            Id = Guid.NewGuid(),
+            EventId = _eventId,
+            Title = "Photography",
+            Description = "Description for Photography",
+            CreatedAt = DateTime.UtcNow.AddDays(-10)
+        };
 
-        _context.VolunteerPositions.AddRange(
-            volunteerSignup1.VolunteerPosition,
-            volunteerSignup2.VolunteerPosition,
-            volunteerSignup3.VolunteerPosition);
-        _context.VolunteerSignups.AddRange(volunteerSignup1, volunteerSignup2, volunteerSignup3);
-        _context.SaveChanges();
+        _context.VolunteerPositions.AddRange(position1, position2, position3);
+        await _context.SaveChangesAsync();
+
+        var signup1 = new VolunteerSignup
+        {
+            Id = Guid.NewGuid(),
+            UserId = _userId,
+            VolunteerPositionId = position1.Id,
+            Status = VolunteerSignupStatus.Confirmed,
+            CreatedAt = DateTime.UtcNow.AddDays(-6)
+        };
+        var signup2 = new VolunteerSignup
+        {
+            Id = Guid.NewGuid(),
+            UserId = _userId,
+            VolunteerPositionId = position2.Id,
+            Status = VolunteerSignupStatus.Confirmed,
+            CreatedAt = DateTime.UtcNow.AddDays(-6)
+        };
+        var signup3 = new VolunteerSignup
+        {
+            Id = Guid.NewGuid(),
+            UserId = _userId,
+            VolunteerPositionId = position3.Id,
+            Status = VolunteerSignupStatus.Confirmed,
+            CreatedAt = DateTime.UtcNow.AddDays(-6)
+        };
+
+        _context.VolunteerSignups.AddRange(signup1, signup2, signup3);
+        await _context.SaveChangesAsync();
 
         // Act
-        var shiftNames = _context.VolunteerSignups
+        var shiftNames = await _context.VolunteerSignups
             .Where(vs => vs.UserId == _userId)
-            .Select(vs => vs.VolunteerPosition.Title)
-            .ToList();
+            .Include(vs => vs.VolunteerPosition)
+            .Select(vs => vs.VolunteerPosition!.Title)
+            .ToListAsync();
 
         // Assert
         shiftNames.Should().HaveCount(3, "all volunteer shifts should be included");
@@ -231,28 +334,6 @@ public class AdminParticipationRemovalTests : IDisposable
             Status = AttendanceStatus.Active,
             CreatedAt = DateTime.UtcNow.AddDays(-5),
             UpdatedAt = DateTime.UtcNow.AddDays(-5)
-        };
-    }
-
-    private VolunteerSignup CreateVolunteerSignup(string positionTitle)
-    {
-        var position = new VolunteerPosition
-        {
-            Id = Guid.NewGuid(),
-            EventId = _eventId,
-            Title = positionTitle,
-            Description = $"Description for {positionTitle}",
-            CreatedAt = DateTime.UtcNow.AddDays(-10)
-        };
-
-        return new VolunteerSignup
-        {
-            Id = Guid.NewGuid(),
-            UserId = _userId,
-            VolunteerPositionId = position.Id,
-            VolunteerPosition = position,
-            Status = VolunteerSignupStatus.Confirmed,
-            CreatedAt = DateTime.UtcNow.AddDays(-6)
         };
     }
 

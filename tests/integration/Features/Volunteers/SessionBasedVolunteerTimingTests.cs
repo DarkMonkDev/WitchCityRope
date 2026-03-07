@@ -4,7 +4,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Tests.Common.Fixtures;
@@ -31,24 +30,7 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
 
     public SessionBasedVolunteerTimingTests(DatabaseTestFixture fixture) : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     #region Session-Specific Volunteer Position Tests
@@ -68,7 +50,7 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
             StartDate = DateTime.UtcNow.AddDays(1),
             EndDate = DateTime.UtcNow.AddDays(1).AddHours(3),
             VenueId = venueId,
-            EventType = EventType.Class,
+
             Capacity = 20,
             IsPublished = true,
             VolunteerRegistrationCloseHours = 12, // Closes 12 hours before
@@ -120,7 +102,7 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
             StartDate = DateTime.UtcNow.AddDays(-1),
             EndDate = DateTime.UtcNow.AddHours(1),
             VenueId = venueId,
-            EventType = EventType.Class,
+
             Capacity = 20,
             IsPublished = true,
             VolunteerRegistrationCloseHours = 12,
@@ -167,7 +149,7 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
             StartDate = DateTime.UtcNow.AddDays(-1),
             EndDate = DateTime.UtcNow.AddDays(2),
             VenueId = venueId,
-            EventType = EventType.Class,
+
             Capacity = 20,
             IsPublished = true,
             VolunteerRegistrationCloseHours = 12, // Closes 12 hours before
@@ -223,7 +205,7 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
             StartDate = DateTime.UtcNow.AddDays(3),
             EndDate = DateTime.UtcNow.AddDays(3).AddHours(2),
             VenueId = venueId,
-            EventType = EventType.Class,
+
             Capacity = 20,
             IsPublished = true,
             VolunteerCancellationCloseHours = 24, // Closes 24 hours before

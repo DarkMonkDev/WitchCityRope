@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
@@ -38,6 +37,21 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
         _context = _fixture.CreateDbContext();
         await _fixture.ResetDatabaseAsync();
 
+        // Ensure test venue exists (required FK for Events)
+        var existingVenue = await _context.Venues.FindAsync(1);
+        if (existingVenue == null)
+        {
+            _context.Venues.Add(new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                Location = "123 Test St, Salem, MA",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
         _mockLogger = new Mock<ILogger<EventService>>();
         _mockTimeZoneService = new Mock<ITimeZoneService>();
         _mockTimeZoneService.Setup(x => x.GetEventTimeZoneAsync(It.IsAny<CancellationToken>()))
@@ -56,7 +70,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_AddNewSessions_CreatesSessionsSuccessfully()
     {
         // Arrange - Create event without sessions
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         _context.Events.Add(testEvent);
         await _context.SaveChangesAsync();
 
@@ -107,7 +121,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_UpdateExistingSessions_ModifiesSessionsSuccessfully()
     {
         // Arrange - Create event with existing sessions
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var session1 = new Session
         {
             Id = Guid.NewGuid(),
@@ -160,7 +174,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_RemoveSessions_DeletesSessionsSuccessfully()
     {
         // Arrange - Create event with sessions
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var session1 = new Session
         {
             Id = Guid.NewGuid(),
@@ -230,7 +244,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_AddAndUpdateAndRemoveSessions_HandlesComplexScenario()
     {
         // Arrange - Create event with one existing session
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var existingSession = new Session
         {
             Id = Guid.NewGuid(),
@@ -323,7 +337,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_AddNewTicketTypes_CreatesTicketTypesSuccessfully()
     {
         // Arrange - Create event without ticket types
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         _context.Events.Add(testEvent);
         await _context.SaveChangesAsync();
 
@@ -376,7 +390,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_UpdateExistingTicketTypes_ModifiesTicketTypesSuccessfully()
     {
         // Arrange - Create event with existing ticket type
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var ticketType = new TicketType
         {
             Id = Guid.NewGuid(),
@@ -429,7 +443,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_LinkTicketTypeToSession_CreatesSessionLinkSuccessfully()
     {
         // Arrange - Create event with session and ticket type
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var session = new Session
         {
             Id = Guid.NewGuid(),
@@ -496,7 +510,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_RemoveTicketTypes_DeletesTicketTypesSuccessfully()
     {
         // Arrange - Create event with multiple ticket types
-        var testEvent = CreateTestEvent(EventType.Class);
+        var testEvent = CreateTestEvent();
         var ticketType1 = new TicketType
         {
             Id = Guid.NewGuid(),
@@ -568,10 +582,10 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task GetEventsAsync_WithIncludeUnpublished_ReturnsAllEvents()
     {
         // Arrange - Create both published and unpublished events
-        var publishedEvent = CreateTestEvent(EventType.Class, "Published Event");
+        var publishedEvent = CreateTestEvent( "Published Event");
         publishedEvent.IsPublished = true;
 
-        var unpublishedEvent = CreateTestEvent(EventType.Class, "Unpublished Event");
+        var unpublishedEvent = CreateTestEvent( "Unpublished Event");
         unpublishedEvent.IsPublished = false;
         unpublishedEvent.StartDate = DateTime.UtcNow.AddDays(10);
         unpublishedEvent.EndDate = DateTime.UtcNow.AddDays(10).AddHours(3);
@@ -594,10 +608,10 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task GetEventsAsync_WithoutIncludeUnpublished_ReturnsOnlyPublishedEvents()
     {
         // Arrange - Create both published and unpublished events
-        var publishedEvent = CreateTestEvent(EventType.Class, "Published Event");
+        var publishedEvent = CreateTestEvent( "Published Event");
         publishedEvent.IsPublished = true;
 
-        var unpublishedEvent = CreateTestEvent(EventType.Class, "Unpublished Event");
+        var unpublishedEvent = CreateTestEvent( "Unpublished Event");
         unpublishedEvent.IsPublished = false;
         unpublishedEvent.StartDate = DateTime.UtcNow.AddDays(10);
         unpublishedEvent.EndDate = DateTime.UtcNow.AddDays(10).AddHours(3);
@@ -619,7 +633,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task GetEventAsync_WithSessionsAndTicketTypes_ReturnsCompleteEventDetails()
     {
         // Arrange - Create event with sessions and ticket types
-        var testEvent = CreateTestEvent(EventType.Class, "Complete Event");
+        var testEvent = CreateTestEvent( "Complete Event");
         var session = new Session
         {
             Id = Guid.NewGuid(),
@@ -664,7 +678,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_PublishDraftEvent_ChangesPublishedStatus()
     {
         // Arrange - Create unpublished draft event
-        var draftEvent = CreateTestEvent(EventType.Class, "Draft Event");
+        var draftEvent = CreateTestEvent( "Draft Event");
         draftEvent.IsPublished = false;
         _context.Events.Add(draftEvent);
         await _context.SaveChangesAsync();
@@ -691,7 +705,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_CompleteEventUpdate_UpdatesAllFields()
     {
         // Arrange - Create event with all related data
-        var testEvent = CreateTestEvent(EventType.Class, "Original Event");
+        var testEvent = CreateTestEvent( "Original Event");
         var existingSession = new Session
         {
             Id = Guid.NewGuid(),
@@ -761,7 +775,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
 
     #region Helper Methods
 
-    private Event CreateTestEvent(EventType eventType, string title = "Test Event")
+    private Event CreateTestEvent(string title = "Test Event")
     {
         return new Event
         {
@@ -770,8 +784,9 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
             Description = "Test event description",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            EventType = eventType,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

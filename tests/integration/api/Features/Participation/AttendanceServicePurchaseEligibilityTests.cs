@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Events;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Participation.Entities;
@@ -43,24 +42,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
 
     public AttendanceServicePurchaseEligibilityTests(DatabaseTestFixture fixture) : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     #region Per-Ticket-Type Purchase Eligibility Tests
@@ -81,7 +63,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(6),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             RegistrationOpenHours = 168, // 1 week before
@@ -142,7 +124,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(6),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             RegistrationOpenHours = 168,
@@ -206,7 +188,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(6),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             RegistrationOpenHours = 168,
@@ -279,7 +261,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             StartDate = DateTime.UtcNow.AddHours(6),
             EndDate = DateTime.UtcNow.AddDays(5),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             RegistrationOpenHours = 168, // 1 week before
@@ -333,7 +315,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             StartDate = DateTime.UtcNow.AddHours(6),
             EndDate = DateTime.UtcNow.AddHours(10),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             RegistrationOpenHours = 168,
@@ -390,7 +372,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(7),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             RegistrationOpenHours = 168,
@@ -447,7 +429,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(6),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             RegistrationOpenHours = 168,
@@ -510,7 +492,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(5).AddHours(2),
             VenueId = venueId,
-            EventType = EventType.Class,
+            RequireTicketPurchase = true,
             Capacity = 20,
             IsPublished = true,
             RegistrationOpenHours = 168,
@@ -665,7 +647,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             Quantity = 1,
             TotalPrice = 25.00m,
             PaymentMethod = "Cash",
-            PaymentStatus = "Completed",
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
             PaymentReference = $"TEST-{Guid.NewGuid():N}"[..16],
             PurchaseDate = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,

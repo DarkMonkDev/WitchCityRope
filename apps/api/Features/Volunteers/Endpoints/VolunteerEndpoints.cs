@@ -96,6 +96,7 @@ public static class VolunteerEndpoints
                 "This volunteer position is not open for public signups" => 403,
                 "You must accept the Event Waiver to volunteer" => 400,
                 _ when error?.Contains("window") == true => 400,  // Timing validation errors
+                _ when error?.Contains("session") == true => 400,  // Session timing errors
                 _ => 500
             };
 
@@ -203,7 +204,8 @@ public static class VolunteerEndpoints
                 "You can only cancel your own volunteer signups" => 403,
                 "This volunteer signup is already cancelled" => 409,
                 "Cannot cancel volunteer signup after checking in" => 409,
-                "Volunteer cancellation window has closed for this event" => 400,
+                _ when error?.Contains("window") == true => 400,  // Timing validation errors
+                _ when error?.Contains("session") == true => 400,  // Session timing errors
                 _ => 500
             };
 

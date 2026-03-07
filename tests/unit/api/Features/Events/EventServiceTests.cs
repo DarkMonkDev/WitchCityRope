@@ -329,7 +329,7 @@ public class EventServiceTests : IAsyncLifetime
         // Assert
         success.Should().BeFalse();
         eventDto.Should().BeNull();
-        error.Should().Contain("Cannot update past events");
+        error.Should().Contain("Cannot update events that ended more than 48 hours ago");
     }
 
     [Fact]
@@ -470,7 +470,7 @@ public class EventServiceTests : IAsyncLifetime
         // Assert
         success.Should().BeFalse();
         eventDto.Should().BeNull();
-        error.Should().Contain("Cannot update past events");
+        error.Should().Contain("Cannot update events that ended more than 48 hours ago");
     }
 
     [Fact]

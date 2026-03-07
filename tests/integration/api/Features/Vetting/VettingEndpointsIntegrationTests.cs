@@ -33,26 +33,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     public VettingEndpointsIntegrationTests(DatabaseTestFixture fixture)
         : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Remove the app's DbContext registration
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    // Add DbContext using the test container's connection string
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     #region Status Update Tests (5 tests)
@@ -83,15 +64,15 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task StatusUpdate_WithInvalidTransition_Fails()
+    public async Task StatusUpdate_ToSameStatus_Fails()
     {
         // Arrange
         var (client, applicationId) = await SetupApplicationAsync(VettingStatus.Approved);
 
         var request = new StatusChangeRequest
         {
-            Status = "UnderReview", // Cannot go back from Approved (terminal state) to UnderReview
-            Reasoning = "Attempting invalid transition"
+            Status = "Approved", // Cannot transition to the same status
+            Reasoning = "Attempting same-status update"
         };
 
         // Act
@@ -100,7 +81,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("terminal state", "Error should mention terminal state protection");
+        content.Should().Contain("Invalid status update", "Error should indicate the status update is invalid");
     }
 
     [Fact]

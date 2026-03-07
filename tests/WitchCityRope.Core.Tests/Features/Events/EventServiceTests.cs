@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
@@ -38,6 +37,21 @@ public class EventServiceTests : IAsyncLifetime
         _context = _fixture.CreateDbContext();
         await _fixture.ResetDatabaseAsync();
 
+        // Ensure test venue exists (required FK for Events)
+        var existingVenue = await _context.Venues.FindAsync(1);
+        if (existingVenue == null)
+        {
+            _context.Venues.Add(new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                Location = "123 Test St, Salem, MA",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
         _mockLogger = new Mock<ILogger<EventService>>();
         _mockTimeZoneService = new Mock<ITimeZoneService>();
         _mockTimeZoneService.Setup(x => x.GetEventTimeZoneAsync(It.IsAny<CancellationToken>()))
@@ -65,8 +79,9 @@ public class EventServiceTests : IAsyncLifetime
             Description = "A published workshop event",
             StartDate = DateTime.UtcNow.AddDays(7), // Future event
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            EventType = EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true, // Published
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -79,8 +94,9 @@ public class EventServiceTests : IAsyncLifetime
             Description = "An unpublished workshop event",
             StartDate = DateTime.UtcNow.AddDays(8),
             EndDate = DateTime.UtcNow.AddDays(8).AddHours(3),
-            EventType = EventType.Class,
+            AllowRsvps = true,
             Capacity = 15,
+            VenueId = 1,
             IsPublished = false, // Not published
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -93,8 +109,9 @@ public class EventServiceTests : IAsyncLifetime
             Description = "A past published workshop event",
             StartDate = DateTime.UtcNow.AddDays(-1), // Past event
             EndDate = DateTime.UtcNow.AddDays(-1).AddHours(3),
-            EventType = EventType.Class,
+            AllowRsvps = true,
             Capacity = 25,
+            VenueId = 1,
             IsPublished = true, // Published but past
             CreatedAt = DateTime.UtcNow.AddDays(-5),
             UpdatedAt = DateTime.UtcNow.AddDays(-5)
@@ -147,8 +164,9 @@ public class EventServiceTests : IAsyncLifetime
             Description = "A test event for retrieval",
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(5).AddHours(4),
-            EventType = EventType.Class,
+            AllowRsvps = true,
             Capacity = 30,
+            VenueId = 1,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -249,8 +267,9 @@ public class EventServiceTests : IAsyncLifetime
             Description = "Original description",
             StartDate = DateTime.UtcNow.AddDays(10),
             EndDate = DateTime.UtcNow.AddDays(10).AddHours(3),
-            EventType = EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -301,8 +320,9 @@ public class EventServiceTests : IAsyncLifetime
             Description = "Original description",
             StartDate = DateTime.UtcNow.AddDays(15),
             EndDate = DateTime.UtcNow.AddDays(15).AddHours(3),
-            EventType = EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -336,19 +356,20 @@ public class EventServiceTests : IAsyncLifetime
     [Fact]
     public async Task UpdateEventAsync_WithPastEvent_ShouldFail()
     {
-        // Arrange - Create past event
+        // Arrange - Create event that ended more than 48 hours ago (past the grace period)
         var pastEvent = new Event
         {
             Id = Guid.NewGuid(),
             Title = "Past Event",
             Description = "This event is in the past",
-            StartDate = DateTime.UtcNow.AddDays(-1), // Past event
-            EndDate = DateTime.UtcNow.AddDays(-1).AddHours(3),
-            EventType = EventType.Class,
+            StartDate = DateTime.UtcNow.AddDays(-5),
+            EndDate = DateTime.UtcNow.AddDays(-5).AddHours(3),
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true,
-            CreatedAt = DateTime.UtcNow.AddDays(-5),
-            UpdatedAt = DateTime.UtcNow.AddDays(-5)
+            CreatedAt = DateTime.UtcNow.AddDays(-10),
+            UpdatedAt = DateTime.UtcNow.AddDays(-10)
         };
 
         _context.Events.Add(pastEvent);
@@ -365,7 +386,7 @@ public class EventServiceTests : IAsyncLifetime
         // Assert
         success.Should().BeFalse();
         response.Should().BeNull();
-        error.Should().Contain("Cannot update past events");
+        error.Should().Contain("Cannot update events that ended more than 48 hours ago");
     }
 
     /// <summary>
@@ -383,8 +404,9 @@ public class EventServiceTests : IAsyncLifetime
             Description = "This event has attendees",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            EventType = EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -430,8 +452,9 @@ public class EventServiceTests : IAsyncLifetime
             Description = "Testing date range validation",
             StartDate = DateTime.UtcNow.AddDays(10),
             EndDate = DateTime.UtcNow.AddDays(10).AddHours(3),
-            EventType = EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -493,8 +516,9 @@ public class EventServiceTests : IAsyncLifetime
             Description = "Test description",
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(5).AddHours(2),
-            EventType = EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

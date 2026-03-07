@@ -767,7 +767,7 @@ public class CheckInEndpointsTests
 
         var user = CreateAdminClaimsPrincipal(_adminUserId);
 
-        _mockSessionTokenService.GenerateTokenAsync(_testEventId, Arg.Any<Guid>(), _adminUserId, 12, Arg.Any<CancellationToken>())
+        _mockSessionTokenService.GenerateTokenAsync(Arg.Any<GenerateTokenRequest>(), _adminUserId, Arg.Any<CancellationToken>())
             .Returns(Result<SessionTokenResponse>.Success(expectedResponse));
 
         // Act
@@ -827,7 +827,7 @@ public class CheckInEndpointsTests
             ExpiresAt = DateTime.UtcNow.AddHours(12)
         };
 
-        _mockSessionTokenService.GenerateTokenAsync(_testEventId, Arg.Any<Guid>(), _adminUserId, 12, Arg.Any<CancellationToken>())
+        _mockSessionTokenService.GenerateTokenAsync(Arg.Any<GenerateTokenRequest>(), _adminUserId, Arg.Any<CancellationToken>())
             .Returns(Result<SessionTokenResponse>.Success(expectedResponse));
 
         // Act
@@ -835,7 +835,7 @@ public class CheckInEndpointsTests
 
         // Assert
         result.Should().BeAssignableTo<IResult>();
-        await _mockSessionTokenService.Received(1).GenerateTokenAsync(_testEventId, Arg.Any<Guid>(), _adminUserId, 12, Arg.Any<CancellationToken>());
+        await _mockSessionTokenService.Received(1).GenerateTokenAsync(Arg.Any<GenerateTokenRequest>(), _adminUserId, Arg.Any<CancellationToken>());
     }
 
     /// <summary>

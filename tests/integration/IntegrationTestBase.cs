@@ -8,6 +8,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Hangfire;
+using Hangfire.MemoryStorage;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -376,6 +380,113 @@ namespace WitchCityRope.IntegrationTests
             AddCsrfTokenHeader(client, csrfToken);
 
             return client;
+        }
+
+        /// <summary>
+        /// Creates a WebApplicationFactory configured to use the TestContainers database.
+        /// CRITICAL: Overrides both the connection string (for Program.cs NpgsqlDataSource)
+        /// AND the DbContext registration (for DI). Without the connection string override,
+        /// Program.cs builds a NpgsqlDataSource with the wrong connection string at startup.
+        /// </summary>
+        /// <summary>
+        /// No-op antiforgery implementation for integration tests.
+        /// Validates all requests and returns dummy tokens.
+        /// </summary>
+        private class NoOpAntiforgery : Microsoft.AspNetCore.Antiforgery.IAntiforgery
+        {
+            public Microsoft.AspNetCore.Antiforgery.AntiforgeryTokenSet GetAndStoreTokens(HttpContext httpContext)
+            {
+                return new Microsoft.AspNetCore.Antiforgery.AntiforgeryTokenSet("test-request-token", "test-cookie-token", "X-CSRF-TOKEN", "XSRF-TOKEN");
+            }
+
+            public Microsoft.AspNetCore.Antiforgery.AntiforgeryTokenSet GetTokens(HttpContext httpContext)
+            {
+                return new Microsoft.AspNetCore.Antiforgery.AntiforgeryTokenSet("test-request-token", "test-cookie-token", "X-CSRF-TOKEN", "XSRF-TOKEN");
+            }
+
+            public Task<bool> IsRequestValidAsync(HttpContext httpContext)
+            {
+                return Task.FromResult(true);
+            }
+
+            public void SetCookieTokenAndHeader(HttpContext httpContext) { }
+
+            public Task ValidateRequestAsync(HttpContext httpContext)
+            {
+                return Task.CompletedTask;
+            }
+        }
+
+        protected WebApplicationFactory<Program> CreateTestWebApplicationFactory()
+        {
+            return new WebApplicationFactory<Program>()
+                .WithWebHostBuilder(builder =>
+                {
+                    // Override connection string BEFORE Program.cs runs
+                    // This ensures the NpgsqlDataSource built in Program.cs uses the test container
+                    builder.UseSetting("ConnectionStrings:DefaultConnection", ConnectionString);
+
+                    // Disable seed data - integration tests create their own data
+                    builder.UseSetting("DatabaseInitialization:EnableSeedData", "false");
+
+                    // Set test environment
+                    builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
+
+                    // Use mock PayPal service for integration tests
+                    builder.UseSetting("USE_MOCK_PAYMENT_SERVICE", "true");
+
+                    builder.ConfigureServices(services =>
+                    {
+                        // Remove the app's DbContext registration
+                        var descriptor = services.SingleOrDefault(
+                            d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+                        if (descriptor != null)
+                        {
+                            services.Remove(descriptor);
+                        }
+
+                        // Build NpgsqlDataSource with EnableDynamicJson() for JSONB column support
+                        // Without this, JSONB properties (e.g. EventAttendance.Metadata) fail on save
+                        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(ConnectionString);
+                        dataSourceBuilder.EnableDynamicJson();
+                        var dataSource = dataSourceBuilder.Build();
+
+                        // Add DbContext using the test container's data source
+                        services.AddDbContext<ApplicationDbContext>(options =>
+                        {
+                            options.UseNpgsql(dataSource);
+                            options.ConfigureWarnings(warnings =>
+                            {
+                                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
+                            });
+                        });
+
+                        // Use in-memory Hangfire storage for tests
+                        services.AddHangfire(config => config.UseMemoryStorage());
+
+                        // Replace IAntiforgery with a no-op implementation for tests
+                        // Integration tests focus on business logic, not CSRF protection
+                        var antiforgeryDescriptor = services.SingleOrDefault(
+                            d => d.ServiceType == typeof(Microsoft.AspNetCore.Antiforgery.IAntiforgery));
+                        if (antiforgeryDescriptor != null)
+                        {
+                            services.Remove(antiforgeryDescriptor);
+                        }
+                        services.AddSingleton<Microsoft.AspNetCore.Antiforgery.IAntiforgery, NoOpAntiforgery>();
+
+                        // Replace real encryption with mock for tests
+                        // Real EncryptionService requires properly encrypted values;
+                        // MockEncryptionService passes through plaintext (e.g. "encrypted-capture-id")
+                        var encryptionDescriptor = services.SingleOrDefault(
+                            d => d.ServiceType == typeof(WitchCityRope.Api.Features.Safety.Services.IEncryptionService));
+                        if (encryptionDescriptor != null)
+                        {
+                            services.Remove(encryptionDescriptor);
+                        }
+                        services.AddScoped<WitchCityRope.Api.Features.Safety.Services.IEncryptionService,
+                            WitchCityRope.Api.Features.Shared.Services.MockEncryptionService>();
+                    });
+                });
         }
     }
 }

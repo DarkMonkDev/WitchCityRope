@@ -23,9 +23,10 @@ public class DatabaseTestFixture : IAsyncLifetime
 {
     private PostgreSqlContainer? _container;
     private Respawner? _respawner;
+    private NpgsqlDataSource? _dataSource;
     private readonly ServiceProvider _serviceProvider;
 
-    public string ConnectionString => _container?.GetConnectionString() ?? 
+    public string ConnectionString => _container?.GetConnectionString() ??
         throw new InvalidOperationException("Container not initialized. Call InitializeAsync first.");
 
     public DatabaseTestFixture()
@@ -49,6 +50,11 @@ public class DatabaseTestFixture : IAsyncLifetime
 
         await _container.StartAsync();
 
+        // Build shared NpgsqlDataSource with EnableDynamicJson (required for Dictionary<string, object> JSONB columns)
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
+        dataSourceBuilder.EnableDynamicJson();
+        _dataSource = dataSourceBuilder.Build();
+
         // Initialize database schema
         await CreateDatabaseSchemaAsync();
 
@@ -66,6 +72,11 @@ public class DatabaseTestFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
+        if (_dataSource != null)
+        {
+            await _dataSource.DisposeAsync();
+        }
+
         if (_container != null)
         {
             await _container.StopAsync();
@@ -81,8 +92,11 @@ public class DatabaseTestFixture : IAsyncLifetime
     /// </summary>
     public ApplicationDbContext CreateDbContext()
     {
+        if (_dataSource == null)
+            throw new InvalidOperationException("Data source not initialized. Call InitializeAsync first.");
+
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseNpgsql(ConnectionString)
+            .UseNpgsql(_dataSource)
             .EnableSensitiveDataLogging() // For better test debugging
             .EnableDetailedErrors()
             .UseLoggerFactory(_serviceProvider.GetRequiredService<ILoggerFactory>())

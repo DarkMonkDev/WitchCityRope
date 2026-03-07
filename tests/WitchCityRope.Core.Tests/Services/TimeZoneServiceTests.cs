@@ -6,7 +6,6 @@ using WitchCityRope.Api.Features.Events;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Features.Admin.Settings.Interfaces;
 using WitchCityRope.Api.Models;
-using WitchCityRope.Api.Enums;
 
 namespace WitchCityRope.Core.Tests.Services;
 
@@ -529,7 +528,7 @@ public class TimeZoneServiceTests
             StartDate = startDateTime,
             EndDate = startDateTime.AddHours(2),
             Capacity = 50,
-            EventType = EventType.Social,
+            AllowRsvps = true,
             VenueId = 1,
             RegistrationOpenHours = registrationOpenHours,
             RegistrationCloseHours = registrationCloseHours,

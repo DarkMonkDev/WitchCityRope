@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using NSubstitute;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Enums;
@@ -49,8 +50,13 @@ public class CheckInServiceTests : IAsyncLifetime
         await _container.StartAsync();
         _connectionString = _container.GetConnectionString();
 
+        // Build NpgsqlDataSource with EnableDynamicJson (required for Dictionary<string, object> JSONB columns)
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(_connectionString);
+        dataSourceBuilder.EnableDynamicJson();
+        var dataSource = dataSourceBuilder.Build();
+
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseNpgsql(_connectionString)
+            .UseNpgsql(dataSource)
             .LogTo(_output.WriteLine)  // Log EF Core queries to test output
             .Options;
 
@@ -98,16 +104,16 @@ public class CheckInServiceTests : IAsyncLifetime
 
     #region Helper Methods
 
-    private async Task<Event> CreateTestEvent(string title, int capacity = 25)
+    private async Task<(Event Event, Session Session)> CreateTestEventWithSession(string title, int capacity = 25)
     {
         var eventEntity = new Event
         {
             Id = Guid.NewGuid(),
             Title = title,
             Description = $"Description for {title}",
-            VenueId = 1, // Test venue ID (Location moved to Venue entity)
-            AllowRsvps = false,
-            RequireTicketPurchase = true,
+            VenueId = 1,
+            AllowRsvps = true,
+            RequireTicketPurchase = false,
             VettedMembersOnly = false,
             Capacity = capacity,
             IsPublished = true,
@@ -120,6 +126,26 @@ public class CheckInServiceTests : IAsyncLifetime
         _context.Events.Add(eventEntity);
         await _context.SaveChangesAsync();
 
+        var session = new Session
+        {
+            Id = Guid.NewGuid(),
+            EventId = eventEntity.Id,
+            SessionCode = "S1",
+            Name = "Main Session",
+            StartTime = eventEntity.StartDate,
+            EndTime = eventEntity.EndDate,
+            Capacity = capacity
+        };
+
+        _context.Sessions.Add(session);
+        await _context.SaveChangesAsync();
+
+        return (eventEntity, session);
+    }
+
+    private async Task<Event> CreateTestEvent(string title, int capacity = 25)
+    {
+        var (eventEntity, _) = await CreateTestEventWithSession(title, capacity);
         return eventEntity;
     }
 
@@ -133,7 +159,7 @@ public class CheckInServiceTests : IAsyncLifetime
             SceneName = sceneName,
             EmailConfirmed = true,
             CreatedAt = DateTime.UtcNow,
-            Role = "Member"
+            Role = ""
         };
 
         _context.Users.Add(user);
@@ -159,17 +185,37 @@ public class CheckInServiceTests : IAsyncLifetime
         _context.EventAttendees.Add(attendee);
         await _context.SaveChangesAsync();
 
+        // Also create an EventAttendance (RSVP) record so check-in validation passes
+        var attendance = new EventAttendance
+        {
+            Id = Guid.NewGuid(),
+            EventId = eventId,
+            UserId = userId,
+            AttendanceType = AttendanceType.RSVP,
+            Status = AttendanceStatus.Active,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.EventAttendances.Add(attendance);
+        await _context.SaveChangesAsync();
+
         return attendee;
     }
 
     private async Task<string> CreateSessionToken(Guid eventId, Guid createdByUserId)
     {
+        // Get the session for this event (created by CreateTestEvent/CreateTestEventWithSession)
+        var session = await _context.Sessions.FirstOrDefaultAsync(s => s.EventId == eventId);
+        if (session == null)
+            throw new InvalidOperationException("No session found for event. Call CreateTestEvent or CreateTestEventWithSession first.");
+
         var token = $"TEST_TOKEN_{Guid.NewGuid():N}";
         var sessionToken = new CheckInSessionToken
         {
             Id = Guid.NewGuid(),
             Token = token,
             EventId = eventId,
+            SessionId = session.Id,
             CreatedByUserId = createdByUserId,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddHours(12),
@@ -179,7 +225,23 @@ public class CheckInServiceTests : IAsyncLifetime
         _context.CheckInSessionTokens.Add(sessionToken);
         await _context.SaveChangesAsync();
 
+        // Link token to session via join table
+        var tokenSession = new CheckInSessionTokenSession
+        {
+            TokenId = sessionToken.Id,
+            SessionId = session.Id
+        };
+
+        _context.CheckInSessionTokenSessions.Add(tokenSession);
+        await _context.SaveChangesAsync();
+
         return token;
+    }
+
+    private async Task<Guid> GetSessionIdForEvent(Guid eventId)
+    {
+        var session = await _context.Sessions.FirstOrDefaultAsync(s => s.EventId == eventId);
+        return session?.Id ?? throw new InvalidOperationException("No session found for event");
     }
 
     #endregion
@@ -235,8 +297,9 @@ public class CheckInServiceTests : IAsyncLifetime
         var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
         var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
-        // Create first check-in
-        var firstCheckIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, Guid.NewGuid(), staffMember.Id)
+        // Create first check-in using actual session
+        var session = await _context.Sessions.FirstAsync(s => s.EventId == testEvent.Id);
+        var firstCheckIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, session.Id, staffMember.Id)
         {
             CheckInTime = DateTime.UtcNow
         };
@@ -305,6 +368,20 @@ public class CheckInServiceTests : IAsyncLifetime
             UpdatedAt = DateTime.UtcNow
         };
         _context.Events.Add(futureEvent);
+        await _context.SaveChangesAsync();
+
+        // Create session for the event (required for check-in flow)
+        var session = new Session
+        {
+            Id = Guid.NewGuid(),
+            EventId = futureEvent.Id,
+            SessionCode = "S1",
+            Name = "Main Session",
+            StartTime = futureEvent.StartDate,
+            EndTime = futureEvent.EndDate,
+            Capacity = 25
+        };
+        _context.Sessions.Add(session);
         await _context.SaveChangesAsync();
 
         var user = await CreateTestUser("test@example.com", "TestUser");
@@ -421,7 +498,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var attendee3 = await CreateEventAttendee(testEvent.Id, user3.Id, status: "waitlist");
 
         // Check in first two attendees (fill capacity)
-        var sessionId = Guid.NewGuid();
+        var sessionId = await GetSessionIdForEvent(testEvent.Id);
         var checkIn1 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee1.Id, testEvent.Id, sessionId, staffMember.Id);
         var checkIn2 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee2.Id, testEvent.Id, sessionId, staffMember.Id);
         _context.CheckIns.AddRange(checkIn1, checkIn2);
@@ -459,7 +536,8 @@ public class CheckInServiceTests : IAsyncLifetime
         var attendee2 = await CreateEventAttendee(testEvent.Id, user2.Id, status: "waitlist");
 
         // Check in first attendee (fill capacity)
-        var checkIn1 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee1.Id, testEvent.Id, Guid.NewGuid(), staffMember.Id);
+        var sid = await GetSessionIdForEvent(testEvent.Id);
+        var checkIn1 = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee1.Id, testEvent.Id, sid, staffMember.Id);
         _context.CheckIns.Add(checkIn1);
         await _context.SaveChangesAsync();
 
@@ -494,11 +572,12 @@ public class CheckInServiceTests : IAsyncLifetime
         var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         // Fill to capacity
+        var sid = await GetSessionIdForEvent(testEvent.Id);
         for (int i = 0; i < 2; i++)
         {
             var user = await CreateTestUser($"user{i}@example.com", $"User{i}");
             var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
-            var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, Guid.NewGuid(), staffMember.Id);
+            var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, sid, staffMember.Id);
             _context.CheckIns.Add(checkIn);
         }
         await _context.SaveChangesAsync();
@@ -535,7 +614,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
 
         // Create and check in 3 attendees
-        var sessionId = Guid.NewGuid();
+        var sessionId = await GetSessionIdForEvent(testEvent.Id);
         for (int i = 0; i < 3; i++)
         {
             var user = await CreateTestUser($"user{i}@example.com", $"User{i}");
@@ -563,7 +642,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
 
         // Create 5 attendees, check in 3
-        var sessionId = Guid.NewGuid();
+        var sessionId = await GetSessionIdForEvent(testEvent.Id);
         for (int i = 0; i < 5; i++)
         {
             var user = await CreateTestUser($"user{i}@example.com", $"User{i}");
@@ -598,7 +677,8 @@ public class CheckInServiceTests : IAsyncLifetime
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
         var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
 
-        var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, Guid.NewGuid(), staffMember.Id);
+        var sid = await GetSessionIdForEvent(testEvent.Id);
+        var checkIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, sid, staffMember.Id);
         _context.CheckIns.Add(checkIn);
         attendee.RegistrationStatus = "checked-in";
         await _context.SaveChangesAsync();
@@ -682,7 +762,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
 
         // Create 3 attendees, check in 2
-        var sessionId = Guid.NewGuid();
+        var sessionId = await GetSessionIdForEvent(testEvent.Id);
         for (int i = 0; i < 3; i++)
         {
             var user = await CreateTestUser($"user{i}@example.com", $"User{i}");
@@ -722,7 +802,7 @@ public class CheckInServiceTests : IAsyncLifetime
         await CreateEventAttendee(testEvent.Id, user2.Id);
 
         // Act
-        var sessionId = Guid.NewGuid();
+        var sessionId = await GetSessionIdForEvent(testEvent.Id);
         var result = await _service.GetEventAttendeesAsync(testEvent.Id, new List<Guid> { sessionId }, search: "Alice");
 
         // Assert
@@ -745,7 +825,7 @@ public class CheckInServiceTests : IAsyncLifetime
         }
 
         // Act - Get first page (10 per page)
-        var sessionId = Guid.NewGuid();
+        var sessionId = await GetSessionIdForEvent(testEvent.Id);
         var result = await _service.GetEventAttendeesAsync(testEvent.Id, new List<Guid> { sessionId }, page: 1, pageSize: 10);
 
         // Assert
@@ -966,7 +1046,7 @@ public class CheckInServiceTests : IAsyncLifetime
             PurchaseDate = DateTime.UtcNow,
             Quantity = 1,
             TotalPrice = 20.00m,
-            PaymentStatus = "Completed",
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
             PaymentMethod = "PayPal",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

@@ -1,11 +1,14 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
+using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
@@ -22,6 +25,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
 {
     private readonly DatabaseTestFixture _fixture;
     private ApplicationDbContext _context = null!;
+    private Mock<UserManager<ApplicationUser>> _mockUserManager = null!;
+    private Mock<IEmailService> _mockEmailService = null!;
+    private Mock<IConfiguration> _mockConfiguration = null!;
     private Mock<ILogger<EmailTemplateService>> _mockLogger = null!;
     private EmailTemplateService _service = null!;
     private ApplicationUser _testUser = null!;
@@ -36,8 +42,33 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         _context = _fixture.CreateDbContext();
         await _fixture.ResetDatabaseAsync();
 
+        // Ensure test venue exists (required FK for Events)
+        var existingVenue = await _context.Venues.FindAsync(1);
+        if (existingVenue == null)
+        {
+            _context.Venues.Add(new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                Location = "123 Test St, Salem, MA",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
+        var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
+        _mockUserManager = new Mock<UserManager<ApplicationUser>>(
+            userStoreMock.Object, null!, null!, null!, null!, null!, null!, null!, null!);
+        _mockEmailService = new Mock<IEmailService>();
+        _mockConfiguration = new Mock<IConfiguration>();
         _mockLogger = new Mock<ILogger<EmailTemplateService>>();
-        _service = new EmailTemplateService(_context, _mockLogger.Object);
+        _service = new EmailTemplateService(
+            _context,
+            _mockUserManager.Object,
+            _mockEmailService.Object,
+            _mockConfiguration.Object,
+            _mockLogger.Object);
 
         // Create test user for template updates
         _testUser = await _context.Users.FirstAsync();
@@ -379,8 +410,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Description = "Test",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
-            EventType = WitchCityRope.Api.Enums.EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -474,8 +506,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Description = "Test",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
-            EventType = WitchCityRope.Api.Enums.EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -537,8 +570,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Description = "Test",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
-            EventType = WitchCityRope.Api.Enums.EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -622,8 +656,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Description = "Test",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
-            EventType = WitchCityRope.Api.Enums.EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -690,8 +725,9 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Description = "Test",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
-            EventType = WitchCityRope.Api.Enums.EventType.Class,
+            AllowRsvps = true,
             Capacity = 20,
+            VenueId = 1,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

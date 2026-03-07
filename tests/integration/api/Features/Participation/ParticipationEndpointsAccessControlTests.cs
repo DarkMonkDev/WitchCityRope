@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Tests.Common.Fixtures;
@@ -32,26 +31,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
     public ParticipationEndpointsAccessControlTests(DatabaseTestFixture fixture)
         : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Remove the app's DbContext registration
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    // Add DbContext using the test container's connection string
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     #region RSVP Access Control Tests (5 tests)
@@ -64,7 +44,8 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateRSVPRequest
         {
-            EventId = eventId
+            EventId = eventId,
+            EventWaiverAccepted = true
         };
 
         // Act
@@ -137,9 +118,9 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task RsvpEndpoint_WhenUserHasNoApplication_Succeeds()
+    public async Task RsvpEndpoint_WhenUserHasNoApplication_Returns400ForVettedOnlyEvent()
     {
-        // Arrange
+        // Arrange — event is VettedMembersOnly, user has no vetting application (VettingStatus=0)
         var (client, eventId) = await SetupTestScenarioAsync(null); // No vetting application
 
         var request = new CreateRSVPRequest
@@ -150,11 +131,11 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
         // Act
         var response = await client.PostAsJsonAsync($"/api/events/{eventId}/rsvp", request);
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created,
-            "Users without vetting applications should be allowed to RSVP");
+        // Assert — Non-vetted users cannot RSVP for vetted-only events
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "Users without vetting (VettingStatus=0) should be blocked from vetted-only events");
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().NotBeNullOrEmpty();
+        content.Should().Contain("vetted", "Response should indicate vetting requirement");
     }
 
     #endregion
@@ -169,7 +150,9 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         var request = new CreateTicketPurchaseRequest
         {
-            EventId = eventId
+            EventId = eventId,
+            TicketTypeIds = new List<Guid> { _lastTicketTypeId },
+            EventWaiverAccepted = true
         };
 
         // Act
@@ -242,9 +225,9 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task TicketEndpoint_WhenUserHasNoApplication_Succeeds()
+    public async Task TicketEndpoint_WhenUserHasNoApplication_Returns400ForVettedOnlyEvent()
     {
-        // Arrange
+        // Arrange — event is VettedMembersOnly, user has no vetting application (VettingStatus=0)
         var (client, eventId) = await SetupTestScenarioAsync(null, isClassEvent: true); // No vetting application
 
         var request = new CreateTicketPurchaseRequest
@@ -255,11 +238,11 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
         // Act
         var response = await client.PostAsJsonAsync($"/api/events/{eventId}/tickets", request);
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created,
-            "Users without vetting applications should be allowed to purchase tickets");
+        // Assert — Non-vetted users cannot purchase tickets for vetted-only events
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "Users without vetting (VettingStatus=0) should be blocked from vetted-only events");
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().NotBeNullOrEmpty();
+        content.Should().Contain("vetted", "Response should indicate vetting requirement");
     }
 
     #endregion
@@ -267,8 +250,13 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
     #region Helper Methods
 
     /// <summary>
-    /// Creates a test scenario with user, event, and optional vetting application
+    /// Creates a test scenario with user, event, and optional vetting application.
+    /// For class events, also creates Session and TicketType (required for ticket purchase).
+    /// Returns (client, eventId) or for class events (client, eventId) where the TicketTypeId
+    /// is stored in _lastTicketTypeId for use in ticket purchase requests.
     /// </summary>
+    private Guid _lastTicketTypeId;
+
     private async Task<(HttpClient client, Guid eventId)> SetupTestScenarioAsync(
         VettingStatus? vettingStatus,
         bool isClassEvent = false)
@@ -278,13 +266,15 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         await using var context = CreateDbContext();
 
-        // Create user
+        // Create user — VettingStatus int must match VettingApplication.WorkflowStatus
+        // IsVetted checks VettingStatus == 3 (Approved)
         var user = new ApplicationUser
         {
             Id = userId,
             Email = email,
             UserName = email,
             SceneName = $"TestUser{userId:N}",
+            VettingStatus = vettingStatus.HasValue ? (int)vettingStatus.Value : 0,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -313,15 +303,18 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
 
         // Create event
         var eventId = Guid.NewGuid();
+        var startDate = DateTime.UtcNow.AddDays(7);
         var evt = new Event
         {
             Id = eventId,
             Title = isClassEvent ? "Test Class Event" : "Test Social Event",
             Description = "Test event for integration testing",
-            EventType = isClassEvent ? EventType.Class : EventType.Social,
+            AllowRsvps = !isClassEvent,
+            RequireTicketPurchase = isClassEvent,
+            VettedMembersOnly = true,
             VenueId = venueId,
-            StartDate = DateTime.UtcNow.AddDays(7),
-            EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
+            StartDate = startDate,
+            EndDate = startDate.AddHours(2),
             Capacity = 50,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
@@ -329,12 +322,43 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
         };
         context.Events.Add(evt);
 
+        // For class events, create Session and TicketType (required for ticket purchase)
+        if (isClassEvent)
+        {
+            var session = new WitchCityRope.Api.Models.Session
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                SessionCode = "S1",
+                Name = "Main Session",
+                StartTime = startDate,
+                EndTime = startDate.AddHours(2),
+                Capacity = 50,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            context.Sessions.Add(session);
+
+            var ticketType = new TicketType
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                Name = "General Admission",
+                Price = 25.00m,
+                Available = 50,
+                Sessions = new List<WitchCityRope.Api.Models.Session> { session },
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            context.TicketTypes.Add(ticketType);
+            _lastTicketTypeId = ticketType.Id;
+        }
+
         await context.SaveChangesAsync();
 
-        // Create authenticated client
-        var client = _factory.CreateClient();
+        // Create authenticated client with CSRF token
         var token = GenerateJwtToken(userId, email);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var client = await CreateAuthenticatedClientWithCsrfAsync(_factory, token);
 
         return (client, eventId);
     }

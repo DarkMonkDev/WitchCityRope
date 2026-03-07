@@ -4,10 +4,10 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Volunteers.Models;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Data;
+using Session = WitchCityRope.Api.Models.Session;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
 
@@ -25,24 +25,7 @@ public class VolunteerTimingTests : IntegrationTestBase, IDisposable
 
     public VolunteerTimingTests(DatabaseTestFixture fixture) : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     #region Volunteer Signup Timing Tests
@@ -81,7 +64,7 @@ public class VolunteerTimingTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest, "Signup should fail after registration closes");
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("Volunteer registration window has closed",
+        content.Should().Contain("Volunteer signup window has closed",
             "error message should explain timing restriction");
     }
 
@@ -352,7 +335,7 @@ public class VolunteerTimingTests : IntegrationTestBase, IDisposable
         decimal? volunteerRegistrationCloseHours = null,
         decimal? volunteerCancellationCloseHours = null,
         int slotsNeeded = 5,
-        int slotsFilled = 0) // Fixed: renamed parameter from currentSlotCount to slotsFilled
+        int slotsFilled = 0)
     {
         await using var context = CreateDbContext();
 
@@ -366,8 +349,7 @@ public class VolunteerTimingTests : IntegrationTestBase, IDisposable
             Description = "Test event for volunteer timing",
             StartDate = startDateTime,
             EndDate = startDateTime.AddHours(2),
-            VenueId = venueId, // Use venue created by helper
-            EventType = EventType.Class,
+            VenueId = venueId,
             Capacity = 20,
             IsPublished = true,
             RegistrationCloseHours = registrationCloseHours,
@@ -378,6 +360,23 @@ public class VolunteerTimingTests : IntegrationTestBase, IDisposable
             UpdatedAt = DateTime.UtcNow
         };
 
+        context.Events.Add(eventEntity);
+
+        // Create a Session for the event — service uses Sessions (not Event.StartDate) for timing
+        var session = new Session
+        {
+            Id = Guid.NewGuid(),
+            EventId = eventEntity.Id,
+            SessionCode = "S1",
+            Name = "Main Session",
+            StartTime = startDateTime,
+            EndTime = startDateTime.AddHours(2),
+            Capacity = 20,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        context.Sessions.Add(session);
+
         var position = new VolunteerPosition
         {
             Id = Guid.NewGuid(),
@@ -385,13 +384,12 @@ public class VolunteerTimingTests : IntegrationTestBase, IDisposable
             Title = $"Test Position {Guid.NewGuid():N}",
             Description = "Test volunteer position",
             SlotsNeeded = slotsNeeded,
-            SlotsFilled = slotsFilled, // Fixed: SlotsFilled (not CurrentSlotCount)
+            SlotsFilled = slotsFilled,
             Event = eventEntity,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        context.Events.Add(eventEntity);
         context.VolunteerPositions.Add(position);
         await context.SaveChangesAsync();
 

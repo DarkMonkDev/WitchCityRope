@@ -311,7 +311,7 @@ public static class ParticipationEndpoints
                             detail: result.Error,
                             statusCode: 409);
                     }
-                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window") || result.Error.Contains("sessions"))
+                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window") || result.Error.Contains("sessions") || result.Error.Contains("vetted"))
                     {
                         return Results.Problem(
                             title: "Bad Request",
@@ -872,6 +872,10 @@ public static class ParticipationEndpoints
                                     detail: $"Failed to process ticket refund: {refundResult.ErrorMessage}",
                                     statusCode: 500);
                             }
+
+                            // Update TicketPurchase.PaymentStatus (RefundService delegates this to callers)
+                            ticketPurchase.PaymentStatus = TicketPurchasePaymentStatus.Refunded;
+                            ticketPurchase.UpdatedAt = DateTime.UtcNow;
 
                             response.TicketRefunded = true;
                             response.RefundAmount = ticketPurchase.TotalPrice;

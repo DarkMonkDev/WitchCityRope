@@ -15,6 +15,7 @@ using SharedResult = WitchCityRope.Api.Features.Shared.Models.Result;
 using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
 
 namespace WitchCityRope.UnitTests.Api.Features.Payments.Services;
@@ -22,28 +23,26 @@ namespace WitchCityRope.UnitTests.Api.Features.Payments.Services;
 /// <summary>
 /// Unit tests for RefundService email notification functionality
 /// Tests email sending for refund confirmations (Phase 3 of PayPal refund system)
+/// Uses TestContainers PostgreSQL via DatabaseTestFixture (NOT InMemoryDatabase)
 /// </summary>
-public class RefundServiceEmailTests : IDisposable
+[Collection("Database")]
+public class RefundServiceEmailTests : IAsyncLifetime
 {
-    private readonly ApplicationDbContext _context;
+    private readonly DatabaseTestFixture _fixture;
+    private ApplicationDbContext _context = null!;
     private readonly IPayPalService _mockPayPalService;
     private readonly IEncryptionService _mockEncryptionService;
     private readonly IVolunteerAssignmentService _mockVolunteerAssignmentService;
     private readonly IEmailService _mockEmailService;
     private readonly ILogger<RefundService> _mockLogger;
-    private readonly RefundService _sut;
-    private readonly Guid _testUserId = Guid.NewGuid();
+    private RefundService _sut = null!;
+    private Guid _testUserId;
     private readonly Guid _adminUserId = Guid.NewGuid();
-    private readonly Guid _paymentId = Guid.NewGuid();
+    private Guid _ticketPurchaseId;
 
-    public RefundServiceEmailTests()
+    public RefundServiceEmailTests(DatabaseTestFixture fixture)
     {
-        // Setup in-memory database
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: $"RefundServiceEmailTests_{Guid.NewGuid()}")
-            .Options;
-
-        _context = new ApplicationDbContext(options);
+        _fixture = fixture;
 
         // Setup mocks
         _mockPayPalService = Substitute.For<IPayPalService>();
@@ -62,8 +61,15 @@ public class RefundServiceEmailTests : IDisposable
         _mockVolunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
                 Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult((success: true, cancelledCount: 0, error: (string?)null)));
+    }
 
-        // Create system under test
+    public async Task InitializeAsync()
+    {
+        _context = _fixture.CreateDbContext();
+        _testUserId = Guid.NewGuid();
+        _ticketPurchaseId = Guid.NewGuid();
+
+        // Create system under test with real context
         _sut = new RefundService(
             _context,
             _mockPayPalService,
@@ -71,12 +77,38 @@ public class RefundServiceEmailTests : IDisposable
             _mockVolunteerAssignmentService,
             _mockEmailService,
             _mockLogger);
+
+        // Seed test user (required for FK constraints)
+        var testUser = new ApplicationUser
+        {
+            Id = _testUserId,
+            UserName = "TestUser",
+            Email = "test@witchcityrope.com",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Users.Add(testUser);
+
+        // Seed admin user (required for PaymentRefund.ProcessedByUserId FK)
+        var adminUser = new ApplicationUser
+        {
+            Id = _adminUserId,
+            UserName = "AdminUser",
+            Email = "admin@witchcityrope.com",
+            EmailConfirmed = true,
+            Role = "Administrator",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Users.Add(adminUser);
+        await _context.SaveChangesAsync();
     }
 
-    public void Dispose()
+    public async Task DisposeAsync()
     {
-        _context.Database.EnsureDeleted();
-        _context.Dispose();
+        _context?.Dispose();
+        await _fixture.ResetDatabaseAsync();
     }
 
     #region Email Sending - Happy Path
@@ -85,31 +117,12 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WithSuccessfulPayPalRefund_SendsRefundConfirmationEmail()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
 
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
 
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        // Setup email service to succeed
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         var result = await _sut.ProcessRefundAsync(request);
@@ -117,7 +130,7 @@ public class RefundServiceEmailTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         await _mockEmailService.Received(1).SendTemplatedEmailAsync(
-            payment.User!.Email!,
+            ticketPurchase.User!.Email!,
             Arg.Any<string>(),
             EmailCategory.Admin,
             "RefundConfirmation",
@@ -129,37 +142,19 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WithSuccessfulRefund_SendsEmailToCorrectRecipient()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
 
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
 
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         await _sut.ProcessRefundAsync(request);
 
         // Assert
         await _mockEmailService.Received(1).SendTemplatedEmailAsync(
-            "test@witchcityrope.com", // Should match payment.User.Email
+            "test@witchcityrope.com",
             Arg.Any<string>(),
             Arg.Any<EmailCategory>(),
             Arg.Any<string>(),
@@ -171,30 +166,10 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WithSuccessfulRefund_UsesCorrectEmailCategory()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         await _sut.ProcessRefundAsync(request);
@@ -203,7 +178,7 @@ public class RefundServiceEmailTests : IDisposable
         await _mockEmailService.Received(1).SendTemplatedEmailAsync(
             Arg.Any<string>(),
             Arg.Any<string>(),
-            EmailCategory.Admin, // Must be Admin category
+            EmailCategory.Admin,
             Arg.Any<string>(),
             Arg.Any<Dictionary<string, string>>(),
             Arg.Any<CancellationToken>());
@@ -213,30 +188,10 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WithSuccessfulRefund_UsesCorrectTemplateType()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         await _sut.ProcessRefundAsync(request);
@@ -246,7 +201,7 @@ public class RefundServiceEmailTests : IDisposable
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<EmailCategory>(),
-            "RefundConfirmation", // Must be RefundConfirmation template
+            "RefundConfirmation",
             Arg.Any<Dictionary<string, string>>(),
             Arg.Any<CancellationToken>());
     }
@@ -259,31 +214,15 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_EmailTemplateVariables_ContainsUserName()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        payment.User!.UserName = "TestSceneName";
-        await _context.Payments.AddAsync(payment);
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        // Update username via a fresh query to avoid tracking issues
+        var user = await _context.Users.FindAsync(_testUserId);
+        user!.UserName = "TestSceneName";
         await _context.SaveChangesAsync();
 
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         await _sut.ProcessRefundAsync(request);
@@ -303,30 +242,10 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_EmailTemplateVariables_ContainsFormattedRefundAmount()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         await _sut.ProcessRefundAsync(request);
@@ -346,30 +265,10 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_EmailTemplateVariables_ContainsOriginalAmount()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         await _sut.ProcessRefundAsync(request);
@@ -389,32 +288,12 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_EmailTemplateVariables_ContainsRefundReason()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
         var refundReason = "Customer requested cancellation due to scheduling conflict";
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
         request.RefundReason = refundReason;
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         await _sut.ProcessRefundAsync(request);
@@ -434,31 +313,10 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_EmailTemplateVariables_ContainsPaymentMethodAndTimingMessage()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        payment.PaymentMethodType = PaymentMethodType.PayPal;
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync("PayPal");
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         await _sut.ProcessRefundAsync(request);
@@ -481,30 +339,10 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_EmailTemplateVariables_ContainsRefundIdAndSupportEmail()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         await _sut.ProcessRefundAsync(request);
@@ -517,7 +355,7 @@ public class RefundServiceEmailTests : IDisposable
             Arg.Any<string>(),
             Arg.Is<Dictionary<string, string>>(vars =>
                 vars.ContainsKey("refund_id") &&
-                !vars.ContainsKey("support_email")), // Static variable removed - now hardcoded in template
+                !vars.ContainsKey("support_email")),
             Arg.Any<CancellationToken>());
     }
 
@@ -529,27 +367,9 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WhenEmailFails_RefundStillCompletes()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        // Setup email service to fail
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
         _mockEmailService.SendTemplatedEmailAsync(
                 Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
                 Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
@@ -561,35 +381,16 @@ public class RefundServiceEmailTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue("refund should complete even if email fails");
         result.Value.Should().NotBeNull();
-        result.Value!.RefundStatus.Should().Be(RefundStatus.Completed,
-            "refund should be marked as completed despite email failure");
+        result.Value!.RefundStatus.Should().Be(RefundStatus.Completed);
     }
 
     [Fact]
     public async Task ProcessRefundAsync_WhenEmailFails_PaymentRefundEntityIsStillCreated()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        // Setup email service to fail
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
         _mockEmailService.SendTemplatedEmailAsync(
                 Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
                 Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
@@ -599,7 +400,7 @@ public class RefundServiceEmailTests : IDisposable
         var result = await _sut.ProcessRefundAsync(request);
 
         // Assert
-        var savedRefund = await _context.PaymentRefunds.FirstOrDefaultAsync(r => r.TicketPurchaseId == payment.Id);
+        var savedRefund = await _context.PaymentRefunds.FirstOrDefaultAsync(r => r.TicketPurchaseId == ticketPurchase.Id);
         savedRefund.Should().NotBeNull("refund entity should be created despite email failure");
         savedRefund!.RefundStatus.Should().Be(RefundStatus.Completed);
     }
@@ -608,27 +409,9 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WhenEmailFails_ErrorIsLogged()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        // Setup email service to fail
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
         _mockEmailService.SendTemplatedEmailAsync(
                 Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
                 Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
@@ -650,27 +433,9 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WhenEmailThrowsException_RefundStillCompletes()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        // Setup email service to throw exception
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
         _mockEmailService.SendTemplatedEmailAsync(
                 Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
                 Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
@@ -688,27 +453,9 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WhenEmailThrowsException_ErrorIsLogged()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        // Setup email service to throw exception
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulPayPalRefund();
         _mockEmailService.SendTemplatedEmailAsync(
                 Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
                 Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
@@ -734,39 +481,18 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_RefundReason_IsStoredInPaymentRefundEntity()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
         var refundReason = "Customer requested refund due to event cancellation";
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
         request.RefundReason = refundReason;
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         var result = await _sut.ProcessRefundAsync(request);
 
         // Assert
         result.Value!.RefundReason.Should().Be(refundReason);
-
         var savedRefund = await _context.PaymentRefunds.FirstOrDefaultAsync(r => r.Id == result.Value.Id);
         savedRefund.Should().NotBeNull();
         savedRefund!.RefundReason.Should().Be(refundReason);
@@ -776,38 +502,17 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_ProcessedByUserId_IsCorrectlySet()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
         request.ProcessedByUserId = _adminUserId;
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         var result = await _sut.ProcessRefundAsync(request);
 
         // Assert
         result.Value!.ProcessedByUserId.Should().Be(_adminUserId);
-
         var savedRefund = await _context.PaymentRefunds.FirstOrDefaultAsync(r => r.Id == result.Value.Id);
         savedRefund.Should().NotBeNull();
         savedRefund!.ProcessedByUserId.Should().Be(_adminUserId);
@@ -817,42 +522,19 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_ProcessedAt_TimestampIsSet()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
         var beforeRefund = DateTime.UtcNow;
-
-        // Setup PayPal to succeed
-        var paypalRefundResult = new PayPalRefundResponse
-        {
-            RefundId = "REFUND_12345",
-            Status = "COMPLETED",
-            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
-            
-            CreateTime = DateTime.UtcNow
-        };
-        _mockPayPalService.RefundCaptureAsync(
-                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        SetupSuccessfulPayPalRefund();
+        SetupSuccessfulEmail();
 
         // Act
         var result = await _sut.ProcessRefundAsync(request);
-
         var afterRefund = DateTime.UtcNow;
 
         // Assert
         result.Value!.ProcessedAt.Should().BeOnOrAfter(beforeRefund);
         result.Value.ProcessedAt.Should().BeOnOrBefore(afterRefund);
-
         var savedRefund = await _context.PaymentRefunds.FirstOrDefaultAsync(r => r.Id == result.Value.Id);
         savedRefund.Should().NotBeNull();
         savedRefund!.ProcessedAt.Should().BeOnOrAfter(beforeRefund);
@@ -867,22 +549,13 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WhenPayPalRefundFails_EmailIsNotSent()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        // Setup PayPal to fail
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
         _mockPayPalService.RefundCaptureAsync(
                 Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
                 Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<PayPalRefundResponse>.Failure("Insufficient funds in PayPal account"));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        SetupSuccessfulEmail();
 
         // Act
         var result = await _sut.ProcessRefundAsync(request);
@@ -890,8 +563,6 @@ public class RefundServiceEmailTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue("service returns success but refund is marked as failed");
         result.Value!.RefundStatus.Should().Be(RefundStatus.Failed);
-
-        // Email should NOT be sent because refund failed
         await _mockEmailService.DidNotReceive().SendTemplatedEmailAsync(
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
             Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>());
@@ -901,27 +572,21 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_WhenRefundStatusIsProcessing_EmailIsNotSent()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        // Remove capture ID to force manual refund path that doesn't complete automatically
-        payment.EncryptedPayPalCaptureId = null;
-        payment.EncryptedPayPalOrderId = "ORDER_12345"; // Has order ID but no capture ID
-        await _context.Payments.AddAsync(payment);
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync();
+        // Remove capture ID to force manual refund path
+        ticketPurchase.EncryptedPayPalCaptureId = null;
+        ticketPurchase.EncryptedPayPalOrderId = "ORDER_12345";
+        _context.TicketPurchases.Update(ticketPurchase);
         await _context.SaveChangesAsync();
 
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulEmail();
 
         // Act
         var result = await _sut.ProcessRefundAsync(request);
 
         // Assert
         result.IsSuccess.Should().BeFalse("legacy payment requires manual refund");
-
-        // Email should NOT be sent because refund is not completed
         await _mockEmailService.DidNotReceive().SendTemplatedEmailAsync(
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
             Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>());
@@ -931,20 +596,14 @@ public class RefundServiceEmailTests : IDisposable
     public async Task ProcessRefundAsync_ManualRefundWithNoPayPalId_SendsEmailWhenCompleted()
     {
         // Arrange
-        var payment = CreateTestPaymentWithUser();
-        // Manual payment (cash, etc.) with no PayPal IDs
-        payment.EncryptedPayPalCaptureId = null;
-        payment.EncryptedPayPalOrderId = null;
-        payment.PaymentMethodType = PaymentMethodType.Cash;
-        await _context.Payments.AddAsync(payment);
+        var ticketPurchase = await CreateAndSaveTestTicketPurchaseAsync("Cash");
+        ticketPurchase.EncryptedPayPalCaptureId = null;
+        ticketPurchase.EncryptedPayPalOrderId = null;
+        _context.TicketPurchases.Update(ticketPurchase);
         await _context.SaveChangesAsync();
 
-        var request = CreateRefundRequest(payment.Id, Money.Create(25.00m, "USD"));
-
-        _mockEmailService.SendTemplatedEmailAsync(
-                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
-                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
-            .Returns(SharedResult.Success());
+        var request = CreateRefundRequest(ticketPurchase.Id, Money.Create(25.00m, "USD"));
+        SetupSuccessfulEmail();
 
         // Act
         var result = await _sut.ProcessRefundAsync(request);
@@ -952,8 +611,6 @@ public class RefundServiceEmailTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.RefundStatus.Should().Be(RefundStatus.Completed);
-
-        // Email SHOULD be sent because manual refund is marked as completed
         await _mockEmailService.Received(1).SendTemplatedEmailAsync(
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
             "RefundConfirmation", Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>());
@@ -963,39 +620,84 @@ public class RefundServiceEmailTests : IDisposable
 
     #region Helper Methods
 
-    private Payment CreateTestPaymentWithUser()
+    private async Task<TicketPurchase> CreateAndSaveTestTicketPurchaseAsync(string paymentMethod = "PayPal")
     {
-        var user = new ApplicationUser
+        // Need a TicketType with a valid EventId for FK constraint
+        // First ensure venue exists
+        var venue = await _context.Venues.FindAsync(1);
+        if (venue == null)
         {
-            Id = _testUserId,
-            UserName = "TestUser",
-            Email = "test@witchcityrope.com",
-            EmailConfirmed = true
-        };
+            venue = new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.Venues.Add(venue);
+            await _context.SaveChangesAsync();
+        }
 
-        var payment = new Payment
+        // Create event
+        var eventId = Guid.NewGuid();
+        var testEvent = new Event
         {
-            Id = _paymentId,
+            Id = eventId,
+            Title = "Test Event",
+            Description = "Test",
+            StartDate = DateTime.UtcNow.AddDays(7),
+            EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
+            Capacity = 20,
+            VenueId = 1,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Events.Add(testEvent);
+        await _context.SaveChangesAsync();
+
+        // Create ticket type
+        var ticketTypeId = Guid.NewGuid();
+        var ticketType = new TicketType
+        {
+            Id = ticketTypeId,
+            EventId = eventId,
+            Name = "Test Ticket",
+            Price = 50.00m,
+            Available = 20,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketTypes.Add(ticketType);
+        await _context.SaveChangesAsync();
+
+        var ticketPurchase = new TicketPurchase
+        {
+            Id = Guid.NewGuid(),
             UserId = _testUserId,
-            User = user,
-            EventRegistrationId = Guid.NewGuid(),
-            AmountValue = 50.00m,
-            
-            Status = PaymentStatus.Completed,
-            PaymentMethodType = PaymentMethodType.PayPal,
+            TicketTypeId = ticketTypeId,
+            TotalPrice = 50.00m,
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
+            PaymentMethod = paymentMethod,
             EncryptedPayPalCaptureId = "encrypted_capture_id_12345",
             ProcessedAt = DateTime.UtcNow.AddDays(-1),
             CreatedAt = DateTime.UtcNow.AddDays(-1)
         };
 
-        return payment;
+        _context.TicketPurchases.Add(ticketPurchase);
+        await _context.SaveChangesAsync();
+
+        // Reload with navigation properties
+        return await _context.TicketPurchases
+            .Include(tp => tp.User)
+            .FirstAsync(tp => tp.Id == ticketPurchase.Id);
     }
 
-    private ProcessRefundRequest CreateRefundRequest(Guid paymentId, Money refundAmount)
+    private ProcessRefundRequest CreateRefundRequest(Guid ticketPurchaseId, Money refundAmount)
     {
         return new ProcessRefundRequest
         {
-            PaymentId = paymentId,
+            TicketPurchaseId = ticketPurchaseId,
             RefundAmount = refundAmount,
             RefundReason = "Customer requested refund",
             ProcessedByUserId = _adminUserId,
@@ -1003,6 +705,29 @@ public class RefundServiceEmailTests : IDisposable
             UserAgent = "Test Agent",
             Metadata = new Dictionary<string, object>()
         };
+    }
+
+    private void SetupSuccessfulPayPalRefund()
+    {
+        var paypalRefundResult = new PayPalRefundResponse
+        {
+            RefundId = "REFUND_12345",
+            Status = "COMPLETED",
+            Amount = new PayPalAmount { Value = "25.00", CurrencyCode = "USD" },
+            CreateTime = DateTime.UtcNow
+        };
+        _mockPayPalService.RefundCaptureAsync(
+                Arg.Any<string>(), Arg.Any<Money>(), Arg.Any<string>(),
+                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<PayPalRefundResponse>.Success(paypalRefundResult));
+    }
+
+    private void SetupSuccessfulEmail()
+    {
+        _mockEmailService.SendTemplatedEmailAsync(
+                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<EmailCategory>(),
+                Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>())
+            .Returns(SharedResult.Success());
     }
 
     #endregion

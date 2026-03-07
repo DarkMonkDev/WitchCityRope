@@ -75,22 +75,22 @@ public class AllDtosMappingTests : DtoMappingTestBase
 
             // Event DTOs - map to Event entity
             [typeof(WitchCityRope.Api.Features.Events.Models.EventDto)] =
-                (typeof(Event), new[] { "CurrentRsvps", "CurrentTickets", "AvailableCapacity", "Teachers", "SessionCount", "TicketTypeCount", "RegistrationCount", "CurrentRSVPs", "TeacherIds" }), // Computed fields
+                (typeof(Event), new[] { "CurrentRsvps", "CurrentTickets", "AvailableCapacity", "Teachers", "SessionCount", "TicketTypeCount", "RegistrationCount", "CurrentRSVPs", "TeacherIds", "VenueLocation" }), // Computed fields, VenueLocation from Venue entity
 
             [typeof(WitchCityRope.Api.Features.Events.Models.SessionDto)] =
-                (typeof(Session), new[] { "Date", "TeacherNames", "SessionIdentifier", "RegistrationCount" }), // Computed/related fields
+                (typeof(Session), new[] { "Date", "TeacherNames", "SessionIdentifier", "RegistrationCount", "StartDate", "EndDate" }), // Computed/related fields, StartDate/EndDate mapped from StartTime/EndTime
 
             [typeof(WitchCityRope.Api.Features.Events.Models.TicketTypeDto)] =
-                (typeof(TicketType), new[] { "EventId", "SessionId", "EventTitle", "SessionName", "Type", "SessionIdentifiers", "MinPrice", "MaxPrice", "QuantityAvailable", "QuantitySold" }), // Foreign keys and computed fields - QuantitySold is computed from EventAttendances
+                (typeof(TicketType), new[] { "EventId", "SessionId", "EventTitle", "SessionName", "Type", "SessionIdentifiers", "MinPrice", "MaxPrice", "QuantityAvailable", "QuantitySold", "CanPurchase", "ReferenceSessionId", "ReferenceSessionName", "AvailabilityMessage", "CanCancel" }), // Foreign keys, computed fields, timing-derived fields
 
             // Participation DTOs
             [typeof(WitchCityRope.Api.Features.Participation.Models.EventParticipationDto)] =
                 (typeof(WitchCityRope.Api.Features.Participation.Entities.EventParticipation),
-                    new[] { "UserName", "UserEmail", "EventTitle", "UserSceneName", "ParticipationDate", "CanCancel", "HasCheckedIn", "CheckInTime", "TicketTypeName", "SessionNames" }), // Related entity data and computed fields - HasCheckedIn/CheckInTime computed from CheckIns table, TicketTypeName/SessionNames are denormalized for API efficiency
+                    new[] { "UserName", "UserEmail", "EventTitle", "UserSceneName", "ParticipationDate", "CanCancel", "HasCheckedIn", "CheckInTime", "TicketTypeName", "SessionNames", "AmountPaid", "TicketId", "PaymentMethod", "CheckedInSessions", "RefundHistory", "TotalRefunded", "RemainingRefundable" }), // Related entity data, computed fields, payment/refund data from related tables
 
             // User DTOs
             [typeof(WitchCityRope.Api.Features.Users.Models.UserDto)] =
-                (typeof(ApplicationUser), new[] { "PhoneNumber" }), // PhoneNumber on IdentityUser
+                (typeof(ApplicationUser), new[] { "PhoneNumber", "Roles" }), // PhoneNumber on IdentityUser, Roles from ASP.NET Identity
 
             // Add more mappings as DTOs are created
         };

@@ -4,7 +4,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Data;
@@ -24,24 +23,7 @@ public class RsvpTimingTests : IntegrationTestBase, IDisposable
 
     public RsvpTimingTests(DatabaseTestFixture fixture) : base(fixture)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
-
-                    services.AddDbContext<ApplicationDbContext>(options =>
-                    {
-                        options.UseNpgsql(ConnectionString);
-                    });
-                });
-            });
+        _factory = CreateTestWebApplicationFactory();
     }
 
     #region RSVP Registration Timing Tests
@@ -299,8 +281,8 @@ public class RsvpTimingTests : IntegrationTestBase, IDisposable
             StartDate = startDateTime,
             EndDate = startDateTime.AddHours(2),
             VenueId = venueId, // Use venue created by helper
-            EventType = EventType.Social,
             Capacity = 20,
+            AllowRsvps = true,
             IsPublished = true,
             RegistrationOpenHours = registrationOpenHours,
             RegistrationCloseHours = registrationCloseHours,
