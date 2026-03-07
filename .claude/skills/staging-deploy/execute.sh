@@ -451,19 +451,19 @@ SMOKE_FAIL=0
 echo "   Testing homepage..."
 if curl -f -s https://staging.notfai.com/ | grep -q "Witch City Rope"; then
     echo "   ✅ Homepage"
-    ((SMOKE_PASS++))
+    SMOKE_PASS=$((SMOKE_PASS + 1))
 else
     echo "   ❌ Homepage failed"
-    ((SMOKE_FAIL++))
+    SMOKE_FAIL=$((SMOKE_FAIL + 1))
 fi
 
 echo "   Testing API events endpoint..."
 if curl -f -s https://staging.notfai.com/api/events > /dev/null; then
     echo "   ✅ Events API"
-    ((SMOKE_PASS++))
+    SMOKE_PASS=$((SMOKE_PASS + 1))
 else
     echo "   ❌ Events API failed"
-    ((SMOKE_FAIL++))
+    SMOKE_FAIL=$((SMOKE_FAIL + 1))
 fi
 
 echo ""
