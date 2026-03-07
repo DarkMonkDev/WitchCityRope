@@ -119,21 +119,21 @@ The `staging-deploy` skill automatically uses:
 
 **For database operations, see:** `/home/chad/repos/witchcityrope/docs/guides-setup/database-setup.md` (Staging Database Management section)
 
-### 🚨 CRITICAL: Database Connections via PgBouncer
+### Database Connection (Direct)
 
-**All staging database connections MUST go through PgBouncer** (port 25061).
+Staging connects directly to the DigitalOcean managed PostgreSQL cluster (port 25060),
+consistent with all other applications on the same server.
 
-- **PgBouncer Pool**: `pgbouncer-staging`
-- **Port**: 25061 (NOT 25060 direct port)
-- **Pool Size**: 10 connections, transaction mode
-- **Why**: DigitalOcean basic tier only allows ~25 connections; Hangfire alone uses ~13 per worker
+- **Port**: 25060 (direct PostgreSQL)
+- **Database**: `witchcityrope_staging`
+- **User**: `witchcity_staging`
 
 **Connection String Format** (must use keyword-value, NOT URI format):
 ```
-Host=server.com;Port=25061;Database=pgbouncer-staging;Username=user;Password=pass;SSL Mode=Require;Trust Server Certificate=true
+Host=server.com;Port=25060;Database=witchcityrope_staging;Username=user;Password=pass;SSL Mode=Require;Trust Server Certificate=true
 ```
 
-**Full PgBouncer documentation**: See [DigitalOcean Server Access Guide](./digitalocean-server-access-guide.md#postgresql-connection-via-pgbouncer)
+**Full database documentation**: See [DigitalOcean Server Access Guide](./digitalocean-server-access-guide.md#postgresql-connection-direct)
 
 ### Quick Reference:
 
@@ -256,9 +256,9 @@ The current staging environment uses DigitalOcean infrastructure as described in
 
 ---
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2026-03-06
 **Deployment Method**: Automated via `staging-deploy` skill
 **Database Resets**: Automated via `database-reset-staging` skill
-**Database Connections**: Via PgBouncer (port 25061) - see [PgBouncer docs](./digitalocean-server-access-guide.md#postgresql-connection-via-pgbouncer)
+**Database Connections**: Direct to PostgreSQL (port 25060) - see [connection docs](./digitalocean-server-access-guide.md#postgresql-connection-direct)
 **Registry Structure**: Environment-specific repositories (-staging, -production)
 **Backup Storage**: Isolated staging folder (backups/staging/)

@@ -115,7 +115,7 @@ Matching is case-insensitive. If a log property name contains any of these words
 | Table | `application_logs` |
 | Batch size | 50 events |
 | Flush interval | 5 seconds |
-| COPY protocol | Disabled (`useCopy: false` — PgBouncer compatibility) |
+| COPY protocol | Disabled (`useCopy: false` — batch INSERTs are more reliable) |
 | Auto-create table | Disabled (migration creates it) |
 
 ### Column Layout
@@ -170,8 +170,8 @@ All require Administrator role:
 
 Three issues discovered during staging deployment:
 
-### 1. PgBouncer COPY Protocol Incompatibility
-`useCopy: true` uses PostgreSQL's streaming COPY protocol, which PgBouncer in transaction-pooling mode does not support. The sink fails silently. **Always use `useCopy: false`** in this project.
+### 1. COPY Protocol Reliability
+`useCopy: true` uses PostgreSQL's streaming COPY protocol, which can fail silently in certain pooling configurations. **Always use `useCopy: false`** in this project — batch INSERTs are reliable and performant enough for our log volume.
 
 ### 2. UUID Column Type Mismatch
 `SinglePropertyColumnWriter` with `NpgsqlDbType.Uuid` requires the LogContext value to be a `Guid` CLR type. Pushing a string causes `InvalidCastException` and the entire batch fails. See "UUID Column Rule" above.

@@ -25,7 +25,7 @@ description: Resets staging database with full schema drop. Use for schema chang
 - ❌ ALL data in staging database will be DELETED
 - ❌ All tables will be DROPPED (not schemas - managed DB limitation)
 - ❌ Cannot be undone
-- ✅ ONLY affects staging database (`pgbouncer-staging`)
+- ✅ ONLY affects staging database (`witchcityrope_staging`)
 - ✅ Migrations will rebuild tables automatically
 
 **Note**: DigitalOcean managed databases don't allow dropping the `public` schema (owned by `doadmin`). This skill drops all tables owned by `witchcity_staging` user instead.

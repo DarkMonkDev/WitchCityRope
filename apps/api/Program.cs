@@ -138,47 +138,37 @@ builder.Services.AddOpenApi(options =>
     options.AddSchemaTransformer<NumericSchemaTransformer>();
 });
 
-// Database configuration for PostgreSQL with connection pooling and retry policies
+// Database configuration for PostgreSQL with connection pooling and retry policies.
+// All environments (dev, staging, production) connect directly to PostgreSQL (port 25060).
+// PgBouncer was removed — it was causing "max_client_conn" errors and is unnecessary
+// for this low-traffic app. DarkMonk, ShipEngine, and Accounting all connect directly
+// to the same DigitalOcean managed database cluster without issues.
+// DB cluster: db-s-1vcpu-2gb, max_connections=50, ~35 in use across all apps.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // Base connection string (environment-aware, container-friendly)
     var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured. Set via environment variable or user secrets.");
 
-    // Environment-specific configuration
-    // MaxPoolSize must stay within PgBouncer's client connection limits.
-    // Staging PgBouncer pool = 10 connections, Production = 12 connections.
-    // With Hangfire + Serilog sink also consuming connections, keeping this low
-    // prevents the "no more connections allowed (max_client_conn)" death spiral.
-    // See: /docs/architecture/postgresql-connection-pool-exhaustion-research.md
     var environment = builder.Environment;
-    var poolSize = environment.IsDevelopment() ? 20 : 10;
     var commandTimeout = environment.IsDevelopment() ? 30 : 60;
 
-    // Build optimized connection string with pooling configuration
+    // Connection pool sizing: keep conservative since we share a 50-connection database
+    // cluster with DarkMonk (~4 conn), ShipEngine (~10 conn), Accounting (~1 conn),
+    // and system processes (~10 conn). EF Core and Hangfire each get their own pool.
+    // Target: ~5 actual connections per WitchCityRope environment (similar to DarkMonk).
     var connectionString = new NpgsqlConnectionStringBuilder(baseConnectionString)
     {
-        // Connection pooling configuration
         Pooling = true,
-        MaxPoolSize = poolSize,          // 20 for dev, 10 for staging/prod (PgBouncer limited)
-        MinPoolSize = environment.IsDevelopment() ? 5 : 2, // Low min to avoid hoarding connections
-        ConnectionLifetime = 300,        // 5 minutes - prevent stale connections
+        MaxPoolSize = environment.IsDevelopment() ? 20 : 10,
+        MinPoolSize = environment.IsDevelopment() ? 5 : 2,
+        ConnectionLifetime = 300,        // 5 min — recycle connections to prevent staleness
 
-        // Timeout configuration
-        CommandTimeout = commandTimeout,  // 30 seconds dev, 60 seconds prod
-        Timeout = 15,                     // Connection timeout
+        CommandTimeout = commandTimeout,
+        Timeout = 15,                    // Connection open timeout
 
-        // Health monitoring - keepalive for broken connection detection
-        KeepAlive = 30,                   // 30 seconds
-
-        // Performance tuning
-        NoResetOnClose = !environment.IsDevelopment(), // true for staging/prod (PgBouncer handles reset)
-        Enlist = false,                   // Disabled: TransactionScope has known Npgsql connection leak (GitHub #4963).
-                                          // Use explicit EF Core transactions instead (context.Database.BeginTransactionAsync).
-
-        // PgBouncer compatibility (staging/prod use PgBouncer transaction pooling)
-        Multiplexing = false,             // Conflicts with PgBouncer's own connection multiplexing
-        MaxAutoPrepare = 0                // PgBouncer transaction mode doesn't persist prepared statements
+        KeepAlive = 30,                  // Detect broken connections
+        Enlist = false,                  // Disabled: TransactionScope has known Npgsql connection leak (GitHub #4963).
+                                         // Use explicit EF Core transactions instead (context.Database.BeginTransactionAsync).
     }.ToString();
 
     // Build NpgsqlDataSource with dynamic JSON support for JSONB columns (e.g., TicketPurchase.Metadata)
@@ -203,9 +193,24 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }
 });
 
-// Configure Hangfire for background job processing (database backups)
-var hangfireConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+// Configure Hangfire for background job processing.
+// Hangfire creates its OWN Npgsql connection pool separate from EF Core's.
+// Without explicit MaxPoolSize, Npgsql defaults to 100 — which was the root cause of
+// "max_client_conn" errors when using PgBouncer. Even with direct connections,
+// we cap it to prevent runaway connection usage on our shared database cluster.
+// Hangfire runs 4 low-frequency jobs (daily backup, daily log summary, log cleanup, hourly email scheduler)
+// and needs at most ~5 connections for 1 worker + background threads (heartbeat, scheduler, expiration manager).
+var hangfireBaseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured for Hangfire. Set via environment variable or user secrets.");
+
+var hangfireConnectionString = new NpgsqlConnectionStringBuilder(hangfireBaseConnectionString)
+{
+    MaxPoolSize = 5,            // 1 worker + background threads = ~5 concurrent connections max
+    MinPoolSize = 1,            // Keep 1 connection warm for heartbeats
+    ConnectionLifetime = 300,   // Match EF Core — 5 min recycle
+    Timeout = 15,
+    Enlist = false,
+}.ToString();
 
 builder.Services.AddHangfire(config => config
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -219,11 +224,8 @@ builder.Services.AddHangfire(config => config
         SchemaName = "hangfire"
     }));
 
-// Limit Hangfire workers to prevent connection pool exhaustion.
-// Default is Environment.ProcessorCount (4 on this droplet), and each worker
-// holds ~13 connections for polling/job processing/LISTEN-NOTIFY.
-// 4 workers = ~52 connections, which alone exceeds PgBouncer's pool capacity.
-// 1 worker is sufficient for our low-volume background jobs (daily backups, log summaries).
+// 1 worker is sufficient for our low-volume background jobs (4 recurring tasks).
+// DarkMonk uses 2 workers with similar job count — 1 is plenty for WitchCityRope.
 builder.Services.AddHangfireServer(options =>
 {
     options.WorkerCount = 1;

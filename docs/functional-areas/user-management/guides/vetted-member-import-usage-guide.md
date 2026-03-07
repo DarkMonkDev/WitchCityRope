@@ -267,15 +267,15 @@ Before running against Staging or Production, you MUST configure the connection 
 ```json
 {
   "ConnectionStrings": {
-    "Default": "Host=<hostname>;Port=25061;Database=<database>;Username=<username>;Password=<password>;SSL Mode=Require;Trust Server Certificate=true"
+    "Default": "Host=<hostname>;Port=25060;Database=<database>;Username=<username>;Password=<password>;SSL Mode=Require;Trust Server Certificate=true"
   }
 }
 ```
 
 **IMPORTANT**:
-- Use PgBouncer port **25061** (NOT the direct database port 25060)
-- For staging: Database name is `pgbouncer-staging`
-- For production: Database name is `pgbouncer-prod`
+- Use direct PostgreSQL port **25060**
+- For staging: Database name is `witchcityrope_staging`, user is `witchcity_staging`
+- For production: Database name is `witchcityrope_production`, user is `witchcity_production`
 - SSL Mode and Trust Server Certificate are required for DigitalOcean connections
 - Get credentials from DigitalOcean database dashboard or team secrets manager
 

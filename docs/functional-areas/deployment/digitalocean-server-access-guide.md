@@ -98,57 +98,42 @@ dotnet user-secrets list | grep DigitalOcean
 
 ---
 
-## PostgreSQL Connection (via PgBouncer)
+## PostgreSQL Connection (Direct)
 
-**CRITICAL**: All database connections go through PgBouncer connection pooler to prevent connection exhaustion.
+All applications connect directly to the DigitalOcean managed PostgreSQL cluster on port **25060**.
+This is consistent with how DarkMonk, ShipEngine, and Accounting connect to the same cluster.
 
-### PgBouncer Configuration (Implemented 2025-11-29)
+**Database Cluster**: `witchcityrope-prod-db` (`db-s-1vcpu-2gb`, max_connections=50)
 
-| Pool | Port | Size | Mode | Database | User |
-|------|------|------|------|----------|------|
-| pgbouncer-staging | 25061 | 10 | transaction | witchcityrope_staging | witchcity_staging |
-| pgbouncer-production | 25061 | 12 | transaction | witchcityrope_production | witchcity_production |
-
-**Port Reference**:
-- **25061** = PgBouncer (recommended - all app connections)
-- **25060** = Direct database (only for admin tasks if needed)
+| Database | User | Application |
+|----------|------|-------------|
+| witchcityrope_staging | witchcity_staging | WitchCityRope Staging |
+| witchcityrope_production | witchcity_production | WitchCityRope Production |
 
 ### Connection String Format
 
 **CRITICAL**: Connection strings MUST use keyword-value format for Npgsql/Hangfire compatibility.
 
-**✅ CORRECT Format** (PgBouncer via port 25061):
+**✅ CORRECT Format** (direct connection via port 25060):
 ```
-Host=server.com;Port=25061;Database=pgbouncer-staging;Username=user;Password=pass;SSL Mode=Require;Trust Server Certificate=true
-```
-
-**❌ WRONG Format** (URI format - causes Hangfire failures):
-```
-postgresql://user:password@server.com:25061/pgbouncer-staging?sslmode=require
+Host=server.com;Port=25060;Database=witchcityrope_staging;Username=user;Password=pass;SSL Mode=Require;Trust Server Certificate=true
 ```
 
-**Why PgBouncer**:
-- DigitalOcean basic tier only allows ~25 connections
-- Hangfire alone consumes ~13 connections per worker
-- PgBouncer multiplexes many app connections through few DB connections
-- Transaction mode releases connections back to pool after each transaction
-
-**Research Document**: `/docs/architecture/postgresql-connection-pool-exhaustion-research.md`
-
-### Managing PgBouncer Pools
-
-```bash
-# List pools
-doctl databases pool list <cluster-id>
-
-# Create new pool
-doctl databases pool create <cluster-id> <pool-name> --db <database> --size <N> --mode transaction --user <user>
-
-# Delete pool
-doctl databases pool delete <cluster-id> <pool-name> --force
+**❌ WRONG Format** (URI format — causes Hangfire failures):
+```
+postgresql://user:password@server.com:25060/witchcityrope_staging?sslmode=require
 ```
 
-**Verification**: Both staging and production `.env` files should use port 25061 and pgbouncer-* database names.
+### PgBouncer — Removed (2026-03-06)
+
+PgBouncer was previously used (port 25061) but was removed because:
+- It was causing `max_client_conn` errors that made both APIs unhealthy
+- The database cluster was upgraded to 50 max connections (from original 25), making PgBouncer unnecessary
+- The real bug was Hangfire's connection string had no `MaxPoolSize` set (Npgsql default=100),
+  flooding PgBouncer's client limit. This is now fixed in `Program.cs` (MaxPoolSize=5 for Hangfire).
+- All other apps on the same cluster (DarkMonk, ShipEngine, Accounting) connect directly without issues
+
+**Historical Research**: `/docs/architecture/postgresql-connection-pool-exhaustion-research.md`
 
 ---
 
