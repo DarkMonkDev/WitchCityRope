@@ -17576,7 +17576,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "hasPaidTickets": {
+          "hasAvailableTickets": {
             "type": "boolean"
           },
           "tickets": {
