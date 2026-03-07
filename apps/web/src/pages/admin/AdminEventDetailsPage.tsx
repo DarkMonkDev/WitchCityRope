@@ -19,6 +19,7 @@ import { useEvent, useUpdateEvent } from '../../lib/api/hooks/useEvents'
 import { useQueryClient } from '@tanstack/react-query'
 import { eventKeys } from '../../lib/api/utils/cache'
 import { EventForm, EventFormData } from '../../components/events/EventForm'
+import { DEFAULT_EVENT_TIMEZONE } from '../../utils/eventUtils'
 import { WCRButton } from '../../components/ui'
 import {
   convertEventFormDataToUpdateDto,
@@ -29,6 +30,57 @@ import { GenerateCheckInLinkModal } from '../../features/checkin/components/Gene
 
 // Type alias for cleaner usage
 type EventDtoType = components['schemas']['EventDto']
+
+/**
+ * Get the display date suffix for the page title.
+ * Uses the first upcoming session's start date. If all sessions are in the past,
+ * falls back to the last session's start date.
+ * Formats as "Month Dayth" (e.g., "March 15th").
+ */
+function getSessionDateSuffix(sessions: any[]): string {
+  if (!sessions || sessions.length === 0) return '';
+
+  const now = new Date();
+
+  // Sort sessions by startTime ascending
+  const sorted = [...sessions]
+    .filter((s) => s.startTime)
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
+  if (sorted.length === 0) return '';
+
+  // Find the first session with a start time in the future
+  const firstFuture = sorted.find((s) => new Date(s.startTime) > now);
+  // If no future sessions, use the last (most recent) session
+  const targetSession = firstFuture || sorted[sorted.length - 1];
+
+  // Format the date as "Month Day" in the event timezone, then add ordinal suffix
+  const date = new Date(targetSession.startTime);
+  const month = date.toLocaleDateString('en-US', {
+    timeZone: DEFAULT_EVENT_TIMEZONE,
+    month: 'long',
+  });
+  const day = parseInt(
+    date.toLocaleDateString('en-US', {
+      timeZone: DEFAULT_EVENT_TIMEZONE,
+      day: 'numeric',
+    }),
+    10
+  );
+
+  // Add ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
+  const ordinal = (n: number): string => {
+    if (n >= 11 && n <= 13) return `${n}th`;
+    switch (n % 10) {
+      case 1: return `${n}st`;
+      case 2: return `${n}nd`;
+      case 3: return `${n}rd`;
+      default: return `${n}th`;
+    }
+  };
+
+  return `${month} ${ordinal(day)}`;
+}
 
 /**
  * AdminEventDetailsPage - Combined view/edit page for events
@@ -399,8 +451,14 @@ export const AdminEventDetailsPage: React.FC = () => {
         mb="xs"
         style={{ fontSize: '2.5rem', fontWeight: 700 }}
       >
+        {/* Show event title with the next upcoming session date (or last session if all past) */}
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {(event as any)?.title || 'New Event'}
+        {(() => {
+          const title = (event as any)?.title || 'New Event';
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const dateSuffix = getSessionDateSuffix((event as any)?.sessions || []);
+          return dateSuffix ? `${title} - ${dateSuffix}` : title;
+        })()}
       </Title>
 
       {/* EventForm Component */}
