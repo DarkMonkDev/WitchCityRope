@@ -113,14 +113,33 @@ public class UserDashboardProfileService : IUserDashboardProfileService
 
                 eventDto.RegisteredSessions = registeredSessions;
 
-                // Get total session count for this event
-                var totalSessionCount = await _context.Sessions
+                // Get ALL sessions for this event (regardless of user's tickets).
+                // This ensures RSVP-only users still see session dates/times on their dashboard card,
+                // instead of "Date and Time coming soon" which only showed when registeredSessions was empty.
+                var allSessions = await _context.Sessions
                     .AsNoTracking()
                     .Where(s => s.EventId == eventDto.Id)
-                    .CountAsync(cancellationToken);
+                    .Select(s => new UserSessionDto
+                    {
+                        Id = s.Id,
+                        Name = s.Name,
+                        StartTime = s.StartTime,
+                        EndTime = s.EndTime
+                    })
+                    .ToListAsync(cancellationToken);
 
-                // Calculate additional sessions available
-                eventDto.AdditionalSessionsAvailable = totalSessionCount - registeredSessions.Count;
+                eventDto.EventSessions = allSessions;
+
+                // Calculate additional sessions available (sessions user doesn't have tickets for)
+                eventDto.AdditionalSessionsAvailable = allSessions.Count - registeredSessions.Count;
+
+                // Check if the event has paid ticket types available.
+                // Used by frontend to show "Purchase Ticket" button for RSVP users without tickets,
+                // without needing a separate API call to fetch full event details.
+                eventDto.HasPaidTickets = await _context.TicketTypes
+                    .AsNoTracking()
+                    .Where(tt => tt.EventId == eventDto.Id && (tt.MaxPrice ?? 0) > 0)
+                    .AnyAsync(cancellationToken);
 
                 // Get user's purchased tickets for this event.
                 // Joins through EventAttendance → TicketPurchase → TicketType to get the ticket type name,

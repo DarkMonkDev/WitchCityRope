@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import { IconHeart, IconTicket } from '@tabler/icons-react'
 import type { UserEventDto } from '../../../types/dashboard.types'
 import type { VolunteerShiftWithEvent } from '../../../components/dashboard/UserVolunteerShifts'
-import { useEvent } from '../../../lib/api/hooks/useEvents'
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone'
 import { formatUtcTimeRange, formatUtcToLocalDate, formatUtcToLocalTime } from '../../../utils/eventUtils'
 
@@ -39,21 +38,12 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
       const bTime = b.sessionStartTime ? new Date(b.sessionStartTime).getTime() : Infinity;
       return aTime - bTime;
     })
-  // Check if we should show Purchase Ticket button:
-  // - User has RSVP but no ticket
-  // - Event is a social event
-  const shouldCheckForPaidTickets = !event.hasTicket &&
-                                     event.registrationStatus === 'RSVP Confirmed' &&
-                                     event.isSocialEvent
-
-  // Fetch full event details only when we need to check for paid tickets
-  const { data: fullEvent } = useEvent(event.id || '', shouldCheckForPaidTickets)
-
-  // Check if event has paid tickets (maxPrice > 0)
-  const hasPaidTickets = (fullEvent as any)?.ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0) || false
-
-  // Show purchase button if all conditions are met
-  const showPurchaseButton = shouldCheckForPaidTickets && hasPaidTickets
+  // Show "Purchase Ticket" button when:
+  // - User has RSVP but no ticket purchased yet
+  // - Event has paid ticket types available (from backend DTO, no extra API call needed)
+  const showPurchaseButton = !event.hasTicket &&
+                              event.registrationStatus === 'RSVP Confirmed' &&
+                              (event as any).hasPaidTickets === true
 
   const formatShiftTime = (timeString?: string) => {
     if (!timeString) return ''
@@ -142,10 +132,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
       <Stack gap="sm" p="lg" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Date/Time - Multi-session support */}
         {(() => {
-          // Use registeredSessions (sessions the user purchased tickets for)
-          // Cast to any because these fields exist in API response but not yet in generated types
+          // Use eventSessions (ALL sessions for the event) so RSVP-only users still see dates/times.
+          // registeredSessions only contains sessions with tickets, leaving RSVP users with no dates.
           const eventAny = event as any;
-          const sessions = (eventAny.registeredSessions || []).slice().sort((a: any, b: any) =>
+          const sessions = (eventAny.eventSessions || []).slice().sort((a: any, b: any) =>
             new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
           );
 
@@ -274,8 +264,9 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           );
         })()}
 
-        {/* Additional sessions available badge */}
-        {(event as any).additionalSessionsAvailable > 0 && (
+        {/* Additional sessions available badge - only show when user has tickets for SOME
+            sessions but not all. Don't show for RSVP-only users (they see all sessions already). */}
+        {event.hasTicket && (event as any).additionalSessionsAvailable > 0 && (
           <Badge
             color="blue"
             variant="light"
@@ -406,7 +397,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           )}
         </Box>
 
-        {/* Purchase Ticket Button - Show for social events with RSVP but no ticket purchased */}
+        {/* Purchase Ticket Button - Show for RSVP users on events with paid tickets available */}
         {showPurchaseButton && (
           <Button
             onClick={handlePurchaseClick}

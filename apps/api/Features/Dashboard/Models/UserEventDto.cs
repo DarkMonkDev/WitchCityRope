@@ -64,10 +64,25 @@ public class UserEventDto
     public List<UserSessionDto> RegisteredSessions { get; set; } = new();
 
     /// <summary>
+    /// ALL sessions for this event, regardless of user's ticket purchases.
+    /// Used by the frontend to display session dates/times even for RSVP-only users.
+    /// RegisteredSessions only contains sessions with tickets, so RSVP users would see
+    /// "Date and Time coming soon" without this field.
+    /// </summary>
+    public List<UserSessionDto> EventSessions { get; set; } = new();
+
+    /// <summary>
     /// Count of additional sessions available that user hasn't purchased
     /// 0 for single-session events or if user has purchased all sessions
     /// </summary>
     public int AdditionalSessionsAvailable { get; set; }
+
+    /// <summary>
+    /// True if the event has paid ticket types available for purchase.
+    /// Used to show "Purchase Ticket" button for RSVP users who haven't bought a ticket yet.
+    /// Avoids the frontend needing to fetch full event details just to check this.
+    /// </summary>
+    public bool HasPaidTickets { get; set; }
 
     /// <summary>
     /// Tickets the user has purchased for this event.

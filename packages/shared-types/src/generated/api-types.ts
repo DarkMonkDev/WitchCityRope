@@ -5839,8 +5839,10 @@ export interface components {
             hasTicket?: boolean;
             isPastEvent?: boolean;
             registeredSessions?: components["schemas"]["UserSessionDto"][];
+            eventSessions?: components["schemas"]["UserSessionDto"][];
             /** Format: int32 */
             additionalSessionsAvailable?: number;
+            hasPaidTickets?: boolean;
             tickets?: components["schemas"]["UserTicketDto"][];
         };
         UserListResponse: {
