@@ -151,49 +151,42 @@ builder.Services.AddOpenApi(options =>
 // for this low-traffic app. DarkMonk, ShipEngine, and Accounting all connect directly
 // to the same DigitalOcean managed database cluster without issues.
 // DB cluster: db-s-1vcpu-2gb, max_connections=50, ~35 in use across all apps.
+// Build EF Core connection string and NpgsqlDataSource ONCE (not per-request).
+// CRITICAL: NpgsqlDataSourceBuilder.Build() creates a new connection pool. If called inside
+// the AddDbContext lambda, every DI resolution creates a NEW pool — causing connection leaks
+// that exhaust the database cluster. Build it once here and capture in the lambda.
+var efBaseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured. Set via environment variable or user secrets.");
+
+var efCommandTimeout = builder.Environment.IsDevelopment() ? 30 : 60;
+
+var efConnectionString = new NpgsqlConnectionStringBuilder(efBaseConnectionString)
+{
+    Pooling = true,
+    MaxPoolSize = builder.Environment.IsDevelopment() ? 20 : 5,
+    MinPoolSize = builder.Environment.IsDevelopment() ? 5 : 1,
+    ConnectionLifetime = 300,        // 5 min — recycle connections to prevent staleness
+    CommandTimeout = efCommandTimeout,
+    Timeout = 15,                    // Connection open timeout
+    KeepAlive = 30,                  // Detect broken connections
+    Enlist = false,                  // Disabled: TransactionScope has known Npgsql connection leak (GitHub #4963).
+                                     // Use explicit EF Core transactions instead (context.Database.BeginTransactionAsync).
+}.ToString();
+
+var efDataSourceBuilder = new NpgsqlDataSourceBuilder(efConnectionString);
+efDataSourceBuilder.EnableDynamicJson();
+var efDataSource = efDataSourceBuilder.Build();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured. Set via environment variable or user secrets.");
-
-    var environment = builder.Environment;
-    var commandTimeout = environment.IsDevelopment() ? 30 : 60;
-
-    // Connection pool sizing: keep conservative since we share a 50-connection database
-    // cluster with DarkMonk (~4 conn), ShipEngine (~10 conn), Accounting (~1 conn),
-    // and system processes (~10 conn). EF Core and Hangfire each get their own pool.
-    // Target: ~8 max connections per environment (EF Core 5 + Hangfire 3), similar to DarkMonk's ~5.
-    var connectionString = new NpgsqlConnectionStringBuilder(baseConnectionString)
-    {
-        Pooling = true,
-        MaxPoolSize = environment.IsDevelopment() ? 20 : 5,
-        MinPoolSize = environment.IsDevelopment() ? 5 : 1,
-        ConnectionLifetime = 300,        // 5 min — recycle connections to prevent staleness
-
-        CommandTimeout = commandTimeout,
-        Timeout = 15,                    // Connection open timeout
-
-        KeepAlive = 30,                  // Detect broken connections
-        Enlist = false,                  // Disabled: TransactionScope has known Npgsql connection leak (GitHub #4963).
-                                         // Use explicit EF Core transactions instead (context.Database.BeginTransactionAsync).
-    }.ToString();
-
-    // Build NpgsqlDataSource with dynamic JSON support for JSONB columns (e.g., TicketPurchase.Metadata)
-    var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-    dataSourceBuilder.EnableDynamicJson();
-    var dataSource = dataSourceBuilder.Build();
-
-    options.UseNpgsql(dataSource, npgsqlOptions =>
+    options.UseNpgsql(efDataSource, npgsqlOptions =>
     {
         // Command timeout for migrations (longer for large migrations)
         npgsqlOptions.CommandTimeout(120);
-
-        // Note: EnableRetryOnFailure removed - conflicts with explicit transactions
-        // in database initialization. Retry logic implemented at application level.
     });
 
     // EF Core query behavior (development diagnostics)
-    if (environment.IsDevelopment())
+    if (builder.Environment.IsDevelopment())
     {
         options.EnableSensitiveDataLogging();
         options.EnableDetailedErrors();
