@@ -51,7 +51,14 @@ try
 var builder = WebApplication.CreateBuilder(args);
 
 // Serilog Stage 2: Full configuration from appsettings + services
-var serilogConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Serilog PostgreSQL sink creates its own Npgsql connection pool.
+// Must set MaxPoolSize to prevent default of 100 connections on shared DB cluster.
+var serilogConnectionString = new NpgsqlConnectionStringBuilder(
+    builder.Configuration.GetConnectionString("DefaultConnection") ?? "")
+{
+    MaxPoolSize = 2,    // Serilog batches writes every 5 seconds — 2 connections is plenty
+    MinPoolSize = 0,    // No need to keep connections warm for periodic log writes
+}.ToString();
 
 var columnWriters = new Dictionary<string, ColumnWriterBase>
 {
@@ -98,7 +105,7 @@ builder.Services.AddSerilog((services, lc) =>
             columnOptions: columnWriters,
             schemaName: "logging",
             needAutoCreateTable: false,
-            useCopy: false, // PgBouncer transaction pooling does not support COPY protocol
+            useCopy: false, // Batch INSERTs are more reliable than COPY protocol
             batchSizeLimit: 50,
             period: TimeSpan.FromSeconds(5));
     }
@@ -390,10 +397,18 @@ builder.Services.AddScoped<RestoreJob>();
 builder.Services.AddScoped<DailyLogSummaryJob>();
 builder.Services.AddScoped<LogRetentionCleanupJob>();
 
-// Health checks for database monitoring
+// Health checks for database monitoring.
+// AddNpgSql creates its own Npgsql connection pool — cap it to prevent
+// default MaxPoolSize=100 from consuming connections on our shared cluster.
+var healthCheckConnectionString = new NpgsqlConnectionStringBuilder(
+    builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured for health checks."))
+{
+    MaxPoolSize = 2,    // Health checks run every 30s — 2 connections is plenty
+    MinPoolSize = 0,
+}.ToString();
 builder.Services.AddHealthChecks()
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured for health checks."));
+    .AddNpgSql(healthCheckConnectionString);
 
 // Configure CORS policies - environment-aware
 builder.Services.AddCors(options =>
