@@ -5841,6 +5841,7 @@ export interface components {
             registeredSessions?: components["schemas"]["UserSessionDto"][];
             /** Format: int32 */
             additionalSessionsAvailable?: number;
+            tickets?: components["schemas"]["UserTicketDto"][];
         };
         UserListResponse: {
             users?: components["schemas"]["UserDto"][];
@@ -5949,6 +5950,10 @@ export interface components {
             startTime?: string;
             /** Format: date-time */
             endTime?: string;
+        };
+        UserTicketDto: {
+            ticketTypeName?: string;
+            sessionName?: null | string;
         };
         UserVolunteerShiftDto: {
             /** Format: uuid */

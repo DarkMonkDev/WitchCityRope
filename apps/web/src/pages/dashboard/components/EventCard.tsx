@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, Text, Badge, Box, Stack, Group, Button } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { useNavigate } from 'react-router-dom'
-import { IconHeart } from '@tabler/icons-react'
+import { IconHeart, IconTicket } from '@tabler/icons-react'
 import type { UserEventDto } from '../../../types/dashboard.types'
 import type { VolunteerShiftWithEvent } from '../../../components/dashboard/UserVolunteerShifts'
 import { useEvent } from '../../../lib/api/hooks/useEvents'
@@ -286,6 +286,44 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           </Badge>
         )}
 
+
+        {/* Tickets Section - Show ticket types the user purchased for this event */}
+        {(() => {
+          // Access tickets from the API response (auto-generated type includes this field)
+          const tickets = (event as any).tickets as Array<{ ticketTypeName?: string; sessionName?: string | null }> | undefined;
+          if (!tickets || tickets.length === 0) return null;
+
+          return (
+            <Box
+              style={{
+                background: 'linear-gradient(135deg, rgba(34, 139, 34, 0.08) 0%, rgba(46, 125, 50, 0.08) 100%)',
+                borderRadius: '8px',
+                padding: 'var(--space-xs)',
+                border: '1px solid rgba(34, 139, 34, 0.2)',
+              }}
+            >
+              <Group gap="xs" mb={4}>
+                <IconTicket size={16} color="var(--mantine-color-green-7)" />
+                <Text fw={600} size="sm" c="var(--mantine-color-green-7)">
+                  {tickets.length === 1 ? 'Ticket' : 'Tickets'}
+                </Text>
+              </Group>
+              <Stack gap={4}>
+                {tickets.map((ticket, index) => {
+                  // Only show session name if it exists and isn't "Main Session"
+                  const showSession = ticket.sessionName && !ticket.sessionName.includes('Main Session');
+
+                  return (
+                    <Text key={index} size="sm" fw={500} c="var(--color-charcoal)">
+                      {ticket.ticketTypeName || 'Ticket'}
+                      {showSession && ` \u2022 ${ticket.sessionName}`}
+                    </Text>
+                  );
+                })}
+              </Stack>
+            </Box>
+          );
+        })()}
 
         {/* Description */}
         {event.description && (

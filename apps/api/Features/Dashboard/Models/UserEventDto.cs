@@ -69,6 +69,13 @@ public class UserEventDto
     /// </summary>
     public int AdditionalSessionsAvailable { get; set; }
 
+    /// <summary>
+    /// Tickets the user has purchased for this event.
+    /// Includes ticket type name and associated session name (for multi-session events).
+    /// Used to display a "Tickets" summary box on the dashboard event card.
+    /// </summary>
+    public List<UserTicketDto> Tickets { get; set; } = new();
+
     // NO pricing fields - this is user dashboard, not sales page
     // NO capacity fields - user doesn't need to see event capacity
 }

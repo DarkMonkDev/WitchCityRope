@@ -89,7 +89,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 .OrderBy(e => e.StartDate)
                 .ToListAsync(cancellationToken);
 
-            // STEP 3: Populate session data for each event (post-query in-memory)
+            // STEP 3: Populate session and ticket data for each event (post-query in-memory)
             // This is necessary because EF Core doesn't support complex navigation in GroupBy
             foreach (var eventDto in events)
             {
@@ -121,6 +121,26 @@ public class UserDashboardProfileService : IUserDashboardProfileService
 
                 // Calculate additional sessions available
                 eventDto.AdditionalSessionsAvailable = totalSessionCount - registeredSessions.Count;
+
+                // Get user's purchased tickets for this event.
+                // Joins through EventAttendance → TicketPurchase → TicketType to get the ticket type name,
+                // and optionally includes the session name for multi-session events.
+                eventDto.Tickets = await _context.EventAttendances
+                    .AsNoTracking()
+                    .Where(ea => ea.UserId == userId
+                        && ea.EventId == eventDto.Id
+                        && ea.Status == AttendanceStatus.Active
+                        && ea.AttendanceType == AttendanceType.Ticket
+                        && ea.TicketPurchaseId != null)
+                    .Select(ea => new UserTicketDto
+                    {
+                        TicketTypeName = ea.TicketPurchase!.TicketType != null
+                            ? ea.TicketPurchase.TicketType.Name
+                            : "Ticket",
+                        SessionName = ea.Session != null ? ea.Session.Name : null
+                    })
+                    .Distinct()
+                    .ToListAsync(cancellationToken);
             }
 
             _logger.LogInformation("Retrieved {EventCount} events using server-side projection for user {UserId}", events.Count, userId);
