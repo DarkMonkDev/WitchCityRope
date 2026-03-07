@@ -33,6 +33,7 @@ import type { CheckoutResponse } from '../../../lib/api/services/payments';
 import { eventsManagementService } from '../../../api/services/eventsManagement.service';
 import { formatAbbreviatedDate, formatUtcTimeRange } from '../../../utils/eventUtils';
 import type { NonceData } from '../components/checkout/CreditCardForm';
+import type { PayPalCheckoutResult } from '../components/PayPalButton';
 
 import type { PaymentEventInfo } from '../types/payment.types';
 
@@ -297,19 +298,38 @@ export const EventPaymentPage: React.FC = () => {
   };
 
   /**
-   * Handle successful PayPal payment (legacy flow - PayPal handles differently)
+   * Handle successful PayPal checkout (ticket created + payment captured).
+   * The unified PayPal checkout endpoint handles ticket creation, payment capture,
+   * attendance activation, and email sending — mirroring the credit card flow.
    */
-  const handlePayPalSuccess = async (paymentId: string) => {
-    debugLog('PayPal payment success:', paymentId);
-    // PayPal flow is separate and not being changed in this PR
+  const handlePayPalSuccess = async (result: PayPalCheckoutResult) => {
+    debugLog('PayPal checkout success:', result);
+
     setCompletedPayment({
-      transactionId: paymentId,
-      amount: Object.values(ticketPrices).reduce((sum, price) => sum + price, 0),
-      currency: 'USD',
+      id: result.captureId,
+      transactionId: result.captureId,
+      amount: parseFloat(result.amount),
+      currency: result.currency,
       status: 'completed',
       paymentMethod: 'paypal',
+      paymentMethodType: 2, // PayPal
+      confirmationNumber: result.confirmationNumber,
+      slidingScalePercentage: 0,
       createdAt: new Date().toISOString()
     });
+
+    // Generate new idempotency key since this one was used
+    setIdempotencyKey(`WCR-${crypto.randomUUID().replace(/-/g, '').substring(0, 32)}`);
+
+    notifications.show({
+      title: 'Ticket Purchased Successfully!',
+      message: result.confirmationNumber
+        ? `Confirmation: ${result.confirmationNumber}`
+        : 'Your PayPal payment has been processed.',
+      color: 'green',
+      autoClose: 8000
+    });
+
     setCurrentStep(2);
   };
 
@@ -847,7 +867,11 @@ export const EventPaymentPage: React.FC = () => {
 
                 <PaymentForm
                   eventInfo={eventInfo}
+                  ticketTypeIds={selectedTicketTypeIds}
+                  idempotencyKey={idempotencyKey}
+                  eventWaiverAccepted={true}
                   initialSlidingScale={discountPercentage}
+                  totalAmount={Object.values(ticketPrices).reduce((sum, price) => sum + price, 0)}
                   onNonceReady={handleNonceReady}
                   onPaymentSuccess={handlePayPalSuccess}
                   onPaymentError={handlePaymentError}

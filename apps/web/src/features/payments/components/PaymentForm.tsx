@@ -12,7 +12,7 @@ import {
   Checkbox
 } from '@mantine/core';
 import { IconShieldCheck } from '@tabler/icons-react';
-import { PayPalButton } from './PayPalButton';
+import { PayPalButton, type PayPalCheckoutResult } from './PayPalButton';
 import { CreditCardForm, type NonceData } from './checkout/CreditCardForm';
 import { useSlidingScale } from '../hooks/useSlidingScale';
 import type { PaymentEventInfo } from '../types/payment.types';
@@ -20,12 +20,20 @@ import type { PaymentEventInfo } from '../types/payment.types';
 interface PaymentFormProps {
   /** Event information for payment */
   eventInfo: PaymentEventInfo;
+  /** Ticket type IDs selected for purchase (needed for PayPal checkout flow) */
+  ticketTypeIds: string[];
+  /** Idempotency key to prevent duplicate purchases */
+  idempotencyKey: string;
+  /** Whether the event waiver has been accepted */
+  eventWaiverAccepted?: boolean;
   /** Initial sliding scale percentage */
   initialSlidingScale?: number;
+  /** Total amount to charge (after sliding scale, summing all selected tickets) */
+  totalAmount: number;
   /** Callback when card nonce is ready (tokenized) - parent handles checkout */
   onNonceReady?: (data: NonceData) => void;
-  /** Callback when PayPal payment succeeds (legacy flow) */
-  onPaymentSuccess?: (paymentId: string) => void;
+  /** Callback when PayPal payment succeeds */
+  onPaymentSuccess?: (result: PayPalCheckoutResult) => void;
   /** Callback when payment/tokenization fails */
   onPaymentError?: (error: string) => void;
   /** Whether form is disabled */
@@ -39,7 +47,11 @@ interface PaymentFormProps {
  */
 export const PaymentForm: React.FC<PaymentFormProps> = ({
   eventInfo,
+  ticketTypeIds,
+  idempotencyKey,
+  eventWaiverAccepted = false,
   initialSlidingScale = 0,
+  totalAmount,
   onNonceReady,
   onPaymentSuccess,
   onPaymentError,
@@ -49,19 +61,19 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Sliding scale logic
+  // Sliding scale logic (used for credit card form display amount)
   const {
     finalAmount,
     discountPercentage,
   } = useSlidingScale(eventInfo.basePrice, initialSlidingScale);
 
   /**
-   * Handle successful PayPal payment
+   * Handle successful PayPal checkout (ticket created + payment captured)
    */
-  const handlePaymentSuccess = (orderId: string) => {
-    console.log('PayPal payment successful:', orderId);
+  const handlePaymentSuccess = (result: PayPalCheckoutResult) => {
+    console.log('PayPal checkout successful:', result);
     setPaymentError(null);
-    onPaymentSuccess?.(orderId);
+    onPaymentSuccess?.(result);
   };
 
   /**
@@ -196,13 +208,18 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         }}
       >
         <PayPalButton
-          eventInfo={eventInfo}
-          amount={finalAmount}
+          eventId={eventInfo.id}
+          ticketTypeIds={ticketTypeIds}
+          amount={totalAmount}
           slidingScalePercentage={discountPercentage}
+          currency={eventInfo.currency}
+          eventTitle={eventInfo.title}
+          eventWaiverAccepted={eventWaiverAccepted}
+          idempotencyKey={idempotencyKey}
           onPaymentSuccess={handlePaymentSuccess}
           onPaymentError={handlePaymentError}
           onPaymentCancel={handlePaymentCancel}
-          disabled={disabled || !termsAccepted}
+          disabled={disabled || !termsAccepted || isCheckoutInProgress}
         />
       </Box>
 

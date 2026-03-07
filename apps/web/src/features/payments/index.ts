@@ -5,6 +5,7 @@
 export { SlidingScaleSelector, CompactSlidingScaleSelector } from './components/SlidingScaleSelector';
 export { PaymentForm } from './components/PaymentForm';
 export { PayPalButton } from './components/PayPalButton';
+export type { PayPalCheckoutResult } from './components/PayPalButton';
 export { PaymentConfirmation } from './components/PaymentConfirmation';
 export { PaymentSummary, CompactPaymentSummary } from './components/PaymentSummary';
 

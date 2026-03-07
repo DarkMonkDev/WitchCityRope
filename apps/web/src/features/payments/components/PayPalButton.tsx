@@ -1,25 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { Alert, Button, Box, Text, Loader } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
-import type { PaymentEventInfo } from '../types/payment.types';
 import { debugLog } from '../../../utils/debug';
 import { apiClient } from '../../../lib/api/client';
 
 export interface PayPalButtonProps {
-  eventInfo: PaymentEventInfo;
+  /** Event ID for the ticket purchase */
+  eventId: string;
+  /** Ticket type IDs to purchase */
+  ticketTypeIds: string[];
+  /** Total payment amount (after sliding scale) */
   amount: number;
+  /** Sliding scale discount percentage applied */
   slidingScalePercentage?: number;
-  onPaymentSuccess?: (details: any) => void;
+  /** Currency code */
+  currency?: string;
+  /** Event title for PayPal order description */
+  eventTitle?: string;
+  /** Whether the event waiver has been accepted */
+  eventWaiverAccepted?: boolean;
+  /** Idempotency key to prevent duplicate purchases */
+  idempotencyKey: string;
+  /** Callback when PayPal payment completes successfully */
+  onPaymentSuccess?: (details: PayPalCheckoutResult) => void;
+  /** Callback when PayPal payment fails */
   onPaymentError?: (error: string) => void;
+  /** Callback when user cancels PayPal popup */
   onPaymentCancel?: () => void;
+  /** Whether the button is disabled */
   disabled?: boolean;
 }
 
+/** Result returned on successful PayPal checkout */
+export interface PayPalCheckoutResult {
+  captureId: string;
+  status: string;
+  amount: string;
+  currency: string;
+  payerId?: string;
+  confirmationNumber?: string;
+  ticketPurchaseIds: string[];
+}
+
+/**
+ * PayPal checkout button using the unified checkout flow.
+ * Creates pending ticket purchases before opening the PayPal popup,
+ * then finalizes them after payment capture. Mirrors the credit card
+ * checkout flow for consistent ticket + payment handling.
+ */
 export const PayPalButton: React.FC<PayPalButtonProps> = ({
-  eventInfo,
+  eventId,
+  ticketTypeIds,
   amount,
   slidingScalePercentage = 0,
+  currency = 'USD',
+  eventTitle,
+  eventWaiverAccepted = false,
+  idempotencyKey,
   onPaymentSuccess,
   onPaymentError,
   onPaymentCancel,
@@ -27,21 +65,18 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Track the PayPal order ID so onCancel can clean up pending tickets
+  const currentOrderIdRef = useRef<string | null>(null);
 
   // PayPal configuration from environment
   const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
-  const paypalMode = import.meta.env.VITE_PAYPAL_MODE || 'sandbox';
-
-  // Calculate final amount with sliding scale discount
-  const discountAmount = amount * (slidingScalePercentage / 100);
-  const finalAmount = amount - discountAmount;
 
   debugLog('PayPal Button Configuration:');
   debugLog('  - paypalClientId:', paypalClientId ? `${paypalClientId.slice(0, 10)}...` : 'NOT SET');
-  debugLog('  - paypalMode:', paypalMode);
-  debugLog('  - originalAmount:', amount);
+  debugLog('  - eventId:', eventId);
+  debugLog('  - ticketTypeIds:', ticketTypeIds);
+  debugLog('  - amount:', amount);
   debugLog('  - slidingScalePercentage:', slidingScalePercentage);
-  debugLog('  - finalAmount:', finalAmount);
 
   // Check if PayPal is properly configured
   if (!paypalClientId) {
@@ -58,61 +93,81 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
     );
   }
 
+  /**
+   * Called by PayPal JS SDK when user clicks the PayPal button.
+   * Creates pending ticket purchases + PayPal order on the backend.
+   * Returns the PayPal order ID for the JS SDK to open the popup.
+   */
   const createOrder = async () => {
     try {
       setIsProcessing(true);
       setError(null);
 
-      debugLog('Creating PayPal order via server:', {
-        eventId: eventInfo.id,
-        eventTitle: eventInfo.title,
-        amount: finalAmount,
-        currency: eventInfo.currency || 'USD'
+      debugLog('Creating PayPal checkout order:', {
+        eventId,
+        ticketTypeIds,
+        amount,
+        slidingScalePercentage,
+        idempotencyKey
       });
 
-      // Server-side order creation
-      const response = await apiClient.post('/api/paypal/create-order', {
-        ticketPurchaseId: eventInfo.registrationId || null,
-        amount: finalAmount,
-        currency: eventInfo.currency || 'USD',
-        slidingScalePercentage: slidingScalePercentage,
-        eventTitle: eventInfo.title
+      // Call the unified PayPal checkout endpoint which:
+      // 1. Creates pending ticket purchase(s)
+      // 2. Creates a PayPal order linked to them
+      // 3. Returns the PayPal order ID
+      const response = await apiClient.post('/api/checkout/paypal/create-order', {
+        eventId,
+        ticketTypeIds,
+        amount,
+        slidingScalePercentage,
+        currency,
+        eventTitle,
+        eventWaiverAccepted,
+        idempotencyKey
       });
 
       const { orderId } = response.data;
-      debugLog('Server created PayPal order:', orderId);
+      currentOrderIdRef.current = orderId;
+      debugLog('PayPal checkout order created:', orderId);
 
-      // Return the order ID for PayPal JS SDK to open the popup
       return orderId;
-    } catch (error) {
-      console.error('PayPal order creation failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create PayPal order';
+    } catch (err) {
+      console.error('PayPal checkout order creation failed:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create PayPal order';
       setError(errorMessage);
       onPaymentError?.(errorMessage);
       setIsProcessing(false);
-      throw error;
+      throw err;
     }
   };
 
-  const onApprove = async (data: any) => {
+  /**
+   * Called by PayPal JS SDK after user approves payment in the popup.
+   * Captures the PayPal order and finalizes ticket purchases on the backend.
+   */
+  const onApprove = async (data: { orderID: string }) => {
     try {
       setIsProcessing(true);
-      debugLog('PayPal payment approved, capturing server-side:', data);
+      debugLog('PayPal payment approved, capturing:', data);
 
-      // Server-side capture
-      const response = await apiClient.post('/api/paypal/capture-order', {
+      // Call the unified capture endpoint which:
+      // 1. Captures the PayPal payment
+      // 2. Finalizes ticket purchase(s) (marks as Completed)
+      // 3. Activates attendance records
+      // 4. Sends confirmation emails
+      const response = await apiClient.post('/api/checkout/paypal/capture-order', {
         orderId: data.orderID
       });
 
-      const captureResult = response.data;
-      debugLog('PayPal payment captured:', captureResult);
+      const captureResult: PayPalCheckoutResult = response.data;
+      debugLog('PayPal payment captured and tickets finalized:', captureResult);
 
-      // Call success callback with capture details
+      currentOrderIdRef.current = null;
       onPaymentSuccess?.(captureResult);
 
-    } catch (error) {
-      console.error('PayPal payment capture failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to capture PayPal payment';
+    } catch (err) {
+      console.error('PayPal payment capture failed:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to capture PayPal payment';
       setError(errorMessage);
       onPaymentError?.(errorMessage);
     } finally {
@@ -120,16 +175,38 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
     }
   };
 
-  const onError = (error: any) => {
-    console.error('PayPal payment error:', error);
-    const errorMessage = error?.message || 'PayPal payment failed';
+  /**
+   * Called by PayPal JS SDK when payment encounters an error.
+   */
+  const onError = (err: Record<string, unknown>) => {
+    console.error('PayPal SDK error:', err);
+    const errorMessage = (err?.message as string) || 'PayPal payment failed';
     setError(errorMessage);
     onPaymentError?.(errorMessage);
     setIsProcessing(false);
   };
 
-  const onCancel = () => {
-    debugLog('PayPal payment cancelled');
+  /**
+   * Called by PayPal JS SDK when user closes/cancels the popup.
+   * Rolls back the pending ticket purchases created during createOrder.
+   */
+  const onCancel = async () => {
+    debugLog('PayPal payment cancelled by user');
+
+    // Clean up: roll back pending ticket purchases on the backend
+    if (currentOrderIdRef.current) {
+      try {
+        await apiClient.post('/api/checkout/paypal/cancel-order', {
+          orderId: currentOrderIdRef.current
+        });
+        debugLog('Pending ticket purchases rolled back after PayPal cancellation');
+      } catch (err) {
+        // Non-fatal: log but don't show error to user
+        console.error('Failed to roll back pending tickets after cancel:', err);
+      }
+      currentOrderIdRef.current = null;
+    }
+
     onPaymentCancel?.();
     setIsProcessing(false);
   };
@@ -138,7 +215,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
     <PayPalScriptProvider
       options={{
         clientId: paypalClientId,
-        currency: eventInfo.currency || 'USD',
+        currency,
         intent: 'capture',
         "enable-funding": "venmo",
         "disable-funding": "card,paylater"

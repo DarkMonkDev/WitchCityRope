@@ -10846,6 +10846,169 @@
           }
         }
       }
+    },
+    "/api/checkout/paypal/create-order": {
+      "post": {
+        "tags": [
+          "PayPalCheckout"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalCheckoutCreateOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalCheckoutCreateOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalCheckoutCreateOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPalCheckoutCreateOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/checkout/paypal/capture-order": {
+      "post": {
+        "tags": [
+          "PayPalCheckout"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalCheckoutCaptureOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalCheckoutCaptureOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalCheckoutCaptureOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPalCheckoutCaptureOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/checkout/paypal/cancel-order": {
+      "post": {
+        "tags": [
+          "PayPalCheckout"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalCheckoutCancelOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalCheckoutCancelOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalCheckoutCancelOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15287,6 +15450,108 @@
           }
         }
       },
+      "PayPalCheckoutCancelOrderRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          }
+        }
+      },
+      "PayPalCheckoutCaptureOrderRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          }
+        }
+      },
+      "PayPalCheckoutCaptureOrderResponse": {
+        "type": "object",
+        "properties": {
+          "captureId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "payerId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmationNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ticketPurchaseIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "PayPalCheckoutCreateOrderRequest": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ticketTypeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "slidingScalePercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventWaiverAccepted": {
+            "type": "boolean"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        }
+      },
+      "PayPalCheckoutCreateOrderResponse": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          }
+        }
+      },
       "PendingCheckIn": {
         "required": [
           "localId",
@@ -18707,6 +18972,9 @@
     },
     {
       "name": "Protected"
+    },
+    {
+      "name": "PayPalCheckout"
     }
   ]
 }
