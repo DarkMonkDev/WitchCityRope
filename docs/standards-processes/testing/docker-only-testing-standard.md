@@ -22,7 +22,7 @@ This document establishes the **SINGLE SOURCE OF TRUTH** for testing environment
 ### ✅ ONLY APPROVED TESTING ENVIRONMENT:
 - **React App**: Docker container on **port 5173**
 - **API Service**: Docker container on **port 5655**
-- **PostgreSQL Database**: Docker container on **port 5433**
+- **PostgreSQL Database**: Docker container on **port 5434**
 
 ### ❌ FORBIDDEN ENVIRONMENTS:
 - Local dev servers on ports 5174, 5175, 3000, or any non-Docker ports
@@ -34,27 +34,9 @@ This document establishes the **SINGLE SOURCE OF TRUTH** for testing environment
 
 **EVERY developer and test agent MUST verify this checklist BEFORE any testing work:**
 
-```bash
-# 1. Verify Docker containers running (CRITICAL)
-docker ps --format "table {{.Names}}\t{{.Ports}}" | grep witchcity
-# MUST show:
-# - witchcity-web: 0.0.0.0:5173->3000/tcp
-# - witchcity-api: 0.0.0.0:5655->8080/tcp
-# - witchcity-postgres: 0.0.0.0:5433->5432/tcp
+Use the `restart-dev-containers` skill for dev environment or `restart-test-containers` skill for test environment. Both skills include health checks and verification automatically.
 
-# 2. Kill any rogue local dev servers (REQUIRED)
-./scripts/kill-local-dev-servers.sh
-
-# 3. Check for conflicting processes
-lsof -i :5174 -i :5175 -i :3000 | grep node && echo "❌ CONFLICT DETECTED" || echo "✅ No conflicts"
-
-# 4. Verify correct services respond
-curl -f http://localhost:5173/ | head -20 | grep -q "Witch City Rope" && echo "✅ React app on Docker" || echo "❌ Wrong React service"
-curl -f http://localhost:5655/health && echo "✅ API on Docker" || echo "❌ API not responding"
-
-# 5. Final verification
-echo "✅ Docker-only environment verified for testing"
-```
+For manual verification: check that containers are running on correct ports (web: 5173, API: 5655, DB: 5434) and no local dev servers conflict on ports 5174/5175/3000.
 
 ## 📋 Agent-Specific Requirements
 
@@ -86,27 +68,9 @@ echo "✅ Docker-only environment verified for testing"
 
 ### If Tests Fail - MANDATORY Response Order:
 
-1. **FIRST**: Check Docker container status
-   ```bash
-   docker ps | grep witchcity
-   # All containers MUST show "Up" and correct ports
-   ```
-
-2. **SECOND**: Verify no local dev server conflicts
-   ```bash
-   lsof -i :5174 -i :5175 -i :3000 | grep node
-   # MUST return empty (no local dev servers)
-   ```
-
-3. **THIRD**: Kill any conflicting processes
-   ```bash
-   ./scripts/kill-local-dev-servers.sh
-   ```
-
-4. **FOURTH**: Restart Docker if containers unhealthy
-   **Use restart-dev-containers skill** for correct restart procedure with health checks and compilation validation.
-
-5. **ONLY THEN**: Re-run tests after Docker environment verified
+1. **FIRST**: Use `restart-dev-containers` skill (for dev) or `restart-test-containers` skill (for test) — both include health checks and conflict detection
+2. **SECOND**: Verify no local dev server conflicts on ports 5174/5175/3000
+3. **ONLY THEN**: Re-run tests after Docker environment verified
 
 ### If Local Dev Servers Detected:
 
@@ -159,35 +123,13 @@ echo "✅ Docker-only environment verified for testing"
 
 ### Common Issues and Solutions:
 
-**"React app not loading"**
-```bash
-# Check Docker container
-docker ps | grep witchcity-web
-# If not running, use restart-dev-containers skill
-```
+**"React app not loading"** — Use `restart-dev-containers` skill to rebuild and verify web container health.
 
-**"API endpoints returning 404"**
-```bash
-# Verify API container health
-curl -f http://localhost:5655/health
-# If failing:
-docker restart witchcity-api
-```
+**"API endpoints returning 404"** — Use `restart-dev-containers` skill to restart API with health checks.
 
-**"Tests timing out"**
-```bash
-# Check for port conflicts
-lsof -i :5173 -i :5655 | grep -v docker
-# Kill conflicts:
-./scripts/kill-local-dev-servers.sh
-```
+**"Tests timing out"** — Check for port conflicts, then use `restart-dev-containers` or `restart-test-containers` skill.
 
-**"Connection refused errors"**
-```bash
-# Restart all containers using restart-dev-containers skill
-# Skill automatically waits for health checks
-docker ps --format "table {{.Names}}\t{{.Status}}" | grep witchcity
-```
+**"Connection refused errors"** — Use `restart-dev-containers` skill (automatically waits for health checks).
 
 ## 📞 Escalation
 

@@ -1,350 +1,281 @@
 # Integration Test Patterns with PostgreSQL
 
-> 🚨 **CRITICAL: Integration tests use real PostgreSQL via Testcontainers** 🚨
-> 
-> **The in-memory database was hiding critical bugs. Always use these patterns.**
+> **CRITICAL: Integration tests use real PostgreSQL via TestContainers**
+>
+> **NEVER use InMemoryDatabase. Always use these patterns.**
 
 ## Overview
 
-As of January 2025, all integration tests have been migrated from in-memory database to real PostgreSQL using Testcontainers. This migration exposed and fixed several critical bugs that were hidden by the in-memory provider.
+All integration tests use real PostgreSQL via TestContainers with Respawn for fast database cleanup. The central base class is `IntegrationTestBase` in `tests/integration/IntegrationTestBase.cs`.
 
-## Key Changes from In-Memory to PostgreSQL
+### Current State (March 2026)
+- **200 passing, 0 failures, 11 skipped**
+- TestContainers PostgreSQL 16-alpine
+- Respawn for database reset between tests
+- WebApplicationFactory for HTTP endpoint testing
 
-### Migration Summary
-- **Before**: 93 tests couldn't run due to architectural issues
-- **After migration**: 37 failures (database issues exposed)
-- **Final**: 115+ passing, stable infrastructure
+## Key Architecture
 
-### Critical Bugs Found and Fixed
-1. **RefundAmount nullable owned entity bug** - EF Core can't configure nullable owned entities
-2. **RSVP duplicate key violations** - Missing Id initialization in constructor
-3. **DateTime UTC requirements** - PostgreSQL timestamp with time zone only accepts UTC
-4. **Duplicate test data** - Tests failing due to unique constraint violations
+### DatabaseTestFixture (Shared Container)
 
-## Health Check System
+Located at `tests/WitchCityRope.Tests.Common/Fixtures/DatabaseTestFixture.cs`.
 
-### Always Run Health Checks First
-
-```bash
-# 1. FIRST: Run health checks to verify containers are ready
-dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck"
-
-# 2. ONLY IF health checks pass: Run integration tests
-dotnet test tests/WitchCityRope.IntegrationTests/
-```
-
-### What Health Checks Validate
-- ✅ Database connection (PostgreSQL container is running)
-- ✅ Database schema (all required tables and migrations applied)
-- ✅ Seed data (test users and roles exist)
-
-### Troubleshooting Failed Health Checks
-
-```bash
-# Check Docker containers
-docker ps
-
-# Check database connection
-docker exec witchcity-postgres psql -U postgres -d witchcityrope_db -c "SELECT 1;"
-
-# Check applied migrations
-docker exec witchcity-postgres psql -U postgres -d witchcityrope_db -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' OR table_schema = 'auth';"
-
-# Clean up stale containers if needed
-docker ps -a | grep testcontainers | awk '{print $1}' | xargs -r docker rm -f
-```
-
-## Critical PostgreSQL Patterns
-
-### 1. DateTime Must Be UTC
+Each test collection shares ONE PostgreSQL container via `ICollectionFixture<DatabaseTestFixture>`:
 
 ```csharp
-// ❌ WRONG - Kind is Unspecified
-new DateTime(1990, 1, 1)
-
-// ✅ CORRECT - Always specify UTC
-new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-
-// ✅ BEST - Use UTC helpers
-DateTime.UtcNow
-dateTime.ToUniversalTime()
-```
-
-**DbContext Auto-Conversion**: The DbContext now automatically converts all DateTime values to UTC in `UpdateAuditFields()`.
-
-### 2. Test Data Must Be Unique
-
-```csharp
-// ❌ WRONG - Same name used by multiple tests
-SceneName.Create("TestUser")
-
-// ✅ CORRECT - Always use GUIDs for uniqueness
-SceneName.Create($"TestUser_{Guid.NewGuid():N}")
-
-// ✅ Also apply to:
-// - Emails: $"test_{Guid.NewGuid():N}@example.com"
-// - Event names: $"Test Event {Guid.NewGuid():N}"
-// - Any unique field
-```
-
-### 3. Nullable Owned Entities Pattern
-
-```csharp
-// ❌ WRONG - EF Core can't configure nullable owned entities
-public Money? RefundAmount { get; set; }
-// With: OwnsOne(p => p.RefundAmount)
-
-// ✅ CORRECT - Use separate nullable properties
-public decimal? RefundAmountValue { get; private set; }
-public string? RefundCurrency { get; private set; }
-
-public Money? RefundAmount => RefundAmountValue.HasValue && !string.IsNullOrEmpty(RefundCurrency)
-    ? Money.Create(RefundAmountValue.Value, RefundCurrency) 
-    : null;
-```
-
-### 4. Entity Constructor Initialization
-
-```csharp
-// ❌ WRONG - Default Guid.Empty causes duplicate key violations
-public Rsvp(Guid userId, Event @event)
+[Collection("Database")]  // Parallel execution OK
+public class MyTests : IntegrationTestBase
 {
-    UserId = userId;
-    Event = @event;
-    // Id not set - will be Guid.Empty!
+    public MyTests(DatabaseTestFixture fixture) : base(fixture) { }
 }
 
-// ✅ CORRECT - Always initialize required fields
-public Rsvp(Guid userId, Event @event)
+[Collection("Sequential")]  // Sequential execution, no parallelism
+public class MySequentialTests : IntegrationTestBase
 {
-    Id = Guid.NewGuid(); // CRITICAL: Must set this!
-    UserId = userId;
-    Event = @event;
-    CreatedAt = DateTime.UtcNow;
-    UpdatedAt = DateTime.UtcNow;
+    public MySequentialTests(DatabaseTestFixture fixture) : base(fixture) { }
 }
 ```
 
-## Test Setup Patterns
+**When to use which collection:**
+- `"Database"` — Default. Tests run in parallel. Use unique data (GUIDs) to avoid conflicts.
+- `"Sequential"` — For tests that modify shared state or have ordering dependencies. Runs one at a time.
 
-### Using TestWebApplicationFactory
+### IntegrationTestBase
+
+Located at `tests/integration/IntegrationTestBase.cs`. Provides:
+
+- `CreateDbContext()` — Fresh DbContext for direct database queries
+- `CreateTestWebApplicationFactory()` — WebApplicationFactory with test overrides
+- `GenerateJwtToken(userId, email, role)` — Valid JWT tokens for authenticated requests
+- `JsonOptions` — JsonSerializerOptions with `JsonStringEnumConverter` for DTO deserialization
+- Database reset via Respawn in `InitializeAsync()`
+
+## Critical Patterns
+
+### 1. WebApplicationFactory Setup
+
+`CreateTestWebApplicationFactory()` configures these test overrides:
 
 ```csharp
-public class TestWebApplicationFactory : WebApplicationFactory<Program>
+// Connection string points to TestContainers PostgreSQL
+builder.UseSetting("ConnectionStrings:DefaultConnection", ConnectionString);
+
+// Disable seed data — tests create their own
+builder.UseSetting("DatabaseInitialization:EnableSeedData", "false");
+
+// Enable mock PayPal for payment tests
+builder.UseSetting("USE_MOCK_PAYMENT_SERVICE", "true");
+
+// Service replacements in ConfigureServices:
+// - DbContext → TestContainers PostgreSQL with EnableDynamicJson()
+// - IAntiforgery → NoOpAntiforgery (CSRF bypassed in tests)
+// - IEncryptionService → MockEncryptionService (passthrough, no real encryption)
+// - Hangfire → In-memory storage
+```
+
+**Why MockEncryptionService?** The real `EncryptionService` requires `Safety:EncryptionKey` config and AES-256 encryption. Tests use plaintext values like `"encrypted-capture-id"` that can't be decrypted by the real service.
+
+**Why NoOpAntiforgery?** Tests focus on business logic, not CSRF. This means CSRF rejection tests must be skipped.
+
+### 2. JWT Authentication in Tests
+
+```csharp
+// Generate a valid JWT token
+var token = GenerateJwtToken(userId, email, "Administrator");
+
+// Create authenticated HTTP client
+var client = factory.CreateClient();
+client.DefaultRequestHeaders.Authorization =
+    new AuthenticationHeaderValue("Bearer", token);
+```
+
+The `GenerateJwtToken()` method creates real signed JWTs matching the API's configuration (same secret, issuer, audience). **NEVER** use fake token strings like `"test-token-123"` — they will fail authentication.
+
+### 3. Enum Deserialization with JsonOptions
+
+The API uses `JsonStringEnumConverter` for enum serialization. Tests must use the same:
+
+```csharp
+// WRONG — enums deserialize as 0 (default)
+var dto = await response.Content.ReadFromJsonAsync<EventDto>();
+
+// CORRECT — use JsonOptions from IntegrationTestBase
+var dto = await response.Content.ReadFromJsonAsync<EventDto>(JsonOptions);
+```
+
+This affects any DTO with enum properties (PricingType, TemplateTriggerType, AttendanceStatus, etc.).
+
+### 4. Event Entities Require VenueId
+
+Every `Event` entity requires a valid `VenueId` FK. Tests must create a Venue first:
+
+```csharp
+var venue = new Venue
 {
-    private readonly PostgreSqlContainer _postgresContainer;
+    Name = $"Test Venue {Guid.NewGuid():N}",
+    IsActive = true,
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+};
+context.Venues.Add(venue);
+await context.SaveChangesAsync();
 
-    public TestWebApplicationFactory()
-    {
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:16-alpine")
-            .WithDatabase("testdb")
-            .WithUsername("testuser")
-            .WithPassword("testpass")
-            .Build();
-    }
+var eventEntity = new Event
+{
+    Id = Guid.NewGuid(),
+    Title = "Test Event",
+    VenueId = venue.Id,  // REQUIRED
+    // ... other properties
+};
+```
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+### 5. DateTime Must Be UTC
+
+PostgreSQL `timestamp with time zone` only accepts UTC:
+
+```csharp
+// WRONG
+DateOfBirth = new DateTime(1990, 1, 1)
+
+// CORRECT
+DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+// or
+DateOfBirth = DateTime.UtcNow.AddYears(-30)
+```
+
+### 6. Test Data Must Be Unique
+
+Use GUIDs to prevent unique constraint violations:
+
+```csharp
+var email = $"test-{Guid.NewGuid():N}@example.com";
+var sceneName = $"TestUser-{Guid.NewGuid():N}"[..15];
+```
+
+### 7. ApplicationUser Required Fields
+
+When creating test users directly in the database:
+
+```csharp
+var user = new ApplicationUser
+{
+    Id = Guid.NewGuid(),
+    Email = email,
+    SceneName = $"User-{Guid.NewGuid():N}"[..15],
+    DateOfBirth = DateTime.UtcNow.AddYears(-30),  // REQUIRED
+    Role = "Member",
+    EmailVerificationToken = Guid.NewGuid().ToString(),
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+};
+```
+
+### 8. EventAttendees Check Constraint
+
+The `RegistrationStatus` column has a check constraint. Valid values only:
+
+```
+'confirmed', 'waitlist', 'checked-in', 'no-show', 'cancelled'
+```
+
+Using `"active"` or any other value will throw a constraint violation.
+
+### 9. Many-to-Many Navigation Loading
+
+For join tables like TicketTypeSessions, use `.ThenInclude()`:
+
+```csharp
+// WRONG — TicketType.Sessions will be empty
+var evt = await context.Events
+    .Include(e => e.TicketTypes)
+    .FirstAsync();
+
+// CORRECT — loads the Sessions navigation on each TicketType
+var evt = await context.Events
+    .Include(e => e.TicketTypes)
+        .ThenInclude(t => t.Sessions)
+    .FirstAsync();
+```
+
+### 10. Shared Factory for High-Test-Count Classes
+
+If a test class has 15+ tests, creating a new `WebApplicationFactory` per test causes resource exhaustion (ports, connections). Use a shared static factory:
+
+```csharp
+[Collection("Sequential")]
+public class ManyTests : IntegrationTestBase, IDisposable
+{
+    private static WebApplicationFactory<Program>? _sharedFactory;
+    private static string? _sharedConnectionString;
+
+    public ManyTests(DatabaseTestFixture fixture) : base(fixture)
     {
-        builder.ConfigureServices(services =>
+        if (_sharedFactory == null || _sharedConnectionString != ConnectionString)
         {
-            // Remove existing DbContext
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<WitchCityRopeIdentityDbContext>));
-            if (descriptor != null)
-            {
-                services.Remove(descriptor);
-            }
-
-            // Add PostgreSQL DbContext
-            services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
-            {
-                options.UseNpgsql(_postgresContainer.GetConnectionString());
-            });
-
-            // Ensure database is created and migrated
-            var sp = services.BuildServiceProvider();
-            using var scope = sp.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<WitchCityRopeIdentityDbContext>();
-            dbContext.Database.Migrate();
-        });
-    }
-}
-```
-
-### Shared PostgreSQL Fixture Pattern
-
-```csharp
-[Collection("PostgreSQL Integration Tests")]
-public class MyIntegrationTests : IClassFixture<PostgreSqlFixture>
-{
-    private readonly PostgreSqlFixture _fixture;
-
-    public MyIntegrationTests(PostgreSqlFixture fixture)
-    {
-        _fixture = fixture;
+            _sharedFactory?.Dispose();
+            _sharedFactory = CreateTestWebApplicationFactory();
+            _sharedConnectionString = ConnectionString;
+        }
     }
 
-    [Fact]
-    public async Task Should_Create_User()
-    {
-        // Arrange
-        using var scope = _fixture.Factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<WitchCityRopeIdentityDbContext>();
-        
-        // Act - always use unique data
-        var user = new WitchCityRopeUser
-        {
-            Email = $"test_{Guid.NewGuid():N}@example.com",
-            UserName = $"testuser_{Guid.NewGuid():N}"
-        };
-        
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
-        
-        // Assert
-        var saved = await dbContext.Users.FindAsync(user.Id);
-        Assert.NotNull(saved);
-    }
+    private WebApplicationFactory<Program> _factory => _sharedFactory!;
+
+    public void Dispose() { /* Don't dispose shared factory */ }
 }
 ```
 
-## Common Integration Test Patterns
+This pattern is safe because Sequential collection ensures no parallel execution.
 
-### Testing with Transactions
+### 11. RefundService Delegates PaymentStatus Updates to Callers
+
+`RefundService.ProcessRefundAsync()` does NOT update `TicketPurchase.PaymentStatus`. The calling code must do it:
 
 ```csharp
-[Fact]
-public async Task Should_Rollback_On_Error()
+var refundResult = await refundService.ProcessRefundAsync(request, ct);
+if (refundResult.IsSuccess)
 {
-    using var scope = _fixture.Factory.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<WitchCityRopeIdentityDbContext>();
-    
-    using var transaction = await dbContext.Database.BeginTransactionAsync();
-    try
-    {
-        // Perform operations
-        var user = new WitchCityRopeUser { /* ... */ };
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
-        
-        // Simulate error
-        throw new Exception("Test error");
-        
-        await transaction.CommitAsync();
-    }
-    catch
-    {
-        await transaction.RollbackAsync();
-        // Verify rollback worked
-    }
+    ticketPurchase.PaymentStatus = TicketPurchasePaymentStatus.Refunded;
+    await context.SaveChangesAsync(ct);
 }
 ```
 
-### Testing Migrations
+Tests should verify `TicketPurchase.PaymentStatus`, not `EventAttendance.Status`, for refund assertions.
 
-```csharp
-[Fact]
-public async Task Should_Apply_All_Migrations()
-{
-    using var scope = _fixture.Factory.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<WitchCityRopeIdentityDbContext>();
-    
-    // Get pending migrations
-    var pending = await dbContext.Database.GetPendingMigrationsAsync();
-    Assert.Empty(pending);
-    
-    // Verify specific tables exist
-    var tableExists = await dbContext.Database
-        .ExecuteSqlRawAsync("SELECT 1 FROM information_schema.tables WHERE table_name = 'Users'");
-    Assert.Equal(1, tableExists);
-}
-```
+## Collection Definitions
 
-### Testing Seed Data
+Defined in `tests/integration/`:
 
-```csharp
-[Fact]
-public async Task Should_Have_Seeded_Admin_User()
-{
-    using var scope = _fixture.Factory.Services.CreateScope();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<WitchCityRopeUser>>();
-    
-    var adminUser = await userManager.FindByEmailAsync("admin@witchcityrope.com");
-    Assert.NotNull(adminUser);
-    
-    var isAdmin = await userManager.IsInRoleAsync(adminUser, "Admin");
-    Assert.True(isAdmin);
-}
-```
-
-## Performance Considerations
-
-### Container Reuse
-Tests in the same collection share the PostgreSQL container:
-```csharp
-[Collection("PostgreSQL Integration Tests")] // Shares container
-public class EventTests { }
-
-[Collection("PostgreSQL Integration Tests")] // Same container
-public class UserTests { }
-```
-
-### Parallel Execution
-- Tests within a collection run sequentially
-- Different collections run in parallel
-- Use unique data to avoid conflicts
-
-### Cleanup Patterns
-```csharp
-public async Task Cleanup()
-{
-    using var scope = _fixture.Factory.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<WitchCityRopeIdentityDbContext>();
-    
-    // Clean test data (be specific to avoid clearing seed data)
-    var testUsers = dbContext.Users.Where(u => u.Email.Contains("test_"));
-    dbContext.Users.RemoveRange(testUsers);
-    await dbContext.SaveChangesAsync();
-}
-```
+| Collection | File | Behavior |
+|-----------|------|----------|
+| `"Database"` | `DatabaseTestFixture.cs` | Parallel, shared PostgreSQL container |
+| `"Sequential"` | `SequentialTestCollectionDefinition.cs` | Sequential, shared PostgreSQL container |
 
 ## Troubleshooting
 
-### Common Issues
+### "The entry point exited without ever building an IHost"
+- **Cause**: Too many WebApplicationFactory instances created (resource exhaustion)
+- **Fix**: Use shared static factory pattern (see pattern #10 above)
+- **Note**: Passes individually but fails in full run = this issue
 
-1. **"Cannot write DateTime with Kind=Unspecified"**
-   - Always use UTC DateTimes
-   - Check entity constructors
-   - Verify seed data
+### "Cannot write DateTime with Kind=Unspecified"
+- Always use UTC DateTimes (see pattern #5)
 
-2. **"Duplicate key value violates unique constraint"**
-   - Use GUIDs in test data
-   - Check for hardcoded values
-   - Verify cleanup between tests
+### "Duplicate key value violates unique constraint"
+- Use GUIDs in all test data (see pattern #6)
 
-3. **"The entity type 'X' requires a primary key"**
-   - Check for unwanted entity discovery
-   - Verify owned entity configuration
-   - Review navigation properties
+### "FK constraint violation on VenueId"
+- All Event entities need a valid Venue (see pattern #4)
 
-4. **Container startup failures**
-   - Ensure Docker is running: `sudo systemctl start docker`
-   - Check disk space: `df -h`
-   - Clean old containers: `docker system prune`
+### Enum properties deserialize as 0/default
+- Use `JsonOptions` with `JsonStringEnumConverter` (see pattern #3)
 
-## Best Practices
-
-1. **Always use real PostgreSQL** - Never go back to in-memory
-2. **Run health checks first** - Ensures environment is ready
-3. **Use unique test data** - Prevents conflicts
-4. **Clean up after tests** - But preserve seed data
-5. **Test in isolation** - Each test should be independent
-6. **Use transactions for complex scenarios** - Enables rollback
-7. **Monitor container resources** - PostgreSQL needs memory
+### CSRF test expects 400 but gets 200
+- `NoOpAntiforgery` always validates. Skip CSRF rejection tests with reason.
 
 ## Key Files
 
-- `/tests/WitchCityRope.IntegrationTests/TestWebApplicationFactory.cs` - Container setup
-- `/tests/WitchCityRope.IntegrationTests/PostgreSqlFixture.cs` - Shared fixture
-- `/src/WitchCityRope.Infrastructure/Data/WitchCityRopeIdentityDbContext.cs` - UTC conversion
+- `tests/integration/IntegrationTestBase.cs` — Central base class
+- `tests/WitchCityRope.Tests.Common/Fixtures/DatabaseTestFixture.cs` — Container + Respawn
+- `tests/integration/SequentialTestCollectionDefinition.cs` — Sequential collection
+- `apps/api/Features/Shared/Services/MockEncryptionService.cs` — Passthrough encryption for tests
+- `apps/api/Features/Payments/Services/MockPayPalService.cs` — Mock PayPal for tests
