@@ -1478,21 +1478,41 @@ public class AttendanceService : IAttendanceService
             }
 
             // ============================================================================
-            // BUSINESS RULE: Also cancel associated RSVP if exists
+            // BUSINESS RULE: Only cancel RSVP if no active ticket attendances will remain
             // ============================================================================
-            var associatedRsvp = await _context.EventAttendances
+            var cancellingAttendanceIds = attendancesToCancel.Select(a => a.Id).ToHashSet();
+            var remainingTicketAttendances = await _context.EventAttendances
                 .Where(ea =>
                     ea.EventId == eventId &&
                     ea.UserId == userId &&
                     ea.Status == AttendanceStatus.Active &&
-                    ea.AttendanceType == AttendanceType.RSVP)
-                .FirstOrDefaultAsync(cancellationToken);
+                    ea.AttendanceType == AttendanceType.Ticket &&
+                    !cancellingAttendanceIds.Contains(ea.Id))
+                .CountAsync(cancellationToken);
 
-            if (associatedRsvp != null)
+            EventAttendance? associatedRsvp = null;
+            if (remainingTicketAttendances == 0)
+            {
+                associatedRsvp = await _context.EventAttendances
+                    .Where(ea =>
+                        ea.EventId == eventId &&
+                        ea.UserId == userId &&
+                        ea.Status == AttendanceStatus.Active &&
+                        ea.AttendanceType == AttendanceType.RSVP)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (associatedRsvp != null)
+                {
+                    _logger.LogInformation(
+                        "No remaining ticket attendances after cancellation - will also cancel RSVP {RsvpId}",
+                        associatedRsvp.Id);
+                }
+            }
+            else
             {
                 _logger.LogInformation(
-                    "Found associated RSVP {RsvpId} - will also cancel when cancelling tickets",
-                    associatedRsvp.Id);
+                    "User {UserId} still has {RemainingCount} active ticket attendance(s) for event {EventId} - keeping RSVP",
+                    userId, remainingTicketAttendances, eventId);
             }
 
             // ============================================================================
