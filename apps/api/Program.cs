@@ -155,12 +155,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     // Connection pool sizing: keep conservative since we share a 50-connection database
     // cluster with DarkMonk (~4 conn), ShipEngine (~10 conn), Accounting (~1 conn),
     // and system processes (~10 conn). EF Core and Hangfire each get their own pool.
-    // Target: ~5 actual connections per WitchCityRope environment (similar to DarkMonk).
+    // Target: ~8 max connections per environment (EF Core 5 + Hangfire 3), similar to DarkMonk's ~5.
     var connectionString = new NpgsqlConnectionStringBuilder(baseConnectionString)
     {
         Pooling = true,
-        MaxPoolSize = environment.IsDevelopment() ? 20 : 10,
-        MinPoolSize = environment.IsDevelopment() ? 5 : 2,
+        MaxPoolSize = environment.IsDevelopment() ? 20 : 5,
+        MinPoolSize = environment.IsDevelopment() ? 5 : 1,
         ConnectionLifetime = 300,        // 5 min — recycle connections to prevent staleness
 
         CommandTimeout = commandTimeout,
@@ -199,13 +199,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // "max_client_conn" errors when using PgBouncer. Even with direct connections,
 // we cap it to prevent runaway connection usage on our shared database cluster.
 // Hangfire runs 4 low-frequency jobs (daily backup, daily log summary, log cleanup, hourly email scheduler)
-// and needs at most ~5 connections for 1 worker + background threads (heartbeat, scheduler, expiration manager).
+// and needs at most ~3 connections for 1 worker + background threads (heartbeat, scheduler, expiration manager).
 var hangfireBaseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured for Hangfire. Set via environment variable or user secrets.");
 
 var hangfireConnectionString = new NpgsqlConnectionStringBuilder(hangfireBaseConnectionString)
 {
-    MaxPoolSize = 5,            // 1 worker + background threads = ~5 concurrent connections max
+    MaxPoolSize = 3,            // 1 worker + background threads — 3 is plenty for 4 low-frequency jobs
     MinPoolSize = 1,            // Keep 1 connection warm for heartbeats
     ConnectionLifetime = 300,   // Match EF Core — 5 min recycle
     Timeout = 15,
