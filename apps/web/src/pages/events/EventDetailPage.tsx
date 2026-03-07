@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Container, Stack, Title, Text, Breadcrumbs, Anchor, Alert, Button, Box, Group, Paper, Skeleton, Grid, Badge } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconExternalLink } from '@tabler/icons-react';
+import { IconExternalLink, IconTicket } from '@tabler/icons-react';
 import { formatUtcToLocalDate, formatUtcTimeRange } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
 import { useParticipation, useCreateRSVP, useCancelRSVP, useCancelTicket } from '../../hooks/useParticipation';
@@ -24,6 +24,7 @@ type UserProfileDto = components['schemas']['UserProfileDto'];
 
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string}>();
+  const navigate = useNavigate();
   const eventTimeZone = useEventTimeZone();
   const isMobile = useMediaQuery('(max-width: 991px)');
   const [_selectedTicket, _setSelectedTicket] = useState('single');
@@ -97,6 +98,26 @@ export const EventDetailPage: React.FC = () => {
     } else {
       cancelTicketMutation.mutate({ eventId: id, reason, ticketPurchaseIds });
     }
+  };
+
+  // Navigate to checkout page — same handler and destination as the ParticipationCard's
+  // "Purchase Ticket" button, reused here so the Ticket Options box has its own purchase entry point.
+  const handleTicketPurchase = () => {
+    navigate(`/checkout/${id}`, {
+      state: {
+        eventInfo: {
+          id,
+          title: (event as any)?.title || 'Event',
+          startDateTime: (event as any)?.startDate || new Date().toISOString(),
+          endDateTime: (event as any)?.endDate || new Date().toISOString(),
+          instructor: (event as any)?.instructor,
+          location: (event as any)?.location,
+          price: getTicketPriceDisplay().min
+        },
+        // Pass owned session IDs so checkout can filter out tickets the user already has
+        ownedSessionIds: (participation as any)?.ownedSessionIds || []
+      }
+    });
   };
 
   // Extract boolean flags from event data
@@ -505,6 +526,35 @@ export const EventDetailPage: React.FC = () => {
                       All ticket sales have ended for this event.
                     </Text>
                   </Alert>
+                )}
+
+                {/* Purchase Ticket button — mirrors the ParticipationCard's purchase button.
+                    Shown when there are purchasable tickets AND the user is eligible to buy
+                    (either first ticket or additional sessions for multi-session events). */}
+                {purchasableTickets.length > 0 && isAuthenticated && (
+                  (participation?.canPurchaseTicket && !participation?.hasTicket) ||
+                  (participation as any)?.canPurchaseAdditionalSessions
+                ) && (
+                  <Group justify="flex-end" mt="md">
+                    <Button
+                      onClick={handleTicketPurchase}
+                      variant="filled"
+                      color="blue"
+                      leftSection={<IconTicket size={18} />}
+                      data-testid="ticket-options-purchase-button"
+                      styles={{
+                        root: {
+                          height: '44px',
+                          paddingTop: '12px',
+                          paddingBottom: '12px',
+                          fontSize: '14px',
+                          lineHeight: '1.2'
+                        }
+                      }}
+                    >
+                      Purchase Ticket
+                    </Button>
+                  </Group>
                 )}
               </Stack>
             </ContentSection>
