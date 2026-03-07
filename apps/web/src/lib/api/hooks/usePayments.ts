@@ -42,6 +42,11 @@ export function usePurchaseTicket() {
         queryKey: ['volunteerPositions', variables.eventId]
       });
 
+      // Invalidate dashboard event cards so ticket info appears without manual refresh
+      queryClient.invalidateQueries({
+        queryKey: ['user-events']
+      });
+
       // Show success notification
       notifications.show({
         title: 'Ticket Purchased Successfully!',
@@ -99,6 +104,11 @@ export function useCheckout() {
       });
       queryClient.invalidateQueries({
         queryKey: ['volunteerPositions', variables.eventId]
+      });
+
+      // Invalidate dashboard event cards so ticket info appears without manual refresh
+      queryClient.invalidateQueries({
+        queryKey: ['user-events']
       });
     },
 
@@ -175,6 +185,11 @@ export function useConfirmPayPalPayment() {
       // Invalidate user participations list (dashboard)
       queryClient.invalidateQueries({
         queryKey: ['participation', 'user']
+      });
+
+      // Invalidate dashboard event cards so ticket info appears without manual refresh
+      queryClient.invalidateQueries({
+        queryKey: ['user-events']
       });
 
       // Show success notification
