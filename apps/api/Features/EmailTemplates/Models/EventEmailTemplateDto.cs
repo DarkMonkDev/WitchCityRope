@@ -18,6 +18,20 @@ public class EventEmailTemplateDto
     public string[] TargetSessions { get; set; } = Array.Empty<string>();
     public bool IsCustomized { get; set; }
 
+    /// <summary>
+    /// Resolved trigger configuration (override value if set, otherwise global value)
+    /// </summary>
+    public string? TriggerType { get; set; }
+    public bool TriggerEnabled { get; set; }
+    public int? TimingOffsetDays { get; set; }
+    public int? TimingOffsetHours { get; set; }
+    public string? RecipientGroup { get; set; }
+
+    /// <summary>
+    /// Whether any trigger settings are overridden at the event level
+    /// </summary>
+    public bool HasTriggerOverrides { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

@@ -22,4 +22,25 @@ public class UpdateEventTemplateRequest
     /// Default: ["all"] for all sessions
     /// </summary>
     public string[] TargetSessions { get; set; } = new[] { "all" };
+
+    /// <summary>
+    /// Override trigger enabled state (null = use global default)
+    /// </summary>
+    public bool? OverrideTriggerEnabled { get; set; }
+
+    /// <summary>
+    /// Override timing offset days (null = use global default)
+    /// </summary>
+    public int? OverrideTimingOffsetDays { get; set; }
+
+    /// <summary>
+    /// Override timing offset hours (null = use global default)
+    /// </summary>
+    public int? OverrideTimingOffsetHours { get; set; }
+
+    /// <summary>
+    /// Override recipient group as string (null = use global default)
+    /// Values: "SessionAttendees", "RSVPTicketHolders", etc.
+    /// </summary>
+    public string? OverrideRecipientGroup { get; set; }
 }

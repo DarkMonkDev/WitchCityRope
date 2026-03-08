@@ -350,17 +350,29 @@ public class EmailTemplateService : IEmailTemplateService
 
                 if (eventOverride != null)
                 {
-                    // Use event-specific template
+                    var hasTriggerOverrides = eventOverride.OverrideTriggerEnabled.HasValue
+                        || eventOverride.OverrideTimingOffsetDays.HasValue
+                        || eventOverride.OverrideTimingOffsetHours.HasValue
+                        || eventOverride.OverrideRecipientGroup.HasValue;
+
+                    // Use event-specific template with resolved trigger values
                     result.Add(new EventEmailTemplateDto
                     {
                         Id = eventOverride.Id,
                         EventId = eventOverride.EventId,
+                        GlobalTemplateId = eventOverride.GlobalTemplateId,
                         TemplateType = eventOverride.TemplateType,
                         Subject = eventOverride.Subject,
                         HtmlBody = eventOverride.HtmlBody,
                         PlainTextBody = eventOverride.PlainTextBody,
                         TargetSessions = eventOverride.TargetSessions,
                         IsCustomized = true,
+                        TriggerType = global.TriggerType.ToString(),
+                        TriggerEnabled = eventOverride.OverrideTriggerEnabled ?? global.TriggerEnabled,
+                        TimingOffsetDays = eventOverride.OverrideTimingOffsetDays ?? global.TimingOffsetDays,
+                        TimingOffsetHours = eventOverride.OverrideTimingOffsetHours ?? global.TimingOffsetHours,
+                        RecipientGroup = (eventOverride.OverrideRecipientGroup ?? global.RecipientGroup)?.ToString(),
+                        HasTriggerOverrides = hasTriggerOverrides,
                         CreatedAt = eventOverride.CreatedAt,
                         UpdatedAt = eventOverride.UpdatedAt
                     });
@@ -372,12 +384,19 @@ public class EmailTemplateService : IEmailTemplateService
                     {
                         Id = global.Id,
                         EventId = eventId,
+                        GlobalTemplateId = global.Id,
                         TemplateType = global.TemplateType,
                         Subject = global.Subject,
                         HtmlBody = global.HtmlBody,
                         PlainTextBody = global.PlainTextBody,
                         TargetSessions = Array.Empty<string>(),
                         IsCustomized = false,
+                        TriggerType = global.TriggerType.ToString(),
+                        TriggerEnabled = global.TriggerEnabled,
+                        TimingOffsetDays = global.TimingOffsetDays,
+                        TimingOffsetHours = global.TimingOffsetHours,
+                        RecipientGroup = global.RecipientGroup?.ToString(),
+                        HasTriggerOverrides = false,
                         CreatedAt = global.CreatedAt,
                         UpdatedAt = global.UpdatedAt
                     });
@@ -412,30 +431,42 @@ public class EmailTemplateService : IEmailTemplateService
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.EventId == eventId && t.TemplateType == templateType, cancellationToken);
 
+            // Always load the global template for trigger resolution
+            var globalTemplate = await _context.GlobalEmailTemplates
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Category == EmailCategory.Events && t.TemplateType == templateType && t.IsActive, cancellationToken);
+
             if (eventTemplate != null)
             {
-                // Return customized template
+                var hasTriggerOverrides = eventTemplate.OverrideTriggerEnabled.HasValue
+                    || eventTemplate.OverrideTimingOffsetDays.HasValue
+                    || eventTemplate.OverrideTimingOffsetHours.HasValue
+                    || eventTemplate.OverrideRecipientGroup.HasValue;
+
+                // Return customized template with resolved trigger values
                 var dto = new EventEmailTemplateDto
                 {
                     Id = eventTemplate.Id,
                     EventId = eventTemplate.EventId,
+                    GlobalTemplateId = eventTemplate.GlobalTemplateId,
                     TemplateType = eventTemplate.TemplateType,
                     Subject = eventTemplate.Subject,
                     HtmlBody = eventTemplate.HtmlBody,
                     PlainTextBody = eventTemplate.PlainTextBody,
                     TargetSessions = eventTemplate.TargetSessions,
                     IsCustomized = true,
+                    TriggerType = globalTemplate?.TriggerType.ToString() ?? TemplateTriggerType.FixedEvent.ToString(),
+                    TriggerEnabled = eventTemplate.OverrideTriggerEnabled ?? globalTemplate?.TriggerEnabled ?? true,
+                    TimingOffsetDays = eventTemplate.OverrideTimingOffsetDays ?? globalTemplate?.TimingOffsetDays,
+                    TimingOffsetHours = eventTemplate.OverrideTimingOffsetHours ?? globalTemplate?.TimingOffsetHours,
+                    RecipientGroup = (eventTemplate.OverrideRecipientGroup ?? globalTemplate?.RecipientGroup)?.ToString(),
+                    HasTriggerOverrides = hasTriggerOverrides,
                     CreatedAt = eventTemplate.CreatedAt,
                     UpdatedAt = eventTemplate.UpdatedAt
                 };
 
                 return Result<EventEmailTemplateDto>.Success(dto);
             }
-
-            // Fall back to global template
-            var globalTemplate = await _context.GlobalEmailTemplates
-                .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Category == EmailCategory.Events && t.TemplateType == templateType && t.IsActive, cancellationToken);
 
             if (globalTemplate == null)
             {
@@ -446,12 +477,19 @@ public class EmailTemplateService : IEmailTemplateService
             {
                 Id = globalTemplate.Id,
                 EventId = eventId,
+                GlobalTemplateId = globalTemplate.Id,
                 TemplateType = globalTemplate.TemplateType,
                 Subject = globalTemplate.Subject,
                 HtmlBody = globalTemplate.HtmlBody,
                 PlainTextBody = globalTemplate.PlainTextBody,
                 TargetSessions = Array.Empty<string>(),
                 IsCustomized = false,
+                TriggerType = globalTemplate.TriggerType.ToString(),
+                TriggerEnabled = globalTemplate.TriggerEnabled,
+                TimingOffsetDays = globalTemplate.TimingOffsetDays,
+                TimingOffsetHours = globalTemplate.TimingOffsetHours,
+                RecipientGroup = globalTemplate.RecipientGroup?.ToString(),
+                HasTriggerOverrides = false,
                 CreatedAt = globalTemplate.CreatedAt,
                 UpdatedAt = globalTemplate.UpdatedAt
             };
@@ -499,6 +537,12 @@ public class EmailTemplateService : IEmailTemplateService
                     HtmlBody = SanitizeHtml(request.HtmlBody),
                     PlainTextBody = request.PlainTextBody.Trim(),
                     TargetSessions = request.TargetSessions ?? Array.Empty<string>(),
+                    OverrideTriggerEnabled = request.OverrideTriggerEnabled,
+                    OverrideTimingOffsetDays = request.OverrideTimingOffsetDays,
+                    OverrideTimingOffsetHours = request.OverrideTimingOffsetHours,
+                    OverrideRecipientGroup = !string.IsNullOrEmpty(request.OverrideRecipientGroup)
+                        ? Enum.Parse<EventRecipientGroup>(request.OverrideRecipientGroup)
+                        : null,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     UpdatedBy = updatedByUserId
@@ -514,6 +558,12 @@ public class EmailTemplateService : IEmailTemplateService
                 eventTemplate.HtmlBody = SanitizeHtml(request.HtmlBody);
                 eventTemplate.PlainTextBody = request.PlainTextBody.Trim();
                 eventTemplate.TargetSessions = request.TargetSessions ?? Array.Empty<string>();
+                eventTemplate.OverrideTriggerEnabled = request.OverrideTriggerEnabled;
+                eventTemplate.OverrideTimingOffsetDays = request.OverrideTimingOffsetDays;
+                eventTemplate.OverrideTimingOffsetHours = request.OverrideTimingOffsetHours;
+                eventTemplate.OverrideRecipientGroup = !string.IsNullOrEmpty(request.OverrideRecipientGroup)
+                    ? Enum.Parse<EventRecipientGroup>(request.OverrideRecipientGroup)
+                    : null;
                 eventTemplate.UpdatedAt = DateTime.UtcNow;
                 eventTemplate.UpdatedBy = updatedByUserId;
 
@@ -523,16 +573,33 @@ public class EmailTemplateService : IEmailTemplateService
 
             await _context.SaveChangesAsync(cancellationToken);
 
+            // Load global template for trigger resolution in DTO
+            var globalForDto = await _context.GlobalEmailTemplates
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == eventTemplate.GlobalTemplateId, cancellationToken);
+
+            var hasOverrides = eventTemplate.OverrideTriggerEnabled.HasValue
+                || eventTemplate.OverrideTimingOffsetDays.HasValue
+                || eventTemplate.OverrideTimingOffsetHours.HasValue
+                || eventTemplate.OverrideRecipientGroup.HasValue;
+
             var dto = new EventEmailTemplateDto
             {
                 Id = eventTemplate.Id,
                 EventId = eventTemplate.EventId,
+                GlobalTemplateId = eventTemplate.GlobalTemplateId,
                 TemplateType = eventTemplate.TemplateType,
                 Subject = eventTemplate.Subject,
                 HtmlBody = eventTemplate.HtmlBody,
                 PlainTextBody = eventTemplate.PlainTextBody,
                 TargetSessions = eventTemplate.TargetSessions,
                 IsCustomized = true,
+                TriggerType = globalForDto?.TriggerType.ToString() ?? TemplateTriggerType.FixedEvent.ToString(),
+                TriggerEnabled = eventTemplate.OverrideTriggerEnabled ?? globalForDto?.TriggerEnabled ?? true,
+                TimingOffsetDays = eventTemplate.OverrideTimingOffsetDays ?? globalForDto?.TimingOffsetDays,
+                TimingOffsetHours = eventTemplate.OverrideTimingOffsetHours ?? globalForDto?.TimingOffsetHours,
+                RecipientGroup = (eventTemplate.OverrideRecipientGroup ?? globalForDto?.RecipientGroup)?.ToString(),
+                HasTriggerOverrides = hasOverrides,
                 CreatedAt = eventTemplate.CreatedAt,
                 UpdatedAt = eventTemplate.UpdatedAt
             };

@@ -324,26 +324,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/debug-status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Debug authentication status (DEV ONLY)
-         * @description Check current authentication status for debugging logout issues
-         */
-        get: operations["DebugAuthStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -362,6 +342,26 @@ export interface paths {
          * @description Creates a new event with optional sessions, ticket types, volunteer positions, and organizers. New events are created as drafts (IsPublished = false) by default. Supports full event creation with all related entities in a single request.
          */
         post: operations["CreateEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get lightweight event list for admin table
+         * @description Returns a lightweight list of events with SQL-level count projections. Optimized for the admin events table view.
+         */
+        get: operations["GetEventList"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -447,6 +447,106 @@ export interface paths {
          */
         post: operations["RecordEventCashPayment"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all sessions for an event
+         * @description Returns a list of sessions for the specified event, ordered by start time
+         */
+        get: operations["GetEventSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/sessions/{sessionId}/can-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check if a session can be deleted
+         * @description Returns information about what would be affected if the session is deleted
+         */
+        get: operations["CheckSessionDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a session
+         * @description Deletes a session and cancels associated RSVPs and volunteer signups. Deletes single-session ticket types.
+         */
+        delete: operations["DeleteSession"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/ticket-types/{ticketTypeId}/can-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check if a ticket type can be deleted
+         * @description Returns information about whether the ticket type has sales
+         */
+        get: operations["CheckTicketTypeDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/ticket-types/{ticketTypeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a ticket type
+         * @description Deletes a ticket type if no tickets have been sold
+         */
+        delete: operations["DeleteTicketType"];
         options?: never;
         head?: never;
         patch?: never;
@@ -952,26 +1052,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/events/{eventId}/purchase-ticket": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Purchase ticket (alias)
-         * @description Alias for /api/events/{id}/tickets endpoint
-         */
-        post: operations["PurchaseTicketAlias"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/attendance/{attendanceId}": {
         parameters: {
             query?: never;
@@ -1067,26 +1147,6 @@ export interface paths {
          * @description Removes user's RSVP and processes ticket refund if exists. Auto-cancels volunteer shifts. Admin role required.
          */
         delete: operations["AdminRemoveRsvp"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/events/{eventId}/tickets/{userId}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Refund ticket with optional RSVP removal (admin only)
-         * @description Refunds user's ticket and optionally removes RSVP. Auto-cancels volunteer shifts. Admin role required.
-         */
-        post: operations["AdminRefundTicket"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1236,26 +1296,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/refunds/{ticketId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Process PayPal refund for a ticket purchase
-         * @description Processes a full refund for a PayPal ticket purchase. Optionally removes RSVP. Requires Admin or Teacher role.
-         */
-        post: operations["RefundTicketById"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/payments/transactions/{transactionId}/refund": {
         parameters: {
             query?: never;
@@ -1266,10 +1306,30 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Process variable amount refund for a payment transaction
-         * @description Processes a partial or full refund for a PayPal payment without canceling RSVP/ticket. Requires Admin or Teacher role.
+         * Process refund and/or cancel ticket for a payment transaction
+         * @description Processes a partial or full refund, optionally cancels the ticket (revokes event access), and optionally removes the RSVP. Supports $0 cancellations (cancel without refund). Requires Admin or Teacher role.
          */
         post: operations["ProcessVariableRefund"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client-errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ingest frontend error reports
+         * @description Receives a batch of client-side error reports for server-side logging and analysis
+         */
+        post: operations["ReportClientErrors"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1316,6 +1376,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/test-helpers/users/get-or-create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get existing user or create new one
+         * @description Returns existing user if email exists, otherwise creates new user. ONLY available in Development/Test.
+         */
+        post: operations["GetOrCreateTestUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/test-helpers/ticket-purchases": {
         parameters: {
             query?: never;
@@ -1356,6 +1436,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/test-helpers/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify user email for E2E testing
+         * @description Programmatically verify a user's email address for testing. Bypasses email confirmation flow. ONLY available in Development/Test.
+         */
+        post: operations["VerifyUserEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/test-helpers/health": {
         parameters: {
             query?: never;
@@ -1371,6 +1471,206 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test event for E2E testing
+         * @description Programmatically create an event with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test event for cleanup
+         * @description Delete a test event by ID. Also deletes related sessions and ticket types. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestEvent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test session for E2E testing
+         * @description Programmatically create a session with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test session for cleanup
+         * @description Delete a test session by ID. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestSession"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/ticket-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test ticket type for E2E testing
+         * @description Programmatically create a ticket type with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestTicketType"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/ticket-types/{ticketTypeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test ticket type for cleanup
+         * @description Delete a test ticket type by ID. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestTicketType"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/volunteer-positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test volunteer position for E2E testing
+         * @description Programmatically create a volunteer position with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestVolunteerPosition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/volunteer-positions/{positionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test volunteer position for cleanup
+         * @description Delete a test volunteer position by ID. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestVolunteerPosition"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/vetting-applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test vetting application for E2E testing
+         * @description Programmatically create a vetting application with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestVettingApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/vetting-applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test vetting application for cleanup
+         * @description Delete a test vetting application by ID. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestVettingApplication"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1759,6 +2059,26 @@ export interface paths {
          * @description Update involved parties and/or witnesses information (Admin/Coordinator)
          */
         put: operations["UpdateIncidentPeople"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/incidents/{incidentId}/title": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update incident title
+         * @description Update the title of an incident (Admin/Coordinator)
+         */
+        put: operations["UpdateIncidentTitle"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2396,6 +2716,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email-templates/{id}/trigger-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update trigger configuration for a global template
+         * @description Updates trigger configuration (type, enabled, timing, recipient group). Events category only. Admin access required.
+         */
+        put: operations["UpdateTriggerConfig"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/time-based": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all time-based templates
+         * @description Returns all enabled time-based templates for EmailSchedulerJob. Admin access required.
+         */
+        get: operations["GetTimeBasedTemplates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/email-templates/events/{eventId}": {
         parameters: {
             query?: never;
@@ -2544,6 +2904,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email-templates/ad-hoc/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all saved ad-hoc templates
+         * @description Returns all saved ad-hoc email templates for reuse. Admin access required.
+         */
+        get: operations["GetAdHocTemplates"];
+        put?: never;
+        /**
+         * Save an ad-hoc email as a template
+         * @description Saves an ad-hoc email as a reusable template. Admin access required.
+         */
+        post: operations["SaveAsTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/ad-hoc/templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a saved ad-hoc template
+         * @description Deletes a saved ad-hoc email template. Admin access required.
+         */
+        delete: operations["DeleteAdHocTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/trigger-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get email trigger log entries
+         * @description Returns email trigger log entries with optional filtering by event, status, template type, and date range. Admin access required.
+         */
+        get: operations["GetTriggerLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/ad-hoc/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Schedule an ad-hoc email for future delivery
+         * @description Schedules an ad-hoc email for future delivery via EmailSchedulerJob. Admin access required.
+         */
+        post: operations["ScheduleAdHocEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cms/pages/{slug}": {
         parameters: {
             query?: never;
@@ -2616,6 +3060,66 @@ export interface paths {
          * @description Lists all content pages with revision counts. Requires Administrator role.
          */
         get: operations["GetAllCmsPages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query application logs
+         * @description Search and filter raw application logs with pagination. Returns logs ordered by timestamp descending.
+         */
+        get: operations["QueryLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/logs/summaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query daily log summaries
+         * @description Retrieve aggregated daily log summaries with optional category filter.
+         */
+        get: operations["QueryDailyLogSummaries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/logs/summaries/cc-failures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query credit card failure summaries
+         * @description Convenience endpoint to retrieve daily credit card failure summaries.
+         */
+        get: operations["QueryCcFailureSummaries"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2784,6 +3288,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/checkout/credit-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CheckoutRequest"];
+                    "text/json": components["schemas"]["CheckoutRequest"];
+                    "application/*+json": components["schemas"]["CheckoutRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckoutResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/kiosk/payment-stream/{sessionToken}": {
         parameters: {
             query?: never;
@@ -2859,8 +3422,8 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CashPaymentRequest2"];
-                    "application/*+json": components["schemas"]["CashPaymentRequest2"];
+                    "application/json": components["schemas"]["CashPaymentRequest"];
+                    "application/*+json": components["schemas"]["CashPaymentRequest"];
                 };
             };
             responses: {
@@ -2870,7 +3433,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["CashPaymentResponse2"];
+                        "application/json": components["schemas"]["CashPaymentResponse"];
                     };
                 };
                 /** @description Bad Request */
@@ -2941,7 +3504,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/payments/process": {
+    "/api/checkout/paypal/create-order": {
         parameters: {
             query?: never;
             header?: never;
@@ -2959,9 +3522,9 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["ProcessPaymentApiRequest"];
-                    "text/json": components["schemas"]["ProcessPaymentApiRequest"];
-                    "application/*+json": components["schemas"]["ProcessPaymentApiRequest"];
+                    "application/json": components["schemas"]["PayPalCheckoutCreateOrderRequest"];
+                    "text/json": components["schemas"]["PayPalCheckoutCreateOrderRequest"];
+                    "application/*+json": components["schemas"]["PayPalCheckoutCreateOrderRequest"];
                 };
             };
             responses: {
@@ -2971,9 +3534,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["PaymentResponse"];
-                        "application/json": components["schemas"]["PaymentResponse"];
-                        "text/json": components["schemas"]["PaymentResponse"];
+                        "application/json": components["schemas"]["PayPalCheckoutCreateOrderResponse"];
                     };
                 };
                 /** @description Bad Request */
@@ -2982,9 +3543,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ValidationProblemDetails"];
-                        "application/json": components["schemas"]["ValidationProblemDetails"];
-                        "text/json": components["schemas"]["ValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Unauthorized */
@@ -2993,17 +3552,8 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
                         "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
                     };
-                };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
             };
         };
@@ -3013,140 +3563,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/payments/{paymentId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    paymentId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["PaymentResponse"];
-                        "application/json": components["schemas"]["PaymentResponse"];
-                        "text/json": components["schemas"]["PaymentResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/registration/{eventRegistrationId}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    eventRegistrationId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["PaymentStatusResponse"];
-                        "application/json": components["schemas"]["PaymentStatusResponse"];
-                        "text/json": components["schemas"]["PaymentStatusResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/{paymentId}/refund": {
+    "/api/checkout/paypal/capture-order": {
         parameters: {
             query?: never;
             header?: never;
@@ -3159,16 +3576,14 @@ export interface paths {
             parameters: {
                 query?: never;
                 header?: never;
-                path: {
-                    paymentId: string;
-                };
+                path?: never;
                 cookie?: never;
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["ProcessRefundApiRequest"];
-                    "text/json": components["schemas"]["ProcessRefundApiRequest"];
-                    "application/*+json": components["schemas"]["ProcessRefundApiRequest"];
+                    "application/json": components["schemas"]["PayPalCheckoutCaptureOrderRequest"];
+                    "text/json": components["schemas"]["PayPalCheckoutCaptureOrderRequest"];
+                    "application/*+json": components["schemas"]["PayPalCheckoutCaptureOrderRequest"];
                 };
             };
             responses: {
@@ -3178,9 +3593,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["RefundResponse2"];
-                        "application/json": components["schemas"]["RefundResponse2"];
-                        "text/json": components["schemas"]["RefundResponse2"];
+                        "application/json": components["schemas"]["PayPalCheckoutCaptureOrderResponse"];
                     };
                 };
                 /** @description Bad Request */
@@ -3189,9 +3602,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ValidationProblemDetails"];
-                        "application/json": components["schemas"]["ValidationProblemDetails"];
-                        "text/json": components["schemas"]["ValidationProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
                 /** @description Unauthorized */
@@ -3200,31 +3611,57 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
                         "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/checkout/paypal/cancel-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PayPalCheckoutCancelOrderRequest"];
+                    "text/json": components["schemas"]["PayPalCheckoutCancelOrderRequest"];
+                    "application/*+json": components["schemas"]["PayPalCheckoutCancelOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
+                        "application/json": unknown;
                     };
                 };
-                /** @description Not Found */
-                404: {
+                /** @description Unauthorized */
+                401: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
                         "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -3442,32 +3879,41 @@ export interface components {
         };
         AddNoteRequest: {
             content?: string;
-            tags?: string | null;
+            tags?: null | string;
+        };
+        AdHocEmailTemplateDto: {
+            /** Format: uuid */
+            id?: string;
+            templateName?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: uuid */
+            createdBy?: string;
+            createdByEmail?: string;
         };
         AdminDashboardResponse: {
             statistics?: components["schemas"]["SafetyStatistics"];
             recentIncidents?: components["schemas"]["IncidentSummaryResponse"][];
             pendingActions?: components["schemas"]["ActionItem"][];
         };
-        AdminRefundTicketRequest: {
-            alsoRemoveRsvp?: boolean;
-            refundReason?: string;
-        };
-        AdminRefundTicketResponse: {
-            ticketRefunded?: boolean;
-            /** Format: double */
-            refundAmount?: number;
-            rsvpRemoved?: boolean;
-            volunteerShiftsRemoved?: boolean;
-            volunteerShiftNames?: string[];
-        };
         AdminRemoveRsvpResponse: {
             rsvpRemoved?: boolean;
             ticketRefunded?: boolean;
             /** Format: double */
-            refundAmount?: number | null;
+            refundAmount?: null | number;
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
+        };
+        AffectedTicketTypeDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            /** Format: int32 */
+            ticketsSold?: number;
+            willBeDeleted?: boolean;
         };
         ApplicationDetailResponse: {
             /** Format: uuid */
@@ -3477,26 +3923,23 @@ export interface components {
             /** Format: date-time */
             submittedAt?: string;
             /** Format: date-time */
-            lastActivityAt?: string | null;
+            lastActivityAt?: null | string;
             sceneName?: string;
-            pronouns?: string | null;
+            pronouns?: null | string;
             email?: string;
-            fetLifeHandle?: string | null;
-            otherNames?: string | null;
-            experienceLevel?: string;
-            /** Format: int32 */
-            yearsExperience?: number;
+            fetLifeHandle?: null | string;
+            otherNames?: null | string;
             experienceDescription?: string;
             whyJoinCommunity?: string;
-            howDidYouHearAboutUs?: string | null;
+            howDidYouHearAboutUs?: null | string;
             agreesToGuidelines?: boolean;
-            assignedReviewerName?: string | null;
+            assignedReviewerName?: null | string;
             /** Format: date-time */
-            reviewStartedAt?: string | null;
+            reviewStartedAt?: null | string;
             /** Format: int32 */
             priority?: number;
             /** Format: date-time */
-            interviewScheduledFor?: string | null;
+            interviewScheduledFor?: null | string;
             references?: components["schemas"]["ReferenceDetailDto"][];
             notes?: components["schemas"]["ApplicationNoteDto"][];
             decisions?: components["schemas"]["ReviewDecisionDto"][];
@@ -3514,28 +3957,23 @@ export interface components {
             /** Format: int32 */
             pageSize?: number;
             statusFilters?: string[];
-            onlyMyAssignments?: boolean | null;
-            onlyUnassigned?: boolean | null;
+            onlyMyAssignments?: null | boolean;
+            onlyUnassigned?: null | boolean;
             /** Format: uuid */
-            assignedReviewerId?: string | null;
+            assignedReviewerId?: null | string;
             priorityFilters?: number[];
-            experienceLevelFilters?: number[];
-            /** Format: int32 */
-            minYearsExperience?: number | null;
-            /** Format: int32 */
-            maxYearsExperience?: number | null;
             skillsFilters?: string[];
             /** Format: date-time */
-            submittedAfter?: string | null;
+            submittedAfter?: null | string;
             /** Format: date-time */
-            submittedBefore?: string | null;
+            submittedBefore?: null | string;
             /** Format: date-time */
-            lastActivityAfter?: string | null;
+            lastActivityAfter?: null | string;
             /** Format: date-time */
-            lastActivityBefore?: string | null;
-            searchQuery?: string | null;
-            onlyCompleteReferences?: boolean | null;
-            onlyPendingReferences?: boolean | null;
+            lastActivityBefore?: null | string;
+            searchQuery?: null | string;
+            onlyCompleteReferences?: null | boolean;
+            onlyPendingReferences?: null | boolean;
             sortBy?: string;
             sortDirection?: string;
         };
@@ -3572,7 +4010,7 @@ export interface components {
             respondedReferences?: number;
             allReferencesComplete?: boolean;
             /** Format: date-time */
-            oldestPendingReferenceDate?: string | null;
+            oldestPendingReferenceDate?: null | string;
         };
         ApplicationStatusInfo: {
             /** Format: uuid */
@@ -3584,10 +4022,10 @@ export interface components {
             submittedAt?: string;
             /** Format: date-time */
             lastUpdated?: string;
-            nextSteps?: string | null;
+            nextSteps?: null | string;
             /** Format: int32 */
-            estimatedDaysRemaining?: number | null;
-        } | null;
+            estimatedDaysRemaining?: null | number;
+        };
         ApplicationStatusResponse: {
             applicationNumber?: string;
             status?: string;
@@ -3595,9 +4033,9 @@ export interface components {
             submittedAt?: string;
             statusDescription?: string;
             /** Format: date-time */
-            lastUpdateAt?: string | null;
+            lastUpdateAt?: null | string;
             /** Format: int32 */
-            estimatedDaysRemaining?: number | null;
+            estimatedDaysRemaining?: null | number;
             progress?: components["schemas"]["ApplicationProgressSummary"];
             recentUpdates?: components["schemas"]["StatusUpdateSummary"][];
         };
@@ -3624,16 +4062,13 @@ export interface components {
             /** Format: date-time */
             submittedAt?: string;
             /** Format: date-time */
-            lastActivityAt?: string | null;
+            lastActivityAt?: null | string;
             sceneName?: string;
             email?: string;
-            fetLifeHandle?: string | null;
-            experienceLevel?: string;
-            /** Format: int32 */
-            yearsExperience?: number;
-            assignedReviewerName?: string | null;
+            fetLifeHandle?: null | string;
+            assignedReviewerName?: null | string;
             /** Format: date-time */
-            reviewStartedAt?: string | null;
+            reviewStartedAt?: null | string;
             /** Format: int32 */
             priority?: number;
             /** Format: int32 */
@@ -3642,18 +4077,18 @@ export interface components {
             hasRecentNotes?: boolean;
             hasPendingActions?: boolean;
             /** Format: date-time */
-            interviewScheduledFor?: string | null;
+            interviewScheduledFor?: null | string;
         };
         AssignCoordinatorRequest: {
             /** Format: uuid */
-            coordinatorId?: string | null;
+            coordinatorId?: null | string;
         };
         AssignVolunteerRequest: {
             /** Format: uuid */
             userId?: string;
         };
         /** @enum {unknown} */
-        AttendanceStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted";
+        AttendanceStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted" | "PendingPayment";
         /** @enum {unknown} */
         AttendanceType: "RSVP" | "Ticket";
         AttendeeResponse: {
@@ -3662,16 +4097,17 @@ export interface components {
             sceneName?: string;
             email?: string;
             registrationStatus?: components["schemas"]["RegistrationStatus"];
-            ticketNumber?: string | null;
-            checkInTime?: string | null;
+            ticketNumber?: null | string;
+            checkInTime?: null | string;
             isFirstTime?: boolean;
-            dietaryRestrictions?: string | null;
-            accessibilityNeeds?: string | null;
-            pronouns?: string | null;
+            dietaryRestrictions?: null | string;
+            accessibilityNeeds?: null | string;
+            pronouns?: null | string;
             hasCompletedWaiver?: boolean;
             /** Format: int32 */
-            waitlistPosition?: number | null;
+            waitlistPosition?: null | number;
             paymentStatus?: string;
+            sessionNames?: null | string[];
         };
         AuditLogDto: {
             /** Format: uuid */
@@ -3679,8 +4115,8 @@ export interface components {
             actionType?: string;
             actionDescription?: string;
             /** Format: uuid */
-            userId?: string | null;
-            userName?: string | null;
+            userId?: null | string;
+            userName?: null | string;
             /** Format: date-time */
             createdAt?: string;
         };
@@ -3692,7 +4128,7 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            lastLoginAt?: string | null;
+            lastLoginAt?: null | string;
             role?: string;
             roles?: string[];
             isActive?: boolean;
@@ -3706,7 +4142,7 @@ export interface components {
             message?: string;
             /** Format: int32 */
             estimatedSeconds?: number;
-            preBackupFileName?: string | null;
+            preBackupFileName?: null | string;
         };
         BackupJobStatusResponse: {
             jobId?: string;
@@ -3715,10 +4151,10 @@ export interface components {
             progress?: number;
             message?: string;
             /** Format: date-time */
-            startedAt?: string | null;
+            startedAt?: null | string;
             /** Format: date-time */
-            completedAt?: string | null;
-            error?: string | null;
+            completedAt?: null | string;
+            error?: null | string;
         };
         BackupListItem: {
             fileName?: string;
@@ -3735,6 +4171,10 @@ export interface components {
             /** Format: int64 */
             totalSizeBytes?: number;
             totalSizeFormatted?: string;
+        };
+        CancelTicketRequest: {
+            ticketPurchaseIds?: null | string[];
+            reason?: null | string;
         };
         CapacityInfo: {
             /** Format: int32 */
@@ -3755,7 +4195,7 @@ export interface components {
             total?: number;
             /** Format: int32 */
             available?: number;
-        } | null;
+        };
         CashPaymentRequest: {
             /** Format: uuid */
             attendeeId: string;
@@ -3763,17 +4203,9 @@ export interface components {
             ticketTypeId: string;
             /** Format: double */
             amount: number;
-            notes?: string | null;
+            notes?: null | string;
             /** Format: uuid */
             recordedByStaffId: string;
-        };
-        CashPaymentRequest2: {
-            /** Format: uuid */
-            attendeeId?: string;
-            /** Format: double */
-            amount?: number;
-            notes?: string | null;
-            sessionToken?: string | null;
         };
         CashPaymentResponse: {
             /** Format: uuid */
@@ -3784,21 +4216,6 @@ export interface components {
             amount?: number;
             /** Format: date-time */
             recordedAt?: string;
-        };
-        CashPaymentResponse2: {
-            success?: boolean;
-            /** Format: uuid */
-            paymentId?: string;
-            /** Format: date-time */
-            timestamp?: string;
-            message?: string;
-            /** Format: uuid */
-            attendeeId?: string;
-            /** Format: uuid */
-            eventId?: string;
-            /** Format: double */
-            amount?: number;
-            currency?: string;
         };
         ChangePasswordDto: {
             currentPassword: string;
@@ -3821,11 +4238,11 @@ export interface components {
         CheckInRequest: {
             attendeeId: string;
             checkInTime: string;
-            staffMemberId?: string | null;
-            notes?: string | null;
+            staffMemberId?: null | string;
+            notes?: null | string;
             overrideCapacity?: boolean;
             isManualEntry?: boolean;
-            manualEntryData?: components["schemas"]["ManualEntryData"];
+            manualEntryData?: null | components["schemas"]["ManualEntryData"];
         };
         CheckInResponse: {
             success?: boolean;
@@ -3833,7 +4250,45 @@ export interface components {
             checkInTime?: string;
             message?: string;
             currentCapacity?: components["schemas"]["CapacityInfo"];
-            auditLogId?: string | null;
+            auditLogId?: null | string;
+            /** Format: uuid */
+            sessionId?: string;
+            sessionName?: string;
+        };
+        CheckoutRequest: {
+            /** Format: uuid */
+            eventId: string;
+            ticketTypeIds: string[];
+            eventWaiverAccepted: boolean;
+            nonce: string;
+            dataDescriptor: string;
+            /** Format: double */
+            amount: number;
+            lastFourDigits?: null | string;
+            cardType?: null | string;
+            idempotencyKey: string;
+        };
+        CheckoutResponse: {
+            transactionId?: string;
+            ticketPurchaseIds?: string[];
+            confirmationNumber?: string;
+            status?: string;
+            authCode?: null | string;
+            /** Format: double */
+            amountCharged?: number;
+        };
+        ClientErrorBatch: {
+            errors: components["schemas"]["ClientErrorReport"][];
+        };
+        ClientErrorReport: {
+            message: string;
+            stack?: null | string;
+            type: string;
+            url: string;
+            timestamp: string;
+            userAgent: string;
+            componentStack?: null | string;
+            metadata?: null | Record<string, never>;
         };
         CmsPageSummaryDto: {
             /** Format: int32 */
@@ -3867,10 +4322,10 @@ export interface components {
             createdAt?: string;
             createdBy?: string;
             createdBySceneName?: string;
-            changeDescription?: string | null;
+            changeDescription?: null | string;
             contentPreview?: string;
             title?: string;
-            fullContent?: string | null;
+            fullContent?: null | string;
         };
         CopyEventRequest: {
             /** Format: date-time */
@@ -3879,58 +4334,58 @@ export interface components {
         };
         CreateEventRequest: {
             title: string;
-            shortDescription?: string | null;
+            shortDescription?: null | string;
             description: string;
-            policies?: string | null;
+            policies?: null | string;
             /** Format: date-time */
             startDate: string;
             /** Format: date-time */
             endDate: string;
             /** Format: int32 */
             venueId: number;
-            eventType: string;
             /** Format: int32 */
             capacity: number;
             isPublished?: boolean;
-            sessions?: components["schemas"]["SessionDto"][] | null;
-            ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
-            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
-            teacherIds?: string[] | null;
+            allowRsvps: boolean;
+            requireTicketPurchase: boolean;
+            vettedMembersOnly: boolean;
+            sessions?: null | components["schemas"]["SessionDto"][];
+            ticketTypes?: null | components["schemas"]["TicketTypeDto"][];
+            volunteerPositions?: null | components["schemas"]["EventVolunteerPositionDto"][];
+            teacherIds?: null | string[];
             /** Format: double */
-            registrationOpenHours?: number | null;
+            registrationOpenHours?: null | number;
             /** Format: double */
-            registrationCloseHours?: number | null;
+            registrationCloseHours?: null | number;
             /** Format: double */
-            cancellationOpenHours?: number | null;
+            cancellationCloseHours?: null | number;
             /** Format: double */
-            cancellationCloseHours?: number | null;
+            volunteerRegistrationCloseHours?: null | number;
             /** Format: double */
-            volunteerRegistrationCloseHours?: number | null;
-            /** Format: double */
-            volunteerCancellationCloseHours?: number | null;
+            volunteerCancellationCloseHours?: null | number;
         };
         CreateIncidentRequest: {
             /** Format: uuid */
-            reporterId?: string | null;
+            reporterId?: null | string;
             title?: string;
             /** Format: date-time */
             incidentDate?: string;
-            location?: string | null;
+            location?: null | string;
             description?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
             isAnonymous?: boolean;
             requestFollowUp?: boolean;
-            contactEmail?: string | null;
-            contactName?: string | null;
+            contactEmail?: null | string;
+            contactName?: null | string;
             type?: components["schemas"]["IncidentType"];
             whereOccurred?: components["schemas"]["WhereOccurred"];
-            eventName?: string | null;
-            hasSpokenToPerson?: components["schemas"]["NullableOfSpokenToPersonStatus"];
-            desiredOutcomes?: string | null;
-            futureInteractionPreference?: string | null;
-            anonymousDuringInvestigation?: boolean | null;
-            anonymousInFinalReport?: boolean | null;
+            eventName?: null | string;
+            hasSpokenToPerson?: null | components["schemas"]["SpokenToPersonStatus"];
+            desiredOutcomes?: null | string;
+            futureInteractionPreference?: null | string;
+            anonymousDuringInvestigation?: null | boolean;
+            anonymousInFinalReport?: null | boolean;
         };
         CreateNoteRequest: {
             content: string;
@@ -3942,44 +4397,116 @@ export interface components {
         CreateRSVPRequest: {
             /** Format: uuid */
             eventId: string;
-            notes?: string | null;
+            notes?: null | string;
             eventWaiverAccepted: boolean;
+        };
+        CreateTestEventRequest: {
+            title: string;
+            shortDescription?: null | string;
+            description?: null | string;
+            /** Format: date-time */
+            startDate: string;
+            /** Format: date-time */
+            endDate: string;
+            allowRsvps?: boolean;
+            requireTicketPurchase?: boolean;
+            vettedMembersOnly?: boolean;
+            /** Format: int32 */
+            status?: number;
+            isPublished?: boolean;
+            /** Format: int32 */
+            capacity?: number;
+            /** Format: int32 */
+            venueId?: null | number;
+            /** Format: double */
+            registrationOpenHours?: null | number;
+            /** Format: double */
+            registrationCloseHours?: null | number;
+            /** Format: double */
+            cancellationCloseHours?: null | number;
+        };
+        CreateTestSessionRequest: {
+            /** Format: uuid */
+            eventId: string;
+            sessionCode?: null | string;
+            name: string;
+            /** Format: date-time */
+            startTime: string;
+            /** Format: date-time */
+            endTime: string;
+            /** Format: int32 */
+            capacity?: number;
         };
         CreateTestTicketPurchaseRequest: {
             /** Format: double */
             totalPrice: number;
             paymentMethod?: string;
             paymentStatus?: string;
-            paymentReference?: string | null;
-            notes?: string | null;
+            paymentReference?: null | string;
+            notes?: null | string;
             /** Format: uuid */
-            userId?: string | null;
+            userId?: null | string;
             /** Format: uuid */
-            ticketTypeId?: string | null;
+            ticketTypeId?: null | string;
             /** Format: int32 */
             quantity?: number;
-            includePayPalCaptureId?: boolean | null;
-            eventName?: string | null;
+            includePayPalCaptureId?: null | boolean;
+            eventName?: null | string;
+        };
+        CreateTestTicketTypeRequest: {
+            /** Format: uuid */
+            eventId: string;
+            name: string;
+            description?: null | string;
+            /** Format: double */
+            price: number;
+            /** Format: int32 */
+            pricingType?: number;
+            /** Format: int32 */
+            available?: number;
+            sessionIds?: null | string[];
         };
         CreateTestUserRequest: {
             email: string;
             password: string;
             sceneName: string;
-            firstName?: string | null;
-            lastName?: string | null;
-            role?: string | null;
+            firstName?: null | string;
+            lastName?: null | string;
+            role?: null | string;
             /** Format: date-time */
-            dateOfBirth?: string | null;
+            dateOfBirth?: null | string;
             /** Format: int32 */
             vettingStatus?: number;
-            bio?: string | null;
-            pronouns?: string | null;
+            bio?: null | string;
+            pronouns?: null | string;
+        };
+        CreateTestVettingApplicationRequest: {
+            userId: string;
+            /** Format: int32 */
+            workflowStatus?: number;
+            experienceDescription?: null | string;
+            whyJoinCommunity?: null | string;
+            howDidYouHearAboutUs?: null | string;
+        };
+        CreateTestVolunteerPositionRequest: {
+            /** Format: uuid */
+            eventId: string;
+            title: string;
+            description?: null | string;
+            /** Format: int32 */
+            slotsNeeded?: number;
+            /** Format: int32 */
+            slotsFilled?: number;
+            isPublicFacing?: boolean;
+            /** Format: uuid */
+            sessionId?: null | string;
         };
         CreateTicketPurchaseRequest: {
             /** Format: uuid */
             eventId: string;
-            notes?: string | null;
-            paymentMethodId?: string | null;
+            ticketTypeIds: string[];
+            notes?: null | string;
+            paymentMethodId?: null | string;
             eventWaiverAccepted: boolean;
         };
         CreateUserNoteRequest: {
@@ -3988,9 +4515,18 @@ export interface components {
         };
         CreateVenueRequest: {
             name?: string;
-            directions?: string | null;
-            notes?: string | null;
-            location?: string | null;
+            directions?: null | string;
+            venueInformation?: null | string;
+            location?: null | string;
+        };
+        DailyLogSummaryDto: {
+            /** Format: date */
+            date?: string;
+            category?: string;
+            subcategory?: null | string;
+            /** Format: int32 */
+            count?: number;
+            metadata?: null | string;
         };
         DashboardResponse: {
             eventId?: string;
@@ -4008,6 +4544,33 @@ export interface components {
             hasOldUnassigned?: boolean;
             recentIncidents?: components["schemas"]["IncidentSummaryDto"][];
         };
+        DeleteSessionCheckDto: {
+            canDelete?: boolean;
+            blockReason?: null | string;
+            /** Format: int32 */
+            rsvpCount?: number;
+            /** Format: int32 */
+            ticketsSoldCount?: number;
+            volunteerShifts?: null | string[];
+            affectedTicketTypes?: null | components["schemas"]["AffectedTicketTypeDto"][];
+        };
+        DeleteSessionResultDto: {
+            success?: boolean;
+            /** Format: int32 */
+            rsvpsCancelled?: number;
+            /** Format: int32 */
+            volunteerSignupsCancelled?: number;
+            deletedTicketTypes?: null | string[];
+        };
+        DeleteTicketTypeCheckDto: {
+            canDelete?: boolean;
+            blockReason?: null | string;
+            /** Format: int32 */
+            ticketsSoldCount?: number;
+        };
+        DeleteTicketTypeResultDto: {
+            success?: boolean;
+        };
         DetailedHealthResponse: {
             databaseVersion?: string;
             /** Format: int32 */
@@ -4021,6 +4584,29 @@ export interface components {
             userCount?: number;
             version?: string;
         };
+        EmailTriggerLogDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            templateId?: string;
+            /** Format: uuid */
+            eventId?: null | string;
+            eventTitle?: null | string;
+            /** Format: uuid */
+            sessionId?: null | string;
+            sessionTitle?: null | string;
+            templateType?: string;
+            triggerType?: string;
+            recipientGroup?: string;
+            /** Format: int32 */
+            recipientCount?: number;
+            /** Format: date-time */
+            triggeredAt?: string;
+            /** Format: date-time */
+            sentAt?: null | string;
+            status?: string;
+            errorMessage?: null | string;
+        };
         EnhancedParticipationStatusDto: {
             hasRSVP?: boolean;
             hasTicket?: boolean;
@@ -4028,30 +4614,39 @@ export interface components {
             canPurchaseTicket?: boolean;
             canCancelRSVP?: boolean;
             canCancelTicket?: boolean;
-            rsvp?: components["schemas"]["RsvpDetailsDto"];
-            ticket?: components["schemas"]["TicketDetailsDto"];
-            capacity?: components["schemas"]["CapacityInfoDto"];
-        };
-        ErrorResponse: {
-            error?: string;
+            ticketPurchaseMessage?: null | string;
+            rsvp?: null | components["schemas"]["RsvpDetailsDto"];
+            ticket?: null | components["schemas"]["TicketDetailsDto"];
+            capacity?: null | components["schemas"]["CapacityInfoDto"];
+            ownedSessionIds?: string[];
+            ticketPurchaseSessionMap?: {
+                [key: string]: string[];
+            };
+            ticketPurchases?: {
+                [key: string]: components["schemas"]["TicketPurchaseInfoDto"];
+            };
+            canPurchaseAdditionalSessions?: boolean;
+            sessionAvailability?: components["schemas"]["SessionAvailabilityDto"][];
         };
         EventDto: {
             id?: string;
             title?: string;
-            shortDescription?: string | null;
+            shortDescription?: null | string;
             description?: string;
-            policies?: string | null;
+            policies?: null | string;
             /** Format: date-time */
             startDate?: string;
             /** Format: date-time */
             endDate?: string;
             /** Format: int32 */
             venueId?: number;
-            venueLocation?: string | null;
-            eventType?: string;
+            venueLocation?: null | string;
             /** Format: int32 */
             capacity?: number;
             isPublished?: boolean;
+            allowRsvps?: boolean;
+            requireTicketPurchase?: boolean;
+            vettedMembersOnly?: boolean;
             /** Format: int32 */
             registrationCount?: number;
             /** Format: int32 */
@@ -4060,20 +4655,18 @@ export interface components {
             currentTickets?: number;
             sessions?: components["schemas"]["SessionDto"][];
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
-            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
+            volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][];
             teacherIds?: string[];
             /** Format: double */
-            registrationOpenHours?: number | null;
+            registrationOpenHours?: null | number;
             /** Format: double */
-            registrationCloseHours?: number | null;
+            registrationCloseHours?: null | number;
             /** Format: double */
-            cancellationOpenHours?: number | null;
+            cancellationCloseHours?: null | number;
             /** Format: double */
-            cancellationCloseHours?: number | null;
+            volunteerRegistrationCloseHours?: null | number;
             /** Format: double */
-            volunteerRegistrationCloseHours?: number | null;
-            /** Format: double */
-            volunteerCancellationCloseHours?: number | null;
+            volunteerCancellationCloseHours?: null | number;
         };
         EventEmailTemplateDto: {
             /** Format: uuid */
@@ -4088,6 +4681,14 @@ export interface components {
             plainTextBody?: string;
             targetSessions?: string[];
             isCustomized?: boolean;
+            triggerType?: null | string;
+            triggerEnabled?: boolean;
+            /** Format: int32 */
+            timingOffsetDays?: null | number;
+            /** Format: int32 */
+            timingOffsetHours?: null | number;
+            recipientGroup?: null | string;
+            hasTriggerOverrides?: boolean;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -4100,17 +4701,19 @@ export interface components {
             /** Format: uuid */
             eventId?: string;
             eventTitle?: string;
-            eventType?: string;
+            allowRsvps?: boolean;
+            requireTicketPurchase?: boolean;
+            vettedMembersOnly?: boolean;
             /** Format: date-time */
             eventDate?: string;
             registrationType?: string;
-            participationStatus?: string | null;
+            participationStatus?: null | string;
             /** Format: date-time */
-            registeredAt?: string | null;
+            registeredAt?: null | string;
             /** Format: date-time */
-            cancelledAt?: string | null;
+            cancelledAt?: null | string;
             /** Format: double */
-            amountPaid?: number | null;
+            amountPaid?: null | number;
         };
         EventHistoryResponse: {
             events?: components["schemas"]["EventHistoryRecord"][];
@@ -4123,6 +4726,34 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        EventListItemDto: {
+            id?: string;
+            title?: string;
+            description?: null | string;
+            isPublished?: boolean;
+            allowRsvps?: boolean;
+            requireTicketPurchase?: boolean;
+            /** Format: int32 */
+            capacity?: number;
+            /** Format: int32 */
+            currentRSVPs?: number;
+            /** Format: int32 */
+            currentTickets?: number;
+            /** Format: date-time */
+            startDate?: string;
+            /** Format: date-time */
+            endDate?: null | string;
+            sessions?: components["schemas"]["EventListSessionDto"][];
+        };
+        EventListSessionDto: {
+            id?: string;
+            /** Format: date-time */
+            startTime?: string;
+            /** Format: date-time */
+            endTime?: string;
+            /** Format: date-time */
+            startDate?: string;
+        };
         EventParticipationDto: {
             /** Format: uuid */
             id?: string;
@@ -4134,19 +4765,43 @@ export interface components {
             status?: components["schemas"]["AttendanceStatus"];
             /** Format: date-time */
             participationDate?: string;
-            notes?: string | null;
+            notes?: null | string;
             canCancel?: boolean;
-            metadata?: string | null;
+            metadata?: null | string;
             hasCheckedIn?: boolean;
             /** Format: date-time */
-            checkInTime?: string | null;
-            ticketTypeName?: string | null;
+            checkInTime?: null | string;
+            ticketTypeName?: null | string;
             sessionNames?: string;
             /** Format: double */
-            amountPaid?: number | null;
+            amountPaid?: null | number;
             /** Format: uuid */
-            ticketId?: string | null;
-            paymentMethod?: string | null;
+            ticketId?: null | string;
+            paymentMethod?: null | string;
+            checkedInSessions?: string[];
+            refundHistory?: components["schemas"]["RefundHistoryDto"][];
+            /** Format: double */
+            totalRefunded?: number;
+            /** Format: double */
+            remainingRefundable?: number;
+        };
+        /** @enum {unknown} */
+        EventRecipientGroup: "SessionAttendees" | "RSVPTicketHolders" | "SessionVolunteers" | "Teachers" | null;
+        EventVolunteerPositionDto: {
+            id?: string;
+            title?: string;
+            description?: string;
+            /** Format: int32 */
+            slotsNeeded?: number;
+            /** Format: int32 */
+            slotsFilled?: number;
+            sessionId?: null | string;
+            startTime?: null | string;
+            endTime?: null | string;
+            isPublicFacing?: boolean;
+            /** Format: int32 */
+            slotsRemaining?: number;
+            isFullyStaffed?: boolean;
         };
         ForgotPasswordRequest: {
             email: string;
@@ -4154,8 +4809,11 @@ export interface components {
         GenerateTokenRequest: {
             /** Format: uuid */
             eventId?: string;
+            /** Format: uuid */
+            sessionId?: null | string;
+            sessionIds?: null | string[];
             /** Format: double */
-            expirationHours?: number | null;
+            expirationHours?: null | number;
         };
         GlobalEmailTemplateDto: {
             /** Format: uuid */
@@ -4177,12 +4835,19 @@ export interface components {
             /** Format: uuid */
             updatedBy?: string;
             updatedByEmail?: string;
+            triggerType?: components["schemas"]["TemplateTriggerType"];
+            triggerEnabled?: boolean;
+            /** Format: int32 */
+            timingOffsetDays?: null | number;
+            /** Format: int32 */
+            timingOffsetHours?: null | number;
+            recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
         GoogleDriveUpdateResponse: {
             /** Format: uuid */
             id?: string;
-            googleDriveFolderUrl?: string | null;
-            googleDriveFinalReportUrl?: string | null;
+            googleDriveFolderUrl?: null | string;
+            googleDriveFinalReportUrl?: null | string;
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
@@ -4204,13 +4869,13 @@ export interface components {
             content?: string;
             type?: components["schemas"]["IncidentNoteType"];
             /** Format: uuid */
-            authorId?: string | null;
-            authorName?: string | null;
-            tags?: string | null;
+            authorId?: null | string;
+            authorName?: null | string;
+            tags?: null | string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            updatedAt?: string | null;
+            updatedAt?: null | string;
         };
         /** @enum {unknown} */
         IncidentNoteType: "Manual" | "System";
@@ -4220,37 +4885,37 @@ export interface components {
             referenceNumber?: string;
             title?: string;
             /** Format: uuid */
-            reporterId?: string | null;
-            reporterName?: string | null;
+            reporterId?: null | string;
+            reporterName?: null | string;
             /** Format: date-time */
             incidentDate?: string;
             /** Format: date-time */
             reportedAt?: string;
             location?: string;
             description?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
-            contactEmail?: string | null;
-            contactName?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
+            contactEmail?: null | string;
+            contactName?: null | string;
             isAnonymous?: boolean;
             requestFollowUp?: boolean;
             type?: components["schemas"]["IncidentType"];
             whereOccurred?: components["schemas"]["WhereOccurred"];
-            eventName?: string | null;
-            hasSpokenToPerson?: components["schemas"]["NullableOfSpokenToPersonStatus"];
-            desiredOutcomes?: string | null;
-            futureInteractionPreference?: string | null;
-            anonymousDuringInvestigation?: boolean | null;
-            anonymousInFinalReport?: boolean | null;
+            eventName?: null | string;
+            hasSpokenToPerson?: null | components["schemas"]["SpokenToPersonStatus"];
+            desiredOutcomes?: null | string;
+            futureInteractionPreference?: null | string;
+            anonymousDuringInvestigation?: null | boolean;
+            anonymousInFinalReport?: null | boolean;
             status?: components["schemas"]["IncidentStatus"];
             /** Format: uuid */
-            assignedTo?: string | null;
-            assignedUserName?: string | null;
+            assignedTo?: null | string;
+            assignedUserName?: null | string;
             /** Format: uuid */
-            coordinatorId?: string | null;
-            coordinatorName?: string | null;
-            googleDriveFolderUrl?: string | null;
-            googleDriveFinalReportUrl?: string | null;
+            coordinatorId?: null | string;
+            coordinatorName?: null | string;
+            googleDriveFolderUrl?: null | string;
+            googleDriveFinalReportUrl?: null | string;
             auditTrail?: components["schemas"]["AuditLogDto"][];
             /** Format: date-time */
             createdAt?: string;
@@ -4283,15 +4948,15 @@ export interface components {
             description?: string;
             isAnonymous?: boolean;
             /** Format: uuid */
-            reporterId?: string | null;
-            reporterName?: string | null;
+            reporterId?: null | string;
+            reporterName?: null | string;
             /** Format: uuid */
-            coordinatorId?: string | null;
-            coordinatorName?: string | null;
-            involvedParties?: string | null;
-            witnesses?: string | null;
-            googleDriveFolderUrl?: string | null;
-            googleDriveFinalReportUrl?: string | null;
+            coordinatorId?: null | string;
+            coordinatorName?: null | string;
+            involvedParties?: null | string;
+            witnesses?: null | string;
+            googleDriveFolderUrl?: null | string;
+            googleDriveFinalReportUrl?: null | string;
             /** Format: int32 */
             noteCount?: number;
         };
@@ -4308,56 +4973,76 @@ export interface components {
             isAnonymous?: boolean;
             status?: components["schemas"]["IncidentStatus"];
             /** Format: uuid */
-            assignedTo?: string | null;
-            assignedUserName?: string | null;
+            assignedTo?: null | string;
+            assignedUserName?: null | string;
         };
         /** @enum {unknown} */
         IncidentType: "SafetyConcern" | "BoundaryViolation" | "Harassment" | "OtherConcern";
+        LogEntryDto: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: date-time */
+            timestamp?: string;
+            levelName?: string;
+            message?: string;
+            exception?: null | string;
+            sourceContext?: null | string;
+            /** Format: uuid */
+            userId?: null | string;
+            /** Format: uuid */
+            correlationId?: null | string;
+            requestPath?: null | string;
+        };
         LoginRequest: {
             emailOrSceneName: string;
             password: string;
-            returnUrl?: string | null;
+            returnUrl?: null | string;
         };
         LoginResponse: {
             token?: string;
             /** Format: date-time */
             expiresAt?: string;
             user?: components["schemas"]["AuthUserResponse"];
-            returnUrl?: string | null;
+            returnUrl?: null | string;
+        };
+        LogQueryResponse: {
+            items?: components["schemas"]["LogEntryDto"][];
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            hasPreviousPage?: boolean;
+            hasNextPage?: boolean;
         };
         ManualEntryData: {
             name: string;
             email: string;
             phone: string;
-            dietaryRestrictions?: string | null;
-            accessibilityNeeds?: string | null;
-            hasCompletedWaiver?: boolean;
-        } | null;
-        ManualEntryData2: {
-            name: string;
-            email: string;
-            phone: string;
-            dietaryRestrictions?: string | null;
-            accessibilityNeeds?: string | null;
+            dietaryRestrictions?: null | string;
+            accessibilityNeeds?: null | string;
             hasCompletedWaiver?: boolean;
         };
         MemberDetailsResponse: {
             /** Format: uuid */
             userId?: string;
             sceneName?: string;
-            email?: string | null;
-            discordName?: string | null;
-            fetLifeHandle?: string | null;
+            email?: null | string;
+            discordName?: null | string;
+            fetLifeHandle?: null | string;
             role?: string;
             isActive?: boolean;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            lastLoginAt?: string | null;
+            lastLoginAt?: null | string;
             /** Format: int32 */
             totalEventsAttended?: number;
             /** Format: date-time */
-            lastEventAttended?: string | null;
+            lastEventAttended?: null | string;
             /** Format: int32 */
             futureEvents?: number;
             /** Format: int32 */
@@ -4383,8 +5068,8 @@ export interface components {
             status?: string;
             location?: string;
             description?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
             userInvolvementType?: string;
         };
         MemberIncidentsResponse: {
@@ -4398,11 +5083,11 @@ export interface components {
             noteSource?: string;
             content?: string;
             type?: string;
-            authorSceneName?: string | null;
+            authorSceneName?: null | string;
             /** Format: date-time */
             timestamp?: string;
-            oldValue?: string | null;
-            newValue?: string | null;
+            oldValue?: null | string;
+            newValue?: null | string;
         };
         MembershipHoldResponse: {
             /** Format: int32 */
@@ -4413,7 +5098,7 @@ export interface components {
         };
         MyApplicationStatusResponse: {
             hasApplication?: boolean;
-            application?: components["schemas"]["ApplicationStatusInfo"];
+            application?: null | components["schemas"]["ApplicationStatusInfo"];
         };
         MyReportDetailDto: {
             /** Format: uuid */
@@ -4427,8 +5112,8 @@ export interface components {
             lastUpdatedAt?: string;
             location?: string;
             description?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
             isAnonymous?: boolean;
         };
         MyReportsPaginatedResponse: {
@@ -4462,10 +5147,6 @@ export interface components {
         NotesListResponse: {
             notes?: components["schemas"]["IncidentNoteDto"][];
         };
-        /** @enum {unknown|null} */
-        NullableOfSpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
-        /** @enum {unknown|null} */
-        NullableOfUserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | null;
         PagedResultOfApplicationSummaryDto: {
             items?: components["schemas"]["ApplicationSummaryDto"][];
             /** Format: int32 */
@@ -4509,9 +5190,9 @@ export interface components {
             status?: components["schemas"]["AttendanceStatus"];
             /** Format: date-time */
             participationDate?: string;
-            notes?: string | null;
+            notes?: null | string;
             canCancel?: boolean;
-            metadata?: string | null;
+            metadata?: null | string;
         };
         PaymentListResponse: {
             transactions?: components["schemas"]["PaymentTransactionDto"][];
@@ -4524,52 +5205,6 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
-        /** @enum {unknown} */
-        PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo" | "Cash";
-        PaymentResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            eventRegistrationId?: string;
-            /** Format: uuid */
-            userId?: string;
-            /** Format: double */
-            amount?: number;
-            currency?: string;
-            displayAmount?: string;
-            /** Format: double */
-            originalAmount?: number | null;
-            /** Format: double */
-            slidingScalePercentage?: number;
-            /** Format: double */
-            discountAmount?: number | null;
-            status?: components["schemas"]["PaymentStatus"];
-            statusDescription?: string;
-            paymentMethodType?: components["schemas"]["PaymentMethodType"];
-            /** Format: date-time */
-            processedAt?: string | null;
-            /** Format: date-time */
-            createdAt?: string;
-            refundInfo?: components["schemas"]["RefundInfoResponse"];
-            clientSecret?: string | null;
-        };
-        /** @enum {unknown} */
-        PaymentStatus: "Pending" | "Completed" | "Failed" | "Refunded" | "PartiallyRefunded";
-        PaymentStatusResponse: {
-            /** Format: uuid */
-            paymentId?: string;
-            /** Format: uuid */
-            eventRegistrationId?: string;
-            status?: components["schemas"]["PaymentStatus"];
-            statusDescription?: string;
-            isCompleted?: boolean;
-            isRefunded?: boolean;
-            /** Format: double */
-            amount?: number;
-            currency?: string;
-            /** Format: date-time */
-            processedAt?: string | null;
-        };
         PaymentTransactionDto: {
             /** Format: uuid */
             id?: string;
@@ -4580,7 +5215,7 @@ export interface components {
             userName?: string;
             userEmail?: string;
             eventName?: string;
-            sessionName?: string | null;
+            sessionName?: null | string;
             paymentMethod?: string;
             /** Format: double */
             amount?: number;
@@ -4588,20 +5223,51 @@ export interface components {
             status?: string;
             isRefundable?: boolean;
             /** Format: uuid */
-            refundId?: string | null;
+            refundId?: null | string;
             /** Format: date-time */
-            refundDate?: string | null;
+            refundDate?: null | string;
             /** Format: double */
             remainingRefundableAmount?: number;
+        };
+        PayPalCheckoutCancelOrderRequest: {
+            orderId?: string;
+        };
+        PayPalCheckoutCaptureOrderRequest: {
+            orderId?: string;
+        };
+        PayPalCheckoutCaptureOrderResponse: {
+            captureId?: string;
+            status?: string;
+            amount?: string;
+            currency?: string;
+            payerId?: null | string;
+            confirmationNumber?: null | string;
+            ticketPurchaseIds?: string[];
+        };
+        PayPalCheckoutCreateOrderRequest: {
+            /** Format: uuid */
+            eventId?: string;
+            ticketTypeIds?: string[];
+            /** Format: double */
+            amount?: number;
+            /** Format: int32 */
+            slidingScalePercentage?: number;
+            currency?: null | string;
+            eventTitle?: null | string;
+            eventWaiverAccepted?: boolean;
+            idempotencyKey?: string;
+        };
+        PayPalCheckoutCreateOrderResponse: {
+            orderId?: string;
         };
         PendingCheckIn: {
             localId: string;
             attendeeId: string;
             checkInTime: string;
             staffMemberId: string;
-            notes?: string | null;
+            notes?: null | string;
             isManualEntry?: boolean;
-            manualEntryData?: components["schemas"]["ManualEntryData"];
+            manualEntryData?: null | components["schemas"]["ManualEntryData"];
         };
         PlaceMembershipOnHoldRequest: {
             reason: string;
@@ -4609,40 +5275,19 @@ export interface components {
         /** @enum {unknown} */
         PricingType: "Fixed" | "SlidingScale";
         ProblemDetails: {
-            type?: string | null;
-            title?: string | null;
+            type?: null | string;
+            title?: null | string;
             /** Format: int32 */
-            status?: number | null;
-            detail?: string | null;
-            instance?: string | null;
-        };
-        ProcessPaymentApiRequest: {
-            /** Format: uuid */
-            eventRegistrationId?: string;
-            /** Format: double */
-            originalAmount?: number;
-            currency?: string;
-            /** Format: double */
-            slidingScalePercentage?: number;
-            paymentMethodType?: components["schemas"]["PaymentMethodType"];
-            returnUrl?: string | null;
-            cancelUrl?: string | null;
-        };
-        ProcessRefundApiRequest: {
-            /** Format: uuid */
-            paymentId?: string;
-            /** Format: double */
-            refundAmount?: number;
-            currency?: string;
-            refundReason?: string;
-            metadata?: Record<string, never>;
+            status?: null | number;
+            detail?: null | string;
+            instance?: null | string;
         };
         ProfileChangeHistoryDto: {
             /** Format: date-time */
             changedAt?: string;
             fieldName?: string;
-            oldValue?: string | null;
-            newValue?: string | null;
+            oldValue?: null | string;
+            newValue?: null | string;
         };
         ProtectedWelcomeResponse: {
             message?: string;
@@ -4654,15 +5299,16 @@ export interface components {
         PublicApplicationSubmissionRequest: {
             email: string;
             sceneName: string;
-            realName: string;
+            firstName: string;
+            lastName: string;
             phoneNumber: string;
             experience: string;
             interests: string;
             references: string;
             agreeToRules: boolean;
             consentToBackground: boolean;
-            pronouns?: string | null;
-            additionalInfo?: string | null;
+            pronouns?: null | string;
+            additionalInfo?: null | string;
         };
         RecentCheckIn: {
             attendeeId?: string;
@@ -4681,75 +5327,43 @@ export interface components {
             order?: number;
             status?: string;
             /** Format: date-time */
-            contactedAt?: string | null;
+            contactedAt?: null | string;
             /** Format: date-time */
-            respondedAt?: string | null;
+            respondedAt?: null | string;
             /** Format: date-time */
-            formExpiresAt?: string | null;
-            response?: components["schemas"]["ReferenceResponseDto"];
+            formExpiresAt?: null | string;
+            response?: null | components["schemas"]["ReferenceResponseDto"];
         };
         ReferenceResponseDto: {
             relationshipDuration?: string;
             experienceAssessment?: string;
-            safetyConcerns?: string | null;
+            safetyConcerns?: null | string;
             communityReadiness?: string;
             recommendation?: string;
-            additionalComments?: string | null;
+            additionalComments?: null | string;
             /** Format: date-time */
             respondedAt?: string;
-        } | null;
+        };
         ReferenceStatusSummary: {
             name?: string;
             email?: string;
             status?: string;
             /** Format: date-time */
-            contactedAt?: string | null;
+            contactedAt?: null | string;
             /** Format: date-time */
-            respondedAt?: string | null;
+            respondedAt?: null | string;
         };
-        RefundInfoResponse: {
-            /** Format: double */
-            refundedAmount?: number;
-            currency?: string;
-            displayAmount?: string;
-            /** Format: date-time */
-            refundedAt?: string | null;
-            refundReason?: string | null;
-            /** Format: int32 */
-            refundCount?: number;
-            isPartialRefund?: boolean;
-        } | null;
-        RefundResponse: {
-            /** Format: uuid */
-            refundId?: string;
-            /** Format: double */
-            amount?: number;
-            currency?: string;
-            status?: string;
-            message?: string;
-        };
-        RefundResponse2: {
+        RefundHistoryDto: {
             /** Format: uuid */
             id?: string;
-            /** Format: uuid */
-            ticketPurchaseId?: string;
             /** Format: double */
-            refundAmount?: number;
-            currency?: string;
-            displayAmount?: string;
-            refundReason?: string;
-            refundStatus?: components["schemas"]["RefundStatus"];
-            statusDescription?: string;
-            /** Format: uuid */
-            processedByUserId?: string;
-            processedByUserName?: string;
+            amount?: number;
+            reason?: string;
+            status?: string;
             /** Format: date-time */
             processedAt?: string;
-            /** Format: date-time */
-            createdAt?: string;
+            processedByName?: string;
         };
-        /** @enum {unknown} */
-        RefundStatus: "Processing" | "Completed" | "Failed" | "Cancelled";
         RegisterRequest: {
             email: string;
             password: string;
@@ -4780,14 +5394,14 @@ export interface components {
             decisionType?: string;
             reasoning?: string;
             /** Format: int32 */
-            score?: number | null;
+            score?: null | number;
             isFinalDecision?: boolean;
-            additionalInfoRequested?: string | null;
+            additionalInfoRequested?: null | string;
             /** Format: date-time */
-            additionalInfoDeadline?: string | null;
+            additionalInfoDeadline?: null | string;
             /** Format: date-time */
-            proposedInterviewTime?: string | null;
-            interviewNotes?: string | null;
+            proposedInterviewTime?: null | string;
+            interviewNotes?: null | string;
             reviewerName?: string;
             /** Format: date-time */
             createdAt?: string;
@@ -4796,14 +5410,14 @@ export interface components {
             decisionType: unknown;
             reasoning: string;
             /** Format: int32 */
-            score?: number | null;
+            score?: null | number;
             isFinalDecision?: boolean;
-            additionalInfoRequested?: string | null;
+            additionalInfoRequested?: null | string;
             /** Format: date-time */
-            additionalInfoDeadline?: string | null;
+            additionalInfoDeadline?: null | string;
             /** Format: date-time */
-            proposedInterviewTime?: string | null;
-            interviewNotes?: string | null;
+            proposedInterviewTime?: null | string;
+            interviewNotes?: null | string;
         };
         ReviewDecisionResponse: {
             /** Format: uuid */
@@ -4825,10 +5439,10 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            canceledAt?: string | null;
-            cancelReason?: string | null;
-            notes?: string | null;
-        } | null;
+            canceledAt?: null | string;
+            cancelReason?: null | string;
+            notes?: null | string;
+        };
         SafetyStatistics: {
             /** Format: int32 */
             criticalCount?: number;
@@ -4851,15 +5465,33 @@ export interface components {
             /** Format: int32 */
             thisMonth?: number;
         };
+        SaveAsTemplateRequest: {
+            templateName: string;
+            subject: string;
+            htmlBody: string;
+            plainTextBody: string;
+        };
+        ScheduleAdHocEmailRequest: {
+            subject: string;
+            htmlBody: string;
+            plainTextBody: string;
+            segment?: null | components["schemas"]["UserSegment"];
+            recipientEmails?: null | string[];
+            recipientGroup?: string;
+            /** Format: uuid */
+            eventId?: null | string;
+            /** Format: date-time */
+            scheduledSendAt: string;
+        };
         SendAdHocEmailRequest: {
             subject: string;
             htmlBody: string;
             plainTextBody: string;
-            segment?: components["schemas"]["NullableOfUserSegment"];
-            recipientEmails?: string[] | null;
+            segment?: null | components["schemas"]["UserSegment"];
+            recipientEmails?: null | string[];
             recipientGroup: string;
             /** Format: uuid */
-            eventId?: string | null;
+            eventId?: null | string;
         };
         SentAdHocEmailDto: {
             /** Format: uuid */
@@ -4871,26 +5503,46 @@ export interface components {
             /** Format: int32 */
             recipientCount?: number;
             /** Format: uuid */
-            eventId?: string | null;
-            eventTitle?: string | null;
-            sendGridMessageId?: string | null;
+            eventId?: null | string;
+            eventTitle?: null | string;
+            sendGridMessageId?: null | string;
             deliveryStatus?: string;
             /** Format: date-time */
             sentAt?: string;
             /** Format: uuid */
             sentBy?: string;
             sentByEmail?: string;
+            /** Format: date-time */
+            scheduledSendAt?: null | string;
         };
         ServiceTokenRequest: {
             userId?: string;
             email?: string;
+        };
+        SessionAvailabilityDto: {
+            /** Format: uuid */
+            sessionId?: string;
+            sessionIdentifier?: string;
+            sessionName?: string;
+            /** Format: date-time */
+            startTime?: string;
+            /** Format: date-time */
+            endTime?: string;
+            /** Format: int32 */
+            soldCount?: number;
+            /** Format: int32 */
+            availableCount?: number;
+            /** Format: int32 */
+            capacity?: number;
         };
         SessionDto: {
             id?: string;
             sessionIdentifier?: string;
             name?: string;
             /** Format: date-time */
-            date?: string;
+            startDate?: string;
+            /** Format: date-time */
+            endDate?: string;
             /** Format: date-time */
             startTime?: string;
             /** Format: date-time */
@@ -4905,6 +5557,11 @@ export interface components {
             /** Format: uuid */
             eventId?: string;
             eventTitle?: string;
+            /** Format: uuid */
+            sessionId?: null | string;
+            sessionName?: null | string;
+            sessionIds?: null | string[];
+            sessionNames?: null | string[];
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -4913,8 +5570,8 @@ export interface components {
         };
         SimpleNoteRequest: {
             note: string;
-            isPrivate?: boolean | null;
-            tags?: string[] | null;
+            isPrivate?: null | boolean;
+            tags?: null | string[];
         };
         SimpleReasoningRequest: {
             reasoning: string;
@@ -4923,13 +5580,13 @@ export interface components {
             firstName: string;
             lastName: string;
             preferredSceneName: string;
-            fetLifeHandle?: string | null;
+            fetLifeHandle?: null | string;
             email: string;
             whyJoin: string;
             experienceWithRope: string;
             agreeToCommunityStandards: boolean;
-            pronouns?: string | null;
-            otherNames?: string | null;
+            pronouns?: null | string;
+            otherNames?: null | string;
         };
         SimplifiedApplicationResponse: {
             /** Format: uuid */
@@ -4940,18 +5597,20 @@ export interface components {
             confirmationMessage?: string;
             emailSent?: boolean;
             nextSteps?: string;
-            pronouns?: string | null;
-            otherNames?: string | null;
+            pronouns?: null | string;
+            otherNames?: null | string;
             firstName?: string;
             lastName?: string;
             email?: string;
             preferredSceneName?: string;
-            fetLifeHandle?: string | null;
+            fetLifeHandle?: null | string;
             whyJoin?: string;
             experienceWithRope?: string;
             agreeToCommunityStandards?: boolean;
             status?: string;
         };
+        /** @enum {unknown} */
+        SpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
         StaffMember: {
             userId?: string;
             sceneName?: string;
@@ -5008,37 +5667,52 @@ export interface components {
             /** Format: int32 */
             conflictCount?: number;
         };
+        /** @enum {unknown} */
+        TemplateTriggerType: "Manual" | "FixedEvent" | "TimeBased";
         TicketDetailsDto: {
             /** Format: uuid */
             id?: string;
             status?: string;
             /** Format: double */
-            amount?: number | null;
-            paymentStatus?: string | null;
+            amount?: null | number;
+            paymentStatus?: null | string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            canceledAt?: string | null;
-            cancelReason?: string | null;
-            notes?: string | null;
-        } | null;
+            canceledAt?: null | string;
+            cancelReason?: null | string;
+            notes?: null | string;
+        };
+        TicketPurchaseInfoDto: {
+            ticketTypeName?: string;
+            sessionIds?: string[];
+            /** Format: double */
+            totalPrice?: number;
+            canCancel?: boolean;
+            cancellationMessage?: null | string;
+        };
         TicketTypeDto: {
             id?: string;
             name?: string;
             pricingType?: components["schemas"]["PricingType"];
             sessionIdentifiers?: string[];
             /** Format: double */
-            price?: number | null;
+            price?: null | number;
             /** Format: double */
-            minPrice?: number | null;
+            minPrice?: null | number;
             /** Format: double */
-            maxPrice?: number | null;
+            maxPrice?: null | number;
             /** Format: double */
-            defaultPrice?: number | null;
+            defaultPrice?: null | number;
             /** Format: int32 */
             quantityAvailable?: number;
             /** Format: int32 */
             quantitySold?: number;
+            canPurchase?: boolean;
+            referenceSessionId?: null | string;
+            referenceSessionName?: null | string;
+            availabilityMessage?: string;
+            canCancel?: boolean;
         };
         TokenClaims: {
             userId?: string;
@@ -5048,44 +5722,51 @@ export interface components {
         UpdateContentPageRequest: {
             title: string;
             content: string;
-            changeDescription?: string | null;
+            changeDescription?: null | string;
         };
         UpdateEventRequest: {
-            title?: string | null;
-            shortDescription?: string | null;
-            description?: string | null;
-            policies?: string | null;
+            title?: null | string;
+            shortDescription?: null | string;
+            description?: null | string;
+            policies?: null | string;
             /** Format: date-time */
-            startDate?: string | null;
+            startDate?: null | string;
             /** Format: date-time */
-            endDate?: string | null;
+            endDate?: null | string;
             /** Format: int32 */
-            venueId?: number | null;
+            venueId?: null | number;
             /** Format: int32 */
-            capacity?: number | null;
-            isPublished?: boolean | null;
-            sessions?: components["schemas"]["SessionDto"][] | null;
-            ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
-            teacherIds?: string[] | null;
-            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
+            capacity?: null | number;
+            isPublished?: null | boolean;
+            allowRsvps?: null | boolean;
+            requireTicketPurchase?: null | boolean;
+            vettedMembersOnly?: null | boolean;
+            sessions?: null | components["schemas"]["SessionDto"][];
+            ticketTypes?: null | components["schemas"]["TicketTypeDto"][];
+            teacherIds?: null | string[];
+            volunteerPositions?: null | components["schemas"]["EventVolunteerPositionDto"][];
             /** Format: double */
-            registrationOpenHours?: number | null;
+            registrationOpenHours?: null | number;
             /** Format: double */
-            registrationCloseHours?: number | null;
+            registrationCloseHours?: null | number;
             /** Format: double */
-            cancellationOpenHours?: number | null;
+            cancellationCloseHours?: null | number;
             /** Format: double */
-            cancellationCloseHours?: number | null;
+            volunteerRegistrationCloseHours?: null | number;
             /** Format: double */
-            volunteerRegistrationCloseHours?: number | null;
-            /** Format: double */
-            volunteerCancellationCloseHours?: number | null;
+            volunteerCancellationCloseHours?: null | number;
         };
         UpdateEventTemplateRequest: {
             subject: string;
             htmlBody: string;
             plainTextBody: string;
             targetSessions?: string[];
+            overrideTriggerEnabled?: null | boolean;
+            /** Format: int32 */
+            overrideTimingOffsetDays?: null | number;
+            /** Format: int32 */
+            overrideTimingOffsetHours?: null | number;
+            overrideRecipientGroup?: null | string;
         };
         UpdateGlobalTemplateRequest: {
             title: string;
@@ -5094,44 +5775,44 @@ export interface components {
             plainTextBody: string;
         };
         UpdateGoogleDriveRequest: {
-            googleDriveFolderUrl?: string | null;
-            googleDriveFinalReportUrl?: string | null;
+            googleDriveFolderUrl?: null | string;
+            googleDriveFinalReportUrl?: null | string;
         };
         UpdateMemberRoleRequest: {
             role?: string;
         };
         UpdateMemberStatusRequest: {
             isActive?: boolean;
-            reason?: string | null;
+            reason?: null | string;
         };
         UpdateNoteRequest: {
             content?: string;
-            tags?: string | null;
+            tags?: null | string;
         };
         UpdatePeopleRequest: {
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
         };
         UpdatePeopleResponse: {
             /** Format: uuid */
             id?: string;
-            involvedParties?: string | null;
-            witnesses?: string | null;
+            involvedParties?: null | string;
+            witnesses?: null | string;
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
         };
         UpdateProfileDto: {
             sceneName: string;
-            firstName?: string | null;
-            lastName?: string | null;
+            firstName?: null | string;
+            lastName?: null | string;
             email: string;
-            pronouns?: string | null;
-            bio?: string | null;
-            discordName?: string | null;
-            fetLifeName?: string | null;
-            phoneNumber?: string | null;
-            otherNames?: string | null;
+            pronouns?: null | string;
+            bio?: null | string;
+            discordName?: null | string;
+            fetLifeName?: null | string;
+            phoneNumber?: null | string;
+            otherNames?: null | string;
         };
         UpdateProfileRequest: {
             sceneName?: string;
@@ -5144,33 +5825,52 @@ export interface components {
         };
         UpdateStatusRequest: {
             newStatus?: components["schemas"]["IncidentStatus"];
-            reason?: string | null;
-            metadata?: Record<string, never> | null;
+            reason?: null | string;
+            metadata?: null | Record<string, never>;
+        };
+        UpdateTitleRequest: {
+            title: string;
+        };
+        UpdateTitleResponse: {
+            /** Format: uuid */
+            id?: string;
+            title?: string;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+        };
+        UpdateTriggerConfigRequest: {
+            triggerType: components["schemas"]["TemplateTriggerType"];
+            triggerEnabled: boolean;
+            /** Format: int32 */
+            timingOffsetDays?: null | number;
+            /** Format: int32 */
+            timingOffsetHours?: null | number;
+            recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
         UpdateUserRequest: {
-            sceneName?: string | null;
-            role?: string | null;
-            pronouns?: string | null;
-            isActive?: boolean | null;
-            emailConfirmed?: boolean | null;
+            sceneName?: null | string;
+            role?: null | string;
+            pronouns?: null | string;
+            isActive?: null | boolean;
+            emailConfirmed?: null | boolean;
             /** Format: int32 */
-            vettingStatus?: number | null;
+            vettingStatus?: null | number;
         };
         UpdateUserRolesRequest: {
             roles: string[];
         };
         UpdateVenueRequest: {
             name?: string;
-            directions?: string | null;
-            notes?: string | null;
-            location?: string | null;
+            directions?: null | string;
+            venueInformation?: null | string;
+            location?: null | string;
             isActive?: boolean;
         };
         UserCoordinatorDto: {
             /** Format: uuid */
             id?: string;
             sceneName?: string;
-            realName?: string;
+            fullName?: string;
             role?: string;
             /** Format: int32 */
             activeIncidentCount?: number;
@@ -5180,8 +5880,8 @@ export interface components {
             id?: string;
             email?: string;
             sceneName?: string;
-            discordName?: string | null;
-            bio?: string | null;
+            discordName?: null | string;
+            bio?: null | string;
             role?: string;
             roles?: string[];
             pronouns?: string;
@@ -5190,7 +5890,7 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
-            lastLoginAt?: string | null;
+            lastLoginAt?: null | string;
             /** Format: int32 */
             vettingStatus?: number;
             hasVettingApplication?: boolean;
@@ -5205,11 +5905,17 @@ export interface components {
             /** Format: date-time */
             endDate?: string;
             location?: string;
-            description?: string | null;
+            description?: null | string;
             registrationStatus?: string;
             isSocialEvent?: boolean;
             hasTicket?: boolean;
             isPastEvent?: boolean;
+            registeredSessions?: components["schemas"]["UserSessionDto"][];
+            eventSessions?: components["schemas"]["UserSessionDto"][];
+            /** Format: int32 */
+            additionalSessionsAvailable?: number;
+            hasAvailableTickets?: boolean;
+            tickets?: components["schemas"]["UserTicketDto"][];
         };
         UserListResponse: {
             users?: components["schemas"]["UserDto"][];
@@ -5232,8 +5938,8 @@ export interface components {
             content?: string;
             noteType?: string;
             /** Format: uuid */
-            authorId?: string | null;
-            authorSceneName?: string | null;
+            authorId?: null | string;
+            authorSceneName?: null | string;
             /** Format: date-time */
             createdAt?: string;
             isArchived?: boolean;
@@ -5258,7 +5964,7 @@ export interface components {
             status?: components["schemas"]["AttendanceStatus"];
             /** Format: date-time */
             participationDate?: string;
-            notes?: string | null;
+            notes?: null | string;
             canCancel?: boolean;
         };
         UserPreviewDto: {
@@ -5274,20 +5980,20 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             sceneName?: string;
-            firstName?: string | null;
-            lastName?: string | null;
+            firstName?: null | string;
+            lastName?: null | string;
             email?: string;
-            pronouns?: string | null;
-            bio?: string | null;
-            discordName?: string | null;
-            fetLifeName?: string | null;
-            phoneNumber?: string | null;
-            otherNames?: string | null;
+            pronouns?: null | string;
+            bio?: null | string;
+            discordName?: null | string;
+            fetLifeName?: null | string;
+            phoneNumber?: null | string;
+            otherNames?: null | string;
             vettingStatus?: components["schemas"]["VettingStatus"];
             hasVettingApplication?: boolean;
         };
         /** @enum {unknown} */
-        UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer";
+        UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer" | "DungeonMonitor";
         UserRoleDto: {
             role?: components["schemas"]["UserRole"];
             displayName?: string;
@@ -5298,11 +6004,11 @@ export interface components {
             userId?: string;
             sceneName?: string;
             email?: string;
-            discordName?: string | null;
-            realName?: string | null;
+            discordName?: null | string;
+            fullName?: null | string;
         };
         /** @enum {unknown} */
-        UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending";
+        UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | "NewImportedUsers" | null;
         UserSegmentDto: {
             segment?: components["schemas"]["UserSegment"];
             /** Format: int32 */
@@ -5310,31 +6016,35 @@ export interface components {
             description?: string;
             segmentName?: string;
         };
+        UserSessionDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            /** Format: date-time */
+            startTime?: string;
+            /** Format: date-time */
+            endTime?: string;
+        };
+        UserTicketDto: {
+            ticketTypeName?: string;
+            sessionName?: null | string;
+        };
         UserVolunteerShiftDto: {
             /** Format: uuid */
             signupId?: string;
+            /** Format: uuid */
+            eventId?: string;
             eventTitle?: string;
             eventLocation?: string;
             /** Format: date-time */
             eventDate?: string;
             positionTitle?: string;
-            sessionName?: string | null;
+            sessionName?: null | string;
             /** Format: date-time */
-            shiftStartTime?: string | null;
+            shiftStartTime?: null | string;
             /** Format: date-time */
-            shiftEndTime?: string | null;
+            shiftEndTime?: null | string;
             canCancel?: boolean;
-        };
-        ValidationProblemDetails: {
-            type?: string | null;
-            title?: string | null;
-            /** Format: int32 */
-            status?: number | null;
-            detail?: string | null;
-            instance?: string | null;
-            errors?: {
-                [key: string]: string[];
-            };
         };
         ValidRolesResponse: {
             roles?: string[];
@@ -5343,6 +6053,8 @@ export interface components {
             /** Format: double */
             refundAmount: number;
             refundReason: string;
+            cancelTicket?: boolean;
+            alsoRemoveRsvp?: boolean;
         };
         VariableRefundResponse: {
             /** Format: uuid */
@@ -5355,14 +6067,16 @@ export interface components {
             /** Format: double */
             remainingRefundableAmount?: number;
             paymentStatus?: string;
+            ticketCancelled?: boolean;
+            rsvpRemoved?: boolean;
         };
         VenueDto: {
             /** Format: int32 */
             id?: number;
             name?: string;
-            directions?: string | null;
-            notes?: string | null;
-            location?: string | null;
+            directions?: null | string;
+            venueInformation?: null | string;
+            location?: null | string;
             isActive?: boolean;
             /** Format: date-time */
             createdAt?: string;
@@ -5373,40 +6087,41 @@ export interface components {
             userId: string;
             token: string;
         };
+        VerifyUserEmailRequest: {
+            email: string;
+        };
         VettingDetailsResponse: {
             hasApplication?: boolean;
             /** Format: uuid */
-            applicationId?: string | null;
-            applicationNumber?: string | null;
+            applicationId?: null | string;
+            applicationNumber?: null | string;
             /** Format: date-time */
-            submittedAt?: string | null;
+            submittedAt?: null | string;
             /** Format: int32 */
-            workflowStatus?: number | null;
-            workflowStatusDisplay?: string | null;
+            workflowStatus?: null | number;
+            workflowStatusDisplay?: null | string;
             /** Format: date-time */
-            lastReviewedAt?: string | null;
+            lastReviewedAt?: null | string;
             /** Format: date-time */
-            decisionMadeAt?: string | null;
-            sceneName?: string | null;
-            realName?: string | null;
-            email?: string | null;
-            phone?: string | null;
-            fetLifeHandle?: string | null;
-            pronouns?: string | null;
-            aboutYourself?: string | null;
-            /** Format: int32 */
-            experienceLevel?: number | null;
-            /** Format: int32 */
-            yearsExperience?: number | null;
-            experienceDescription?: string | null;
-            safetyKnowledge?: string | null;
-            consentUnderstanding?: string | null;
-            whyJoinCommunity?: string | null;
-            howDidYouHearAboutUs?: string | null;
-            skillsInterests?: string | null;
-            expectationsGoals?: string | null;
-            agreesToGuidelines?: boolean | null;
-            agreesToTerms?: boolean | null;
+            decisionMadeAt?: null | string;
+            sceneName?: null | string;
+            firstName?: null | string;
+            lastName?: null | string;
+            email?: null | string;
+            phone?: null | string;
+            fetLifeHandle?: null | string;
+            otherNames?: null | string;
+            pronouns?: null | string;
+            aboutYourself?: null | string;
+            experienceDescription?: null | string;
+            safetyKnowledge?: null | string;
+            consentUnderstanding?: null | string;
+            whyJoinCommunity?: null | string;
+            howDidYouHearAboutUs?: null | string;
+            skillsInterests?: null | string;
+            expectationsGoals?: null | string;
+            agreesToGuidelines?: null | boolean;
+            agreesToTerms?: null | boolean;
         };
         VettingHoldStatusResponse: {
             /** Format: int32 */
@@ -5415,7 +6130,7 @@ export interface components {
             canPlaceOnHold: boolean;
             canRequestReinstatement: boolean;
             /** Format: date-time */
-            lastStatusChangeDate: string | null;
+            lastStatusChangeDate: null | string;
         };
         /** @enum {unknown} */
         VettingStatus: "UnderReview" | "InterviewApproved" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
@@ -5424,8 +6139,8 @@ export interface components {
             /** Format: date-time */
             lastUpdatedAt?: string;
             message?: string;
-            interviewScheduleUrl?: string | null;
-            reapplyInfoUrl?: string | null;
+            interviewScheduleUrl?: null | string;
+            reapplyInfoUrl?: null | string;
         };
         VolunteerAssignmentDto: {
             /** Format: uuid */
@@ -5436,35 +6151,22 @@ export interface components {
             volunteerPositionId?: string;
             sceneName?: string;
             email?: string;
-            fetLifeName?: string | null;
-            discordName?: string | null;
+            fetLifeName?: null | string;
+            discordName?: null | string;
             status?: string;
             /** Format: date-time */
             signedUpAt?: string;
             hasCheckedIn?: boolean;
             /** Format: date-time */
-            checkedInAt?: string | null;
+            checkedInAt?: null | string;
         };
         VolunteerPositionDto: {
-            id?: string;
-            title?: string;
-            description?: string;
-            /** Format: int32 */
-            slotsNeeded?: number;
-            /** Format: int32 */
-            slotsFilled?: number;
-            sessionId?: string | null;
-            /** Format: int32 */
-            slotsRemaining?: number;
-            isFullyStaffed?: boolean;
-        };
-        VolunteerPositionDto2: {
             /** Format: uuid */
             id?: string;
             /** Format: uuid */
             eventId?: string;
             /** Format: uuid */
-            sessionId?: string | null;
+            sessionId?: null | string;
             title?: string;
             description?: string;
             /** Format: int32 */
@@ -5475,15 +6177,19 @@ export interface components {
             slotsRemaining?: number;
             isPublicFacing?: boolean;
             isFullyStaffed?: boolean;
-            sessionName?: string | null;
+            startTime?: null | string;
+            endTime?: null | string;
+            sessionName?: null | string;
             /** Format: date-time */
-            sessionStartTime?: string | null;
+            sessionStartTime?: null | string;
             /** Format: date-time */
-            sessionEndTime?: string | null;
+            sessionEndTime?: null | string;
             hasUserSignedUp?: boolean;
             /** Format: uuid */
-            userSignupId?: string | null;
+            userSignupId?: null | string;
             canCancel?: boolean;
+            canSignUp?: boolean;
+            signupBlockedReason?: null | string;
         };
         VolunteerSignupDto: {
             /** Format: uuid */
@@ -5497,10 +6203,10 @@ export interface components {
             signedUpAt?: string;
             hasCheckedIn?: boolean;
             /** Format: date-time */
-            checkedInAt?: string | null;
+            checkedInAt?: null | string;
             hasCompleted?: boolean;
             /** Format: date-time */
-            completedAt?: string | null;
+            completedAt?: null | string;
             positionTitle?: string;
             eventTitle?: string;
             /** Format: date-time */
@@ -5516,7 +6222,7 @@ export interface components {
             /** Format: date-time */
             performedAt?: string;
             performedBy?: string;
-            notes?: string | null;
+            notes?: null | string;
         };
     };
     responses: never;
@@ -6020,33 +6726,6 @@ export interface operations {
             };
         };
     };
-    DebugAuthStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     GetEvents: {
         parameters: {
             query?: {
@@ -6130,6 +6809,56 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetEventList: {
+        parameters: {
+            query?: {
+                includeUnpublished?: boolean;
+                includePastEvents?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventListItemDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6428,6 +7157,300 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetEventSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionDto"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CheckSessionDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteSessionCheckDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteSessionResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CheckTicketTypeDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketTypeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteTicketTypeCheckDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteTicketType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketTypeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteTicketTypeResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7762,7 +8785,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": null | components["schemas"]["CancelTicketRequest"];
+            };
+        };
         responses: {
             /** @description No Content */
             204: {
@@ -7920,74 +8947,6 @@ export interface operations {
         };
     };
     PurchaseTicket: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateTicketPurchaseRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ParticipationStatusDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    PurchaseTicketAlias: {
         parameters: {
             query?: never;
             header?: never;
@@ -8295,61 +9254,6 @@ export interface operations {
             };
         };
     };
-    AdminRefundTicket: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdminRefundTicketRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminRefundTicketResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     GetEventVolunteerPositions: {
         parameters: {
             query?: never;
@@ -8367,7 +9271,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["VolunteerPositionDto2"][];
+                    "application/json": components["schemas"]["VolunteerPositionDto"][];
                 };
             };
             /** @description Not Found */
@@ -8861,67 +9765,6 @@ export interface operations {
             };
         };
     };
-    RefundTicketById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                ticketId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdminRefundTicketRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RefundResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     ProcessVariableRefund: {
         parameters: {
             query?: never;
@@ -8983,6 +9826,42 @@ export interface operations {
             };
         };
     };
+    ReportClientErrors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientErrorBatch"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CreateTestUser: {
         parameters: {
             query?: never;
@@ -9026,6 +9905,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    GetOrCreateTestUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestUserRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -9111,6 +10023,39 @@ export interface operations {
             };
         };
     };
+    VerifyUserEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyUserEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
     TestHelpersHealth: {
         parameters: {
             query?: never;
@@ -9122,6 +10067,316 @@ export interface operations {
         responses: {
             /** @description OK */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestEventRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestTicketType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestTicketTypeRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestTicketType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketTypeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestVolunteerPosition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestVolunteerPositionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestVolunteerPosition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                positionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestVettingApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestVettingApplicationRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestVettingApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10219,6 +11474,77 @@ export interface operations {
             };
         };
     };
+    UpdateIncidentTitle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTitleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateTitleResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetIncidentNotes: {
         parameters: {
             query?: never;
@@ -10855,7 +12181,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ManualEntryData2"];
+                "application/json": components["schemas"]["ManualEntryData"];
             };
         };
         responses: {
@@ -12076,6 +13402,106 @@ export interface operations {
             };
         };
     };
+    UpdateTriggerConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTriggerConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlobalEmailTemplateDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetTimeBasedTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlobalEmailTemplateDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetEventTemplates: {
         parameters: {
             query?: never;
@@ -12504,6 +13930,238 @@ export interface operations {
             };
         };
     };
+    GetAdHocTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdHocEmailTemplateDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SaveAsTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveAsTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdHocEmailTemplateDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteAdHocTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetTriggerLogs: {
+        parameters: {
+            query?: {
+                eventId?: string;
+                status?: string;
+                templateType?: string;
+                fromDate?: string;
+                toDate?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailTriggerLogDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ScheduleAdHocEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduleAdHocEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SentAdHocEmailDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetCmsPageBySlug: {
         parameters: {
             query?: never;
@@ -12643,6 +14301,137 @@ export interface operations {
             };
         };
     };
+    QueryLogs: {
+        parameters: {
+            query: {
+                From?: string;
+                To?: string;
+                Level?: string;
+                SourceContext?: string;
+                UserId?: string;
+                CorrelationId?: string;
+                Search?: string;
+                Page: number;
+                PageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogQueryResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    QueryDailyLogSummaries: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                category?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyLogSummaryDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    QueryCcFailureSummaries: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyLogSummaryDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     TriggerBackup: {
         parameters: {
             query?: never;
@@ -12667,7 +14456,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -12690,7 +14479,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -12735,7 +14524,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -12768,7 +14557,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -12791,7 +14580,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -12800,7 +14589,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -12845,7 +14634,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -12854,7 +14643,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -12899,7 +14688,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -12908,7 +14697,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -12953,7 +14742,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -12996,7 +14785,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -13025,7 +14814,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -13048,7 +14837,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
