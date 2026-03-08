@@ -14,7 +14,6 @@ import {
 import { IconShieldCheck } from '@tabler/icons-react';
 import { PayPalButton, type PayPalCheckoutResult } from './PayPalButton';
 import { CreditCardForm, type NonceData } from './checkout/CreditCardForm';
-import { useSlidingScale } from '../hooks/useSlidingScale';
 import type { PaymentEventInfo } from '../types/payment.types';
 
 interface PaymentFormProps {
@@ -60,12 +59,6 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 }) => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
-
-  // Sliding scale logic (used for credit card form display amount)
-  const {
-    finalAmount,
-    discountPercentage,
-  } = useSlidingScale(eventInfo.basePrice, initialSlidingScale);
 
   /**
    * Handle successful PayPal checkout (ticket created + payment captured)
@@ -165,10 +158,12 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         </Text>
       </Group>
 
-      {/* Credit Card Form - tokenize only, parent handles checkout */}
+      {/* Credit Card Form - tokenize only, parent handles checkout.
+         Uses totalAmount from parent (already includes sliding scale adjustments)
+         to ensure the "Pay $X.XX" button matches the actual charge amount. */}
       <Box>
         <CreditCardForm
-          amount={finalAmount}
+          amount={totalAmount}
           onNonceReady={(nonceData) => {
             setPaymentError(null);
             onNonceReady?.(nonceData);
@@ -211,7 +206,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
           eventId={eventInfo.id}
           ticketTypeIds={ticketTypeIds}
           amount={totalAmount}
-          slidingScalePercentage={discountPercentage}
+          slidingScalePercentage={initialSlidingScale}
           currency={eventInfo.currency}
           eventTitle={eventInfo.title}
           eventWaiverAccepted={eventWaiverAccepted}
