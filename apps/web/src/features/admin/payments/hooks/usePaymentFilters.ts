@@ -18,7 +18,9 @@ const initialFilterState: PaymentFiltersState = {
   startDate: null,
   endDate: null,
   paymentMethods: [],
-  statuses: [],
+  // Default to meaningful payment statuses, excluding Failed (declined cards)
+  // and Pending (incomplete transactions) to reduce clutter
+  statuses: ['Completed', 'Refunded', 'PartiallyRefunded'],
   sortBy: 'paymentDate',
   sortDirection: 'Desc',
   page: 1,

@@ -32,8 +32,9 @@ const PAYMENT_METHOD_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = [
-  { value: 'Paid', label: 'Paid' },
+  { value: 'Completed', label: 'Paid' },
   { value: 'Refunded', label: 'Refunded' },
+  { value: 'PartiallyRefunded', label: 'Partially Refunded' },
   { value: 'Pending', label: 'Pending' },
   { value: 'Failed', label: 'Failed' }
 ];

@@ -54,6 +54,10 @@ public class PaymentListService : IPaymentListService
                 .Include(tp => tp.TicketType)
                     .ThenInclude(tt => tt.Sessions);
 
+            // Exclude $0 RSVP ticket purchases from payments analytics
+            // RSVPs (TotalPrice == 0) are not financial transactions and should not appear in payment reports
+            query = query.Where(tp => tp.TotalPrice > 0);
+
             // Get refund data for all ticket purchases (for populating RefundId, RefundDate, RemainingRefundableAmount)
             // Query PaymentRefunds table to join with TicketPurchases
             var refundData = await _db.Set<WitchCityRope.Api.Features.Payments.Entities.PaymentRefund>()

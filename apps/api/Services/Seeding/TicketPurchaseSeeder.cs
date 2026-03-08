@@ -4,6 +4,8 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Payments.Entities;
+using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Models;
 
@@ -70,6 +72,11 @@ public class TicketPurchaseSeeder
         var purchasesToAdd = new List<TicketPurchase>();
         var attendancesToAdd = new List<EventAttendance>();
         var attendeesToAdd = new List<EventAttendee>();
+        var refundsToAdd = new List<PaymentRefund>();
+
+        // Get admin user ID for PaymentRefund.ProcessedByUserId
+        var adminUser = await _userManager.FindByEmailAsync("admin@witchcityrope.com");
+        var adminUserId = adminUser?.Id ?? Guid.Empty;
 
         // Track user-event combinations to enforce: ONE user = ONE active ticket per event
         // Business Rule: A user can only have ONE active ticket per event
@@ -170,6 +177,37 @@ public class TicketPurchaseSeeder
 
                 purchasesToAdd.Add(purchase);
 
+                // Create matching PaymentRefund records for refunded/partially-refunded purchases
+                // so the payments analytics page can display refund details correctly
+                if (paymentStatus == TicketPurchasePaymentStatus.Refunded || paymentStatus == TicketPurchasePaymentStatus.PartiallyRefunded)
+                {
+                    var refundAmount = paymentStatus == TicketPurchasePaymentStatus.Refunded
+                        ? totalPrice  // Full refund
+                        : Math.Round(totalPrice * 0.5m, 2);  // 50% partial refund
+
+                    var refundDate = purchase.PurchaseDate.AddDays(Random.Shared.Next(1, 14));
+
+                    refundsToAdd.Add(new PaymentRefund
+                    {
+                        Id = Guid.NewGuid(),
+                        TicketPurchaseId = purchase.Id,
+                        RefundAmountValue = refundAmount,
+                        RefundCurrency = "USD",
+                        RefundReason = paymentStatus == TicketPurchasePaymentStatus.Refunded
+                            ? "User requested full refund - seed data"
+                            : "User requested partial refund - seed data",
+                        RefundStatus = RefundStatus.Completed,
+                        ProcessedByUserId = adminUserId,
+                        ProcessedAt = refundDate,
+                        CreatedAt = refundDate,
+                        Metadata = new Dictionary<string, object>
+                        {
+                            ["seed_data"] = true,
+                            ["refund_type"] = paymentStatus == TicketPurchasePaymentStatus.Refunded ? "full" : "partial"
+                        }
+                    });
+                }
+
                 // Create EventAttendance and EventAttendee for this purchase
                 CreateAttendanceAndAttendee(
                     purchase,
@@ -188,13 +226,21 @@ public class TicketPurchaseSeeder
         await CreateVettedUserTicketPurchasesAsync(purchasesToAdd, attendancesToAdd, attendeesToAdd, ticketCountersByEvent, cancellationToken);
 
         // Create historical test data for refund eligibility testing (transactions >90 days old)
-        await CreateHistoricalTestDataForRefundTestingAsync(purchasesToAdd, attendancesToAdd, attendeesToAdd, ticketCountersByEvent, cancellationToken);
+        await CreateHistoricalTestDataForRefundTestingAsync(purchasesToAdd, attendancesToAdd, attendeesToAdd, ticketCountersByEvent, cancellationToken, refundsToAdd);
 
         // Save all entities together in transaction (atomic operation)
         await _context.TicketPurchases.AddRangeAsync(purchasesToAdd, cancellationToken);
         await _context.EventAttendances.AddRangeAsync(attendancesToAdd, cancellationToken);
         await _context.EventAttendees.AddRangeAsync(attendeesToAdd, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Save PaymentRefund records (must be after TicketPurchases are saved due to foreign key constraint)
+        if (refundsToAdd.Count > 0)
+        {
+            await _context.PaymentRefunds.AddRangeAsync(refundsToAdd, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Created {Count} PaymentRefund records for refunded/partially-refunded seed purchases", refundsToAdd.Count);
+        }
 
         _logger.LogInformation(
             "Ticket purchases creation completed. Created: {PurchaseCount} purchases, {AttendanceCount} attendances, {AttendeeCount} attendees",
@@ -519,7 +565,8 @@ public class TicketPurchaseSeeder
         List<EventAttendance> attendancesToAdd,
         List<EventAttendee> attendeesToAdd,
         Dictionary<Guid, int> ticketCountersByEvent,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        List<PaymentRefund>? refundsToAdd = null)
     {
         _logger.LogInformation("Creating historical test data (>90 days old) for refund eligibility E2E testing");
 
@@ -602,6 +649,33 @@ public class TicketPurchaseSeeder
             };
 
             purchasesToAdd.Add(historicalPurchase);
+
+            // Create matching PaymentRefund record for refunded/partially-refunded historical purchases
+            // This ensures the payments analytics page can display refund details correctly
+            if (refundAmount > 0 && refundsToAdd != null)
+            {
+                var refundDate = purchaseDate.AddDays(Random.Shared.Next(1, 7));
+                refundsToAdd.Add(new PaymentRefund
+                {
+                    Id = Guid.NewGuid(),
+                    TicketPurchaseId = historicalPurchase.Id,
+                    RefundAmountValue = refundAmount,
+                    RefundCurrency = "USD",
+                    RefundReason = status == TicketPurchasePaymentStatus.Refunded
+                        ? "Full refund requested by user - historical seed data"
+                        : "Partial refund requested by user - historical seed data",
+                    RefundStatus = RefundStatus.Completed,
+                    ProcessedByUserId = adminUser?.Id ?? Guid.Empty,
+                    ProcessedAt = refundDate,
+                    CreatedAt = refundDate,
+                    Metadata = new Dictionary<string, object>
+                    {
+                        ["seed_data"] = true,
+                        ["refund_type"] = status == TicketPurchasePaymentStatus.Refunded ? "full" : "partial",
+                        ["historical_test_data"] = true
+                    }
+                });
+            }
 
             // Check if EventAttendee already exists (user might already have a ticket for this event)
             // Check both database AND in-memory list (in case we're creating multiple for same user in this batch)
@@ -1158,6 +1232,31 @@ public class TicketPurchaseSeeder
                     };
                     _context.TicketPurchases.Add(canceledPurchase);
 
+                    // Create PaymentRefund record for the canceled/refunded ticket
+                    // so the payments analytics page can display refund details correctly
+                    if (canceledType.Price.HasValue && canceledType.Price.Value > 0)
+                    {
+                        var refundRecord = new PaymentRefund
+                        {
+                            Id = Guid.NewGuid(),
+                            TicketPurchaseId = canceledPurchase.Id,
+                            RefundAmountValue = canceledType.Price.Value,
+                            RefundCurrency = "USD",
+                            RefundReason = "User requested refund - historical workshop seed data",
+                            RefundStatus = RefundStatus.Completed,
+                            ProcessedByUserId = canceledUser.Id,
+                            ProcessedAt = canceledDate,
+                            CreatedAt = canceledDate,
+                            Metadata = new Dictionary<string, object>
+                            {
+                                ["seed_data"] = true,
+                                ["refund_type"] = "full",
+                                ["historical_workshop"] = true
+                            }
+                        };
+                        _context.PaymentRefunds.Add(refundRecord);
+                    }
+
                     // Create EventAttendee for canceled ticket (to ensure ticket number uniqueness)
                     var canceledAttendee = new EventAttendee(evt.Id, canceledUser.Id, "cancelled")
                     {
@@ -1652,6 +1751,28 @@ public class TicketPurchaseSeeder
 
                     purchasesToAdd.Add(ticketPurchase);
 
+                    // Create PaymentRefund record for the refunded "Both Days" ticket
+                    // so the payments analytics page can display refund details correctly
+                    var refundRecord = new PaymentRefund
+                    {
+                        Id = Guid.NewGuid(),
+                        TicketPurchaseId = ticketPurchase.Id,
+                        RefundAmountValue = purchaseAmount,
+                        RefundCurrency = "USD",
+                        RefundReason = "Schedule conflict - unable to attend - seed data",
+                        RefundStatus = RefundStatus.Completed,
+                        ProcessedByUserId = user.Id,
+                        ProcessedAt = refundDate,
+                        CreatedAt = refundDate,
+                        Metadata = new Dictionary<string, object>
+                        {
+                            ["seed_data"] = true,
+                            ["refund_type"] = "full",
+                            ["suspension_basics"] = true
+                        }
+                    };
+                    _context.PaymentRefunds.Add(refundRecord);
+
                     // Create EventAttendance with Cancelled status for refunded ticket
                     CreateAttendanceAndAttendee(
                         ticketPurchase,
@@ -1964,13 +2085,15 @@ public class TicketPurchaseSeeder
         var refundTestAttendances = new List<EventAttendance>();
         var refundTestAttendees = new List<EventAttendee>();
         var refundTestCounters = new Dictionary<Guid, int>();
+        var refundTestRefunds = new List<PaymentRefund>();
 
         await CreateHistoricalTestDataForRefundTestingAsync(
             refundTestPurchases,
             refundTestAttendances,
             refundTestAttendees,
             refundTestCounters,
-            cancellationToken);
+            cancellationToken,
+            refundTestRefunds);
 
         if (refundTestPurchases.Count > 0)
         {
@@ -1979,6 +2102,14 @@ public class TicketPurchaseSeeder
             await _context.EventAttendees.AddRangeAsync(refundTestAttendees, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Saved {Count} refund test purchases", refundTestPurchases.Count);
+
+            // Save PaymentRefund records (must be after TicketPurchases are saved due to foreign key constraint)
+            if (refundTestRefunds.Count > 0)
+            {
+                await _context.PaymentRefunds.AddRangeAsync(refundTestRefunds, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation("Created {Count} PaymentRefund records for historical refund test data", refundTestRefunds.Count);
+            }
         }
 
         _logger.LogInformation("Historical workshop tickets creation completed");
