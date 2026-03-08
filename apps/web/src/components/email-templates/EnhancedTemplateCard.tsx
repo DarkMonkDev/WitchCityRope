@@ -186,13 +186,6 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
             color="burgundy"
             size="xs"
             onClick={() => onEditTrigger(id || '')}
-            styles={{
-              root: {
-                height: '30px',
-                fontSize: '12px',
-                fontWeight: 600,
-              },
-            }}
           >
             Edit Trigger
           </Button>
@@ -202,13 +195,6 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
             color="burgundy"
             size="xs"
             onClick={() => onEditContent(id || '')}
-            styles={{
-              root: {
-                height: '30px',
-                fontSize: '12px',
-                fontWeight: 600,
-              },
-            }}
           >
             Edit Email
           </Button>

@@ -128,7 +128,7 @@ export const wcrTheme = createTheme({
       },
       styles: {
         root: {
-          height: '42px',
+          minHeight: '42px',
           padding: '12px 32px',
           borderRadius: '12px 6px 12px 6px', // v7 button corner morphing start
           fontFamily: 'Montserrat, sans-serif',
