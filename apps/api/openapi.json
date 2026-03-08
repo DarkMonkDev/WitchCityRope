@@ -13620,6 +13620,38 @@
           "isCustomized": {
             "type": "boolean"
           },
+          "triggerType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "triggerEnabled": {
+            "type": "boolean"
+          },
+          "timingOffsetDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "timingOffsetHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "recipientGroup": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasTriggerOverrides": {
+            "type": "boolean"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -17103,6 +17135,32 @@
             "items": {
               "type": "string"
             }
+          },
+          "overrideTriggerEnabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "overrideTimingOffsetDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "overrideTimingOffsetHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "overrideRecipientGroup": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

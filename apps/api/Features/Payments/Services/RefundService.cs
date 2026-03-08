@@ -299,8 +299,25 @@ public class RefundService : IRefundService
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation(
-                    "Refund {RefundId} processed successfully for ticket {TicketId}, status: {RefundStatus}",
+                    "Refund {RefundId} processed for ticket {TicketId}, status: {RefundStatus}",
                     refund.Id, request.TicketPurchaseId, refund.RefundStatus);
+
+                // If the payment processor refund failed, remove the PaymentRefund record
+                // and return a failure result. The failure is already logged via _logger.LogError
+                // at each failure point above. We don't persist failed refund records — the admin
+                // gets notified of the failure so they can investigate and retry.
+                if (refund.RefundStatus == RefundStatus.Failed)
+                {
+                    var failureReason = refund.Metadata?.ContainsKey("failure_reason") == true
+                        ? refund.Metadata["failure_reason"]?.ToString()
+                        : "Payment processor refund failed. The refund was not completed.";
+
+                    _context.PaymentRefunds.Remove(refund);
+                    await _context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    return Result<PaymentRefund>.Failure(failureReason ?? "Refund failed");
+                }
 
                 // Auto-cancel volunteer signups if refund was completed
                 if (refund.RefundStatus == RefundStatus.Completed)
