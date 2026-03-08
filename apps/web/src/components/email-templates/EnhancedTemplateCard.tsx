@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Group, Text, Badge, Button, Stack, Checkbox } from '@mantine/core';
+import { Card, Group, Text, Badge, Button, Stack } from '@mantine/core';
 import type { GlobalEmailTemplateDto } from '../../services/emailTemplates.api';
 
 /**
@@ -110,16 +110,18 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
             {title || 'Untitled Template'}
           </Text>
 
-          <Checkbox
-            checked={triggerEnabled}
-            readOnly
-            label="Enabled"
-            size="xs"
-            color="burgundy"
-            styles={{
-              label: { fontSize: '12px', fontWeight: 600, paddingLeft: '6px' },
+          <Badge
+            size="sm"
+            style={{
+              backgroundColor: triggerEnabled ? '#2e7d32' : '#c62828',
+              color: '#FFF8F0',
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '11px',
             }}
-          />
+          >
+            {triggerEnabled ? 'Enabled' : 'Disabled'}
+          </Badge>
         </Group>
 
         {/* Row 2: Badges — trigger type, timing, recipient */}
