@@ -1,6 +1,5 @@
 import React from 'react';
-import { Card, Group, Text, Badge, Button, Stack, Box } from '@mantine/core';
-import { IconEdit, IconSettings } from '@tabler/icons-react';
+import { Card, Group, Text, Badge, Button, Stack, Checkbox } from '@mantine/core';
 import type { GlobalEmailTemplateDto } from '../../services/emailTemplates.api';
 
 /**
@@ -95,8 +94,8 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
         transition: 'all 0.3s ease',
       }}
     >
-      <Stack gap="md">
-        {/* Header with title and action buttons */}
+      <Stack gap="sm">
+        {/* Row 1: Title (left) + Enabled checkbox (right) */}
         <Group justify="space-between" wrap="nowrap">
           <Text
             fw={700}
@@ -111,67 +110,29 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
             {title || 'Untitled Template'}
           </Text>
 
-          <Group gap="xs" wrap="nowrap">
-            <Button
-              variant="light"
-              color="burgundy"
-              size="xs"
-              onClick={() => onEditTrigger(id || '')}
-              leftSection={<IconSettings size={14} />}
-              styles={{
-                root: {
-                  height: '32px',
-                  paddingTop: '6px',
-                  paddingBottom: '6px',
-                  fontSize: '12px',
-                  lineHeight: '1.2',
-                  fontWeight: 600,
-                },
-              }}
-            >
-              Edit Trigger
-            </Button>
-
-            <Button
-              variant="outline"
-              color="burgundy"
-              size="xs"
-              onClick={() => onEditContent(id || '')}
-              leftSection={<IconEdit size={14} />}
-              styles={{
-                root: {
-                  height: '32px',
-                  paddingTop: '6px',
-                  paddingBottom: '6px',
-                  fontSize: '12px',
-                  lineHeight: '1.2',
-                  fontWeight: 600,
-                },
-              }}
-            >
-              Edit
-            </Button>
-          </Group>
+          <Checkbox
+            checked={triggerEnabled}
+            readOnly
+            label="Enabled"
+            size="xs"
+            color="burgundy"
+            styles={{
+              label: { fontSize: '12px', fontWeight: 600, paddingLeft: '6px' },
+            }}
+          />
         </Group>
 
-        {/* Subject line */}
-        <Text size="sm" c="stone" lineClamp={1}>
-          {cleanVariablePlaceholders(subject || '')}
-        </Text>
-
-        {/* Badge row - Trigger type, timing, recipient */}
+        {/* Row 2: Badges — trigger type, timing, recipient */}
         <Group gap="xs" wrap="wrap">
-          {/* Trigger type badge */}
           <Badge
-            color={triggerType === 'TimeBased' ? 'grape' : triggerType === 'FixedEvent' ? 'red' : 'gray'}
             variant="filled"
             size="sm"
             style={{
               backgroundColor:
-                triggerType === 'TimeBased' ? '#614B79' : // Plum
-                triggerType === 'FixedEvent' ? '#880124' : // Burgundy
-                '#8B8680', // Stone gray for Manual
-              color: '#FFF8F0', // Ivory text
+                triggerType === 'TimeBased' ? '#614B79' :
+                triggerType === 'FixedEvent' ? '#880124' :
+                '#8B8680',
+              color: '#FFF8F0',
               textTransform: 'none',
               fontWeight: 600,
               fontSize: '11px',
@@ -182,13 +143,12 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
              '✋ Manual'}
           </Badge>
 
-          {/* Timing badge (only for time-based) */}
           {triggerType === 'TimeBased' && timingDisplay && (
             <Badge
               size="sm"
               style={{
-                backgroundColor: '#B76D75', // Rose gold
-                color: '#2B2B2B', // Charcoal text
+                backgroundColor: '#B76D75',
+                color: '#2B2B2B',
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: '11px',
@@ -198,13 +158,12 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
             </Badge>
           )}
 
-          {/* Recipient badge */}
           {recipientGroup && (
             <Badge
               size="sm"
               style={{
-                backgroundColor: '#D4A5A5', // Dusty rose
-                color: '#2B2B2B', // Charcoal text
+                backgroundColor: '#D4A5A5',
+                color: '#2B2B2B',
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: '11px',
@@ -215,17 +174,45 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
           )}
         </Group>
 
-        {/* Status indicator */}
-        <Box>
-          <Text size="xs" c={triggerEnabled ? 'green' : 'dimmed'} fw={600}>
-            {triggerEnabled ? '✅ Enabled' : '❌ Disabled'}
-            {triggerType === 'FixedEvent' && triggerEnabled && (
-              <Text component="span" c="dimmed" ml="xs">
-                (triggers on action)
-              </Text>
-            )}
-          </Text>
-        </Box>
+        {/* Row 3: Subject line */}
+        <Text size="sm" c="stone" lineClamp={1}>
+          {cleanVariablePlaceholders(subject || '')}
+        </Text>
+
+        {/* Row 4: Action buttons (right-aligned, no icons) */}
+        <Group justify="flex-end" gap="xs">
+          <Button
+            variant="light"
+            color="burgundy"
+            size="xs"
+            onClick={() => onEditTrigger(id || '')}
+            styles={{
+              root: {
+                height: '30px',
+                fontSize: '12px',
+                fontWeight: 600,
+              },
+            }}
+          >
+            Edit Trigger
+          </Button>
+
+          <Button
+            variant="outline"
+            color="burgundy"
+            size="xs"
+            onClick={() => onEditContent(id || '')}
+            styles={{
+              root: {
+                height: '30px',
+                fontSize: '12px',
+                fontWeight: 600,
+              },
+            }}
+          >
+            Edit Email
+          </Button>
+        </Group>
       </Stack>
     </Card>
   );
