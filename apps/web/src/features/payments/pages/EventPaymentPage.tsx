@@ -2,7 +2,7 @@
 // Complete payment flow for event registration
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Container,
   Stack,
@@ -34,6 +34,8 @@ import { eventsManagementService } from '../../../api/services/eventsManagement.
 import { formatAbbreviatedDate, formatUtcTimeRange } from '../../../utils/eventUtils';
 import type { NonceData } from '../components/checkout/CreditCardForm';
 import type { PayPalCheckoutResult } from '../components/PayPalButton';
+import { useParticipation } from '../../../hooks/useParticipation';
+import { useCurrentUser } from '../../../lib/api/hooks/useAuth';
 
 import type { PaymentEventInfo } from '../types/payment.types';
 
@@ -52,11 +54,17 @@ export const EventPaymentPage: React.FC = () => {
   }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 991px)');
 
-  // Get owned session IDs from navigation state (for filtering out already-purchased sessions)
-  const ownedSessionIds: string[] = (location.state as any)?.ownedSessionIds || [];
+  // Fetch user's participation status from API to determine which sessions they already own.
+  // This replaces the old approach of relying on navigation state (location.state.ownedSessionIds)
+  // which was stale on page refresh or direct navigation.
+  // Uses the same useParticipation hook as EventDetailPage for consistent backend-driven filtering.
+  const { data: currentUser } = useCurrentUser();
+  const isAuthenticated = !!currentUser;
+  const { data: participation, isLoading: participationLoading } = useParticipation(
+    eventId || '', isAuthenticated, !!eventId
+  );
 
   // Generate registration ID if not provided in URL
   const [registrationId] = useState(() =>
@@ -102,7 +110,11 @@ export const EventPaymentPage: React.FC = () => {
   }, [checkout.isPending]);
 
   /**
-   * Load event information from API
+   * Load event information from API.
+   * Waits for participation data to load so we can filter tickets using
+   * the same backend-driven approach as EventDetailPage:
+   * 1. canPurchase flag on each TicketTypeDto (timing windows, stock)
+   * 2. ownedSessionIds from participation API (user-specific session ownership)
    */
   useEffect(() => {
     const loadEventInfo = async () => {
@@ -128,37 +140,46 @@ export const EventPaymentPage: React.FC = () => {
         const eventSessions = eventDetails?.sessions || [];
         setSessions(eventSessions);
 
-        // Filter out tickets that include sessions the user already owns
-        // Map owned session IDs to session identifiers
-        const ownedSessionIdentifiers = new Set<string>();
-        if (ownedSessionIds.length > 0) {
-          eventSessions.forEach(session => {
-            if (ownedSessionIds.includes(session.id || '') && session.sessionIdentifier) {
-              ownedSessionIdentifiers.add(session.sessionIdentifier);
-            }
-          });
-        }
+        // --- Backend-driven ticket filtering (same approach as EventDetailPage) ---
+        // Uses ownedSessionIds from the participation API (fresh, not from stale nav state)
+        // and canPurchase from each TicketTypeDto (backend-driven timing/stock checks).
 
-        // Filter tickets: exclude any ticket that includes an already-owned session
-        const availableTicketTypes = ownedSessionIdentifiers.size > 0
-          ? eventTicketTypes.filter(ticket => {
-              // If ticket has no session identifiers, include it
-              if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
-                return true;
-              }
-              // Exclude if ANY of the ticket's sessions are already owned
-              const hasOwnedSession = ticket.sessionIdentifiers.some(
-                sessionId => ownedSessionIdentifiers.has(sessionId)
-              );
-              return !hasOwnedSession;
-            })
-          : eventTicketTypes;
+        // Get owned session IDs from participation API response
+        const ownedSessionIds: string[] = (participation as any)?.ownedSessionIds?.map(String) || [];
+
+        // Build session code → GUID lookup (same as EventDetailPage lines 180-185)
+        const sessionCodeToId: Record<string, string> = {};
+        eventSessions.forEach((s: any) => {
+          if (s.sessionIdentifier && s.id) {
+            sessionCodeToId[s.sessionIdentifier] = s.id;
+          }
+        });
+
+        // Check if a ticket type covers ANY session the user already owns
+        // (same as EventDetailPage isTicketOwnedByUser, lines 188-195)
+        const isTicketOwnedByUser = (tt: TicketTypeDto): boolean => {
+          const codes: string[] = tt.sessionIdentifiers || [];
+          if (codes.length === 0 || ownedSessionIds.length === 0) return false;
+          return codes.some((code: string) => {
+            const sessionId = sessionCodeToId[code];
+            return sessionId != null && ownedSessionIds.includes(sessionId);
+          });
+        };
+
+        // Filter tickets using the same logic as EventDetailPage (lines 200-206):
+        // 1. Must be purchasable (canPurchase = true, backend-driven timing/stock)
+        // 2. Must NOT cover any session the user already owns
+        // Note: canPurchase is returned by the API but not yet in the auto-generated TicketTypeDto,
+        // so we cast to any (same approach as EventDetailPage)
+        const availableTicketTypes = eventTicketTypes.filter((tt: any) =>
+          tt.canPurchase && !isTicketOwnedByUser(tt)
+        );
 
         setTicketTypes(availableTicketTypes);
 
-        debugLog('EventPaymentPage: Owned session IDs:', ownedSessionIds);
-        debugLog('EventPaymentPage: Owned session identifiers:', Array.from(ownedSessionIdentifiers));
-        debugLog('EventPaymentPage: Filtered tickets:', availableTicketTypes.map(t => t.name));
+        debugLog('EventPaymentPage: Owned session IDs (from API):', ownedSessionIds);
+        debugLog('EventPaymentPage: All ticket types:', eventTicketTypes.map((t: any) => `${t.name} (canPurchase=${t.canPurchase})`));
+        debugLog('EventPaymentPage: Filtered available tickets:', availableTicketTypes.map(t => t.name));
 
         // Auto-select ticket(s): if only one ticket, select it automatically; otherwise use URL param or empty
         let initialSelectedIds: string[] = [];
@@ -222,13 +243,16 @@ export const EventPaymentPage: React.FC = () => {
       }
     };
 
-    if (eventId) {
-      loadEventInfo();
-    } else {
+    // Wait for participation data before loading event info, so we can
+    // properly filter tickets. For unauthenticated users, participationLoading
+    // will be false immediately (query is disabled).
+    if (!eventId) {
       setError('Missing event information');
       setIsLoading(false);
+    } else if (!participationLoading) {
+      loadEventInfo();
     }
-  }, [eventId, registrationId]);
+  }, [eventId, registrationId, participation, participationLoading]);
 
   /**
    * Handle card nonce ready from CreditCardForm.
@@ -667,6 +691,30 @@ export const EventPaymentPage: React.FC = () => {
             {/* Step 1: Ticket Type and Pricing Selection */}
             {currentStep === 0 && (
               <>
+                {/* No purchasable tickets message — shown when all tickets are
+                    filtered out (user owns all sessions, timing windows closed, etc.) */}
+                {ticketTypes.length === 0 && (
+                  <Alert
+                    icon={<IconAlertCircle />}
+                    title="No Tickets Available"
+                    color="blue"
+                  >
+                    <Text size="sm">
+                      There are no tickets available for purchase right now. This may be because
+                      you already have tickets for all available sessions, or the sales window
+                      has closed.
+                    </Text>
+                    <Button
+                      variant="outline"
+                      color="blue"
+                      mt="md"
+                      onClick={() => navigate(`/events/${eventId}`)}
+                    >
+                      Back to Event Details
+                    </Button>
+                  </Alert>
+                )}
+
                 {/* Ticket Type Selection */}
                 {ticketTypes.length > 0 && (
                   <Paper p="lg" pt={{ base: 14, md: 'lg' }} radius="md" mb={{ base: 0, md: 'xs' }} style={{ background: 'var(--mantine-color-gray-0)' }}>
