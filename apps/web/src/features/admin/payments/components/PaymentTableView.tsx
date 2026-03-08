@@ -52,6 +52,8 @@ const getStatusColor = (status: string): string => {
       return 'yellow'; // Between Refunded (orange) and Completed (green)
     case 'Refunded':
       return 'orange';
+    case 'Refund':
+      return 'grape'; // Purple for refund line items (money out)
     case 'Pending':
       return 'blue';
     case 'Failed':
@@ -262,8 +264,8 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
                   <Text size="sm" c="dimmed">
                     Amount:
                   </Text>
-                  <Text fw={700} size="lg">
-                    ${payment.amount?.toFixed(2) || '0.00'}
+                  <Text fw={700} size="lg" c={(payment.amount ?? 0) < 0 ? 'red' : undefined}>
+                    {(payment.amount ?? 0) < 0 ? `-$${Math.abs(payment.amount ?? 0).toFixed(2)}` : `$${payment.amount?.toFixed(2) || '0.00'}`}
                   </Text>
                 </Group>
 
@@ -401,8 +403,8 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
                 </Badge>
               </Table.Td>
               <Table.Td style={{ textAlign: 'right' }}>
-                <Text fw={600} size="md">
-                  ${payment.amount?.toFixed(2) || '0.00'}
+                <Text fw={600} size="md" c={(payment.amount ?? 0) < 0 ? 'red' : undefined}>
+                  {(payment.amount ?? 0) < 0 ? `-$${Math.abs(payment.amount ?? 0).toFixed(2)}` : `$${payment.amount?.toFixed(2) || '0.00'}`}
                 </Text>
               </Table.Td>
               <Table.Td style={{ textAlign: 'center' }}>

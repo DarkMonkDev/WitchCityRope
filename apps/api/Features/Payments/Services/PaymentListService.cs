@@ -58,8 +58,24 @@ public class PaymentListService : IPaymentListService
             // RSVPs (TotalPrice == 0) are not financial transactions and should not appear in payment reports
             query = query.Where(tp => tp.TotalPrice > 0);
 
+            // Determine if status filter includes refund-related statuses
+            // Refund line items appear when Refunded/PartiallyRefunded are selected (or no filter applied)
+            var statusFilterValues = new List<string>();
+            bool includeRefundLineItems = true; // Default: show refund line items when no status filter
+            if (!string.IsNullOrWhiteSpace(parameters.Statuses))
+            {
+                statusFilterValues = parameters.Statuses
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(s => s.ToUpper())
+                    .ToList();
+
+                // Show refund line items when Refunded or PartiallyRefunded is in the filter
+                includeRefundLineItems = statusFilterValues.Contains("REFUNDED")
+                    || statusFilterValues.Contains("PARTIALLYREFUNDED");
+            }
+
             // Get refund data for all ticket purchases (for populating RefundId, RefundDate, RemainingRefundableAmount)
-            // Query PaymentRefunds table to join with TicketPurchases
+            // Also used to create separate refund line items in the transaction list
             var refundData = await _db.Set<WitchCityRope.Api.Features.Payments.Entities.PaymentRefund>()
                 .AsNoTracking()
                 .Where(r => r.RefundStatus == WitchCityRope.Api.Features.Payments.Models.RefundStatus.Completed)
@@ -90,17 +106,19 @@ public class PaymentListService : IPaymentListService
                 );
             }
 
-            // Apply date range filter (purchase date)
+            // Apply date range filter (purchase date for purchases, refund date for refund line items)
+            DateTime? startDateUtc = null;
+            DateTime? endDateUtc = null;
             if (parameters.StartDate.HasValue)
             {
-                var startDate = parameters.StartDate.Value.ToUniversalTime();
-                query = query.Where(tp => tp.PurchaseDate >= startDate);
+                startDateUtc = parameters.StartDate.Value.ToUniversalTime();
+                query = query.Where(tp => tp.PurchaseDate >= startDateUtc);
             }
 
             if (parameters.EndDate.HasValue)
             {
-                var endDate = parameters.EndDate.Value.ToUniversalTime().AddDays(1); // Include full end date
-                query = query.Where(tp => tp.PurchaseDate < endDate);
+                endDateUtc = parameters.EndDate.Value.ToUniversalTime().AddDays(1); // Include full end date
+                query = query.Where(tp => tp.PurchaseDate < endDateUtc);
             }
 
             // Apply payment method filter
@@ -113,15 +131,10 @@ public class PaymentListService : IPaymentListService
                 query = query.Where(tp => methods.Contains(tp.PaymentMethod.ToUpper()));
             }
 
-            // Apply status filter
-            if (!string.IsNullOrWhiteSpace(parameters.Statuses))
+            // Apply status filter (for ticket purchases only - refund line items handled separately)
+            if (statusFilterValues.Count > 0)
             {
-                var statuses = parameters.Statuses
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                    .Select(s => s.ToUpper())
-                    .ToList();
-                // Convert string filter values to enum for comparison
-                var parsedStatuses = statuses
+                var parsedStatuses = statusFilterValues
                     .Select(s => Enum.TryParse<TicketPurchasePaymentStatus>(s, ignoreCase: true, out var ps) ? ps : (TicketPurchasePaymentStatus?)null)
                     .Where(ps => ps.HasValue)
                     .Select(ps => ps!.Value)
@@ -129,7 +142,7 @@ public class PaymentListService : IPaymentListService
                 query = query.Where(tp => parsedStatuses.Contains(tp.PaymentStatus));
             }
 
-            // Apply amount range filter (TotalPrice)
+            // Apply amount range filter (TotalPrice for purchases, refund amount for refund line items)
             if (parameters.MinAmount.HasValue)
             {
                 query = query.Where(tp => tp.TotalPrice >= parameters.MinAmount.Value);
@@ -140,94 +153,144 @@ public class PaymentListService : IPaymentListService
                 query = query.Where(tp => tp.TotalPrice <= parameters.MaxAmount.Value);
             }
 
-            // Apply sorting before count (for consistency)
-            var sortBy = parameters.SortBy?.ToLower() ?? "paymentdate";
-            var isDescending = parameters.SortDirection?.Equals("Desc", StringComparison.OrdinalIgnoreCase) ?? true;
-
-            query = sortBy switch
-            {
-                "amount" => isDescending
-                    ? query.OrderByDescending(tp => tp.TotalPrice)
-                    : query.OrderBy(tp => tp.TotalPrice),
-                "username" => isDescending
-                    ? query.OrderByDescending(tp => tp.User!.SceneName ?? tp.User.Email)
-                    : query.OrderBy(tp => tp.User!.SceneName ?? tp.User.Email),
-                "status" => isDescending
-                    ? query.OrderByDescending(tp => tp.PaymentStatus)
-                    : query.OrderBy(tp => tp.PaymentStatus),
-                _ => isDescending // Default: PaymentDate (PurchaseDate)
-                    ? query.OrderByDescending(tp => tp.ProcessedAt ?? tp.PurchaseDate)
-                    : query.OrderBy(tp => tp.ProcessedAt ?? tp.PurchaseDate)
-            };
-
-            // Get total count after filtering but before pagination
-            var totalCount = await query.CountAsync(cancellationToken);
-
-            // Apply pagination
-            var skip = (parameters.Page - 1) * parameters.PageSize;
-            query = query.Skip(skip).Take(parameters.PageSize);
-
-            // Execute query and get ticket purchases
+            // Execute query without pagination first - we need all matching purchases
+            // to combine with refund line items before paginating the combined result
             var ticketPurchases = await query.ToListAsync(cancellationToken);
 
-            // Map to DTOs with refund information
-            var results = ticketPurchases
+            // Map purchases to DTOs
+            var purchaseDtos = ticketPurchases
                 .Select(tp =>
                 {
-                    // Get refund info for this ticket purchase (if any)
                     var hasRefundData = refundData.TryGetValue(tp.Id, out var refund);
                     var totalRefunded = hasRefundData ? refund!.TotalRefunded : 0m;
                     var remainingRefundable = tp.TotalPrice - totalRefunded;
 
                     return new PaymentTransactionDto
                     {
-                        Id = tp.Id, // TicketPurchase ID (not separate Payment record)
-                        TicketId = tp.Id, // For refund endpoint consistency
+                        Id = tp.Id,
+                        TicketId = tp.Id,
                         PaymentDate = tp.ProcessedAt ?? tp.PurchaseDate,
-
-                        // User info - prefer SceneName over FirstName/LastName over Email
                         UserName = !string.IsNullOrEmpty(tp.User!.SceneName)
                             ? tp.User.SceneName
                             : !string.IsNullOrEmpty(tp.User.FirstName)
                                 ? $"{tp.User.FirstName} {tp.User.LastName}".Trim()
                                 : tp.User.Email ?? "Unknown",
                         UserEmail = tp.User!.Email ?? string.Empty,
-
-                        // Event info
                         EventName = tp.TicketType!.Event!.Title,
                         SessionName = tp.TicketType.Sessions.Any()
                             ? string.Join(", ", tp.TicketType.Sessions.OrderBy(s => s.StartTime).Select(s => s.Name))
                             : null,
-
-                        // Payment details from TicketPurchase
                         PaymentMethod = tp.PaymentMethod,
                         Amount = tp.TotalPrice,
-                        Currency = PaymentConstants.Currency, // All prices are USD
+                        Currency = PaymentConstants.Currency,
                         Status = tp.PaymentStatus.ToString(),
-
-                        // Refund info - populated from PaymentRefunds table
-                        // IsRefundable: Payment can be refunded if:
-                        // - Status is Completed or PartiallyRefunded
-                        // - Has money remaining to refund (TotalPrice > TotalRefunded)
-                        // - Payment method supports refunds (all methods now support refunds via variable refund)
                         IsRefundable = (tp.PaymentStatus == TicketPurchasePaymentStatus.Completed
                                         || tp.PaymentStatus == TicketPurchasePaymentStatus.PartiallyRefunded)
                                        && tp.TotalPrice > 0
                                        && remainingRefundable > 0,
-
-                        // Latest refund ID (most recent refund for this ticket purchase)
                         RefundId = hasRefundData ? refund!.LatestRefundId : null,
-
-                        // Latest refund date (when most recent refund was processed)
                         RefundDate = hasRefundData ? refund!.LatestRefundDate : null,
-
-                        // Amount remaining that can be refunded (original - total refunded)
                         RemainingRefundableAmount = remainingRefundable
                     };
                 })
                 .ToList();
 
-            // Calculate total pages (Math.Ceiling to handle remainder)
+            // Build refund line items as separate transactions
+            // Refunds appear as negative-amount entries so they're visible in the payment ledger
+            var refundDtos = new List<PaymentTransactionDto>();
+
+            if (includeRefundLineItems)
+            {
+                // Get the IDs of all filtered ticket purchases to find their refunds
+                var filteredPurchaseIds = ticketPurchases.Select(tp => tp.Id).ToHashSet();
+
+                // Query individual refund records (not grouped) for the filtered purchases
+                var individualRefunds = await _db.Set<WitchCityRope.Api.Features.Payments.Entities.PaymentRefund>()
+                    .AsNoTracking()
+                    .Include(r => r.TicketPurchase)
+                        .ThenInclude(tp => tp!.User)
+                    .Include(r => r.TicketPurchase)
+                        .ThenInclude(tp => tp!.TicketType)
+                            .ThenInclude(tt => tt!.Event)
+                    .Include(r => r.TicketPurchase)
+                        .ThenInclude(tp => tp!.TicketType)
+                            .ThenInclude(tt => tt!.Sessions)
+                    .Where(r => r.RefundStatus == WitchCityRope.Api.Features.Payments.Models.RefundStatus.Completed
+                        && filteredPurchaseIds.Contains(r.TicketPurchaseId))
+                    .ToListAsync(cancellationToken);
+
+                // Apply date filter to refund dates if date range is specified
+                if (startDateUtc.HasValue)
+                    individualRefunds = individualRefunds.Where(r => r.ProcessedAt >= startDateUtc.Value).ToList();
+                if (endDateUtc.HasValue)
+                    individualRefunds = individualRefunds.Where(r => r.ProcessedAt < endDateUtc.Value).ToList();
+
+                refundDtos = individualRefunds
+                    .Select(r =>
+                    {
+                        var tp = r.TicketPurchase!;
+                        return new PaymentTransactionDto
+                        {
+                            // Use the refund ID so it's a unique row in the table
+                            Id = r.Id,
+                            // Link back to the original ticket purchase for reference
+                            TicketId = r.TicketPurchaseId,
+                            // Use the refund processing date, not the original purchase date
+                            PaymentDate = r.ProcessedAt,
+                            UserName = !string.IsNullOrEmpty(tp.User!.SceneName)
+                                ? tp.User.SceneName
+                                : !string.IsNullOrEmpty(tp.User.FirstName)
+                                    ? $"{tp.User.FirstName} {tp.User.LastName}".Trim()
+                                    : tp.User.Email ?? "Unknown",
+                            UserEmail = tp.User!.Email ?? string.Empty,
+                            EventName = tp.TicketType!.Event!.Title,
+                            SessionName = tp.TicketType.Sessions.Any()
+                                ? string.Join(", ", tp.TicketType.Sessions.OrderBy(s => s.StartTime).Select(s => s.Name))
+                                : null,
+                            PaymentMethod = tp.PaymentMethod,
+                            // Negative amount to indicate money going out (refund)
+                            Amount = -r.RefundAmountValue,
+                            Currency = r.RefundCurrency,
+                            Status = "Refund",
+                            IsRefundable = false,
+                            RefundId = r.Id,
+                            RefundDate = r.ProcessedAt,
+                            RemainingRefundableAmount = 0
+                        };
+                    })
+                    .ToList();
+            }
+
+            // Combine purchases and refund line items, then sort and paginate
+            var allTransactions = purchaseDtos.Concat(refundDtos).ToList();
+
+            // Apply sorting to the combined list
+            var sortBy = parameters.SortBy?.ToLower() ?? "paymentdate";
+            var isDescending = parameters.SortDirection?.Equals("Desc", StringComparison.OrdinalIgnoreCase) ?? true;
+
+            allTransactions = sortBy switch
+            {
+                "amount" => isDescending
+                    ? allTransactions.OrderByDescending(t => Math.Abs(t.Amount)).ToList()
+                    : allTransactions.OrderBy(t => Math.Abs(t.Amount)).ToList(),
+                "username" => isDescending
+                    ? allTransactions.OrderByDescending(t => t.UserName).ToList()
+                    : allTransactions.OrderBy(t => t.UserName).ToList(),
+                "status" => isDescending
+                    ? allTransactions.OrderByDescending(t => t.Status).ToList()
+                    : allTransactions.OrderBy(t => t.Status).ToList(),
+                _ => isDescending
+                    ? allTransactions.OrderByDescending(t => t.PaymentDate).ToList()
+                    : allTransactions.OrderBy(t => t.PaymentDate).ToList()
+            };
+
+            // Total count includes both purchases and refund line items
+            var totalCount = allTransactions.Count;
+
+            // Apply pagination to the combined, sorted list
+            var skip = (parameters.Page - 1) * parameters.PageSize;
+            var results = allTransactions.Skip(skip).Take(parameters.PageSize).ToList();
+
             var totalPages = parameters.PageSize > 0
                 ? (int)Math.Ceiling((double)totalCount / parameters.PageSize)
                 : 0;
@@ -242,10 +305,12 @@ public class PaymentListService : IPaymentListService
             };
 
             _logger.LogInformation(
-                "Retrieved {Count} payment transactions (page {Page}/{TotalPages})",
+                "Retrieved {Count} payment transactions ({PurchaseCount} purchases, {RefundCount} refunds) (page {Page}/{TotalPages})",
                 results.Count,
+                purchaseDtos.Count,
+                refundDtos.Count,
                 parameters.Page,
-                (totalCount + parameters.PageSize - 1) / parameters.PageSize);
+                totalPages);
 
             return (true, response, string.Empty);
         }
