@@ -30,6 +30,15 @@ public class GlobalEmailTemplate
     public string TemplateType { get; set; } = string.Empty;
 
     /// <summary>
+    /// User-editable display title for the template.
+    /// Shown at the top of template cards and the editor area in the admin UI.
+    /// Defaults to the Subject line when first created.
+    /// </summary>
+    [Required]
+    [MaxLength(100)]
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>
     /// Email subject line (max 200 characters)
     /// </summary>
     [Required]

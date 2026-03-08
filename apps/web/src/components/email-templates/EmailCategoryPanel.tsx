@@ -43,6 +43,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
 
   // Local state for editor
   const [selectedTemplate, setSelectedTemplate] = useState<GlobalEmailTemplateDto | null>(null);
+  const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
   const [htmlBody, setHtmlBody] = useState('');
   const [_plainTextBody, setPlainTextBody] = useState('');
@@ -64,7 +65,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
 
   // Save template mutation
   const saveMutation = useMutation({
-    mutationFn: (data: { subject: string; htmlBody: string; plainTextBody: string }) => {
+    mutationFn: (data: { title: string; subject: string; htmlBody: string; plainTextBody: string }) => {
       if (!selectedTemplate) {
         throw new Error('No template selected');
       }
@@ -77,6 +78,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
         color: 'green',
       });
       setSelectedTemplate(null);
+      setTitle('');
       setSubject('');
       setHtmlBody('');
       setPlainTextBody('');
@@ -112,6 +114,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   // Sync editor state when template is selected
   useEffect(() => {
     if (selectedTemplate) {
+      setTitle(selectedTemplate.title ?? '');
       setSubject(selectedTemplate.subject ?? '');
       setHtmlBody(selectedTemplate.htmlBody ?? '');
       setPlainTextBody(selectedTemplate.plainTextBody ?? '');
@@ -165,6 +168,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   const handleSave = () => {
     const plainText = generatePlainText(htmlBody);
     saveMutation.mutate({
+      title,
       subject,
       htmlBody,
       plainTextBody: plainText,
@@ -174,6 +178,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   // Handle cancel
   const handleCancel = () => {
     setSelectedTemplate(null);
+    setTitle('');
     setSubject('');
     setHtmlBody('');
     setPlainTextBody('');
@@ -256,7 +261,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                 onClick={() => setSelectedTemplate(template)}
               >
                 <Text fw={600} c="burgundy" mb={4}>
-                  {template.templateTypeName}
+                  {template.title || template.templateType}
                 </Text>
 
                 <Text size="sm" c="stone" mb="xs">
@@ -282,9 +287,19 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
             {/* Header */}
             <Group justify="space-between">
               <Text fw={600} c="burgundy" size="lg">
-                Currently Editing: {selectedTemplate.templateTypeName}
+                Currently Editing: {selectedTemplate.title || selectedTemplate.templateType}
               </Text>
             </Group>
+
+            {/* Title — user-editable display name shown on template cards */}
+            <TextInput
+              label="Title"
+              description="Display name shown on template cards (max 100 characters)"
+              value={title}
+              onChange={(e) => setTitle(e.currentTarget.value)}
+              required
+              maxLength={100}
+            />
 
             {/* Subject Line */}
             <TextInput

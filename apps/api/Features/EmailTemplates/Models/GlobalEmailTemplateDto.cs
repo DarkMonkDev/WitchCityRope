@@ -21,9 +21,10 @@ public class GlobalEmailTemplateDto
     public string TemplateType { get; set; } = string.Empty;
 
     /// <summary>
-    /// Display-friendly name for template type
+    /// User-editable display title for the template.
+    /// Shown at the top of template cards and in the editor header.
     /// </summary>
-    public string TemplateTypeName { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
 
     public string Subject { get; set; } = string.Empty;
     public string HtmlBody { get; set; } = string.Empty;

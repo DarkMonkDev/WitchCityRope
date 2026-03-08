@@ -174,7 +174,7 @@ export const TriggerConfigModal: React.FC<TriggerConfigModalProps> = ({
             <Text size="sm" fw={600} c="burgundy">
               Template:
             </Text>
-            <Text size="md">{template.templateTypeName}</Text>
+            <Text size="md">{template.title || template.templateType}</Text>
             <Text size="sm" c="dimmed">
               {template.subject}
             </Text>

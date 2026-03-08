@@ -10,8 +10,8 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  *
  * COMPONENT STRUCTURE (EmailCategoryPanel.tsx):
  * - Templates displayed as clickable Cards (not table rows)
- * - Card shows: templateTypeName, subject, version, updated date
- * - Clicking card opens editor panel with: Subject TextInput, TipTap HTML editor
+ * - Card shows: title, subject, version, updated date
+ * - Clicking card opens editor panel with: Title TextInput, Subject TextInput, TipTap HTML editor
  * - Editor has Save Template / Cancel buttons
  *
  * Tests verify:

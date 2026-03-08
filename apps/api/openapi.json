@@ -13602,9 +13602,6 @@
           "templateType": {
             "type": "string"
           },
-          "templateTypeName": {
-            "type": "string"
-          },
           "subject": {
             "type": "string"
           },
@@ -14016,7 +14013,7 @@
           "templateType": {
             "type": "string"
           },
-          "templateTypeName": {
+          "title": {
             "type": "string"
           },
           "subject": {
@@ -17111,12 +17108,17 @@
       },
       "UpdateGlobalTemplateRequest": {
         "required": [
+          "title",
           "subject",
           "htmlBody",
           "plainTextBody"
         ],
         "type": "object",
         "properties": {
+          "title": {
+            "maxLength": 100,
+            "type": "string"
+          },
           "subject": {
             "maxLength": 200,
             "type": "string"

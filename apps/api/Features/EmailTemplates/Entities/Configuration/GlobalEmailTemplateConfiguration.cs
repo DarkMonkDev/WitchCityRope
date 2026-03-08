@@ -62,6 +62,11 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
             .IsRequired()
             .HasMaxLength(50);
 
+        // Title — user-editable display name shown on template cards and editor header
+        builder.Property(e => e.Title)
+            .IsRequired()
+            .HasMaxLength(100);
+
         // Subject
         builder.Property(e => e.Subject)
             .IsRequired()

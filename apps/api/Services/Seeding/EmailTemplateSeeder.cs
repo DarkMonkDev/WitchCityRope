@@ -79,6 +79,7 @@ public class EmailTemplateSeeder
                 Id = Guid.Parse("80808080-8080-8080-8080-808080808080"),
                 Category = EmailCategory.Vetting,
                 TemplateType = "ApplicationReceived",
+                Title = "Application Received - {{scene_name}}",
                 Subject = "Application Received - {{scene_name}}",
                 HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Thank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Details</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Submission Date:</strong> {{submission_date}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Next Steps</h2><p style=\"margin-bottom: 16px;\">Our vetting team will review your application and contact you within the next 7-10 business days with updates on your status.</p><p style=\"margin-bottom: 16px;\">If you have any questions, please don't hesitate to contact us.</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:info@witchcityrope.com\" style=\"color: #880124;\">info@witchcityrope.com</a></p>",
                 PlainTextBody = "Dear {{scene_name}},\n\nThank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.\n\nApplication Number: {{application_number}}\nSubmission Date: {{submission_date}}\n\nOur vetting team will review your application and contact you within the next 7-10 business days with updates on your status.\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards,\nThe WitchCityRope Vetting Team",
@@ -94,6 +95,7 @@ public class EmailTemplateSeeder
                 Id = Guid.Parse("80808080-8080-8080-8080-808080808081"),
                 Category = EmailCategory.Vetting,
                 TemplateType = "InterviewApproved",
+                Title = "Interview Approved - {{scene_name}}",
                 Subject = "Interview Approved - {{scene_name}}",
                 HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Congratulations! Your vetting application has been approved for the interview stage.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Status</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Status:</strong> Approved for Interview</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Schedule Your Interview</h2><p style=\"margin-bottom: 16px;\">Please schedule your interview using the link below:</p><p style=\"margin-bottom: 16px;\"><a href=\"{{interview_link}}\" style=\"color: #880124; text-decoration: underline;\">Schedule Interview</a></p><p style=\"margin-bottom: 16px;\">During your interview, we will discuss your experience, interests, and answer any questions you may have about our community.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Important Information</h2><ul style=\"margin-bottom: 16px; padding-left: 20px;\"><li>Please schedule your interview within the next 14 days</li><li>Prepare questions about WitchCityRope and our community</li><li>Be ready to discuss your rope bondage experience</li></ul><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:info@witchcityrope.com\" style=\"color: #880124;\">info@witchcityrope.com</a></p>",
                 PlainTextBody = "Dear {{scene_name}},\n\nCongratulations! Your vetting application has been approved for the interview stage.\n\nApplication Number: {{application_number}}\nNext Steps: Please schedule your interview using the link below\nInterview Scheduling: {{interview_link}}\n\nDuring your interview, we will discuss your experience, interests, and answer any questions you may have about our community.\n\nPlease schedule your interview within the next 14 days.\n\nBest regards,\nThe WitchCityRope Vetting Team",
@@ -109,6 +111,7 @@ public class EmailTemplateSeeder
                 Id = Guid.Parse("80808080-8080-8080-8080-808080808082"),
                 Category = EmailCategory.Vetting,
                 TemplateType = "VettingApproved",
+                Title = "Welcome to WitchCityRope - {{scene_name}}",
                 Subject = "Welcome to WitchCityRope - {{scene_name}}",
                 HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Congratulations! Your application has been approved and you are now a <strong>vetted member</strong> of WitchCityRope.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Approved</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Approval Date:</strong> {{approval_date}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Welcome to Our Community!</h2><p style=\"margin-bottom: 16px;\">You now have access to:</p><ul style=\"margin-bottom: 16px; padding-left: 20px;\"><li>All member events and workshops</li><li>Our private community forums</li><li>Advanced classes and demonstrations</li><li>Volunteer opportunities</li></ul><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Next Steps</h2><p style=\"margin-bottom: 16px;\">Your member profile has been activated and you can now register for upcoming events. We look forward to seeing you at our next gathering!</p><p style=\"margin-bottom: 16px;\">Welcome aboard!</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:info@witchcityrope.com\" style=\"color: #880124;\">info@witchcityrope.com</a></p>",
                 PlainTextBody = "Dear {{scene_name}},\n\nCongratulations! Your application has been approved and you are now a vetted member of WitchCityRope.\n\nApplication Number: {{application_number}}\nApproval Date: {{approval_date}}\n\nWelcome to our community! You now have access to:\n- All member events and workshops\n- Our private community forums\n- Advanced classes and demonstrations\n- Volunteer opportunities\n\nYour member profile has been activated and you can now register for upcoming events.\n\nWelcome aboard!\n\nBest regards,\nThe WitchCityRope Team",
@@ -124,6 +127,7 @@ public class EmailTemplateSeeder
                 Id = Guid.Parse("80808080-8080-8080-8080-808080808083"),
                 Category = EmailCategory.Vetting,
                 TemplateType = "ApplicationOnHold",
+                Title = "Application On Hold - Additional Information Needed - {{scene_name}}",
                 Subject = "Application On Hold - Additional Information Needed - {{scene_name}}",
                 HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Your vetting application is currently on hold as we need some additional information to proceed.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Status</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Status:</strong> On Hold<br><strong>Reason:</strong> {{hold_reason}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Required Actions</h2><p style=\"margin-bottom: 16px;\">{{required_actions}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Important Deadline</h2><p style=\"margin-bottom: 16px;\">Please provide the requested information within <strong>30 days</strong> to avoid application expiration.</p><p style=\"margin-bottom: 16px;\">If you have any questions about what's needed, please don't hesitate to contact us.</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:info@witchcityrope.com\" style=\"color: #880124;\">info@witchcityrope.com</a></p>",
                 PlainTextBody = "Dear {{scene_name}},\n\nYour vetting application is currently on hold as we need some additional information to proceed.\n\nApplication Number: {{application_number}}\nReason: {{hold_reason}}\n\nRequired Actions:\n{{required_actions}}\n\nPlease provide the requested information within 30 days to avoid application expiration.\n\nIf you have any questions about what's needed, please contact us.\n\nBest regards,\nThe WitchCityRope Vetting Team",
@@ -139,6 +143,7 @@ public class EmailTemplateSeeder
                 Id = Guid.Parse("80808080-8080-8080-8080-808080808084"),
                 Category = EmailCategory.Vetting,
                 TemplateType = "ApplicationStatusUpdate",
+                Title = "Application Status Update - {{scene_name}}",
                 Subject = "Application Status Update - {{scene_name}}",
                 HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Thank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Decision</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Review Date:</strong> {{review_date}}<br><strong>Status:</strong> Not Approved</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Next Steps</h2><p style=\"margin-bottom: 16px;\">This decision is final for this application cycle. You are welcome to reapply in the future if your circumstances change.</p><p style=\"margin-bottom: 16px;\">We appreciate your interest in our community.</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:info@witchcityrope.com\" style=\"color: #880124;\">info@witchcityrope.com</a></p>",
                 PlainTextBody = "Dear {{scene_name}},\n\nThank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.\n\nApplication Number: {{application_number}}\nReview Date: {{review_date}}\n\nThis decision is final for this application cycle. You are welcome to reapply in the future if your circumstances change.\n\nWe appreciate your interest in our community.\n\nBest regards,\nThe WitchCityRope Vetting Team",
@@ -154,6 +159,7 @@ public class EmailTemplateSeeder
                 Id = Guid.Parse("80808080-8080-8080-8080-808080808085"),
                 Category = EmailCategory.Vetting,
                 TemplateType = "InterviewReminder",
+                Title = "Interview Reminder - {{scene_name}}",
                 Subject = "Interview Reminder - {{scene_name}}",
                 HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">This is a friendly reminder about your upcoming vetting interview.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Interview Information</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Preparation Checklist</h2><ul style=\"margin-bottom: 16px; padding-left: 20px;\"><li>Review your application details</li><li>Prepare questions about WitchCityRope</li><li>Be ready to discuss your rope bondage experience</li><li>Ensure you have a quiet, private space for the interview</li></ul><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Need to Reschedule?</h2><p style=\"margin-bottom: 16px;\">If you need to reschedule, please contact us at least 24 hours in advance.</p><p style=\"margin-bottom: 16px;\">We look forward to meeting with you!</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:info@witchcityrope.com\" style=\"color: #880124;\">info@witchcityrope.com</a></p>",
                 PlainTextBody = "Dear {{scene_name}},\n\nThis is a friendly reminder about your upcoming vetting interview.\n\nApplication Number: {{application_number}}\n\nIf you need to reschedule, please contact us at least 24 hours in advance.\n\nWe look forward to meeting with you!\n\nBest regards,\nThe WitchCityRope Vetting Team",
@@ -193,6 +199,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Events,
                 TemplateType = "Confirmation",
+                Title = "Your ticket for {{event_title}}",
                 Subject = "Your ticket for {{event_title}}",
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for registering for <strong>{{event_title}}</strong>!</p><p><strong>Event Details:</strong><br>Date: {{event_date}}<br>Time: {{event_time}}<br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><p><strong>Ticket Type:</strong> {{ticket_type}}<br><strong>Total Paid:</strong> {{total_paid}}<br><strong>Confirmation Number:</strong> {{confirmation_number}}</p><p>We look forward to seeing you!</p><p>Questions? Email events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nThank you for registering for {{event_title}}!\n\nEvent Details:\nDate: {{event_date}}\nTime: {{event_time}}\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nTicket Type: {{ticket_type}}\nTotal Paid: {{total_paid}}\nConfirmation Number: {{confirmation_number}}\n\nWe look forward to seeing you!\n\nQuestions? Email events@witchcityrope.com",
@@ -209,6 +216,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Events,
                 TemplateType = "Reminder1Week",
+                Title = "One week until {{event_title}}",
                 Subject = "One week until {{event_title}}",
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>Just a friendly reminder that <strong>{{event_title}}</strong> is coming up in one week!</p><p><strong>Event Details:</strong><br>Date: {{event_date}}<br>Time: {{event_time}}<br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><p>We're looking forward to seeing you there!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nJust a friendly reminder that {{event_title}} is coming up in one week!\n\nEvent Details:\nDate: {{event_date}}\nTime: {{event_time}}\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nWe're looking forward to seeing you there!",
@@ -226,6 +234,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Events,
                 TemplateType = "Reminder1Day",
+                Title = "Tomorrow: {{event_title}}",
                 Subject = "Tomorrow: {{event_title}}",
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p><strong>{{event_title}}</strong> is tomorrow!</p><p><strong>When:</strong> {{event_date}} at {{event_time}}<br><strong>Where:</strong> {{venue_name}}<br>{{venue_address}}</p><p>See you there!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\n{{event_title}} is tomorrow!\n\nWhen: {{event_date}} at {{event_time}}\nWhere: {{venue_name}}\n{{venue_address}}\n\nSee you there!",
@@ -243,6 +252,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Events,
                 TemplateType = "Reminder2Hours",
+                Title = "Starting soon: {{event_title}}",
                 Subject = "Starting soon: {{event_title}}",
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p><strong>{{event_title}}</strong> starts in 2 hours!</p><p><strong>Time:</strong> {{event_time}}<br><strong>Location:</strong> {{venue_name}}</p><p>See you soon!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\n{{event_title}} starts in 2 hours!\n\nTime: {{event_time}}\nLocation: {{venue_name}}\n\nSee you soon!",
@@ -261,6 +271,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Events,
                 TemplateType = "Cancellation",
+                Title = "Event Cancelled: {{event_title}}",
                 Subject = "Event Cancelled: {{event_title}}",
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>We regret to inform you that <strong>{{event_title}}</strong> scheduled for {{event_date}} has been cancelled.</p><p>{{custom_message}}</p><p>If you have any questions, please contact events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nWe regret to inform you that {{event_title}} scheduled for {{event_date}} has been cancelled.\n\n{{custom_message}}\n\nIf you have any questions, please contact events@witchcityrope.com",
@@ -277,6 +288,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Events,
                 TemplateType = "SessionChange",
+                Title = "Session Update: {{event_title}}",
                 Subject = "Session Update: {{event_title}}",
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>There has been an update to the session <strong>{{session_name}}</strong> for <strong>{{event_title}}</strong>.</p><p><strong>New Date/Time:</strong> {{event_date}} at {{event_time}}</p><p>{{custom_message}}</p><p>Thank you for your understanding.</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nThere has been an update to the session {{session_name}} for {{event_title}}.\n\nNew Date/Time: {{event_date}} at {{event_time}}\n\n{{custom_message}}\n\nThank you for your understanding.",
@@ -293,6 +305,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Events,
                 TemplateType = "ThankYou",
+                Title = "Thank you for attending {{event_title}}",
                 Subject = "Thank you for attending {{event_title}}",
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for attending <strong>{{event_title}}</strong> on {{event_date}}!</p><p>We hope you had a wonderful experience and learned new skills. If you have any feedback or questions, please don't hesitate to reach out to events@witchcityrope.com</p><p>We look forward to seeing you at future events!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nThank you for attending {{event_title}} on {{event_date}}!\n\nWe hope you had a wonderful experience and learned new skills. If you have any feedback or questions, please don't hesitate to reach out to events@witchcityrope.com\n\nWe look forward to seeing you at future events!",
@@ -335,6 +348,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Admin,
                 TemplateType = "AccountCreated",
+                Title = "Welcome to WitchCityRope - Account Created",
                 Subject = "Welcome to WitchCityRope - Account Created",
                 HtmlBody = "<p>Hi {{user_name}},</p><p>Your WitchCityRope account has been created!</p><p><strong>Email:</strong> {{account_email}}</p><p>You can log in at https://witchcityrope.com</p><p>If you have any questions, contact us at support@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{user_name}},\n\nYour WitchCityRope account has been created!\n\nEmail: {{account_email}}\n\nYou can log in at https://witchcityrope.com\n\nIf you have any questions, contact us at support@witchcityrope.com",
@@ -349,6 +363,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Admin,
                 TemplateType = "PasswordReset",
+                Title = "Password Reset Request - WitchCityRope",
                 Subject = "Password Reset Request - WitchCityRope",
                 HtmlBody = "<p>Hi {{user_name}},</p><p>A password reset has been requested for your account.</p><p>If you made this request, please click the link below to reset your password:</p><p><a href=\"{{reset_url}}\">Reset My Password</a></p><p>This link will expire in 24 hours.</p><p>If you did not request this, please ignore this email and contact support@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{user_name}},\n\nA password reset has been requested for your account.\n\nIf you made this request, please use the link below to reset your password:\n\n{{reset_url}}\n\nThis link will expire in 24 hours.\n\nIf you did not request this, please ignore this email and contact support@witchcityrope.com",
@@ -363,6 +378,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Admin,
                 TemplateType = "RoleChanged",
+                Title = "Your WitchCityRope Role Has Been Updated",
                 Subject = "Your WitchCityRope Role Has Been Updated",
                 HtmlBody = "<p>Hi {{user_name}},</p><p>Your role in the WitchCityRope system has been updated.</p><p>{{action_required}}</p><p>If you have questions about this change, please contact support@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{user_name}},\n\nYour role in the WitchCityRope system has been updated.\n\n{{action_required}}\n\nIf you have questions about this change, please contact support@witchcityrope.com",
@@ -377,6 +393,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Admin,
                 TemplateType = "SystemNotification",
+                Title = "WitchCityRope System Notification",
                 Subject = "WitchCityRope System Notification",
                 HtmlBody = "<p>Hi {{user_name}},</p><p>{{action_required}}</p><p><strong>Deadline:</strong> {{deadline_date}}</p><p>For assistance, contact support@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{user_name}},\n\n{{action_required}}\n\nDeadline: {{deadline_date}}\n\nFor assistance, contact support@witchcityrope.com",
@@ -391,6 +408,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Admin,
                 TemplateType = "EmailVerification",
+                Title = "Verify Your WitchCityRope Email Address",
                 Subject = "Verify Your WitchCityRope Email Address",
                 HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{user_name}},</p><p style=\"margin-bottom: 16px;\">Welcome to WitchCityRope! Please verify your email address by clicking the button below:</p><p style=\"margin-bottom: 24px; text-align: center;\"><a href=\"{{verification_url}}\" style=\"display: inline-block; padding: 12px 24px; background: #614B79; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;\">Verify Email Address</a></p><p style=\"margin-bottom: 16px;\">This link will expire in 3 days. You must verify your email before you can log in.</p><p style=\"margin-bottom: 16px;\">If you did not create this account, please ignore this email.</p><p style=\"margin-bottom: 16px;\">Need help? Contact us at <a href=\"mailto:support@witchcityrope.com\" style=\"color: #880124;\">support@witchcityrope.com</a></p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">This is an automated message from WitchCityRope. Please do not reply to this email.<br>WitchCityRope • Salem, MA • witchcityrope.com</p>",
                 PlainTextBody = "Hi {{user_name}},\n\nWelcome to WitchCityRope! Please verify your email address by clicking the link below:\n\n{{verification_url}}\n\nThis link will expire in 3 days. You must verify your email before you can log in.\n\nIf you did not create this account, please ignore this email.\n\nNeed help? Contact us at support@witchcityrope.com\n\n---\nThis is an automated message from WitchCityRope. Please do not reply to this email.\nWitchCityRope • Salem, MA • witchcityrope.com",
@@ -405,6 +423,7 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Admin,
                 TemplateType = "RefundConfirmation",
+                Title = "Refund Confirmation - WitchCityRope",
                 Subject = "Refund Confirmation - WitchCityRope",
                 HtmlBody = @"<div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;"">
     <h1 style=""color: #2c3e50; margin-top: 0;"">Refund Confirmation</h1>
@@ -487,6 +506,7 @@ This is an automated email. Please do not reply to this message.",
             {
                 Category = EmailCategory.Admin,
                 TemplateType = "NewWebsiteUser",
+                Title = "Welcome to WitchCityRope - Set Your Password",
                 Subject = "Welcome to WitchCityRope - Set Your Password",
                 HtmlBody = @"<div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;"">
     <h1 style=""color: #614B79; margin-top: 0;"">Welcome to WitchCityRope!</h1>
@@ -586,6 +606,7 @@ WitchCityRope • Salem, MA • {{system_url}}",
             {
                 Category = EmailCategory.Incident,
                 TemplateType = "ReportReceived",
+                Title = "Incident Report Received - #{{incident_number}}",
                 Subject = "Incident Report Received - #{{incident_number}}",
                 HtmlBody = "<p>Hi {{reporter_name}},</p><p>We have received your incident report #{{incident_number}} from {{incident_date}}.</p><p>Your assigned coordinator is {{coordinator_name}}.</p><p><strong>Next Steps:</strong><br>{{next_steps}}</p><p>Thank you for reporting this.</p>",
                 PlainTextBody = "Hi {{reporter_name}},\n\nWe have received your incident report #{{incident_number}} from {{incident_date}}.\n\nYour assigned coordinator is {{coordinator_name}}.\n\nNext Steps:\n{{next_steps}}\n\nThank you for reporting this.",
@@ -600,6 +621,7 @@ WitchCityRope • Salem, MA • {{system_url}}",
             {
                 Category = EmailCategory.Incident,
                 TemplateType = "StatusUpdate",
+                Title = "Incident #{{incident_number}} Status Update",
                 Subject = "Incident #{{incident_number}} Status Update",
                 HtmlBody = "<p>Hi {{reporter_name}},</p><p>There is an update on incident #{{incident_number}}.</p><p><strong>Status:</strong> {{status}}</p><p><strong>Next Steps:</strong><br>{{next_steps}}</p>",
                 PlainTextBody = "Hi {{reporter_name}},\n\nThere is an update on incident #{{incident_number}}.\n\nStatus: {{status}}\n\nNext Steps:\n{{next_steps}}",
@@ -614,6 +636,7 @@ WitchCityRope • Salem, MA • {{system_url}}",
             {
                 Category = EmailCategory.Incident,
                 TemplateType = "AssignmentNotification",
+                Title = "You've been assigned to Incident #{{incident_number}}",
                 Subject = "You've been assigned to Incident #{{incident_number}}",
                 HtmlBody = "<p>Hi {{coordinator_name}},</p><p>You have been assigned to incident #{{incident_number}} from {{incident_date}}.</p><p><strong>Next Steps:</strong><br>{{next_steps}}</p><p>Please review and take appropriate action.</p>",
                 PlainTextBody = "Hi {{coordinator_name}},\n\nYou have been assigned to incident #{{incident_number}} from {{incident_date}}.\n\nNext Steps:\n{{next_steps}}\n\nPlease review and take appropriate action.",
@@ -628,6 +651,7 @@ WitchCityRope • Salem, MA • {{system_url}}",
             {
                 Category = EmailCategory.Incident,
                 TemplateType = "Resolved",
+                Title = "Incident #{{incident_number}} Resolved",
                 Subject = "Incident #{{incident_number}} Resolved",
                 HtmlBody = "<p>Hi {{reporter_name}},</p><p>Incident #{{incident_number}} from {{incident_date}} has been resolved.</p><p><strong>Next Steps:</strong><br>{{next_steps}}</p><p>Thank you for your patience.</p>",
                 PlainTextBody = "Hi {{reporter_name}},\n\nIncident #{{incident_number}} from {{incident_date}} has been resolved.\n\nNext Steps:\n{{next_steps}}\n\nThank you for your patience.",
@@ -665,6 +689,7 @@ WitchCityRope • Salem, MA • {{system_url}}",
         {
             Category = EmailCategory.AdHoc,
             TemplateType = "General",
+            Title = "Message from WitchCityRope",
             Subject = "Message from WitchCityRope",
             HtmlBody = "<p>Hi {{recipient_name}},</p><p>{{custom_content}}</p>",
             PlainTextBody = "Hi {{recipient_name}},\n\n{{custom_content}}",

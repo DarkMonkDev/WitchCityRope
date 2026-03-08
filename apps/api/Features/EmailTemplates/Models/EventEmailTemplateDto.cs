@@ -10,7 +10,6 @@ public class EventEmailTemplateDto
     public Guid GlobalTemplateId { get; set; }
 
     public string TemplateType { get; set; } = string.Empty;
-    public string TemplateTypeName { get; set; } = string.Empty;
 
     public string Subject { get; set; } = string.Empty;
     public string HtmlBody { get; set; } = string.Empty;

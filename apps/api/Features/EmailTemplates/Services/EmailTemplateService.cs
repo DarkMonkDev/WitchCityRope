@@ -59,6 +59,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Id = t.Id,
                 Category = t.Category.ToString(),
                 TemplateType = t.TemplateType,
+                Title = t.Title,
                 Subject = t.Subject,
                 HtmlBody = t.HtmlBody,
                 PlainTextBody = t.PlainTextBody,
@@ -104,6 +105,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Id = template.Id,
                 Category = template.Category.ToString(),
                 TemplateType = template.TemplateType,
+                Title = template.Title,
                 Subject = template.Subject,
                 HtmlBody = template.HtmlBody,
                 PlainTextBody = template.PlainTextBody,
@@ -145,6 +147,7 @@ public class EmailTemplateService : IEmailTemplateService
             }
 
             // Sanitize HTML before saving
+            template.Title = request.Title.Trim();
             template.Subject = request.Subject.Trim();
             template.HtmlBody = SanitizeHtml(request.HtmlBody);
             template.PlainTextBody = request.PlainTextBody.Trim();
@@ -162,6 +165,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Id = template.Id,
                 Category = template.Category.ToString(),
                 TemplateType = template.TemplateType,
+                Title = template.Title,
                 Subject = template.Subject,
                 HtmlBody = template.HtmlBody,
                 PlainTextBody = template.PlainTextBody,
@@ -243,6 +247,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Id = template.Id,
                 Category = template.Category.ToString(),
                 TemplateType = template.TemplateType,
+                Title = template.Title,
                 Subject = template.Subject,
                 HtmlBody = template.HtmlBody,
                 PlainTextBody = template.PlainTextBody,
@@ -289,6 +294,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Id = t.Id,
                 Category = t.Category.ToString(),
                 TemplateType = t.TemplateType,
+                Title = t.Title,
                 Subject = t.Subject,
                 HtmlBody = t.HtmlBody,
                 PlainTextBody = t.PlainTextBody,

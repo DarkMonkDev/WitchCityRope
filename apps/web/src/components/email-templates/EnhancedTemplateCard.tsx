@@ -63,7 +63,7 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
 }) => {
   const {
     id,
-    templateTypeName,
+    title,
     subject,
     triggerType = 'Manual',
     triggerEnabled = false,
@@ -108,7 +108,7 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
               letterSpacing: '1px',
             }}
           >
-            {templateTypeName}
+            {title || 'Untitled Template'}
           </Text>
 
           <Group gap="xs" wrap="nowrap">

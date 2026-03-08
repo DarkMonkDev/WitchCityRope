@@ -1262,7 +1262,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     if (activeEmailTemplate === 'ad-hoc') {
       return 'Ad-Hoc Email'
     }
-    return selectedTemplate?.templateTypeName || activeEmailTemplate
+    return selectedTemplate?.templateType || activeEmailTemplate
   }
 
   const getTemplateSubject = () => {
@@ -1811,7 +1811,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                       )}
 
                       <Text fw={600} c="burgundy" mb={4}>
-                        {template.templateTypeName}
+                        {template.templateType}
                       </Text>
                       <Text size="sm" c="stone" mb="xs">
                         {template.subject}
@@ -1949,7 +1949,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             title={<Title order={3}>Reset Template to Default?</Title>}
           >
             <Text mb="md">
-              Are you sure you want to reset <strong>{templateToReset?.templateTypeName}</strong> to
+              Are you sure you want to reset <strong>{templateToReset?.templateType}</strong> to
               the global default template? This will delete your customizations and cannot be
               undone.
             </Text>
