@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Stack,
   Group,
+  SimpleGrid,
   Card,
   Text,
   TextInput,
@@ -226,7 +227,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     <Stack gap="xl">
       {/* Template Cards - Horizontal Scrollable Group */}
       <div>
-        <Group gap="md" style={{ flexWrap: 'wrap' }}>
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
           {templates.map((template) => (
             category === 'Events' ? (
               <EnhancedTemplateCard
@@ -251,10 +252,6 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                       : 'rgba(136, 1, 36, 0.1)',
                   backgroundColor:
                     selectedTemplate?.id === template.id ? 'rgba(136, 1, 36, 0.05)' : 'white',
-                  minWidth: '220px',
-                  maxWidth: '300px',
-                  flex: 1,
-                  position: 'relative',
                   transition: 'all 0.3s ease',
                   borderRadius: '12px',
                 }}
@@ -277,7 +274,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               </Card>
             )
           ))}
-        </Group>
+        </SimpleGrid>
       </div>
 
       {/* Editor Panel - Shown when template selected */}

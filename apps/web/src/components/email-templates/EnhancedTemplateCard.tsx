@@ -94,19 +94,10 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
         transition: 'all 0.3s ease',
       }}
     >
-      <Stack gap="sm">
-        {/* Row 1: Title (left) + Enabled checkbox (right) */}
+      <Stack gap={4}>
+        {/* Row 1: Title (left) + Enabled badge (right) */}
         <Group justify="space-between" wrap="nowrap">
-          <Text
-            fw={700}
-            c="burgundy"
-            size="md"
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-            }}
-          >
+          <Text fw={600} c="burgundy">
             {title || 'Untitled Template'}
           </Text>
 
@@ -181,12 +172,13 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
           {cleanVariablePlaceholders(subject || '')}
         </Text>
 
-        {/* Row 4: Action buttons (right-aligned, no icons) */}
+        {/* Row 4: Action buttons (right-aligned, compact) */}
         <Group justify="flex-end" gap="xs">
           <Button
             variant="light"
             color="burgundy"
-            size="xs"
+            size="compact-xs"
+            styles={{ root: { fontSize: '12px', minHeight: 'unset', padding: '4px 12px' } }}
             onClick={() => onEditTrigger(id || '')}
           >
             Edit Trigger
@@ -195,7 +187,8 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
           <Button
             variant="outline"
             color="burgundy"
-            size="xs"
+            size="compact-xs"
+            styles={{ root: { fontSize: '12px', minHeight: 'unset', padding: '4px 12px' } }}
             onClick={() => onEditContent(id || '')}
           >
             Edit Email

@@ -31,6 +31,11 @@ import {
   type EventEmailTemplateDto,
   type UpdateEventTemplateRequest,
 } from '../../services/emailTemplates.api'
+import { EnhancedTemplateCard } from '../email-templates/EnhancedTemplateCard'
+import type { EventRecipientGroup } from '../email-templates/EnhancedTemplateCard'
+import { TriggerConfigModal } from '../email-templates/TriggerConfigModal'
+import type { TriggerConfig } from '../email-templates/TriggerConfigModal'
+import type { GlobalEmailTemplateDto } from '../../services/emailTemplates.api'
 
 /**
  * Extract user-friendly error message from API errors
@@ -453,6 +458,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       })
       setResetModalOpen(false)
       setTemplateToReset(null)
+      setContentEditTemplate(null)
     },
     onError: (error: Error) => {
       console.error('Failed to reset template:', error)
@@ -500,6 +506,11 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false)
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [templateToReset, setTemplateToReset] = useState<EventEmailTemplateDto | null>(null)
+
+  // Trigger config modal state
+  const [triggerEditTemplate, setTriggerEditTemplate] = useState<EventEmailTemplateDto | null>(null)
+  // Content editor state (which template's content is being edited inline)
+  const [contentEditTemplate, setContentEditTemplate] = useState<EventEmailTemplateDto | null>(null)
 
   // Helper function to toggle sort
   const handleRsvpSort = (column: typeof rsvpSortColumn) => {
@@ -1240,29 +1251,26 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [templateContent, setTemplateContent] = useState<string>('')
   const [targetSessions, setTargetSessions] = useState<string[]>(['all'])
 
-  // Get currently selected template
-  const selectedTemplate = eventTemplates.find((t) => t.templateType === activeEmailTemplate)
-
-  // Update editor state when active template changes
+  // Update editor state when content edit template changes
   useEffect(() => {
-    if (selectedTemplate) {
-      setTemplateSubject(selectedTemplate.subject || '')
-      setTemplateContent(selectedTemplate.htmlBody || '')
-      setTargetSessions(selectedTemplate.targetSessions || ['all'])
-    } else {
-      // Reset editor for ad-hoc or when no template selected
+    if (contentEditTemplate) {
+      setTemplateSubject(contentEditTemplate.subject || '')
+      setTemplateContent(contentEditTemplate.htmlBody || '')
+      setTargetSessions(contentEditTemplate.targetSessions || ['all'])
+    } else if (activeEmailTemplate === 'ad-hoc') {
+      // Reset editor for ad-hoc
       setTemplateSubject('')
       setTemplateContent('')
       setTargetSessions(['all'])
     }
-  }, [activeEmailTemplate, selectedTemplate])
+  }, [contentEditTemplate, activeEmailTemplate])
 
   // Email template helper functions
   const getActiveTemplateTitle = () => {
     if (activeEmailTemplate === 'ad-hoc') {
       return 'Ad-Hoc Email'
     }
-    return selectedTemplate?.templateType || activeEmailTemplate
+    return contentEditTemplate?.templateType || activeEmailTemplate
   }
 
   const getTemplateSubject = () => {
@@ -1308,11 +1316,12 @@ export const EventForm: React.FC<EventFormProps> = ({
   })
 
   const handleSaveTemplate = () => {
-    if (!eventId || !activeEmailTemplate || activeEmailTemplate === 'ad-hoc') return
+    const templateType = contentEditTemplate?.templateType
+    if (!eventId || !templateType) return
 
     saveTemplateMutation.mutate({
       eventId,
-      templateType: activeEmailTemplate,
+      templateType,
       request: {
         subject: templateSubject,
         htmlBody: templateContent,
@@ -1320,6 +1329,57 @@ export const EventForm: React.FC<EventFormProps> = ({
         targetSessions: targetSessions,
       },
     })
+  }
+
+  // Handle saving trigger config from TriggerConfigModal
+  const handleSaveTriggerConfig = async (config: TriggerConfig) => {
+    if (!eventId || !triggerEditTemplate) return
+
+    await emailTemplatesApi.updateEventTemplate(eventId, triggerEditTemplate.templateType!, {
+      subject: triggerEditTemplate.subject || '',
+      htmlBody: triggerEditTemplate.htmlBody || '',
+      plainTextBody: triggerEditTemplate.plainTextBody || '',
+      overrideTriggerEnabled: config.triggerEnabled,
+      overrideTimingOffsetDays: config.timingOffsetDays,
+      overrideRecipientGroup: config.recipientGroup || null,
+    })
+
+    // Refresh templates
+    const templates = await emailTemplatesApi.getEventTemplates(eventId)
+    setEventTemplates(templates)
+
+    notifications.show({
+      title: 'Success',
+      message: 'Trigger configuration saved',
+      color: 'green',
+      icon: <IconCheck />,
+    })
+  }
+
+  /**
+   * Map EventEmailTemplateDto to the shape EnhancedTemplateCard expects.
+   * EnhancedTemplateCard expects GlobalEmailTemplateDto & trigger extensions.
+   */
+  const mapEventTemplateToCardProps = (template: EventEmailTemplateDto) => {
+    return {
+      // Map to GlobalEmailTemplateDto shape
+      id: template.id,
+      title: template.isCustomized ? `${template.templateType} - CUSTOM` : template.templateType,
+      subject: template.subject,
+      htmlBody: template.htmlBody,
+      plainTextBody: template.plainTextBody,
+      templateType: template.templateType,
+      // Trigger extension fields
+      triggerType: (template.triggerType as 'FixedEvent' | 'TimeBased' | 'Manual') || undefined,
+      triggerEnabled: template.triggerEnabled ?? false,
+      timingOffsetDays: template.timingOffsetDays ?? undefined,
+      recipientGroup: (template.recipientGroup as EventRecipientGroup) || undefined,
+    } as GlobalEmailTemplateDto & {
+      triggerType?: 'FixedEvent' | 'TimeBased' | 'Manual'
+      triggerEnabled?: boolean
+      timingOffsetDays?: number
+      recipientGroup?: EventRecipientGroup
+    }
   }
 
   // Save RSVP/Ticket timing fields only
@@ -1710,7 +1770,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             </Stack>
           </Tabs.Panel>
 
-          {/* Emails Tab - EXACT WIREFRAME MATCH */}
+          {/* Emails Tab - Enhanced with EnhancedTemplateCard + TriggerConfigModal */}
           <Tabs.Panel value="emails" pt="xl" data-testid="panel-emails">
             <Stack gap="xl">
               <Title
@@ -1726,15 +1786,15 @@ export const EventForm: React.FC<EventFormProps> = ({
               </Title>
 
               <Text size="sm" c="dimmed" mb="lg">
-                Click on a template card to edit it below, or select "Send Ad-Hoc Email" to send
-                one-time messages.
+                Use "Edit Trigger" to configure when emails are sent, or "Edit Email" to customize
+                content. Select "Send Ad-Hoc Email" to send one-time messages.
               </Text>
 
               {/* Template Cards Container - Dynamic from API */}
               {isLoadingTemplates ? (
                 <Text c="dimmed">Loading email templates...</Text>
               ) : (
-                <Group gap="md" style={{ flexWrap: 'wrap' }}>
+                <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
                   {/* Send Ad-Hoc Email Card - Always Present */}
                   <Card
                     withBorder
@@ -1747,13 +1807,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                           : 'var(--mantine-color-rose-3)',
                       backgroundColor:
                         activeEmailTemplate === 'ad-hoc' ? 'rgba(136, 1, 36, 0.05)' : 'white',
-                      minWidth: '220px',
-                      flex: 1,
-                      maxWidth: '300px',
-                      position: 'relative',
                       transition: 'all 0.3s ease',
                     }}
-                    onClick={() => setActiveEmailTemplate('ad-hoc')}
+                    onClick={() => {
+                      setActiveEmailTemplate('ad-hoc')
+                      setContentEditTemplate(null)
+                    }}
                   >
                     <Text fw={600} c="burgundy" mb={4}>
                       Send Ad-Hoc Email
@@ -1766,178 +1825,159 @@ export const EventForm: React.FC<EventFormProps> = ({
                     </Text>
                   </Card>
 
-                  {/* Dynamic Template Cards from API */}
+                  {/* Dynamic Template Cards - EnhancedTemplateCard */}
                   {eventTemplates.map((template) => (
-                    <Card
+                    <EnhancedTemplateCard
                       key={template.id}
-                      withBorder
-                      p="md"
-                      style={{
-                        cursor: 'pointer',
-                        borderColor:
-                          activeEmailTemplate === template.templateType
-                            ? 'var(--mantine-color-burgundy-6)'
-                            : 'var(--mantine-color-rose-3)',
-                        backgroundColor:
-                          activeEmailTemplate === template.templateType
-                            ? 'rgba(136, 1, 36, 0.05)'
-                            : 'white',
-                        minWidth: '220px',
-                        flex: 1,
-                        maxWidth: '300px',
-                        position: 'relative',
-                        transition: 'all 0.3s ease',
+                      template={mapEventTemplateToCardProps(template)}
+                      onEditTrigger={() => {
+                        setTriggerEditTemplate(template)
                       }}
-                      onClick={() => setActiveEmailTemplate(template.templateType!)}
-                    >
-                      {/* Customization Badge */}
-                      {template.isCustomized ? (
-                        <Badge
-                          color="green"
-                          size="sm"
-                          style={{ position: 'absolute', top: 8, right: 8 }}
-                        >
-                          ✓ Customized
-                        </Badge>
-                      ) : (
-                        <Badge
-                          color="gray"
-                          size="sm"
-                          variant="light"
-                          style={{ position: 'absolute', top: 8, right: 8 }}
-                        >
-                          (Default)
-                        </Badge>
-                      )}
-
-                      <Text fw={600} c="burgundy" mb={4}>
-                        {template.templateType}
-                      </Text>
-                      <Text size="sm" c="stone" mb="xs">
-                        {template.subject}
-                      </Text>
-                      <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                        {template.targetSessions?.join(', ') || 'All sessions'}
-                      </Text>
-                    </Card>
+                      onEditContent={() => {
+                        setActiveEmailTemplate(null)
+                        setContentEditTemplate(template)
+                      }}
+                    />
                   ))}
-                </Group>
+                </SimpleGrid>
               )}
 
-              {/* Unified Editor Section - Only show when a template is selected */}
-              {activeEmailTemplate && (
+              {/* Inline Editor Section - Show for ad-hoc or when Edit Email is clicked */}
+              {(activeEmailTemplate === 'ad-hoc' || contentEditTemplate) && (
                 <div style={{ marginTop: 'var(--mantine-spacing-xl)' }}>
                   <div style={{ marginBottom: 'var(--mantine-spacing-md)' }}>
-                    <Text fw={600} c="burgundy">
-                      Currently Editing: {getActiveTemplateTitle()}
+                    <Group justify="space-between" align="center">
+                      <Text fw={600} c="burgundy">
+                        Currently Editing: {getActiveTemplateTitle()}
+                      </Text>
+                      {contentEditTemplate && (
+                        <Button
+                          variant="subtle"
+                          color="gray"
+                          size="compact-sm"
+                          onClick={() => setContentEditTemplate(null)}
+                        >
+                          Close Editor
+                        </Button>
+                      )}
+                    </Group>
+                  </div>
+
+                  {/* Recipient Group (shown for ad-hoc) */}
+                  {activeEmailTemplate === 'ad-hoc' && (
+                    <Select
+                      label="Recipient Group"
+                      data={[
+                        { value: 'all-tickets', label: 'All Ticket Holders' },
+                        { value: 'all-rsvps', label: 'All RSVPs' },
+                        { value: 'volunteers', label: 'All Volunteers' },
+                        { value: 'everyone', label: 'Everyone' },
+                        { value: 'teachers', label: 'Teachers' },
+                        { value: 'session-s1', label: 'S1 Attendees' },
+                        { value: 'session-s2', label: 'S2 Attendees' },
+                        { value: 'session-s3', label: 'S3 Attendees' },
+                      ]}
+                      mb="md"
+                    />
+                  )}
+
+                  {/* Target Sessions (shown for template editing) */}
+                  {contentEditTemplate && (
+                    <MultiSelect
+                      label="Target Sessions"
+                      description="Which sessions should trigger this email? Hold Ctrl/Cmd for multiple selections."
+                      data={[
+                        { value: 'all', label: 'All Sessions' },
+                        { value: 's1', label: 'S1' },
+                        { value: 's2', label: 'S2' },
+                        { value: 's3', label: 'S3' },
+                      ]}
+                      value={targetSessions}
+                      onChange={setTargetSessions}
+                      mb="md"
+                    />
+                  )}
+
+                  <TextInput
+                    label="Subject Line"
+                    value={getTemplateSubject()}
+                    onChange={(e) => setTemplateSubject(e.currentTarget.value)}
+                    mb="md"
+                  />
+
+                  <div>
+                    <Text size="sm" fw={500} mb={5}>
+                      Email Content
                     </Text>
+                    <Text size="xs" c="dimmed" mb="xs">
+                      Available variables: {'{name}'}, {'{event}'}, {'{date}'}, {'{time}'},{' '}
+                      {'{venue}'}, {'{venue_address}'}
+                    </Text>
+                    <MantineTiptapEditor
+                      value={getTemplateContent()}
+                      onChange={setTemplateContent}
+                      minRows={10}
+                      placeholder="Enter email content..."
+                    />
                   </div>
 
-                {/* Recipient Group (shown for ad-hoc) */}
-                {activeEmailTemplate === 'ad-hoc' && (
-                  <Select
-                    label="Recipient Group"
-                    data={[
-                      { value: 'all-tickets', label: 'All Ticket Holders' },
-                      { value: 'all-rsvps', label: 'All RSVPs' },
-                      { value: 'volunteers', label: 'All Volunteers' },
-                      { value: 'everyone', label: 'Everyone' },
-                      { value: 'teachers', label: 'Teachers' },
-                      { value: 'session-s1', label: 'S1 Attendees' },
-                      { value: 'session-s2', label: 'S2 Attendees' },
-                      { value: 'session-s3', label: 'S3 Attendees' },
-                    ]}
-                    mb="md"
-                  />
-                )}
-
-                {/* Target Sessions (shown for templates) */}
-                {activeEmailTemplate !== 'ad-hoc' && (
-                  <MultiSelect
-                    label="Target Sessions"
-                    description="Which sessions should trigger this email? Hold Ctrl/Cmd for multiple selections."
-                    data={[
-                      { value: 'all', label: 'All Sessions' },
-                      { value: 's1', label: 'S1' },
-                      { value: 's2', label: 'S2' },
-                      { value: 's3', label: 'S3' },
-                    ]}
-                    value={targetSessions}
-                    onChange={setTargetSessions}
-                    mb="md"
-                  />
-                )}
-
-                <TextInput
-                  label="Subject Line"
-                  value={getTemplateSubject()}
-                  onChange={(e) => setTemplateSubject(e.currentTarget.value)}
-                  mb="md"
-                />
-
-                <div>
-                  <Text size="sm" fw={500} mb={5}>
-                    Email Content
-                  </Text>
-                  <Text size="xs" c="dimmed" mb="xs">
-                    Available variables: {'{name}'}, {'{event}'}, {'{date}'}, {'{time}'},{' '}
-                    {'{venue}'}, {'{venue_address}'}
-                  </Text>
-                  <MantineTiptapEditor
-                    value={getTemplateContent()}
-                    onChange={setTemplateContent}
-                    minRows={10}
-                    placeholder="Enter email content..."
-                  />
+                  <Group mt="md" justify="space-between">
+                    <div>
+                      {/* Reset to Default button - only show for customized templates */}
+                      {contentEditTemplate && contentEditTemplate.isCustomized && (
+                        <Button
+                          variant="light"
+                          color="red"
+                          onClick={() => {
+                            setTemplateToReset(contentEditTemplate)
+                            setResetModalOpen(true)
+                          }}
+                          styles={{
+                            root: {
+                              fontWeight: 600,
+                              height: '44px',
+                              paddingTop: '12px',
+                              paddingBottom: '12px',
+                              fontSize: '14px',
+                              lineHeight: '1.2',
+                            },
+                          }}
+                        >
+                          Reset to Default
+                        </Button>
+                      )}
+                    </div>
+                    <div>
+                      {activeEmailTemplate === 'ad-hoc' ? (
+                        <WCRButton variant="primary" size="lg" disabled>
+                          Send Email
+                        </WCRButton>
+                      ) : (
+                        <WCRButton
+                          variant="primary"
+                          size="lg"
+                          onClick={handleSaveTemplate}
+                          disabled={!eventId || saveTemplateMutation.isPending}
+                        >
+                          {saveTemplateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                        </WCRButton>
+                      )}
+                    </div>
+                  </Group>
                 </div>
-
-                <Group mt="md" justify="space-between">
-                  <div>
-                    {/* Reset to Default button - only show for customized templates */}
-                    {selectedTemplate && selectedTemplate.isCustomized && (
-                      <Button
-                        variant="light"
-                        color="red"
-                        onClick={() => {
-                          setTemplateToReset(selectedTemplate)
-                          setResetModalOpen(true)
-                        }}
-                        styles={{
-                          root: {
-                            fontWeight: 600,
-                            height: '44px',
-                            paddingTop: '12px',
-                            paddingBottom: '12px',
-                            fontSize: '14px',
-                            lineHeight: '1.2',
-                          },
-                        }}
-                      >
-                        Reset to Default
-                      </Button>
-                    )}
-                  </div>
-                  <div>
-                    {activeEmailTemplate === 'ad-hoc' ? (
-                      <WCRButton variant="primary" size="lg" disabled>
-                        Send Email
-                      </WCRButton>
-                    ) : (
-                      <WCRButton
-                        variant="primary"
-                        size="lg"
-                        onClick={handleSaveTemplate}
-                        disabled={!eventId || saveTemplateMutation.isPending}
-                      >
-                        {saveTemplateMutation.isPending ? 'Saving...' : 'Save Changes'}
-                      </WCRButton>
-                    )}
-                  </div>
-                </Group>
-              </div>
               )}
             </Stack>
           </Tabs.Panel>
+
+          {/* Trigger Config Modal for event-level trigger overrides */}
+          {triggerEditTemplate && (
+            <TriggerConfigModal
+              opened={!!triggerEditTemplate}
+              onClose={() => setTriggerEditTemplate(null)}
+              template={mapEventTemplateToCardProps(triggerEditTemplate)}
+              onSave={handleSaveTriggerConfig}
+            />
+          )}
 
           {/* Reset Template Confirmation Modal */}
           <Modal
