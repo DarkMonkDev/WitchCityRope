@@ -54,6 +54,10 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   const [invalidVariables, setInvalidVariables] = useState<string[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+  // State for inline title editing
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editingTitle, setEditingTitle] = useState('');
+
   // State for Events tab editor tabs
   const [activeEditorTab, setActiveEditorTab] = useState<string>('email');
 
@@ -101,6 +105,36 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     },
   });
 
+  // Save title-only mutation (doesn't deselect template)
+  const saveTitleMutation = useMutation<unknown, Error, string>({
+    mutationFn: (newTitle: string) => {
+      if (!selectedTemplate) {
+        throw new Error('No template selected');
+      }
+      return emailTemplatesApi.updateGlobalTemplate(selectedTemplate.id ?? '', {
+        title: newTitle,
+        subject: selectedTemplate.subject ?? '',
+        htmlBody: selectedTemplate.htmlBody ?? '',
+        plainTextBody: selectedTemplate.plainTextBody ?? '',
+      });
+    },
+    onSuccess: (_data: unknown, newTitle: string) => {
+      queryClient.invalidateQueries({ queryKey: ['email-templates', 'global', category] });
+      notifications.show({
+        message: 'Title updated',
+        color: 'green',
+      });
+      setTitle(newTitle);
+      setIsEditingTitle(false);
+    },
+    onError: (error: any) => {
+      notifications.show({
+        message: error.message || 'Failed to save title',
+        color: 'red',
+      });
+    },
+  });
+
   // Save trigger config mutation (Events tab only)
   const saveTriggerMutation = useMutation({
     mutationFn: (data: { id: string; config: TriggerConfig }) =>
@@ -130,6 +164,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       setPlainTextBody(selectedTemplate.plainTextBody ?? '');
       setInvalidVariables([]);
       setHasUnsavedChanges(false);
+      setIsEditingTitle(false);
     }
   }, [selectedTemplate]);
 
@@ -207,6 +242,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     setInvalidVariables([]);
     setHasUnsavedChanges(false);
     setActiveEditorTab('email');
+    setIsEditingTitle(false);
   };
 
   // Loading state
@@ -304,22 +340,62 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       {selectedTemplate && category !== 'Events' && (
         <Paper shadow="sm" radius="md" p="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}>
           <Stack gap="md">
-            {/* Header */}
+            {/* Header with inline title editing */}
             <Group justify="space-between">
-              <Text fw={600} c="burgundy" size="lg">
-                Currently Editing: {selectedTemplate.title || selectedTemplate.templateType}
-              </Text>
+              {isEditingTitle ? (
+                <Group gap="sm" style={{ flex: 1 }}>
+                  <TextInput
+                    value={editingTitle}
+                    onChange={(e) => setEditingTitle(e.currentTarget.value)}
+                    maxLength={100}
+                    style={{ flex: 1 }}
+                    styles={{ input: { fontWeight: 600, fontSize: '18px', color: '#880124' } }}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveTitleMutation.mutate(editingTitle);
+                      if (e.key === 'Escape') setIsEditingTitle(false);
+                    }}
+                  />
+                  <Text
+                    component="a"
+                    size="sm"
+                    c="burgundy"
+                    fw={600}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => saveTitleMutation.mutate(editingTitle)}
+                  >
+                    Save
+                  </Text>
+                  <Text
+                    component="a"
+                    size="sm"
+                    c="dimmed"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setIsEditingTitle(false)}
+                  >
+                    Cancel
+                  </Text>
+                </Group>
+              ) : (
+                <Group gap="sm">
+                  <Text fw={600} c="burgundy" size="lg">
+                    {title || selectedTemplate.templateType}
+                  </Text>
+                  <Text
+                    component="a"
+                    size="sm"
+                    c="burgundy"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setEditingTitle(title);
+                      setIsEditingTitle(true);
+                    }}
+                  >
+                    Edit
+                  </Text>
+                </Group>
+              )}
             </Group>
-
-            {/* Title — user-editable display name shown on template cards */}
-            <TextInput
-              label="Title"
-              description="Display name shown on template cards (max 100 characters)"
-              value={title}
-              onChange={(e) => { setTitle(e.currentTarget.value); setHasUnsavedChanges(true); }}
-              required
-              maxLength={100}
-            />
 
             {/* Subject Line */}
             <TextInput
@@ -425,9 +501,59 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
         <Paper shadow="sm" radius="md" p="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}>
           <Stack gap="md">
             <Group justify="space-between">
-              <Text fw={600} c="burgundy" size="lg">
-                {selectedTemplate.title || selectedTemplate.templateType}
-              </Text>
+              {isEditingTitle ? (
+                <Group gap="sm" style={{ flex: 1 }}>
+                  <TextInput
+                    value={editingTitle}
+                    onChange={(e) => setEditingTitle(e.currentTarget.value)}
+                    maxLength={100}
+                    style={{ flex: 1 }}
+                    styles={{ input: { fontWeight: 600, fontSize: '18px', color: '#880124' } }}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveTitleMutation.mutate(editingTitle);
+                      if (e.key === 'Escape') setIsEditingTitle(false);
+                    }}
+                  />
+                  <Text
+                    component="a"
+                    size="sm"
+                    c="burgundy"
+                    fw={600}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => saveTitleMutation.mutate(editingTitle)}
+                  >
+                    Save
+                  </Text>
+                  <Text
+                    component="a"
+                    size="sm"
+                    c="dimmed"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setIsEditingTitle(false)}
+                  >
+                    Cancel
+                  </Text>
+                </Group>
+              ) : (
+                <Group gap="sm">
+                  <Text fw={600} c="burgundy" size="lg">
+                    {title || selectedTemplate.templateType}
+                  </Text>
+                  <Text
+                    component="a"
+                    size="sm"
+                    c="burgundy"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setEditingTitle(title);
+                      setIsEditingTitle(true);
+                    }}
+                  >
+                    Edit
+                  </Text>
+                </Group>
+              )}
               <Button variant="subtle" color="dimmed" size="compact-sm" onClick={handleCancel}>
                 Close
               </Button>
@@ -462,15 +588,6 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               {/* Email Tab */}
               <Tabs.Panel value="email" pt="lg">
                 <Stack gap="md">
-                  <TextInput
-                    label="Title"
-                    description="Display name shown on template cards (max 100 characters)"
-                    value={title}
-                    onChange={(e) => { setTitle(e.currentTarget.value); setHasUnsavedChanges(true); }}
-                    required
-                    maxLength={100}
-                  />
-
                   <TextInput
                     label="Subject Line"
                     value={subject}
