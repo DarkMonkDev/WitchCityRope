@@ -34,6 +34,7 @@ public interface IVettingEmailService
     /// <param name="applicantEmail">Email address to send notification to</param>
     /// <param name="applicantName">Display name of the applicant for personalization</param>
     /// <param name="newStatus">The new status that triggered this notification</param>
+    /// <param name="customMessage">Optional custom message to include in email body (e.g., hold reason)</param>
     /// <param name="cancellationToken">Cancellation token for async operation</param>
     /// <returns>Result indicating success or failure with error details</returns>
     Task<Result<bool>> SendStatusUpdateAsync(
@@ -41,6 +42,7 @@ public interface IVettingEmailService
         string applicantEmail,
         string applicantName,
         VettingStatus newStatus,
+        string? customMessage = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -37,8 +37,6 @@ const VARIABLE_GROUPS = [
       'current_status',
       'interview_link',
       'approval_date',
-      'hold_reason',
-      'required_actions',
       'review_date',
     ],
   },

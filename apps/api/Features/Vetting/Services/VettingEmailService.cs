@@ -88,6 +88,7 @@ public class VettingEmailService : IVettingEmailService
         string applicantEmail,
         string applicantName,
         VettingStatus newStatus,
+        string? customMessage = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -121,8 +122,7 @@ public class VettingEmailService : IVettingEmailService
                 { "approval_date", DateTime.UtcNow.ToString("MMMM dd, yyyy") },
                 { "review_date", DateTime.UtcNow.ToString("MMMM dd, yyyy") },
                 { "interview_link", GetInterviewSchedulingLink(application) },
-                { "hold_reason", GetHoldReason(application) },
-                { "required_actions", GetRequiredActions(application) }
+                { "custom_message", customMessage ?? string.Empty }
             };
 
             var result = await _emailService.SendTemplatedEmailAsync(
@@ -222,21 +222,4 @@ public class VettingEmailService : IVettingEmailService
         return $"https://witchcityrope.com/vetting/interview/{application.Id}";
     }
 
-    /// <summary>
-    /// Get hold reason from application notes or default message
-    /// </summary>
-    private string GetHoldReason(VettingApplication application)
-    {
-        // TODO: Extract from application notes or admin comments
-        return "Additional information required for processing";
-    }
-
-    /// <summary>
-    /// Get required actions from application notes or default message
-    /// </summary>
-    private string GetRequiredActions(VettingApplication application)
-    {
-        // TODO: Extract from application notes or admin comments
-        return "Please check your email for further instructions";
-    }
 }

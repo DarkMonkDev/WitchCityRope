@@ -480,7 +480,7 @@ public class VettingService : IVettingService
                         application.Email,
                         application.SceneName ?? application.FirstName ?? "Applicant",
                         newStatus,
-                        cancellationToken);
+                        cancellationToken: cancellationToken);
 
                     if (emailResult.IsSuccess)
                     {
@@ -1444,7 +1444,7 @@ public class VettingService : IVettingService
                         application.Email,
                         application.SceneName,
                         newStatus,
-                        cancellationToken);
+                        cancellationToken: cancellationToken);
 
                     if (!emailResult.IsSuccess)
                     {

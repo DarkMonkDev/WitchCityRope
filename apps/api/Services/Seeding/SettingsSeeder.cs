@@ -80,8 +80,6 @@ public class SettingsSeeder
             ["EmailTestData:current_status"] = "Under Review",
             ["EmailTestData:interview_link"] = "https://witchcityrope.com/vetting/interview/sample-link",
             ["EmailTestData:approval_date"] = "March 8, 2026",
-            ["EmailTestData:hold_reason"] = "Additional references needed",
-            ["EmailTestData:required_actions"] = "Please provide two community references",
             ["EmailTestData:review_date"] = "March 10, 2026",
 
             // ── Events Variables ──
