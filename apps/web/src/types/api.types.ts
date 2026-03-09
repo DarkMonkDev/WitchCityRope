@@ -124,11 +124,6 @@ export type IncidentStatus = components['schemas']['IncidentStatus'];
  */
 export type ProblemDetails = components['schemas']['ProblemDetails'];
 
-/**
- * Validation Problem Details for validation errors
- * Source: C# ValidationProblemDetails via NSwag generation
- */
-export type ValidationProblemDetails = components['schemas']['ValidationProblemDetails'];
 
 // =============================================================================
 // Generic Pagination Type (Frontend Convenience)
@@ -199,7 +194,7 @@ export interface EventRegistration {
 export type RegistrationStatus = 'Confirmed' | 'Cancelled' | 'Waitlisted';
 
 /**
- * @deprecated Use ProblemDetails or ValidationProblemDetails from generated types instead
+ * @deprecated Use ProblemDetails from generated types instead
  * Legacy error type - replaced by generated ProblemDetails types
  */
 export interface ApiError {
