@@ -6,7 +6,6 @@ import {
   Radio,
   NumberInput,
   Select,
-  Switch,
   Button,
   Box,
   Divider,
@@ -199,17 +198,6 @@ export const TriggerConfigPanel: React.FC<TriggerConfigPanelProps> = ({
             placeholder="Select recipient group..."
             searchable={false}
             required={form.values.enabled}
-          />
-        </Box>
-
-        {/* Enable/Disable */}
-        <Box>
-          <Text size="sm" fw={600} c="burgundy" mb="xs">
-            ENABLE/DISABLE
-          </Text>
-          <Switch
-            {...form.getInputProps('enabled', { type: 'checkbox' })}
-            label="Template enabled (will send automatically)"
           />
         </Box>
 

@@ -308,6 +308,9 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                   setSelectedTemplate(template);
                   setActiveEditorTab('email');
                 }}
+                onToggleSending={(id, enabled) => {
+                  toggleSendingMutation.mutate({ id, enabled });
+                }}
               />
             ) : (
               <Card

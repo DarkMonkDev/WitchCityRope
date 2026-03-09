@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Group, Text, Badge, Button, Stack } from '@mantine/core';
+import { Card, Group, Text, Badge, Button, Stack, Switch } from '@mantine/core';
 import type { GlobalEmailTemplateDto } from '../../services/emailTemplates.api';
 
 /**
@@ -22,6 +22,7 @@ export interface EnhancedTemplateCardProps {
   };
   isSelected?: boolean;
   onClick?: () => void;
+  onToggleSending?: (templateId: string, enabled: boolean) => void;
   /** @deprecated Used by EventForm emails tab — will be removed when EventForm adopts tabbed pattern */
   onEditTrigger?: (templateId: string) => void;
   /** @deprecated Used by EventForm emails tab — will be removed when EventForm adopts tabbed pattern */
@@ -54,6 +55,7 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
   template,
   isSelected = false,
   onClick,
+  onToggleSending,
   onEditTrigger,
   onEditContent,
 }) => {
@@ -98,27 +100,49 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
       onClick={onClick}
     >
       <Stack gap={4}>
-        {/* Row 1: Title (left) + Enabled badge (right) */}
+        {/* Row 1: Title (left) + Toggle + Enabled/Disabled badge (right) */}
         <Group justify="space-between" wrap="nowrap">
           <Text fw={600} c="burgundy">
             {title || 'Untitled Template'}
           </Text>
 
-          <Badge
-            size="sm"
-            style={{
-              backgroundColor: sendingEnabled ? '#2e7d32' : '#c62828',
-              color: '#FFF8F0',
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '11px',
-            }}
-          >
-            {sendingEnabled ? 'Enabled' : 'Disabled'}
-          </Badge>
+          <Group gap="xs" wrap="nowrap">
+            {onToggleSending && (
+              <Switch
+                size="sm"
+                color="green"
+                checked={sendingEnabled}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  onToggleSending(id || '', e.currentTarget.checked);
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+            <Badge
+              size="sm"
+              style={{
+                backgroundColor: sendingEnabled ? '#2e7d32' : '#c62828',
+                color: '#FFF8F0',
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '11px',
+              }}
+            >
+              {sendingEnabled ? 'Enabled' : 'Disabled'}
+            </Badge>
+          </Group>
         </Group>
 
-        {/* Row 2: Badges — trigger type, timing, recipient */}
+        {/* Row 2: Last updated */}
+        <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+          Updated{' '}
+          {template.updatedAt
+            ? new Date(template.updatedAt).toLocaleDateString()
+            : 'Never'}
+        </Text>
+
+        {/* Row 3: Badges — trigger type, timing, recipient */}
         <Group gap="xs" wrap="wrap">
           <Badge
             variant="filled"
