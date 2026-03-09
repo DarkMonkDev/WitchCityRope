@@ -403,7 +403,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                 )}
               </Group>
               {!isEditingTitle && (
-                <Tabs.List style={{ flex: 0 }}>
+                <Tabs.List style={{ flex: 0, flexWrap: 'nowrap' }}>
                   <Tabs.Tab value="email">Email</Tabs.Tab>
                   <Tabs.Tab value="test">Test Email</Tabs.Tab>
                 </Tabs.List>
@@ -597,7 +597,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                 )}
               </Group>
               {!isEditingTitle && (
-                <Tabs.List style={{ flex: 0 }}>
+                <Tabs.List style={{ flex: 0, flexWrap: 'nowrap' }}>
                   <Tabs.Tab value="email">Email</Tabs.Tab>
                   <Tabs.Tab value="trigger">Trigger</Tabs.Tab>
                   <Tabs.Tab value="test">Test Email</Tabs.Tab>
