@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Stack,
   Group,
+  SimpleGrid,
   Text,
   Radio,
   NumberInput,
@@ -131,7 +132,7 @@ export const TriggerConfigPanel: React.FC<TriggerConfigPanelProps> = ({
             TRIGGER TYPE
           </Text>
           <Radio.Group {...form.getInputProps('triggerType')}>
-            <Stack gap="sm">
+            <SimpleGrid cols={3}>
               <Radio
                 value="FixedEvent"
                 label="Fixed Event"
@@ -142,7 +143,7 @@ export const TriggerConfigPanel: React.FC<TriggerConfigPanelProps> = ({
                 label="Time-Based"
                 description="Triggered relative to session start time"
               />
-            </Stack>
+            </SimpleGrid>
           </Radio.Group>
         </Box>
 
