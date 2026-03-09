@@ -310,7 +310,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                   {template.title || template.templateType}
                 </Text>
 
-                <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                <Text size="xs" c="dimmed" mb={0} style={{ fontStyle: 'italic' }}>
                   Last Updated{' '}
                   {template.updatedAt
                     ? new Date(template.updatedAt).toLocaleDateString()
