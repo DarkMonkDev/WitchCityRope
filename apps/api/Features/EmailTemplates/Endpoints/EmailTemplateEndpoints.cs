@@ -1,10 +1,14 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Admin.Settings.Interfaces;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
+using WitchCityRope.Api.Features.Shared.Services;
 
 namespace WitchCityRope.Api.Features.EmailTemplates.Endpoints;
 
@@ -289,6 +293,41 @@ public static class EmailTemplateEndpoints
             .ProducesProblem(400)
             .ProducesProblem(401)
             .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        // ========================================
+        // Email Template Testing (Admin-only)
+        // ========================================
+
+        group.MapGet("/test-data", GetEmailTestData)
+            .WithName("GetEmailTestData")
+            .WithSummary("Get all email template test data variable values")
+            .WithDescription("Returns saved default values for all email template variables, used for test sends")
+            .Produces<Dictionary<string, string>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        group.MapPut("/test-data", SaveEmailTestData)
+            .WithName("SaveEmailTestData")
+            .WithSummary("Save email template test data variable values")
+            .WithDescription("Creates or updates default variable values used for test email sends")
+            .Produces<object>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        group.MapPost("/{id:guid}/send-test", SendTestEmail)
+            .WithName("SendTestEmail")
+            .WithSummary("Send a test email for a specific template")
+            .WithDescription("Sends a test email with test data variable substitution to a specified email address")
+            .Produces<object>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
     }
 
@@ -842,5 +881,161 @@ public static class EmailTemplateEndpoints
         }
 
         return Results.Ok(result.Value);
+    }
+
+    // ========================================
+    // Email Template Testing Handlers
+    // ========================================
+
+    private static async Task<IResult> GetEmailTestData(
+        ISettingsService settingsService,
+        CancellationToken cancellationToken)
+    {
+        var allSettings = await settingsService.GetAllSettingsAsync(cancellationToken);
+
+        // Filter to only EmailTestData: prefixed settings and strip the prefix for the response
+        var testData = allSettings
+            .Where(kvp => kvp.Key.StartsWith("EmailTestData:"))
+            .ToDictionary(
+                kvp => kvp.Key.Replace("EmailTestData:", ""),
+                kvp => kvp.Value);
+
+        return Results.Ok(testData);
+    }
+
+    private static async Task<IResult> SaveEmailTestData(
+        HttpContext context,
+        IAntiforgery antiforgery,
+        [FromBody] Dictionary<string, string> testData,
+        ISettingsService settingsService,
+        CancellationToken cancellationToken)
+    {
+        // CSRF validation
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        // Prefix all keys with "EmailTestData:" for storage
+        var prefixedData = testData.ToDictionary(
+            kvp => $"EmailTestData:{kvp.Key}",
+            kvp => kvp.Value);
+
+        var (success, error) = await settingsService.UpsertMultipleSettingsAsync(
+            prefixedData, cancellationToken);
+
+        if (!success)
+        {
+            return Results.Problem(
+                title: "Save Failed",
+                detail: error,
+                statusCode: 500);
+        }
+
+        return Results.Ok(new { message = "Test data saved successfully" });
+    }
+
+    private static async Task<IResult> SendTestEmail(
+        HttpContext context,
+        IAntiforgery antiforgery,
+        Guid id,
+        [FromBody] SendTestEmailRequest request,
+        ApplicationDbContext dbContext,
+        ISettingsService settingsService,
+        IEmailService emailService,
+        ILogger<EmailService> logger,
+        CancellationToken cancellationToken)
+    {
+        // CSRF validation
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        // Validate email address
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return Results.BadRequest(new { error = "Email address is required" });
+        }
+
+        // Fetch the template from the database
+        var template = await dbContext.GlobalEmailTemplates
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+
+        if (template == null)
+        {
+            return Results.NotFound(new { error = "Template not found" });
+        }
+
+        // Load saved test data defaults from Settings
+        var allSettings = await settingsService.GetAllSettingsAsync(cancellationToken);
+        var testData = allSettings
+            .Where(kvp => kvp.Key.StartsWith("EmailTestData:"))
+            .ToDictionary(
+                kvp => kvp.Key.Replace("EmailTestData:", ""),
+                kvp => kvp.Value);
+
+        // Merge with overrides (overrides take precedence)
+        if (request.VariableOverrides != null)
+        {
+            foreach (var kvp in request.VariableOverrides)
+            {
+                testData[kvp.Key] = kvp.Value;
+            }
+
+            // Auto-save overrides back to defaults
+            var prefixedOverrides = request.VariableOverrides.ToDictionary(
+                kvp => $"EmailTestData:{kvp.Key}",
+                kvp => kvp.Value);
+
+            await settingsService.UpsertMultipleSettingsAsync(prefixedOverrides, cancellationToken);
+        }
+
+        // Substitute variables in template content
+        var subject = EmailService.SubstituteVariables(template.Subject, testData);
+        var htmlBody = EmailService.SubstituteVariables(template.HtmlBody, testData);
+        var plainTextBody = EmailService.SubstituteVariables(template.PlainTextBody, testData);
+
+        // Send the email using the raw send method (not templated, since we already resolved the template)
+        var result = await emailService.SendEmailAsync(
+            request.Email,
+            subject,
+            htmlBody,
+            plainTextBody,
+            cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            logger.LogInformation(
+                "Test email sent: TemplateId={TemplateId}, TemplateType={TemplateType}, To={Email}",
+                template.Id, template.TemplateType, request.Email);
+
+            return Results.Ok(new
+            {
+                message = "Test email sent successfully",
+                templateType = template.TemplateType,
+                sentTo = request.Email
+            });
+        }
+
+        return Results.Problem(
+            title: "Send Failed",
+            detail: result.Error,
+            statusCode: 500);
     }
 }

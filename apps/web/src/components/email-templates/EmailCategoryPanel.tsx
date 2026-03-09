@@ -18,6 +18,7 @@ import { MantineTiptapEditor } from '../forms/MantineTiptapEditor';
 import { emailTemplatesApi, type GlobalEmailTemplateDto } from '../../services/emailTemplates.api';
 import { notifications } from '@mantine/notifications';
 import { SendAdHocEmail } from './SendAdHocEmail';
+import { SendTestEmail } from './SendTestEmail';
 import { EnhancedTemplateCard } from './EnhancedTemplateCard';
 import { TriggerConfigModal, type TriggerConfig } from './TriggerConfigModal';
 
@@ -49,6 +50,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   const [htmlBody, setHtmlBody] = useState('');
   const [_plainTextBody, setPlainTextBody] = useState('');
   const [invalidVariables, setInvalidVariables] = useState<string[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // State for trigger config modal (Events tab only)
   const [triggerModalOpened, setTriggerModalOpened] = useState(false);
@@ -83,6 +85,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       setSubject('');
       setHtmlBody('');
       setPlainTextBody('');
+      setHasUnsavedChanges(false);
     },
     onError: (error: any) => {
       notifications.show({
@@ -120,6 +123,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       setHtmlBody(selectedTemplate.htmlBody ?? '');
       setPlainTextBody(selectedTemplate.plainTextBody ?? '');
       setInvalidVariables([]);
+      setHasUnsavedChanges(false);
     }
   }, [selectedTemplate]);
 
@@ -176,6 +180,17 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     });
   };
 
+  // Handle save (async version for SendTestEmail integration)
+  const handleSaveAsync = async (): Promise<void> => {
+    const plainText = generatePlainText(htmlBody);
+    await saveMutation.mutateAsync({
+      title,
+      subject,
+      htmlBody,
+      plainTextBody: plainText,
+    });
+  };
+
   // Handle cancel
   const handleCancel = () => {
     setSelectedTemplate(null);
@@ -184,6 +199,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     setHtmlBody('');
     setPlainTextBody('');
     setInvalidVariables([]);
+    setHasUnsavedChanges(false);
   };
 
   // Loading state
@@ -293,7 +309,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               label="Title"
               description="Display name shown on template cards (max 100 characters)"
               value={title}
-              onChange={(e) => setTitle(e.currentTarget.value)}
+              onChange={(e) => { setTitle(e.currentTarget.value); setHasUnsavedChanges(true); }}
               required
               maxLength={100}
             />
@@ -302,7 +318,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
             <TextInput
               label="Subject Line"
               value={subject}
-              onChange={(e) => setSubject(e.currentTarget.value)}
+              onChange={(e) => { setSubject(e.currentTarget.value); setHasUnsavedChanges(true); }}
               required
               maxLength={200}
             />
@@ -337,7 +353,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               </Text>
               <MantineTiptapEditor
                 value={htmlBody}
-                onChange={setHtmlBody}
+                onChange={(val) => { setHtmlBody(val); setHasUnsavedChanges(true); }}
                 placeholder="Enter email template content..."
                 minRows={12}
               />
@@ -383,6 +399,16 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                 Save Template
               </Button>
             </Group>
+
+            {/* Send Test Email - inline test send with template-specific variables */}
+            <SendTestEmail
+              template={selectedTemplate}
+              currentTitle={title}
+              currentSubject={subject}
+              currentHtmlBody={htmlBody}
+              onSaveTemplate={handleSaveAsync}
+              hasUnsavedChanges={hasUnsavedChanges}
+            />
           </Stack>
         </Paper>
       )}

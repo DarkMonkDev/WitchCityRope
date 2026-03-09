@@ -2,6 +2,7 @@ import React from 'react';
 import { Container, Title, Text, Tabs, Divider } from '@mantine/core';
 import { useSearchParams } from 'react-router-dom';
 import { EmailCategoryPanel } from '../../components/email-templates/EmailCategoryPanel';
+import { EmailTestDataTab } from '../../components/email-templates/EmailTestDataTab';
 import classes from './EmailTemplatesAdminPage.module.css';
 
 /**
@@ -63,6 +64,7 @@ export const EmailTemplatesAdminPage: React.FC = () => {
           <Tabs.Tab value="admin">Admin</Tabs.Tab>
           <Tabs.Tab value="incident">Incident</Tabs.Tab>
           <Tabs.Tab value="adhoc">Ad Hoc</Tabs.Tab>
+          <Tabs.Tab value="testdata">Test Data</Tabs.Tab>
         </Tabs.List>
         <Divider />
 
@@ -84,6 +86,10 @@ export const EmailTemplatesAdminPage: React.FC = () => {
 
         <Tabs.Panel value="adhoc" pt="xl">
           <EmailCategoryPanel category="AdHoc" />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="testdata" pt="xl">
+          <EmailTestDataTab />
         </Tabs.Panel>
       </Tabs>
     </Container>

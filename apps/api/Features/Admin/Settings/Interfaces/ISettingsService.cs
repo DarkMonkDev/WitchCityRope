@@ -38,4 +38,12 @@ public interface ISettingsService
     Task<(bool Success, string Error)> UpdateMultipleSettingsAsync(
         Dictionary<string, string> updates,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates or updates multiple settings. If a setting with the given key doesn't exist, it is created.
+    /// If it already exists, its value is updated. Used by email template test data feature.
+    /// </summary>
+    Task<(bool Success, string Error)> UpsertMultipleSettingsAsync(
+        Dictionary<string, string> settings,
+        CancellationToken cancellationToken = default);
 }

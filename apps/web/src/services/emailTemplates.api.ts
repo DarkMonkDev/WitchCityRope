@@ -583,6 +583,75 @@ class EmailTemplatesApiService {
       throw error;
     }
   }
+
+
+  // ===================================================================
+  // EMAIL TEMPLATE TESTING (Admin-only)
+  // ===================================================================
+
+  /**
+   * Fetch all saved test data variable values for email template testing
+   */
+  async getTestData(): Promise<Record<string, string>> {
+    console.log('EmailTemplatesAPI: Fetching email test data');
+    try {
+      const response = await apiClient.get<Record<string, string>>(
+        '/api/email-templates/test-data'
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error fetching test data:', {
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Save test data variable values (upsert — creates new entries if missing, updates existing)
+   */
+  async saveTestData(testData: Record<string, string>): Promise<void> {
+    console.log('EmailTemplatesAPI: Saving email test data');
+    try {
+      await apiClient.put('/api/email-templates/test-data', testData);
+      console.log('EmailTemplatesAPI: Test data saved successfully');
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error saving test data:', {
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Send a test email for a specific template with variable substitution
+   * @param templateId - Global email template ID
+   * @param request - Email address and optional variable overrides
+   */
+  async sendTestEmail(
+    templateId: string,
+    request: { email: string; variableOverrides?: Record<string, string> }
+  ): Promise<{ message: string; templateType: string; sentTo: string }> {
+    console.log('EmailTemplatesAPI: Sending test email:', { templateId, request });
+    try {
+      const response = await apiClient.post<{
+        message: string;
+        templateType: string;
+        sentTo: string;
+      }>(`/api/email-templates/${templateId}/send-test`, request);
+      console.log('EmailTemplatesAPI: Test email sent successfully');
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error sending test email:', {
+        templateId,
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance

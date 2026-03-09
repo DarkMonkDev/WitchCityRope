@@ -131,6 +131,9 @@ public class SeedCoordinator : ISeedDataService
             _logger.LogDebug("Seeding settings...");
             await _settingsSeeder.SeedSettingsAsync(cancellationToken);
 
+            _logger.LogDebug("Seeding email test data defaults...");
+            await _settingsSeeder.SeedEmailTestDataAsync(cancellationToken);
+
             _logger.LogDebug("Seeding CMS content...");
             await _cmsSeeder.SeedCmsContentAsync(cancellationToken);
 

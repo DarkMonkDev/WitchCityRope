@@ -211,7 +211,7 @@ public class EmailService : IEmailService
     /// <param name="template">Template string with {{variable}} placeholders</param>
     /// <param name="variables">Dictionary of variable names (with or without braces) to values</param>
     /// <returns>String with variables substituted</returns>
-    private static string SubstituteVariables(string template, Dictionary<string, string> variables)
+    internal static string SubstituteVariables(string template, Dictionary<string, string> variables)
     {
         if (string.IsNullOrWhiteSpace(template) || variables == null || variables.Count == 0)
         {
