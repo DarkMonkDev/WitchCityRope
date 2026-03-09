@@ -345,11 +345,11 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               },
             }}
           >
-            {/* Header row: title + tabs + close */}
-            <Group justify="space-between" mb="md">
-              <Group gap="md" style={{ flex: 1 }}>
+            {/* Header row: title (left) + tabs (center) + close (right) */}
+            <Group justify="space-between" mb="md" wrap="nowrap">
+              <Group gap="sm" style={{ flex: 1, minWidth: 0 }}>
                 {isEditingTitle ? (
-                  <Group gap="sm" style={{ flex: 1 }}>
+                  <>
                     <TextInput
                       value={editingTitle}
                       onChange={(e) => setEditingTitle(e.currentTarget.value)}
@@ -367,7 +367,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                       size="sm"
                       c="burgundy"
                       fw={600}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
                       onClick={() => saveTitleMutation.mutate(editingTitle)}
                     >
                       Save
@@ -376,41 +376,43 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                       component="a"
                       size="sm"
                       c="dimmed"
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
                       onClick={() => setIsEditingTitle(false)}
                     >
                       Cancel
                     </Text>
-                  </Group>
+                  </>
                 ) : (
                   <>
-                    <Group gap="sm">
-                      <Text fw={600} c="burgundy" size="lg">
-                        {title || selectedTemplate.templateType}
-                      </Text>
-                      <Text
-                        component="a"
-                        size="sm"
-                        c="burgundy"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => {
-                          setEditingTitle(title);
-                          setIsEditingTitle(true);
-                        }}
-                      >
-                        Edit
-                      </Text>
-                    </Group>
-                    <Tabs.List>
-                      <Tabs.Tab value="email">Email</Tabs.Tab>
-                      <Tabs.Tab value="test">Test Email</Tabs.Tab>
-                    </Tabs.List>
+                    <Text fw={600} c="burgundy" size="lg" style={{ whiteSpace: 'nowrap' }}>
+                      {title || selectedTemplate.templateType}
+                    </Text>
+                    <Text
+                      component="a"
+                      size="sm"
+                      c="burgundy"
+                      style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      onClick={() => {
+                        setEditingTitle(title);
+                        setIsEditingTitle(true);
+                      }}
+                    >
+                      Edit
+                    </Text>
                   </>
                 )}
               </Group>
-              <Button variant="subtle" color="dimmed" size="compact-sm" onClick={handleCancel}>
-                Close
-              </Button>
+              {!isEditingTitle && (
+                <Tabs.List style={{ flex: 0 }}>
+                  <Tabs.Tab value="email">Email</Tabs.Tab>
+                  <Tabs.Tab value="test">Test Email</Tabs.Tab>
+                </Tabs.List>
+              )}
+              <Group justify="flex-end" style={{ flex: 1, minWidth: 0 }}>
+                <Button variant="subtle" color="dimmed" size="compact-sm" onClick={handleCancel}>
+                  Close
+                </Button>
+              </Group>
             </Group>
 
               {/* Email Tab */}
@@ -537,11 +539,11 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               },
             }}
           >
-            {/* Header row: title + tabs + close */}
-            <Group justify="space-between" mb="md">
-              <Group gap="md" style={{ flex: 1 }}>
+            {/* Header row: title (left) + tabs (center) + close (right) */}
+            <Group justify="space-between" mb="md" wrap="nowrap">
+              <Group gap="sm" style={{ flex: 1, minWidth: 0 }}>
                 {isEditingTitle ? (
-                  <Group gap="sm" style={{ flex: 1 }}>
+                  <>
                     <TextInput
                       value={editingTitle}
                       onChange={(e) => setEditingTitle(e.currentTarget.value)}
@@ -559,7 +561,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                       size="sm"
                       c="burgundy"
                       fw={600}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
                       onClick={() => saveTitleMutation.mutate(editingTitle)}
                     >
                       Save
@@ -568,42 +570,44 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                       component="a"
                       size="sm"
                       c="dimmed"
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
                       onClick={() => setIsEditingTitle(false)}
                     >
                       Cancel
                     </Text>
-                  </Group>
+                  </>
                 ) : (
                   <>
-                    <Group gap="sm">
-                      <Text fw={600} c="burgundy" size="lg">
-                        {title || selectedTemplate.templateType}
-                      </Text>
-                      <Text
-                        component="a"
-                        size="sm"
-                        c="burgundy"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => {
-                          setEditingTitle(title);
-                          setIsEditingTitle(true);
-                        }}
-                      >
-                        Edit
-                      </Text>
-                    </Group>
-                    <Tabs.List>
-                      <Tabs.Tab value="email">Email</Tabs.Tab>
-                      <Tabs.Tab value="trigger">Trigger</Tabs.Tab>
-                      <Tabs.Tab value="test">Test Email</Tabs.Tab>
-                    </Tabs.List>
+                    <Text fw={600} c="burgundy" size="lg" style={{ whiteSpace: 'nowrap' }}>
+                      {title || selectedTemplate.templateType}
+                    </Text>
+                    <Text
+                      component="a"
+                      size="sm"
+                      c="burgundy"
+                      style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      onClick={() => {
+                        setEditingTitle(title);
+                        setIsEditingTitle(true);
+                      }}
+                    >
+                      Edit
+                    </Text>
                   </>
                 )}
               </Group>
-              <Button variant="subtle" color="dimmed" size="compact-sm" onClick={handleCancel}>
-                Close
-              </Button>
+              {!isEditingTitle && (
+                <Tabs.List style={{ flex: 0 }}>
+                  <Tabs.Tab value="email">Email</Tabs.Tab>
+                  <Tabs.Tab value="trigger">Trigger</Tabs.Tab>
+                  <Tabs.Tab value="test">Test Email</Tabs.Tab>
+                </Tabs.List>
+              )}
+              <Group justify="flex-end" style={{ flex: 1, minWidth: 0 }}>
+                <Button variant="subtle" color="dimmed" size="compact-sm" onClick={handleCancel}>
+                  Close
+                </Button>
+              </Group>
             </Group>
 
               {/* Email Tab */}
