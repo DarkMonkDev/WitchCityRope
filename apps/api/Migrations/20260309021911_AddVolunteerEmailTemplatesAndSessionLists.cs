@@ -59,7 +59,7 @@ namespace WitchCityRope.Api.Migrations
                     1,
                     NOW(), NOW(),
                     u."Id"
-                FROM "AspNetUsers" u
+                FROM "public"."Users" u
                 WHERE u."Email" IN ('admin@witchcityrope.com', 'ropemaster@witchcityrope.com')
                 AND NOT EXISTS (
                     SELECT 1 FROM "GlobalEmailTemplates"
@@ -95,7 +95,7 @@ namespace WitchCityRope.Api.Migrations
                     1,
                     NOW(), NOW(),
                     u."Id"
-                FROM "AspNetUsers" u
+                FROM "public"."Users" u
                 WHERE u."Email" IN ('admin@witchcityrope.com', 'ropemaster@witchcityrope.com')
                 AND NOT EXISTS (
                     SELECT 1 FROM "GlobalEmailTemplates"
