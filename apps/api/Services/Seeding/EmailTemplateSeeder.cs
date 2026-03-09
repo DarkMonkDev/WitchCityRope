@@ -8,7 +8,7 @@ namespace WitchCityRope.Api.Services.Seeding;
 
 /// <summary>
 /// Seeds default email templates for all 5 categories: Vetting, Events, Admin, Incident, and Ad Hoc.
-/// Total: 26 templates (Vetting: 6, Events: 10, Admin: 5, Incident: 4, Ad Hoc: 1)
+/// Total: 27 templates (Vetting: 6, Events: 11, Admin: 5, Incident: 4, Ad Hoc: 1)
 /// Vetting templates are migrated from the legacy VettingEmailTemplates table.
 /// </summary>
 public class EmailTemplateSeeder
@@ -23,9 +23,9 @@ public class EmailTemplateSeeder
     }
 
     /// <summary>
-    /// Seeds 25 default email templates across 5 categories.
+    /// Seeds 27 default email templates across 5 categories.
     /// This includes 6 Vetting templates migrated from VettingEmailTemplates table,
-    /// plus 20 templates for Events (10), Admin (5), Incident (4), and Ad Hoc (1).
+    /// plus 21 templates for Events (11), Admin (5), Incident (4), and Ad Hoc (1).
     /// </summary>
     /// <param name="adminUserEmail">Email of admin user for UpdatedBy field. Defaults to admin@witchcityrope.com for dev/staging. Production uses ropemaster@witchcityrope.com.</param>
     /// <param name="cancellationToken">Cancellation token for async operation</param>
@@ -276,6 +276,23 @@ public class EmailTemplateSeeder
                 HtmlBody = "<p>Hi {{attendee_name}},</p><p>Your registration for <strong>{{event_title}}</strong> has been cancelled.</p><h3>Cancelled Sessions</h3>{{cancelled_sessions_list}}<p>{{custom_message}}</p><p>If you have any questions, please contact events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nYour registration for {{event_title}} has been cancelled.\n\nCancelled Sessions:\n{{cancelled_sessions_list_text}}\n\n{{custom_message}}\n\nIf you have any questions, please contact events@witchcityrope.com",
                 Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{custom_message}}", "{{cancelled_sessions_list}}", "{{cancelled_sessions_list_text}}" }),
+                TriggerType = TemplateTriggerType.FixedEvent,
+                RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Events,
+                TemplateType = "RSVPConfirmation",
+                Title = "RSVP Confirmation",
+                Subject = "You're RSVPed! {{event_title}}",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>You're all set! Your RSVP for <strong>{{event_title}}</strong> has been confirmed.</p><p><strong>Event Details:</strong><br>Date: {{event_date}}<br>Time: {{event_time}}<br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><p>We look forward to seeing you there!</p><p>Questions? Email events@witchcityrope.com</p>",
+                PlainTextBody = "Hi {{attendee_name}},\n\nYou're all set! Your RSVP for {{event_title}} has been confirmed.\n\nEvent Details:\nDate: {{event_date}}\nTime: {{event_time}}\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nWe look forward to seeing you there!\n\nQuestions? Email events@witchcityrope.com",
+                Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{event_time}}", "{{venue_name}}", "{{venue_address}}" }),
                 TriggerType = TemplateTriggerType.FixedEvent,
                 RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,

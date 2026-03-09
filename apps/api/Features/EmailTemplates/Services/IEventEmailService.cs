@@ -15,6 +15,14 @@ public interface IEventEmailService
         Guid userId, Guid eventId, List<Guid> ticketPurchaseIds, CancellationToken ct);
 
     /// <summary>
+    /// Sends an RSVP confirmation email after a user manually RSVPs to a social/free event.
+    /// NOT called for auto-RSVPs created during ticket purchase (user already gets ticket confirmation).
+    /// Non-fatal: failures are logged but do not propagate.
+    /// </summary>
+    Task SendRsvpConfirmationEmailAsync(
+        Guid userId, Guid eventId, CancellationToken ct);
+
+    /// <summary>
     /// Sends an RSVP cancellation confirmation email.
     /// Called after a user cancels their RSVP for a social/free event.
     /// Simpler than ticket cancellation — no sessions or ticket types to list.

@@ -704,6 +704,21 @@ public class AttendanceService : IAttendanceService
                 "DIAGNOSTIC: Verification successful - Found RSVP {AttendanceId} for user {UserId} in event {EventId} (Status: {Status}, Type: {Type}, CreatedAt: {CreatedAt})",
                 savedAttendance.Id, userId, request.EventId, savedAttendance.Status, savedAttendance.AttendanceType, savedAttendance.CreatedAt);
 
+            // Send RSVP confirmation email (fire-and-forget)
+            // Only for manual RSVPs — auto-RSVPs from ticket purchase do NOT send this
+            // (those users already get a ticket confirmation email)
+            try
+            {
+                await _eventEmailService.SendRsvpConfirmationEmailAsync(
+                    userId, request.EventId, cancellationToken);
+            }
+            catch (Exception emailEx)
+            {
+                _logger.LogError(emailEx,
+                    "Failed to send RSVP confirmation email for user {UserId} event {EventId} (non-fatal)",
+                    userId, request.EventId);
+            }
+
             var dto = new ParticipationStatusDto
             {
                 EventId = attendance.EventId,
