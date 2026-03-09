@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Stack,
-  Paper,
   SimpleGrid,
   TextInput,
   Button,
@@ -136,13 +135,6 @@ export const SendTestEmail: React.FC<SendTestEmailProps> = ({
   };
 
   return (
-    <Paper
-      shadow="sm"
-      radius="md"
-      p="xl"
-      mt="md"
-      style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}
-    >
       <Stack gap="md">
         <Text fw={600} c="burgundy" size="lg">
           Send Test Email
@@ -201,6 +193,5 @@ export const SendTestEmail: React.FC<SendTestEmailProps> = ({
           Variable values will be saved as new defaults when you send the test email.
         </Alert>
       </Stack>
-    </Paper>
   );
 };
