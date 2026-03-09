@@ -55,6 +55,19 @@ const VARIABLE_GROUPS = [
       'total_paid',
       'confirmation_number',
       'session_name',
+      'ticket_sessions_list',
+      'ticket_sessions_list_text',
+      'cancelled_sessions_list',
+      'cancelled_sessions_list_text',
+    ],
+  },
+  {
+    name: 'Volunteers',
+    variables: [
+      'volunteer_name',
+      'volunteer_role',
+      'shift_start',
+      'shift_end',
     ],
   },
   {

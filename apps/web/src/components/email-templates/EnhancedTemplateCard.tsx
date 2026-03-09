@@ -20,8 +20,12 @@ export interface EnhancedTemplateCardProps {
     timingOffsetDays?: number;  // +3 = before, -2 = after
     recipientGroup?: EventRecipientGroup;
   };
-  onEditTrigger: (templateId: string) => void;
-  onEditContent: (templateId: string) => void;
+  isSelected?: boolean;
+  onClick?: () => void;
+  /** @deprecated Used by EventForm emails tab — will be removed when EventForm adopts tabbed pattern */
+  onEditTrigger?: (templateId: string) => void;
+  /** @deprecated Used by EventForm emails tab — will be removed when EventForm adopts tabbed pattern */
+  onEditContent?: (templateId: string) => void;
 }
 
 /**
@@ -57,9 +61,13 @@ const getRecipientGroupLabel = (group?: EventRecipientGroup): string => {
  */
 export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
   template,
+  isSelected = false,
+  onClick,
   onEditTrigger,
   onEditContent,
 }) => {
+  const showLegacyButtons = !!(onEditTrigger || onEditContent);
+
   const {
     id,
     title,
@@ -89,10 +97,15 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
       withBorder
       p="md"
       style={{
-        borderColor: 'rgba(136, 1, 36, 0.1)',
+        cursor: 'pointer',
+        borderColor: isSelected
+          ? 'var(--mantine-color-burgundy-6)'
+          : 'rgba(136, 1, 36, 0.1)',
+        backgroundColor: isSelected ? 'rgba(136, 1, 36, 0.05)' : 'white',
         borderRadius: '12px',
         transition: 'all 0.3s ease',
       }}
+      onClick={onClick}
     >
       <Stack gap={4}>
         {/* Row 1: Title (left) + Enabled badge (right) */}
@@ -172,28 +185,33 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
           {cleanVariablePlaceholders(subject || '')}
         </Text>
 
-        {/* Row 4: Action buttons (right-aligned, compact) */}
-        <Group justify="flex-end" gap="xs">
-          <Button
-            variant="light"
-            color="burgundy"
-            size="compact-xs"
-            styles={{ root: { fontSize: '12px', minHeight: 'unset', padding: '4px 12px' } }}
-            onClick={() => onEditTrigger(id || '')}
-          >
-            Edit Trigger
-          </Button>
-
-          <Button
-            variant="outline"
-            color="burgundy"
-            size="compact-xs"
-            styles={{ root: { fontSize: '12px', minHeight: 'unset', padding: '4px 12px' } }}
-            onClick={() => onEditContent(id || '')}
-          >
-            Edit Email
-          </Button>
-        </Group>
+        {/* Legacy action buttons for EventForm emails tab */}
+        {showLegacyButtons && (
+          <Group justify="flex-end" gap="xs">
+            {onEditTrigger && (
+              <Button
+                variant="light"
+                color="burgundy"
+                size="compact-xs"
+                styles={{ root: { fontSize: '12px', minHeight: 'unset', padding: '4px 12px' } }}
+                onClick={(e) => { e.stopPropagation(); onEditTrigger(id || ''); }}
+              >
+                Edit Trigger
+              </Button>
+            )}
+            {onEditContent && (
+              <Button
+                variant="outline"
+                color="burgundy"
+                size="compact-xs"
+                styles={{ root: { fontSize: '12px', minHeight: 'unset', padding: '4px 12px' } }}
+                onClick={(e) => { e.stopPropagation(); onEditContent(id || ''); }}
+              >
+                Edit Email
+              </Button>
+            )}
+          </Group>
+        )}
       </Stack>
     </Card>
   );

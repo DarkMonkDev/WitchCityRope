@@ -11,6 +11,7 @@ import {
   Alert,
   Box,
   Loader,
+  Tabs,
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +22,7 @@ import { SendAdHocEmail } from './SendAdHocEmail';
 import { SendTestEmail } from './SendTestEmail';
 import { EnhancedTemplateCard } from './EnhancedTemplateCard';
 import { TriggerConfigModal, type TriggerConfig } from './TriggerConfigModal';
+import { TriggerConfigPanel } from './TriggerConfigPanel';
 
 interface EmailCategoryPanelProps {
   category: 'Vetting' | 'Events' | 'Admin' | 'Incident' | 'AdHoc';
@@ -52,9 +54,12 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   const [invalidVariables, setInvalidVariables] = useState<string[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // State for trigger config modal (Events tab only)
+  // State for Events tab editor tabs
+  const [activeEditorTab, setActiveEditorTab] = useState<string>('email');
+
+  // State for trigger config modal (non-Events categories that might need it in future)
   const [triggerModalOpened, setTriggerModalOpened] = useState(false);
-  const [selectedTemplateForTrigger, setSelectedTemplateForTrigger] = useState<GlobalEmailTemplateDto | null>(null);
+  const [selectedTemplateForTrigger, _setSelectedTemplateForTrigger] = useState<GlobalEmailTemplateDto | null>(null);
 
   // Fetch global templates for this category
   const {
@@ -86,6 +91,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       setHtmlBody('');
       setPlainTextBody('');
       setHasUnsavedChanges(false);
+      setActiveEditorTab('email');
     },
     onError: (error: any) => {
       notifications.show({
@@ -200,6 +206,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     setPlainTextBody('');
     setInvalidVariables([]);
     setHasUnsavedChanges(false);
+    setActiveEditorTab('email');
   };
 
   // Loading state
@@ -249,11 +256,11 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               <EnhancedTemplateCard
                 key={template.id}
                 template={template}
-                onEditTrigger={(_id) => {
-                  setSelectedTemplateForTrigger(template);
-                  setTriggerModalOpened(true);
+                isSelected={selectedTemplate?.id === template.id}
+                onClick={() => {
+                  setSelectedTemplate(template);
+                  setActiveEditorTab('email');
                 }}
-                onEditContent={(_id) => setSelectedTemplate(template)}
               />
             ) : (
               <Card
@@ -282,7 +289,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                 </Text>
 
                 <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                  Version {template.version} • Updated{' '}
+                  Updated{' '}
                   {template.updatedAt
                     ? new Date(template.updatedAt).toLocaleDateString()
                     : 'Never'}
@@ -294,7 +301,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       </div>
 
       {/* Editor Panel - Shown when template selected */}
-      {selectedTemplate && (
+      {selectedTemplate && category !== 'Events' && (
         <Paper shadow="sm" radius="md" p="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}>
           <Stack gap="md">
             {/* Header */}
@@ -413,8 +420,171 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
         </Paper>
       )}
 
-      {/* Trigger Config Modal - Only for Events category */}
-      {category === 'Events' && selectedTemplateForTrigger && (
+      {/* Events Tabbed Editor Panel - Email / Trigger / Test Email */}
+      {selectedTemplate && category === 'Events' && (
+        <Paper shadow="sm" radius="md" p="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}>
+          <Stack gap="md">
+            <Group justify="space-between">
+              <Text fw={600} c="burgundy" size="lg">
+                {selectedTemplate.title || selectedTemplate.templateType}
+              </Text>
+              <Button variant="subtle" color="dimmed" size="compact-sm" onClick={handleCancel}>
+                Close
+              </Button>
+            </Group>
+
+            <Tabs
+              value={activeEditorTab}
+              onChange={(val) => setActiveEditorTab(val || 'email')}
+              variant="pills"
+              radius="md"
+              color="burgundy"
+              styles={{
+                tab: {
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                  '&[data-active]': {
+                    backgroundColor: '#880124',
+                    color: 'white',
+                  },
+                  '&:hover:not([data-active])': {
+                    backgroundColor: 'rgba(136, 1, 36, 0.05)',
+                  },
+                },
+              }}
+            >
+              <Tabs.List>
+                <Tabs.Tab value="email">Email</Tabs.Tab>
+                <Tabs.Tab value="trigger">Trigger</Tabs.Tab>
+                <Tabs.Tab value="test">Test Email</Tabs.Tab>
+              </Tabs.List>
+
+              {/* Email Tab */}
+              <Tabs.Panel value="email" pt="lg">
+                <Stack gap="md">
+                  <TextInput
+                    label="Title"
+                    description="Display name shown on template cards (max 100 characters)"
+                    value={title}
+                    onChange={(e) => { setTitle(e.currentTarget.value); setHasUnsavedChanges(true); }}
+                    required
+                    maxLength={100}
+                  />
+
+                  <TextInput
+                    label="Subject Line"
+                    value={subject}
+                    onChange={(e) => { setSubject(e.currentTarget.value); setHasUnsavedChanges(true); }}
+                    required
+                    maxLength={200}
+                  />
+
+                  <Box
+                    p="sm"
+                    style={{
+                      background: 'rgba(136, 1, 36, 0.05)',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(136, 1, 36, 0.1)',
+                    }}
+                  >
+                    <Text size="xs" fw={600} c="burgundy" mb={4}>
+                      Available Variables:
+                    </Text>
+                    <Text size="xs" c="dimmed" mb="xs">
+                      {(selectedTemplate.variables?.length ?? 0) > 0
+                        ? selectedTemplate.variables?.join(', ')
+                        : 'No dynamic variables for this template'}
+                    </Text>
+                    <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                      Note: Contact emails (support@witchcityrope.com, info@witchcityrope.com,
+                      events@witchcityrope.com) and system URL are hardcoded in templates.
+                    </Text>
+                  </Box>
+
+                  <div>
+                    <Text size="sm" fw={500} mb={4}>
+                      Email Content (HTML)
+                    </Text>
+                    <MantineTiptapEditor
+                      value={htmlBody}
+                      onChange={(val) => { setHtmlBody(val); setHasUnsavedChanges(true); }}
+                      placeholder="Enter email template content..."
+                      minRows={12}
+                    />
+                  </div>
+
+                  {invalidVariables.length > 0 && (
+                    <Alert
+                      icon={<IconAlertCircle />}
+                      color="yellow"
+                      variant="light"
+                      title="Unknown Variables Detected"
+                    >
+                      <Text size="sm">
+                        These variables are not in the allowed list: {invalidVariables.join(', ')}
+                      </Text>
+                      <Text size="xs" mt="xs" c="dimmed">
+                        The email may not render correctly when sent. Available variables:{' '}
+                        {selectedTemplate.variables?.join(', ')}
+                      </Text>
+                    </Alert>
+                  )}
+
+                  <Group justify="flex-end" gap="sm">
+                    <Button variant="light" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      loading={saveMutation.isPending}
+                      styles={{
+                        root: {
+                          fontWeight: 600,
+                          height: '44px',
+                          paddingTop: '12px',
+                          paddingBottom: '12px',
+                          fontSize: '14px',
+                          lineHeight: '1.2',
+                        },
+                      }}
+                    >
+                      Save Template
+                    </Button>
+                  </Group>
+                </Stack>
+              </Tabs.Panel>
+
+              {/* Trigger Tab */}
+              <Tabs.Panel value="trigger" pt="lg">
+                <TriggerConfigPanel
+                  template={selectedTemplate as any}
+                  onSave={async (config) => {
+                    await saveTriggerMutation.mutateAsync({
+                      id: selectedTemplate.id ?? '',
+                      config,
+                    });
+                  }}
+                />
+              </Tabs.Panel>
+
+              {/* Test Email Tab */}
+              <Tabs.Panel value="test" pt="lg">
+                <SendTestEmail
+                  template={selectedTemplate}
+                  currentTitle={title}
+                  currentSubject={subject}
+                  currentHtmlBody={htmlBody}
+                  onSaveTemplate={handleSaveAsync}
+                  hasUnsavedChanges={hasUnsavedChanges}
+                />
+              </Tabs.Panel>
+            </Tabs>
+          </Stack>
+        </Paper>
+      )}
+
+      {/* Trigger Config Modal - kept for non-Events categories if needed in future */}
+      {category !== 'Events' && selectedTemplateForTrigger && (
         <TriggerConfigModal
           opened={triggerModalOpened}
           onClose={() => setTriggerModalOpened(false)}
