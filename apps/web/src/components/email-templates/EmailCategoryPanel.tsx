@@ -324,92 +324,94 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
 
       {/* Editor Panel - Shown when template selected (non-Events: Email + Test Email tabs) */}
       {selectedTemplate && category !== 'Events' && (
-        <Paper shadow="sm" radius="md" p="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}>
-          <Stack gap="md">
-            {/* Header with inline title editing */}
-            <Group justify="space-between">
-              {isEditingTitle ? (
-                <Group gap="sm" style={{ flex: 1 }}>
-                  <TextInput
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.currentTarget.value)}
-                    maxLength={100}
-                    style={{ flex: 1 }}
-                    styles={{ input: { fontWeight: 600, fontSize: '18px', color: '#880124' } }}
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveTitleMutation.mutate(editingTitle);
-                      if (e.key === 'Escape') setIsEditingTitle(false);
-                    }}
-                  />
-                  <Text
-                    component="a"
-                    size="sm"
-                    c="burgundy"
-                    fw={600}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => saveTitleMutation.mutate(editingTitle)}
-                  >
-                    Save
-                  </Text>
-                  <Text
-                    component="a"
-                    size="sm"
-                    c="dimmed"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => setIsEditingTitle(false)}
-                  >
-                    Cancel
-                  </Text>
-                </Group>
-              ) : (
-                <Group gap="sm">
-                  <Text fw={600} c="burgundy" size="lg">
-                    {title || selectedTemplate.templateType}
-                  </Text>
-                  <Text
-                    component="a"
-                    size="sm"
-                    c="burgundy"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      setEditingTitle(title);
-                      setIsEditingTitle(true);
-                    }}
-                  >
-                    Edit
-                  </Text>
-                </Group>
-              )}
+        <Paper shadow="sm" radius="md" px="xl" pb="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)', paddingTop: '12px' }}>
+          <Tabs
+            value={activeEditorTab}
+            onChange={(val) => setActiveEditorTab(val || 'email')}
+            variant="pills"
+            radius="md"
+            color="burgundy"
+            styles={{
+              tab: {
+                fontWeight: 600,
+                transition: 'all 0.2s ease',
+                '&[data-active]': {
+                  backgroundColor: '#880124',
+                  color: 'white',
+                },
+                '&:hover:not([data-active])': {
+                  backgroundColor: 'rgba(136, 1, 36, 0.05)',
+                },
+              },
+            }}
+          >
+            {/* Header row: title + tabs + close */}
+            <Group justify="space-between" mb="md">
+              <Group gap="md" style={{ flex: 1 }}>
+                {isEditingTitle ? (
+                  <Group gap="sm" style={{ flex: 1 }}>
+                    <TextInput
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.currentTarget.value)}
+                      maxLength={100}
+                      style={{ flex: 1 }}
+                      styles={{ input: { fontWeight: 600, fontSize: '18px', color: '#880124' } }}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveTitleMutation.mutate(editingTitle);
+                        if (e.key === 'Escape') setIsEditingTitle(false);
+                      }}
+                    />
+                    <Text
+                      component="a"
+                      size="sm"
+                      c="burgundy"
+                      fw={600}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => saveTitleMutation.mutate(editingTitle)}
+                    >
+                      Save
+                    </Text>
+                    <Text
+                      component="a"
+                      size="sm"
+                      c="dimmed"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setIsEditingTitle(false)}
+                    >
+                      Cancel
+                    </Text>
+                  </Group>
+                ) : (
+                  <>
+                    <Group gap="sm">
+                      <Text fw={600} c="burgundy" size="lg">
+                        {title || selectedTemplate.templateType}
+                      </Text>
+                      <Text
+                        component="a"
+                        size="sm"
+                        c="burgundy"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setEditingTitle(title);
+                          setIsEditingTitle(true);
+                        }}
+                      >
+                        Edit
+                      </Text>
+                    </Group>
+                    <Tabs.List>
+                      <Tabs.Tab value="email">Email</Tabs.Tab>
+                      <Tabs.Tab value="test">Test Email</Tabs.Tab>
+                    </Tabs.List>
+                  </>
+                )}
+              </Group>
               <Button variant="subtle" color="dimmed" size="compact-sm" onClick={handleCancel}>
                 Close
               </Button>
             </Group>
-
-            <Tabs
-              value={activeEditorTab}
-              onChange={(val) => setActiveEditorTab(val || 'email')}
-              variant="pills"
-              radius="md"
-              color="burgundy"
-              styles={{
-                tab: {
-                  fontWeight: 600,
-                  transition: 'all 0.2s ease',
-                  '&[data-active]': {
-                    backgroundColor: '#880124',
-                    color: 'white',
-                  },
-                  '&:hover:not([data-active])': {
-                    backgroundColor: 'rgba(136, 1, 36, 0.05)',
-                  },
-                },
-              }}
-            >
-              <Tabs.List>
-                <Tabs.Tab value="email">Email</Tabs.Tab>
-                <Tabs.Tab value="test">Test Email</Tabs.Tab>
-              </Tabs.List>
 
               {/* Email Tab */}
               <Tabs.Panel value="email" pt="lg">
@@ -508,99 +510,101 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                   hasUnsavedChanges={hasUnsavedChanges}
                 />
               </Tabs.Panel>
-            </Tabs>
-          </Stack>
+          </Tabs>
         </Paper>
       )}
 
       {/* Events Tabbed Editor Panel - Email / Trigger / Test Email */}
       {selectedTemplate && category === 'Events' && (
-        <Paper shadow="sm" radius="md" p="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}>
-          <Stack gap="md">
-            <Group justify="space-between">
-              {isEditingTitle ? (
-                <Group gap="sm" style={{ flex: 1 }}>
-                  <TextInput
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.currentTarget.value)}
-                    maxLength={100}
-                    style={{ flex: 1 }}
-                    styles={{ input: { fontWeight: 600, fontSize: '18px', color: '#880124' } }}
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveTitleMutation.mutate(editingTitle);
-                      if (e.key === 'Escape') setIsEditingTitle(false);
-                    }}
-                  />
-                  <Text
-                    component="a"
-                    size="sm"
-                    c="burgundy"
-                    fw={600}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => saveTitleMutation.mutate(editingTitle)}
-                  >
-                    Save
-                  </Text>
-                  <Text
-                    component="a"
-                    size="sm"
-                    c="dimmed"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => setIsEditingTitle(false)}
-                  >
-                    Cancel
-                  </Text>
-                </Group>
-              ) : (
-                <Group gap="sm">
-                  <Text fw={600} c="burgundy" size="lg">
-                    {title || selectedTemplate.templateType}
-                  </Text>
-                  <Text
-                    component="a"
-                    size="sm"
-                    c="burgundy"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      setEditingTitle(title);
-                      setIsEditingTitle(true);
-                    }}
-                  >
-                    Edit
-                  </Text>
-                </Group>
-              )}
+        <Paper shadow="sm" radius="md" px="xl" pb="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)', paddingTop: '12px' }}>
+          <Tabs
+            value={activeEditorTab}
+            onChange={(val) => setActiveEditorTab(val || 'email')}
+            variant="pills"
+            radius="md"
+            color="burgundy"
+            styles={{
+              tab: {
+                fontWeight: 600,
+                transition: 'all 0.2s ease',
+                '&[data-active]': {
+                  backgroundColor: '#880124',
+                  color: 'white',
+                },
+                '&:hover:not([data-active])': {
+                  backgroundColor: 'rgba(136, 1, 36, 0.05)',
+                },
+              },
+            }}
+          >
+            {/* Header row: title + tabs + close */}
+            <Group justify="space-between" mb="md">
+              <Group gap="md" style={{ flex: 1 }}>
+                {isEditingTitle ? (
+                  <Group gap="sm" style={{ flex: 1 }}>
+                    <TextInput
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.currentTarget.value)}
+                      maxLength={100}
+                      style={{ flex: 1 }}
+                      styles={{ input: { fontWeight: 600, fontSize: '18px', color: '#880124' } }}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveTitleMutation.mutate(editingTitle);
+                        if (e.key === 'Escape') setIsEditingTitle(false);
+                      }}
+                    />
+                    <Text
+                      component="a"
+                      size="sm"
+                      c="burgundy"
+                      fw={600}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => saveTitleMutation.mutate(editingTitle)}
+                    >
+                      Save
+                    </Text>
+                    <Text
+                      component="a"
+                      size="sm"
+                      c="dimmed"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setIsEditingTitle(false)}
+                    >
+                      Cancel
+                    </Text>
+                  </Group>
+                ) : (
+                  <>
+                    <Group gap="sm">
+                      <Text fw={600} c="burgundy" size="lg">
+                        {title || selectedTemplate.templateType}
+                      </Text>
+                      <Text
+                        component="a"
+                        size="sm"
+                        c="burgundy"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setEditingTitle(title);
+                          setIsEditingTitle(true);
+                        }}
+                      >
+                        Edit
+                      </Text>
+                    </Group>
+                    <Tabs.List>
+                      <Tabs.Tab value="email">Email</Tabs.Tab>
+                      <Tabs.Tab value="trigger">Trigger</Tabs.Tab>
+                      <Tabs.Tab value="test">Test Email</Tabs.Tab>
+                    </Tabs.List>
+                  </>
+                )}
+              </Group>
               <Button variant="subtle" color="dimmed" size="compact-sm" onClick={handleCancel}>
                 Close
               </Button>
             </Group>
-
-            <Tabs
-              value={activeEditorTab}
-              onChange={(val) => setActiveEditorTab(val || 'email')}
-              variant="pills"
-              radius="md"
-              color="burgundy"
-              styles={{
-                tab: {
-                  fontWeight: 600,
-                  transition: 'all 0.2s ease',
-                  '&[data-active]': {
-                    backgroundColor: '#880124',
-                    color: 'white',
-                  },
-                  '&:hover:not([data-active])': {
-                    backgroundColor: 'rgba(136, 1, 36, 0.05)',
-                  },
-                },
-              }}
-            >
-              <Tabs.List>
-                <Tabs.Tab value="email">Email</Tabs.Tab>
-                <Tabs.Tab value="trigger">Trigger</Tabs.Tab>
-                <Tabs.Tab value="test">Test Email</Tabs.Tab>
-              </Tabs.List>
 
               {/* Email Tab */}
               <Tabs.Panel value="email" pt="lg">
@@ -712,8 +716,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                   hasUnsavedChanges={hasUnsavedChanges}
                 />
               </Tabs.Panel>
-            </Tabs>
-          </Stack>
+          </Tabs>
         </Paper>
       )}
 
