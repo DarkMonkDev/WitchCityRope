@@ -29,15 +29,6 @@ export interface EnhancedTemplateCardProps {
 }
 
 /**
- * Helper function to clean variable placeholders from display text
- */
-const cleanVariablePlaceholders = (text: string): string => {
-  return text
-    .replace(/\{\{[^}]+\}\}/g, '{}')
-    .replace(/\{[^}]+\}/g, '{}');
-};
-
-/**
  * Get recipient group label for display
  */
 const getRecipientGroupLabel = (group?: EventRecipientGroup): string => {
@@ -71,7 +62,6 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
   const {
     id,
     title,
-    subject,
     triggerType = 'Manual',
     triggerEnabled = false,
     timingOffsetDays,
@@ -179,11 +169,6 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
             </Badge>
           )}
         </Group>
-
-        {/* Row 3: Subject line */}
-        <Text size="sm" c="stone" lineClamp={1}>
-          {cleanVariablePlaceholders(subject || '')}
-        </Text>
 
         {/* Legacy action buttons for EventForm emails tab */}
         {showLegacyButtons && (

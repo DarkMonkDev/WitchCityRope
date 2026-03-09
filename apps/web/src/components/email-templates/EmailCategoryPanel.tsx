@@ -29,16 +29,6 @@ interface EmailCategoryPanelProps {
 }
 
 /**
- * Helper function to clean variable placeholders from display text
- * Replaces {{variable_name}} and {variable_name} with empty brackets {}
- */
-const cleanVariablePlaceholders = (text: string): string => {
-  return text
-    .replace(/\{\{[^}]+\}\}/g, '{}')
-    .replace(/\{[^}]+\}/g, '{}');
-};
-
-/**
  * Reusable panel for displaying and editing email templates for a specific category
  * Based on EventForm Emails Tab pattern (lines 1228-1386)
  */
@@ -320,12 +310,8 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                   {template.title || template.templateType}
                 </Text>
 
-                <Text size="sm" c="stone" mb="xs">
-                  {cleanVariablePlaceholders(template.subject)}
-                </Text>
-
                 <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                  Updated{' '}
+                  Last Updated{' '}
                   {template.updatedAt
                     ? new Date(template.updatedAt).toLocaleDateString()
                     : 'Never'}
