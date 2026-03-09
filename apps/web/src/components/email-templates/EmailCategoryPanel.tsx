@@ -328,53 +328,48 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                 onClick={() => setSelectedTemplate(template)}
               >
                 <Stack gap={4}>
-                  {/* Row 1: Title (left) + Enabled/Disabled badge (right) */}
+                  {/* Row 1: Title (left) + Toggle + Enabled/Disabled badge (right) */}
                   <Group justify="space-between" wrap="nowrap">
                     <Text fw={600} c="burgundy" mb={0}>
                       {template.title || template.templateType}
                     </Text>
 
-                    <Badge
-                      size="sm"
-                      style={{
-                        backgroundColor: template.sendingEnabled ? '#2e7d32' : '#c62828',
-                        color: '#FFF8F0',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        fontSize: '11px',
-                      }}
-                    >
-                      {template.sendingEnabled ? 'Enabled' : 'Disabled'}
-                    </Badge>
+                    <Group gap="xs" wrap="nowrap">
+                      <Switch
+                        size="sm"
+                        color="green"
+                        checked={template.sendingEnabled}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          toggleSendingMutation.mutate({
+                            id: template.id ?? '',
+                            enabled: e.currentTarget.checked,
+                          });
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <Badge
+                        size="sm"
+                        style={{
+                          backgroundColor: template.sendingEnabled ? '#2e7d32' : '#c62828',
+                          color: '#FFF8F0',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          fontSize: '11px',
+                        }}
+                      >
+                        {template.sendingEnabled ? 'Enabled' : 'Disabled'}
+                      </Badge>
+                    </Group>
                   </Group>
 
-                  {/* Row 2: Switch toggle (left) + Last updated (right) */}
-                  <Group justify="space-between" wrap="nowrap">
-                    <Switch
-                      size="sm"
-                      color="green"
-                      checked={template.sendingEnabled}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        toggleSendingMutation.mutate({
-                          id: template.id ?? '',
-                          enabled: e.currentTarget.checked,
-                        });
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      label={
-                        <Text size="xs" c="dimmed">
-                          {template.sendingEnabled ? 'Sending' : 'Suppressed'}
-                        </Text>
-                      }
-                    />
-                    <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                      Updated{' '}
-                      {template.updatedAt
-                        ? new Date(template.updatedAt).toLocaleDateString()
-                        : 'Never'}
-                    </Text>
-                  </Group>
+                  {/* Row 2: Last updated */}
+                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                    Updated{' '}
+                    {template.updatedAt
+                      ? new Date(template.updatedAt).toLocaleDateString()
+                      : 'Never'}
+                  </Text>
                 </Stack>
               </Card>
             )
