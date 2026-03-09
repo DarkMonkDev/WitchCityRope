@@ -298,7 +298,13 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       {/* Template Cards - Horizontal Scrollable Group */}
       <div>
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-          {templates.map((template) => (
+          {[...templates].sort((a, b) => {
+            // Enabled templates first, disabled last
+            if (a.sendingEnabled !== b.sendingEnabled) {
+              return a.sendingEnabled ? -1 : 1;
+            }
+            return 0;
+          }).map((template) => (
             category === 'Events' ? (
               <EnhancedTemplateCard
                 key={template.id}
