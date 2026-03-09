@@ -66,7 +66,7 @@ export type UserSegment = components['schemas']['UserSegment'];
  */
 export type TriggerConfigDto = {
   triggerType: 'FixedEvent' | 'TimeBased' | 'Manual';
-  triggerEnabled: boolean;
+  sendingEnabled: boolean;
   timingOffsetDays?: number;
   recipientGroup?: string;
 };
@@ -78,7 +78,7 @@ export type TriggerConfigDto = {
  */
 export type UpdateTriggerConfigRequest = {
   triggerType: 'FixedEvent' | 'TimeBased' | 'Manual';
-  triggerEnabled: boolean;
+  sendingEnabled: boolean;
   timingOffsetDays?: number;
   recipientGroup?: string;
 };
@@ -467,6 +467,35 @@ class EmailTemplatesApiService {
       return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error updating trigger config:', {
+        id,
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle sending enabled/disabled for any global template (all categories).
+   * Unified mechanism — when disabled, emails using this template are silently suppressed.
+   * @param id - Global email template ID
+   * @param enabled - Whether to enable or disable sending
+   */
+  async toggleSendingEnabled(
+    id: string,
+    enabled: boolean
+  ): Promise<GlobalEmailTemplateDto> {
+    console.log('EmailTemplatesAPI: Toggling sending enabled:', { id, enabled });
+
+    try {
+      const response = await apiClient.patch<GlobalEmailTemplateDto>(
+        `/api/email-templates/${id}/sending-enabled`,
+        { enabled }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error toggling sending enabled:', {
         id,
         error: error.message || error,
         status: error.response?.status,

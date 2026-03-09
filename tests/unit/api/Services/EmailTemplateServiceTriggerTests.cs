@@ -103,7 +103,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             PlainTextBody = "Reminder about {{event_name}}",
             Variables = "[\"event_name\"]",
             TriggerType = TemplateTriggerType.FixedEvent,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             Version = 1,
             UpdatedBy = _testUserId
         };
@@ -113,7 +113,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
         var request = new UpdateTriggerConfigRequest
         {
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = 3, // 3 days before session
             RecipientGroup = EventRecipientGroup.RSVPTicketHolders
         };
@@ -125,7 +125,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.TriggerType.Should().Be(TemplateTriggerType.TimeBased);
-        result.Value.TriggerEnabled.Should().BeTrue();
+        result.Value.SendingEnabled.Should().BeTrue();
         result.Value.TimingOffsetDays.Should().Be(3);
         result.Value.RecipientGroup.Should().Be(EventRecipientGroup.RSVPTicketHolders);
         result.Value.Version.Should().BeGreaterThan(1); // Version incremented from initial value
@@ -142,7 +142,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
         var request = new UpdateTriggerConfigRequest
         {
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = 3,
             RecipientGroup = EventRecipientGroup.SessionAttendees
         };
@@ -180,7 +180,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
         var request = new UpdateTriggerConfigRequest
         {
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = 1,
             RecipientGroup = EventRecipientGroup.Teachers
         };
@@ -217,7 +217,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
         var request = new UpdateTriggerConfigRequest
         {
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = 3,
             RecipientGroup = EventRecipientGroup.SessionAttendees
         };
@@ -254,7 +254,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
         var request = new UpdateTriggerConfigRequest
         {
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = null, // Missing required field
             RecipientGroup = EventRecipientGroup.SessionAttendees
         };
@@ -291,7 +291,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
         var request = new UpdateTriggerConfigRequest
         {
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = 3,
             RecipientGroup = null // Missing required field
         };
@@ -325,7 +325,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             PlainTextBody = "Event reminder",
             Variables = "[]",
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = 3,
             RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
             IsActive = true,
@@ -342,7 +342,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             PlainTextBody = "Confirmation",
             Variables = "[]",
             TriggerType = TemplateTriggerType.FixedEvent,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             IsActive = true,
             UpdatedBy = _testUserId
         };
@@ -357,7 +357,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             PlainTextBody = "Disabled",
             Variables = "[]",
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = false, // Disabled
+            SendingEnabled = false, // Disabled
             TimingOffsetDays = 1,
             IsActive = true,
             UpdatedBy = _testUserId

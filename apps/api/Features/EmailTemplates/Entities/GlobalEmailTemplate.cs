@@ -73,10 +73,14 @@ public class GlobalEmailTemplate
     public TemplateTriggerType TriggerType { get; set; } = TemplateTriggerType.FixedEvent;
 
     /// <summary>
-    /// Whether automatic triggering is enabled
-    /// Default: true (maintains existing behavior)
+    /// Whether this template is enabled for sending emails.
+    /// Applies to all categories — when false, EmailService.SendTemplatedEmailAsync
+    /// will silently suppress the email (return success without sending).
+    /// Replaces the former TriggerEnabled field to provide a unified enable/disable
+    /// mechanism across Events, Vetting, Admin, and Incident categories.
+    /// Default: true (all templates send by default)
     /// </summary>
-    public bool TriggerEnabled { get; set; } = true;
+    public bool SendingEnabled { get; set; } = true;
 
     /// <summary>
     /// Days offset for time-based triggers (Events category only)

@@ -14,9 +14,10 @@ public class TriggerConfigDto
     public TemplateTriggerType TriggerType { get; set; }
 
     /// <summary>
-    /// Whether automatic triggering is enabled
+    /// Whether this template is enabled for sending emails.
+    /// Unified field — controls sending for all categories.
     /// </summary>
-    public bool TriggerEnabled { get; set; }
+    public bool SendingEnabled { get; set; }
 
     /// <summary>
     /// Days offset for time-based triggers

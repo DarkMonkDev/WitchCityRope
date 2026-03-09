@@ -16,7 +16,7 @@ export interface EnhancedTemplateCardProps {
   template: GlobalEmailTemplateDto & {
     // Extended fields from trigger configuration (will be added to DTO by backend)
     triggerType?: 'FixedEvent' | 'TimeBased' | 'Manual';
-    triggerEnabled?: boolean;
+    sendingEnabled?: boolean;
     timingOffsetDays?: number;  // +3 = before, -2 = after
     recipientGroup?: EventRecipientGroup;
   };
@@ -63,7 +63,7 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
     id,
     title,
     triggerType = 'Manual',
-    triggerEnabled = false,
+    sendingEnabled = false,
     timingOffsetDays,
     recipientGroup,
   } = template;
@@ -107,14 +107,14 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
           <Badge
             size="sm"
             style={{
-              backgroundColor: triggerEnabled ? '#2e7d32' : '#c62828',
+              backgroundColor: sendingEnabled ? '#2e7d32' : '#c62828',
               color: '#FFF8F0',
               textTransform: 'none',
               fontWeight: 600,
               fontSize: '11px',
             }}
           >
-            {triggerEnabled ? 'Enabled' : 'Disabled'}
+            {sendingEnabled ? 'Enabled' : 'Disabled'}
           </Badge>
         </Group>
 

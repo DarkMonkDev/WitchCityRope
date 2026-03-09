@@ -69,7 +69,7 @@ public class EmailTemplateService : IEmailTemplateService
                 CreatedAt = t.CreatedAt,
                 UpdatedAt = t.UpdatedAt,
                 TriggerType = t.TriggerType,
-                TriggerEnabled = t.TriggerEnabled,
+                SendingEnabled = t.SendingEnabled,
                 TimingOffsetDays = t.TimingOffsetDays,
                 TimingOffsetHours = t.TimingOffsetHours,
                 RecipientGroup = t.RecipientGroup
@@ -115,7 +115,7 @@ public class EmailTemplateService : IEmailTemplateService
                 CreatedAt = template.CreatedAt,
                 UpdatedAt = template.UpdatedAt,
                 TriggerType = template.TriggerType,
-                TriggerEnabled = template.TriggerEnabled,
+                SendingEnabled = template.SendingEnabled,
                 TimingOffsetDays = template.TimingOffsetDays,
                 TimingOffsetHours = template.TimingOffsetHours,
                 RecipientGroup = template.RecipientGroup
@@ -175,7 +175,7 @@ public class EmailTemplateService : IEmailTemplateService
                 CreatedAt = template.CreatedAt,
                 UpdatedAt = template.UpdatedAt,
                 TriggerType = template.TriggerType,
-                TriggerEnabled = template.TriggerEnabled,
+                SendingEnabled = template.SendingEnabled,
                 TimingOffsetDays = template.TimingOffsetDays,
                 TimingOffsetHours = template.TimingOffsetHours,
                 RecipientGroup = template.RecipientGroup
@@ -228,7 +228,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             // Update trigger configuration
             template.TriggerType = request.TriggerType;
-            template.TriggerEnabled = request.TriggerEnabled;
+            template.SendingEnabled = request.SendingEnabled;
             template.TimingOffsetDays = request.TimingOffsetDays;
             template.TimingOffsetHours = request.TimingOffsetHours;
             template.RecipientGroup = request.RecipientGroup;
@@ -240,7 +240,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             _logger.LogInformation(
                 "Updated trigger configuration for template {TemplateId}: Type={TriggerType}, Enabled={Enabled}, Offset={Offset}, Group={Group}",
-                templateId, request.TriggerType, request.TriggerEnabled, request.TimingOffsetDays, request.RecipientGroup);
+                templateId, request.TriggerType, request.SendingEnabled, request.TimingOffsetDays, request.RecipientGroup);
 
             var dto = new GlobalEmailTemplateDto
             {
@@ -257,7 +257,7 @@ public class EmailTemplateService : IEmailTemplateService
                 CreatedAt = template.CreatedAt,
                 UpdatedAt = template.UpdatedAt,
                 TriggerType = template.TriggerType,
-                TriggerEnabled = template.TriggerEnabled,
+                SendingEnabled = template.SendingEnabled,
                 TimingOffsetDays = template.TimingOffsetDays,
                 TimingOffsetHours = template.TimingOffsetHours,
                 RecipientGroup = template.RecipientGroup
@@ -273,8 +273,68 @@ public class EmailTemplateService : IEmailTemplateService
     }
 
     /// <summary>
-    /// Get all time-based templates (TriggerType = TimeBased and TriggerEnabled = true)
-    /// Used by EmailSchedulerJob to find templates that need automatic triggering
+    /// Toggle the SendingEnabled flag on a global template.
+    /// Works for all categories — provides a unified enable/disable mechanism.
+    /// When disabled, EmailService.SendTemplatedEmailAsync silently suppresses the email.
+    /// </summary>
+    public async Task<Result<GlobalEmailTemplateDto>> ToggleSendingEnabledAsync(
+        Guid templateId,
+        bool enabled,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var template = await _context.GlobalEmailTemplates
+                .FirstOrDefaultAsync(t => t.Id == templateId, cancellationToken);
+
+            if (template == null)
+            {
+                return Result<GlobalEmailTemplateDto>.Failure("Template not found");
+            }
+
+            template.SendingEnabled = enabled;
+            template.UpdatedAt = DateTime.UtcNow;
+
+            _context.GlobalEmailTemplates.Update(template);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Toggled SendingEnabled={Enabled} for template {TemplateId} ({Category}/{TemplateType})",
+                enabled, templateId, template.Category, template.TemplateType);
+
+            var dto = new GlobalEmailTemplateDto
+            {
+                Id = template.Id,
+                Category = template.Category.ToString(),
+                TemplateType = template.TemplateType,
+                Title = template.Title,
+                Subject = template.Subject,
+                HtmlBody = template.HtmlBody,
+                PlainTextBody = template.PlainTextBody,
+                Variables = JsonSerializer.Deserialize<string[]>(template.Variables) ?? Array.Empty<string>(),
+                IsActive = template.IsActive,
+                Version = template.Version,
+                CreatedAt = template.CreatedAt,
+                UpdatedAt = template.UpdatedAt,
+                TriggerType = template.TriggerType,
+                SendingEnabled = template.SendingEnabled,
+                TimingOffsetDays = template.TimingOffsetDays,
+                TimingOffsetHours = template.TimingOffsetHours,
+                RecipientGroup = template.RecipientGroup
+            };
+
+            return Result<GlobalEmailTemplateDto>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling SendingEnabled for template {TemplateId}", templateId);
+            return Result<GlobalEmailTemplateDto>.Failure("Failed to toggle sending enabled");
+        }
+    }
+
+    /// <summary>
+    /// Get all time-based templates (TriggerType = TimeBased and SendingEnabled = true).
+    /// Used by EmailSchedulerJob to find templates that need automatic triggering.
     /// </summary>
     public async Task<Result<List<GlobalEmailTemplateDto>>> GetTimeBasedTemplatesAsync(
         CancellationToken cancellationToken = default)
@@ -284,7 +344,7 @@ public class EmailTemplateService : IEmailTemplateService
             var templates = await _context.GlobalEmailTemplates
                 .AsNoTracking()
                 .Where(t => t.TriggerType == TemplateTriggerType.TimeBased
-                    && t.TriggerEnabled
+                    && t.SendingEnabled
                     && t.IsActive)
                 .OrderBy(t => t.TimingOffsetDays)
                 .ToListAsync(cancellationToken);
@@ -304,7 +364,7 @@ public class EmailTemplateService : IEmailTemplateService
                 CreatedAt = t.CreatedAt,
                 UpdatedAt = t.UpdatedAt,
                 TriggerType = t.TriggerType,
-                TriggerEnabled = t.TriggerEnabled,
+                SendingEnabled = t.SendingEnabled,
                 TimingOffsetDays = t.TimingOffsetDays,
                 TimingOffsetHours = t.TimingOffsetHours,
                 RecipientGroup = t.RecipientGroup
@@ -350,7 +410,7 @@ public class EmailTemplateService : IEmailTemplateService
 
                 if (eventOverride != null)
                 {
-                    var hasTriggerOverrides = eventOverride.OverrideTriggerEnabled.HasValue
+                    var hasTriggerOverrides = eventOverride.OverrideSendingEnabled.HasValue
                         || eventOverride.OverrideTimingOffsetDays.HasValue
                         || eventOverride.OverrideTimingOffsetHours.HasValue
                         || eventOverride.OverrideRecipientGroup.HasValue;
@@ -368,7 +428,7 @@ public class EmailTemplateService : IEmailTemplateService
                         TargetSessions = eventOverride.TargetSessions,
                         IsCustomized = true,
                         TriggerType = global.TriggerType.ToString(),
-                        TriggerEnabled = eventOverride.OverrideTriggerEnabled ?? global.TriggerEnabled,
+                        SendingEnabled = eventOverride.OverrideSendingEnabled ?? global.SendingEnabled,
                         TimingOffsetDays = eventOverride.OverrideTimingOffsetDays ?? global.TimingOffsetDays,
                         TimingOffsetHours = eventOverride.OverrideTimingOffsetHours ?? global.TimingOffsetHours,
                         RecipientGroup = (eventOverride.OverrideRecipientGroup ?? global.RecipientGroup)?.ToString(),
@@ -392,7 +452,7 @@ public class EmailTemplateService : IEmailTemplateService
                         TargetSessions = Array.Empty<string>(),
                         IsCustomized = false,
                         TriggerType = global.TriggerType.ToString(),
-                        TriggerEnabled = global.TriggerEnabled,
+                        SendingEnabled = global.SendingEnabled,
                         TimingOffsetDays = global.TimingOffsetDays,
                         TimingOffsetHours = global.TimingOffsetHours,
                         RecipientGroup = global.RecipientGroup?.ToString(),
@@ -438,7 +498,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (eventTemplate != null)
             {
-                var hasTriggerOverrides = eventTemplate.OverrideTriggerEnabled.HasValue
+                var hasTriggerOverrides = eventTemplate.OverrideSendingEnabled.HasValue
                     || eventTemplate.OverrideTimingOffsetDays.HasValue
                     || eventTemplate.OverrideTimingOffsetHours.HasValue
                     || eventTemplate.OverrideRecipientGroup.HasValue;
@@ -456,7 +516,7 @@ public class EmailTemplateService : IEmailTemplateService
                     TargetSessions = eventTemplate.TargetSessions,
                     IsCustomized = true,
                     TriggerType = globalTemplate?.TriggerType.ToString() ?? TemplateTriggerType.FixedEvent.ToString(),
-                    TriggerEnabled = eventTemplate.OverrideTriggerEnabled ?? globalTemplate?.TriggerEnabled ?? true,
+                    SendingEnabled = eventTemplate.OverrideSendingEnabled ?? globalTemplate?.SendingEnabled ?? true,
                     TimingOffsetDays = eventTemplate.OverrideTimingOffsetDays ?? globalTemplate?.TimingOffsetDays,
                     TimingOffsetHours = eventTemplate.OverrideTimingOffsetHours ?? globalTemplate?.TimingOffsetHours,
                     RecipientGroup = (eventTemplate.OverrideRecipientGroup ?? globalTemplate?.RecipientGroup)?.ToString(),
@@ -485,7 +545,7 @@ public class EmailTemplateService : IEmailTemplateService
                 TargetSessions = Array.Empty<string>(),
                 IsCustomized = false,
                 TriggerType = globalTemplate.TriggerType.ToString(),
-                TriggerEnabled = globalTemplate.TriggerEnabled,
+                SendingEnabled = globalTemplate.SendingEnabled,
                 TimingOffsetDays = globalTemplate.TimingOffsetDays,
                 TimingOffsetHours = globalTemplate.TimingOffsetHours,
                 RecipientGroup = globalTemplate.RecipientGroup?.ToString(),
@@ -537,7 +597,7 @@ public class EmailTemplateService : IEmailTemplateService
                     HtmlBody = SanitizeHtml(request.HtmlBody),
                     PlainTextBody = request.PlainTextBody.Trim(),
                     TargetSessions = request.TargetSessions ?? Array.Empty<string>(),
-                    OverrideTriggerEnabled = request.OverrideTriggerEnabled,
+                    OverrideSendingEnabled = request.OverrideSendingEnabled,
                     OverrideTimingOffsetDays = request.OverrideTimingOffsetDays,
                     OverrideTimingOffsetHours = request.OverrideTimingOffsetHours,
                     OverrideRecipientGroup = !string.IsNullOrEmpty(request.OverrideRecipientGroup)
@@ -558,7 +618,7 @@ public class EmailTemplateService : IEmailTemplateService
                 eventTemplate.HtmlBody = SanitizeHtml(request.HtmlBody);
                 eventTemplate.PlainTextBody = request.PlainTextBody.Trim();
                 eventTemplate.TargetSessions = request.TargetSessions ?? Array.Empty<string>();
-                eventTemplate.OverrideTriggerEnabled = request.OverrideTriggerEnabled;
+                eventTemplate.OverrideSendingEnabled = request.OverrideSendingEnabled;
                 eventTemplate.OverrideTimingOffsetDays = request.OverrideTimingOffsetDays;
                 eventTemplate.OverrideTimingOffsetHours = request.OverrideTimingOffsetHours;
                 eventTemplate.OverrideRecipientGroup = !string.IsNullOrEmpty(request.OverrideRecipientGroup)
@@ -578,7 +638,7 @@ public class EmailTemplateService : IEmailTemplateService
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Id == eventTemplate.GlobalTemplateId, cancellationToken);
 
-            var hasOverrides = eventTemplate.OverrideTriggerEnabled.HasValue
+            var hasOverrides = eventTemplate.OverrideSendingEnabled.HasValue
                 || eventTemplate.OverrideTimingOffsetDays.HasValue
                 || eventTemplate.OverrideTimingOffsetHours.HasValue
                 || eventTemplate.OverrideRecipientGroup.HasValue;
@@ -595,7 +655,7 @@ public class EmailTemplateService : IEmailTemplateService
                 TargetSessions = eventTemplate.TargetSessions,
                 IsCustomized = true,
                 TriggerType = globalForDto?.TriggerType.ToString() ?? TemplateTriggerType.FixedEvent.ToString(),
-                TriggerEnabled = eventTemplate.OverrideTriggerEnabled ?? globalForDto?.TriggerEnabled ?? true,
+                SendingEnabled = eventTemplate.OverrideSendingEnabled ?? globalForDto?.SendingEnabled ?? true,
                 TimingOffsetDays = eventTemplate.OverrideTimingOffsetDays ?? globalForDto?.TimingOffsetDays,
                 TimingOffsetHours = eventTemplate.OverrideTimingOffsetHours ?? globalForDto?.TimingOffsetHours,
                 RecipientGroup = (eventTemplate.OverrideRecipientGroup ?? globalForDto?.RecipientGroup)?.ToString(),

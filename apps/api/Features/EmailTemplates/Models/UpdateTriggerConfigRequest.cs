@@ -12,8 +12,8 @@ public class UpdateTriggerConfigRequest
     [Required(ErrorMessage = "Trigger type is required")]
     public TemplateTriggerType TriggerType { get; set; }
 
-    [Required(ErrorMessage = "Trigger enabled flag is required")]
-    public bool TriggerEnabled { get; set; }
+    [Required(ErrorMessage = "Sending enabled flag is required")]
+    public bool SendingEnabled { get; set; }
 
     /// <summary>
     /// Days offset for time-based triggers

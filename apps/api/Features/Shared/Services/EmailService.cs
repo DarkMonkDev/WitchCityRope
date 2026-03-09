@@ -74,6 +74,17 @@ public class EmailService : IEmailService
                 return Result.Failure($"Email template '{templateType}' not found in category '{category}'");
             }
 
+            // Check if sending is disabled for this template.
+            // Return success silently — the admin intentionally disabled this template
+            // and callers should not treat it as an error.
+            if (!template.SendingEnabled)
+            {
+                _logger.LogInformation(
+                    "Email suppressed (SendingEnabled=false): Category={Category}, TemplateType={TemplateType}, To={ToEmail}",
+                    category, templateType, toEmail);
+                return Result.Success();
+            }
+
             // Perform variable substitution
             var subject = SubstituteVariables(template.Subject, variables);
             var htmlBody = SubstituteVariables(template.HtmlBody, variables);

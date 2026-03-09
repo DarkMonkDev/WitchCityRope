@@ -12,6 +12,8 @@ import {
   Box,
   Loader,
   Tabs,
+  Switch,
+  Badge,
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -142,6 +144,25 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
         message: error.message || 'Failed to save trigger configuration',
         color: 'red',
       });
+    },
+  });
+
+  // Toggle sending enabled mutation (all categories)
+  // Provides unified enable/disable for email template sending.
+  // Uses optimistic update pattern for responsive UX.
+  const toggleSendingMutation = useMutation({
+    mutationFn: (data: { id: string; enabled: boolean }) =>
+      emailTemplatesApi.toggleSendingEnabled(data.id, data.enabled),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['email-templates', 'global', category] });
+    },
+    onError: (error: any) => {
+      notifications.show({
+        message: error.message || 'Failed to toggle sending enabled',
+        color: 'red',
+      });
+      // Refetch to revert optimistic state
+      queryClient.invalidateQueries({ queryKey: ['email-templates', 'global', category] });
     },
   });
 
@@ -306,16 +327,55 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                 }}
                 onClick={() => setSelectedTemplate(template)}
               >
-                <Text fw={600} c="burgundy" mb={4}>
-                  {template.title || template.templateType}
-                </Text>
+                <Stack gap={4}>
+                  {/* Row 1: Title (left) + Enabled/Disabled badge (right) */}
+                  <Group justify="space-between" wrap="nowrap">
+                    <Text fw={600} c="burgundy" mb={0}>
+                      {template.title || template.templateType}
+                    </Text>
 
-                <Text size="xs" c="dimmed" mb={0} style={{ fontStyle: 'italic' }}>
-                  Last Updated{' '}
-                  {template.updatedAt
-                    ? new Date(template.updatedAt).toLocaleDateString()
-                    : 'Never'}
-                </Text>
+                    <Badge
+                      size="sm"
+                      style={{
+                        backgroundColor: template.sendingEnabled ? '#2e7d32' : '#c62828',
+                        color: '#FFF8F0',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: '11px',
+                      }}
+                    >
+                      {template.sendingEnabled ? 'Enabled' : 'Disabled'}
+                    </Badge>
+                  </Group>
+
+                  {/* Row 2: Switch toggle (left) + Last updated (right) */}
+                  <Group justify="space-between" wrap="nowrap">
+                    <Switch
+                      size="sm"
+                      color="green"
+                      checked={template.sendingEnabled}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleSendingMutation.mutate({
+                          id: template.id ?? '',
+                          enabled: e.currentTarget.checked,
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      label={
+                        <Text size="xs" c="dimmed">
+                          {template.sendingEnabled ? 'Sending' : 'Suppressed'}
+                        </Text>
+                      }
+                    />
+                    <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                      Updated{' '}
+                      {template.updatedAt
+                        ? new Date(template.updatedAt).toLocaleDateString()
+                        : 'Never'}
+                    </Text>
+                  </Group>
+                </Stack>
               </Card>
             )
           ))}
@@ -729,7 +789,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
         <TriggerConfigModal
           opened={triggerModalOpened}
           onClose={() => setTriggerModalOpened(false)}
-          template={selectedTemplateForTrigger as GlobalEmailTemplateDto & { triggerType?: 'FixedEvent' | 'TimeBased' | 'Manual'; triggerEnabled?: boolean; timingOffsetDays?: number; recipientGroup?: any }}
+          template={selectedTemplateForTrigger as GlobalEmailTemplateDto & { triggerType?: 'FixedEvent' | 'TimeBased' | 'Manual'; sendingEnabled?: boolean; timingOffsetDays?: number; recipientGroup?: any }}
           onSave={async (config) => {
             await saveTriggerMutation.mutateAsync({ id: selectedTemplateForTrigger.id ?? '', config });
           }}

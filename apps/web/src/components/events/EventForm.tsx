@@ -1339,7 +1339,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       subject: triggerEditTemplate.subject || '',
       htmlBody: triggerEditTemplate.htmlBody || '',
       plainTextBody: triggerEditTemplate.plainTextBody || '',
-      overrideTriggerEnabled: config.triggerEnabled,
+      overrideSendingEnabled: config.sendingEnabled,
       overrideTimingOffsetDays: config.timingOffsetDays,
       overrideRecipientGroup: config.recipientGroup || null,
     })
@@ -1371,12 +1371,12 @@ export const EventForm: React.FC<EventFormProps> = ({
       templateType: template.templateType,
       // Trigger extension fields
       triggerType: (template.triggerType as 'FixedEvent' | 'TimeBased' | 'Manual') || undefined,
-      triggerEnabled: template.triggerEnabled ?? false,
+      sendingEnabled: template.sendingEnabled ?? false,
       timingOffsetDays: template.timingOffsetDays ?? undefined,
       recipientGroup: (template.recipientGroup as EventRecipientGroup) || undefined,
     } as GlobalEmailTemplateDto & {
       triggerType?: 'FixedEvent' | 'TimeBased' | 'Manual'
-      triggerEnabled?: boolean
+      sendingEnabled?: boolean
       timingOffsetDays?: number
       recipientGroup?: EventRecipientGroup
     }

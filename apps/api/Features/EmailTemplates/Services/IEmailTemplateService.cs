@@ -44,7 +44,16 @@ public interface IEmailTemplateService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get all time-based templates (TriggerType = TimeBased and TriggerEnabled = true)
+    /// Toggle the SendingEnabled flag on a global template (all categories).
+    /// When disabled, emails using this template are silently suppressed.
+    /// </summary>
+    Task<Result<GlobalEmailTemplateDto>> ToggleSendingEnabledAsync(
+        Guid templateId,
+        bool enabled,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get all time-based templates (TriggerType = TimeBased and SendingEnabled = true)
     /// Used by EmailSchedulerJob to find templates that need automatic triggering
     /// </summary>
     Task<Result<List<GlobalEmailTemplateDto>>> GetTimeBasedTemplatesAsync(

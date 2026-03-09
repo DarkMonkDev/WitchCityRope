@@ -19,7 +19,7 @@ import type { TriggerConfig } from './TriggerConfigModal';
 interface TriggerConfigPanelProps {
   template: GlobalEmailTemplateDto & {
     triggerType?: 'FixedEvent' | 'TimeBased' | 'Manual';
-    triggerEnabled?: boolean;
+    sendingEnabled?: boolean;
     timingOffsetDays?: number;
     recipientGroup?: EventRecipientGroup;
   };
@@ -70,7 +70,7 @@ export const TriggerConfigPanel: React.FC<TriggerConfigPanelProps> = ({
       daysOffset: Math.abs(template.timingOffsetDays || 3),
       beforeAfter: (template.timingOffsetDays || 0) >= 0 ? 'before' : 'after',
       recipientGroup: template.recipientGroup || null,
-      enabled: template.triggerEnabled !== false,
+      enabled: template.sendingEnabled !== false,
     },
     validate: {
       daysOffset: (value, values) =>
@@ -92,7 +92,7 @@ export const TriggerConfigPanel: React.FC<TriggerConfigPanelProps> = ({
         daysOffset: Math.abs(template.timingOffsetDays || 3),
         beforeAfter: (template.timingOffsetDays || 0) >= 0 ? 'before' : 'after',
         recipientGroup: template.recipientGroup || null,
-        enabled: template.triggerEnabled !== false,
+        enabled: template.sendingEnabled !== false,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,7 +110,7 @@ export const TriggerConfigPanel: React.FC<TriggerConfigPanelProps> = ({
 
       const config: TriggerConfig = {
         triggerType: values.triggerType,
-        triggerEnabled: values.enabled,
+        sendingEnabled: values.enabled,
         timingOffsetDays,
         recipientGroup: values.recipientGroup || undefined,
       };

@@ -55,7 +55,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         var request = new UpdateTriggerConfigRequest
         {
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = 3,
             RecipientGroup = EventRecipientGroup.RSVPTicketHolders
         };
@@ -70,7 +70,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         var result = await response.Content.ReadFromJsonAsync<GlobalEmailTemplateDto>(JsonOptions);
         result.Should().NotBeNull();
         result!.TriggerType.Should().Be(TemplateTriggerType.TimeBased);
-        result.TriggerEnabled.Should().BeTrue();
+        result.SendingEnabled.Should().BeTrue();
         result.TimingOffsetDays.Should().Be(3);
         result.RecipientGroup.Should().Be(EventRecipientGroup.RSVPTicketHolders);
     }
@@ -89,7 +89,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         var request = new UpdateTriggerConfigRequest
         {
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = 3,
             RecipientGroup = EventRecipientGroup.RSVPTicketHolders
         };
@@ -117,7 +117,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
         var request = new UpdateTriggerConfigRequest
         {
             TriggerType = TemplateTriggerType.TimeBased,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             TimingOffsetDays = 3,
             RecipientGroup = EventRecipientGroup.RSVPTicketHolders
         };
@@ -375,7 +375,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
             PlainTextBody = subject,
             Variables = "[]",
             TriggerType = TemplateTriggerType.FixedEvent,
-            TriggerEnabled = true,
+            SendingEnabled = true,
             IsActive = true,
             Version = 1,
             CreatedAt = DateTime.UtcNow,

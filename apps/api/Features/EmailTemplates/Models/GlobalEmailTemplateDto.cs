@@ -51,9 +51,10 @@ public class GlobalEmailTemplateDto
     public TemplateTriggerType TriggerType { get; set; }
 
     /// <summary>
-    /// Whether automatic triggering is enabled
+    /// Whether this template is enabled for sending emails (all categories).
+    /// When false, emails using this template are silently suppressed.
     /// </summary>
-    public bool TriggerEnabled { get; set; }
+    public bool SendingEnabled { get; set; }
 
     /// <summary>
     /// Days offset for time-based triggers

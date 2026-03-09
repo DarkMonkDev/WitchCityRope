@@ -82,6 +82,21 @@ public static class EmailTemplateEndpoints
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
 
         /// <summary>
+        /// Toggle sending enabled/disabled for any global template (all categories).
+        /// Unified mechanism — replaces the need for separate enable/disable per category.
+        /// </summary>
+        group.MapPatch("{id:guid}/sending-enabled", ToggleSendingEnabled)
+            .WithName("ToggleSendingEnabled")
+            .WithSummary("Toggle sending enabled for a global template")
+            .WithDescription("Enables or disables email sending for a template. Works for all categories. When disabled, emails are silently suppressed. Admin access required.")
+            .Produces<GlobalEmailTemplateDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        /// <summary>
         /// Get all time-based templates for scheduler
         /// </summary>
         group.MapGet("time-based", GetTimeBasedTemplates)
@@ -697,6 +712,40 @@ public static class EmailTemplateEndpoints
         {
             return Results.Problem(
                 title: "Failed to Update Trigger Configuration",
+                detail: result.Error,
+                statusCode: 400);
+        }
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> ToggleSendingEnabled(
+        HttpContext context,
+        IAntiforgery antiforgery,
+        Guid id,
+        [FromBody] ToggleSendingEnabledRequest request,
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        var result = await service.ToggleSendingEnabledAsync(id, request.Enabled, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Toggle Sending Enabled",
                 detail: result.Error,
                 statusCode: 400);
         }

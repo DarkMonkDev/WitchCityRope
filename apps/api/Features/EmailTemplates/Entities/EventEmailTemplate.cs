@@ -66,11 +66,11 @@ public class EventEmailTemplate
     public string? RecipientGroup { get; set; }
 
     /// <summary>
-    /// Override for trigger enabled state
-    /// Null: use global template setting
-    /// True/False: override global setting
+    /// Override for sending enabled state at the event level.
+    /// Null: use global template's SendingEnabled setting
+    /// True/False: override global setting for this specific event
     /// </summary>
-    public bool? OverrideTriggerEnabled { get; set; }
+    public bool? OverrideSendingEnabled { get; set; }
 
     /// <summary>
     /// Override for timing offset

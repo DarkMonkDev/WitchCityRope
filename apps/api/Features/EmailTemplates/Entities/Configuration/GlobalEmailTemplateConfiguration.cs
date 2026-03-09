@@ -142,7 +142,7 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
             .HasConversion<int>()
             .HasDefaultValue(TemplateTriggerType.FixedEvent);
 
-        builder.Property(e => e.TriggerEnabled)
+        builder.Property(e => e.SendingEnabled)
             .IsRequired()
             .HasDefaultValue(true);
 
@@ -160,9 +160,9 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
         builder.HasIndex(e => new { e.Category, e.TriggerType })
             .HasDatabaseName("IX_GlobalEmailTemplates_Category_TriggerType");
 
-        builder.HasIndex(e => new { e.TriggerType, e.TriggerEnabled })
-            .HasDatabaseName("IX_GlobalEmailTemplates_TriggerType_Enabled")
-            .HasFilter("\"TriggerEnabled\" = TRUE");
+        builder.HasIndex(e => new { e.TriggerType, e.SendingEnabled })
+            .HasDatabaseName("IX_GlobalEmailTemplates_TriggerType_SendingEnabled")
+            .HasFilter("\"SendingEnabled\" = TRUE");
 
     }
 }

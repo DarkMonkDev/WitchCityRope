@@ -24,9 +24,9 @@ public class UpdateEventTemplateRequest
     public string[] TargetSessions { get; set; } = new[] { "all" };
 
     /// <summary>
-    /// Override trigger enabled state (null = use global default)
+    /// Override sending enabled state (null = use global default)
     /// </summary>
-    public bool? OverrideTriggerEnabled { get; set; }
+    public bool? OverrideSendingEnabled { get; set; }
 
     /// <summary>
     /// Override timing offset days (null = use global default)

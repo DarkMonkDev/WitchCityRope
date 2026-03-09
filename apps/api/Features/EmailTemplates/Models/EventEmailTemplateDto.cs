@@ -22,7 +22,7 @@ public class EventEmailTemplateDto
     /// Resolved trigger configuration (override value if set, otherwise global value)
     /// </summary>
     public string? TriggerType { get; set; }
-    public bool TriggerEnabled { get; set; }
+    public bool SendingEnabled { get; set; }
     public int? TimingOffsetDays { get; set; }
     public int? TimingOffsetHours { get; set; }
     public string? RecipientGroup { get; set; }

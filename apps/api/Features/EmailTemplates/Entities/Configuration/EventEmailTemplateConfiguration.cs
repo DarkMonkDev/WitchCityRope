@@ -125,7 +125,7 @@ public class EventEmailTemplateConfiguration : IEntityTypeConfiguration<EventEma
             .HasDatabaseName("IX_EventEmailTemplates_UpdatedAt");
 
         // Override fields
-        builder.Property(e => e.OverrideTriggerEnabled)
+        builder.Property(e => e.OverrideSendingEnabled)
             .IsRequired(false); // Nullable
 
         builder.Property(e => e.OverrideTimingOffsetDays)
