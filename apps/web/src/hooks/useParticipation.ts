@@ -152,25 +152,17 @@ export function useCancelRSVP() {
 }
 
 // Cancel ticket mutation
-// Supports selective cancellation via ticketPurchaseIds (new) or legacy mode via type param
+// Sends ticketPurchaseIds in request body for selective cancellation
 export function useCancelTicket() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ eventId, reason, ticketPurchaseIds }: { eventId: string; reason?: string; ticketPurchaseIds?: string[] }): Promise<void> => {
-      // New mode: send ticketPurchaseIds in request body for selective cancellation
-      if (ticketPurchaseIds && ticketPurchaseIds.length > 0) {
-        await apiClient.delete(`/api/events/${eventId}/participation`, {
-          data: { ticketPurchaseIds, reason }
-        });
-      } else {
-        // Legacy mode: cancel all tickets via query param
-        await apiClient.delete(`/api/events/${eventId}/participation`, {
-          params: { type: 'ticket', reason }
-        });
-      }
+    mutationFn: async ({ eventId, reason, ticketPurchaseIds }: { eventId: string; reason?: string; ticketPurchaseIds: string[] }): Promise<void> => {
+      await apiClient.delete(`/api/events/${eventId}/participation`, {
+        data: { ticketPurchaseIds, reason }
+      });
     },
-    onSuccess: (_data: void, variables: { eventId: string; reason?: string; ticketPurchaseIds?: string[] }) => {
+    onSuccess: (_data: void, variables: { eventId: string; reason?: string; ticketPurchaseIds: string[] }) => {
       // Invalidate all relevant caches to fetch fresh data
       queryClient.invalidateQueries({
         queryKey: participationKeys.eventStatus(variables.eventId)

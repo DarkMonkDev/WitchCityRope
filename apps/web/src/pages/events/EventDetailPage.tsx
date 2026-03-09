@@ -95,7 +95,7 @@ export const EventDetailPage: React.FC = () => {
 
     if (type === 'rsvp') {
       cancelRSVPMutation.mutate({ eventId: id, reason });
-    } else {
+    } else if (ticketPurchaseIds && ticketPurchaseIds.length > 0) {
       cancelTicketMutation.mutate({ eventId: id, reason, ticketPurchaseIds });
     }
   };

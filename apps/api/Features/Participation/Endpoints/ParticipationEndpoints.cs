@@ -346,15 +346,13 @@ public static class ParticipationEndpoints
         // BUSINESS RULE: Cancels attendance record(s)
         //
         // SUPPORTS TWO MODES:
-        // 1. Legacy mode (type + reason): Cancels most recent attendance of specified type
-        // 2. Selective mode (ticketPurchaseIds): Cancels ALL sessions for specified ticket purchases
+        // 1. Ticket mode (ticketPurchaseIds in body): Cancels ALL sessions for specified ticket purchases
+        //    - Also handles fallback when type=ticket but no IDs: looks up all active ticket purchases
+        // 2. RSVP mode (type=rsvp or no type): Cancels RSVP only (no refunds, no ticket concerns)
         //
         // CRITICAL: Cancelling a TICKET also cancels associated RSVP
-        // - If type=ticket: Cancels ticket AND any associated RSVP
-        // - If type=rsvp: Cancels RSVP only (does NOT affect ticket)
-        //
-        // WHY: Ticket purchases auto-create RSVP for social events.
-        //      Cancelling ticket removes RSVP to prevent orphaned RSVPs.
+        // - Ticket purchases auto-create RSVP for social events
+        // - Cancelling ticket removes RSVP to prevent orphaned RSVPs
         //
         // AFTER CANCELLATION:
         // - User can manually RSVP again (creates NEW record)
@@ -365,6 +363,7 @@ public static class ParticipationEndpoints
                 IAntiforgery antiforgery,
                 Guid eventId,
                 [FromServices] IAttendanceService attendanceService,
+                [FromServices] ApplicationDbContext dbContext,
                 ClaimsPrincipal user,
                 [FromBody] CancelTicketRequest? request = null,
                 string? type = null,
@@ -392,7 +391,7 @@ public static class ParticipationEndpoints
                         statusCode: 401);
                 }
 
-                // NEW: Selective ticket cancellation mode (takes precedence)
+                // Ticket cancellation: ticketPurchaseIds provided in body
                 if (request?.TicketPurchaseIds != null && request.TicketPurchaseIds.Count > 0)
                 {
                     var result = await attendanceService.CancelTicketPurchasesAsync(
@@ -428,37 +427,84 @@ public static class ParticipationEndpoints
                     return Results.NoContent();
                 }
 
-                // LEGACY: Original cancellation mode (by type)
-                // Parse attendance type if provided (rsvp, ticket, or null for most recent)
-                AttendanceType? attendanceType = type?.ToLower() switch
+                // Ticket cancellation fallback: type=ticket but no IDs provided
+                // Look up all active ticket purchase IDs for user+event and delegate to CancelTicketPurchasesAsync
+                if (string.Equals(type, "ticket", StringComparison.OrdinalIgnoreCase))
                 {
-                    "rsvp" => AttendanceType.RSVP,
-                    "ticket" => AttendanceType.Ticket,
-                    _ => null
-                };
+                    var activeTicketPurchaseIds = await dbContext.EventAttendances
+                        .Where(ea => ea.EventId == eventId &&
+                                    ea.UserId == userId &&
+                                    ea.Status == AttendanceStatus.Active &&
+                                    ea.AttendanceType == AttendanceType.Ticket &&
+                                    ea.TicketPurchaseId.HasValue)
+                        .Select(ea => ea.TicketPurchaseId!.Value)
+                        .Distinct()
+                        .ToListAsync(cancellationToken);
 
-                var legacyResult = await attendanceService.CancelParticipationAsync(eventId, userId, attendanceType, reason, cancellationToken);
-
-                if (!legacyResult.IsSuccess)
-                {
-                    if (legacyResult.Error.Contains("not found") || legacyResult.Error.Contains("No active attendance"))
+                    if (activeTicketPurchaseIds.Count == 0)
                     {
                         return Results.Problem(
                             title: "Not Found",
-                            detail: legacyResult.Error,
+                            detail: "No active ticket purchases found for this event",
                             statusCode: 404);
                     }
-                    if (legacyResult.Error.Contains("cannot be cancelled") || legacyResult.Error.Contains("Cancellation window") || legacyResult.Error.Contains("Cancellation"))
+
+                    var ticketResult = await attendanceService.CancelTicketPurchasesAsync(
+                        eventId,
+                        userId,
+                        activeTicketPurchaseIds,
+                        reason,
+                        cancellationToken);
+
+                    if (!ticketResult.IsSuccess)
+                    {
+                        if (ticketResult.Error.Contains("not found") || ticketResult.Error.Contains("No active"))
+                        {
+                            return Results.Problem(
+                                title: "Not Found",
+                                detail: ticketResult.Error,
+                                statusCode: 404);
+                        }
+                        if (ticketResult.Error.Contains("cannot be cancelled") || ticketResult.Error.Contains("Cancellation window"))
+                        {
+                            return Results.Problem(
+                                title: "Cancellation Not Allowed",
+                                detail: ticketResult.Error,
+                                statusCode: 400);
+                        }
+
+                        return Results.Problem(
+                            title: "Cancellation Failed",
+                            detail: ticketResult.Error,
+                            statusCode: 500);
+                    }
+
+                    return Results.NoContent();
+                }
+
+                // RSVP cancellation: type=rsvp or no type specified
+                var rsvpResult = await attendanceService.CancelRsvpAsync(eventId, userId, reason, cancellationToken);
+
+                if (!rsvpResult.IsSuccess)
+                {
+                    if (rsvpResult.Error.Contains("not found") || rsvpResult.Error.Contains("No active"))
+                    {
+                        return Results.Problem(
+                            title: "Not Found",
+                            detail: rsvpResult.Error,
+                            statusCode: 404);
+                    }
+                    if (rsvpResult.Error.Contains("cannot be cancelled") || rsvpResult.Error.Contains("Cancellation window") || rsvpResult.Error.Contains("not currently open"))
                     {
                         return Results.Problem(
                             title: "Cancellation Not Allowed",
-                            detail: legacyResult.Error,
+                            detail: rsvpResult.Error,
                             statusCode: 400);
                     }
 
                     return Results.Problem(
                         title: "Cancellation Failed",
-                        detail: legacyResult.Error,
+                        detail: rsvpResult.Error,
                         statusCode: 500);
                 }
 
@@ -515,24 +561,47 @@ public static class ParticipationEndpoints
                         statusCode: 403);
                 }
 
-                // Cancel using the attendance service with type
-                var result = await attendanceService.CancelParticipationAsync(
-                    attendance.EventId,
-                    userId,
-                    attendance.AttendanceType,
-                    reason,
-                    cancellationToken);
+                // Route to the correct service method based on attendance type
+                WitchCityRope.Api.Features.Shared.Models.Result result;
+
+                if (attendance.AttendanceType == AttendanceType.Ticket)
+                {
+                    // For tickets, get the TicketPurchaseId and delegate to CancelTicketPurchasesAsync
+                    if (!attendance.TicketPurchaseId.HasValue)
+                    {
+                        return Results.Problem(
+                            title: "Bad Request",
+                            detail: "Ticket attendance has no associated ticket purchase",
+                            statusCode: 400);
+                    }
+
+                    result = await attendanceService.CancelTicketPurchasesAsync(
+                        attendance.EventId,
+                        userId,
+                        new List<Guid> { attendance.TicketPurchaseId.Value },
+                        reason,
+                        cancellationToken);
+                }
+                else
+                {
+                    // For RSVPs, use the focused CancelRsvpAsync
+                    result = await attendanceService.CancelRsvpAsync(
+                        attendance.EventId,
+                        userId,
+                        reason,
+                        cancellationToken);
+                }
 
                 if (!result.IsSuccess)
                 {
-                    if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
+                    if (result.Error.Contains("not found") || result.Error.Contains("No active"))
                     {
                         return Results.Problem(
                             title: "Not Found",
                             detail: result.Error,
                             statusCode: 404);
                     }
-                    if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open") || result.Error.Contains("Cancellation window") || result.Error.Contains("Cancellation"))
+                    if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open") || result.Error.Contains("Cancellation window"))
                     {
                         return Results.Problem(
                             title: "Cancellation Not Allowed",
@@ -591,7 +660,7 @@ public static class ParticipationEndpoints
             .Produces(401)
             .Produces(500);
 
-        // Backward compatibility: Cancel RSVP (alias for cancelling participation)
+        // Cancel RSVP endpoint
         app.MapDelete("/api/events/{eventId:guid}/rsvp",
             [Authorize] async (
                 Guid eventId,
@@ -608,19 +677,18 @@ public static class ParticipationEndpoints
                         statusCode: 401);
                 }
 
-                // Backward compatibility: explicitly cancel RSVP type
-                var result = await attendanceService.CancelParticipationAsync(eventId, userId, AttendanceType.RSVP, reason, cancellationToken);
+                var result = await attendanceService.CancelRsvpAsync(eventId, userId, reason, cancellationToken);
 
                 if (!result.IsSuccess)
                 {
-                    if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
+                    if (result.Error.Contains("not found") || result.Error.Contains("No active"))
                     {
                         return Results.Problem(
                             title: "Not Found",
                             detail: result.Error,
                             statusCode: 404);
                     }
-                    if (result.Error.Contains("cannot be cancelled"))
+                    if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open"))
                     {
                         return Results.Problem(
                             title: "Cancellation Not Allowed",
@@ -637,8 +705,8 @@ public static class ParticipationEndpoints
                 return Results.NoContent();
             })
             .WithName("CancelRSVP")
-            .WithSummary("Cancel RSVP (backward compatibility)")
-            .WithDescription("Cancels the user's RSVP. Alias for cancelling participation.")
+            .WithSummary("Cancel RSVP for event")
+            .WithDescription("Cancels the user's RSVP for the specified event. RSVP-only, no refunds or ticket concerns.")
             .WithTags("Participation")
             .Produces(204)
             .Produces(400)

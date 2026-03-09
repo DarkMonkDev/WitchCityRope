@@ -438,14 +438,15 @@ public class ParticipationEndpointsTests : IAsyncLifetime
     #region CancelParticipation Tests
 
     [Fact]
-    public async Task CancelParticipation_WithValidRequest_Returns204NoContent()
+    public async Task CancelParticipation_WithTicketPurchaseIds_Returns204NoContent()
     {
         // Arrange
-        _mockAttendanceService.CancelParticipationAsync(_testEventId, _testUserId, null, null, Arg.Any<CancellationToken>())
+        var ticketPurchaseIds = new List<Guid> { Guid.NewGuid() };
+        _mockAttendanceService.CancelTicketPurchasesAsync(_testEventId, _testUserId, ticketPurchaseIds, null, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
-        var result = await CancelParticipation(_testEventId, _httpContext.User);
+        var result = await CancelParticipationWithTicketIds(_testEventId, _httpContext.User, ticketPurchaseIds);
 
         // Assert
         result.Should().BeOfType<NoContent>();
@@ -457,11 +458,11 @@ public class ParticipationEndpointsTests : IAsyncLifetime
     public async Task CancelParticipation_WithRSVPType_Returns204NoContent()
     {
         // Arrange
-        _mockAttendanceService.CancelParticipationAsync(_testEventId, _testUserId, AttendanceType.RSVP, "User cancelled", Arg.Any<CancellationToken>())
+        _mockAttendanceService.CancelRsvpAsync(_testEventId, _testUserId, "User cancelled", Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
-        var result = await CancelParticipation(_testEventId, _httpContext.User, "rsvp", "User cancelled");
+        var result = await CancelParticipationRsvp(_testEventId, _httpContext.User, "User cancelled");
 
         // Assert
         result.Should().BeOfType<NoContent>();
@@ -470,33 +471,37 @@ public class ParticipationEndpointsTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CancelParticipation_WithNoActiveAttendance_Returns404NotFound()
+    public async Task CancelParticipation_WithNoActiveRsvp_Returns404NotFound()
     {
         // Arrange
-        _mockAttendanceService.CancelParticipationAsync(_testEventId, _testUserId, null, null, Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("No active attendance found"));
+        _mockAttendanceService.CancelRsvpAsync(_testEventId, _testUserId, null, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("No active RSVP found"));
 
         // Act
-        var result = await CancelParticipation(_testEventId, _httpContext.User);
+        var result = await CancelParticipationRsvp(_testEventId, _httpContext.User);
 
         // Assert
-        result.Should().BeOfType<NotFound>();
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(404);
     }
 
     [Fact]
-    public async Task CancelParticipation_WithNonCancellableAttendance_Returns400BadRequest()
+    public async Task CancelParticipation_WithNonCancellableTicket_Returns400BadRequest()
     {
         // Arrange
-        _mockAttendanceService.CancelParticipationAsync(_testEventId, _testUserId, null, null, Arg.Any<CancellationToken>())
+        var ticketPurchaseIds = new List<Guid> { Guid.NewGuid() };
+        _mockAttendanceService.CancelTicketPurchasesAsync(_testEventId, _testUserId, ticketPurchaseIds, null, Arg.Any<CancellationToken>())
             .Returns(Result.Failure("This attendance cannot be cancelled"));
 
         // Act
-        var result = await CancelParticipation(_testEventId, _httpContext.User);
+        var result = await CancelParticipationWithTicketIds(_testEventId, _httpContext.User, ticketPurchaseIds);
 
         // Assert
-        result.Should().BeOfType<BadRequest<string>>();
-        var badRequestResult = (BadRequest<string>)result;
-        badRequestResult.Value.Should().Contain("cannot be cancelled");
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(400);
+        problemResult.ProblemDetails.Detail.Should().Contain("cannot be cancelled");
     }
 
     #endregion
@@ -550,13 +555,13 @@ public class ParticipationEndpointsTests : IAsyncLifetime
 
     #endregion
 
-    #region CancelRSVP (Backward Compatibility) Tests
+    #region CancelRSVP Tests
 
     [Fact]
-    public async Task CancelRSVP_BackwardCompatibility_Returns204NoContent()
+    public async Task CancelRSVP_WithValidRequest_Returns204NoContent()
     {
         // Arrange
-        _mockAttendanceService.CancelParticipationAsync(_testEventId, _testUserId, AttendanceType.RSVP, null, Arg.Any<CancellationToken>())
+        _mockAttendanceService.CancelRsvpAsync(_testEventId, _testUserId, null, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
@@ -564,6 +569,22 @@ public class ParticipationEndpointsTests : IAsyncLifetime
 
         // Assert
         result.Should().BeOfType<NoContent>();
+    }
+
+    [Fact]
+    public async Task CancelRSVP_WithNoActiveRsvp_Returns404NotFound()
+    {
+        // Arrange
+        _mockAttendanceService.CancelRsvpAsync(_testEventId, _testUserId, null, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("No active RSVP found"));
+
+        // Act
+        var result = await CancelRSVP(_testEventId, _httpContext.User);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(404);
     }
 
     #endregion
@@ -852,7 +873,7 @@ public class ParticipationEndpointsTests : IAsyncLifetime
         return Results.Created($"/api/events/{eventId}/participation", result.Value);
     }
 
-    private async Task<IResult> CancelParticipation(Guid eventId, ClaimsPrincipal user, string? type = null, string? reason = null)
+    private async Task<IResult> CancelParticipationWithTicketIds(Guid eventId, ClaimsPrincipal user, List<Guid> ticketPurchaseIds, string? reason = null)
     {
         if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
         {
@@ -862,27 +883,67 @@ public class ParticipationEndpointsTests : IAsyncLifetime
                 statusCode: 401);
         }
 
-        AttendanceType? attendanceType = type?.ToLower() switch
-        {
-            "rsvp" => AttendanceType.RSVP,
-            "ticket" => AttendanceType.Ticket,
-            _ => null
-        };
-
-        var result = await _mockAttendanceService.CancelParticipationAsync(eventId, userId, attendanceType, reason, CancellationToken.None);
+        var result = await _mockAttendanceService.CancelTicketPurchasesAsync(eventId, userId, ticketPurchaseIds, reason, CancellationToken.None);
 
         if (!result.IsSuccess)
         {
-            if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
+            if (result.Error.Contains("not found") || result.Error.Contains("No active"))
             {
-                return Results.NotFound();
+                return Results.Problem(
+                    title: "Not Found",
+                    detail: result.Error,
+                    statusCode: 404);
             }
-            if (result.Error.Contains("cannot be cancelled"))
+            if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("Cancellation window"))
             {
-                return Results.BadRequest(result.Error);
+                return Results.Problem(
+                    title: "Cancellation Not Allowed",
+                    detail: result.Error,
+                    statusCode: 400);
             }
 
-            return Results.Problem(result.Error);
+            return Results.Problem(
+                title: "Cancellation Failed",
+                detail: result.Error,
+                statusCode: 500);
+        }
+
+        return Results.NoContent();
+    }
+
+    private async Task<IResult> CancelParticipationRsvp(Guid eventId, ClaimsPrincipal user, string? reason = null)
+    {
+        if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+        {
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
+        }
+
+        var result = await _mockAttendanceService.CancelRsvpAsync(eventId, userId, reason, CancellationToken.None);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error.Contains("not found") || result.Error.Contains("No active"))
+            {
+                return Results.Problem(
+                    title: "Not Found",
+                    detail: result.Error,
+                    statusCode: 404);
+            }
+            if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open"))
+            {
+                return Results.Problem(
+                    title: "Cancellation Not Allowed",
+                    detail: result.Error,
+                    statusCode: 400);
+            }
+
+            return Results.Problem(
+                title: "Cancellation Failed",
+                detail: result.Error,
+                statusCode: 500);
         }
 
         return Results.NoContent();
@@ -918,20 +979,29 @@ public class ParticipationEndpointsTests : IAsyncLifetime
                 statusCode: 401);
         }
 
-        var result = await _mockAttendanceService.CancelParticipationAsync(eventId, userId, AttendanceType.RSVP, reason, CancellationToken.None);
+        var result = await _mockAttendanceService.CancelRsvpAsync(eventId, userId, reason, CancellationToken.None);
 
         if (!result.IsSuccess)
         {
-            if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
+            if (result.Error.Contains("not found") || result.Error.Contains("No active"))
             {
-                return Results.NotFound();
+                return Results.Problem(
+                    title: "Not Found",
+                    detail: result.Error,
+                    statusCode: 404);
             }
-            if (result.Error.Contains("cannot be cancelled"))
+            if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open"))
             {
-                return Results.BadRequest(result.Error);
+                return Results.Problem(
+                    title: "Cancellation Not Allowed",
+                    detail: result.Error,
+                    statusCode: 400);
             }
 
-            return Results.Problem(result.Error);
+            return Results.Problem(
+                title: "Cancellation Failed",
+                detail: result.Error,
+                statusCode: 500);
         }
 
         return Results.NoContent();

@@ -35,12 +35,11 @@ public interface IAttendanceService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Cancel user's attendance in an event (legacy mode - cancels one attendance)
+    /// Cancel user's RSVP for an event (RSVP-only, no refunds or ticket concerns)
     /// </summary>
-    Task<Result> CancelParticipationAsync(
+    Task<Result> CancelRsvpAsync(
         Guid eventId,
         Guid userId,
-        AttendanceType? attendanceType = null,
         string? reason = null,
         CancellationToken cancellationToken = default);
 

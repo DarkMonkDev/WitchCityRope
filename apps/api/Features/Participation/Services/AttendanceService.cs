@@ -29,7 +29,7 @@ namespace WitchCityRope.Api.Features.Participation.Services;
 // 2. TICKET CANCELLATION cancels BOTH records:
 //    - Ticket record → Status=Cancelled
 //    - Associated RSVP → Status=Cancelled
-//    See: CancelParticipationAsync lines 653-730 (associated RSVP cancellation)
+//    See: CancelTicketPurchasesAsync (associated RSVP cancellation)
 //
 // 3. MANUAL RSVP creates standalone record:
 //    - User CAN RSVP after cancelling ticket
@@ -1036,45 +1036,38 @@ public class AttendanceService : IAttendanceService
     }
 
     /// <summary>
-    /// Cancel user's attendance in an event
+    /// Cancel user's RSVP for an event (RSVP-only, no refunds or ticket concerns)
     /// </summary>
-    public async Task<Result> CancelParticipationAsync(
+    public async Task<Result> CancelRsvpAsync(
         Guid eventId,
         Guid userId,
-        AttendanceType? attendanceType = null,
         string? reason = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Cancelling attendance for user {UserId} in event {EventId}, Type: {Type}",
-                userId, eventId, attendanceType?.ToString() ?? "Most Recent");
+            _logger.LogInformation("Cancelling RSVP for user {UserId} in event {EventId}", userId, eventId);
 
-            // Find the ACTIVE attendance for cancellation
-            // If attendanceType is specified, filter by that type; otherwise get most recent
-            var query = _context.EventAttendances
-                .Where(ea => ea.EventId == eventId && ea.UserId == userId && ea.Status == AttendanceStatus.Active);
-
-            if (attendanceType.HasValue)
-            {
-                query = query.Where(ea => ea.AttendanceType == attendanceType.Value);
-            }
-
-            var attendance = await query
+            // Find the active RSVP attendance
+            var attendance = await _context.EventAttendances
+                .Where(ea => ea.EventId == eventId &&
+                            ea.UserId == userId &&
+                            ea.Status == AttendanceStatus.Active &&
+                            ea.AttendanceType == AttendanceType.RSVP)
                 .OrderByDescending(ea => ea.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (attendance == null)
             {
-                return Result.Failure("No active attendance found for this event");
+                return Result.Failure("No active RSVP found for this event");
             }
 
             if (!attendance.CanBeCancelled())
             {
-                return Result.Failure("Attendance cannot be cancelled in its current status");
+                return Result.Failure("RSVP cannot be cancelled in its current status");
             }
 
-            // Check if cancellation is still allowed based on event start time and buffer
+            // Check if cancellation is still allowed based on event timing rules
             var eventEntity = await _context.Events
                 .Include(e => e.Sessions)
                 .AsNoTracking()
@@ -1085,96 +1078,13 @@ public class AttendanceService : IAttendanceService
                 return Result.Failure("Event not found");
             }
 
-            // For tickets, use session-based timing; for RSVPs, use event-based timing
-            if (attendance.AttendanceType == AttendanceType.Ticket)
+            var isAllowed = await _timeZoneService.IsActionAllowedAsync(
+                eventEntity, EventActionType.CancelRsvp, cancellationToken);
+
+            if (!isAllowed)
             {
-                // Get the ticket type for this attendance to determine reference session
-                var ticketPurchase = await _context.TicketPurchases
-                    .Include(tp => tp.TicketType)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(tp => tp.Id == attendance.TicketPurchaseId, cancellationToken);
-
-                if (ticketPurchase?.TicketType != null)
-                {
-                    var referenceSession = _timeZoneService.GetReferenceSessionForTicketType(
-                        ticketPurchase.TicketType, eventEntity.Sessions);
-
-                    if (referenceSession == null)
-                    {
-                        _logger.LogWarning("Ticket cancellation attempt for event {EventId} - all sessions for this ticket have passed",
-                            eventId);
-                        return Result.Failure("Cannot cancel - all sessions for this ticket have passed");
-                    }
-
-                    var canCancel = _timeZoneService.IsActionAllowedForSession(
-                        referenceSession,
-                        null, // No open restriction for cancellation
-                        eventEntity.CancellationCloseHours);
-
-                    if (!canCancel)
-                    {
-                        _logger.LogWarning("Ticket cancellation attempt for event {EventId} outside allowed timing window for session {SessionId}",
-                            eventId, referenceSession.Id);
-                        return Result.Failure("Cancellation window has closed for this session");
-                    }
-                }
-                // If no ticket purchase found, fall through to allow cancellation (legacy data support)
-            }
-            else
-            {
-                // RSVP cancellation uses event-based timing (per specification - out of scope for session-based refactor)
-                var isAllowed = await _timeZoneService.IsActionAllowedAsync(
-                    eventEntity, EventActionType.CancelRsvp, cancellationToken);
-
-                if (!isAllowed)
-                {
-                    _logger.LogWarning("RSVP cancellation attempt for event {EventId} outside allowed timing window", eventId);
-                    return Result.Failure("Cancellation window is not currently open for this event");
-                }
-            }
-
-            // ============================================================================
-            // BUSINESS RULE: If cancelling a ticket, also cancel any associated RSVP
-            // ============================================================================
-            //
-            // CRITICAL: Ticket cancellation cancels BOTH records:
-            // 1. Ticket record (the one we're cancelling)
-            // 2. Associated RSVP record (if exists)
-            //
-            // WHY: When user purchases ticket for social event, we auto-create RSVP.
-            //      If they cancel ticket, we must also cancel the RSVP to prevent orphaned RSVPs.
-            //
-            // RESULT: User loses BOTH ticket AND RSVP
-            // MANUAL RE-RSVP: User CAN manually RSVP again after cancelling (creates NEW record)
-            EventAttendance? associatedRsvp = null;
-            if (attendance.AttendanceType == AttendanceType.Ticket)
-            {
-                associatedRsvp = await _context.EventAttendances
-                    .Where(ea => ea.EventId == eventId &&
-                                ea.UserId == userId &&
-                                ea.Status == AttendanceStatus.Active &&
-                                ea.AttendanceType == AttendanceType.RSVP)
-                    .FirstOrDefaultAsync(cancellationToken);
-
-                if (associatedRsvp != null)
-                {
-                    _logger.LogInformation("Found associated RSVP {RsvpId} - will also cancel when cancelling ticket {TicketId}",
-                        associatedRsvp.Id, attendance.Id);
-                }
-
-                // ============================================================================
-                // AUTOMATIC REFUND PROCESSING: Process refund for paid tickets
-                // ============================================================================
-                //
-                // BUSINESS RULE: When user cancels their own ticket, automatically process refund
-                // if the ticket was paid for via PayPal.
-                //
-                // CRITICAL: Refund failures should NOT block cancellation
-                // - Users should be able to cancel even if refund fails
-                // - Failed refunds are logged for manual admin processing
-                //
-                // INTEGRATION: Uses existing RefundService - no duplicate refund logic
-                await ProcessAutomaticRefundAsync(attendance.Id, userId, reason, cancellationToken);
+                _logger.LogWarning("RSVP cancellation attempt for event {EventId} outside allowed timing window", eventId);
+                return Result.Failure("Cancellation window is not currently open for this event");
             }
 
             // Store old values for audit
@@ -1185,11 +1095,9 @@ public class AttendanceService : IAttendanceService
                 CancellationReason = attendance.CancellationReason
             });
 
-            // Cancel the attendance
+            // Cancel the RSVP
             attendance.Cancel(reason);
             attendance.UpdatedBy = userId;
-
-            // Explicitly mark entity as modified to ensure EF Core tracks the change
             _context.EventAttendances.Update(attendance);
 
             // Create audit history
@@ -1203,52 +1111,19 @@ public class AttendanceService : IAttendanceService
                     CancellationReason = attendance.CancellationReason
                 }),
                 ChangedBy = userId,
-                ChangeReason = reason ?? "Cancelled by user"
+                ChangeReason = reason ?? "RSVP cancelled by user"
             };
 
             _context.AttendanceHistory.Add(history);
 
-            // Cancel associated RSVP if exists
-            if (associatedRsvp != null)
-            {
-                var rsvpOldValues = System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    Status = associatedRsvp.Status,
-                    CancelledAt = associatedRsvp.CancelledAt,
-                    CancellationReason = associatedRsvp.CancellationReason
-                });
-
-                associatedRsvp.Cancel("Auto-cancelled when ticket was cancelled");
-                associatedRsvp.UpdatedBy = userId;
-                _context.EventAttendances.Update(associatedRsvp);
-
-                var rsvpHistory = new AttendanceHistory(associatedRsvp.Id, "Cancelled")
-                {
-                    OldValues = rsvpOldValues,
-                    NewValues = System.Text.Json.JsonSerializer.Serialize(new
-                    {
-                        Status = associatedRsvp.Status,
-                        CancelledAt = associatedRsvp.CancelledAt,
-                        CancellationReason = associatedRsvp.CancellationReason
-                    }),
-                    ChangedBy = userId,
-                    ChangeReason = "Auto-cancelled when ticket was cancelled"
-                };
-
-                _context.AttendanceHistory.Add(rsvpHistory);
-            }
-
-            // Update EventAttendee record for check-in system integration
-            // Check if user has any remaining ACTIVE attendances after this cancellation
+            // Update EventAttendee record if no remaining active attendances
             var remainingActiveAttendances = await _context.EventAttendances
                 .Where(ea => ea.EventId == eventId &&
                             ea.UserId == userId &&
                             ea.Status == AttendanceStatus.Active &&
-                            ea.Id != attendance.Id && // Exclude the one we're cancelling
-                            (associatedRsvp == null || ea.Id != associatedRsvp.Id)) // Exclude associated RSVP if cancelling
+                            ea.Id != attendance.Id)
                 .AnyAsync(cancellationToken);
 
-            // If no active attendances remain, update EventAttendee to "cancelled" status
             if (!remainingActiveAttendances)
             {
                 var eventAttendee = await _context.EventAttendees
@@ -1264,120 +1139,48 @@ public class AttendanceService : IAttendanceService
                     eventAttendee.UpdatedAt = DateTime.UtcNow;
                     _context.EventAttendees.Update(eventAttendee);
                 }
-                else
-                {
-                    _logger.LogWarning(
-                        "EventAttendee record not found for user {UserId} in event {EventId} during cancellation - check-in list may be out of sync",
-                        userId, eventId);
-                }
-            }
-            else
-            {
-                _logger.LogInformation(
-                    "EventAttendee status NOT updated - user {UserId} still has active attendances in event {EventId}",
-                    userId, eventId);
             }
 
-            // CRITICAL: Save changes to persist cancellation to database
+            // Save all changes
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Verify persistence (defensive check)
-            var cancelledAttendance = await _context.EventAttendances
-                .AsNoTracking()
-                .FirstOrDefaultAsync(ea => ea.Id == attendance.Id, cancellationToken);
+            _logger.LogInformation(
+                "Successfully cancelled RSVP {AttendanceId} for user {UserId} in event {EventId}",
+                attendance.Id, userId, eventId);
 
-            if (cancelledAttendance == null)
-            {
-                _logger.LogError("CRITICAL: Attendance {AttendanceId} disappeared after cancellation for user {UserId} in event {EventId}",
-                    attendance.Id, userId, eventId);
-                return Result.Failure("Failed to verify cancellation in database");
-            }
-
-            if (cancelledAttendance.Status != AttendanceStatus.Cancelled)
-            {
-                _logger.LogError("CRITICAL: Attendance {AttendanceId} cancellation not persisted - Status is {Status} instead of Cancelled",
-                    attendance.Id, cancelledAttendance.Status);
-                return Result.Failure("Cancellation did not persist to database");
-            }
-
-            _logger.LogInformation("Successfully cancelled and verified attendance {AttendanceId} for user {UserId} in event {EventId} (Status: {Status}, CancelledAt: {CancelledAt})",
-                cancelledAttendance.Id, userId, eventId, cancelledAttendance.Status, cancelledAttendance.CancelledAt);
-
-            // Verify associated RSVP cancellation if it existed
-            if (associatedRsvp != null)
-            {
-                var cancelledRsvp = await _context.EventAttendances
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(ea => ea.Id == associatedRsvp.Id, cancellationToken);
-
-                if (cancelledRsvp == null || cancelledRsvp.Status != AttendanceStatus.Cancelled)
-                {
-                    _logger.LogError("CRITICAL: Associated RSVP {RsvpId} cancellation not persisted properly",
-                        associatedRsvp.Id);
-                    return Result.Failure("Failed to cancel associated RSVP");
-                }
-
-                _logger.LogInformation("Successfully cancelled and verified associated RSVP {RsvpId} (Status: {Status}, CancelledAt: {CancelledAt})",
-                    cancelledRsvp.Id, cancelledRsvp.Status, cancelledRsvp.CancelledAt);
-            }
-
-            // ============================================================================
-            // SEND CANCELLATION EMAIL
-            // ============================================================================
-            // For RSVP cancellations, send the RSVPCancellation template.
-            // For ticket cancellations via this method (legacy single-ticket path),
-            // send the ticket Cancellation template.
-            // Fire-and-forget: email failure must never block the cancellation.
-            try
-            {
-                if (attendance.AttendanceType == AttendanceType.RSVP)
-                {
-                    await _eventEmailService.SendRsvpCancellationEmailAsync(
-                        userId, eventId, cancellationToken);
-                }
-                else if (attendance.AttendanceType == AttendanceType.Ticket
-                    && attendance.TicketPurchaseId.HasValue)
-                {
-                    await _eventEmailService.SendCancellationEmailAsync(
-                        userId, eventId,
-                        new List<Guid> { attendance.TicketPurchaseId.Value },
-                        cancellationToken);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error sending cancellation email for user {UserId} at event {EventId} (non-fatal)",
-                    userId, eventId);
-            }
-
-            // Auto-cancel volunteer signups when attendance is cancelled
+            // Cancel volunteer signups (fire-and-forget - failure must not block cancellation)
             try
             {
                 var cancellationResult = await _volunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
                     userId,
                     eventId,
-                    "Refunded Ticket, so automatically canceled volunteer spot",
+                    "RSVP cancelled, so automatically canceled volunteer spot",
                     cancellationToken);
 
                 if (cancellationResult.success && cancellationResult.cancelledCount > 0)
                 {
                     _logger.LogInformation(
-                        "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to attendance cancellation",
+                        "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to RSVP cancellation",
                         cancellationResult.cancelledCount, userId, eventId);
-                }
-                else if (!cancellationResult.success)
-                {
-                    _logger.LogWarning(
-                        "Failed to auto-cancel volunteer signups for user {UserId} at event {EventId}: {Error}",
-                        userId, eventId, cancellationResult.error);
                 }
             }
             catch (Exception ex)
             {
-                // Log but don't fail the cancellation if volunteer cancellation fails
                 _logger.LogError(ex,
-                    "Error auto-cancelling volunteer signups for user {UserId} at event {EventId}",
+                    "Error auto-cancelling volunteer signups for user {UserId} at event {EventId} (non-fatal)",
+                    userId, eventId);
+            }
+
+            // Send RSVP cancellation email (fire-and-forget)
+            try
+            {
+                await _eventEmailService.SendRsvpCancellationEmailAsync(
+                    userId, eventId, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Error sending RSVP cancellation email for user {UserId} at event {EventId} (non-fatal)",
                     userId, eventId);
             }
 
@@ -1385,8 +1188,8 @@ public class AttendanceService : IAttendanceService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error cancelling attendance for user {UserId} in event {EventId}", userId, eventId);
-            return Result.Failure("Failed to cancel attendance", ex.Message);
+            _logger.LogError(ex, "Error cancelling RSVP for user {UserId} in event {EventId}", userId, eventId);
+            return Result.Failure("Failed to cancel RSVP", ex.Message);
         }
     }
 
