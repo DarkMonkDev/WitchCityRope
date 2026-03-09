@@ -87,8 +87,8 @@ public class SettingsSeeder
             // ── Events Variables ──
             ["EmailTestData:attendee_name"] = "Jane Doe",
             ["EmailTestData:event_title"] = "Introduction to Shibari",
-            ["EmailTestData:event_date"] = "Saturday, March 15, 2026",
-            ["EmailTestData:event_time"] = "7:00 PM EST",
+            ["EmailTestData:session_date"] = "Saturday, March 15, 2026",
+            ["EmailTestData:session_time"] = "7:00 PM EST",
             ["EmailTestData:venue_name"] = "The Witch City Studio",
             ["EmailTestData:venue_address"] = "123 Essex Street, Salem, MA 01970",
             ["EmailTestData:ticket_type"] = "General Admission",

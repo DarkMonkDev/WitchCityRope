@@ -117,7 +117,7 @@ public class EventEmailService : IEventEmailService
             // Build session lists grouped by ticket type (same format as confirmation)
             var (htmlList, textList) = BuildTicketSessionLists(purchases);
 
-            // Use first session for backward-compatible event_date variable
+            // Use first session for session_date variable
             var firstSession = purchases
                 .Where(p => p.TicketType?.Sessions != null)
                 .SelectMany(p => p.TicketType!.Sessions)
@@ -129,7 +129,7 @@ public class EventEmailService : IEventEmailService
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt?.Title ?? "Event",
-                ["event_date"] = dateStr,
+                ["session_date"] = dateStr,
                 ["venue_name"] = venue?.Name ?? "",
                 ["venue_address"] = venue?.Location ?? "",
                 ["cancelled_sessions_list"] = htmlList,
@@ -199,7 +199,7 @@ public class EventEmailService : IEventEmailService
 
             var displayName = user.UserName ?? user.Email!;
 
-            // Use first session for event_date (social events typically have one session)
+            // Use first session for session_date (social events typically have one session)
             var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
             var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
 
@@ -207,8 +207,8 @@ public class EventEmailService : IEventEmailService
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt.Title,
-                ["event_date"] = dateStr,
-                ["event_time"] = timeStr,
+                ["session_date"] = dateStr,
+                ["session_time"] = timeStr,
                 ["venue_name"] = evt.Venue?.Name ?? "",
                 ["venue_address"] = evt.Venue?.Location ?? ""
             };
@@ -273,7 +273,7 @@ public class EventEmailService : IEventEmailService
 
             var displayName = user.UserName ?? user.Email!;
 
-            // Use first session for event_date (social events typically have one session)
+            // Use first session for session_date (social events typically have one session)
             var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
             var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
 
@@ -281,8 +281,8 @@ public class EventEmailService : IEventEmailService
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt.Title,
-                ["event_date"] = dateStr,
-                ["event_time"] = timeStr,
+                ["session_date"] = dateStr,
+                ["session_time"] = timeStr,
                 ["venue_name"] = evt.Venue?.Name ?? "",
                 ["venue_address"] = evt.Venue?.Location ?? "",
                 ["custom_message"] = ""
@@ -325,9 +325,7 @@ public class EventEmailService : IEventEmailService
             var evt = ticketType?.Event;
             var venue = evt?.Venue;
 
-            // Get first session for backward-compatible event_date/event_time variables.
-            // These single-value variables are kept for templates that haven't been updated
-            // to use the new {{ticket_sessions_list}} variable.
+            // Get first session for session_date/session_time variables.
             var firstSession = ticketType?.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
             var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
 
@@ -339,8 +337,8 @@ public class EventEmailService : IEventEmailService
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt?.Title ?? "Event",
-                ["event_date"] = dateStr,
-                ["event_time"] = timeStr,
+                ["session_date"] = dateStr,
+                ["session_time"] = timeStr,
                 ["venue_name"] = venue?.Name ?? "",
                 ["venue_address"] = venue?.Location ?? "",
                 ["ticket_type"] = ticketType?.Name ?? "",
@@ -420,8 +418,8 @@ public class EventEmailService : IEventEmailService
                     {
                         ["attendee_name"] = displayName,
                         ["event_title"] = evt?.Title ?? "Event",
-                        ["event_date"] = dateStr,
-                        ["event_time"] = timeStr,
+                        ["session_date"] = dateStr,
+                        ["session_time"] = timeStr,
                         ["venue_name"] = venue?.Name ?? "",
                         ["venue_address"] = venue?.Location ?? ""
                     };

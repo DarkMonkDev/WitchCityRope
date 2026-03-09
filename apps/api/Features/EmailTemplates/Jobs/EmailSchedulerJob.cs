@@ -222,8 +222,8 @@ public class EmailSchedulerJob
                 {
                     ["attendee_name"] = recipient.DisplayName,
                     ["event_title"] = session.EventTitle,
-                    ["event_date"] = localTime.ToString("dddd, MMMM d, yyyy"),
-                    ["event_time"] = localTime.ToString("h:mm tt") + " ET",
+                    ["session_date"] = localTime.ToString("dddd, MMMM d, yyyy"),
+                    ["session_time"] = localTime.ToString("h:mm tt") + " ET",
                     // venue_name and venue_address were previously missing from scheduler-sent
                     // emails despite being declared in reminder template Variables JSON.
                     // Now included for all templates.

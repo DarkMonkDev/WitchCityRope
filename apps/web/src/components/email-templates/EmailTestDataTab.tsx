@@ -47,8 +47,8 @@ const VARIABLE_GROUPS = [
     variables: [
       'attendee_name',
       'event_title',
-      'event_date',
-      'event_time',
+      'session_date',
+      'session_time',
       'venue_name',
       'venue_address',
       'ticket_type',
