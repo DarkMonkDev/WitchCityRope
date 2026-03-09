@@ -8,7 +8,7 @@ namespace WitchCityRope.Api.Services.Seeding;
 
 /// <summary>
 /// Seeds default email templates for all 5 categories: Vetting, Events, Admin, Incident, and Ad Hoc.
-/// Total: 23 templates (Vetting: 6, Events: 7, Admin: 5, Incident: 4, Ad Hoc: 1)
+/// Total: 25 templates (Vetting: 6, Events: 9, Admin: 5, Incident: 4, Ad Hoc: 1)
 /// Vetting templates are migrated from the legacy VettingEmailTemplates table.
 /// </summary>
 public class EmailTemplateSeeder
@@ -23,9 +23,9 @@ public class EmailTemplateSeeder
     }
 
     /// <summary>
-    /// Seeds 23 default email templates across 5 categories.
+    /// Seeds 25 default email templates across 5 categories.
     /// This includes 6 Vetting templates migrated from VettingEmailTemplates table,
-    /// plus 17 templates for Events (7), Admin (5), Incident (4), and Ad Hoc (1).
+    /// plus 19 templates for Events (9), Admin (5), Incident (4), and Ad Hoc (1).
     /// </summary>
     /// <param name="adminUserEmail">Email of admin user for UpdatedBy field. Defaults to admin@witchcityrope.com for dev/staging. Production uses ropemaster@witchcityrope.com.</param>
     /// <param name="cancellationToken">Cancellation token for async operation</param>
@@ -191,7 +191,7 @@ public class EmailTemplateSeeder
 
     private async Task SeedEventsTemplatesAsync(Guid adminUserId, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Seeding Events templates (7)...");
+        _logger.LogInformation("Seeding Events templates (9)...");
 
         var templates = new[]
         {
@@ -201,9 +201,9 @@ public class EmailTemplateSeeder
                 TemplateType = "Confirmation",
                 Title = "Your ticket for {{event_title}}",
                 Subject = "Your ticket for {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for registering for <strong>{{event_title}}</strong>!</p><p><strong>Event Details:</strong><br>Date: {{event_date}}<br>Time: {{event_time}}<br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><p><strong>Ticket Type:</strong> {{ticket_type}}<br><strong>Total Paid:</strong> {{total_paid}}<br><strong>Confirmation Number:</strong> {{confirmation_number}}</p><p>We look forward to seeing you!</p><p>Questions? Email events@witchcityrope.com</p>",
-                PlainTextBody = "Hi {{attendee_name}},\n\nThank you for registering for {{event_title}}!\n\nEvent Details:\nDate: {{event_date}}\nTime: {{event_time}}\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nTicket Type: {{ticket_type}}\nTotal Paid: {{total_paid}}\nConfirmation Number: {{confirmation_number}}\n\nWe look forward to seeing you!\n\nQuestions? Email events@witchcityrope.com",
-                Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{event_time}}", "{{venue_name}}", "{{venue_address}}", "{{ticket_type}}", "{{total_paid}}", "{{confirmation_number}}" }),
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for registering for <strong>{{event_title}}</strong>!</p><p><strong>Event Details:</strong><br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><h3>Your Sessions</h3>{{ticket_sessions_list}}<p><strong>Total Paid:</strong> {{total_paid}}<br><strong>Confirmation Number:</strong> {{confirmation_number}}</p><p>We look forward to seeing you!</p><p>Questions? Email events@witchcityrope.com</p>",
+                PlainTextBody = "Hi {{attendee_name}},\n\nThank you for registering for {{event_title}}!\n\nEvent Details:\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nYour Sessions:\n{{ticket_sessions_list_text}}\n\nTotal Paid: {{total_paid}}\nConfirmation Number: {{confirmation_number}}\n\nWe look forward to seeing you!\n\nQuestions? Email events@witchcityrope.com",
+                Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{event_time}}", "{{venue_name}}", "{{venue_address}}", "{{ticket_type}}", "{{total_paid}}", "{{confirmation_number}}", "{{ticket_sessions_list}}", "{{ticket_sessions_list_text}}" }),
                 TriggerType = TemplateTriggerType.FixedEvent,
                 RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,
@@ -271,11 +271,11 @@ public class EmailTemplateSeeder
             {
                 Category = EmailCategory.Events,
                 TemplateType = "Cancellation",
-                Title = "Event Cancelled: {{event_title}}",
-                Subject = "Event Cancelled: {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p>We regret to inform you that <strong>{{event_title}}</strong> scheduled for {{event_date}} has been cancelled.</p><p>{{custom_message}}</p><p>If you have any questions, please contact events@witchcityrope.com</p>",
-                PlainTextBody = "Hi {{attendee_name}},\n\nWe regret to inform you that {{event_title}} scheduled for {{event_date}} has been cancelled.\n\n{{custom_message}}\n\nIf you have any questions, please contact events@witchcityrope.com",
-                Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{custom_message}}" }),
+                Title = "Cancellation Confirmation: {{event_title}}",
+                Subject = "Cancellation Confirmation: {{event_title}}",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Your registration for <strong>{{event_title}}</strong> has been cancelled.</p><h3>Cancelled Sessions</h3>{{cancelled_sessions_list}}<p>{{custom_message}}</p><p>If you have any questions, please contact events@witchcityrope.com</p>",
+                PlainTextBody = "Hi {{attendee_name}},\n\nYour registration for {{event_title}} has been cancelled.\n\nCancelled Sessions:\n{{cancelled_sessions_list_text}}\n\n{{custom_message}}\n\nIf you have any questions, please contact events@witchcityrope.com",
+                Variables = JsonSerializer.Serialize(new[] { "{{attendee_name}}", "{{event_title}}", "{{event_date}}", "{{custom_message}}", "{{cancelled_sessions_list}}", "{{cancelled_sessions_list_text}}" }),
                 TriggerType = TemplateTriggerType.FixedEvent,
                 RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
                 IsActive = true,
@@ -313,6 +313,52 @@ public class EmailTemplateSeeder
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = -1,
                 RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            // ============================================================================
+            // VOLUNTEER TEMPLATES
+            // ============================================================================
+            // These target the SessionVolunteers recipient group. The EmailSchedulerJob
+            // populates volunteer-specific variables (volunteer_role, shift_start, shift_end)
+            // from the volunteer's VolunteerPosition via RecipientInfo.
+            // Event-wide volunteers (VolunteerPosition.SessionId == null) receive this email
+            // for EVERY session's trigger time. Session-specific volunteers only receive it
+            // for their session's trigger time.
+            // ============================================================================
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Events,
+                TemplateType = "VolunteerReminder",
+                Title = "Volunteer Reminder: {{event_title}}",
+                Subject = "Volunteer Reminder: {{event_title}} - {{session_name}}",
+                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>This is a reminder that you are volunteering for <strong>{{event_title}}</strong>!</p><h3>Your Volunteer Details</h3><p><strong>Role:</strong> {{volunteer_role}}<br><strong>Session:</strong> {{session_name}}<br><strong>Date:</strong> {{event_date}}<br><strong>Time:</strong> {{event_time}}<br><strong>Shift:</strong> {{shift_start}} - {{shift_end}}</p><p><strong>Location:</strong><br>{{venue_name}}<br>{{venue_address}}</p><p>Thank you for volunteering! If you can no longer make it, please update your status as soon as possible so we can find a replacement.</p><p>Questions? Email events@witchcityrope.com</p>",
+                PlainTextBody = "Hi {{volunteer_name}},\n\nThis is a reminder that you are volunteering for {{event_title}}!\n\nYour Volunteer Details:\nRole: {{volunteer_role}}\nSession: {{session_name}}\nDate: {{event_date}}\nTime: {{event_time}}\nShift: {{shift_start}} - {{shift_end}}\n\nLocation:\n{{venue_name}}\n{{venue_address}}\n\nThank you for volunteering! If you can no longer make it, please update your status as soon as possible so we can find a replacement.\n\nQuestions? Email events@witchcityrope.com",
+                Variables = JsonSerializer.Serialize(new[] { "{{volunteer_name}}", "{{event_title}}", "{{session_name}}", "{{event_date}}", "{{event_time}}", "{{volunteer_role}}", "{{shift_start}}", "{{shift_end}}", "{{venue_name}}", "{{venue_address}}" }),
+                TriggerType = TemplateTriggerType.TimeBased,
+                TimingOffsetDays = 2,
+                RecipientGroup = EventRecipientGroup.SessionVolunteers,
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Events,
+                TemplateType = "VolunteerThankYou",
+                Title = "Thank you for volunteering: {{event_title}}",
+                Subject = "Thank you for volunteering at {{event_title}}!",
+                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>Thank you so much for volunteering at <strong>{{event_title}}</strong>!</p><p><strong>Your Role:</strong> {{volunteer_role}}<br><strong>Session:</strong> {{session_name}}<br><strong>Date:</strong> {{event_date}}</p><p>Our events wouldn't be possible without dedicated volunteers like you. We truly appreciate your time and effort!</p><p>We hope to see you at future events. If you have any feedback about your volunteer experience, please reach out to events@witchcityrope.com</p><p>With gratitude,<br>The Witch City Rope Team</p>",
+                PlainTextBody = "Hi {{volunteer_name}},\n\nThank you so much for volunteering at {{event_title}}!\n\nYour Role: {{volunteer_role}}\nSession: {{session_name}}\nDate: {{event_date}}\n\nOur events wouldn't be possible without dedicated volunteers like you. We truly appreciate your time and effort!\n\nWe hope to see you at future events. If you have any feedback about your volunteer experience, please reach out to events@witchcityrope.com\n\nWith gratitude,\nThe Witch City Rope Team",
+                Variables = JsonSerializer.Serialize(new[] { "{{volunteer_name}}", "{{event_title}}", "{{session_name}}", "{{event_date}}", "{{volunteer_role}}" }),
+                TriggerType = TemplateTriggerType.TimeBased,
+                TimingOffsetDays = -1,
+                RecipientGroup = EventRecipientGroup.SessionVolunteers,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,

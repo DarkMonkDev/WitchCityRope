@@ -6,6 +6,7 @@ using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events;
+using IEventEmailService = WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Models;
 using PaymentModels = WitchCityRope.Api.Features.Payments.Models;
@@ -60,6 +61,7 @@ public class AttendanceService : IAttendanceService
     private readonly IVolunteerAssignmentService _volunteerAssignmentService;
     private readonly ITimeZoneService _timeZoneService;
     private readonly IRefundService _refundService;
+    private readonly IEventEmailService _eventEmailService;
     private readonly ILogger<AttendanceService> _logger;
 
     public AttendanceService(
@@ -67,12 +69,14 @@ public class AttendanceService : IAttendanceService
         IVolunteerAssignmentService volunteerAssignmentService,
         ITimeZoneService timeZoneService,
         IRefundService refundService,
+        IEventEmailService eventEmailService,
         ILogger<AttendanceService> logger)
     {
         _context = context;
         _volunteerAssignmentService = volunteerAssignmentService;
         _timeZoneService = timeZoneService;
         _refundService = refundService;
+        _eventEmailService = eventEmailService;
         _logger = logger;
     }
 
@@ -1689,6 +1693,23 @@ public class AttendanceService : IAttendanceService
                 // Log but don't fail the cancellation
                 _logger.LogError(ex,
                     "Error auto-cancelling volunteer signups for user {UserId} at event {EventId}",
+                    userId, eventId);
+            }
+
+            // ============================================================================
+            // SEND CANCELLATION EMAIL
+            // ============================================================================
+            // Fire-and-forget: sends a single email listing all cancelled sessions
+            // grouped by ticket type. Failure must never block the cancellation.
+            try
+            {
+                await _eventEmailService.SendCancellationEmailAsync(
+                    userId, eventId, ticketPurchaseIds, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Error sending cancellation email for user {UserId} at event {EventId} (non-fatal)",
                     userId, eventId);
             }
 

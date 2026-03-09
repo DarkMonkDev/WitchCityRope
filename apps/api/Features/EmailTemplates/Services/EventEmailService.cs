@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
@@ -71,21 +72,119 @@ public class EventEmailService : IEventEmailService
         }
     }
 
+    /// <summary>
+    /// Sends a single cancellation email listing all cancelled sessions grouped by ticket type.
+    /// Called after CancelTicketPurchasesAsync completes — fire-and-forget pattern,
+    /// failures are logged but never propagated to the caller.
+    /// </summary>
+    public async Task SendCancellationEmailAsync(
+        Guid userId, Guid eventId, List<Guid> ticketPurchaseIds, CancellationToken ct)
+    {
+        try
+        {
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+            if (user == null)
+            {
+                _logger.LogWarning("User {UserId} not found for cancellation email", userId);
+                return;
+            }
+
+            // Load ticket purchases with their ticket types, sessions, and event/venue
+            var purchases = await _context.TicketPurchases
+                .AsNoTracking()
+                .Include(tp => tp.TicketType)
+                    .ThenInclude(tt => tt!.Sessions)
+                .Include(tp => tp.TicketType)
+                    .ThenInclude(tt => tt!.Event)
+                        .ThenInclude(e => e!.Venue)
+                .Where(tp => ticketPurchaseIds.Contains(tp.Id))
+                .ToListAsync(ct);
+
+            if (purchases.Count == 0)
+            {
+                _logger.LogWarning("No ticket purchases found for cancellation email. IDs=[{Ids}]",
+                    string.Join(", ", ticketPurchaseIds));
+                return;
+            }
+
+            var displayName = user.UserName ?? user.Email!;
+            var evt = purchases[0].TicketType?.Event;
+            var venue = evt?.Venue;
+
+            // Build session lists grouped by ticket type (same format as confirmation)
+            var (htmlList, textList) = BuildTicketSessionLists(purchases);
+
+            // Use first session for backward-compatible event_date variable
+            var firstSession = purchases
+                .Where(p => p.TicketType?.Sessions != null)
+                .SelectMany(p => p.TicketType!.Sessions)
+                .OrderBy(s => s.StartTime)
+                .FirstOrDefault();
+            var (dateStr, _) = FormatSessionDateTime(firstSession?.StartTime);
+
+            var variables = new Dictionary<string, string>
+            {
+                ["attendee_name"] = displayName,
+                ["event_title"] = evt?.Title ?? "Event",
+                ["event_date"] = dateStr,
+                ["venue_name"] = venue?.Name ?? "",
+                ["venue_address"] = venue?.Location ?? "",
+                ["cancelled_sessions_list"] = htmlList,
+                ["cancelled_sessions_list_text"] = textList,
+                // custom_message left empty for user-initiated cancellations;
+                // admin-initiated cancellations can populate this via event template overrides
+                ["custom_message"] = ""
+            };
+
+            var result = await _emailService.SendTemplatedEmailAsync(
+                user.Email!, displayName, EmailCategory.Events, "Cancellation", variables, ct);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation(
+                    "Cancellation email sent to {Email} for {Count} ticket purchase(s) in event {EventId}",
+                    user.Email, ticketPurchaseIds.Count, eventId);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to send cancellation email to {Email}: {Error}",
+                    user.Email, result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fire-and-forget: cancellation email failure must never block the cancellation flow
+            _logger.LogError(ex,
+                "Error sending cancellation email for user {UserId} event {EventId} (non-fatal)",
+                userId, eventId);
+        }
+    }
+
     private async Task SendConfirmationAsync(
         string email, string displayName,
         List<TicketPurchase> purchases, CancellationToken ct)
     {
         try
         {
-            // Use first purchase for event details (all purchases should be for same event)
+            // Use first purchase for event-level details (all purchases should be for same event)
             var firstPurchase = purchases[0];
             var ticketType = firstPurchase.TicketType;
             var evt = ticketType?.Event;
             var venue = evt?.Venue;
 
-            // Get first session for date/time
+            // Get first session for backward-compatible event_date/event_time variables.
+            // These single-value variables are kept for templates that haven't been updated
+            // to use the new {{ticket_sessions_list}} variable.
             var firstSession = ticketType?.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
             var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
+
+            // Build the session list grouped by ticket type for multi-session support.
+            // Shows each ticket purchased and which sessions it covers.
+            var (htmlSessionList, textSessionList) = BuildTicketSessionLists(purchases);
 
             var variables = new Dictionary<string, string>
             {
@@ -97,7 +196,9 @@ public class EventEmailService : IEventEmailService
                 ["venue_address"] = venue?.Location ?? "",
                 ["ticket_type"] = ticketType?.Name ?? "",
                 ["total_paid"] = purchases.Sum(p => p.TotalPrice).ToString("C"),
-                ["confirmation_number"] = firstPurchase.PaymentReference ?? ""
+                ["confirmation_number"] = firstPurchase.PaymentReference ?? "",
+                ["ticket_sessions_list"] = htmlSessionList,
+                ["ticket_sessions_list_text"] = textSessionList
             };
 
             var result = await _emailService.SendTemplatedEmailAsync(
@@ -204,6 +305,76 @@ public class EventEmailService : IEventEmailService
         {
             _logger.LogError(ex, "Error processing catch-up reminders for {Email}", email);
         }
+    }
+
+    // ============================================================================
+    // SESSION LIST BUILDERS
+    // ============================================================================
+    // These methods build formatted session lists grouped by ticket type.
+    // Used by both confirmation and cancellation emails to show exactly which
+    // sessions are covered by each ticket purchase.
+    // ============================================================================
+
+    /// <summary>
+    /// Builds HTML and plain text session lists grouped by ticket type.
+    /// Each ticket type is listed with the sessions it covers underneath.
+    /// Example HTML output:
+    ///   <strong>Full Weekend Pass</strong>
+    ///   <ul>
+    ///     <li>Day 1 - Saturday, March 15, 2026 at 2:00 PM ET</li>
+    ///     <li>Day 2 - Sunday, March 16, 2026 at 2:00 PM ET</li>
+    ///   </ul>
+    /// </summary>
+    private static (string Html, string PlainText) BuildTicketSessionLists(List<TicketPurchase> purchases)
+    {
+        var html = new StringBuilder();
+        var text = new StringBuilder();
+
+        // Group by ticket type to avoid repeating the same ticket type name
+        // when multiple purchases of the same type exist
+        var groupedByTicketType = purchases
+            .Where(p => p.TicketType != null)
+            .GroupBy(p => p.TicketType!.Id)
+            .ToList();
+
+        foreach (var group in groupedByTicketType)
+        {
+            var ticketTypeName = group.First().TicketType!.Name;
+
+            // Collect all unique sessions across all purchases of this ticket type
+            var sessions = group
+                .SelectMany(p => p.TicketType!.Sessions)
+                .DistinctBy(s => s.Id)
+                .OrderBy(s => s.StartTime)
+                .ToList();
+
+            // HTML format
+            html.Append($"<p><strong>{System.Net.WebUtility.HtmlEncode(ticketTypeName)}</strong></p>");
+            html.Append("<ul>");
+            foreach (var session in sessions)
+            {
+                var (dateStr, timeStr) = FormatSessionDateTime(session.StartTime);
+                var sessionLabel = !string.IsNullOrEmpty(session.Name)
+                    ? $"{System.Net.WebUtility.HtmlEncode(session.Name)} - {dateStr} at {timeStr}"
+                    : $"{dateStr} at {timeStr}";
+                html.Append($"<li>{sessionLabel}</li>");
+            }
+            html.Append("</ul>");
+
+            // Plain text format
+            text.AppendLine(ticketTypeName);
+            foreach (var session in sessions)
+            {
+                var (dateStr, timeStr) = FormatSessionDateTime(session.StartTime);
+                var sessionLabel = !string.IsNullOrEmpty(session.Name)
+                    ? $"  - {session.Name} - {dateStr} at {timeStr}"
+                    : $"  - {dateStr} at {timeStr}";
+                text.AppendLine(sessionLabel);
+            }
+            text.AppendLine();
+        }
+
+        return (html.ToString(), text.ToString().TrimEnd());
     }
 
     private static (string Date, string Time) FormatSessionDateTime(DateTime? startTimeUtc)

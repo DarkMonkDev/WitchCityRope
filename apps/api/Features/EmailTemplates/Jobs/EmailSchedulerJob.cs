@@ -10,6 +10,11 @@ namespace WitchCityRope.Api.Features.EmailTemplates.Jobs;
 /// Hangfire recurring job that processes time-based email templates.
 /// Runs hourly to support 2-hour reminder precision.
 /// Uses EmailTriggerLog for idempotency to prevent duplicate sends.
+///
+/// Handles both attendee templates (Reminder1Week, Reminder1Day, etc.) and
+/// volunteer templates (VolunteerReminder, VolunteerThankYou).
+/// Volunteer templates receive additional per-recipient variables:
+/// volunteer_role, shift_start, shift_end from their VolunteerPosition.
 /// </summary>
 public class EmailSchedulerJob
 {
@@ -21,6 +26,9 @@ public class EmailSchedulerJob
 
     // Must match the Hangfire cron interval (hourly = 1 hour)
     private const int SchedulerIntervalHours = 1;
+
+    private static readonly TimeZoneInfo EasternTimeZone =
+        TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
 
     public EmailSchedulerJob(
         ApplicationDbContext context,
@@ -80,7 +88,9 @@ public class EmailSchedulerJob
     {
         var totalOffsetHours = (template.TimingOffsetDays ?? 0) * 24 + (template.TimingOffsetHours ?? 0);
 
-        // Find qualifying sessions based on offset direction
+        // Find qualifying sessions based on offset direction.
+        // Includes Event.Venue for venue_name/venue_address variables and session Name
+        // for session_name variable (used by volunteer templates).
         List<SessionInfo> qualifyingSessions;
 
         if (totalOffsetHours >= 0)
@@ -92,10 +102,15 @@ public class EmailSchedulerJob
             qualifyingSessions = await _context.Sessions
                 .AsNoTracking()
                 .Include(s => s.Event)
+                    .ThenInclude(e => e!.Venue)
                 .Where(s => s.StartTime > windowStart
                     && s.StartTime <= windowEnd
                     && s.Event!.IsPublished)
-                .Select(s => new SessionInfo(s.Id, s.EventId, s.StartTime, s.Event!.Title))
+                .Select(s => new SessionInfo(
+                    s.Id, s.EventId, s.StartTime,
+                    s.Event!.Title, s.Name,
+                    s.Event.Venue != null ? s.Event.Venue.Name : null,
+                    s.Event.Venue != null ? s.Event.Venue.Location : null))
                 .ToListAsync(ct);
         }
         else
@@ -107,10 +122,15 @@ public class EmailSchedulerJob
             qualifyingSessions = await _context.Sessions
                 .AsNoTracking()
                 .Include(s => s.Event)
+                    .ThenInclude(e => e!.Venue)
                 .Where(s => s.StartTime >= windowStart
                     && s.StartTime < windowEnd
                     && s.Event!.IsPublished)
-                .Select(s => new SessionInfo(s.Id, s.EventId, s.StartTime, s.Event!.Title))
+                .Select(s => new SessionInfo(
+                    s.Id, s.EventId, s.StartTime,
+                    s.Event!.Title, s.Name,
+                    s.Event.Venue != null ? s.Event.Venue.Name : null,
+                    s.Event.Venue != null ? s.Event.Venue.Location : null))
                 .ToListAsync(ct);
         }
 
@@ -181,10 +201,11 @@ public class EmailSchedulerJob
             return;
         }
 
-        // Build template variables
-        var easternZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+        // Build base template variables (shared across all recipient groups)
         var utcTime = DateTime.SpecifyKind(session.StartTime, DateTimeKind.Utc);
-        var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, easternZone);
+        var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, EasternTimeZone);
+
+        var isVolunteerTemplate = template.RecipientGroup.Value == EventRecipientGroup.SessionVolunteers;
 
         var successCount = 0;
         var failCount = 0;
@@ -193,13 +214,32 @@ public class EmailSchedulerJob
         {
             try
             {
+                // Build variables dictionary for this recipient.
+                // All templates get the base event/venue variables.
+                // Volunteer templates additionally get role and shift details
+                // from the RecipientInfo (populated by EventRecipientService).
                 var variables = new Dictionary<string, string>
                 {
                     ["attendee_name"] = recipient.DisplayName,
                     ["event_title"] = session.EventTitle,
                     ["event_date"] = localTime.ToString("dddd, MMMM d, yyyy"),
-                    ["event_time"] = localTime.ToString("h:mm tt") + " ET"
+                    ["event_time"] = localTime.ToString("h:mm tt") + " ET",
+                    // venue_name and venue_address were previously missing from scheduler-sent
+                    // emails despite being declared in reminder template Variables JSON.
+                    // Now included for all templates.
+                    ["venue_name"] = session.VenueName ?? "",
+                    ["venue_address"] = session.VenueAddress ?? "",
+                    ["session_name"] = session.SessionName ?? ""
                 };
+
+                if (isVolunteerTemplate)
+                {
+                    // Volunteer-specific variables from the recipient's VolunteerPosition
+                    variables["volunteer_name"] = recipient.DisplayName;
+                    variables["volunteer_role"] = recipient.VolunteerRole ?? "";
+                    variables["shift_start"] = recipient.ShiftStart ?? "TBD";
+                    variables["shift_end"] = recipient.ShiftEnd ?? "TBD";
+                }
 
                 var result = await _emailService.SendTemplatedEmailAsync(
                     recipient.Email, recipient.DisplayName,
@@ -242,5 +282,17 @@ public class EmailSchedulerJob
             template.TemplateType, session.Id, successCount, failCount, recipients.Count);
     }
 
-    private record SessionInfo(Guid Id, Guid EventId, DateTime StartTime, string EventTitle);
+    /// <summary>
+    /// Session info record including venue and session name for template variable population.
+    /// VenueName and VenueAddress are nullable because events may not have a venue assigned.
+    /// SessionName is nullable because single-session events may not have a named session.
+    /// </summary>
+    private record SessionInfo(
+        Guid Id,
+        Guid EventId,
+        DateTime StartTime,
+        string EventTitle,
+        string? SessionName,
+        string? VenueName,
+        string? VenueAddress);
 }
