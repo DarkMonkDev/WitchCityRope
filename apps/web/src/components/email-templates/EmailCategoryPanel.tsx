@@ -336,7 +336,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
         </SimpleGrid>
       </div>
 
-      {/* Editor Panel - Shown when template selected */}
+      {/* Editor Panel - Shown when template selected (non-Events: Email + Test Email tabs) */}
       {selectedTemplate && category !== 'Events' && (
         <Paper shadow="sm" radius="md" p="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}>
           <Stack gap="md">
@@ -395,103 +395,134 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                   </Text>
                 </Group>
               )}
+              <Button variant="subtle" color="dimmed" size="compact-sm" onClick={handleCancel}>
+                Close
+              </Button>
             </Group>
 
-            {/* Subject Line */}
-            <TextInput
-              label="Subject Line"
-              value={subject}
-              onChange={(e) => { setSubject(e.currentTarget.value); setHasUnsavedChanges(true); }}
-              required
-              maxLength={200}
-            />
-
-            {/* Available Variables */}
-            <Box
-              p="sm"
-              style={{
-                background: 'rgba(136, 1, 36, 0.05)',
-                borderRadius: '6px',
-                border: '1px solid rgba(136, 1, 36, 0.1)',
+            <Tabs
+              value={activeEditorTab}
+              onChange={(val) => setActiveEditorTab(val || 'email')}
+              variant="pills"
+              radius="md"
+              color="burgundy"
+              styles={{
+                tab: {
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                  '&[data-active]': {
+                    backgroundColor: '#880124',
+                    color: 'white',
+                  },
+                  '&:hover:not([data-active])': {
+                    backgroundColor: 'rgba(136, 1, 36, 0.05)',
+                  },
+                },
               }}
             >
-              <Text size="xs" fw={600} c="burgundy" mb={4}>
-                Available Variables:
-              </Text>
-              <Text size="xs" c="dimmed" mb="xs">
-                {(selectedTemplate.variables?.length ?? 0) > 0
-                  ? selectedTemplate.variables?.join(', ')
-                  : 'No dynamic variables for this template'}
-              </Text>
-              <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                Note: Contact emails (support@witchcityrope.com, info@witchcityrope.com,
-                events@witchcityrope.com) and system URL are hardcoded in templates.
-              </Text>
-            </Box>
+              <Tabs.List>
+                <Tabs.Tab value="email">Email</Tabs.Tab>
+                <Tabs.Tab value="test">Test Email</Tabs.Tab>
+              </Tabs.List>
 
-            {/* HTML Body Editor */}
-            <div>
-              <Text size="sm" fw={500} mb={4}>
-                Email Content (HTML)
-              </Text>
-              <MantineTiptapEditor
-                value={htmlBody}
-                onChange={(val) => { setHtmlBody(val); setHasUnsavedChanges(true); }}
-                placeholder="Enter email template content..."
-                minRows={12}
-              />
-            </div>
+              {/* Email Tab */}
+              <Tabs.Panel value="email" pt="lg">
+                <Stack gap="md">
+                  <TextInput
+                    label="Subject Line"
+                    value={subject}
+                    onChange={(e) => { setSubject(e.currentTarget.value); setHasUnsavedChanges(true); }}
+                    required
+                    maxLength={200}
+                  />
 
-            {/* Variable Validation Warnings */}
-            {invalidVariables.length > 0 && (
-              <Alert
-                icon={<IconAlertCircle />}
-                color="yellow"
-                variant="light"
-                title="Unknown Variables Detected"
-              >
-                <Text size="sm">
-                  These variables are not in the allowed list: {invalidVariables.join(', ')}
-                </Text>
-                <Text size="xs" mt="xs" c="dimmed">
-                  The email may not render correctly when sent. Available variables:{' '}
-                  {selectedTemplate.variables?.join(', ')}
-                </Text>
-              </Alert>
-            )}
+                  <Box
+                    p="sm"
+                    style={{
+                      background: 'rgba(136, 1, 36, 0.05)',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(136, 1, 36, 0.1)',
+                    }}
+                  >
+                    <Text size="xs" fw={600} c="burgundy" mb={4}>
+                      Available Variables:
+                    </Text>
+                    <Text size="xs" c="dimmed" mb="xs">
+                      {(selectedTemplate.variables?.length ?? 0) > 0
+                        ? selectedTemplate.variables?.join(', ')
+                        : 'No dynamic variables for this template'}
+                    </Text>
+                    <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                      Note: Contact emails (support@witchcityrope.com, info@witchcityrope.com,
+                      events@witchcityrope.com) and system URL are hardcoded in templates.
+                    </Text>
+                  </Box>
 
-            {/* Action Buttons */}
-            <Group justify="flex-end" gap="sm">
-              <Button variant="light" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSave}
-                loading={saveMutation.isPending}
-                styles={{
-                  root: {
-                    fontWeight: 600,
-                    height: '44px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    fontSize: '14px',
-                    lineHeight: '1.2',
-                  },
-                }}
-              >
-                Save Template
-              </Button>
-            </Group>
+                  <div>
+                    <Text size="sm" fw={500} mb={4}>
+                      Email Content (HTML)
+                    </Text>
+                    <MantineTiptapEditor
+                      value={htmlBody}
+                      onChange={(val) => { setHtmlBody(val); setHasUnsavedChanges(true); }}
+                      placeholder="Enter email template content..."
+                      minRows={12}
+                    />
+                  </div>
 
-            {/* Send Test Email - inline test send with template-specific variables */}
-            <SendTestEmail
-              template={selectedTemplate}
-              currentTitle={title}
-              currentSubject={subject}
-              currentHtmlBody={htmlBody}
-              onSaveTemplate={handleSaveAsync}
-              hasUnsavedChanges={hasUnsavedChanges}
-            />
+                  {invalidVariables.length > 0 && (
+                    <Alert
+                      icon={<IconAlertCircle />}
+                      color="yellow"
+                      variant="light"
+                      title="Unknown Variables Detected"
+                    >
+                      <Text size="sm">
+                        These variables are not in the allowed list: {invalidVariables.join(', ')}
+                      </Text>
+                      <Text size="xs" mt="xs" c="dimmed">
+                        The email may not render correctly when sent. Available variables:{' '}
+                        {selectedTemplate.variables?.join(', ')}
+                      </Text>
+                    </Alert>
+                  )}
+
+                  <Group justify="flex-end" gap="sm">
+                    <Button variant="light" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      loading={saveMutation.isPending}
+                      styles={{
+                        root: {
+                          fontWeight: 600,
+                          height: '44px',
+                          paddingTop: '12px',
+                          paddingBottom: '12px',
+                          fontSize: '14px',
+                          lineHeight: '1.2',
+                        },
+                      }}
+                    >
+                      Save Template
+                    </Button>
+                  </Group>
+                </Stack>
+              </Tabs.Panel>
+
+              {/* Test Email Tab */}
+              <Tabs.Panel value="test" pt="lg">
+                <SendTestEmail
+                  template={selectedTemplate}
+                  currentTitle={title}
+                  currentSubject={subject}
+                  currentHtmlBody={htmlBody}
+                  onSaveTemplate={handleSaveAsync}
+                  hasUnsavedChanges={hasUnsavedChanges}
+                />
+              </Tabs.Panel>
+            </Tabs>
           </Stack>
         </Paper>
       )}
