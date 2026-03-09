@@ -1306,7 +1306,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Process refund and/or cancel ticket for a payment transaction
+         * Execute refund and/or cancellation operation
          * @description Processes a partial or full refund, optionally cancels the ticket (revokes event access), and optionally removes the RSVP. Supports $0 cancellations (cancel without refund). Requires Admin or Teacher role.
          */
         post: operations["ProcessVariableRefund"];
@@ -2988,6 +2988,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email-templates/test-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all email template test data variable values
+         * @description Returns saved default values for all email template variables, used for test sends
+         */
+        get: operations["GetEmailTestData"];
+        /**
+         * Save email template test data variable values
+         * @description Creates or updates default variable values used for test email sends
+         */
+        put: operations["SaveEmailTestData"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/{id}/send-test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send a test email for a specific template
+         * @description Sends a test email with test data variable substitution to a specified email address
+         */
+        post: operations["SendTestEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cms/pages/{slug}": {
         parameters: {
             query?: never;
@@ -3297,6 +3341,9 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Unified credit card checkout: validate, create pending ticket, charge card, finalize.
+         *     If payment fails, pending tickets are rolled back.
+         *     If finalization fails after payment, an automatic void/refund is attempted. */
         post: {
             parameters: {
                 query?: never;
@@ -3354,11 +3401,40 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Server-Sent Events (SSE) stream for real-time payment notifications.
+         *
+         *     This endpoint establishes a persistent HTTP connection that streams payment completion events
+         *     to the kiosk interface. When an attendee completes a QR code payment on their phone,
+         *     the kiosk automatically receives a notification via this stream.
+         *
+         *     Connection lifecycle:
+         *     - Opens: Kiosk connects and receives "connected" event
+         *     - Active: Heartbeat events sent every 15 seconds (keep-alive)
+         *     - Notification: Payment completion triggers "payment_complete" event
+         *     - Closes: Client disconnect or 30-minute timeout
+         *
+         *     Security:
+         *     - Requires valid session token in "X-CheckIn-Token" header
+         *     - Token must not be expired or revoked
+         *     - Token must exist in database
+         *
+         *     Response format (text/event-stream):
+         *     ```
+         *     event: connected
+         *     data: {"type":"connected","sessionToken":"abc...","timestamp":"2025-11-03T10:00:00Z","message":"SSE connection established"}
+         *
+         *     event: payment_complete
+         *     data: {"type":"payment_complete","attendeeId":"...","eventId":"...","paymentId":"...","amount":20.00,"paymentMethod":"PayPal","timestamp":"...","message":"Payment of $20.00 completed via PayPal"}
+         *
+         *     event: heartbeat
+         *     data: {"type":"heartbeat","sessionToken":"abc...","timestamp":"2025-11-03T10:00:15Z","message":"Connection alive"}
+         *     ``` */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
+                    /** @description Kiosk session token from URL path */
                     sessionToken: string;
                 };
                 cookie?: never;
@@ -3411,15 +3487,38 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Record cash payment at the door.
+         *
+         *     This endpoint allows check-in staff to record cash payments for attendees who
+         *     pay at the event instead of purchasing tickets online.
+         *
+         *     Business rules:
+         *     - Social events: Payment OPTIONAL (attendees can check in with just RSVP)
+         *     - Workshops/Classes: This endpoint should NOT be used (all workshop attendees must pre-purchase tickets)
+         *     - Payment links to attendee via attendeeId parameter
+         *     - Staff member is tracked via session token creator
+         *     - Optional notes field for special circumstances (discounts, payment plan, etc.)
+         *
+         *     After successful payment:
+         *     - Payment record created in database
+         *     - Linked to attendee and event
+         *     - Staff member ID recorded (audit trail)
+         *     - NO SSE notification sent (cash payments are immediate confirmation)
+         *
+         *     Security:
+         *     - Requires valid session token in "X-CheckIn-Token" header
+         *     - Token must be for the correct event (matches eventId parameter) */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
+                    /** @description Event ID being paid for */
                     eventId: string;
                 };
                 cookie?: never;
             };
+            /** @description Request cancellation token */
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["CashPaymentRequest"];
@@ -3478,6 +3577,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Health check endpoint for kiosk payment endpoints.
+         *     Useful for monitoring SSE infrastructure and debugging connection issues. */
         get: {
             parameters: {
                 query?: never;
@@ -3513,6 +3614,9 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Stage 1: Validate, create pending ticket purchase(s), then create a PayPal order linked to them.
+         *     Called by the frontend PayPalButton's createOrder callback.
+         *     Returns the PayPal order ID for the JS SDK popup. */
         post: {
             parameters: {
                 query?: never;
@@ -3572,6 +3676,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Stage 2: Capture the PayPal order after user approval, then finalize ticket purchases.
+         *     Called by the frontend PayPalButton's onApprove callback. */
         post: {
             parameters: {
                 query?: never;
@@ -3631,6 +3737,9 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Cancel a pending PayPal checkout. Rolls back the pending ticket purchases
+         *     that were created during create-order.
+         *     Called by the frontend PayPalButton's onCancel callback. */
         post: {
             parameters: {
                 query?: never;
@@ -3681,6 +3790,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Handle PayPal webhook events.
+         *     Validates webhook signature using RSA-SHA256 verification, then processes the event. */
         post: {
             parameters: {
                 query?: never;
@@ -3732,6 +3843,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Health check endpoint for webhook monitoring. */
         get: {
             parameters: {
                 query?: never;
@@ -3765,6 +3877,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get personalized welcome message for authenticated users
+         *     Tests JWT token authentication and claims extraction */
         get: {
             parameters: {
                 query?: never;
@@ -3813,6 +3927,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get user profile information (additional protected endpoint for testing) */
         get: {
             parameters: {
                 query?: never;
@@ -3877,13 +3992,19 @@ export interface components {
             /** Format: date-time */
             dueDate?: string;
         };
+        /** @description Request to add manual note to incident */
         AddNoteRequest: {
+            /** @description Note content (min 3 chars) */
             content?: string;
+            /** @description Optional tags (comma-separated) */
             tags?: null | string;
         };
+        /** @description Response DTO for saved ad-hoc email templates
+         *     These are user-created templates that can be reused */
         AdHocEmailTemplateDto: {
             /** Format: uuid */
             id?: string;
+            /** @description Template name (from subject or custom) */
             templateName?: string;
             subject?: string;
             htmlBody?: string;
@@ -3894,27 +4015,49 @@ export interface components {
             createdBy?: string;
             createdByEmail?: string;
         };
+        /** @description Safety dashboard data for admin interface */
         AdminDashboardResponse: {
             statistics?: components["schemas"]["SafetyStatistics"];
             recentIncidents?: components["schemas"]["IncidentSummaryResponse"][];
             pendingActions?: components["schemas"]["ActionItem"][];
         };
+        /** @description Response DTO for admin RSVP removal operation
+         *     Includes details of cascading effects (ticket refund, volunteer shifts)
+         *     Auto-generated as TypeScript interface by NSwag */
         AdminRemoveRsvpResponse: {
+            /** @description Whether the RSVP was successfully removed */
             rsvpRemoved?: boolean;
+            /** @description Whether an associated ticket was refunded */
             ticketRefunded?: boolean;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Amount refunded for the ticket (null if no ticket)
+             */
             refundAmount?: null | number;
+            /** @description Whether volunteer shifts were automatically removed */
             volunteerShiftsRemoved?: boolean;
+            /** @description List of volunteer position titles that were removed */
             volunteerShiftNames?: string[];
         };
+        /** @description Information about a ticket type that would be affected by session deletion */
         AffectedTicketTypeDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Ticket type ID
+             */
             id?: string;
+            /** @description Ticket type name */
             name?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of tickets sold for this ticket type
+             */
             ticketsSold?: number;
+            /** @description Whether this ticket type will be deleted (single-session ticket) */
             willBeDeleted?: boolean;
         };
+        /** @description Full application details for reviewer view
+         *     Contains decrypted PII and complete application data */
         ApplicationDetailResponse: {
             /** Format: uuid */
             id?: string;
@@ -3951,6 +4094,8 @@ export interface components {
             /** Format: uuid */
             applicationId?: string;
         };
+        /** @description Filter and pagination request for reviewer dashboard
+         *     Supports all filtering options from the functional spec */
         ApplicationFilterRequest: {
             /** Format: int32 */
             page?: number;
@@ -3977,6 +4122,7 @@ export interface components {
             sortBy?: string;
             sortDirection?: string;
         };
+        /** @description Application note for reviewer collaboration */
         ApplicationNoteDto: {
             /** Format: uuid */
             id?: string;
@@ -3990,6 +4136,7 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        /** @description Application progress breakdown */
         ApplicationProgressSummary: {
             applicationSubmitted?: boolean;
             referencesContacted?: boolean;
@@ -4001,6 +4148,7 @@ export interface components {
             progressPercentage?: number;
             currentPhase?: string;
         };
+        /** @description Reference status summary for application listing */
         ApplicationReferenceStatus: {
             /** Format: int32 */
             totalReferences?: number;
@@ -4012,20 +4160,39 @@ export interface components {
             /** Format: date-time */
             oldestPendingReferenceDate?: null | string;
         };
+        /** @description Basic application status information for the user's own application */
         ApplicationStatusInfo: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Application unique identifier
+             */
             applicationId?: string;
+            /** @description Human-readable application number */
             applicationNumber?: string;
+            /** @description Current status of the application */
             status?: string;
+            /** @description User-friendly status description */
             statusDescription?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the application was submitted
+             */
             submittedAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the status was last updated
+             */
             lastUpdated?: string;
+            /** @description What the user should do next, if anything */
             nextSteps?: null | string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Estimated days remaining in review process
+             */
             estimatedDaysRemaining?: null | number;
         };
+        /** @description Public application status response for status token lookup
+         *     Provides limited information for applicant privacy */
         ApplicationStatusResponse: {
             applicationNumber?: string;
             status?: string;
@@ -4039,10 +4206,19 @@ export interface components {
             progress?: components["schemas"]["ApplicationProgressSummary"];
             recentUpdates?: components["schemas"]["StatusUpdateSummary"][];
         };
+        /** @description Response after successful application submission
+         *     Contains status tracking information for applicant */
         ApplicationSubmissionResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Application ID (primary identifier for API consistency)
+             */
             id?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Application ID (legacy property for backward compatibility)
+             *     Maps to Id property
+             */
             applicationId?: string;
             applicationNumber?: string;
             statusToken?: string;
@@ -4054,6 +4230,8 @@ export interface components {
             nextSteps?: string;
             referenceStatuses?: components["schemas"]["ReferenceStatusSummary"][];
         };
+        /** @description Application summary for reviewer dashboard listings
+         *     Contains essential information without full PII details */
         ApplicationSummaryDto: {
             /** Format: uuid */
             id?: string;
@@ -4079,18 +4257,30 @@ export interface components {
             /** Format: date-time */
             interviewScheduledFor?: null | string;
         };
+        /** @description Request to assign coordinator to incident */
         AssignCoordinatorRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Coordinator user ID (NULL to unassign)
+             */
             coordinatorId?: null | string;
         };
+        /** @description Request to assign a member to a volunteer position */
         AssignVolunteerRequest: {
             /** Format: uuid */
             userId?: string;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Status of event attendance
+         * @enum {unknown}
+         */
         AttendanceStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted" | "PendingPayment";
-        /** @enum {unknown} */
+        /**
+         * @description Type of event attendance
+         * @enum {unknown}
+         */
         AttendanceType: "RSVP" | "Ticket";
+        /** @description Response model for attendee information in check-in interface */
         AttendeeResponse: {
             attendeeId?: string;
             userId?: string;
@@ -4106,9 +4296,15 @@ export interface components {
             hasCompletedWaiver?: boolean;
             /** Format: int32 */
             waitlistPosition?: null | number;
+            /** @description Payment status for the attendee - used to determine check-in button state
+             *     "rsvp" = No ticket purchased, show "Paid at Door" button
+             *     "paid" = Has ticket purchase, show "Covid Test" button */
             paymentStatus?: string;
+            /** @description Session names this attendee is registered for (for multi-session display)
+             *     Example: ["Session 1", "Session 2"] for multi-session tickets */
             sessionNames?: null | string[];
         };
+        /** @description Audit trail entry */
         AuditLogDto: {
             /** Format: uuid */
             id?: string;
@@ -4120,21 +4316,42 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        /** @description User response DTO for authentication endpoints
+         *     Example of user model for vertical slice authentication feature */
         AuthUserResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description User's unique identifier
+             */
             id?: string;
+            /** @description User's email address */
             email?: string;
+            /** @description User's scene name */
             sceneName?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the user account was created
+             */
             createdAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the user last logged in
+             */
             lastLoginAt?: null | string;
+            /** @description User's role in the system */
             role?: string;
+            /** @description User's roles as an array (for frontend compatibility) */
             roles?: string[];
+            /** @description Whether the user account is active */
             isActive?: boolean;
+            /** @description Whether the user has completed the vetting process
+             *     Derived from VettingStatus == 3 (Approved) */
             isVetted?: boolean;
         };
+        /** @description Response containing all available user roles in the system.
+         *     Used for dropdowns and role selection UI. */
         AvailableRolesResponse: {
+            /** @description List of all available roles with their display information */
             roles?: components["schemas"]["UserRoleDto"][];
         };
         BackupJobResponse: {
@@ -4172,10 +4389,18 @@ export interface components {
             totalSizeBytes?: number;
             totalSizeFormatted?: string;
         };
+        /** @description Request model for selective ticket cancellation
+         *     Allows cancelling specific ticket purchases (not just all tickets) */
         CancelTicketRequest: {
+            /** @description List of TicketPurchase IDs to cancel
+             *     Each TicketPurchase may have multiple EventAttendance records (one per session)
+             *     ALL attendances for each ticket purchase will be cancelled */
             ticketPurchaseIds?: null | string[];
+            /** @description Optional reason for cancellation
+             *     Passed through to refund service and stored in attendance history */
             reason?: null | string;
         };
+        /** @description Capacity information for events */
         CapacityInfo: {
             /** Format: int32 */
             totalCapacity?: number;
@@ -4188,40 +4413,84 @@ export interface components {
             isAtCapacity?: boolean;
             canOverride?: boolean;
         };
+        /** @description Event capacity information */
         CapacityInfoDto: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Current number of active participants (RSVPs + tickets)
+             */
             current?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Maximum capacity of the event
+             */
             total?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of available spots (Total - Current)
+             */
             available?: number;
         };
+        /** @description Request model for recording a door cash payment for an event ticket.
+         *     Creates a TicketPurchase record with door payment tracking. */
         CashPaymentRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description The attendee's user ID who is making the payment
+             */
             attendeeId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description The ticket type being purchased
+             */
             ticketTypeId: string;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Amount paid (can be 0.00 for sliding scale)
+             */
             amount: number;
+            /** @description Optional notes about the cash payment
+             *     (e.g., "Paid $20 cash", "Sliding scale - minimum price") */
             notes?: null | string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Staff member who recorded the payment (from session token)
+             */
             recordedByStaffId: string;
         };
+        /** @description Response model for successful cash payment recording.
+         *     Contains the created ticket purchase details. */
         CashPaymentResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description ID of the created ticket purchase record
+             */
             ticketPurchaseId?: string;
+            /** @description Whether the payment was successfully recorded */
             success?: boolean;
+            /** @description Success or error message */
             message?: string;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Amount that was recorded
+             */
             amount?: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the payment was recorded
+             */
             recordedAt?: string;
         };
+        /** @description Request model for changing user password */
         ChangePasswordDto: {
+            /** @description Current password for verification */
             currentPassword: string;
+            /** @description New password (minimum 8 characters, must contain uppercase, lowercase, and number) */
             newPassword: string;
+            /** @description Password confirmation (must match NewPassword) */
             confirmPassword: string;
         };
+        /** @description Response model for attendee list with pagination */
         CheckInAttendeesResponse: {
             eventId?: string;
             eventTitle?: string;
@@ -4235,15 +4504,18 @@ export interface components {
             attendees?: components["schemas"]["AttendeeResponse"][];
             pagination?: components["schemas"]["PaginationInfo"];
         };
+        /** @description Request model for processing check-in */
         CheckInRequest: {
             attendeeId: string;
             checkInTime: string;
+            /** @description Optional staff member ID (GUID format). If not provided, kiosk mode is assumed (Guid.Empty used). */
             staffMemberId?: null | string;
             notes?: null | string;
             overrideCapacity?: boolean;
             isManualEntry?: boolean;
             manualEntryData?: null | components["schemas"]["ManualEntryData"];
         };
+        /** @description Response model for check-in operation */
         CheckInResponse: {
             success?: boolean;
             attendeeId?: string;
@@ -4251,8 +4523,12 @@ export interface components {
             message?: string;
             currentCapacity?: components["schemas"]["CapacityInfo"];
             auditLogId?: null | string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Session ID this check-in is for
+             */
             sessionId?: string;
+            /** @description Session name for display */
             sessionName?: string;
         };
         CheckoutRequest: {
@@ -4290,48 +4566,100 @@ export interface components {
             componentStack?: null | string;
             metadata?: null | Record<string, never>;
         };
+        /** @description DTO for content page list summaries
+         *     Used for GET /api/cms/pages */
         CmsPageSummaryDto: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Unique identifier for the content page
+             */
             id?: number;
+            /** @description URL-friendly slug for the page */
             slug?: string;
+            /** @description Page title */
             title?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of revisions for this page
+             */
             revisionCount?: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Timestamp of last update (UTC)
+             */
             updatedAt?: string;
+            /** @description Email of user who last modified the page */
             lastModifiedBy?: string;
+            /** @description Whether the page is published */
             isPublished?: boolean;
         };
+        /** @description DTO for content page responses
+         *     Used for GET /api/cms/pages/{slug} and PUT /api/cms/pages/{id} */
         ContentPageDto: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Unique identifier for the content page
+             */
             id?: number;
+            /** @description URL-friendly slug for the page (e.g., "resources", "contact-us") */
             slug?: string;
+            /** @description Page title displayed in browser and UI */
             title?: string;
+            /** @description Sanitized HTML content of the page */
             content?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Timestamp of last update (UTC)
+             */
             updatedAt?: string;
+            /** @description Email of user who last modified the page */
             lastModifiedBy?: string;
+            /** @description Whether the page is published and visible to public */
             isPublished?: boolean;
         };
+        /** @description DTO for content revision responses
+         *     Used for GET /api/cms/pages/{id}/revisions */
         ContentRevisionDto: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Unique identifier for the revision
+             */
             id?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description ID of the content page this revision belongs to
+             */
             contentPageId?: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Timestamp when this revision was created (UTC)
+             */
             createdAt?: string;
+            /** @description Email of user who created this revision */
             createdBy?: string;
+            /** @description Scene name of user who created this revision */
             createdBySceneName?: string;
+            /** @description Optional description of what changed */
             changeDescription?: null | string;
+            /** @description Preview of content (first 200 characters) */
             contentPreview?: string;
+            /** @description Title at the time of this revision */
             title?: string;
+            /** @description Full content of the revision (only included when explicitly requested) */
             fullContent?: null | string;
         };
+        /** @description Request model for copying an existing event with a new date and title */
         CopyEventRequest: {
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description New start date for the copied event (must be in the future)
+             */
             newStartDate: string;
+            /** @description New title for the copied event */
             newTitle: string;
         };
+        /** @description Request model for creating a new event
+         *     Follows vertical slice architecture pattern */
         CreateEventRequest: {
             title: string;
             shortDescription?: null | string;
@@ -4345,13 +4673,21 @@ export interface components {
             venueId: number;
             /** Format: int32 */
             capacity: number;
+            /** @description Whether to publish the event immediately (default: false for draft) */
             isPublished?: boolean;
+            /** @description Whether free RSVPs are enabled for this event */
             allowRsvps: boolean;
+            /** @description Whether ticket purchase is mandatory to attend */
             requireTicketPurchase: boolean;
+            /** @description Whether only vetted members can attend this event */
             vettedMembersOnly: boolean;
+            /** @description List of sessions within this event (optional) */
             sessions?: null | components["schemas"]["SessionDto"][];
+            /** @description List of ticket types available for this event (optional) */
             ticketTypes?: null | components["schemas"]["TicketTypeDto"][];
+            /** @description List of volunteer positions for this event (optional) */
             volunteerPositions?: null | components["schemas"]["EventVolunteerPositionDto"][];
+            /** @description List of teacher/organizer user IDs (optional) */
             teacherIds?: null | string[];
             /** Format: double */
             registrationOpenHours?: null | number;
@@ -4364,29 +4700,53 @@ export interface components {
             /** Format: double */
             volunteerCancellationCloseHours?: null | number;
         };
+        /** @description Request model for submitting new safety incident */
         CreateIncidentRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Reporter user ID (null for anonymous reports)
+             */
             reporterId?: null | string;
+            /** @description Short descriptive title for the incident */
             title?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the incident occurred
+             */
             incidentDate?: string;
+            /** @description Location where incident occurred (required only when WhereOccurred = OtherSpace) */
             location?: null | string;
+            /** @description Detailed description of the incident */
             description?: string;
+            /** @description Information about involved parties (optional) */
             involvedParties?: null | string;
+            /** @description Witness information (optional) */
             witnesses?: null | string;
+            /** @description Whether this is an anonymous report */
             isAnonymous?: boolean;
+            /** @description Whether reporter requests follow-up contact */
             requestFollowUp?: boolean;
+            /** @description Contact email for identified reports */
             contactEmail?: null | string;
+            /** @description Contact name for identified reports */
             contactName?: null | string;
+            /** @description Type of incident being reported */
             type?: components["schemas"]["IncidentType"];
+            /** @description Where the incident occurred */
             whereOccurred?: components["schemas"]["WhereOccurred"];
+            /** @description Event name if incident occurred at an event (optional) */
             eventName?: null | string;
             hasSpokenToPerson?: null | components["schemas"]["SpokenToPersonStatus"];
+            /** @description Reporter's desired outcomes (free-text) */
             desiredOutcomes?: null | string;
+            /** @description Reporter's preference for future interactions with involved person */
             futureInteractionPreference?: null | string;
+            /** @description Whether reporter wants to remain anonymous during the investigation */
             anonymousDuringInvestigation?: null | boolean;
+            /** @description Whether reporter wants to remain anonymous in the final report */
             anonymousInFinalReport?: null | boolean;
         };
+        /** @description Request for creating application notes */
         CreateNoteRequest: {
             content: string;
             /** Format: int32 */
@@ -4394,129 +4754,308 @@ export interface components {
             isPrivate?: boolean;
             tags?: string[];
         };
+        /** @description Request model for creating an RSVP */
         CreateRSVPRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Event ID to RSVP for
+             */
             eventId: string;
+            /** @description Optional notes from the participant */
             notes?: null | string;
+            /** @description Event Waiver acceptance - REQUIRED for RSVP */
             eventWaiverAccepted: boolean;
         };
+        /** @description Request model for creating test events programmatically
+         *     ONLY available in Development/Test environments */
         CreateTestEventRequest: {
+            /** @description Event title */
             title: string;
+            /** @description Brief summary for event cards (optional) */
             shortDescription?: null | string;
+            /** @description Full detailed event description */
             description?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Event start date/time in UTC
+             */
             startDate: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Event end date/time in UTC
+             */
             endDate: string;
+            /** @description Whether free RSVPs are enabled (default: false for test events) */
             allowRsvps?: boolean;
+            /** @description Whether ticket purchase is mandatory (default: true for test events) */
             requireTicketPurchase?: boolean;
+            /** @description Whether only vetted members can attend (default: false) */
             vettedMembersOnly?: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Event status (Draft = 0, Published = 1, Cancelled = 2)
+             *     Default: Published
+             */
             status?: number;
+            /** @description Whether event is published/visible
+             *     Default: true */
             isPublished?: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Maximum capacity for the event
+             *     Default: 20
+             */
             capacity?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Venue ID (optional, can be null for tests)
+             *     Default: 1 (test venue)
+             */
             venueId?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before session when registration opens.
+             *     Positive = before session start (e.g., 168 = 7 days before)
+             *     NULL = no restriction (always open)
+             */
             registrationOpenHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after session when registration closes.
+             *     Positive = before session start (e.g., 12 = 12 hours before)
+             *     Negative = after session start (e.g., -2 = 2 hours after)
+             *     NULL = no restriction (never closes)
+             */
             registrationCloseHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after session when cancellation closes.
+             *     Positive = before session start (e.g., 24 = 24 hours before)
+             *     Negative = after session start (e.g., -2 = 2 hours after)
+             *     NULL = no restriction (always allowed)
+             */
             cancellationCloseHours?: null | number;
         };
+        /** @description Request model for creating test sessions programmatically
+         *     ONLY available in Development/Test environments */
         CreateTestSessionRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Parent event ID
+             */
             eventId: string;
+            /** @description Session identifier code (e.g., "S1", "Day1")
+             *     Default: auto-generated */
             sessionCode?: null | string;
+            /** @description Session name (e.g., "Morning Session") */
             name: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session start time in UTC
+             */
             startTime: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session end time in UTC
+             */
             endTime: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Maximum capacity for this session
+             *     Default: 20
+             */
             capacity?: number;
         };
+        /** @description Request model for creating test ticket purchases
+         *     Used in E2E tests to create isolated payment data */
         CreateTestTicketPurchaseRequest: {
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Amount for the ticket purchase (required)
+             */
             totalPrice: number;
+            /** @description Payment method (defaults to 'PayPal') */
             paymentMethod?: string;
+            /** @description Payment status (defaults to 'Completed') */
             paymentStatus?: string;
+            /** @description Optional transaction reference
+             *     If not provided, a unique one will be generated */
             paymentReference?: null | string;
+            /** @description Optional notes for the purchase */
             notes?: null | string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description User ID for the purchase (defaults to admin user)
+             */
             userId?: null | string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Ticket type ID (if not provided, uses first available ticket type)
+             */
             ticketTypeId?: null | string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Quantity of tickets (defaults to 1)
+             */
             quantity?: number;
+            /** @description Whether to include mock encrypted PayPal Capture ID
+             *     Required for PayPal refund testing (defaults to true for PayPal payments) */
             includePayPalCaptureId?: null | boolean;
+            /** @description Optional unique event name for test isolation
+             *     If provided, creates/finds an event with this name */
             eventName?: null | string;
         };
+        /** @description Request model for creating test ticket types programmatically
+         *     ONLY available in Development/Test environments */
         CreateTestTicketTypeRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Parent event ID
+             */
             eventId: string;
+            /** @description Ticket type name (e.g., "Early Bird", "Regular") */
             name: string;
+            /** @description Description of what this ticket includes */
             description?: null | string;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Fixed price for this ticket type
+             */
             price: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Pricing type (Fixed = 0, SlidingScale = 1)
+             *     Default: Fixed
+             */
             pricingType?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of tickets available
+             *     Default: 100
+             */
             available?: number;
+            /** @description Session IDs this ticket covers (optional)
+             *     Can be empty for event-wide tickets */
             sessionIds?: null | string[];
         };
+        /** @description Request model for creating test users programmatically
+         *     ONLY available in Development/Test environments */
         CreateTestUserRequest: {
+            /** @description User's email address (must be unique) */
             email: string;
+            /** @description User's password (will be hashed using ASP.NET Core Identity hasher) */
             password: string;
+            /** @description User's scene name (display name in the community) */
             sceneName: string;
+            /** @description User's first name (optional) */
             firstName?: null | string;
+            /** @description User's last name (optional) */
             lastName?: null | string;
+            /** @description User's role (Guest, Member, VettedMember, Teacher, Admin)
+             *     Default: Member */
             role?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Date of birth (required for Age verification)
+             *     Format: YYYY-MM-DD
+             */
             dateOfBirth?: null | string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description User's vetting status (0-6 enum value)
+             *     0 = UnderReview, 3 = Approved (vetted)
+             *     Default: 0 (UnderReview)
+             */
             vettingStatus?: number;
+            /** @description User's bio (optional) */
             bio?: null | string;
+            /** @description User's pronouns (optional) */
             pronouns?: null | string;
         };
+        /** @description Request model for creating test vetting applications programmatically
+         *     ONLY available in Development/Test environments */
         CreateTestVettingApplicationRequest: {
+            /** @description User ID for the applicant */
             userId: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Vetting workflow status
+             *     UnderReview = 0, InterviewApproved = 1, FinalReview = 2, Approved = 3, Denied = 4, OnHold = 5, Withdrawn = 6
+             *     Default: UnderReview
+             */
             workflowStatus?: number;
+            /** @description Experience description (optional) */
             experienceDescription?: null | string;
+            /** @description Why applicant wants to join (optional) */
             whyJoinCommunity?: null | string;
+            /** @description How applicant heard about the community (optional) */
             howDidYouHearAboutUs?: null | string;
         };
+        /** @description Request model for creating test volunteer positions programmatically
+         *     ONLY available in Development/Test environments */
         CreateTestVolunteerPositionRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Parent event ID
+             */
             eventId: string;
+            /** @description Position title */
             title: string;
+            /** @description Description of the volunteer role */
             description?: null | string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of volunteer slots needed
+             *     Default: 3
+             */
             slotsNeeded?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of volunteer slots already filled
+             *     Default: 0
+             */
             slotsFilled?: number;
+            /** @description Whether position is visible on public event page
+             *     Default: true */
             isPublicFacing?: boolean;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Specific session ID (optional, null for event-wide positions)
+             */
             sessionId?: null | string;
         };
+        /** @description Request model for purchasing one or more tickets for a class event */
         CreateTicketPurchaseRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Event ID to purchase ticket for
+             */
             eventId: string;
+            /** @description Ticket type IDs to purchase in a single transaction */
             ticketTypeIds: string[];
+            /** @description Optional notes from the participant */
             notes?: null | string;
+            /** @description Payment method details (for future payment integration)
+             *     Currently stubbed for basic ticket tracking */
             paymentMethodId?: null | string;
+            /** @description Event Waiver acceptance - REQUIRED for ticket purchase */
             eventWaiverAccepted: boolean;
         };
+        /** @description Request to create a new user note */
         CreateUserNoteRequest: {
             content?: string;
             noteType?: string;
         };
+        /** @description Request model for creating a new venue. */
         CreateVenueRequest: {
+            /** @description Venue name (required, max 100 characters) */
             name?: string;
+            /** @description Directions to the venue (optional, max 500 characters) */
             directions?: null | string;
+            /** @description Additional venue information for attendees (optional, max 1000 characters) */
             venueInformation?: null | string;
+            /** @description General location (optional, max 100 characters)
+             *     Example: "Salem, MA" */
             location?: null | string;
         };
         DailyLogSummaryDto: {
@@ -4528,6 +5067,7 @@ export interface components {
             count?: number;
             metadata?: null | string;
         };
+        /** @description Response model for event check-in dashboard */
         DashboardResponse: {
             eventId?: string;
             eventTitle?: string;
@@ -4538,52 +5078,106 @@ export interface components {
             staffOnDuty?: components["schemas"]["StaffMember"][];
             syncStatus?: components["schemas"]["SyncStatus"];
         };
+        /** @description Dashboard statistics and recent incidents for admin interface */
         DashboardStatisticsResponse: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of unassigned incidents (CoordinatorId IS NULL, Status != Closed)
+             */
             unassignedCount?: number;
+            /** @description Whether there are old unassigned incidents (&gt; 7 days) */
             hasOldUnassigned?: boolean;
+            /** @description Recent incidents (last 5, excluding Closed) */
             recentIncidents?: components["schemas"]["IncidentSummaryDto"][];
         };
+        /** @description DTO for checking if a session can be deleted
+         *     Returns information about what would be affected by the deletion */
         DeleteSessionCheckDto: {
+            /** @description Whether the session can be deleted */
             canDelete?: boolean;
+            /** @description Reason why deletion is blocked
+             *     Possible values: "ticketsSold", "onlySession", "cascadeBlocking" */
             blockReason?: null | string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of active RSVPs for this session
+             */
             rsvpCount?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of tickets sold for this session
+             */
             ticketsSoldCount?: number;
+            /** @description List of volunteer shifts that would be affected */
             volunteerShifts?: null | string[];
+            /** @description Ticket types that would be affected by deletion */
             affectedTicketTypes?: null | components["schemas"]["AffectedTicketTypeDto"][];
         };
+        /** @description DTO for the result of deleting a session */
         DeleteSessionResultDto: {
+            /** @description Whether the deletion was successful */
             success?: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of RSVPs that were cancelled
+             */
             rsvpsCancelled?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of volunteer signups that were cancelled
+             */
             volunteerSignupsCancelled?: number;
+            /** @description List of ticket type names that were deleted */
             deletedTicketTypes?: null | string[];
         };
+        /** @description DTO for checking if a ticket type can be deleted */
         DeleteTicketTypeCheckDto: {
+            /** @description Whether the ticket type can be deleted */
             canDelete?: boolean;
+            /** @description Reason why deletion is blocked
+             *     Possible values: "ticketsSold" */
             blockReason?: null | string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of tickets sold for this ticket type
+             */
             ticketsSoldCount?: number;
         };
+        /** @description DTO for the result of deleting a ticket type */
         DeleteTicketTypeResultDto: {
+            /** @description Whether the deletion was successful */
             success?: boolean;
         };
+        /** @description Detailed health check response with additional metrics
+         *     Example of extended response model showing Entity Framework capabilities */
         DetailedHealthResponse: {
+            /** @description Database server version information */
             databaseVersion?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of users active in the last 30 days
+             */
             activeUserCount?: number;
+            /** @description Current runtime environment */
             environment?: string;
+            /** @description Overall health status of the API */
             status?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Timestamp when health check was performed
+             */
             timestamp?: string;
+            /** @description Database connectivity status */
             databaseConnected?: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Total number of users in the system
+             */
             userCount?: number;
+            /** @description API version */
             version?: string;
         };
+        /** @description DTO for EmailTriggerLog entries (admin visibility into automated email sends) */
         EmailTriggerLogDto: {
             /** Format: uuid */
             id?: string;
@@ -4607,27 +5201,62 @@ export interface components {
             status?: string;
             errorMessage?: null | string;
         };
+        /** @description Enhanced DTO for user's participation status in an event
+         *     Provides detailed status with boolean flags and nested objects for RSVP and tickets
+         *     Matches frontend expectations for ParticipationCard component
+         *     Auto-generated as TypeScript interface by NSwag */
         EnhancedParticipationStatusDto: {
+            /** @description Whether user has an active RSVP for this event */
             hasRSVP?: boolean;
+            /** @description Whether user has an active ticket for this event */
             hasTicket?: boolean;
+            /** @description Whether user can create a new RSVP for this event
+             *     False if already has RSVP or event is at capacity */
             canRSVP?: boolean;
+            /** @description Whether user can purchase a ticket for this event
+             *     False if already has ticket or event is at capacity */
             canPurchaseTicket?: boolean;
+            /** @description Whether user can cancel their RSVP based on event timing rules
+             *     Determined by event's CancellationCloseHours */
             canCancelRSVP?: boolean;
+            /** @description Whether user can cancel their ticket based on event timing rules
+             *     Determined by event's CancellationCloseHours */
             canCancelTicket?: boolean;
+            /** @description Message explaining when ticket purchase is available (e.g., "Sales open Dec 15", "Sales closed")
+             *     Only populated when CanPurchaseTicket is false due to timing restrictions
+             *     Null when CanPurchaseTicket is true or when user already has a ticket */
             ticketPurchaseMessage?: null | string;
             rsvp?: null | components["schemas"]["RsvpDetailsDto"];
             ticket?: null | components["schemas"]["TicketDetailsDto"];
             capacity?: null | components["schemas"]["CapacityInfoDto"];
+            /** @description Session IDs the user already has tickets for
+             *     Used to prevent duplicate session purchases and show partial ownership */
             ownedSessionIds?: string[];
+            /** @description Maps TicketPurchaseId to its associated SessionIds
+             *     Used for selective ticket cancellation - allows frontend to group sessions by ticket purchase
+             *     Key: TicketPurchase.Id, Value: List of SessionIds owned by that purchase */
             ticketPurchaseSessionMap?: {
                 [key: string]: string[];
             };
+            /** @description Detailed ticket purchase information including ticket type name
+             *     Used for displaying ticket names in cancel mode
+             *     Key: TicketPurchase.Id, Value: TicketPurchaseInfoDto with name and session IDs */
             ticketPurchases?: {
                 [key: string]: components["schemas"]["TicketPurchaseInfoDto"];
             };
+            /** @description Whether user can purchase tickets for additional sessions
+             *     (has available sessions they don't own, within timing window) */
             canPurchaseAdditionalSessions?: boolean;
+            /** @description Per-session availability information (for multi-session events) */
             sessionAvailability?: components["schemas"]["SessionAvailabilityDto"][];
         };
+        /** @description Data Transfer Object for Event information.
+         *     Used in the Events feature vertical slice.
+         *
+         *     CORRECT Business Logic:
+         *     - RSVP-enabled events: RegistrationCount = CurrentRSVPs (everyone must RSVP, tickets are optional support)
+         *     - Ticket-required events: RegistrationCount = CurrentTickets (no RSVPs, only paid tickets)
+         *     - Tickets are additional support/donations for RSVP-enabled events, not additional attendees */
         EventDto: {
             id?: string;
             title?: string;
@@ -4638,36 +5267,95 @@ export interface components {
             startDate?: string;
             /** Format: date-time */
             endDate?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Venue ID reference - references the Venues table
+             *     All events must have an assigned venue for location information
+             */
             venueId?: number;
+            /** @description Public venue location (city, state) for privacy-aware display
+             *     Shown to all users before RSVP/ticket purchase
+             *     Example: "Salem, MA" */
             venueLocation?: null | string;
             /** Format: int32 */
             capacity?: number;
+            /** @description Whether the event is published and visible to the public */
             isPublished?: boolean;
+            /** @description Whether free RSVPs are enabled for this event */
             allowRsvps?: boolean;
+            /** @description Whether ticket purchase is mandatory to attend */
             requireTicketPurchase?: boolean;
+            /** @description Whether only vetted members can attend this event */
             vettedMembersOnly?: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Total confirmed registrations/attendees
+             *     - RSVP-enabled events: equals CurrentRSVPs (primary attendance metric)
+             *     - Ticket-required events: equals CurrentTickets (only paid attendance)
+             *     Frontend expects this field for displaying event capacity/availability
+             */
             registrationCount?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of free RSVPs (only for RSVP-enabled events, 0 for ticket-required events)
+             */
             currentRSVPs?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of paid ticket registrations
+             *     - For ticket-required events: equals RegistrationCount (all paid)
+             *     - For RSVP-enabled events: optional paid tickets in addition to free RSVPs
+             */
             currentTickets?: number;
+            /** @description List of sessions within this event
+             *     Empty for single-session events, populated for multi-session events */
             sessions?: components["schemas"]["SessionDto"][];
+            /** @description List of ticket types available for this event
+             *     Includes pricing, availability, and session associations */
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
+            /** @description List of volunteer positions for this event
+             *     Includes both event-wide and session-specific volunteer opportunities */
             volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][];
+            /** @description List of teacher/organizer user IDs
+             *     References to ApplicationUser entities who are teaching/organizing this event */
             teacherIds?: string[];
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when RSVP/Ticket registration opens.
+             *     Positive = before event, Negative = after event (max -24).
+             *     NULL = no restriction (can register any time before event).
+             */
             registrationOpenHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when RSVP/Ticket registration closes.
+             *     Positive = before event, Negative = after event (max -24).
+             *     NULL = no restriction (can register until event starts).
+             */
             registrationCloseHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when RSVP/Ticket cancellation closes.
+             *     Positive = before event, Negative = after event (max -24).
+             *     NULL = no restriction (can cancel until event starts).
+             */
             cancellationCloseHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when volunteer signup closes.
+             *     Positive = before event, Negative = after event (max -24).
+             *     NULL = no restriction (can signup until event starts).
+             */
             volunteerRegistrationCloseHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when volunteer cancellation closes.
+             *     Positive = before event, Negative = after event (max -24).
+             *     NULL = no restriction (can cancel until event starts).
+             */
             volunteerCancellationCloseHours?: null | number;
         };
+        /** @description Response DTO for event-specific email template */
         EventEmailTemplateDto: {
             /** Format: uuid */
             id?: string;
@@ -4681,6 +5369,7 @@ export interface components {
             plainTextBody?: string;
             targetSessions?: string[];
             isCustomized?: boolean;
+            /** @description Resolved trigger configuration (override value if set, otherwise global value) */
             triggerType?: null | string;
             triggerEnabled?: boolean;
             /** Format: int32 */
@@ -4688,6 +5377,7 @@ export interface components {
             /** Format: int32 */
             timingOffsetHours?: null | number;
             recipientGroup?: null | string;
+            /** @description Whether any trigger settings are overridden at the event level */
             hasTriggerOverrides?: boolean;
             /** Format: date-time */
             createdAt?: string;
@@ -4697,12 +5387,16 @@ export interface components {
             updatedBy?: string;
             updatedByEmail?: string;
         };
+        /** @description Event history record for a user */
         EventHistoryRecord: {
             /** Format: uuid */
             eventId?: string;
             eventTitle?: string;
+            /** @description Whether free RSVPs are enabled for this event */
             allowRsvps?: boolean;
+            /** @description Whether ticket purchase is mandatory to attend */
             requireTicketPurchase?: boolean;
+            /** @description Whether only vetted members can attend */
             vettedMembersOnly?: boolean;
             /** Format: date-time */
             eventDate?: string;
@@ -4715,6 +5409,7 @@ export interface components {
             /** Format: double */
             amountPaid?: null | number;
         };
+        /** @description Paginated event history response */
         EventHistoryResponse: {
             events?: components["schemas"]["EventHistoryRecord"][];
             /** Format: int32 */
@@ -4726,6 +5421,8 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        /** @description Lightweight DTO for the admin events list table.
+         *     Uses SQL-level COUNT subqueries instead of loading full object graph. */
         EventListItemDto: {
             id?: string;
             title?: string;
@@ -4745,6 +5442,8 @@ export interface components {
             endDate?: null | string;
             sessions?: components["schemas"]["EventListSessionDto"][];
         };
+        /** @description Minimal session DTO for the admin events list table.
+         *     Contains only the fields needed for date/time display. */
         EventListSessionDto: {
             id?: string;
             /** Format: date-time */
@@ -4754,39 +5453,96 @@ export interface components {
             /** Format: date-time */
             startDate?: string;
         };
+        /** @description DTO for admin view of event participations.
+         *     Includes refund history so admins can see past refunds before issuing new ones.
+         *     Auto-generated as TypeScript interface by NSwag. */
         EventParticipationDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Participation ID
+             */
             id?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description User ID
+             */
             userId?: string;
+            /** @description User's scene name */
             userSceneName?: string;
+            /** @description User's email address */
             userEmail?: string;
+            /** @description Type of attendance (RSVP or Ticket) */
             participationType?: components["schemas"]["AttendanceType"];
+            /** @description Current status of attendance */
             status?: components["schemas"]["AttendanceStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When user registered for the event
+             */
             participationDate?: string;
+            /** @description Optional notes from participant */
             notes?: null | string;
+            /** @description Whether this participation can be cancelled */
             canCancel?: boolean;
+            /** @description Flexible metadata for additional information (e.g., purchase amount)
+             *     Stored as JSONB in PostgreSQL */
             metadata?: null | string;
+            /** @description Whether the attendee has checked in to the event
+             *     Determined by presence of EventAttendees record with RegistrationStatus = 'checked-in' or 'confirmed' */
             hasCheckedIn?: boolean;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the attendee checked in (if applicable)
+             *     Populated from EventAttendees.UpdatedAt when RegistrationStatus changed to 'checked-in'
+             */
             checkInTime?: null | string;
+            /** @description Ticket type name (for ticket purchases only)
+             *     Null for RSVPs */
             ticketTypeName?: null | string;
+            /** @description Comma-separated list of session names this ticket/RSVP applies to
+             *     "All Sessions" if no specific sessions or event has no sessions */
             sessionNames?: string;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Amount paid for this participation (from TicketPurchase.TotalPrice)
+             *     Null for free RSVPs (no associated TicketPurchase)
+             *     Decimal value for tickets (includes donations on social events)
+             */
             amountPaid?: null | number;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description TicketPurchase ID for refund processing
+             *     Null for free RSVPs (no associated TicketPurchase)
+             *     Required by frontend to call /api/payments/transactions/{transactionId}/refund endpoint
+             */
             ticketId?: null | string;
+            /** @description Payment method used for this purchase (PayPal, Venmo, Cash)
+             *     Null for free RSVPs */
             paymentMethod?: null | string;
+            /** @description List of session names the attendee has checked into
+             *     Empty list if not checked into any sessions */
             checkedInSessions?: string[];
+            /** @description History of all refunds issued against this ticket purchase.
+             *     Empty for RSVPs (no associated TicketPurchase) or tickets with no refunds.
+             *     Ordered by ProcessedAt descending (most recent first). */
             refundHistory?: components["schemas"]["RefundHistoryDto"][];
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Total amount already refunded for this ticket purchase.
+             *     Sum of all Completed refunds. 0 for RSVPs or tickets with no refunds.
+             */
             totalRefunded?: number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Remaining refundable amount (AmountPaid - TotalRefunded).
+             *     0 for RSVPs, fully refunded tickets, or free tickets.
+             */
             remainingRefundable?: number;
         };
         /** @enum {unknown} */
         EventRecipientGroup: "SessionAttendees" | "RSVPTicketHolders" | "SessionVolunteers" | "Teachers" | null;
+        /** @description Data Transfer Object for VolunteerPosition information - SIMPLE VERSION for admin/event management operations.
+         *     Used in the Events feature vertical slice for CRUD operations on events and their volunteer positions. */
         EventVolunteerPositionDto: {
             id?: string;
             title?: string;
@@ -4796,34 +5552,68 @@ export interface components {
             /** Format: int32 */
             slotsFilled?: number;
             sessionId?: null | string;
+            /** @description Start time for this volunteer shift (HH:mm format) */
             startTime?: null | string;
+            /** @description End time for this volunteer shift (HH:mm format) */
             endTime?: null | string;
+            /** @description Whether this position is visible on the public event page */
             isPublicFacing?: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Gets remaining volunteer slots needed
+             */
             slotsRemaining?: number;
+            /** @description Gets whether all volunteer slots are filled */
             isFullyStaffed?: boolean;
         };
+        /** @description Request model for initiating password reset - Phase 3: Password Reset */
         ForgotPasswordRequest: {
+            /** @description User's email address to send password reset link */
             email: string;
         };
+        /** @description Request to generate a new check-in session token
+         *     Admin-only endpoint */
         GenerateTokenRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Event ID to generate token for
+             */
             eventId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Session ID to generate token for (backwards compatibility)
+             *     If provided and SessionIds is empty, generates single-session token
+             *     If SessionIds is provided, this field is ignored
+             */
             sessionId?: null | string;
+            /** @description Multiple session IDs for multi-session tokens (preferred)
+             *     If provided, SessionId is ignored
+             *     Allows one token to grant access to multiple sessions (e.g., morning + afternoon) */
             sessionIds?: null | string[];
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Token expiration time in hours (optional, defaults to 12 if not provided)
+             *     Supports fractional hours for testing (e.g., 0.001 = 3.6 seconds)
+             */
             expirationHours?: null | number;
         };
+        /** @description Response DTO for global email template
+         *     Auto-generates TypeScript interface via NSwag */
         GlobalEmailTemplateDto: {
             /** Format: uuid */
             id?: string;
+            /** @description Email category: Vetting, Events, Admin, Incident, AdHoc */
             category?: string;
+            /** @description Template type within category (e.g., "Confirmation") */
             templateType?: string;
+            /** @description User-editable display title for the template.
+             *     Shown at the top of template cards and in the editor header. */
             title?: string;
             subject?: string;
             htmlBody?: string;
             plainTextBody?: string;
+            /** @description Available variables for this template
+             *     Example: ["{{attendee_name}}", "{{event_title}}"] */
             variables?: string[];
             isActive?: boolean;
             /** Format: int32 */
@@ -4835,50 +5625,107 @@ export interface components {
             /** Format: uuid */
             updatedBy?: string;
             updatedByEmail?: string;
+            /** @description How the template is triggered: Manual, FixedEvent, or TimeBased */
             triggerType?: components["schemas"]["TemplateTriggerType"];
+            /** @description Whether automatic triggering is enabled */
             triggerEnabled?: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Days offset for time-based triggers
+             *     Positive: days BEFORE session start (e.g., 3 = 3 days before)
+             *     Negative: days AFTER session start (e.g., -2 = 2 days after)
+             *     Null: not applicable for non-TimeBased triggers
+             */
             timingOffsetDays?: null | number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Hours offset for sub-day precision in time-based triggers
+             *     Used with TimingOffsetDays: totalOffsetHours = (TimingOffsetDays ?? 0) * 24 + (TimingOffsetHours ?? 0)
+             */
             timingOffsetHours?: null | number;
             recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
+        /** @description Response after updating Google Drive links */
         GoogleDriveUpdateResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Incident ID
+             */
             id?: string;
+            /** @description Updated folder URL */
             googleDriveFolderUrl?: null | string;
+            /** @description Updated final report URL */
             googleDriveFinalReportUrl?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Last updated timestamp
+             */
             lastUpdatedAt?: string;
+            /** @description Whether system note was created */
             systemNoteCreated?: boolean;
         };
+        /** @description Basic health check response DTO
+         *     Example of simple response model for NSwag type generation */
         HealthResponse: {
+            /** @description Overall health status of the API */
             status?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Timestamp when health check was performed
+             */
             timestamp?: string;
+            /** @description Database connectivity status */
             databaseConnected?: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Total number of users in the system
+             */
             userCount?: number;
+            /** @description API version */
             version?: string;
         };
+        /** @description Data transfer object for incident notes */
         IncidentNoteDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Note ID
+             */
             id?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Related incident ID
+             */
             incidentId?: string;
+            /** @description Note content (decrypted) */
             content?: string;
+            /** @description Note type: Manual or System */
             type?: components["schemas"]["IncidentNoteType"];
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Author user ID (NULL for system notes)
+             */
             authorId?: null | string;
+            /** @description Author name (NULL for system notes) */
             authorName?: null | string;
+            /** @description Optional tags (comma-separated) */
             tags?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When note was created (UTC)
+             */
             createdAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When note was last updated (UTC), NULL if never edited
+             */
             updatedAt?: null | string;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Type of incident note
+         * @enum {unknown}
+         */
         IncidentNoteType: "Manual" | "System";
+        /** @description Complete incident details for safety team */
         IncidentResponse: {
             /** Format: uuid */
             id?: string;
@@ -4922,15 +5769,27 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Incident status workflow (5-stage process)
+         *     Migration from 4-stage: New→ReportSubmitted, InProgress→InformationGathering, Resolved/Archived→Closed
+         * @enum {unknown}
+         */
         IncidentStatus: "ReportSubmitted" | "InformationGathering" | "ReviewingFinalReport" | "OnHold" | "Closed";
+        /** @description Response for anonymous incident status tracking */
         IncidentStatusResponse: {
+            /** @description Incident reference number */
             referenceNumber?: string;
+            /** @description Current status */
             status?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
             lastUpdated?: string;
+            /** @description Whether reporter can provide additional information */
             canProvideMoreInfo?: boolean;
         };
+        /** @description Incident summary for list views */
         IncidentSummaryDto: {
             /** Format: uuid */
             id?: string;
@@ -4960,6 +5819,7 @@ export interface components {
             /** Format: int32 */
             noteCount?: number;
         };
+        /** @description Summary for incident listings */
         IncidentSummaryResponse: {
             /** Format: uuid */
             id?: string;
@@ -4976,7 +5836,10 @@ export interface components {
             assignedTo?: null | string;
             assignedUserName?: null | string;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Type of safety incident being reported
+         * @enum {unknown}
+         */
         IncidentType: "SafetyConcern" | "BoundaryViolation" | "Harassment" | "OtherConcern";
         LogEntryDto: {
             /** Format: int64 */
@@ -4993,18 +5856,35 @@ export interface components {
             correlationId?: null | string;
             requestPath?: null | string;
         };
+        /** @description Login request DTO for user authentication
+         *     Example of simple request model for vertical slice authentication feature */
         LoginRequest: {
+            /** @description User's email address or scene name */
             emailOrSceneName: string;
+            /** @description User's password */
             password: string;
+            /** @description Optional return URL to redirect to after successful login
+             *     Will be validated against OWASP security standards to prevent open redirect attacks
+             *     If not provided or validation fails, defaults to /dashboard */
             returnUrl?: null | string;
         };
+        /** @description Login response with user data and token */
         LoginResponse: {
+            /** @description JWT token for API authentication */
             token?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the token expires
+             */
             expiresAt?: string;
+            /** @description User information */
             user?: components["schemas"]["AuthUserResponse"];
+            /** @description Validated return URL to redirect to after successful login
+             *     Null if no return URL was provided or validation failed (client should default to /dashboard)
+             *     Guaranteed to be safe (OWASP-compliant validation applied) */
             returnUrl?: null | string;
         };
+        /** @description Paginated response for log queries. */
         LogQueryResponse: {
             items?: components["schemas"]["LogEntryDto"][];
             /** Format: int32 */
@@ -5018,6 +5898,7 @@ export interface components {
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
         };
+        /** @description Data for manual entry (walk-in) attendees */
         ManualEntryData: {
             name: string;
             email: string;
@@ -5026,6 +5907,7 @@ export interface components {
             accessibilityNeeds?: null | string;
             hasCompletedWaiver?: boolean;
         };
+        /** @description Comprehensive member details for admin view */
         MemberDetailsResponse: {
             /** Format: uuid */
             userId?: string;
@@ -5056,6 +5938,7 @@ export interface components {
             vettingStatusDisplay?: string;
             hasVettingApplication?: boolean;
         };
+        /** @description Safety incident involving a user */
         MemberIncidentRecord: {
             /** Format: uuid */
             incidentId?: string;
@@ -5072,23 +5955,40 @@ export interface components {
             witnesses?: null | string;
             userInvolvementType?: string;
         };
+        /** @description Member incidents response */
         MemberIncidentsResponse: {
             incidents?: components["schemas"]["MemberIncidentRecord"][];
             /** Format: int32 */
             totalCount?: number;
         };
+        /** @description Unified note history response combining UserNotes and VettingAuditLogs for complete audit trail
+         *     Provides chronological view of both general member notes AND vetting workflow history */
         MemberNoteHistoryResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Note ID
+             */
             id?: string;
+            /** @description Source of the note: "UserNote" or "VettingAuditLog" */
             noteSource?: string;
+            /** @description Content of the note */
             content?: string;
+            /** @description For UserNotes: note type (Vetting, General, etc.)
+             *     For VettingAuditLogs: action (Status Changed, Reviewer Comment, etc.) */
             type?: string;
+            /** @description Author scene name (null for system-generated actions) */
             authorSceneName?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Timestamp when note/action occurred
+             */
             timestamp?: string;
+            /** @description For VettingAuditLogs: old value (status changes) */
             oldValue?: null | string;
+            /** @description For VettingAuditLogs: new value (status changes) */
             newValue?: null | string;
         };
+        /** @description Response for membership hold/reinstatement operations */
         MembershipHoldResponse: {
             /** Format: int32 */
             newStatus: number;
@@ -5096,47 +5996,95 @@ export interface components {
             /** Format: date-time */
             changedAt: string;
         };
+        /** @description Response for current user's application status check */
         MyApplicationStatusResponse: {
+            /** @description Whether the user has an existing application */
             hasApplication?: boolean;
             application?: null | components["schemas"]["ApplicationStatusInfo"];
         };
+        /** @description Detail view of user's own incident report (limited fields for privacy) */
         MyReportDetailDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Incident ID
+             */
             id?: string;
+            /** @description Current status */
             status?: components["schemas"]["IncidentStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When incident occurred
+             */
             incidentDate?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When report was submitted
+             */
             reportedAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
             lastUpdatedAt?: string;
+            /** @description Location */
             location?: string;
+            /** @description Description (what user submitted, decrypted) */
             description?: string;
+            /** @description Involved parties (what user submitted, decrypted) */
             involvedParties?: null | string;
+            /** @description Witnesses (what user submitted, decrypted) */
             witnesses?: null | string;
+            /** @description Whether this is anonymous (should always be false for this endpoint) */
             isAnonymous?: boolean;
         };
+        /** @description Paginated response for user's reports */
         MyReportsPaginatedResponse: {
+            /** @description Report summaries on current page */
             reports?: components["schemas"]["MyReportSummaryDto"][];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Total count of user's reports
+             */
             totalCount?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Current page number
+             */
             currentPage?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Page size
+             */
             pageSize?: number;
         };
+        /** @description Summary of user's own incident reports (limited fields for privacy) */
         MyReportSummaryDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Incident ID
+             */
             id?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When incident occurred
+             */
             incidentDate?: string;
+            /** @description Location */
             location?: string;
+            /** @description Current status */
             status?: components["schemas"]["IncidentStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When report was submitted
+             */
             reportedAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
             lastUpdatedAt?: string;
         };
+        /** @description Response after creating note */
         NoteResponse: {
             /** Format: uuid */
             noteId?: string;
@@ -5144,9 +6092,13 @@ export interface components {
             createdAt?: string;
             confirmationMessage?: string;
         };
+        /** @description Response containing list of notes */
         NotesListResponse: {
+            /** @description List of notes (ordered by CreatedAt DESC) */
             notes?: components["schemas"]["IncidentNoteDto"][];
         };
+        /** @description Generic paged result wrapper for list operations
+         *     Consistent pagination across all Vetting endpoints */
         PagedResultOfApplicationSummaryDto: {
             items?: components["schemas"]["ApplicationSummaryDto"][];
             /** Format: int32 */
@@ -5160,17 +6112,32 @@ export interface components {
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
         };
+        /** @description Paginated response for incident list */
         PaginatedIncidentListResponse: {
+            /** @description Incident items on current page */
             items?: components["schemas"]["IncidentSummaryDto"][];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Total count of items matching filter
+             */
             totalCount?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Current page number
+             */
             page?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Page size
+             */
             pageSize?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Total pages
+             */
             totalPages?: number;
         };
+        /** @description Pagination information */
         PaginationInfo: {
             /** Format: int32 */
             page?: number;
@@ -5181,52 +6148,113 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        /** @description DTO for user's participation status in an event
+         *     Auto-generated as TypeScript interface by NSwag */
         ParticipationStatusDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Event ID
+             */
             eventId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description User ID
+             */
             userId?: string;
+            /** @description Type of attendance (RSVP or Ticket) */
             participationType?: components["schemas"]["AttendanceType"];
+            /** @description Current status of attendance */
             status?: components["schemas"]["AttendanceStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When user registered for the event
+             */
             participationDate?: string;
+            /** @description Optional notes from participant */
             notes?: null | string;
+            /** @description Whether this participation can be cancelled */
             canCancel?: boolean;
+            /** @description Flexible metadata for additional information (e.g., purchase amount)
+             *     Stored as JSONB in PostgreSQL */
             metadata?: null | string;
         };
+        /** @description Response containing paginated list of payment transactions */
         PaymentListResponse: {
+            /** @description List of payment transactions for current page */
             transactions?: components["schemas"]["PaymentTransactionDto"][];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Total number of transactions matching filters
+             */
             totalCount?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Current page number (1-indexed)
+             */
             page?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of results per page
+             */
             pageSize?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Total number of pages (calculated from TotalCount and PageSize)
+             */
             totalPages?: number;
         };
+        /** @description DTO representing a payment transaction for admin payment list */
         PaymentTransactionDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Payment unique identifier
+             */
             id?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Ticket ID associated with this payment (for refund operations)
+             */
             ticketId?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the payment was processed
+             */
             paymentDate?: string;
+            /** @description User's display name (SceneName or FirstName LastName or Email) */
             userName?: string;
+            /** @description User's email address */
             userEmail?: string;
+            /** @description Event title */
             eventName?: string;
+            /** @description Session name if ticket is for specific session (null if event-wide or no sessions) */
             sessionName?: null | string;
+            /** @description Payment method type (PayPal, Free, Venmo) */
             paymentMethod?: string;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Payment amount
+             */
             amount?: number;
+            /** @description Payment currency (default USD) */
             currency?: string;
+            /** @description Payment status (Paid, Refunded, Pending, Failed) */
             status?: string;
+            /** @description True if payment is eligible for refund (PayPal, Paid status, no existing refund) */
             isRefundable?: boolean;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Refund ID if payment has been refunded (null if not refunded)
+             */
             refundId?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Date when refund was processed (null if not refunded)
+             */
             refundDate?: null | string;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Amount remaining that can still be refunded (original amount - total refunded)
+             */
             remainingRefundableAmount?: number;
         };
         PayPalCheckoutCancelOrderRequest: {
@@ -5260,6 +6288,7 @@ export interface components {
         PayPalCheckoutCreateOrderResponse: {
             orderId?: string;
         };
+        /** @description Pending check-in for offline sync */
         PendingCheckIn: {
             localId: string;
             attendeeId: string;
@@ -5269,10 +6298,14 @@ export interface components {
             isManualEntry?: boolean;
             manualEntryData?: null | components["schemas"]["ManualEntryData"];
         };
+        /** @description Request to place membership on hold */
         PlaceMembershipOnHoldRequest: {
             reason: string;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Pricing type for ticket types
+         * @enum {unknown}
+         */
         PricingType: "Fixed" | "SlidingScale";
         ProblemDetails: {
             type?: null | string;
@@ -5282,6 +6315,7 @@ export interface components {
             detail?: null | string;
             instance?: null | string;
         };
+        /** @description Profile change history record for a user */
         ProfileChangeHistoryDto: {
             /** Format: date-time */
             changedAt?: string;
@@ -5289,6 +6323,7 @@ export interface components {
             oldValue?: null | string;
             newValue?: null | string;
         };
+        /** @description Protected welcome response model */
         ProtectedWelcomeResponse: {
             message?: string;
             user?: components["schemas"]["AuthUserResponse"];
@@ -5296,6 +6331,8 @@ export interface components {
             serverTime?: string;
             tokenClaims?: components["schemas"]["TokenClaims"];
         };
+        /** @description Simplified public application submission request for E2E testing
+         *     Minimal required fields for creating vetting applications via public API */
         PublicApplicationSubmissionRequest: {
             email: string;
             sceneName: string;
@@ -5310,6 +6347,7 @@ export interface components {
             pronouns?: null | string;
             additionalInfo?: null | string;
         };
+        /** @description Recent check-in information */
         RecentCheckIn: {
             attendeeId?: string;
             sceneName?: string;
@@ -5317,6 +6355,7 @@ export interface components {
             staffMemberName?: string;
             isManualEntry?: boolean;
         };
+        /** @description Reference details with response information */
         ReferenceDetailDto: {
             /** Format: uuid */
             id?: string;
@@ -5334,6 +6373,7 @@ export interface components {
             formExpiresAt?: null | string;
             response?: null | components["schemas"]["ReferenceResponseDto"];
         };
+        /** @description Reference response information */
         ReferenceResponseDto: {
             relationshipDuration?: string;
             experienceAssessment?: string;
@@ -5344,6 +6384,7 @@ export interface components {
             /** Format: date-time */
             respondedAt?: string;
         };
+        /** @description Summary of reference contact status */
         ReferenceStatusSummary: {
             name?: string;
             email?: string;
@@ -5353,34 +6394,67 @@ export interface components {
             /** Format: date-time */
             respondedAt?: null | string;
         };
+        /** @description DTO for individual refund records displayed in admin ticket tables and refund modals.
+         *     Provides a per-refund breakdown so admins can see the full refund history
+         *     before issuing additional refunds or cancellations.
+         *     Auto-generated as TypeScript interface by NSwag. */
         RefundHistoryDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Unique identifier for this refund record
+             */
             id?: string;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Refund amount in USD
+             */
             amount?: number;
+            /** @description Admin-provided reason for the refund */
             reason?: string;
+            /** @description Refund processing status (Completed, Failed, Processing, Cancelled) */
             status?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the refund was processed (UTC)
+             */
             processedAt?: string;
+            /** @description Scene name of the admin/teacher who processed the refund */
             processedByName?: string;
         };
+        /** @description Registration request DTO for new user accounts
+         *     Example of registration model for vertical slice authentication feature */
         RegisterRequest: {
+            /** @description User's email address */
             email: string;
+            /** @description User's password */
             password: string;
+            /** @description User's scene name */
             sceneName: string;
+            /** @description Terms of Service acceptance - REQUIRED for registration */
             termsOfServiceAccepted: boolean;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Registration status for event attendees
+         * @enum {unknown}
+         */
         RegistrationStatus: "Confirmed" | "Waitlist" | "CheckedIn" | "NoShow";
+        /** @description Request to reinstate membership (moves to Final Review) */
         RequestReinstatementRequest: {
             reason: string;
         };
+        /** @description Request model for resending email verification - Phase 2: Email Verification */
         ResendVerificationRequest: {
+            /** @description User's email address */
             email: string;
         };
+        /** @description Request model for resetting password with token - Phase 3: Password Reset
+         *     Uses userId instead of email for security and stability */
         ResetPasswordRequest: {
+            /** @description User's unique identifier (GUID) */
             userId: string;
+            /** @description Password reset token from email link */
             token: string;
+            /** @description New password to set */
             newPassword: string;
         };
         RestoreRequest: {
@@ -5388,6 +6462,7 @@ export interface components {
             confirmation?: string;
             createPreBackup?: boolean;
         };
+        /** @description Review decision information */
         ReviewDecisionDto: {
             /** Format: uuid */
             id?: string;
@@ -5406,6 +6481,7 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        /** @description Request model for submitting review decisions */
         ReviewDecisionRequest: {
             decisionType: unknown;
             reasoning: string;
@@ -5419,6 +6495,7 @@ export interface components {
             proposedInterviewTime?: null | string;
             interviewNotes?: null | string;
         };
+        /** @description Response after submitting review decision */
         ReviewDecisionResponse: {
             /** Format: uuid */
             decisionId?: string;
@@ -5429,18 +6506,34 @@ export interface components {
             confirmationMessage?: string;
             actionsTriggered?: string[];
         };
+        /** @description Request to revoke an active session token
+         *     Admin-only endpoint for security incidents */
         RevokeTokenRequest: {
+            /** @description Token string to revoke */
             token?: string;
         };
+        /** @description Details about a user's RSVP */
         RsvpDetailsDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description RSVP ID (EventParticipation ID)
+             */
             id?: string;
+            /** @description Status of the RSVP (Active, Cancelled, etc.) */
             status?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the RSVP was created
+             */
             createdAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the RSVP was cancelled (if cancelled)
+             */
             canceledAt?: null | string;
+            /** @description Reason for cancellation (if cancelled) */
             cancelReason?: null | string;
+            /** @description Optional notes from participant */
             notes?: null | string;
         };
         SafetyStatistics: {
@@ -5465,34 +6558,70 @@ export interface components {
             /** Format: int32 */
             thisMonth?: number;
         };
+        /** @description Request model for saving an ad-hoc email as a reusable template */
         SaveAsTemplateRequest: {
             templateName: string;
             subject: string;
             htmlBody: string;
             plainTextBody: string;
         };
+        /** @description Request model for scheduling an ad-hoc email for future delivery */
         ScheduleAdHocEmailRequest: {
             subject: string;
             htmlBody: string;
             plainTextBody: string;
             segment?: null | components["schemas"]["UserSegment"];
+            /** @description Optional manual recipient list (mutually exclusive with Segment) */
             recipientEmails?: null | string[];
+            /** @description Display name for recipient group (e.g., "All Vetted Members") */
             recipientGroup?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Optional event association
+             */
             eventId?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When to send the email (UTC)
+             *     Must be in the future
+             */
             scheduledSendAt: string;
         };
+        /** @description Request model for sending ad-hoc email
+         *     Supports both segment-based and manual recipient list sending */
         SendAdHocEmailRequest: {
             subject: string;
             htmlBody: string;
             plainTextBody: string;
             segment?: null | components["schemas"]["UserSegment"];
+            /** @description Optional manual list of recipient email addresses
+             *     If provided, email will be sent to these specific addresses
+             *     Mutually exclusive with Segment */
             recipientEmails?: null | string[];
+            /** @description Description of recipient group (for audit trail)
+             *     Auto-populated if Segment is used, or manually specified for RecipientEmails */
             recipientGroup: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Optional event ID if email is event-related
+             */
             eventId?: null | string;
         };
+        /** @description Request model for sending a test email for a specific template.
+         *     The email field is the recipient address, and variableOverrides allows
+         *     overriding saved test data defaults for this specific send.
+         *     Overrides are automatically saved back to the defaults. */
+        SendTestEmailRequest: {
+            /** @description Email address to send the test email to */
+            email?: string;
+            /** @description Optional variable value overrides. Keys are variable names WITHOUT braces
+             *     (e.g., "scene_name" not "{{scene_name}}"). Values provided here take precedence
+             *     over saved defaults and are auto-saved back to defaults after sending. */
+            variableOverrides?: null | {
+                [key: string]: string;
+            };
+        };
+        /** @description Response DTO for sent ad-hoc email */
         SentAdHocEmailDto: {
             /** Format: uuid */
             id?: string;
@@ -5512,123 +6641,257 @@ export interface components {
             /** Format: uuid */
             sentBy?: string;
             sentByEmail?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Scheduled send time for future delivery
+             *     Null for immediate sends
+             */
             scheduledSendAt?: null | string;
         };
+        /** @description Service token request for service-to-service authentication
+         *     Example of service-to-service authentication model for vertical slice authentication feature */
         ServiceTokenRequest: {
+            /** @description User ID for token generation */
             userId?: string;
+            /** @description User's email address for validation */
             email?: string;
         };
+        /** @description Per-session availability information */
         SessionAvailabilityDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Session ID
+             */
             sessionId?: string;
+            /** @description Session identifier (for matching with ticket types) */
             sessionIdentifier?: string;
+            /** @description Session name/description */
             sessionName?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session start time (UTC)
+             */
             startTime?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session end time (UTC)
+             */
             endTime?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of tickets sold for this session
+             */
             soldCount?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of spots available for this session
+             */
             availableCount?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Maximum capacity for this session
+             */
             capacity?: number;
         };
+        /** @description Data Transfer Object for Session information within events.
+         *     Used to represent individual sessions that can be part of multi-session events. */
         SessionDto: {
+            /** @description Unique session identifier */
             id?: string;
+            /** @description Session identifier code (e.g., "S1", "S2", "Day1", "Day2") */
             sessionIdentifier?: string;
+            /** @description Name of the session (e.g., "Morning Session", "Day 1", "Afternoon Workshop") */
             name?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session start date (LOCAL date for display purposes).
+             *
+             *     IMPORTANT: This is derived from StartTime converted to local timezone,
+             *     NOT from StartTime.Date (which would give UTC date).
+             *
+             *     Example: StartTime of 3:25 AM UTC (Dec 5) = 10:25 PM EST (Dec 4)
+             *     This property returns Dec 4, not Dec 5.
+             */
             startDate?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session end date (LOCAL date for display purposes).
+             *     Used when session spans multiple days (e.g., Friday night to Saturday morning).
+             *
+             *     IMPORTANT: This is derived from EndTime converted to local timezone,
+             *     NOT from EndTime.Date (which would give UTC date).
+             */
             endDate?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session start time in UTC.
+             *     Frontend converts this to local time for display using utcToLocal().
+             */
             startTime?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session end time in UTC.
+             *     Frontend converts this to local time for display using utcToLocal().
+             */
             endTime?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Maximum capacity for this specific session
+             */
             capacity?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Current number of confirmed registrations for this session.
+             *     Frontend expects this field name for consistency with EventDto.RegistrationCount.
+             */
             registrationCount?: number;
         };
+        /** @description Session token response DTO
+         *     Returned when admin generates a new check-in session token */
         SessionTokenResponse: {
+            /** @description The session token string (64 characters, URL-safe) */
             token?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Event this token grants access to
+             */
             eventId?: string;
+            /** @description Event title for display */
             eventTitle?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Session this token grants check-in access to (backwards compatibility, single session)
+             *     For multi-session tokens, check SessionIds instead
+             */
             sessionId?: null | string;
+            /** @description Session name for display (backwards compatibility, single session)
+             *     For multi-session tokens, check SessionNames instead */
             sessionName?: null | string;
+            /** @description All session IDs this token grants access to (multi-session support) */
             sessionIds?: null | string[];
+            /** @description All session names for display (multi-session support) */
             sessionNames?: null | string[];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the token was created (UTC)
+             */
             createdAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the token expires (UTC)
+             */
             expiresAt?: string;
             checkInUrl?: string;
         };
+        /** @description Simple request model for adding notes to applications */
         SimpleNoteRequest: {
             note: string;
             isPrivate?: null | boolean;
             tags?: null | string[];
         };
+        /** @description Simple request model for operations requiring only reasoning */
         SimpleReasoningRequest: {
             reasoning: string;
         };
+        /** @description Simplified vetting application request matching the React form implementation
+         *     Used for the streamlined single-page application process */
         SimplifiedApplicationRequest: {
+            /** @description Applicant's first name */
             firstName: string;
+            /** @description Applicant's last name */
             lastName: string;
+            /** @description Preferred scene name for community use */
             preferredSceneName: string;
+            /** @description Optional FetLife handle (without @ symbol) */
             fetLifeHandle?: null | string;
+            /** @description Email address - will be pre-filled from authenticated user */
             email: string;
+            /** @description Why would you like to join Witch City Rope (required text field) */
             whyJoin: string;
+            /** @description Description of rope experience */
             experienceWithRope: string;
+            /** @description Agreement to community standards - must be true */
             agreeToCommunityStandards: boolean;
+            /** @description Optional pronouns field (e.g., "they/them", "she/her", "he/him") */
             pronouns?: null | string;
+            /** @description Any other names, nicknames, or social media handles you have used in a kinky context */
             otherNames?: null | string;
         };
+        /** @description Response for successful simplified vetting application submission */
         SimplifiedApplicationResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Unique identifier for the application
+             */
             applicationId?: string;
+            /** @description Human-readable application number (VET-YYYYMMDD-NNNN) */
             applicationNumber?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Timestamp when application was submitted
+             */
             submittedAt?: string;
+            /** @description Confirmation message for the user */
             confirmationMessage?: string;
+            /** @description Whether confirmation email was sent successfully */
             emailSent?: boolean;
+            /** @description Next steps in the process */
             nextSteps?: string;
+            /** @description Pronouns that were submitted (if provided) */
             pronouns?: null | string;
+            /** @description Other names that were submitted (if provided) */
             otherNames?: null | string;
+            /** @description First name */
             firstName?: string;
+            /** @description Last name */
             lastName?: string;
+            /** @description Email address */
             email?: string;
+            /** @description Preferred scene name */
             preferredSceneName?: string;
+            /** @description FetLife handle (if provided) */
             fetLifeHandle?: null | string;
+            /** @description Why user wants to join */
             whyJoin?: string;
+            /** @description Experience with rope bondage */
             experienceWithRope?: string;
+            /** @description Whether user agreed to community standards */
             agreeToCommunityStandards?: boolean;
+            /** @description Application status */
             status?: string;
         };
         /** @enum {unknown} */
         SpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
+        /** @description Staff member information */
         StaffMember: {
             userId?: string;
             sceneName?: string;
             role?: string;
             lastActivity?: string;
         };
+        /** @description Request model for changing application status */
         StatusChangeRequest: {
             status: string;
             reasoning: string;
         };
+        /** @description Response after status update */
         StatusUpdateResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Incident ID
+             */
             id?: string;
+            /** @description Updated status */
             status?: components["schemas"]["IncidentStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Last updated timestamp
+             */
             lastUpdatedAt?: string;
+            /** @description Whether system note was created */
             systemNoteCreated?: boolean;
         };
+        /** @description Status update summary for applicant view */
         StatusUpdateSummary: {
             /** Format: date-time */
             updatedAt?: string;
@@ -5649,17 +6912,25 @@ export interface components {
         };
         /** Format: binary */
         Stream: string;
+        /** @description Response after successful incident submission */
         SubmissionResponse: {
+            /** @description Generated reference number for tracking */
             referenceNumber?: string;
+            /** @description URL for tracking incident status */
             trackingUrl?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the incident was submitted
+             */
             submittedAt?: string;
         };
+        /** @description Request model for offline synchronization */
         SyncRequest: {
             deviceId: string;
             pendingCheckIns: components["schemas"]["PendingCheckIn"][];
             lastSyncTimestamp: string;
         };
+        /** @description Sync status information for offline operations */
         SyncStatus: {
             /** Format: int32 */
             pendingCount?: number;
@@ -5667,186 +6938,391 @@ export interface components {
             /** Format: int32 */
             conflictCount?: number;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Defines how email templates are triggered
+         * @enum {unknown}
+         */
         TemplateTriggerType: "Manual" | "FixedEvent" | "TimeBased";
+        /** @description Details about a user's ticket purchase */
         TicketDetailsDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Ticket ID (EventParticipation ID)
+             */
             id?: string;
+            /** @description Status of the ticket (Active, Cancelled, Refunded, etc.) */
             status?: string;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Amount paid for the ticket
+             */
             amount?: null | number;
+            /** @description Payment status (Completed, Pending, Refunded) */
             paymentStatus?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the ticket was purchased
+             */
             createdAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the ticket was cancelled/refunded (if applicable)
+             */
             canceledAt?: null | string;
+            /** @description Reason for cancellation/refund (if applicable) */
             cancelReason?: null | string;
+            /** @description Optional notes from purchaser */
             notes?: null | string;
         };
+        /** @description Information about a ticket purchase including ticket type name and cancellation eligibility
+         *     Used for displaying proper ticket names in cancel mode and per-purchase cancellation control */
         TicketPurchaseInfoDto: {
+            /** @description Name of the ticket type (e.g., "Day 1 Only", "Full Weekend Pass") */
             ticketTypeName?: string;
+            /** @description Session IDs included in this ticket purchase */
             sessionIds?: string[];
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Total price paid for this ticket purchase
+             */
             totalPrice?: number;
+            /** @description Whether this specific ticket purchase can be cancelled based on its sessions' timing
+             *     True if the reference session (earliest session in this ticket) is within the cancellation window */
             canCancel?: boolean;
+            /** @description Message explaining why cancellation is not available (e.g., "Cancellation window closed")
+             *     Null when CanCancel is true */
             cancellationMessage?: null | string;
         };
+        /** @description Data Transfer Object for TicketType information within events.
+         *     Used to represent different ticket options including single-session and multi-session packages. */
         TicketTypeDto: {
+            /** @description Unique ticket type identifier */
             id?: string;
+            /** @description Ticket type name (e.g., "Early Bird", "Regular", "Day 1", "Full Event") */
             name?: string;
+            /** @description Pricing type: Fixed for fixed price, SlidingScale for pay-what-you-can */
             pricingType?: components["schemas"]["PricingType"];
+            /** @description List of session identifiers this ticket includes access to */
             sessionIdentifiers?: string[];
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Fixed price (for fixed pricing type)
+             */
             price?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Minimum price for sliding scale pricing
+             */
             minPrice?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Maximum price for sliding scale pricing
+             */
             maxPrice?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Default/suggested price for sliding scale pricing
+             */
             defaultPrice?: null | number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Total quantity available for this ticket type
+             */
             quantityAvailable?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of tickets sold for this ticket type
+             */
             quantitySold?: number;
+            /** @description True if ticket can be purchased right now.
+             *     Based on: at least one future session exists AND within sales window for first future session. */
             canPurchase?: boolean;
+            /** @description The session ID used for timing calculations (first future session).
+             *     Null if all sessions have passed. */
             referenceSessionId?: null | string;
+            /** @description Session name for the reference session (for display). */
             referenceSessionName?: null | string;
+            /** @description Message explaining availability status.
+             *     Examples: "Available", "Sales open Dec 1", "Sales closed", "All sessions passed" */
             availabilityMessage?: string;
+            /** @description True if ticket can be cancelled right now (for users who purchased).
+             *     Based on cancellation window for reference session. */
             canCancel?: boolean;
         };
+        /** @description Token claims extracted from JWT for debugging */
         TokenClaims: {
             userId?: string;
             email?: string;
             sceneName?: string;
         };
+        /** @description Request DTO for updating content page
+         *     Used for PUT /api/cms/pages/{id} */
         UpdateContentPageRequest: {
+            /** @description Updated page title (3-200 characters) */
             title: string;
+            /** @description Updated HTML content (will be sanitized server-side) */
             content: string;
+            /** @description Optional description of changes for revision history */
             changeDescription?: null | string;
         };
+        /** @description Request model for updating an existing event
+         *     Supports partial updates - only non-null fields will be updated */
         UpdateEventRequest: {
+            /** @description Updated event title (optional) */
             title?: null | string;
+            /** @description Updated short description (optional)
+             *     Brief summary for event cards and listings */
             shortDescription?: null | string;
+            /** @description Updated full event description (optional) */
             description?: null | string;
+            /** @description Updated event policies and safety guidelines (optional) */
             policies?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Updated event start date/time in UTC (optional)
+             *     CRITICAL: Must be UTC for PostgreSQL TIMESTAMPTZ compatibility
+             */
             startDate?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Updated event end date/time in UTC (optional)
+             */
             endDate?: null | string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Updated venue ID (optional)
+             *     References the Venues table for location information
+             */
             venueId?: null | number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Updated maximum number of attendees (optional)
+             *     Cannot be reduced below current attendance
+             */
             capacity?: null | number;
+            /** @description Updated publishing status (optional) */
             isPublished?: null | boolean;
+            /** @description Whether free RSVPs are enabled (null = no change) */
             allowRsvps?: null | boolean;
+            /** @description Whether ticket purchase is mandatory (null = no change) */
             requireTicketPurchase?: null | boolean;
+            /** @description Whether only vetted members can attend (null = no change) */
             vettedMembersOnly?: null | boolean;
+            /** @description Updated sessions list (optional)
+             *     If provided, will replace all existing sessions with these */
             sessions?: null | components["schemas"]["SessionDto"][];
+            /** @description Updated ticket types list (optional)
+             *     If provided, will replace all existing ticket types with these */
             ticketTypes?: null | components["schemas"]["TicketTypeDto"][];
+            /** @description Updated teacher/organizer user IDs (optional)
+             *     If provided, will replace all existing teacher associations with these */
             teacherIds?: null | string[];
+            /** @description Updated volunteer positions list (optional)
+             *     If provided, will replace all existing volunteer positions with these */
             volunteerPositions?: null | components["schemas"]["EventVolunteerPositionDto"][];
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when registration opens (optional)
+             *     Negative = before start, Positive = after start, null = no restriction
+             *     Example: -24 = opens 24 hours before event
+             */
             registrationOpenHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when registration closes (optional)
+             *     Negative = before start, Positive = after start, null = no restriction
+             *     Example: -12 = closes 12 hours before event
+             */
             registrationCloseHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when cancellation closes (optional)
+             *     Negative = before start, Positive = after start, null = no restriction
+             *     Example: -24 = cannot cancel within 24 hours of event
+             */
             cancellationCloseHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when volunteer registration closes (optional)
+             *     Negative = before start, Positive = after start, null = no restriction
+             *     Example: -12 = volunteer signup closes 12 hours before event
+             */
             volunteerRegistrationCloseHours?: null | number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Hours before/after event start when volunteer cancellation closes (optional)
+             *     Negative = before start, Positive = after start, null = no restriction
+             *     Example: -24 = volunteers cannot cancel within 24 hours of event
+             */
             volunteerCancellationCloseHours?: null | number;
         };
+        /** @description Request model for updating/creating event-specific email template */
         UpdateEventTemplateRequest: {
             subject: string;
             htmlBody: string;
             plainTextBody: string;
+            /** @description Target sessions for multi-session events
+             *     Default: ["all"] for all sessions */
             targetSessions?: string[];
+            /** @description Override trigger enabled state (null = use global default) */
             overrideTriggerEnabled?: null | boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Override timing offset days (null = use global default)
+             */
             overrideTimingOffsetDays?: null | number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Override timing offset hours (null = use global default)
+             */
             overrideTimingOffsetHours?: null | number;
+            /** @description Override recipient group as string (null = use global default)
+             *     Values: "SessionAttendees", "RSVPTicketHolders", etc. */
             overrideRecipientGroup?: null | string;
         };
+        /** @description Request model for updating global email template */
         UpdateGlobalTemplateRequest: {
             title: string;
             subject: string;
             htmlBody: string;
             plainTextBody: string;
         };
+        /** @description Request to update Google Drive links */
         UpdateGoogleDriveRequest: {
+            /** @description Google Drive folder URL (NULL to clear) */
             googleDriveFolderUrl?: null | string;
+            /** @description Google Drive final report URL (NULL to clear) */
             googleDriveFinalReportUrl?: null | string;
         };
+        /** @description Request to update member role */
         UpdateMemberRoleRequest: {
             role?: string;
         };
+        /** @description Request to update member status (active/inactive) */
         UpdateMemberStatusRequest: {
             isActive?: boolean;
             reason?: null | string;
         };
+        /** @description Request to update existing manual note */
         UpdateNoteRequest: {
+            /** @description Updated content (min 3 chars) */
             content?: string;
+            /** @description Optional tags (comma-separated) */
             tags?: null | string;
         };
+        /** @description Request to update involved parties and witnesses for an incident */
         UpdatePeopleRequest: {
+            /** @description Involved parties (newline-separated names, NULL to clear) */
             involvedParties?: null | string;
+            /** @description Witnesses (newline-separated names, NULL to clear) */
             witnesses?: null | string;
         };
+        /** @description Response after updating people involved in incident */
         UpdatePeopleResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Incident ID
+             */
             id?: string;
+            /** @description Updated involved parties */
             involvedParties?: null | string;
+            /** @description Updated witnesses */
             witnesses?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Last updated timestamp
+             */
             lastUpdatedAt?: string;
+            /** @description Whether system note was created */
             systemNoteCreated?: boolean;
         };
+        /** @description Request model for updating user profile */
         UpdateProfileDto: {
+            /** @description Scene name (required, 3-50 characters) */
             sceneName: string;
+            /** @description First name (optional) */
             firstName?: null | string;
+            /** @description Last name (optional) */
             lastName?: null | string;
+            /** @description Email address (required, must be valid email format) */
             email: string;
+            /** @description User's pronouns (optional) */
             pronouns?: null | string;
+            /** @description User's bio (optional, max 2000 characters) */
             bio?: null | string;
+            /** @description Discord username (optional) */
             discordName?: null | string;
+            /** @description FetLife username/profile (optional) */
             fetLifeName?: null | string;
+            /** @description Phone number (optional) */
             phoneNumber?: null | string;
+            /** @description Other names the member goes by (aliases, former scene names, etc.) */
             otherNames?: null | string;
         };
+        /** @description Request model for updating user profile
+         *     Follows the simplified vertical slice architecture pattern */
         UpdateProfileRequest: {
             sceneName?: string;
             pronouns?: string;
         };
+        /** @description Request model for updating multiple settings */
         UpdateSettingsRequest: {
+            /** @description Dictionary of setting key-value pairs to update */
             settings: {
                 [key: string]: string;
             };
         };
+        /** @description Request to update incident status */
         UpdateStatusRequest: {
+            /** @description New status */
             newStatus?: components["schemas"]["IncidentStatus"];
+            /** @description Optional reason/note (recommended for OnHold status) */
             reason?: null | string;
+            /** @description Optional metadata for status change */
             metadata?: null | Record<string, never>;
         };
+        /** @description Request to update an incident's title */
         UpdateTitleRequest: {
+            /** @description New title for the incident (required, max 200 characters) */
             title: string;
         };
+        /** @description Response after updating incident title */
         UpdateTitleResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Incident ID
+             */
             id?: string;
+            /** @description Updated title */
             title?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Last updated timestamp
+             */
             lastUpdatedAt?: string;
         };
+        /** @description Request model for updating trigger configuration on global templates
+         *     Only applies to Events category templates */
         UpdateTriggerConfigRequest: {
             triggerType: components["schemas"]["TemplateTriggerType"];
             triggerEnabled: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Days offset for time-based triggers
+             *     Must be between -365 and 365
+             *     Required when TriggerType is TimeBased
+             */
             timingOffsetDays?: null | number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Hours offset for sub-day precision in time-based triggers
+             *     Must be between -23 and 23
+             */
             timingOffsetHours?: null | number;
             recipientGroup?: null | components["schemas"]["EventRecipientGroup"];
         };
+        /** @description Request model for admin user updates
+         *     Follows the simplified vertical slice architecture pattern */
         UpdateUserRequest: {
             sceneName?: null | string;
             role?: null | string;
@@ -5856,25 +7332,48 @@ export interface components {
             /** Format: int32 */
             vettingStatus?: null | number;
         };
+        /** @description Request model for updating user roles in admin user management */
         UpdateUserRolesRequest: {
+            /** @description List of roles to assign to the user
+             *     Valid values: "Teacher", "SafetyTeam", "Administrator", "EventOrganizer", "DungeonMonitor"
+             *     Empty list = Regular member (no special roles) */
             roles: string[];
         };
+        /** @description Request model for updating an existing venue. */
         UpdateVenueRequest: {
+            /** @description Venue name (required, max 100 characters) */
             name?: string;
+            /** @description Directions to the venue (optional, max 500 characters) */
             directions?: null | string;
+            /** @description Additional venue information for attendees (optional, max 1000 characters) */
             venueInformation?: null | string;
+            /** @description General location (optional, max 100 characters)
+             *     Example: "Salem, MA" */
             location?: null | string;
+            /** @description Whether the venue is active */
             isActive?: boolean;
         };
+        /** @description User information for coordinator assignment dropdown */
         UserCoordinatorDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description User ID
+             */
             id?: string;
+            /** @description User scene name (preferred display name) */
             sceneName?: string;
+            /** @description Full name (combined first and last name) */
             fullName?: string;
+            /** @description User role */
             role?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of active incidents assigned to this user
+             */
             activeIncidentCount?: number;
         };
+        /** @description User DTO for user management endpoints
+         *     Follows the simplified vertical slice architecture pattern */
         UserDto: {
             /** Format: uuid */
             id?: string;
@@ -5896,27 +7395,64 @@ export interface components {
             hasVettingApplication?: boolean;
             isVetted?: boolean;
         };
+        /** @description User's registered event information for dashboard display
+         *     CRITICAL: This is NOT PublicEventDto - different fields for dashboard context
+         *     This is for the user's own events dashboard, NOT public sales page */
         UserEventDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Event ID
+             */
             id?: string;
+            /** @description Event title */
             title?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Event start date
+             */
             startDate?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Event end date
+             */
             endDate?: string;
+            /** @description Event location */
             location?: string;
+            /** @description Short description of the event */
             description?: null | string;
+            /** @description Registration status: "RSVP Confirmed", "Ticket Purchased", "Attended" */
             registrationStatus?: string;
+            /** @description True if this is a social event (affects registration type) */
             isSocialEvent?: boolean;
+            /** @description True if user has purchased a ticket for this event */
             hasTicket?: boolean;
+            /** @description True if the event date is in the past */
             isPastEvent?: boolean;
+            /** @description Sessions the user is registered for (via their ticket purchase)
+             *     Empty list for events with no sessions or if user hasn't purchased a ticket */
             registeredSessions?: components["schemas"]["UserSessionDto"][];
+            /** @description ALL sessions for this event, regardless of user's ticket purchases.
+             *     Used by the frontend to display session dates/times even for RSVP-only users.
+             *     RegisteredSessions only contains sessions with tickets, so RSVP users would see
+             *     "Date and Time coming soon" without this field. */
             eventSessions?: components["schemas"]["UserSessionDto"][];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Count of additional sessions available that user hasn't purchased
+             *     0 for single-session events or if user has purchased all sessions
+             */
             additionalSessionsAvailable?: number;
+            /** @description True if the event has any ticket types available (paid or donation/free).
+             *     Used to show "Purchase Ticket" button for RSVP users who haven't bought a ticket yet.
+             *     Avoids the frontend needing to fetch full event details just to check this. */
             hasAvailableTickets?: boolean;
+            /** @description Tickets the user has purchased for this event.
+             *     Includes ticket type name and associated session name (for multi-session events).
+             *     Used to display a "Tickets" summary box on the dashboard event card. */
             tickets?: components["schemas"]["UserTicketDto"][];
         };
+        /** @description Response model for paginated user list
+         *     Follows the simplified vertical slice architecture pattern */
         UserListResponse: {
             users?: components["schemas"]["UserDto"][];
             /** Format: int32 */
@@ -5930,6 +7466,7 @@ export interface components {
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
         };
+        /** @description User note response */
         UserNoteResponse: {
             /** Format: uuid */
             id?: string;
@@ -5944,61 +7481,127 @@ export interface components {
             createdAt?: string;
             isArchived?: boolean;
         };
+        /** @description Simple DTO for user dropdown options (e.g., teacher selection) */
         UserOptionDto: {
+            /** @description User ID (for form values) */
             id?: string;
+            /** @description Display name (scene name or email) */
             name?: string;
+            /** @description User email (for additional context) */
             email?: string;
         };
+        /** @description DTO for user's participation list
+         *     Auto-generated as TypeScript interface by NSwag */
         UserParticipationDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Participation ID
+             */
             id?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Event ID
+             */
             eventId?: string;
+            /** @description Event title */
             eventTitle?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Event start date
+             */
             eventStartDate?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Event end date
+             */
             eventEndDate?: string;
+            /** @description Event location */
             eventLocation?: string;
+            /** @description Type of attendance (RSVP or Ticket) */
             participationType?: components["schemas"]["AttendanceType"];
+            /** @description Current status of attendance */
             status?: components["schemas"]["AttendanceStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When user registered for the event
+             */
             participationDate?: string;
+            /** @description Optional notes from participant */
             notes?: null | string;
+            /** @description Whether this participation can be cancelled */
             canCancel?: boolean;
         };
+        /** @description DTO for user preview in segment
+         *     Provides minimal user information for email recipient preview */
         UserPreviewDto: {
+            /** @description User's scene name */
             sceneName?: string;
+            /** @description User's email address */
             email?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description User's vetting status (numeric value from VettingStatus enum)
+             */
             vettingStatus?: number;
+            /** @description User's vetting status as human-readable string */
             vettingStatusDisplay?: string;
+            /** @description User's role(s) */
             role?: string;
+            /** @description Whether the user's email is confirmed */
             emailConfirmed?: boolean;
         };
+        /** @description User profile information for settings page */
         UserProfileDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description User ID
+             */
             userId?: string;
+            /** @description Scene name */
             sceneName?: string;
+            /** @description First name (optional) */
             firstName?: null | string;
+            /** @description Last name (optional) */
             lastName?: null | string;
+            /** @description Email address */
             email?: string;
+            /** @description User's pronouns */
             pronouns?: null | string;
+            /** @description User's bio */
             bio?: null | string;
+            /** @description Discord username */
             discordName?: null | string;
+            /** @description FetLife username/profile */
             fetLifeName?: null | string;
+            /** @description Phone number */
             phoneNumber?: null | string;
+            /** @description Other names the member goes by (aliases, former scene names, etc.) */
             otherNames?: null | string;
+            /** @description Current vetting status enum value
+             *     Only meaningful if HasVettingApplication is true */
             vettingStatus?: components["schemas"]["VettingStatus"];
+            /** @description Indicates whether the user has submitted a vetting application
+             *     If false, VettingStatus should not be displayed */
             hasVettingApplication?: boolean;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Defines all user roles in the WitchCityRope system.
+         *     This enum is the single source of truth for role authorization and is auto-generated to TypeScript.
+         * @enum {unknown}
+         */
         UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer" | "DungeonMonitor";
+        /** @description DTO for exposing user role information.
+         *     This ensures the UserRole enum is included in OpenAPI specification
+         *     and auto-generated to TypeScript for frontend type safety. */
         UserRoleDto: {
+            /** @description The user role. This enum is auto-generated to TypeScript. */
             role?: components["schemas"]["UserRole"];
+            /** @description Display name for the role (e.g., "Safety Team" instead of "SafetyTeam") */
             displayName?: string;
+            /** @description Description of what this role can do */
             description?: string;
         };
+        /** @description DTO for user search results */
         UserSearchResultDto: {
             /** Format: uuid */
             userId?: string;
@@ -6009,53 +7612,119 @@ export interface components {
         };
         /** @enum {unknown} */
         UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | "NewImportedUsers" | null;
+        /** @description DTO for user segment information with count */
         UserSegmentDto: {
+            /** @description The segment identifier */
             segment?: components["schemas"]["UserSegment"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Number of users in this segment
+             */
             count?: number;
+            /** @description Human-readable description of the segment */
             description?: string;
+            /** @description Segment name (enum as string for frontend display) */
             segmentName?: string;
         };
+        /** @description Lightweight session info for user dashboard display */
         UserSessionDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Session ID
+             */
             id?: string;
+            /** @description Session name (e.g., "Morning Session", "Day 1") */
             name?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session start time (UTC)
+             *     CRITICAL: Frontend must convert to local timezone for display
+             */
             startTime?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Session end time (UTC)
+             *     CRITICAL: Frontend must convert to local timezone for display
+             */
             endTime?: string;
         };
+        /** @description Lightweight ticket info for user dashboard display.
+         *     Shows what ticket type the user purchased and for which session (if multi-session event). */
         UserTicketDto: {
+            /** @description Name of the ticket type purchased (e.g., "General Admission", "VIP", "Early Bird") */
             ticketTypeName?: string;
+            /** @description Session name the ticket is for (null for single-session events or event-level tickets).
+             *     Helps users identify which day/session their ticket covers in multi-session events. */
             sessionName?: null | string;
         };
+        /** @description User's volunteer shift information for dashboard display */
         UserVolunteerShiftDto: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Volunteer signup ID
+             */
             signupId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Event ID (for matching volunteer shifts to specific events on dashboard)
+             */
             eventId?: string;
+            /** @description Event title */
             eventTitle?: string;
+            /** @description Event location */
             eventLocation?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Event date
+             */
             eventDate?: string;
+            /** @description Volunteer position title */
             positionTitle?: string;
+            /** @description Session name (if event has multiple sessions) */
             sessionName?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Shift start time (session start time if available)
+             */
             shiftStartTime?: null | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Shift end time (session end time if available)
+             */
             shiftEndTime?: null | string;
+            /** @description Whether user can cancel this volunteer shift based on event timing rules.
+             *     Determined by event's VolunteerCancellationCloseHours setting.
+             *     False if cancellation window has closed or volunteer has already checked in. */
             canCancel?: boolean;
         };
+        /** @description Response DTO containing valid user roles in the system.
+         *     Used by frontend to populate role selection dropdowns and validate role assignments. */
         ValidRolesResponse: {
+            /** @description List of valid role names.
+             *     Empty string or null role = Regular member with no special privileges. */
             roles?: string[];
         };
+        /** @description Request DTO for variable amount refund and/or ticket cancellation.
+         *     Supports: partial refund (keep access), full refund (keep access),
+         *     cancel ticket (with any refund amount including $0), and RSVP removal.
+         *     Auto-generated as TypeScript interface by NSwag. */
         VariableRefundRequest: {
             /** Format: double */
             refundAmount: number;
+            /** @description Reason for the refund/cancellation (required for audit trail, minimum 10 characters) */
             refundReason: string;
+            /** @description Whether to cancel the ticket (revoke event access by setting EventAttendance to Cancelled).
+             *     When true, all Ticket-type EventAttendance records for this TicketPurchase are cancelled.
+             *     When false, this is a financial-only refund and the member retains event access. */
             cancelTicket?: boolean;
+            /** @description Whether to also remove the RSVP when cancelling a ticket.
+             *     Only meaningful when CancelTicket is true AND the event uses RSVPs (AllowRsvps=true).
+             *     When true, the auto-created RSVP from ticket purchase (and any independent RSVP) is cancelled.
+             *     When false, the member keeps their free RSVP access even though the ticket is cancelled. */
             alsoRemoveRsvp?: boolean;
         };
+        /** @description Response DTO for refund/cancellation operations.
+         *     Includes both financial and access-related outcomes. */
         VariableRefundResponse: {
             /** Format: uuid */
             refundId?: string;
@@ -6067,29 +7736,58 @@ export interface components {
             /** Format: double */
             remainingRefundableAmount?: number;
             paymentStatus?: string;
+            /** @description Whether the ticket was cancelled (EventAttendance set to Cancelled).
+             *     True only when CancelTicket was requested and succeeded. */
             ticketCancelled?: boolean;
+            /** @description Whether the RSVP was removed (RSVP-type EventAttendance set to Cancelled).
+             *     True only when AlsoRemoveRsvp was requested and an active RSVP existed. */
             rsvpRemoved?: boolean;
         };
+        /** @description Data transfer object for venue information.
+         *     Used in API responses for listing and viewing venues. */
         VenueDto: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Unique identifier for the venue
+             */
             id?: number;
+            /** @description Venue name (required, unique) */
             name?: string;
+            /** @description Directions to the venue (optional) */
             directions?: null | string;
+            /** @description Additional venue information for attendees (capacity, parking, amenities, etc.) */
             venueInformation?: null | string;
+            /** @description General location information (city, state)
+             *     Safe for public display to all users */
             location?: null | string;
+            /** @description Whether the venue is active (soft delete flag) */
             isActive?: boolean;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the venue was created (UTC)
+             */
             createdAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the venue was last updated (UTC)
+             */
             updatedAt?: string;
         };
+        /** @description Request model for email verification - Phase 2: Email Verification
+         *     Uses userId instead of email for security and stability (email addresses can change) */
         VerifyEmailRequest: {
+            /** @description User's unique identifier (GUID) */
             userId: string;
+            /** @description Email verification token */
             token: string;
         };
+        /** @description Request model for verifying a user's email in test environments
+         *     CRITICAL: Only available in Development/Test environments */
         VerifyUserEmailRequest: {
+            /** @description Email address of the user to verify */
             email: string;
         };
+        /** @description Vetting details including questionnaire responses */
         VettingDetailsResponse: {
             hasApplication?: boolean;
             /** Format: uuid */
@@ -6123,6 +7821,7 @@ export interface components {
             agreesToGuidelines?: null | boolean;
             agreesToTerms?: null | boolean;
         };
+        /** @description Response with current hold/reinstatement status */
         VettingHoldStatusResponse: {
             /** Format: int32 */
             vettingStatus: number;
@@ -6132,16 +7831,31 @@ export interface components {
             /** Format: date-time */
             lastStatusChangeDate: null | string;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Simplified vetting status enum aligned with wireframe requirements
+         *     Updated for Calendly external interview scheduling workflow
+         *     Interview completion automatically moves to FinalReview (no intermediate InterviewCompleted state)
+         * @enum {unknown}
+         */
         VettingStatus: "UnderReview" | "InterviewApproved" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
+        /** @description User's vetting status for alert box display on dashboard */
         VettingStatusDto: {
+            /** @description Vetting status enum value */
             status?: components["schemas"]["VettingStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When the vetting status was last updated
+             */
             lastUpdatedAt?: string;
+            /** @description Message to display in the alert box
+             *     Status-specific messages for dashboard display */
             message?: string;
+            /** @description Optional URL for interview scheduling (for Approved status) */
             interviewScheduleUrl?: null | string;
+            /** @description Optional URL for reapply information (for Denied status) */
             reapplyInfoUrl?: null | string;
         };
+        /** @description DTO for member assigned to a volunteer position */
         VolunteerAssignmentDto: {
             /** Format: uuid */
             signupId?: string;
@@ -6160,6 +7874,8 @@ export interface components {
             /** Format: date-time */
             checkedInAt?: null | string;
         };
+        /** @description Volunteer position response DTO - RICH VERSION for user-facing volunteer signup API.
+         *     Contains additional fields for user context, permissions, and session information. */
         VolunteerPositionDto: {
             /** Format: uuid */
             id?: string;
@@ -6187,10 +7903,19 @@ export interface components {
             hasUserSignedUp?: boolean;
             /** Format: uuid */
             userSignupId?: null | string;
+            /** @description Whether the user can cancel their volunteer signup based on event timing rules
+             *     Determined by event's VolunteerCancellationCloseHours setting */
             canCancel?: boolean;
+            /** @description Whether new signups are currently allowed for this position
+             *     Determined by event's VolunteerRegistrationCloseHours setting
+             *     False when timing window closed, position full, or user already signed up */
             canSignUp?: boolean;
+            /** @description Reason why signup is blocked (null if CanSignUp is true)
+             *     Possible values: "TimingClosed", "PositionFull", "AlreadySignedUp", "NoTicketForSession"
+             *     Used by frontend to display appropriate messaging to users */
             signupBlockedReason?: null | string;
         };
+        /** @description Volunteer signup response DTO */
         VolunteerSignupDto: {
             /** Format: uuid */
             id?: string;
@@ -6212,11 +7937,19 @@ export interface components {
             /** Format: date-time */
             eventStartDate?: string;
         };
+        /** @description Request to sign up for a volunteer position */
         VolunteerSignupRequest: {
+            /** @description Indicates whether the user has accepted the Event Waiver
+             *     Defaults to true for backward compatibility with tests
+             *     In production, frontend should explicitly set this to true */
             eventWaiverAccepted?: boolean;
         };
-        /** @enum {unknown} */
+        /**
+         * @description Location type where incident occurred
+         * @enum {unknown}
+         */
         WhereOccurred: "AtEvent" | "Online" | "PrivatePlay" | "OtherSpace";
+        /** @description Workflow history entry showing application status changes */
         WorkflowHistoryDto: {
             action?: string;
             /** Format: date-time */
@@ -10944,16 +12677,27 @@ export interface operations {
     GetAdminIncidentsList: {
         parameters: {
             query: {
+                /** @description Search text (searches reference number, location, description) */
                 Search?: string;
+                /** @description Filter by status (multiple values supported via comma-separated string) */
                 Status?: string;
+                /** @description Start date for date range filter (ISO 8601) */
                 StartDate?: string;
+                /** @description End date for date range filter (ISO 8601) */
                 EndDate?: string;
+                /** @description Filter by assigned coordinator ID */
                 AssignedTo?: string;
+                /** @description Show only unassigned incidents (coordinatorId IS NULL) */
                 Unassigned?: boolean;
+                /** @description Filter by incident type (multiple values supported via comma-separated string) */
                 Type?: string;
+                /** @description Page number (1-indexed) */
                 Page: number;
+                /** @description Page size (items per page) */
                 PageSize: number;
+                /** @description Sort field (default: reportedAt) */
                 SortBy: string;
+                /** @description Sort direction (asc or desc) */
                 SortOrder: string;
             };
             header?: never;
@@ -14153,6 +15897,170 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetEmailTestData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SaveEmailTestData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SendTestEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendTestEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
