@@ -13,4 +13,13 @@ public interface IEventEmailService
     /// </summary>
     Task SendCancellationEmailAsync(
         Guid userId, Guid eventId, List<Guid> ticketPurchaseIds, CancellationToken ct);
+
+    /// <summary>
+    /// Sends an RSVP cancellation confirmation email.
+    /// Called after a user cancels their RSVP for a social/free event.
+    /// Simpler than ticket cancellation — no sessions or ticket types to list.
+    /// Non-fatal: failures are logged but do not propagate.
+    /// </summary>
+    Task SendRsvpCancellationEmailAsync(
+        Guid userId, Guid eventId, CancellationToken ct);
 }

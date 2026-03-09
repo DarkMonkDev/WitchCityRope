@@ -164,6 +164,81 @@ public class EventEmailService : IEventEmailService
         }
     }
 
+    /// <summary>
+    /// Sends an RSVP cancellation confirmation email for social/free events.
+    /// RSVPs don't have ticket types or session lists, so this is a simpler email
+    /// that just confirms the RSVP was cancelled for the event.
+    /// </summary>
+    public async Task SendRsvpCancellationEmailAsync(
+        Guid userId, Guid eventId, CancellationToken ct)
+    {
+        try
+        {
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+            if (user == null)
+            {
+                _logger.LogWarning("User {UserId} not found for RSVP cancellation email", userId);
+                return;
+            }
+
+            // Load event with venue for template variables
+            var evt = await _context.Events
+                .AsNoTracking()
+                .Include(e => e.Venue)
+                .Include(e => e.Sessions)
+                .FirstOrDefaultAsync(e => e.Id == eventId, ct);
+
+            if (evt == null)
+            {
+                _logger.LogWarning("Event {EventId} not found for RSVP cancellation email", eventId);
+                return;
+            }
+
+            var displayName = user.UserName ?? user.Email!;
+
+            // Use first session for event_date (social events typically have one session)
+            var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
+            var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
+
+            var variables = new Dictionary<string, string>
+            {
+                ["attendee_name"] = displayName,
+                ["event_title"] = evt.Title,
+                ["event_date"] = dateStr,
+                ["event_time"] = timeStr,
+                ["venue_name"] = evt.Venue?.Name ?? "",
+                ["venue_address"] = evt.Venue?.Location ?? "",
+                ["custom_message"] = ""
+            };
+
+            var result = await _emailService.SendTemplatedEmailAsync(
+                user.Email!, displayName, EmailCategory.Events, "RSVPCancellation", variables, ct);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation(
+                    "RSVP cancellation email sent to {Email} for event {EventId}",
+                    user.Email, eventId);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to send RSVP cancellation email to {Email}: {Error}",
+                    user.Email, result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fire-and-forget: email failure must never block the cancellation flow
+            _logger.LogError(ex,
+                "Error sending RSVP cancellation email for user {UserId} event {EventId} (non-fatal)",
+                userId, eventId);
+        }
+    }
+
     private async Task SendConfirmationAsync(
         string email, string displayName,
         List<TicketPurchase> purchases, CancellationToken ct)

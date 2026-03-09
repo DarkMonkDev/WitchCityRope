@@ -1321,6 +1321,36 @@ public class AttendanceService : IAttendanceService
                     cancelledRsvp.Id, cancelledRsvp.Status, cancelledRsvp.CancelledAt);
             }
 
+            // ============================================================================
+            // SEND CANCELLATION EMAIL
+            // ============================================================================
+            // For RSVP cancellations, send the RSVPCancellation template.
+            // For ticket cancellations via this method (legacy single-ticket path),
+            // send the ticket Cancellation template.
+            // Fire-and-forget: email failure must never block the cancellation.
+            try
+            {
+                if (attendance.AttendanceType == AttendanceType.RSVP)
+                {
+                    await _eventEmailService.SendRsvpCancellationEmailAsync(
+                        userId, eventId, cancellationToken);
+                }
+                else if (attendance.AttendanceType == AttendanceType.Ticket
+                    && attendance.TicketPurchaseId.HasValue)
+                {
+                    await _eventEmailService.SendCancellationEmailAsync(
+                        userId, eventId,
+                        new List<Guid> { attendance.TicketPurchaseId.Value },
+                        cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Error sending cancellation email for user {UserId} at event {EventId} (non-fatal)",
+                    userId, eventId);
+            }
+
             // Auto-cancel volunteer signups when attendance is cancelled
             try
             {
