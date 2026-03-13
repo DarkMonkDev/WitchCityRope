@@ -22,6 +22,14 @@ namespace WitchCityRope.Api.Features.Cms.Dtos
         public string Content { get; init; } = string.Empty;
 
         /// <summary>
+        /// Optional updated slug. If provided, must be globally unique and match format: lowercase alphanumeric with hyphens.
+        /// Changing the slug changes the page's public URL immediately (no redirect from old URL).
+        /// </summary>
+        [StringLength(100, MinimumLength = 1, ErrorMessage = "Slug must be between 1 and 100 characters")]
+        [RegularExpression(@"^[a-z0-9]+(-[a-z0-9]+)*$", ErrorMessage = "Slug must contain only lowercase letters, numbers, and hyphens (e.g., 'about-us')")]
+        public string? Slug { get; init; }
+
+        /// <summary>
         /// Optional description of changes for revision history
         /// </summary>
         [StringLength(500, ErrorMessage = "Change description cannot exceed 500 characters")]

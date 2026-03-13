@@ -76,9 +76,10 @@ namespace WitchCityRope.Api.Features.Cms.Entities
 
         /// <summary>
         /// Updates page content and creates a revision snapshot of the previous content.
+        /// Optionally updates the slug (caller must validate uniqueness before calling).
         /// Throws if the page has been soft-deleted (cannot edit deleted pages).
         /// </summary>
-        public void UpdateContent(string content, string title, Guid userId, string? changeDescription = null)
+        public void UpdateContent(string content, string title, Guid userId, string? changeDescription = null, string? slug = null)
         {
             if (IsDeleted)
                 throw new InvalidOperationException("Cannot update a deleted page");
@@ -107,6 +108,12 @@ namespace WitchCityRope.Api.Features.Cms.Entities
             Title = title;
             UpdatedAt = DateTime.UtcNow;
             LastModifiedBy = userId;
+
+            // Update slug if provided (caller validates uniqueness)
+            if (!string.IsNullOrWhiteSpace(slug))
+            {
+                Slug = slug;
+            }
         }
 
         /// <summary>

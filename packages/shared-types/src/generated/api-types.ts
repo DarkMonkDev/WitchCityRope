@@ -3072,6 +3072,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cms/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all content pages
+         * @description Lists all non-deleted content pages with revision counts. Requires Administrator role.
+         */
+        get: operations["GetAllCmsPages"];
+        put?: never;
+        /**
+         * Create content page
+         * @description Creates a new content page with the given title, slug, and content. Requires Administrator role.
+         */
+        post: operations["CreateCmsPage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cms/pages/{id}": {
         parameters: {
             query?: never;
@@ -3086,7 +3110,11 @@ export interface paths {
          */
         put: operations["UpdateCmsPage"];
         post?: never;
-        delete?: never;
+        /**
+         * Soft delete content page
+         * @description Soft-deletes a content page. The page remains in the database but is excluded from all queries. Requires Administrator role.
+         */
+        delete: operations["DeleteCmsPage"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3104,26 +3132,6 @@ export interface paths {
          * @description Fetches all revisions for a content page. Requires Administrator role.
          */
         get: operations["GetCmsPageRevisions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cms/pages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all content pages
-         * @description Lists all content pages with revision counts. Requires Administrator role.
-         */
-        get: operations["GetAllCmsPages"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4395,6 +4403,11 @@ export interface components {
             /** Format: date-time */
             newStartDate: string;
             newTitle: string;
+        };
+        CreateContentPageRequest: {
+            title: string;
+            slug: string;
+            content: string;
         };
         CreateEventRequest: {
             title: string;
@@ -5795,6 +5808,7 @@ export interface components {
         UpdateContentPageRequest: {
             title: string;
             content: string;
+            slug?: null | string;
             changeDescription?: null | string;
         };
         UpdateEventRequest: {
@@ -14490,6 +14504,78 @@ export interface operations {
             };
         };
     };
+    GetAllCmsPages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPageSummaryDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CreateCmsPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateContentPageRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentPageDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     UpdateCmsPage: {
         parameters: {
             query?: never;
@@ -14516,6 +14602,40 @@ export interface operations {
             };
             /** @description Bad Request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeleteCmsPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -14566,33 +14686,6 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetAllCmsPages: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CmsPageSummaryDto"][];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
                 headers: {
                     [name: string]: unknown;
                 };

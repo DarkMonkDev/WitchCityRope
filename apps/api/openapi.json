@@ -9867,6 +9867,73 @@
         }
       }
     },
+    "/api/cms/pages": {
+      "post": {
+        "tags": [
+          "CMS"
+        ],
+        "summary": "Create content page",
+        "description": "Creates a new content page with the given title, slug, and content. Requires Administrator role.",
+        "operationId": "CreateCmsPage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContentPageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentPageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "CMS"
+        ],
+        "summary": "List all content pages",
+        "description": "Lists all non-deleted content pages with revision counts. Requires Administrator role.",
+        "operationId": "GetAllCmsPages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CmsPageSummaryDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/cms/pages/{id}": {
       "put": {
         "tags": [
@@ -9917,6 +9984,36 @@
             "description": "Not Found"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "CMS"
+        ],
+        "summary": "Soft delete content page",
+        "description": "Soft-deletes a content page. The page remains in the database but is excluded from all queries. Requires Administrator role.",
+        "operationId": "DeleteCmsPage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
       }
     },
     "/api/cms/pages/{id}/revisions": {
@@ -9957,34 +10054,6 @@
           },
           "404": {
             "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/api/cms/pages": {
-      "get": {
-        "tags": [
-          "CMS"
-        ],
-        "summary": "List all content pages",
-        "description": "Lists all content pages with revision counts. Requires Administrator role.",
-        "operationId": "GetAllCmsPages",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CmsPageSummaryDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
           }
         }
       }
@@ -12637,6 +12706,30 @@
           "newTitle": {
             "maxLength": 200,
             "minLength": 3,
+            "type": "string"
+          }
+        }
+      },
+      "CreateContentPageRequest": {
+        "required": [
+          "title",
+          "slug",
+          "content"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "maxLength": 200,
+            "minLength": 3,
+            "type": "string"
+          },
+          "slug": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "content": {
             "type": "string"
           }
         }
@@ -17257,6 +17350,15 @@
           },
           "content": {
             "type": "string"
+          },
+          "slug": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "changeDescription": {
             "maxLength": 500,

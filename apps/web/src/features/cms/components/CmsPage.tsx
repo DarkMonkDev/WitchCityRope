@@ -31,6 +31,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
   const [isEditing, setIsEditing] = useState(false)
   const [editableContent, setEditableContent] = useState('')
   const [editableTitle, setEditableTitle] = useState('')
+  const [editableSlug, setEditableSlug] = useState('')
   const [isDirty, setIsDirty] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
 
@@ -68,6 +69,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
   const handleEdit = () => {
     if (content) {
       setEditableTitle(content.title || '')
+      setEditableSlug(content.slug || '')
       setEditableContent(content.content || '')
     }
     setIsEditing(true)
@@ -79,6 +81,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
       await save({
         title: editableTitle,
         content: editableContent,
+        slug: editableSlug || undefined,
       })
       setIsEditing(false)
       setIsDirty(false)
@@ -112,6 +115,12 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
     setIsDirty(true)
   }
 
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Force lowercase as user types to match slug format requirements
+    setEditableSlug(e.target.value.toLowerCase())
+    setIsDirty(true)
+  }
+
   if (isLoading) {
     return (
       <Container size="lg">
@@ -140,10 +149,10 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
       {/* Edit mode */}
       {isEditing && (
         <Box>
-          {/* Title row with inline label, input, last modified, and buttons */}
-          <Group justify="space-between" align="flex-end" mb="md" wrap="nowrap">
-            {/* Title input section - takes majority of space */}
-            <Box style={{ flex: '1 1 auto', minWidth: 0 }}>
+          {/* Title and Slug row - each takes half width */}
+          <Group align="flex-end" mb="md" wrap="nowrap" gap="md">
+            {/* Title input - left half */}
+            <Box style={{ flex: '1 1 50%', minWidth: 0 }}>
               <TextInput
                 label="Page Title"
                 placeholder="Enter page title"
@@ -160,6 +169,27 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
               />
             </Box>
 
+            {/* Slug input - right half */}
+            <Box style={{ flex: '1 1 50%', minWidth: 0 }}>
+              <TextInput
+                label="URL Slug"
+                placeholder="about-us"
+                description="Lowercase letters, numbers, and hyphens only"
+                value={editableSlug}
+                onChange={handleSlugChange}
+                required
+                styles={{
+                  input: {
+                    fontFamily: 'monospace',
+                    fontSize: '16px',
+                  },
+                }}
+              />
+            </Box>
+          </Group>
+
+          {/* Last modified and action buttons row */}
+          <Group justify="space-between" align="center" mb="md" wrap="nowrap">
             {/* Last Modified Date - only show if available */}
             {content?.updatedAt && (
               <Box
@@ -167,9 +197,6 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
                   fontSize: '14px',
                   color: '#5c5f66', // Darker gray for WCAG AA compliance (4.5:1 contrast ratio)
                   whiteSpace: 'nowrap',
-                  paddingBottom: '8px',
-                  marginLeft: '16px',
-                  marginRight: '16px',
                 }}
               >
                 Last Modified: {new Date(content.updatedAt).toLocaleString()}
@@ -177,7 +204,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
             )}
 
             {/* Save and Cancel buttons */}
-            <Group gap="sm" wrap="nowrap" style={{ flexShrink: 0 }}>
+            <Group gap="sm" wrap="nowrap" style={{ flexShrink: 0, marginLeft: 'auto' }}>
               <Button
                 variant="outline"
                 onClick={handleCancel}

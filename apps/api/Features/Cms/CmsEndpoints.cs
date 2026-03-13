@@ -275,6 +275,19 @@ namespace WitchCityRope.Api.Features.Cms
                     statusCode: 400);
             }
 
+            // If slug is being changed, validate uniqueness (globally unique, including deleted pages)
+            if (!string.IsNullOrWhiteSpace(request.Slug) && request.Slug != page.Slug)
+            {
+                var slugExists = await db.ContentPages.AnyAsync(p => p.Slug == request.Slug && p.Id != id, ct);
+                if (slugExists)
+                {
+                    return Results.Problem(
+                        title: "Conflict",
+                        detail: $"A page with slug '{request.Slug}' already exists. Please choose a different slug.",
+                        statusCode: 409);
+                }
+            }
+
             // Use domain method to update content (creates revision automatically)
             try
             {
@@ -282,7 +295,8 @@ namespace WitchCityRope.Api.Features.Cms
                     cleanContent,
                     request.Title,
                     userId,
-                    request.ChangeDescription
+                    request.ChangeDescription,
+                    request.Slug
                 );
 
                 await db.SaveChangesAsync(ct);
