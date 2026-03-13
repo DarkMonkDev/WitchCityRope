@@ -52,14 +52,37 @@ namespace WitchCityRope.Api.Features.Cms.Entities
         [Column("IsPublished")]
         public bool IsPublished { get; set; } = true;
 
+        // Soft delete fields
+        // Pages are soft-deleted rather than hard-deleted to preserve data integrity.
+        // Soft-deleted pages are excluded from all queries (admin list, public view, revisions).
+        // There is currently no UI to view or restore soft-deleted pages.
+        [Required]
+        [Column("IsDeleted")]
+        public bool IsDeleted { get; set; } = false;
+
+        [Column("DeletedAt")]
+        public DateTime? DeletedAt { get; set; }
+
+        [Column("DeletedBy")]
+        public Guid? DeletedBy { get; set; }
+
         // Navigation properties
         public ApplicationUser? CreatedByUser { get; set; }
         public ApplicationUser? LastModifiedByUser { get; set; }
+        public ApplicationUser? DeletedByUser { get; set; }
         public ICollection<ContentRevision> Revisions { get; set; } = new List<ContentRevision>();
 
         // Domain methods
+
+        /// <summary>
+        /// Updates page content and creates a revision snapshot of the previous content.
+        /// Throws if the page has been soft-deleted (cannot edit deleted pages).
+        /// </summary>
         public void UpdateContent(string content, string title, Guid userId, string? changeDescription = null)
         {
+            if (IsDeleted)
+                throw new InvalidOperationException("Cannot update a deleted page");
+
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("Content cannot be empty", nameof(content));
 
@@ -84,6 +107,20 @@ namespace WitchCityRope.Api.Features.Cms.Entities
             Title = title;
             UpdatedAt = DateTime.UtcNow;
             LastModifiedBy = userId;
+        }
+
+        /// <summary>
+        /// Soft-deletes this page. The page and its revisions remain in the database
+        /// but are excluded from all queries. The slug remains reserved (cannot be reused).
+        /// </summary>
+        public void SoftDelete(Guid userId)
+        {
+            if (IsDeleted)
+                throw new InvalidOperationException("Page is already deleted");
+
+            IsDeleted = true;
+            DeletedAt = DateTime.UtcNow;
+            DeletedBy = userId;
         }
 
         public bool CanBeEditedBy(string userId, IEnumerable<string> userRoles)

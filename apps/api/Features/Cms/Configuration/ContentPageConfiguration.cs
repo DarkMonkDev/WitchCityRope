@@ -67,6 +67,19 @@ namespace WitchCityRope.Api.Features.Cms.Configuration
                 .IsRequired()
                 .HasDefaultValue(true);
 
+            // Soft delete fields
+            builder.Property(cp => cp.IsDeleted)
+                .HasColumnName("IsDeleted")
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            builder.Property(cp => cp.DeletedAt)
+                .HasColumnName("DeletedAt")
+                .HasColumnType("timestamp with time zone");
+
+            builder.Property(cp => cp.DeletedBy)
+                .HasColumnName("DeletedBy");
+
             // Foreign key relationships
             builder.HasOne(cp => cp.CreatedByUser)
                 .WithMany()
@@ -78,6 +91,12 @@ namespace WitchCityRope.Api.Features.Cms.Configuration
                 .WithMany()
                 .HasForeignKey(cp => cp.LastModifiedBy)
                 .HasConstraintName("FK_ContentPages_LastModifiedBy")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(cp => cp.DeletedByUser)
+                .WithMany()
+                .HasForeignKey(cp => cp.DeletedBy)
+                .HasConstraintName("FK_ContentPages_DeletedBy")
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Revisions relationship
@@ -101,6 +120,11 @@ namespace WitchCityRope.Api.Features.Cms.Configuration
             builder.HasIndex(cp => cp.UpdatedAt)
                 .HasDatabaseName("IX_ContentPages_UpdatedAt")
                 .IsDescending();
+
+            // Soft delete index - optimizes filtering deleted pages from queries
+            builder.HasIndex(cp => cp.IsDeleted)
+                .HasDatabaseName("IX_ContentPages_IsDeleted")
+                .HasFilter("\"IsDeleted\" = false");
 
             // Check constraints
             builder.ToTable(t =>
