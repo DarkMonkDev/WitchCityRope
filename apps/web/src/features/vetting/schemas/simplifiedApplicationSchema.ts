@@ -94,7 +94,7 @@ export const fieldValidationMessages = {
   experienceWithRope: {
     required: 'Please describe your experience with rope bondage',
     maxLength: 'Experience description must be less than 2000 characters',
-    placeholder: 'Tell us about your experience with rope bondage, BDSM, or kink communities...',
+    placeholder: 'Share any experience you have with rope so far (none is great)',
   },
   agreeToCommunityStandards: {
     required: 'You must agree to all community standards to submit your application',

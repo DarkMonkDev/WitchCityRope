@@ -657,7 +657,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 minRows={4}
                 maxRows={8}
                 autosize
-                description="Share your experience in rope bondage, BDSM, or kink communities"
+                description="Share your experience in rope bondage, BDSM, or kink communities (none yet is 100% awesome)"
                 data-testid="experience-with-rope-textarea"
                 readOnly={hasExistingApp}
                 disabled={hasExistingApp}
