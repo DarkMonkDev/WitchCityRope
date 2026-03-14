@@ -38,6 +38,11 @@ namespace WitchCityRope.Api.Features.Cms.Services
             _sanitizer.AllowedTags.Add("blockquote");
             _sanitizer.AllowedTags.Add("code");
             _sanitizer.AllowedTags.Add("pre");
+            _sanitizer.AllowedTags.Add("hr");       // Horizontal rules (TipTap StarterKit)
+            _sanitizer.AllowedTags.Add("sup");      // Superscript extension
+            _sanitizer.AllowedTags.Add("sub");      // Subscript extension
+            _sanitizer.AllowedTags.Add("mark");     // Highlight extension
+            _sanitizer.AllowedTags.Add("span");     // Color/TextStyle extensions wrap styled text in spans
 
             // Clear default allowed attributes
             _sanitizer.AllowedAttributes.Clear();
@@ -46,12 +51,17 @@ namespace WitchCityRope.Api.Features.Cms.Services
             _sanitizer.AllowedAttributes.Add("href");     // For links
             _sanitizer.AllowedAttributes.Add("title");    // For tooltips
             _sanitizer.AllowedAttributes.Add("class");    // For styling
+            _sanitizer.AllowedAttributes.Add("style");    // For inline styles (text-align, color, highlights)
+            _sanitizer.AllowedAttributes.Add("target");   // For links (TipTap adds target="_blank")
+            _sanitizer.AllowedAttributes.Add("rel");      // For links (noopener noreferrer security)
 
             // Clear default allowed CSS properties
             _sanitizer.AllowedCssProperties.Clear();
 
-            // Allow safe CSS properties
-            _sanitizer.AllowedCssProperties.Add("text-align");
+            // Allow safe CSS properties (used by TipTap editor extensions)
+            _sanitizer.AllowedCssProperties.Add("text-align");        // Text alignment
+            _sanitizer.AllowedCssProperties.Add("color");             // Text color (Color extension)
+            _sanitizer.AllowedCssProperties.Add("background-color");  // Highlight backgrounds (Highlight extension)
 
             // Clear default allowed URI schemes
             _sanitizer.AllowedSchemes.Clear();

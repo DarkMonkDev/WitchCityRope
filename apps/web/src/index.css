@@ -292,6 +292,14 @@ article p,
   color: var(--color-charcoal);
 }
 
+/* Horizontal rule - themed divider for CMS content sections */
+.html-content hr {
+  border: none;
+  border-top: 2px solid var(--color-burgundy);
+  margin: 1.5em 0;
+  opacity: 0.4;
+}
+
 /* Light variant for dark backgrounds (hero sections, etc.) */
 .html-content-light {
   font-size: clamp(1rem, 0.19vw + 0.94rem, 1.06rem);
