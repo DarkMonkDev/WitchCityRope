@@ -15,17 +15,20 @@ public class SafetyService : ISafetyService
     private readonly ApplicationDbContext _context;
     private readonly IEncryptionService _encryptionService;
     private readonly IAuditService _auditService;
+    private readonly IIncidentEmailService _incidentEmailService;
     private readonly ILogger<SafetyService> _logger;
 
     public SafetyService(
         ApplicationDbContext context,
         IEncryptionService encryptionService,
         IAuditService auditService,
+        IIncidentEmailService incidentEmailService,
         ILogger<SafetyService> logger)
     {
         _context = context;
         _encryptionService = encryptionService;
         _auditService = auditService;
+        _incidentEmailService = incidentEmailService;
         _logger = logger;
     }
 
@@ -115,6 +118,18 @@ public class SafetyService : ISafetyService
 
             _logger.LogInformation("Safety incident submitted successfully: {ReferenceNumber}, Anonymous: {IsAnonymous}",
                 referenceNumber, incident.IsAnonymous);
+
+            // Send report received email notification (fire-and-forget, never blocks submission)
+            try
+            {
+                await _incidentEmailService.SendReportReceivedAsync(incident, cancellationToken);
+            }
+            catch (Exception emailEx)
+            {
+                _logger.LogError(emailEx,
+                    "Failed to send report received email for incident {ReferenceNumber}, but submission succeeded",
+                    referenceNumber);
+            }
 
             return Result<SubmissionResponse>.Success(response);
         }

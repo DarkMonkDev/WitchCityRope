@@ -9,7 +9,8 @@ namespace WitchCityRope.Api.Features.Shared.Services;
 public interface IEmailService
 {
     /// <summary>
-    /// Send email using GlobalEmailTemplate fetched from database by category and template type
+    /// Send email using GlobalEmailTemplate fetched from database by category and template type.
+    /// Does not check for event-specific overrides.
     /// </summary>
     /// <param name="toEmail">Recipient email address</param>
     /// <param name="toName">Recipient display name</param>
@@ -24,6 +25,28 @@ public interface IEmailService
         EmailCategory category,
         string templateType,
         Dictionary<string, string> variables,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Send email using template with optional event-specific override.
+    /// When eventId is provided, checks for an EventEmailTemplate override first.
+    /// Falls back to GlobalEmailTemplate if no event override exists.
+    /// </summary>
+    /// <param name="toEmail">Recipient email address</param>
+    /// <param name="toName">Recipient display name</param>
+    /// <param name="category">Email category (Vetting, Events, Admin, Incident, AdHoc)</param>
+    /// <param name="templateType">Template type within category (e.g., "Confirmation", "Reminder1Day")</param>
+    /// <param name="variables">Dictionary of variables to substitute in template</param>
+    /// <param name="eventId">Optional event ID to check for event-specific template overrides</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result indicating success or failure with error message</returns>
+    Task<Result> SendTemplatedEmailAsync(
+        string toEmail,
+        string toName,
+        EmailCategory category,
+        string templateType,
+        Dictionary<string, string> variables,
+        Guid? eventId,
         CancellationToken cancellationToken = default);
 
     /// <summary>

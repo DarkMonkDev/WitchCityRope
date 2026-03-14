@@ -41,7 +41,25 @@ public class EmailService : IEmailService
     }
 
     /// <summary>
-    /// Send email using GlobalEmailTemplate fetched from database by category and template type
+    /// Send email using GlobalEmailTemplate fetched from database by category and template type.
+    /// Does not check for event-specific overrides. Use the overload with eventId for event emails.
+    /// </summary>
+    public Task<Result> SendTemplatedEmailAsync(
+        string toEmail,
+        string toName,
+        EmailCategory category,
+        string templateType,
+        Dictionary<string, string> variables,
+        CancellationToken cancellationToken = default)
+    {
+        // Delegate to the event-aware overload with no event override
+        return SendTemplatedEmailAsync(toEmail, toName, category, templateType, variables, eventId: null, cancellationToken);
+    }
+
+    /// <summary>
+    /// Send email using template with optional event-specific override.
+    /// When eventId is provided, checks for an EventEmailTemplate override first.
+    /// Falls back to GlobalEmailTemplate if no event override exists.
     /// </summary>
     public async Task<Result> SendTemplatedEmailAsync(
         string toEmail,
@@ -49,6 +67,7 @@ public class EmailService : IEmailService
         EmailCategory category,
         string templateType,
         Dictionary<string, string> variables,
+        Guid? eventId,
         CancellationToken cancellationToken = default)
     {
         try
@@ -59,14 +78,14 @@ public class EmailService : IEmailService
                 return Result.Failure("Recipient email is required");
             }
 
-            // Fetch template from database
-            var template = await _context.GlobalEmailTemplates
+            // Fetch the global template from database (always needed as fallback)
+            var globalTemplate = await _context.GlobalEmailTemplates
                 .AsNoTracking()
                 .FirstOrDefaultAsync(
                     t => t.Category == category && t.TemplateType == templateType && t.IsActive,
                     cancellationToken);
 
-            if (template == null)
+            if (globalTemplate == null)
             {
                 _logger.LogError(
                     "Email template not found: Category={Category}, TemplateType={TemplateType}",
@@ -74,21 +93,49 @@ public class EmailService : IEmailService
                 return Result.Failure($"Email template '{templateType}' not found in category '{category}'");
             }
 
-            // Check if sending is disabled for this template.
-            // Return success silently — the admin intentionally disabled this template
-            // and callers should not treat it as an error.
-            if (!template.SendingEnabled)
+            // Check for event-specific template override when an eventId is provided.
+            // EventEmailTemplate overrides subject, htmlBody, and plainTextBody.
+            // The OverrideSendingEnabled field controls whether sending is enabled at the event level;
+            // when null, the global template's SendingEnabled is used.
+            EventEmailTemplate? eventOverride = null;
+            if (eventId.HasValue)
+            {
+                eventOverride = await _context.EventEmailTemplates
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        t => t.EventId == eventId.Value && t.TemplateType == templateType,
+                        cancellationToken);
+
+                if (eventOverride != null)
+                {
+                    _logger.LogDebug(
+                        "Using event-specific template override: EventId={EventId}, TemplateType={TemplateType}",
+                        eventId.Value, templateType);
+                }
+            }
+
+            // Determine if sending is enabled.
+            // Event override's OverrideSendingEnabled takes precedence when non-null;
+            // otherwise fall back to the global template's SendingEnabled.
+            var sendingEnabled = eventOverride?.OverrideSendingEnabled ?? globalTemplate.SendingEnabled;
+
+            if (!sendingEnabled)
             {
                 _logger.LogInformation(
-                    "Email suppressed (SendingEnabled=false): Category={Category}, TemplateType={TemplateType}, To={ToEmail}",
-                    category, templateType, toEmail);
+                    "Email suppressed (SendingEnabled=false): Category={Category}, TemplateType={TemplateType}, To={ToEmail}, EventId={EventId}",
+                    category, templateType, toEmail, eventId);
                 return Result.Success();
             }
 
+            // Use event override content if available, otherwise use global template
+            var rawSubject = eventOverride?.Subject ?? globalTemplate.Subject;
+            var rawHtmlBody = eventOverride?.HtmlBody ?? globalTemplate.HtmlBody;
+            var rawPlainTextBody = eventOverride?.PlainTextBody ?? globalTemplate.PlainTextBody;
+
             // Perform variable substitution
-            var subject = SubstituteVariables(template.Subject, variables);
-            var htmlBody = SubstituteVariables(template.HtmlBody, variables);
-            var plainTextBody = SubstituteVariables(template.PlainTextBody, variables);
+            var subject = SubstituteVariables(rawSubject, variables);
+            var htmlBody = SubstituteVariables(rawHtmlBody, variables);
+            var plainTextBody = SubstituteVariables(rawPlainTextBody, variables);
 
             // Development mode: Log to console instead of sending
             if (_isDevelopmentMode)
@@ -99,9 +146,11 @@ public class EmailService : IEmailService
                     "From: {FromEmail} ({FromName})\n" +
                     "Subject: {Subject}\n" +
                     "Template: {Category}/{TemplateType}\n" +
+                    "EventOverride: {HasOverride}\n" +
                     "HTML Body:\n{HtmlBody}\n" +
                     "Plain Text Body:\n{PlainTextBody}",
-                    toEmail, toName, _fromEmail, _fromName, subject, category, templateType, htmlBody, plainTextBody);
+                    toEmail, toName, _fromEmail, _fromName, subject, category, templateType,
+                    eventOverride != null, htmlBody, plainTextBody);
 
                 return Result.Success(); // Return success to prevent blocking flows
             }
@@ -116,8 +165,8 @@ public class EmailService : IEmailService
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation(
-                    "Email sent successfully: To={ToEmail}, Template={Category}/{TemplateType}, Subject={Subject}",
-                    toEmail, category, templateType, subject);
+                    "Email sent successfully: To={ToEmail}, Template={Category}/{TemplateType}, Subject={Subject}, EventOverride={HasOverride}",
+                    toEmail, category, templateType, subject, eventOverride != null);
                 return Result.Success();
             }
             else
@@ -132,8 +181,8 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Error sending templated email: Category={Category}, TemplateType={TemplateType}, ToEmail={ToEmail}",
-                category, templateType, toEmail);
+                "Error sending templated email: Category={Category}, TemplateType={TemplateType}, ToEmail={ToEmail}, EventId={EventId}",
+                category, templateType, toEmail, eventId);
             return Result.Failure($"Error sending email: {ex.Message}");
         }
     }

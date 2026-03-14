@@ -62,6 +62,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserDashboardProfileService, UserDashboardProfileService>();
 
         // Safety feature services
+        services.AddScoped<IIncidentEmailService, IncidentEmailService>();
         services.AddScoped<ISafetyService, SafetyService>();
         services.AddScoped<ISafetyServiceExtended, SafetyServiceExtended>();
 

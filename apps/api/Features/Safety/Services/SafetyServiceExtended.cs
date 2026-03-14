@@ -16,18 +16,21 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
     private readonly ApplicationDbContext _context;
     private readonly IEncryptionService _encryptionService;
     private readonly IAuditService _auditService;
+    private readonly IIncidentEmailService _incidentEmailService;
     private readonly ILogger<SafetyServiceExtended> _logger;
 
     public SafetyServiceExtended(
         ApplicationDbContext context,
         IEncryptionService encryptionService,
         IAuditService auditService,
+        IIncidentEmailService incidentEmailService,
         ILogger<SafetyServiceExtended> logger)
-        : base(context, encryptionService, auditService, logger)
+        : base(context, encryptionService, auditService, incidentEmailService, logger)
     {
         _context = context;
         _encryptionService = encryptionService;
         _auditService = auditService;
+        _incidentEmailService = incidentEmailService;
         _logger = logger;
     }
 
@@ -403,6 +406,22 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             _logger.LogInformation("Incident {IncidentId} assignment updated by user {UserId}: {Note}",
                 incidentId, userId, noteContent);
 
+            // Send assignment notification email to new coordinator (fire-and-forget)
+            if (request.CoordinatorId.HasValue)
+            {
+                try
+                {
+                    await _incidentEmailService.SendAssignmentNotificationAsync(
+                        incident, request.CoordinatorId.Value, cancellationToken);
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx,
+                        "Failed to send assignment notification email for incident {IncidentId}, but assignment succeeded",
+                        incidentId);
+                }
+            }
+
             // Reload coordinator navigation property
             await _context.Entry(incident).Reference(i => i.Coordinator).LoadAsync(cancellationToken);
 
@@ -487,6 +506,28 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
 
             _logger.LogInformation("Incident {IncidentId} status updated by user {UserId}: {OldStatus} -> {NewStatus}",
                 incidentId, userId, oldStatus, request.NewStatus);
+
+            // Send status change email notification to reporter (fire-and-forget)
+            try
+            {
+                if (request.NewStatus == IncidentStatus.Closed)
+                {
+                    // Closed/resolved gets the special Resolved template
+                    await _incidentEmailService.SendResolvedAsync(incident, cancellationToken);
+                }
+                else
+                {
+                    // All other status changes get the StatusUpdate template
+                    var humanReadableStatus = GetSimplifiedStatusDescription(request.NewStatus);
+                    await _incidentEmailService.SendStatusUpdateAsync(incident, humanReadableStatus, cancellationToken);
+                }
+            }
+            catch (Exception emailEx)
+            {
+                _logger.LogError(emailEx,
+                    "Failed to send status update email for incident {IncidentId}, but status change succeeded",
+                    incidentId);
+            }
 
             var response = new StatusUpdateResponse
             {

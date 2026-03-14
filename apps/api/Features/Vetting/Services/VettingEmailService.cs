@@ -214,12 +214,14 @@ public class VettingEmailService : IVettingEmailService
     }
 
     /// <summary>
-    /// Get interview scheduling link (placeholder - replace with actual URL generation)
+    /// Build interview scheduling link using the frontend URL from configuration.
+    /// Links to the internal /vetting-interview-scheduling page with the application ID
+    /// so the scheduling page can load the correct application context.
     /// </summary>
     private string GetInterviewSchedulingLink(VettingApplication application)
     {
-        // TODO: Generate actual interview scheduling link
-        return $"https://witchcityrope.com/vetting/interview/{application.Id}";
+        var frontendUrl = _configuration["Frontend:Url"]?.TrimEnd('/') ?? "https://witchcityrope.com";
+        return $"{frontendUrl}/vetting-interview-scheduling?applicationId={application.Id}";
     }
 
 }

@@ -75,6 +75,9 @@ services:
       Jwt__ExpirationMinutes: 480  # 8 hours for development convenience
       Authentication__RequireHttps: "false"
 
+      # Frontend URL for email links (interview scheduling, event details, etc.)
+      Frontend__Url: "http://localhost:5173"
+
       # Development CORS - allow multiple origins
       CORS__AllowedOrigins: "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://web:5173"
 

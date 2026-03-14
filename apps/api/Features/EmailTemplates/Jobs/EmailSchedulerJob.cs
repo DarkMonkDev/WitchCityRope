@@ -22,6 +22,7 @@ public class EmailSchedulerJob
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IEventRecipientService _eventRecipientService;
     private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<EmailSchedulerJob> _logger;
 
     // Must match the Hangfire cron interval (hourly = 1 hour)
@@ -35,13 +36,34 @@ public class EmailSchedulerJob
         IEmailTemplateService emailTemplateService,
         IEventRecipientService eventRecipientService,
         IEmailService emailService,
+        IConfiguration configuration,
         ILogger<EmailSchedulerJob> logger)
     {
         _context = context;
         _emailTemplateService = emailTemplateService;
         _eventRecipientService = eventRecipientService;
         _emailService = emailService;
+        _configuration = configuration;
         _logger = logger;
+    }
+
+    // ============================================================================
+    // EVENT DETAILS URL/BUTTON HELPERS
+    // ============================================================================
+    // These helpers build a link back to the event details page on the frontend.
+    // Templates can use {{event_details_url}} for a plain URL or
+    // {{event_details_button}} for a styled HTML button.
+    // ============================================================================
+
+    private string GetEventDetailsUrl(Guid eventId)
+    {
+        var frontendUrl = _configuration["Frontend:Url"]?.TrimEnd('/') ?? "https://witchcityrope.com";
+        return $"{frontendUrl}/events/{eventId}";
+    }
+
+    private static string GetEventDetailsButton(string url)
+    {
+        return $"<a href=\"{url}\" style=\"display: inline-block; padding: 12px 24px; background-color: #880124; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;\">View Event Details</a>";
     }
 
     public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -218,18 +240,30 @@ public class EmailSchedulerJob
                 // All templates get the base event/venue variables.
                 // Volunteer templates additionally get role and shift details
                 // from the RecipientInfo (populated by EventRecipientService).
+                var formattedDate = localTime.ToString("dddd, MMMM d, yyyy");
+                var formattedTime = localTime.ToString("h:mm tt") + " ET";
+
+                // Populate both session_* and event_* variable names.
+                // Production templates were originally seeded with event_date/event_time,
+                // while the seeder was later updated to use session_date/session_time.
+                // Both aliases are needed so templates work regardless of which variable
+                // name the admin used when editing.
+                var eventDetailsUrl = GetEventDetailsUrl(session.EventId);
+                var eventDetailsButton = GetEventDetailsButton(eventDetailsUrl);
+
                 var variables = new Dictionary<string, string>
                 {
                     ["attendee_name"] = recipient.DisplayName,
                     ["event_title"] = session.EventTitle,
-                    ["session_date"] = localTime.ToString("dddd, MMMM d, yyyy"),
-                    ["session_time"] = localTime.ToString("h:mm tt") + " ET",
-                    // venue_name and venue_address were previously missing from scheduler-sent
-                    // emails despite being declared in reminder template Variables JSON.
-                    // Now included for all templates.
+                    ["session_date"] = formattedDate,
+                    ["session_time"] = formattedTime,
+                    ["event_date"] = formattedDate,
+                    ["event_time"] = formattedTime,
                     ["venue_name"] = session.VenueName ?? "",
                     ["venue_address"] = session.VenueAddress ?? "",
-                    ["session_name"] = session.SessionName ?? ""
+                    ["session_name"] = session.SessionName ?? "",
+                    ["event_details_url"] = eventDetailsUrl,
+                    ["event_details_button"] = eventDetailsButton
                 };
 
                 if (isVolunteerTemplate)
@@ -241,9 +275,10 @@ public class EmailSchedulerJob
                     variables["shift_end"] = recipient.ShiftEnd ?? "TBD";
                 }
 
+                // Pass session.EventId to use event-specific template overrides if configured
                 var result = await _emailService.SendTemplatedEmailAsync(
                     recipient.Email, recipient.DisplayName,
-                    EmailCategory.Events, template.TemplateType, variables, ct);
+                    EmailCategory.Events, template.TemplateType, variables, session.EventId, ct);
 
                 if (result.IsSuccess)
                     successCount++;

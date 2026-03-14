@@ -475,11 +475,14 @@ public class VettingService : IVettingService
             {
                 try
                 {
+                    // Pass reasoning as custom_message so it appears in the email template
+                    // (e.g., On Hold emails explain why the application was put on hold)
                     var emailResult = await _emailService.SendStatusUpdateAsync(
                         application,
                         application.Email,
                         application.SceneName ?? application.FirstName ?? "Applicant",
                         newStatus,
+                        customMessage: request.Reasoning,
                         cancellationToken: cancellationToken);
 
                     if (emailResult.IsSuccess)

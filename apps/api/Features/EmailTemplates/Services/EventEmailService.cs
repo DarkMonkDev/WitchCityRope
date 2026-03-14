@@ -11,6 +11,7 @@ public class EventEmailService : IEventEmailService
 {
     private readonly ApplicationDbContext _context;
     private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<EventEmailService> _logger;
 
     private static readonly TimeZoneInfo EasternTimeZone =
@@ -19,11 +20,32 @@ public class EventEmailService : IEventEmailService
     public EventEmailService(
         ApplicationDbContext context,
         IEmailService emailService,
+        IConfiguration configuration,
         ILogger<EventEmailService> logger)
     {
         _context = context;
         _emailService = emailService;
+        _configuration = configuration;
         _logger = logger;
+    }
+
+    // ============================================================================
+    // EVENT DETAILS URL/BUTTON HELPERS
+    // ============================================================================
+    // These helpers build a link back to the event details page on the frontend.
+    // Templates can use {{event_details_url}} for a plain URL or
+    // {{event_details_button}} for a styled HTML button.
+    // ============================================================================
+
+    private string GetEventDetailsUrl(Guid eventId)
+    {
+        var frontendUrl = _configuration["Frontend:Url"]?.TrimEnd('/') ?? "https://witchcityrope.com";
+        return $"{frontendUrl}/events/{eventId}";
+    }
+
+    private static string GetEventDetailsButton(string url)
+    {
+        return $"<a href=\"{url}\" style=\"display: inline-block; padding: 12px 24px; background-color: #880124; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;\">View Event Details</a>";
     }
 
     public async Task SendPostPurchaseEmailsAsync(
@@ -125,22 +147,29 @@ public class EventEmailService : IEventEmailService
                 .FirstOrDefault();
             var (dateStr, _) = FormatSessionDateTime(firstSession?.StartTime);
 
+            var eventDetailsUrl = GetEventDetailsUrl(eventId);
+            var eventDetailsButton = GetEventDetailsButton(eventDetailsUrl);
+
             var variables = new Dictionary<string, string>
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt?.Title ?? "Event",
                 ["session_date"] = dateStr,
+                ["event_date"] = dateStr,
                 ["venue_name"] = venue?.Name ?? "",
                 ["venue_address"] = venue?.Location ?? "",
                 ["cancelled_sessions_list"] = htmlList,
                 ["cancelled_sessions_list_text"] = textList,
                 // custom_message left empty for user-initiated cancellations;
                 // admin-initiated cancellations can populate this via event template overrides
-                ["custom_message"] = ""
+                ["custom_message"] = "",
+                ["event_details_url"] = eventDetailsUrl,
+                ["event_details_button"] = eventDetailsButton
             };
 
+            // Pass eventId to use event-specific template overrides if configured
             var result = await _emailService.SendTemplatedEmailAsync(
-                user.Email!, displayName, EmailCategory.Events, "Cancellation", variables, ct);
+                user.Email!, displayName, EmailCategory.Events, "Cancellation", variables, eventId, ct);
 
             if (result.IsSuccess)
             {
@@ -203,18 +232,26 @@ public class EventEmailService : IEventEmailService
             var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
             var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
 
+            var eventDetailsUrl = GetEventDetailsUrl(eventId);
+            var eventDetailsButton = GetEventDetailsButton(eventDetailsUrl);
+
             var variables = new Dictionary<string, string>
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt.Title,
                 ["session_date"] = dateStr,
                 ["session_time"] = timeStr,
+                ["event_date"] = dateStr,
+                ["event_time"] = timeStr,
                 ["venue_name"] = evt.Venue?.Name ?? "",
-                ["venue_address"] = evt.Venue?.Location ?? ""
+                ["venue_address"] = evt.Venue?.Location ?? "",
+                ["event_details_url"] = eventDetailsUrl,
+                ["event_details_button"] = eventDetailsButton
             };
 
+            // Pass eventId to use event-specific template overrides if configured
             var result = await _emailService.SendTemplatedEmailAsync(
-                user.Email!, displayName, EmailCategory.Events, "RSVPConfirmation", variables, ct);
+                user.Email!, displayName, EmailCategory.Events, "RSVPConfirmation", variables, eventId, ct);
 
             if (result.IsSuccess)
             {
@@ -277,19 +314,27 @@ public class EventEmailService : IEventEmailService
             var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
             var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
 
+            var eventDetailsUrl = GetEventDetailsUrl(eventId);
+            var eventDetailsButton = GetEventDetailsButton(eventDetailsUrl);
+
             var variables = new Dictionary<string, string>
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt.Title,
                 ["session_date"] = dateStr,
                 ["session_time"] = timeStr,
+                ["event_date"] = dateStr,
+                ["event_time"] = timeStr,
                 ["venue_name"] = evt.Venue?.Name ?? "",
                 ["venue_address"] = evt.Venue?.Location ?? "",
-                ["custom_message"] = ""
+                ["custom_message"] = "",
+                ["event_details_url"] = eventDetailsUrl,
+                ["event_details_button"] = eventDetailsButton
             };
 
+            // Pass eventId to use event-specific template overrides if configured
             var result = await _emailService.SendTemplatedEmailAsync(
-                user.Email!, displayName, EmailCategory.Events, "RSVPCancellation", variables, ct);
+                user.Email!, displayName, EmailCategory.Events, "RSVPCancellation", variables, eventId, ct);
 
             if (result.IsSuccess)
             {
@@ -333,23 +378,36 @@ public class EventEmailService : IEventEmailService
             // Shows each ticket purchased and which sessions it covers.
             var (htmlSessionList, textSessionList) = BuildTicketSessionLists(purchases);
 
+            // Build event details link for the template
+            var eventDetailsUrl = evt != null ? GetEventDetailsUrl(evt.Id) : "";
+            var eventDetailsButton = !string.IsNullOrEmpty(eventDetailsUrl)
+                ? GetEventDetailsButton(eventDetailsUrl) : "";
+
+            // Populate both session_* and event_* aliases for backward compatibility.
+            // Production templates may use either variable name depending on when they were
+            // seeded or last edited by an admin.
             var variables = new Dictionary<string, string>
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt?.Title ?? "Event",
                 ["session_date"] = dateStr,
                 ["session_time"] = timeStr,
+                ["event_date"] = dateStr,
+                ["event_time"] = timeStr,
                 ["venue_name"] = venue?.Name ?? "",
                 ["venue_address"] = venue?.Location ?? "",
                 ["ticket_type"] = ticketType?.Name ?? "",
                 ["total_paid"] = purchases.Sum(p => p.TotalPrice).ToString("C"),
                 ["confirmation_number"] = firstPurchase.PaymentReference ?? "",
                 ["ticket_sessions_list"] = htmlSessionList,
-                ["ticket_sessions_list_text"] = textSessionList
+                ["ticket_sessions_list_text"] = textSessionList,
+                ["event_details_url"] = eventDetailsUrl,
+                ["event_details_button"] = eventDetailsButton
             };
 
+            // Pass evt?.Id to use event-specific template overrides if configured
             var result = await _emailService.SendTemplatedEmailAsync(
-                email, displayName, EmailCategory.Events, "Confirmation", variables, ct);
+                email, displayName, EmailCategory.Events, "Confirmation", variables, evt?.Id, ct);
 
             if (result.IsSuccess)
             {
@@ -403,6 +461,11 @@ public class EventEmailService : IEventEmailService
             var evt = firstPurchase.TicketType?.Event;
             var venue = evt?.Venue;
 
+            // Build event details link for catch-up reminder templates
+            var eventDetailsUrl = evt != null ? GetEventDetailsUrl(evt.Id) : "";
+            var eventDetailsButton = !string.IsNullOrEmpty(eventDetailsUrl)
+                ? GetEventDetailsButton(eventDetailsUrl) : "";
+
             foreach (var log in sentLogs)
             {
                 try
@@ -420,12 +483,17 @@ public class EventEmailService : IEventEmailService
                         ["event_title"] = evt?.Title ?? "Event",
                         ["session_date"] = dateStr,
                         ["session_time"] = timeStr,
+                        ["event_date"] = dateStr,
+                        ["event_time"] = timeStr,
                         ["venue_name"] = venue?.Name ?? "",
-                        ["venue_address"] = venue?.Location ?? ""
+                        ["venue_address"] = venue?.Location ?? "",
+                        ["event_details_url"] = eventDetailsUrl,
+                        ["event_details_button"] = eventDetailsButton
                     };
 
+                    // Pass evt?.Id to use event-specific template overrides if configured
                     var result = await _emailService.SendTemplatedEmailAsync(
-                        email, displayName, EmailCategory.Events, log.TemplateType, variables, ct);
+                        email, displayName, EmailCategory.Events, log.TemplateType, variables, evt?.Id, ct);
 
                     if (result.IsSuccess)
                     {
