@@ -491,7 +491,7 @@ export function IncidentReportForm({ onSubmissionComplete: _onSubmissionComplete
                   label={
                     <Text size="sm" component="span">
                       I have read and agree to the{' '}
-                      <Anchor href="/cms/incident-reporting-policy" target="_blank">
+                      <Anchor href="/incident-reporting-process" target="_blank">
                         Incident Reporting Policy & Procedures
                       </Anchor>
                     </Text>

@@ -335,7 +335,12 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 <List.Item>Any other names or handles (optional)</List.Item>
                 <List.Item>Why you'd like to join our community</List.Item>
                 <List.Item>Your experience with rope bondage or BDSM</List.Item>
-                <List.Item>Agreement to our community standards</List.Item>
+                <List.Item>
+                  Agree to our{' '}
+                  <Anchor href="/code-of-conduct" target="_blank" rel="noopener noreferrer">Code of Conduct</Anchor>
+                  {' '}and{' '}
+                  <Anchor href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</Anchor>
+                </List.Item>
               </List>
               <Text size="xs" c="dimmed" mt="sm">
                 Your email and scene name will be pulled from your account profile.
