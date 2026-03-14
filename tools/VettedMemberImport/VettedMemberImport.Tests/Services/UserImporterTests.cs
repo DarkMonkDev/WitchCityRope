@@ -77,7 +77,7 @@ public class UserImporterTests : IDisposable
         user.Pronouns.Should().Be("they/them");
         user.FetLifeName.Should().Be("fetlife123");
         user.VettingStatus.Should().Be(3); // Approved
-        user.Role.Should().Be("VettedMember");
+        user.Role.Should().BeEmpty("imported users should not be assigned a role");
         user.EmailConfirmed.Should().BeFalse();
         user.IsActive.Should().BeTrue();
     }
@@ -164,7 +164,7 @@ public class UserImporterTests : IDisposable
             DateOfBirth = DateTime.UtcNow.AddYears(-30),
             PronouncedName = "",
             Pronouns = "",
-            Role = "VettedMember",
+            Role = "",
             TermsOfServiceAccepted = false,
             HasVettingApplication = true
         };
@@ -221,7 +221,7 @@ public class UserImporterTests : IDisposable
             DateOfBirth = DateTime.UtcNow.AddYears(-30),
             PronouncedName = "",
             Pronouns = "",
-            Role = "VettedMember",
+            Role = "",
             TermsOfServiceAccepted = false,
             HasVettingApplication = true
         };

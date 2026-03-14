@@ -176,7 +176,7 @@ public class UserImporter
             // Other required fields
             IsActive = true,
             TermsOfServiceAccepted = false, // Will accept on first login
-            Role = vettingStatus == 3 ? "VettedMember" : "Member",  // VettedMember for approved, Member for interview-approved
+            Role = "",  // No role assigned - vetting status is tracked via VettingStatus field, not roles
 
             // Required but unused fields
             EncryptedLegalName = "",
