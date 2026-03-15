@@ -196,7 +196,7 @@ public class SettingsEndpointsTests
             }
         };
 
-        _mockSettingsService.UpdateMultipleSettingsAsync(
+        _mockSettingsService.UpsertMultipleSettingsAsync(
             Arg.Any<Dictionary<string, string>>(),
             Arg.Any<CancellationToken>())
             .Returns((true, string.Empty));
@@ -313,7 +313,7 @@ public class SettingsEndpointsTests
             }
         };
 
-        _mockSettingsService.UpdateMultipleSettingsAsync(
+        _mockSettingsService.UpsertMultipleSettingsAsync(
             Arg.Any<Dictionary<string, string>>(),
             Arg.Any<CancellationToken>())
             .Returns((false, "Database connection failed"));
@@ -347,7 +347,7 @@ public class SettingsEndpointsTests
             }
         };
 
-        _mockSettingsService.UpdateMultipleSettingsAsync(
+        _mockSettingsService.UpsertMultipleSettingsAsync(
             Arg.Any<Dictionary<string, string>>(),
             Arg.Any<CancellationToken>())
             .Returns((true, string.Empty));
@@ -359,7 +359,7 @@ public class SettingsEndpointsTests
         result.Should().BeAssignableTo<IResult>();
 
         // Verify service was called with correct settings
-        await _mockSettingsService.Received(1).UpdateMultipleSettingsAsync(
+        await _mockSettingsService.Received(1).UpsertMultipleSettingsAsync(
             Arg.Is<Dictionary<string, string>>(d =>
                 d.Count == 3 &&
                 d["EventTimeZone"] == "America/Chicago" &&
@@ -394,7 +394,7 @@ public class SettingsEndpointsTests
         problemResult!.StatusCode.Should().Be(400);
 
         // Verify service was NOT called because validation failed
-        await _mockSettingsService.DidNotReceive().UpdateMultipleSettingsAsync(
+        await _mockSettingsService.DidNotReceive().UpsertMultipleSettingsAsync(
             Arg.Any<Dictionary<string, string>>(),
             Arg.Any<CancellationToken>());
     }
@@ -425,7 +425,7 @@ public class SettingsEndpointsTests
         problemResult!.StatusCode.Should().Be(400);
 
         // Verify service was NOT called because validation failed
-        await _mockSettingsService.DidNotReceive().UpdateMultipleSettingsAsync(
+        await _mockSettingsService.DidNotReceive().UpsertMultipleSettingsAsync(
             Arg.Any<Dictionary<string, string>>(),
             Arg.Any<CancellationToken>());
     }
@@ -456,7 +456,7 @@ public class SettingsEndpointsTests
                 }
             };
 
-            _mockSettingsService.UpdateMultipleSettingsAsync(
+            _mockSettingsService.UpsertMultipleSettingsAsync(
                 Arg.Any<Dictionary<string, string>>(),
                 Arg.Any<CancellationToken>())
                 .Returns((true, string.Empty));
@@ -485,7 +485,7 @@ public class SettingsEndpointsTests
             }
         };
 
-        _mockSettingsService.UpdateMultipleSettingsAsync(
+        _mockSettingsService.UpsertMultipleSettingsAsync(
             Arg.Any<Dictionary<string, string>>(),
             Arg.Any<CancellationToken>())
             .Returns((true, string.Empty));
@@ -564,7 +564,7 @@ public class SettingsEndpointsTests
             }
         }
 
-        var (success, error) = await _mockSettingsService.UpdateMultipleSettingsAsync(
+        var (success, error) = await _mockSettingsService.UpsertMultipleSettingsAsync(
             request.Settings,
             CancellationToken.None);
 

@@ -74,7 +74,7 @@ public static class SettingsEndpoints
                 }
             }
 
-            var (success, error) = await settingsService.UpdateMultipleSettingsAsync(
+            var (success, error) = await settingsService.UpsertMultipleSettingsAsync(
                 request.Settings,
                 cancellationToken);
 

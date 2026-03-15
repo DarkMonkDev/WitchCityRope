@@ -14,15 +14,6 @@ public interface ISettingsService
     Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates a single setting value
-    /// </summary>
-    /// <param name="key">Setting key</param>
-    /// <param name="value">New value</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if updated successfully, false if key not found</returns>
-    Task<bool> UpdateSettingAsync(string key, string value, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Gets all settings as a dictionary
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -30,19 +21,12 @@ public interface ISettingsService
     Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates multiple settings in a single operation
+    /// Creates or updates multiple settings in a single operation.
+    /// If a setting key doesn't exist, it is created. If it already exists, its value is updated.
     /// </summary>
-    /// <param name="updates">Dictionary of setting keys and new values</param>
+    /// <param name="settings">Dictionary of setting keys and values to create or update</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Success status and error message if failed</returns>
-    Task<(bool Success, string Error)> UpdateMultipleSettingsAsync(
-        Dictionary<string, string> updates,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Creates or updates multiple settings. If a setting with the given key doesn't exist, it is created.
-    /// If it already exists, its value is updated. Used by email template test data feature.
-    /// </summary>
     Task<(bool Success, string Error)> UpsertMultipleSettingsAsync(
         Dictionary<string, string> settings,
         CancellationToken cancellationToken = default);
