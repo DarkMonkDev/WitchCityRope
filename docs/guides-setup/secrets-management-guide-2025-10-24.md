@@ -797,12 +797,8 @@ docker exec -it witchcity-api printenv | grep -i jwt
 ```
 
 **3. Verify Startup Logs**:
-```bash
-# Check for configuration errors
-docker logs witchcity-api | grep -i error
 
-# Look for: "Configuration 'Jwt:SecretKey' not found"
-```
+Use the `restart-dev-containers` skill to restart containers and view logs. Look for: "Configuration 'Jwt:SecretKey' not found"
 
 **4. Production DigitalOcean Verification**:
 ```
@@ -946,11 +942,8 @@ dotnet user-secrets clear --project /home/chad/repos/witchcityrope/apps/api
 # Check environment in running Docker container
 docker exec -it witchcity-api printenv
 
-# View Docker container logs
-docker logs witchcity-api
-
-# Restart Docker containers
-./dev.sh
+# View Docker container logs and restart containers:
+# Use the `restart-dev-containers` skill
 ```
 
 ---
