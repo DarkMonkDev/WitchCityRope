@@ -215,53 +215,73 @@ public class PayPalCheckoutController : ControllerBase
 
             // ================================================================
             // STAGE 3: CREATE PAYPAL ORDER
+            // Wrapped in try/catch to ensure pending tickets are rolled back
+            // if any step fails (e.g., encryption, DB save) after Stage 2
+            // committed them to the database.
             // ================================================================
-            _logger.LogInformation(
-                "[PayPalCheckout:{CorrelationId}] STAGE 3/3: Creating PayPal order. Amount={Amount}",
-                correlationId, request.Amount);
-
-            var money = Money.Create(request.Amount, request.Currency ?? "USD");
-
-            var metadata = new Dictionary<string, string>
+            try
             {
-                ["correlationId"] = correlationId,
-                ["ticketPurchaseIds"] = string.Join(",", ticketPurchaseIds)
-            };
-            if (!string.IsNullOrEmpty(request.EventTitle))
-                metadata["eventTitle"] = request.EventTitle;
+                _logger.LogInformation(
+                    "[PayPalCheckout:{CorrelationId}] STAGE 3/3: Creating PayPal order. Amount={Amount}",
+                    correlationId, request.Amount);
 
-            var orderResult = await _payPalService.CreateOrderAsync(
-                money, userId, request.SlidingScalePercentage, metadata, cancellationToken);
+                var money = Money.Create(request.Amount, request.Currency ?? "USD");
 
-            if (!orderResult.IsSuccess)
+                var metadata = new Dictionary<string, string>
+                {
+                    ["correlationId"] = correlationId,
+                    ["ticketPurchaseIds"] = string.Join(",", ticketPurchaseIds)
+                };
+                if (!string.IsNullOrEmpty(request.EventTitle))
+                    metadata["eventTitle"] = request.EventTitle;
+
+                var orderResult = await _payPalService.CreateOrderAsync(
+                    money, userId, request.SlidingScalePercentage, metadata, cancellationToken);
+
+                if (!orderResult.IsSuccess)
+                {
+                    _logger.LogError(
+                        "[PayPalCheckout:{CorrelationId}] STAGE 3 FAILED: PayPal order creation failed. {Error}. Rolling back pending tickets.",
+                        correlationId, orderResult.ErrorMessage);
+
+                    // Roll back pending tickets since PayPal order failed
+                    await RollbackPendingPurchasesAsync(ticketPurchaseIds, correlationId, cancellationToken);
+
+                    return PayPalCheckoutProblem(correlationId, "payment",
+                        "Unable to create PayPal payment. Please try again.", paymentCharged: false);
+                }
+
+                var orderId = orderResult.Value!.OrderId;
+
+                // Link PayPal order to all pending ticket purchases
+                foreach (var tp in pendingPurchases)
+                {
+                    tp.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(orderId);
+                    tp.PayPalOrderIdHash = ComputeSha256Hash(orderId);
+                    tp.PaymentMethod = "PayPal";
+                }
+                await _context.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation(
+                    "[PayPalCheckout:{CorrelationId}] STAGE 3 COMPLETE: PayPal order {OrderId} created and linked to {Count} ticket purchase(s)",
+                    correlationId, orderId, pendingPurchases.Count);
+
+                return Ok(new PayPalCheckoutCreateOrderResponse { OrderId = orderId });
+            }
+            catch (Exception ex)
             {
-                _logger.LogError(
-                    "[PayPalCheckout:{CorrelationId}] STAGE 3 FAILED: PayPal order creation failed. {Error}. Rolling back pending tickets.",
-                    correlationId, orderResult.ErrorMessage);
+                // Any unhandled exception after Stage 2 (pending tickets created) must
+                // roll back those tickets to prevent orphaned PendingPayment records
+                // that block future purchases for the same sessions.
+                _logger.LogError(ex,
+                    "[PayPalCheckout:{CorrelationId}] STAGE 3 FAILED with exception: {Message}. Rolling back pending tickets.",
+                    correlationId, ex.Message);
 
-                // Roll back pending tickets since PayPal order failed
                 await RollbackPendingPurchasesAsync(ticketPurchaseIds, correlationId, cancellationToken);
 
                 return PayPalCheckoutProblem(correlationId, "payment",
-                    "Unable to create PayPal payment. Please try again.", paymentCharged: false);
+                    "An unexpected error occurred during payment setup. Please try again.", paymentCharged: false);
             }
-
-            var orderId = orderResult.Value!.OrderId;
-
-            // Link PayPal order to all pending ticket purchases
-            foreach (var tp in pendingPurchases)
-            {
-                tp.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(orderId);
-                tp.PayPalOrderIdHash = ComputeSha256Hash(orderId);
-                tp.PaymentMethod = "PayPal";
-            }
-            await _context.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation(
-                "[PayPalCheckout:{CorrelationId}] STAGE 3 COMPLETE: PayPal order {OrderId} created and linked to {Count} ticket purchase(s)",
-                correlationId, orderId, pendingPurchases.Count);
-
-            return Ok(new PayPalCheckoutCreateOrderResponse { OrderId = orderId });
         }
     }
 
