@@ -43,4 +43,4 @@ export type {
 
 // Rich text editor
 export { MantineTiptapEditor } from './MantineTiptapEditor';
-export type { MantineTiptapEditorProps, MantineTiptapEditorRef } from './MantineTiptapEditor';
+export type { MantineTiptapEditorProps, MantineTiptapEditorRef, ToolbarVariant } from './MantineTiptapEditor';

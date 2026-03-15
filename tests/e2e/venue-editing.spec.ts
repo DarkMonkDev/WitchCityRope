@@ -72,9 +72,13 @@ test.describe('Admin Venue Editing', () => {
     await nameInput.click({ clickCount: 3 });
     await nameInput.fill(updatedName);
 
-    const directionsInput = venueCard.locator('textarea[placeholder="Enter directions to venue"]');
-    await directionsInput.click({ clickCount: 3 });
-    await directionsInput.fill(updatedDirections);
+    // Directions now uses a TipTap rich text editor instead of a plain textarea.
+    // The editor's content area is a .ProseMirror div inside the data-testid container.
+    const directionsEditor = venueCard.getByTestId('venue-directions-input').locator('.ProseMirror');
+    await directionsEditor.click();
+    // Select all existing content and replace with new text
+    await page.keyboard.press('Control+a');
+    await page.keyboard.type(updatedDirections);
 
     // Wait a moment for form validation to process
     await page.waitForTimeout(500);

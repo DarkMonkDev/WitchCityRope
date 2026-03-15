@@ -167,12 +167,22 @@ const VariableInsertion = Extension.create({
   },
 })
 
+/**
+ * Toolbar variant controls which toolbar buttons are shown.
+ * - 'full': All toolbar controls (default) - used for event descriptions, emails, CMS pages
+ * - 'limited': Only Bold, H2, H3, Link, Unlink - used for venue directions and similar
+ *   simple content areas where minimal formatting is needed
+ */
+export type ToolbarVariant = 'full' | 'limited'
+
 // Main component props
 export interface MantineTiptapEditorProps {
   value?: string
   onChange?: (content: string) => void
   placeholder?: string
   minRows?: number
+  /** Controls which toolbar buttons are displayed. Defaults to 'full'. */
+  toolbarVariant?: ToolbarVariant
 }
 
 export interface MantineTiptapEditorRef {
@@ -184,7 +194,7 @@ export interface MantineTiptapEditorRef {
 
 // Main component
 export const MantineTiptapEditor = forwardRef<MantineTiptapEditorRef, MantineTiptapEditorProps>(
-  ({ value = '', onChange, placeholder = 'Enter text...', minRows = 4 }, ref) => {
+  ({ value = '', onChange, placeholder = 'Enter text...', minRows = 4, toolbarVariant = 'full' }, ref) => {
     const editor = useEditor({
       extensions: [
         StarterKit,
@@ -206,8 +216,13 @@ export const MantineTiptapEditor = forwardRef<MantineTiptapEditorRef, MantineTip
       },
       editorProps: {
         attributes: {
+          // Apply the site's html-content class so headings in the editor render with the
+          // same fonts, colors, and sizing as the public site (single source of truth in index.css)
+          class: 'html-content',
           style: `min-height: ${minRows * 30}px;`,
           'data-placeholder': placeholder,
+          // Enable browser-native spell checking (red squiggly underlines + right-click suggestions)
+          spellcheck: 'true',
         },
       },
     })
@@ -259,61 +274,83 @@ export const MantineTiptapEditor = forwardRef<MantineTiptapEditorRef, MantineTip
     return (
       <RichTextEditor editor={editor}>
         <RichTextEditor.Toolbar sticky stickyOffset={60}>
-          <RichTextEditor.ControlsGroup>
-            <RichTextEditor.Bold />
-            <RichTextEditor.Italic />
-            <RichTextEditor.Underline />
-            <RichTextEditor.Strikethrough />
-            <RichTextEditor.ClearFormatting />
-          </RichTextEditor.ControlsGroup>
+          {/* Limited toolbar: Bold, H2, H3, Link, Unlink only */}
+          {toolbarVariant === 'limited' ? (
+            <>
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.Bold />
+              </RichTextEditor.ControlsGroup>
 
-          <RichTextEditor.ControlsGroup>
-            <RichTextEditor.ColorPicker
-              colors={[
-                '#000000',
-                '#880124',
-                '#C41E3A',
-                '#FF6B35',
-                '#F7931E',
-                '#2E7D32',
-                '#1976D2',
-                '#7B1FA2',
-                '#616161',
-                '#FFFFFF',
-              ]}
-            />
-          </RichTextEditor.ControlsGroup>
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.H2 />
+                <RichTextEditor.H3 />
+              </RichTextEditor.ControlsGroup>
 
-          <RichTextEditor.ControlsGroup>
-            <RichTextEditor.H1 />
-            <RichTextEditor.H2 />
-            <RichTextEditor.H3 />
-            <RichTextEditor.H4 />
-          </RichTextEditor.ControlsGroup>
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.Link />
+                <RichTextEditor.Unlink />
+              </RichTextEditor.ControlsGroup>
+            </>
+          ) : (
+            <>
+              {/* Full toolbar: all formatting controls */}
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.Bold />
+                <RichTextEditor.Italic />
+                <RichTextEditor.Underline />
+                <RichTextEditor.Strikethrough />
+                <RichTextEditor.ClearFormatting />
+              </RichTextEditor.ControlsGroup>
 
-          <RichTextEditor.ControlsGroup>
-            <RichTextEditor.Blockquote />
-            <RichTextEditor.Hr />
-            <RichTextEditor.BulletList />
-            <RichTextEditor.OrderedList />
-          </RichTextEditor.ControlsGroup>
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.ColorPicker
+                  colors={[
+                    '#000000',
+                    '#880124',
+                    '#C41E3A',
+                    '#FF6B35',
+                    '#F7931E',
+                    '#2E7D32',
+                    '#1976D2',
+                    '#7B1FA2',
+                    '#616161',
+                    '#FFFFFF',
+                  ]}
+                />
+              </RichTextEditor.ControlsGroup>
 
-          <RichTextEditor.ControlsGroup>
-            <RichTextEditor.Link />
-            <RichTextEditor.Unlink />
-          </RichTextEditor.ControlsGroup>
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.H1 />
+                <RichTextEditor.H2 />
+                <RichTextEditor.H3 />
+                <RichTextEditor.H4 />
+              </RichTextEditor.ControlsGroup>
 
-          <RichTextEditor.ControlsGroup>
-            <RichTextEditor.AlignLeft />
-            <RichTextEditor.AlignCenter />
-            <RichTextEditor.AlignJustify />
-            <RichTextEditor.AlignRight />
-          </RichTextEditor.ControlsGroup>
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.Blockquote />
+                <RichTextEditor.Hr />
+                <RichTextEditor.BulletList />
+                <RichTextEditor.OrderedList />
+              </RichTextEditor.ControlsGroup>
 
-          <RichTextEditor.ControlsGroup>
-            <RichTextEditor.Undo />
-            <RichTextEditor.Redo />
-          </RichTextEditor.ControlsGroup>
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.Link />
+                <RichTextEditor.Unlink />
+              </RichTextEditor.ControlsGroup>
+
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.AlignLeft />
+                <RichTextEditor.AlignCenter />
+                <RichTextEditor.AlignJustify />
+                <RichTextEditor.AlignRight />
+              </RichTextEditor.ControlsGroup>
+
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.Undo />
+                <RichTextEditor.Redo />
+              </RichTextEditor.ControlsGroup>
+            </>
+          )}
         </RichTextEditor.Toolbar>
 
         <RichTextEditor.Content />

@@ -10,6 +10,7 @@ import {
   Stack,
   Button,
 } from '@mantine/core';
+import { MantineTiptapEditor } from '../forms/MantineTiptapEditor';
 import { IconBuilding, IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
@@ -27,6 +28,18 @@ interface VenueFormValues {
   directions: string;
   venueInformation: string;
 }
+
+/**
+ * Normalizes HTML content from the rich text editor.
+ * Returns null if the content is effectively empty (e.g., just "<p></p>" or whitespace).
+ * This prevents storing empty HTML tags as venue directions.
+ */
+const normalizeHtmlContent = (html: string): string | null => {
+  if (!html) return null;
+  // Strip HTML tags and check if any visible text remains
+  const textContent = html.replace(/<[^>]*>/g, '').trim();
+  return textContent.length > 0 ? html : null;
+};
 
 /**
  * Venue Management Card Component
@@ -80,7 +93,7 @@ export const VenueManagementCard: React.FC = () => {
       form.reset();
       setSelectedVenueId(null); // Clear selection
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Failed to create venue',
@@ -105,7 +118,7 @@ export const VenueManagementCard: React.FC = () => {
         icon: <IconCheck />,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Failed to update venue',
@@ -131,7 +144,7 @@ export const VenueManagementCard: React.FC = () => {
       form.reset();
       setSelectedVenueId(null);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Failed to delete venue',
@@ -188,7 +201,7 @@ export const VenueManagementCard: React.FC = () => {
       createMutation.mutate({
         name: form.values.name.trim(),
         location: form.values.location.trim() || null,
-        directions: form.values.directions.trim() || null,
+        directions: normalizeHtmlContent(form.values.directions),
         venueInformation: form.values.venueInformation.trim() || null,
       });
     } else if (isEditMode && selectedVenueId) {
@@ -197,7 +210,7 @@ export const VenueManagementCard: React.FC = () => {
         data: {
           name: form.values.name.trim(),
           location: form.values.location.trim() || null,
-          directions: form.values.directions.trim() || null,
+          directions: normalizeHtmlContent(form.values.directions),
           venueInformation: form.values.venueInformation.trim() || null,
           isActive: true, // Always true when updating
         },
@@ -394,8 +407,10 @@ export const VenueManagementCard: React.FC = () => {
                     />
                   </Box>
 
-                  {/* Directions */}
-                  <Box>
+                  {/* Directions - uses limited rich text editor for basic HTML formatting
+                     (bold, H2, H3, links) so directions can include clickable map links
+                     and structured headings */}
+                  <Box data-testid="venue-directions-input">
                     <Text
                       component="label"
                       style={{
@@ -411,28 +426,12 @@ export const VenueManagementCard: React.FC = () => {
                     >
                       Directions
                     </Text>
-                    <Textarea
-                      data-testid="venue-directions-input"
-                      {...form.getInputProps('directions')}
+                    <MantineTiptapEditor
+                      value={form.values.directions}
+                      onChange={(content) => form.setFieldValue('directions', content)}
                       placeholder="Enter directions to venue"
-                      rows={4}
-                      maxLength={500}
-                      styles={{
-                        input: {
-                          fontFamily: 'var(--font-body)',
-                          fontSize: '16px',
-                          border: '2px solid var(--color-taupe)',
-                          borderRadius: '8px',
-                          background: 'var(--color-ivory)',
-                          color: 'var(--color-charcoal)',
-                          padding: 'var(--space-sm) var(--space-md)',
-                          resize: 'vertical',
-                          '&:focus': {
-                            borderColor: 'var(--color-burgundy)',
-                            boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)',
-                          },
-                        },
-                      }}
+                      minRows={4}
+                      toolbarVariant="limited"
                     />
                   </Box>
 

@@ -653,9 +653,9 @@ public class AdminVenueEndpointsTests
             return Results.Problem(title: "Validation Failed", detail: "Venue name must not exceed 100 characters", statusCode: 400);
         }
 
-        if (request.Directions?.Length > 500)
+        if (request.Directions?.Length > 2000)
         {
-            return Results.Problem(title: "Validation Failed", detail: "Directions must not exceed 500 characters", statusCode: 400);
+            return Results.Problem(title: "Validation Failed", detail: "Directions must not exceed 2000 characters", statusCode: 400);
         }
 
         if (request.VenueInformation?.Length > 1000)
@@ -712,9 +712,9 @@ public class AdminVenueEndpointsTests
             return Results.Problem(title: "Validation Failed", detail: "Venue name must not exceed 100 characters", statusCode: 400);
         }
 
-        if (request.Directions?.Length > 500)
+        if (request.Directions?.Length > 2000)
         {
-            return Results.Problem(title: "Validation Failed", detail: "Directions must not exceed 500 characters", statusCode: 400);
+            return Results.Problem(title: "Validation Failed", detail: "Directions must not exceed 2000 characters", statusCode: 400);
         }
 
         if (request.VenueInformation?.Length > 1000)

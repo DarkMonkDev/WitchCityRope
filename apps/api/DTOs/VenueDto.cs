@@ -59,7 +59,7 @@ public class CreateVenueRequest
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Directions to the venue (optional, max 500 characters)
+    /// Directions to the venue (optional, max 2000 characters, supports HTML)
     /// </summary>
     public string? Directions { get; set; }
 
@@ -86,7 +86,7 @@ public class UpdateVenueRequest
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Directions to the venue (optional, max 500 characters)
+    /// Directions to the venue (optional, max 2000 characters, supports HTML)
     /// </summary>
     public string? Directions { get; set; }
 

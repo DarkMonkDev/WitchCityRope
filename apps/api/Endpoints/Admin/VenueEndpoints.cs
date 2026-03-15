@@ -256,11 +256,11 @@ public static class VenueEndpoints
                         statusCode: 400);
                 }
 
-                if (request.Directions?.Length > 500)
+                if (request.Directions?.Length > 2000)
                 {
                     return Results.Problem(
                         title: "Validation Failed",
-                        detail: "Directions must not exceed 500 characters",
+                        detail: "Directions must not exceed 2000 characters",
                         statusCode: 400);
                 }
 
@@ -385,11 +385,11 @@ public static class VenueEndpoints
                         statusCode: 400);
                 }
 
-                if (request.Directions?.Length > 500)
+                if (request.Directions?.Length > 2000)
                 {
                     return Results.Problem(
                         title: "Validation Failed",
-                        detail: "Directions must not exceed 500 characters",
+                        detail: "Directions must not exceed 2000 characters",
                         statusCode: 400);
                 }
 

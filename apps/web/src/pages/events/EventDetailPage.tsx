@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Container, Stack, Title, Text, Breadcrumbs, Anchor, Alert, Button, Box, Group, Paper, Skeleton, Grid, Badge } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
@@ -14,6 +14,9 @@ import { VolunteerEncouragementBox } from '../../components/events/VolunteerEnco
 import { UserVolunteerShifts } from '../../components/events/UserVolunteerShifts';
 import { useVenue } from '../../lib/api/hooks/useVenues';
 import { useTeacherProfiles } from '../../lib/api/hooks/useTeacherProfiles';
+import type { EventDto, EventSessionDto, EventTicketTypeDto } from '../../lib/api/types/events.types';
+import type { EnhancedParticipationStatusDto } from '../../types/participation.types';
+import type { UserDto } from '../../lib/api/types/auth.types';
 import type { components } from '@witchcityrope/shared-types';
 import styles from './EventDetailPage.module.css'
 import { sanitizeHtml } from '../../lib/utils/sanitizeHtml'
@@ -27,27 +30,30 @@ export const EventDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const eventTimeZone = useEventTimeZone();
   const isMobile = useMediaQuery('(max-width: 991px)');
-  const [_selectedTicket, _setSelectedTicket] = useState('single');
 
   // Scroll to top when page loads or event ID changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  const { data: event, isLoading, error } = useEvent(id!, !!id);
-  const { data: currentUser } = useCurrentUser();
+  const { data: eventData, isLoading, error } = useEvent(id!, !!id);
+  const event = eventData as EventDto | undefined;
+  const { data: currentUserData } = useCurrentUser();
+  const currentUser = currentUserData as UserDto | undefined;
   const isAuthenticated = !!currentUser;
-  const { data: participation, isLoading: participationLoading } = useParticipation(id!, isAuthenticated, !!id);
-  const { data: volunteerPositions, isLoading: _volunteerLoading } = useVolunteerPositions(id!, !!id);
-  const { data: venue, isLoading: _venueLoading } = useVenue((event as any)?.venueId, !!event) as { data: VenueDto | null; isLoading: boolean };
-  const { data: teachers = [], isLoading: _teachersLoading } = useTeacherProfiles((event as any)?.teacherIds) as { data: UserProfileDto[]; isLoading: boolean };
+  const { data: participationData, isLoading: participationLoading } = useParticipation(id!, isAuthenticated, !!id);
+  const participation = participationData as EnhancedParticipationStatusDto | undefined;
+  const { data: volunteerPositions } = useVolunteerPositions(id!, !!id);
+  const { data: venueData } = useVenue(event?.venueId, !!event);
+  const venue = venueData as VenueDto | null | undefined;
+  const { data: teachersData = [] } = useTeacherProfiles(event?.teacherIds);
+  const teachers = teachersData as UserProfileDto[];
   const createRSVPMutation = useCreateRSVP();
   const cancelRSVPMutation = useCancelRSVP();
   const cancelTicketMutation = useCancelTicket();
 
   // Check if current user is admin (type-safe using auto-generated UserRole)
-  type UserRole = components['schemas']['UserRole'];
-  const isAdmin = (currentUser as any)?.role === ('Administrator' as UserRole);
+  const isAdmin = currentUser?.role === 'Administrator';
   
   if (isLoading) {
     return (
@@ -74,7 +80,7 @@ export const EventDetailPage: React.FC = () => {
     );
   }
 
-  const availableSpots = ((event as any)?.capacity || 0) - ((event as any)?.registrationCount || 0);
+  const availableSpots = (event.capacity || 0) - (event.registrationCount || 0);
   
 
   const handleRSVP = (notes?: string, eventWaiverAccepted?: boolean) => {
@@ -84,10 +90,6 @@ export const EventDetailPage: React.FC = () => {
       notes,
       eventWaiverAccepted: eventWaiverAccepted || false
     });
-  };
-
-  const handlePurchaseTicket = (_amount: number, _slidingScalePercentage?: number) => {
-    // PayPal integration handles ticket creation
   };
 
   const handleCancel = (type: 'rsvp' | 'ticket', reason?: string, ticketPurchaseIds?: string[]) => {
@@ -107,33 +109,33 @@ export const EventDetailPage: React.FC = () => {
       state: {
         eventInfo: {
           id,
-          title: (event as any)?.title || 'Event',
-          startDateTime: (event as any)?.startDate || new Date().toISOString(),
-          endDateTime: (event as any)?.endDate || new Date().toISOString(),
-          instructor: (event as any)?.instructor,
-          location: (event as any)?.location,
+          title: event.title || 'Event',
+          startDateTime: event.startDate || new Date().toISOString(),
+          endDateTime: event.endDate || new Date().toISOString(),
+          instructor: undefined,
+          location: event.venueLocation,
           price: getTicketPriceDisplay().min
         },
         // Pass owned session IDs so checkout can filter out tickets the user already has
-        ownedSessionIds: (participation as any)?.ownedSessionIds || []
+        ownedSessionIds: participation?.ownedSessionIds || []
       }
     });
   };
 
   // Extract boolean flags from event data
-  const allowRsvps = (event as any)?.allowRsvps ?? false;
-  const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true;
-  const vettedMembersOnly = (event as any)?.vettedMembersOnly ?? false;
+  const allowRsvps = event.allowRsvps ?? false;
+  const requireTicketPurchase = event.requireTicketPurchase ?? true;
+  const vettedMembersOnly = event.vettedMembersOnly ?? false;
 
   // Calculate ticket price display based on all available ticket types
   const getTicketPriceDisplay = (): { min: number; max: number; isSinglePrice: boolean } => {
-    const ticketTypes = (event as any)?.ticketTypes || [];
+    const ticketTypes: EventTicketTypeDto[] = (event.ticketTypes || []) as EventTicketTypeDto[];
     if (ticketTypes.length === 0) return { min: 50, max: 50, isSinglePrice: true }; // Default fallback
 
     let minPrice = Infinity;
     let maxPrice = -Infinity;
 
-    ticketTypes.forEach((tt: any) => {
+    ticketTypes.forEach((tt: EventTicketTypeDto) => {
       // For sliding scale tickets, use minPrice and maxPrice
       if (tt.pricingType === 'SlidingScale') {
         if (tt.minPrice != null) {
@@ -171,21 +173,21 @@ export const EventDetailPage: React.FC = () => {
   // Session overlap check: ticket types expose sessionIdentifiers (codes like "Default"),
   // while participation.ownedSessionIds contains GUIDs. We bridge them via event.sessions
   // which has both id (GUID) and sessionIdentifier (code).
-  const ticketTypes = (event as any)?.ticketTypes || [];
-  const eventSessions: any[] = (event as any)?.sessions || [];
-  const ownedSessionIds: string[] = (participation as any)?.ownedSessionIds || [];
+  const ticketTypes: EventTicketTypeDto[] = (event.ticketTypes || []) as EventTicketTypeDto[];
+  const eventSessions: EventSessionDto[] = event.sessions || [];
+  const ownedSessionIds: string[] = participation?.ownedSessionIds || [];
 
   // Build lookup: session code → session GUID so we can compare ticket type session codes
   // against the user's owned session GUIDs
   const sessionCodeToId: Record<string, string> = {};
-  eventSessions.forEach((s: any) => {
+  eventSessions.forEach((s: EventSessionDto) => {
     if (s.sessionIdentifier && s.id) {
       sessionCodeToId[s.sessionIdentifier] = s.id;
     }
   });
 
   // Check if a ticket type covers ANY session the user already owns
-  const isTicketOwnedByUser = (tt: any): boolean => {
+  const isTicketOwnedByUser = (tt: EventTicketTypeDto): boolean => {
     const codes: string[] = tt.sessionIdentifiers || [];
     if (codes.length === 0 || ownedSessionIds.length === 0) return false;
     return codes.some((code: string) => {
@@ -197,13 +199,13 @@ export const EventDetailPage: React.FC = () => {
   // Only show ticket types that have future sessions (canPurchase or referenceSessionId exists)
   // AND the user doesn't already own a ticket covering any of this ticket's sessions —
   // if they do, the ticket type is no longer relevant and is hidden entirely.
-  const displayableTickets = ticketTypes.filter((tt: any) =>
+  const displayableTickets: EventTicketTypeDto[] = ticketTypes.filter((tt: EventTicketTypeDto) =>
     (tt.canPurchase || tt.referenceSessionId) && !isTicketOwnedByUser(tt)
   );
 
   // Separate into purchasable and unavailable tickets
-  const purchasableTickets = displayableTickets.filter((tt: any) => tt.canPurchase);
-  const unavailableTickets = displayableTickets.filter((tt: any) => !tt.canPurchase);
+  const purchasableTickets: EventTicketTypeDto[] = displayableTickets.filter((tt: EventTicketTypeDto) => tt.canPurchase);
+  const unavailableTickets: EventTicketTypeDto[] = displayableTickets.filter((tt: EventTicketTypeDto) => !tt.canPurchase);
 
   // Determine volunteer box visibility
   const hasVolunteerPositions = Array.isArray(volunteerPositions) && volunteerPositions.length > 0;
@@ -215,21 +217,9 @@ export const EventDetailPage: React.FC = () => {
   const hasParticipation = participation?.hasRSVP || participation?.hasTicket;
 
   // Check if user is vetted (same logic as ParticipationCard)
-  let isVetted = false;
-  if (currentUser && typeof currentUser === 'object') {
-    // New structure: Check isVetted boolean OR admin/teacher role
-    if ('isVetted' in currentUser && currentUser.isVetted === true) {
-      isVetted = true;
-    } else if ('role' in currentUser && typeof currentUser.role === 'string') {
-      const adminTeacherRoles = ['Administrator', 'Teacher'];
-      isVetted = adminTeacherRoles.includes(currentUser.role);
-    }
-    // Legacy structure: Check roles array (fallback)
-    if (!isVetted && 'roles' in currentUser && Array.isArray(currentUser.roles)) {
-      const legacyRoles = ['Vetted', 'Teacher', 'Administrator'];
-      isVetted = currentUser.roles.some(role => legacyRoles.includes(role));
-    }
-  }
+  const isVetted = currentUser?.isVetted === true ||
+    (currentUser?.role ? ['Administrator', 'Teacher'].includes(currentUser.role) : false) ||
+    (currentUser?.roles ? currentUser.roles.some(role => ['Vetted', 'Teacher', 'Administrator'].includes(role)) : false);
 
   // Allow volunteering if:
   // - For social events (RSVP only, no ticket required): User must be vetted
@@ -266,27 +256,210 @@ export const EventDetailPage: React.FC = () => {
     }
   };
 
+  // Determine if user can purchase tickets from ticket options section
+  const canPurchaseFromOptions: boolean =
+    purchasableTickets.length > 0 && isAuthenticated && Boolean(
+      (participation?.canPurchaseTicket && !participation?.hasTicket) ||
+      participation?.canPurchaseAdditionalSessions
+    );
+
   // Extract ParticipationCard props for reuse (DRY pattern)
   const participationCardProps: Omit<ParticipationCardProps, 'isMobile'> = {
     eventId: id!,
-    eventTitle: (event as any)?.title || 'Event',
+    eventTitle: event.title || 'Event',
     allowRsvps,
     requireTicketPurchase,
     vettedMembersOnly,
     participation: participation ?? null,
     isLoading: participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending || cancelTicketMutation.isPending,
-    ticketTypeId: (event as any)?.ticketTypes?.[0]?.id,
+    ticketTypeId: event.ticketTypes?.[0]?.id,
     onRSVP: handleRSVP,
-    onPurchaseTicket: handlePurchaseTicket,
+    onPurchaseTicket: () => { /* PayPal integration handles ticket creation */ },
     onCancel: handleCancel,
     ticketPrice: getTicketPriceDisplay().min,
     ticketPriceRange: getTicketPriceDisplay(),
-    eventStartDateTime: (event as any)?.startDate,
-    eventEndDateTime: (event as any)?.endDate,
-    eventInstructor: (event as any)?.instructor,
-    eventLocation: (event as any)?.location,
-    eventSessions: (event as any)?.sessions,
+    eventStartDateTime: event.startDate,
+    eventEndDateTime: event.endDate,
+    eventInstructor: undefined,
+    eventLocation: event.venueLocation ?? undefined,
+    eventSessions: event.sessions,
   };
+
+  // Ticket options section rendered outside JSX to avoid TypeScript inference depth limit
+  const ticketOptionsSection: React.ReactNode = displayableTickets.length > 0 ? (
+    <ContentSection title="Ticket Options" isMobile={isMobile}>
+      <Stack gap="md">
+        {/* Purchasable Tickets — available and user does not own any overlapping sessions */}
+        {purchasableTickets.length > 0 && (
+          <Stack gap="sm">
+            {purchasableTickets.map((ticket: EventTicketTypeDto) => (
+              <Paper
+                key={ticket.id}
+                p="md"
+                style={{
+                  background: 'var(--color-cream)',
+                  border: '1px solid var(--color-plum)',
+                  borderRadius: '8px'
+                }}
+              >
+                <Group justify="space-between" align="flex-start" wrap="nowrap">
+                  <Box style={{ flex: 1 }}>
+                    <Text fw={600} size="md" mb="xs">{ticket.name}</Text>
+                    {ticket.pricingType === 'SlidingScale' ? (
+                      <Text size="sm" c="dimmed">
+                        ${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)
+                      </Text>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        ${ticket.price}
+                      </Text>
+                    )}
+                    {ticket.referenceSessionName && (
+                      <Text size="xs" c="dimmed" mt="xs">
+                        For: {ticket.referenceSessionName}
+                      </Text>
+                    )}
+                    <Text size="xs" c="dimmed" mt="xs">
+                      {(ticket.quantityAvailable ?? 0) - (ticket.quantitySold ?? 0)} / {ticket.quantityAvailable ?? 0} available
+                    </Text>
+                  </Box>
+                  <Badge color="green" variant="light">
+                    Available Now
+                  </Badge>
+                </Group>
+              </Paper>
+            ))}
+          </Stack>
+        )}
+
+        {/* Unavailable Tickets (not yet open or closed, and not already owned) */}
+        {unavailableTickets.length > 0 && (
+          <>
+            {purchasableTickets.length > 0 && (
+              <Text size="sm" c="dimmed" mt="md">Other ticket options:</Text>
+            )}
+            <Stack gap="sm">
+              {unavailableTickets.map((ticket: EventTicketTypeDto) => (
+                <Paper
+                  key={ticket.id}
+                  p="md"
+                  style={{
+                    background: 'rgba(136, 1, 36, 0.05)',
+                    border: '1px solid rgba(136, 1, 36, 0.1)',
+                    borderRadius: '8px',
+                    opacity: 0.7
+                  }}
+                >
+                  <Group justify="space-between" align="flex-start" wrap="nowrap">
+                    <Box style={{ flex: 1 }}>
+                      <Text fw={500} size="md" mb="xs">{ticket.name}</Text>
+                      {ticket.availabilityMessage && (
+                        <Text size="sm" c="dimmed" mb="xs">
+                          {ticket.availabilityMessage}
+                        </Text>
+                      )}
+                      {ticket.referenceSessionName && (
+                        <Text size="xs" c="dimmed">
+                          For: {ticket.referenceSessionName}
+                        </Text>
+                      )}
+                    </Box>
+                    <Badge color="gray" variant="light">
+                      Not Available
+                    </Badge>
+                  </Group>
+                </Paper>
+              ))}
+            </Stack>
+          </>
+        )}
+
+        {/* All ticket sales ended */}
+        {displayableTickets.length === 0 && ticketTypes.length > 0 && (
+          <Alert color="gray" variant="light">
+            <Text size="sm">
+              All ticket sales have ended for this event.
+            </Text>
+          </Alert>
+        )}
+
+        {/* Purchase Ticket button — mirrors the ParticipationCard's purchase button.
+            Shown when there are purchasable tickets AND the user is eligible to buy
+            (either first ticket or additional sessions for multi-session events). */}
+        {canPurchaseFromOptions && (
+          <Group justify="flex-end" mt="md">
+            <Button
+              onClick={handleTicketPurchase}
+              variant="filled"
+              color="blue"
+              leftSection={<IconTicket size={18} />}
+              data-testid="ticket-options-purchase-button"
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
+                }
+              }}
+            >
+              Purchase Ticket
+            </Button>
+          </Group>
+        )}
+      </Stack>
+    </ContentSection>
+  ) : null;
+
+  // Venue section rendered outside JSX to avoid TypeScript inference depth limit
+  const venueSection: React.ReactNode = venue ? (() => {
+    const hasVenueAccess = isVetted || (participation?.hasRSVP || participation?.hasTicket);
+
+    if (hasVenueAccess && venue.directions) {
+      return (
+        <ContentSection isMobile={isMobile}>
+          <div className="html-content">
+            <h2>{venue.name}</h2>
+            <h3>Directions</h3>
+            <div dangerouslySetInnerHTML={{ __html: venue.directions }} />
+            {venue.venueInformation && (
+              <>
+                <h3>Venue Information</h3>
+                <p style={{ whiteSpace: 'pre-line' }}>{venue.venueInformation}</p>
+              </>
+            )}
+          </div>
+        </ContentSection>
+      );
+    } else if (!hasVenueAccess && event.venueLocation) {
+      return (
+        <ContentSection title={`Location - ${event.venueLocation}`} isMobile={isMobile}>
+          <Stack gap="md">
+            <Alert
+              color="blue"
+              variant="light"
+              styles={{
+                root: {
+                  border: '1px solid var(--color-plum)',
+                  background: 'rgba(155, 74, 117, 0.05)',
+                },
+                message: {
+                  color: 'var(--color-charcoal)',
+                },
+              }}
+            >
+              <Text size="sm">
+                Full venue address and directions will be provided once a ticket is purchased or you have RSVPed to the event.
+              </Text>
+            </Alert>
+          </Stack>
+        </ContentSection>
+      );
+    }
+
+    return null;
+  })() : null;
 
   return (
     <Box data-testid="event-details" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
@@ -335,7 +508,7 @@ export const EventDetailPage: React.FC = () => {
             >
               Events
             </Anchor>
-            <Text style={{ color: 'var(--color-stone)' }}>{(event as any)?.title}</Text>
+            <Text style={{ color: 'var(--color-stone)' }}>{event.title}</Text>
           </Breadcrumbs>
 
           {/* Admin Edit Link */}
@@ -401,7 +574,7 @@ export const EventDetailPage: React.FC = () => {
                   lineHeight: 1.2
                 }}
               >
-                {(event as any)?.title}
+                {event.title}
               </Title>
 
             </Group>
@@ -409,7 +582,7 @@ export const EventDetailPage: React.FC = () => {
             <div className="html-content-light">
               {/* Session date/times - one line each */}
               {(() => {
-                const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
+                const sessions = (event.sessions || []).slice().sort((a: EventSessionDto, b: EventSessionDto) =>
                   new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
                 );
 
@@ -417,13 +590,13 @@ export const EventDetailPage: React.FC = () => {
                   return <h3>Date and Time coming soon</h3>;
                 }
 
-                return sessions.map((session: any, index: number) => (
+                return sessions.map((session: EventSessionDto, index: number) => (
                   <h3 key={session.id || index}>
                     <span className="date-part">
-                      {formatUtcToLocalDate(session.startTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
+                      {formatUtcToLocalDate(session.startTime || '', eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
                     </span>
                     <span className="time-part">
-                      {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)}
+                      {formatUtcTimeRange(session.startTime || '', session.endTime || '', eventTimeZone)}
                     </span>
                   </h3>
                 ));
@@ -453,195 +626,20 @@ export const EventDetailPage: React.FC = () => {
           {/* Left Column - Event Details */}
           <Grid.Col span={{ base: 12, md: 8 }}>
             <Stack gap={isMobile ? 0 : 'md'}>
-
+              <>
           {/* About This Event */}
           <ContentSection isMobile={isMobile}>
             <div
               className="html-content"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml((event as any)?.description || '') }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(event.description || '') }}
             />
           </ContentSection>
 
           {/* Ticket Options Section - Session-based timing */}
-          {displayableTickets.length > 0 && (
-            <ContentSection title="Ticket Options" isMobile={isMobile}>
-              <Stack gap="md">
-                {/* Purchasable Tickets — available and user does not own any overlapping sessions */}
-                {purchasableTickets.length > 0 && (
-                  <Stack gap="sm">
-                    {purchasableTickets.map((ticket: any) => (
-                      <Paper
-                        key={ticket.id}
-                        p="md"
-                        style={{
-                          background: 'var(--color-cream)',
-                          border: '1px solid var(--color-plum)',
-                          borderRadius: '8px'
-                        }}
-                      >
-                        <Group justify="space-between" align="flex-start" wrap="nowrap">
-                          <Box style={{ flex: 1 }}>
-                            <Text fw={600} size="md" mb="xs">{ticket.name}</Text>
-                            {ticket.pricingType === 'SlidingScale' ? (
-                              <Text size="sm" c="dimmed">
-                                ${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)
-                              </Text>
-                            ) : (
-                              <Text size="sm" c="dimmed">
-                                ${ticket.price}
-                              </Text>
-                            )}
-                            {ticket.referenceSessionName && (
-                              <Text size="xs" c="dimmed" mt="xs">
-                                For: {ticket.referenceSessionName}
-                              </Text>
-                            )}
-                            <Text size="xs" c="dimmed" mt="xs">
-                              {ticket.quantityAvailable - ticket.quantitySold} / {ticket.quantityAvailable} available
-                            </Text>
-                          </Box>
-                          <Badge color="green" variant="light">
-                            Available Now
-                          </Badge>
-                        </Group>
-                      </Paper>
-                    ))}
-                  </Stack>
-                )}
-
-                {/* Unavailable Tickets (not yet open or closed, and not already owned) */}
-                {unavailableTickets.length > 0 && (
-                  <>
-                    {purchasableTickets.length > 0 && (
-                      <Text size="sm" c="dimmed" mt="md">Other ticket options:</Text>
-                    )}
-                    <Stack gap="sm">
-                      {unavailableTickets.map((ticket: any) => (
-                        <Paper
-                          key={ticket.id}
-                          p="md"
-                          style={{
-                            background: 'rgba(136, 1, 36, 0.05)',
-                            border: '1px solid rgba(136, 1, 36, 0.1)',
-                            borderRadius: '8px',
-                            opacity: 0.7
-                          }}
-                        >
-                          <Group justify="space-between" align="flex-start" wrap="nowrap">
-                            <Box style={{ flex: 1 }}>
-                              <Text fw={500} size="md" mb="xs">{ticket.name}</Text>
-                              {ticket.availabilityMessage && (
-                                <Text size="sm" c="dimmed" mb="xs">
-                                  {ticket.availabilityMessage}
-                                </Text>
-                              )}
-                              {ticket.referenceSessionName && (
-                                <Text size="xs" c="dimmed">
-                                  For: {ticket.referenceSessionName}
-                                </Text>
-                              )}
-                            </Box>
-                            <Badge color="gray" variant="light">
-                              Not Available
-                            </Badge>
-                          </Group>
-                        </Paper>
-                      ))}
-                    </Stack>
-                  </>
-                )}
-
-                {/* All ticket sales ended */}
-                {displayableTickets.length === 0 && ticketTypes.length > 0 && (
-                  <Alert color="gray" variant="light">
-                    <Text size="sm">
-                      All ticket sales have ended for this event.
-                    </Text>
-                  </Alert>
-                )}
-
-                {/* Purchase Ticket button — mirrors the ParticipationCard's purchase button.
-                    Shown when there are purchasable tickets AND the user is eligible to buy
-                    (either first ticket or additional sessions for multi-session events). */}
-                {purchasableTickets.length > 0 && isAuthenticated && (
-                  (participation?.canPurchaseTicket && !participation?.hasTicket) ||
-                  (participation as any)?.canPurchaseAdditionalSessions
-                ) && (
-                  <Group justify="flex-end" mt="md">
-                    <Button
-                      onClick={handleTicketPurchase}
-                      variant="filled"
-                      color="blue"
-                      leftSection={<IconTicket size={18} />}
-                      data-testid="ticket-options-purchase-button"
-                      styles={{
-                        root: {
-                          height: '44px',
-                          paddingTop: '12px',
-                          paddingBottom: '12px',
-                          fontSize: '14px',
-                          lineHeight: '1.2'
-                        }
-                      }}
-                    >
-                      Purchase Ticket
-                    </Button>
-                  </Group>
-                )}
-              </Stack>
-            </ContentSection>
-          )}
+          {ticketOptionsSection}
 
           {/* Venue Details - Conditional based on access */}
-          {venue && (() => {
-            const hasVenueAccess = isVetted || (participation?.hasRSVP || participation?.hasTicket);
-
-            if (hasVenueAccess && venue.directions) {
-              // Full venue details for vetted users or participants
-              return (
-                <ContentSection isMobile={isMobile}>
-                  <div className="html-content">
-                    <h2>{venue.name}</h2>
-                    <h3>Directions</h3>
-                    <p style={{ whiteSpace: 'pre-line' }}>{venue.directions}</p>
-                    {venue.venueInformation && (
-                      <>
-                        <h3>Venue Information</h3>
-                        <p style={{ whiteSpace: 'pre-line' }}>{venue.venueInformation}</p>
-                      </>
-                    )}
-                  </div>
-                </ContentSection>
-              );
-            } else if (!hasVenueAccess && (event as any)?.venueLocation) {
-              // Limited location info for non-vetted non-participants
-              return (
-                <ContentSection title={`Location - ${(event as any)?.venueLocation}`} isMobile={isMobile}>
-                  <Stack gap="md">
-                    <Alert
-                      color="blue"
-                      variant="light"
-                      styles={{
-                        root: {
-                          border: '1px solid var(--color-plum)',
-                          background: 'rgba(155, 74, 117, 0.05)',
-                        },
-                        message: {
-                          color: 'var(--color-charcoal)',
-                        },
-                      }}
-                    >
-                      <Text size="sm">
-                        Full venue address and directions will be provided once a ticket is purchased or you have RSVPed to the event.
-                      </Text>
-                    </Alert>
-                  </Stack>
-                </ContentSection>
-              );
-            }
-
-            return null;
-          })()}
+          {venueSection}
 
           {/* Volunteer Positions */}
           {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && isAuthenticated && canVolunteerBasedOnEventType && (
@@ -650,7 +648,7 @@ export const EventDetailPage: React.FC = () => {
                 <div className="html-content">
                   <h2>Volunteer Opportunities</h2>
                   <p style={{ marginBottom: 0 }}>
-                    Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
+                    Help make this event a success! Sign up for a volunteer position and you&apos;ll automatically be RSVPed to the event.
                   </p>
                 </div>
                 <Stack gap="md" mt={0}>
@@ -674,11 +672,11 @@ export const EventDetailPage: React.FC = () => {
           )}
 
           {/* Teachers Section - Always visible */}
-          {teachers && teachers.length > 0 && (
+          {teachers.length > 0 && (
             <ContentSection title="Teachers" isMobile={isMobile}>
               <Stack gap="lg">
                 {teachers.map((teacher) => (
-                  <Box key={(teacher as any).id}>
+                  <Box key={teacher.userId}>
                     <Text
                       style={{
                         fontFamily: 'var(--font-heading)',
@@ -709,14 +707,15 @@ export const EventDetailPage: React.FC = () => {
           )}
 
           {/* Policies */}
-          {(event as any)?.policies && (
+          {event.policies && (
             <ContentSection isMobile={isMobile}>
               <div
                 className="html-content"
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml((event as any)?.policies || '') }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(event.policies || '') }}
               />
             </ContentSection>
           )}
+              </>
             </Stack>
           </Grid.Col>
 

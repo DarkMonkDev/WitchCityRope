@@ -23,10 +23,10 @@ public class Venue
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Directions to venue (optional)
-    /// Max length: 500 characters
+    /// Directions to venue (optional, supports HTML from rich text editor)
+    /// Max length: 2000 characters to accommodate HTML markup
     /// </summary>
-    [MaxLength(500)]
+    [MaxLength(2000)]
     public string? Directions { get; set; }
 
     /// <summary>

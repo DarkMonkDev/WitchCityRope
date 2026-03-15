@@ -487,9 +487,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .IsUnique()
                   .HasDatabaseName("IX_Venues_Name");
 
-            // Directions: optional, max 500
+            // Directions: optional, max 2000 (supports HTML from rich text editor)
             entity.Property(v => v.Directions)
-                  .HasMaxLength(500);
+                  .HasMaxLength(2000);
 
             // VenueInformation: optional, max 1000
             entity.Property(v => v.VenueInformation)
