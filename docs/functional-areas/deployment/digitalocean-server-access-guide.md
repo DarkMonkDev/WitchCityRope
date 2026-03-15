@@ -2,7 +2,7 @@
 
 **Purpose**: Complete guide for accessing and configuring the WitchCityRope DigitalOcean server for staging and production environments.
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2026-03-15
 
 ---
 
@@ -23,7 +23,7 @@
 
 ## SSH Access
 
-### ✅ Correct Method - SSH as witchcity User
+### Correct Method - SSH as witchcity User
 
 ```bash
 # SSH to the server
@@ -38,7 +38,7 @@ ssh -i /home/chad/.ssh/id_ed25519_witchcityrope witchcity@104.131.165.14 "whoami
 - SSH key location: `/home/chad/.ssh/id_ed25519_witchcityrope`
 - Passwordless sudo configured for specific administrative commands
 
-### ❌ Wrong Method - Don't Try Root SSH
+### Wrong Method - Don't Try Root SSH
 
 ```bash
 # This FAILS - root doesn't have SSH key configured
@@ -114,17 +114,17 @@ This is consistent with how DarkMonk, ShipEngine, and Accounting connect to the 
 
 **CRITICAL**: Connection strings MUST use keyword-value format for Npgsql/Hangfire compatibility.
 
-**✅ CORRECT Format** (direct connection via port 25060):
+**CORRECT Format** (direct connection via port 25060):
 ```
 Host=server.com;Port=25060;Database=witchcityrope_staging;Username=user;Password=pass;SSL Mode=Require;Trust Server Certificate=true
 ```
 
-**❌ WRONG Format** (URI format — causes Hangfire failures):
+**WRONG Format** (URI format -- causes Hangfire failures):
 ```
 postgresql://user:password@server.com:25060/witchcityrope_staging?sslmode=require
 ```
 
-### PgBouncer — Removed (2026-03-06)
+### PgBouncer -- Removed (2026-03-06)
 
 PgBouncer was previously used (port 25061) but was removed because:
 - It was causing `max_client_conn` errors that made both APIs unhealthy
@@ -174,7 +174,7 @@ sudo systemctl reload nginx
 ssh -i /home/chad/.ssh/id_ed25519_witchcityrope witchcity@104.131.165.14
 
 # Run certbot
-sudo certbot --nginx -d prod.notfai.com -d prod.witchcityrope.com
+sudo certbot --nginx -d witchcityrope.com -d www.witchcityrope.com -d prod.notfai.com
 
 # Certbot handles:
 # - Domain verification
@@ -191,8 +191,9 @@ sudo certbot renew
 ```
 
 **SSL Certificate Status**:
+- **Production**: witchcityrope.com, www.witchcityrope.com (active, expires 2026-06-13)
+- **Production (backdoor)**: prod.notfai.com (active)
 - **Staging**: staging.notfai.com (active)
-- **Production**: prod.notfai.com, prod.witchcityrope.com (pending DNS setup)
 
 ### Application Deployment
 
@@ -303,30 +304,30 @@ sudo -u witchcity sudo -n nginx -t
 ## Security Best Practices
 
 ### SSH Key Management
-- ✅ **DO**: Use SSH keys only (no passwords)
-- ✅ **DO**: Keep SSH private key secure with 600 permissions
-- ❌ **DON'T**: Share SSH private keys
-- ❌ **DON'T**: Commit SSH keys to version control
+- **DO**: Use SSH keys only (no passwords)
+- **DO**: Keep SSH private key secure with 600 permissions
+- **DON'T**: Share SSH private keys
+- **DON'T**: Commit SSH keys to version control
 
 ### Sudo Configuration
-- ✅ **DO**: Limit passwordless sudo to specific commands only
-- ✅ **DO**: Document which commands are allowed
-- ❌ **DON'T**: Grant blanket NOPASSWD sudo access
-- ❌ **DON'T**: Add commands without security review
+- **DO**: Limit passwordless sudo to specific commands only
+- **DO**: Document which commands are allowed
+- **DON'T**: Grant blanket NOPASSWD sudo access
+- **DON'T**: Add commands without security review
 
 ### Credentials Management
-- ✅ **DO**: Store credentials in .NET User Secrets locally
-- ✅ **DO**: Use environment variables on server
-- ✅ **DO**: Rotate API tokens periodically
-- ❌ **DON'T**: Hardcode credentials in code
-- ❌ **DON'T**: Commit .env files to version control
+- **DO**: Store credentials in .NET User Secrets locally
+- **DO**: Use environment variables on server
+- **DO**: Rotate API tokens periodically
+- **DON'T**: Hardcode credentials in code
+- **DON'T**: Commit .env files to version control
 
 ### Server Access
-- ✅ **DO**: Use non-root user (witchcity) for operations
-- ✅ **DO**: Keep server software updated
-- ✅ **DO**: Monitor server logs regularly
-- ❌ **DON'T**: Run services as root
-- ❌ **DON'T**: Expose unnecessary ports
+- **DO**: Use non-root user (witchcity) for operations
+- **DO**: Keep server software updated
+- **DO**: Monitor server logs regularly
+- **DON'T**: Run services as root
+- **DON'T**: Expose unnecessary ports
 
 ---
 

@@ -11,7 +11,7 @@ This document outlines the key differences between the staging and production en
 | Component | Staging | Production |
 |-----------|---------|------------|
 | Main URL | `https://staging.witchcityrope.com` | `https://witchcityrope.com` |
-| API URL | `https://api.staging.witchcityrope.com` | `https://api.witchcityrope.com` |
+| API URL | `https://api.staging.witchcityrope.com` | `https://witchcityrope.com/api` (uses path-based proxying, not api subdomain) |
 | Admin URL | `https://staging.witchcityrope.com/admin` | `https://witchcityrope.com/admin` |
 | Cookie Domain | `.staging.witchcityrope.com` | `.witchcityrope.com` |
 

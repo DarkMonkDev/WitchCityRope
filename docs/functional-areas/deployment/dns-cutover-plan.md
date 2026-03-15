@@ -1,5 +1,5 @@
-<!-- Last Updated: 2026-03-14 -->
-<!-- Version: 1.0 -->
+<!-- Last Updated: 2026-03-15 -->
+<!-- Version: 1.2 -->
 <!-- Owner: Infrastructure -->
 <!-- Status: Active -->
 
@@ -7,15 +7,15 @@
 
 ## Overview
 
-This plan covers switching `witchcityrope.com` DNS from Wix to the existing DigitalOcean production server. The production application is already running and healthy at `prod.notfai.com`.
+This plan covered switching `witchcityrope.com` DNS from Wix to the existing DigitalOcean production server. The migration is COMPLETE as of 2026-03-15. The production application is live at `witchcityrope.com` and remains accessible via the backdoor domain `prod.notfai.com`.
 
 ## Current Infrastructure
 
 | Component | Detail |
 |-----------|--------|
 | Production Server | DigitalOcean Droplet, IP `104.131.165.14` |
-| Current Domain | `prod.notfai.com` (temporary) |
-| DNS Registrar | GoDaddy (nameservers currently delegated to Wix -- must be switched back to GoDaddy) |
+| Current Domain | `witchcityrope.com` (live) + `prod.notfai.com` (backdoor) |
+| DNS Registrar | GoDaddy (nameservers restored to GoDaddy, DNS configured) |
 | SSL | Let's Encrypt / Certbot, auto-renewal via cron (twice daily) |
 | Reverse Proxy | Nginx on host (not containerized), SSL termination at Nginx |
 | Nginx Config | `/etc/nginx/sites-available/witchcityrope-production` |
@@ -26,7 +26,7 @@ This plan covers switching `witchcityrope.com` DNS from Wix to the existing Digi
 
 ---
 
-## Phase 1: Pre-Cutover Preparation
+## Phase 1: Pre-Cutover Preparation -- COMPLETE
 
 Complete these steps BEFORE changing any DNS records.
 
@@ -34,7 +34,7 @@ Complete these steps BEFORE changing any DNS records.
 
 The domain currently has **nameservers delegated to Wix**, meaning Wix controls all DNS records. Before we can create A records pointing to DigitalOcean, we need to reclaim DNS control at GoDaddy.
 
-1. Log into GoDaddy → Domain Settings → `witchcityrope.com` → **Nameservers**
+1. Log into GoDaddy -> Domain Settings -> `witchcityrope.com` -> **Nameservers**
 2. Current nameservers will show Wix nameservers (e.g., `ns1.wixdns.net`, `ns2.wixdns.net`)
 3. Change to **GoDaddy's default nameservers** (select "Use GoDaddy nameservers" or equivalent option)
 4. Save the change
@@ -97,7 +97,7 @@ Verify SendGrid is configured with production API key (not sandbox mode). Trigge
 
 ---
 
-## Phase 2: SSL Certificate for witchcityrope.com
+## Phase 2: SSL Certificate for witchcityrope.com -- COMPLETE
 
 ### Option A: DNS-01 Challenge (Preferred -- Get Cert BEFORE DNS Cutover)
 
@@ -179,7 +179,7 @@ sudo systemctl reload nginx
 
 ---
 
-## Phase 3: DNS Cutover at GoDaddy
+## Phase 3: DNS Cutover at GoDaddy -- COMPLETE
 
 ### 3.1 Confirm DNS Records
 
@@ -214,7 +214,7 @@ With TTL at 300 seconds, propagation should complete within 5-10 minutes for mos
 
 ---
 
-## Phase 4: Post-Cutover Verification
+## Phase 4: Post-Cutover Verification -- COMPLETE
 
 Run through each check after DNS has propagated.
 
@@ -270,7 +270,7 @@ Open browser dev tools (Network tab) and verify API calls from the frontend do n
 
 If something goes wrong after cutover:
 
-1. **Switch nameservers back to Wix at GoDaddy**: Go to Domain Settings → Nameservers → change back to Wix nameservers (e.g., `ns1.wixdns.net`, `ns2.wixdns.net`)
+1. **Switch nameservers back to Wix at GoDaddy**: Go to Domain Settings -> Nameservers -> change back to Wix nameservers (e.g., `ns1.wixdns.net`, `ns2.wixdns.net`)
 2. **Propagation time**: Nameserver changes can take **up to 24-48 hours** to fully propagate (unlike A record changes which are faster). This is a slower rollback than a simple A record change.
 3. **Keep Wix active**: Do NOT cancel or modify the Wix site until go-live is confirmed stable
 4. **Revert Nginx if needed**: The `prod.notfai.com` server block remains active throughout
@@ -333,31 +333,31 @@ crontab -l | grep certbot
 ## Checklist Summary
 
 ### Before Cutover
-- [ ] Wix nameservers recorded for rollback
-- [ ] Nameservers switched back to GoDaddy
-- [ ] A records created pointing to `104.131.165.14`
-- [ ] TTL set to 300 on all records
-- [ ] Nameserver propagation verified (`dig NS` shows GoDaddy)
-- [ ] Production app verified healthy at prod.notfai.com
-- [ ] Environment variables and secrets verified
-- [ ] Payment processing tested
-- [ ] Email delivery tested
+- [x] Wix nameservers recorded for rollback
+- [x] Nameservers switched back to GoDaddy
+- [x] A records created pointing to `104.131.165.14`
+- [x] TTL set to 300 on all records
+- [x] Nameserver propagation verified (`dig NS` shows GoDaddy)
+- [x] Production app verified healthy at prod.notfai.com
+- [x] Environment variables and secrets verified
+- [x] Payment processing tested
+- [x] Email delivery tested
 
 ### During Cutover
-- [ ] SSL certificate obtained for witchcityrope.com
-- [ ] Nginx config updated with new cert paths and server_name
-- [ ] Nginx tested and reloaded
-- [ ] DNS A records confirmed correct at GoDaddy
-- [ ] Stale DNS records removed
+- [x] SSL certificate obtained for witchcityrope.com
+- [x] Nginx config updated with new cert paths and server_name
+- [x] Nginx tested and reloaded
+- [x] DNS A records confirmed correct at GoDaddy
+- [x] Stale DNS records removed
 
 ### After Cutover
-- [ ] https://witchcityrope.com loads correctly
-- [ ] SSL certificate valid in browser
-- [ ] Login/auth flow works
-- [ ] Events page loads data
-- [ ] Payment form initializes
-- [ ] Emails deliver with correct links
-- [ ] No CORS errors in browser console
+- [x] https://witchcityrope.com loads correctly
+- [x] SSL certificate valid in browser
+- [x] Login/auth flow works
+- [x] Events page loads data
+- [x] Payment form initializes
+- [x] Emails deliver with correct links
+- [x] No CORS errors in browser console
 
 ### Post-Stabilization (1 week+)
 - [ ] TTL raised back to 3600+
