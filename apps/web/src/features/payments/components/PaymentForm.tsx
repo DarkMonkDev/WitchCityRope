@@ -142,7 +142,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
           >
             Event Waiver
           </a>
-          {' '}and{' '}
+          ,{' '}
           <a
             href="/refund-policy"
             target="_blank"
@@ -154,6 +154,19 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             Refund Policy
+          </a>
+          , and{' '}
+          <a
+            href="/terms-of-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: 'var(--color-burgundy)',
+              textDecoration: 'underline'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            Terms of Service
           </a>
         </Text>
       </Group>
