@@ -196,6 +196,39 @@ echo "   Git SHA: $GIT_SHA"
 echo "   URL: https://staging.notfai.com"
 echo ""
 
+# Enable maintenance mode EARLY - before build starts.
+# Users filling out forms during a multi-minute build+push would lose their work
+# when containers restart. Showing the maintenance page early prevents users from
+# starting new work that would be lost.
+echo "🛑 Enabling maintenance mode (protecting users during deployment)..."
+MAINTENANCE_SCRIPT="$SCRIPT_DIR/../maintenance-mode/execute.sh"
+if [ -f "$MAINTENANCE_SCRIPT" ]; then
+    SKIP_CONFIRMATION=true bash "$MAINTENANCE_SCRIPT" --on --env staging || {
+        echo "   WARNING: Could not enable maintenance mode (continuing anyway)"
+        echo "   Users may lose unsaved work during deployment"
+    }
+    MAINTENANCE_ENABLED=true
+    echo "   Maintenance mode enabled - users see maintenance page"
+else
+    echo "   WARNING: Maintenance mode skill not found at $MAINTENANCE_SCRIPT"
+    echo "   Skipping maintenance mode (users may lose unsaved work during deployment)"
+    MAINTENANCE_ENABLED=false
+fi
+echo ""
+
+# Helper function: disable maintenance mode on failure so users aren't stuck
+# on the maintenance page if the build/push fails and we abort.
+disable_maintenance_on_failure() {
+    if [ "$MAINTENANCE_ENABLED" = "true" ] && [ -f "$MAINTENANCE_SCRIPT" ]; then
+        echo ""
+        echo "   🔄 Disabling maintenance mode (deployment failed, site still running old version)..."
+        SKIP_CONFIRMATION=true bash "$MAINTENANCE_SCRIPT" --off --env staging || {
+            echo "   ⚠️  Could not auto-disable maintenance mode"
+            echo "   MANUAL ACTION REQUIRED: bash .claude/skills/maintenance-mode/execute.sh --off --env staging"
+        }
+    fi
+}
+
 # Step 1: Build production images
 echo "1️⃣  Building production images..."
 echo ""
@@ -214,6 +247,7 @@ if [ $? -ne 0 ]; then
     echo ""
     echo "💡 Fix build errors and try again"
     echo "   See: .claude/skills/staging-deploy/SKILL.md (Common Issues)"
+    disable_maintenance_on_failure
     exit 1
 fi
 echo "   ✅ API image built"
@@ -249,6 +283,7 @@ if [ $? -ne 0 ]; then
     echo ""
     echo "💡 Fix build errors and try again"
     echo "   See: .claude/skills/staging-deploy/SKILL.md (Common Issues)"
+    disable_maintenance_on_failure
     exit 1
 fi
 echo "   ✅ Web image built"
@@ -276,6 +311,7 @@ if ! ssh -i $SSH_KEY -o ConnectTimeout=10 $USER@$SERVER "echo '   ✅ Connected 
     echo "   ❌ FAIL: Cannot connect to server"
     echo ""
     echo "💡 Check SSH configuration and network connectivity"
+    disable_maintenance_on_failure
     exit 1
 fi
 echo ""
@@ -286,6 +322,7 @@ scp -i $SSH_KEY deployment/docker-compose.staging.yml $USER@$SERVER:$DEPLOY_PATH
 
 if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Could not copy docker-compose file to server"
+    disable_maintenance_on_failure
     exit 1
 fi
 echo "   ✅ Compose file updated"
@@ -295,6 +332,7 @@ scp -i $SSH_KEY "$LOCAL_ENV_FILE" $USER@$SERVER:$DEPLOY_PATH/.env.staging
 
 if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Could not copy .env.staging to server"
+    disable_maintenance_on_failure
     exit 1
 fi
 echo "   ✅ .env.staging updated from vault"
@@ -310,29 +348,10 @@ if [ $? -ne 0 ]; then
     echo ""
     echo "💡 Check registry access on server"
     echo "   See: .claude/skills/staging-deploy/SKILL.md (Common Issues)"
+    disable_maintenance_on_failure
     exit 1
 fi
 echo "   ✅ Images pulled"
-echo ""
-
-# Step 5b: Enable maintenance mode before container restart
-# This shows a branded maintenance page to users while containers are restarting,
-# instead of showing ugly 502/504 errors. Disabled automatically after health checks pass.
-echo "5️⃣b Enabling maintenance mode..."
-MAINTENANCE_SCRIPT="$SCRIPT_DIR/../maintenance-mode/execute.sh"
-if [ -f "$MAINTENANCE_SCRIPT" ]; then
-    # Enable maintenance mode (non-interactive)
-    SKIP_CONFIRMATION=true bash "$MAINTENANCE_SCRIPT" --on --env staging || {
-        echo "   WARNING: Could not enable maintenance mode (continuing anyway)"
-        echo "   Users may see brief errors during container restart"
-    }
-    MAINTENANCE_ENABLED=true
-    echo "   Maintenance mode enabled - users see maintenance page"
-else
-    echo "   WARNING: Maintenance mode skill not found at $MAINTENANCE_SCRIPT"
-    echo "   Skipping maintenance mode (users may see errors during restart)"
-    MAINTENANCE_ENABLED=false
-fi
 echo ""
 
 # Step 6: Deploy (restart containers)
