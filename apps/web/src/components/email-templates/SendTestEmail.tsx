@@ -77,7 +77,8 @@ export const SendTestEmail: React.FC<SendTestEmailProps> = ({
     queryFn: () => emailTemplatesApi.getTestData(),
   });
 
-  // Pre-fill variable values from saved test data
+  // Pre-fill variable values from saved test data.
+  // Depends on rawVariables so it re-runs when the registry API response arrives.
   useEffect(() => {
     if (testData && templateVariables.length > 0) {
       const prefilled: Record<string, string> = {};
@@ -86,7 +87,7 @@ export const SendTestEmail: React.FC<SendTestEmailProps> = ({
       });
       setVariableOverrides(prefilled);
     }
-  }, [testData, template.id]);
+  }, [testData, template.id, rawVariables]);
 
   // Send test email mutation
   const sendMutation = useMutation({
