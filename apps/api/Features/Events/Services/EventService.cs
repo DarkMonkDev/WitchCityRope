@@ -389,13 +389,40 @@ public class EventService : IEventService
                 return (false, null, "Event not found");
             }
 
+            // Check if this request is ONLY toggling the publish status (draft <-> published).
+            // Status-only changes are allowed for past events regardless of the grace period,
+            // because admins need to unpublish old events to hide them from public listings
+            // while keeping them visible in the admin panel for record-keeping.
+            var isStatusOnlyChange = request.IsPublished.HasValue
+                && request.Title == null
+                && request.ShortDescription == null
+                && request.Description == null
+                && request.Policies == null
+                && request.StartDate == null
+                && request.EndDate == null
+                && request.VenueId == null
+                && request.Capacity == null
+                && request.AllowRsvps == null
+                && request.RequireTicketPurchase == null
+                && request.VettedMembersOnly == null
+                && request.Sessions == null
+                && request.TicketTypes == null
+                && request.TeacherIds == null
+                && request.VolunteerPositions == null
+                && request.RegistrationOpenHours == null
+                && request.RegistrationCloseHours == null
+                && request.CancellationCloseHours == null
+                && request.VolunteerRegistrationCloseHours == null
+                && request.VolunteerCancellationCloseHours == null;
+
             // Business rule: Cannot update events where ALL sessions have ended more than 48 hours ago
+            // Exception: Status-only changes (draft/published toggle) are always allowed
             // For multi-session events, use the LATEST session's end time
             var latestSessionEndTime = eventEntity.Sessions.Any()
                 ? eventEntity.Sessions.Max(s => s.EndTime)
                 : eventEntity.EndDate;  // Fallback for events without sessions
 
-            if (latestSessionEndTime <= DateTime.UtcNow.AddHours(-48))
+            if (!isStatusOnlyChange && latestSessionEndTime <= DateTime.UtcNow.AddHours(-48))
             {
                 _logger.LogWarning("Attempted to update past event outside grace period: {EventId} (LatestSessionEndTime: {LatestSessionEndTime}, Grace Period: 48 hours)",
                     eventId, latestSessionEndTime);
