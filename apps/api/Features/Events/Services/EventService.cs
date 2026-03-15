@@ -905,6 +905,26 @@ public class EventService : IEventService
     }
 
     /// <summary>
+    /// Recalculates the event's Capacity as the sum of all session capacities.
+    /// Call this after any session changes so Event.Capacity stays in sync.
+    ///
+    /// WHY: Event.Capacity is the value shown on public event cards and the admin
+    /// events list. Without this recalculation, editing a session's capacity
+    /// (e.g. 20 → 40) leaves the event-level capacity stale, causing the UI
+    /// to display the old value.
+    /// </summary>
+    private void RecalculateEventCapacity(WitchCityRope.Api.Models.Event eventEntity)
+    {
+        if (eventEntity.Sessions == null || !eventEntity.Sessions.Any())
+        {
+            // No sessions - keep existing Capacity
+            return;
+        }
+
+        eventEntity.Capacity = eventEntity.Sessions.Sum(s => s.Capacity);
+    }
+
+    /// <summary>
     /// Updates the sessions for an event with proper EF Core change tracking
     /// Handles updates, additions, and deletions correctly
     /// </summary>
@@ -981,8 +1001,9 @@ public class EventService : IEventService
             eventEntity.Sessions.Remove(sessionToRemove);
         }
 
-        // Recalculate event's StartDate and EndDate based on updated sessions
+        // Recalculate event's StartDate, EndDate, and Capacity based on updated sessions
         RecalculateEventDates(eventEntity);
+        RecalculateEventCapacity(eventEntity);
 
         return Task.CompletedTask;
     }
@@ -1395,8 +1416,9 @@ public class EventService : IEventService
                 _logger.LogInformation("Copied {SessionCount} sessions for event {NewEventId}",
                     sourceEvent.Sessions.Count, copiedEvent.Id);
 
-                // Recalculate StartDate and EndDate based on copied session times
+                // Recalculate StartDate, EndDate, and Capacity based on copied session times/capacities
                 RecalculateEventDates(copiedEvent);
+                RecalculateEventCapacity(copiedEvent);
 
                 // 7. Deep copy TicketTypes with Sessions remapping (many-to-many)
                 foreach (var sourceTicket in sourceEvent.TicketTypes)
@@ -1694,8 +1716,9 @@ public class EventService : IEventService
 
                     _logger.LogInformation("Added {SessionCount} sessions to new event", request.Sessions.Count);
 
-                    // Recalculate StartDate and EndDate based on actual session times
+                    // Recalculate StartDate, EndDate, and Capacity based on actual session times/capacities
                     RecalculateEventDates(newEvent);
+                    RecalculateEventCapacity(newEvent);
                 }
 
                 // 5. Add ticket types if provided
