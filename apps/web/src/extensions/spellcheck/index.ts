@@ -1,0 +1,1 @@
+export { SpellCheckExtension } from './SpellCheckExtension'

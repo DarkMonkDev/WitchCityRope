@@ -15,6 +15,7 @@ import { ReactRenderer } from '@tiptap/react'
 import { SuggestionOptions } from '@tiptap/suggestion'
 import tippy, { Instance as TippyInstance } from 'tippy.js'
 import { Box } from '@mantine/core'
+import { SpellCheckExtension } from '@/extensions/spellcheck'
 
 // Variable suggestion list component
 interface SuggestionListProps {
@@ -208,6 +209,7 @@ export const MantineTiptapEditor = forwardRef<MantineTiptapEditorRef, MantineTip
         Highlight,
         TextAlign.configure({ types: ['heading', 'paragraph'] }),
         VariableInsertion,
+        SpellCheckExtension,
       ],
       content: value,
       onUpdate: ({ editor }) => {
@@ -221,8 +223,8 @@ export const MantineTiptapEditor = forwardRef<MantineTiptapEditorRef, MantineTip
           class: 'html-content',
           style: `min-height: ${minRows * 30}px;`,
           'data-placeholder': placeholder,
-          // Enable browser-native spell checking (red squiggly underlines + right-click suggestions)
-          spellcheck: 'true',
+          // Disable browser spell check — custom nspell extension handles it
+          spellcheck: 'false',
         },
       },
     })
