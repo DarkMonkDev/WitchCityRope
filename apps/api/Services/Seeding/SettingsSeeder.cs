@@ -93,6 +93,8 @@ public class SettingsSeeder
             ["EmailTestData:total_paid"] = "$35.00",
             ["EmailTestData:confirmation_number"] = "WCR-2026-1234",
             ["EmailTestData:session_name"] = "Beginner Ties - Session A",
+            ["EmailTestData:rsvp_sessions_list"] = "<ul><li>Saturday, March 15, 2026 at 7:00 PM ET</li></ul>",
+            ["EmailTestData:rsvp_sessions_list_text"] = "  - Saturday, March 15, 2026 at 7:00 PM ET",
 
             // ── Admin Variables ──
             ["EmailTestData:account_email"] = "testuser@example.com",

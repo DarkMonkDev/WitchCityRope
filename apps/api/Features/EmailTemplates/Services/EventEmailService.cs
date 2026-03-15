@@ -232,6 +232,10 @@ public class EventEmailService : IEventEmailService
             var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
             var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
 
+            // Build session list for multi-session RSVP events
+            var sessions = evt.Sessions.OrderBy(s => s.StartTime).ToList();
+            var (htmlSessionList, textSessionList) = BuildRsvpSessionList(sessions);
+
             var eventDetailsUrl = GetEventDetailsUrl(eventId);
             var eventDetailsButton = GetEventDetailsButton(eventDetailsUrl);
 
@@ -246,7 +250,9 @@ public class EventEmailService : IEventEmailService
                 ["venue_name"] = evt.Venue?.Name ?? "",
                 ["venue_address"] = evt.Venue?.Location ?? "",
                 ["event_details_url"] = eventDetailsUrl,
-                ["event_details_button"] = eventDetailsButton
+                ["event_details_button"] = eventDetailsButton,
+                ["rsvp_sessions_list"] = htmlSessionList,
+                ["rsvp_sessions_list_text"] = textSessionList
             };
 
             // Pass eventId to use event-specific template overrides if configured
@@ -529,6 +535,40 @@ public class EventEmailService : IEventEmailService
     // Used by both confirmation and cancellation emails to show exactly which
     // sessions are covered by each ticket purchase.
     // ============================================================================
+
+    /// <summary>
+    /// Builds HTML and plain text session lists for RSVP (social/free) events.
+    /// Unlike ticket-based events, RSVP events don't have ticket types, so sessions
+    /// are listed directly without grouping.
+    /// Example HTML output:
+    ///   <ul>
+    ///     <li>Session Name - Saturday, March 15, 2026 at 7:00 PM ET</li>
+    ///     <li>Sunday, March 16, 2026 at 2:00 PM ET</li>
+    ///   </ul>
+    /// </summary>
+    private static (string Html, string PlainText) BuildRsvpSessionList(IEnumerable<Session> sessions)
+    {
+        var html = new StringBuilder();
+        var text = new StringBuilder();
+
+        html.Append("<ul>");
+        foreach (var session in sessions)
+        {
+            var (dateStr, timeStr) = FormatSessionDateTime(session.StartTime);
+            var sessionLabel = !string.IsNullOrEmpty(session.Name)
+                ? $"{System.Net.WebUtility.HtmlEncode(session.Name)} - {dateStr} at {timeStr}"
+                : $"{dateStr} at {timeStr}";
+            html.Append($"<li>{sessionLabel}</li>");
+
+            var textLabel = !string.IsNullOrEmpty(session.Name)
+                ? $"  - {session.Name} - {dateStr} at {timeStr}"
+                : $"  - {dateStr} at {timeStr}";
+            text.AppendLine(textLabel);
+        }
+        html.Append("</ul>");
+
+        return (html.ToString(), text.ToString().TrimEnd());
+    }
 
     /// <summary>
     /// Builds HTML and plain text session lists grouped by ticket type.
