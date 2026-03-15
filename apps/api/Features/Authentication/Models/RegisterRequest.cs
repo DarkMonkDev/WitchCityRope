@@ -28,7 +28,7 @@ public class RegisterRequest
     /// </summary>
     [Required(ErrorMessage = "Scene name is required")]
     [StringLength(50, MinimumLength = 2, ErrorMessage = "Scene name must be between 2 and 50 characters")]
-    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Scene name can only contain letters, numbers, underscores, and hyphens")]
+    [RegularExpression(@"^[a-zA-Z0-9\s_-]+$", ErrorMessage = "Scene name can only contain letters, numbers, spaces, underscores, and hyphens")]
     public string SceneName { get; set; } = string.Empty;
 
     /// <summary>

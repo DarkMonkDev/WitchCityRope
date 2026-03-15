@@ -50,7 +50,7 @@ export const RegisterPage: React.FC = () => {
         if (!value) return 'Scene name is required'
         if (value.length < 3) return 'Scene name must be at least 3 characters'
         if (value.length > 50) return 'Scene name must be less than 50 characters'
-        if (!/^[a-zA-Z0-9\s]+$/.test(value)) return 'Scene name can only contain letters, numbers, and spaces'
+        if (!/^[a-zA-Z0-9\s_-]+$/.test(value)) return 'Scene name can only contain letters, numbers, spaces, underscores, and hyphens'
         return null
       },
       password: (value) => {
@@ -286,7 +286,8 @@ export const RegisterPage: React.FC = () => {
             <Stack gap="md">
               {registerMutation.error && (
                 <Alert icon={<IconAlertCircle />} color="red" data-testid="register-error">
-                  {registerMutation.error.message?.includes('already registered') ? (
+                  {(registerMutation.error.message?.includes('already registered') ||
+                    registerMutation.error.message?.includes('already taken')) ? (
                     <>
                       Email address is already registered.{' '}
                       <Link to="/forgot-password" style={{ color: 'var(--color-burgundy)', fontWeight: 600 }}>

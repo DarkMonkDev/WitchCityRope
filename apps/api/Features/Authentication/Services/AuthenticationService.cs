@@ -221,9 +221,15 @@ public class AuthenticationService : IAuthenticationService
             }
 
             // Check if email already exists using direct Entity Framework
+            // IMPORTANT: Use case-insensitive comparison to match ASP.NET Identity behavior.
+            // PostgreSQL string comparison is case-sensitive by default, so without ToLower()
+            // a user registering with "User@Email.com" would bypass this check if "user@email.com"
+            // already exists, causing Identity's CreateAsync to return a confusing
+            // "User name already taken" error instead of our friendly message.
+            var normalizedEmail = request.Email.ToLower();
             var existingUser = await _context.Users
                 .AsNoTracking()
-                .AnyAsync(u => u.Email == request.Email, cancellationToken);
+                .AnyAsync(u => u.Email!.ToLower() == normalizedEmail, cancellationToken);
 
             if (existingUser)
             {
