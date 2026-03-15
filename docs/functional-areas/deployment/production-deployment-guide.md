@@ -72,8 +72,14 @@ Images are tagged with both `:latest` and `:<git-sha>` and pushed to `registry.d
   export VAULT_ADDR="https://vault.monksafterdark.com"
   ~/bin/vault kv patch secret/projects/witchcityrope/production KEY=VALUE
   ```
-- Then redeploy using the `production-deploy` skill so the updated `.env.production` is written to the server.
-- **Common mistake**: Editing the template file, redeploying, and wondering why nothing changed — because the deploy skill overwrites `.env.production` from Vault, not from the template.
+- Then redeploy using the `production-deploy` skill so the updated `.env` is written to the server.
+- **Common mistake**: Editing the template file, redeploying, and wondering why nothing changed — because the deploy skill overwrites `.env` from Vault, not from the template.
+
+**⚠️ CRITICAL: There must be ONLY ONE `.env` file per environment.**
+- Docker Compose reads `.env` for BOTH `${VAR}` substitution in compose files AND `env_file:` injection into containers.
+- The deploy skill writes Vault secrets to `.env` (NOT `.env.production` or `.env.staging`).
+- Having multiple env files (`.env` + `.env.production`) caused a production bug on 2026-03-15 where the stale `.env` overrode the correct `.env.production` values.
+- **NEVER create additional `.env.*` files on the server** — all secrets flow through Vault → `.env`.
 
 ## 4. Deployment Process
 

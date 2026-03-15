@@ -21,7 +21,7 @@ services:
   # ==========================================================================
   api:
     env_file:
-      - .env.production
+      - .env
     image: registry.digitalocean.com/witchcityrope/production-api-witchcityrope:${IMAGE_TAG:-latest}
     container_name: witchcity-api-prod
     restart: unless-stopped

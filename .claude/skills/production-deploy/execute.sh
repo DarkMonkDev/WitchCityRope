@@ -325,14 +325,18 @@ fi
 echo "   ✅ Compose file updated"
 
 # SCP vault-generated .env to server
-scp -i $SSH_KEY "$LOCAL_ENV_FILE" $USER@$SERVER:$DEPLOY_PATH/.env.production
+# Write Vault secrets to .env (the ONLY env file Docker Compose reads).
+# Docker Compose uses .env for both ${VAR} substitution in the compose file
+# AND as the env_file loaded into containers. Using a single .env file
+# eliminates the stale-file bug where .env and .env.production diverged.
+scp -i $SSH_KEY "$LOCAL_ENV_FILE" $USER@$SERVER:$DEPLOY_PATH/.env
 
 if [ $? -ne 0 ]; then
-    echo "   ❌ FAIL: Could not copy .env.production to server"
+    echo "   ❌ FAIL: Could not copy .env to server"
     disable_maintenance_on_failure
     exit 1
 fi
-echo "   ✅ .env.production updated from vault"
+echo "   ✅ .env updated from vault"
 echo ""
 
 # Step 5: Pull images on server
