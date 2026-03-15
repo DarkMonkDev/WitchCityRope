@@ -81,10 +81,10 @@ public class EventEmailService : IEventEmailService
             }
 
             // Send confirmation email
-            await SendConfirmationAsync(user.Email!, user.UserName ?? user.Email!, purchases, ct);
+            await SendConfirmationAsync(user.Email!, !string.IsNullOrEmpty(user.SceneName) ? user.SceneName : user.Email!, purchases, ct);
 
             // Send catch-up reminders for any already-sent batch reminders
-            await SendCatchUpRemindersAsync(user.Email!, user.UserName ?? user.Email!, purchases, ct);
+            await SendCatchUpRemindersAsync(user.Email!, !string.IsNullOrEmpty(user.SceneName) ? user.SceneName : user.Email!, purchases, ct);
         }
         catch (Exception ex)
         {
@@ -132,7 +132,7 @@ public class EventEmailService : IEventEmailService
                 return;
             }
 
-            var displayName = user.UserName ?? user.Email!;
+            var displayName = !string.IsNullOrEmpty(user.SceneName) ? user.SceneName : user.Email!;
             var evt = purchases[0].TicketType?.Event;
             var venue = evt?.Venue;
 
@@ -226,7 +226,7 @@ public class EventEmailService : IEventEmailService
                 return;
             }
 
-            var displayName = user.UserName ?? user.Email!;
+            var displayName = !string.IsNullOrEmpty(user.SceneName) ? user.SceneName : user.Email!;
 
             // Use first session for session_date (social events typically have one session)
             var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
@@ -314,7 +314,7 @@ public class EventEmailService : IEventEmailService
                 return;
             }
 
-            var displayName = user.UserName ?? user.Email!;
+            var displayName = !string.IsNullOrEmpty(user.SceneName) ? user.SceneName : user.Email!;
 
             // Use first session for session_date (social events typically have one session)
             var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();

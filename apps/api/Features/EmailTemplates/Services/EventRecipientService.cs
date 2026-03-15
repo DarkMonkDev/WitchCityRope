@@ -52,7 +52,7 @@ public class EventRecipientService : IEventRecipientService
             .Where(ea => ea.EventId == session.EventId
                 && ea.Status == AttendanceStatus.Active
                 && (ea.AttendanceType == AttendanceType.RSVP || ea.AttendanceType == AttendanceType.Ticket))
-            .Select(ea => new { ea.UserId, ea.User!.Email, ea.User.UserName })
+            .Select(ea => new { ea.UserId, ea.User!.Email, ea.User.SceneName })
             .Distinct()
             .ToListAsync(ct);
 
@@ -60,7 +60,7 @@ public class EventRecipientService : IEventRecipientService
             .Where(r => !string.IsNullOrEmpty(r.Email))
             .GroupBy(r => r.UserId)
             .Select(g => g.First())
-            .Select(r => new RecipientInfo(r.UserId, r.Email!, r.UserName ?? r.Email!))
+            .Select(r => new RecipientInfo(r.UserId, r.Email!, !string.IsNullOrEmpty(r.SceneName) ? r.SceneName : r.Email!))
             .ToList();
     }
 
@@ -72,13 +72,13 @@ public class EventRecipientService : IEventRecipientService
             .Include(ci => ci.EventAttendee)
                 .ThenInclude(ea => ea.User)
             .Where(ci => ci.SessionId == sessionId)
-            .Select(ci => new { ci.EventAttendee.UserId, ci.EventAttendee.User.Email, ci.EventAttendee.User.UserName })
+            .Select(ci => new { ci.EventAttendee.UserId, ci.EventAttendee.User.Email, ci.EventAttendee.User.SceneName })
             .Distinct()
             .ToListAsync(ct);
 
         return recipients
             .Where(r => !string.IsNullOrEmpty(r.Email))
-            .Select(r => new RecipientInfo(r.UserId, r.Email!, r.UserName ?? r.Email!))
+            .Select(r => new RecipientInfo(r.UserId, r.Email!, !string.IsNullOrEmpty(r.SceneName) ? r.SceneName : r.Email!))
             .ToList();
     }
 
@@ -115,7 +115,7 @@ public class EventRecipientService : IEventRecipientService
             {
                 vs.UserId,
                 vs.User!.Email,
-                vs.User.UserName,
+                vs.User.SceneName,
                 VolunteerRole = vs.VolunteerPosition!.Title,
                 ShiftStart = vs.VolunteerPosition.StartTime,
                 ShiftEnd = vs.VolunteerPosition.EndTime,
@@ -136,7 +136,7 @@ public class EventRecipientService : IEventRecipientService
             .GroupBy(r => r.UserId)
             .Select(g => g.OrderByDescending(r => r.IsSessionSpecific).First())
             .Select(r => new RecipientInfo(
-                r.UserId, r.Email!, r.UserName ?? r.Email!,
+                r.UserId, r.Email!, !string.IsNullOrEmpty(r.SceneName) ? r.SceneName : r.Email!,
                 r.VolunteerRole, r.ShiftStart, r.ShiftEnd))
             .ToList();
     }
@@ -169,7 +169,7 @@ public class EventRecipientService : IEventRecipientService
 
         return eventWithOrganizers.Organizers
             .Where(o => !string.IsNullOrEmpty(o.Email))
-            .Select(o => new RecipientInfo(o.Id, o.Email!, o.UserName ?? o.Email!))
+            .Select(o => new RecipientInfo(o.Id, o.Email!, !string.IsNullOrEmpty(o.SceneName) ? o.SceneName : o.Email!))
             .ToList();
     }
 }
