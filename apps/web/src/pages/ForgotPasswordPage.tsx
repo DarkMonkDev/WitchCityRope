@@ -100,7 +100,7 @@ export const ForgotPasswordPage: React.FC = () => {
               position: 'relative',
             }}
           >
-            Reset Password
+            Create / Reset Password
           </Title>
           <Text
             style={{

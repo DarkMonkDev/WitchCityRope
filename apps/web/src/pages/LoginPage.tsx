@@ -412,7 +412,7 @@ export const LoginPage: React.FC = () => {
                       e.currentTarget.style.textDecoration = 'none'
                     }}
                   >
-                    Reset Password
+                    Create / Reset Password
                   </Link>
                 </Flex>
               </Box>

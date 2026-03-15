@@ -286,7 +286,17 @@ export const RegisterPage: React.FC = () => {
             <Stack gap="md">
               {registerMutation.error && (
                 <Alert icon={<IconAlertCircle />} color="red" data-testid="register-error">
-                  {registerMutation.error.message || 'Registration failed. Please try again.'}
+                  {registerMutation.error.message?.includes('already registered') ? (
+                    <>
+                      Email address is already registered.{' '}
+                      <Link to="/forgot-password" style={{ color: 'var(--color-burgundy)', fontWeight: 600 }}>
+                        Create a new Password
+                      </Link>{' '}
+                      to login.
+                    </>
+                  ) : (
+                    registerMutation.error.message || 'Registration failed. Please try again.'
+                  )}
                 </Alert>
               )}
 
