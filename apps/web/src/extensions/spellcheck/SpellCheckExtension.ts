@@ -110,7 +110,8 @@ function checkDocument(
 const spellCheckPluginKey = new PluginKey('spellCheck')
 const RECHECK_META = 'spellCheckRecheck'
 
-function createSpellCheckPlugin(): Plugin {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createSpellCheckPlugin(editor: any): Plugin {
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
   let activePopup: TippyInstance | null = null
   let activeComponent: ReactRenderer | null = null
@@ -210,7 +211,7 @@ function createSpellCheckPlugin(): Plugin {
               view.focus()
             },
           },
-          editor: (view as any).editor || null,
+          editor,
         })
 
         activeComponent = component
@@ -269,6 +270,6 @@ export const SpellCheckExtension = Extension.create({
   name: 'spellCheck',
 
   addProseMirrorPlugins() {
-    return [createSpellCheckPlugin()]
+    return [createSpellCheckPlugin(this.editor)]
   },
 })
