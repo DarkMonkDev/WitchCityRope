@@ -30,12 +30,6 @@ public class GlobalEmailTemplateDto
     public string HtmlBody { get; set; } = string.Empty;
     public string PlainTextBody { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Available variables for this template
-    /// Example: ["{{attendee_name}}", "{{event_title}}"]
-    /// </summary>
-    public string[] Variables { get; set; } = Array.Empty<string>();
-
     public bool IsActive { get; set; }
     public int Version { get; set; }
     public DateTime CreatedAt { get; set; }

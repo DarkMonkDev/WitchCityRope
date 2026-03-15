@@ -56,8 +56,18 @@ export const SendTestEmail: React.FC<SendTestEmailProps> = ({
   const [email, setEmail] = useState('');
   const [variableOverrides, setVariableOverrides] = useState<Record<string, string>>({});
 
-  // Parse template variables — strip {{ and }} braces
-  const templateVariables = (template.variables || []).map((v) =>
+  // Fetch available variables from the code registry endpoint
+  const { data: rawVariables } = useQuery<string[]>({
+    queryKey: ['email-template-variables', template.category, template.templateType],
+    queryFn: () => emailTemplatesApi.getVariablesForTemplate(
+      template.category ?? '',
+      template.templateType ?? ''
+    ),
+    enabled: !!template.category && !!template.templateType,
+  });
+
+  // Strip {{ and }} braces for display and test data keys
+  const templateVariables = (rawVariables || []).map((v) =>
     v.replace(/^\{\{/, '').replace(/\}\}$/, '')
   );
 

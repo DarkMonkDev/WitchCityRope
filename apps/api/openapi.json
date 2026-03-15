@@ -9635,6 +9635,127 @@
         }
       }
     },
+    "/api/email-templates/variables/{category}/{templateType}": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get available variables for a template type",
+        "description": "Returns the list of available template variables from the code registry. Used by the admin UI to show which variables can be used in templates.",
+        "operationId": "GetTemplateVariables",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "templateType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/email-templates/variables": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get all template variables grouped by category",
+        "description": "Returns all unique variables across all templates, grouped by category. Used by the test data editor.",
+        "operationId": "GetAllTemplateVariables",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/email-templates/test-data": {
       "get": {
         "tags": [
@@ -14429,12 +14550,6 @@
           },
           "plainTextBody": {
             "type": "string"
-          },
-          "variables": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "isActive": {
             "type": "boolean"

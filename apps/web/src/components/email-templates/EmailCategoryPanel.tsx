@@ -44,6 +44,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   const [htmlBody, setHtmlBody] = useState('');
   const [_plainTextBody, setPlainTextBody] = useState('');
   const [invalidVariables, setInvalidVariables] = useState<string[]>([]);
+  const [availableVariables, setAvailableVariables] = useState<string[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // State for inline title editing
@@ -179,6 +180,28 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     }
   }, [selectedTemplate]);
 
+  // Fetch available variables from code registry when template selection changes
+  useEffect(() => {
+    if (!selectedTemplate?.category || !selectedTemplate?.templateType) {
+      setAvailableVariables([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    emailTemplatesApi
+      .getVariablesForTemplate(selectedTemplate.category, selectedTemplate.templateType)
+      .then((vars) => {
+        if (!cancelled) {
+          setAvailableVariables(vars);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedTemplate?.id, selectedTemplate?.category, selectedTemplate?.templateType]);
+
   // Real-time variable validation
   useEffect(() => {
     if (!selectedTemplate || !htmlBody) {
@@ -202,12 +225,18 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       extractedVars.add(`{{${match[1]}}}`);
     }
 
-    // Compare with allowed variables
+    // Compare with allowed variables from code registry
+    // Only validate if variables have been fetched (non-empty array)
+    // to avoid false warnings while the API request is in flight
+    if (availableVariables.length === 0) {
+      setInvalidVariables([]);
+      return;
+    }
     const invalid = Array.from(extractedVars).filter(
-      (v) => !selectedTemplate.variables?.includes(v)
+      (v) => !availableVariables.includes(v)
     );
     setInvalidVariables(invalid);
-  }, [subject, htmlBody, selectedTemplate]);
+  }, [subject, htmlBody, selectedTemplate, availableVariables]);
 
   // Convert plain text from HTML (simple strip tags approach)
   const generatePlainText = (html: string): string => {
@@ -502,8 +531,8 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                       Available Variables:
                     </Text>
                     <Text size="xs" c="dimmed" mb="xs">
-                      {(selectedTemplate.variables?.length ?? 0) > 0
-                        ? selectedTemplate.variables?.join(', ')
+                      {availableVariables.length > 0
+                        ? availableVariables.join(', ')
                         : 'No dynamic variables for this template'}
                     </Text>
                     <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
@@ -536,7 +565,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                       </Text>
                       <Text size="xs" mt="xs" c="dimmed">
                         The email may not render correctly when sent. Available variables:{' '}
-                        {selectedTemplate.variables?.join(', ')}
+                        {availableVariables.join(', ')}
                       </Text>
                     </Alert>
                   )}
@@ -697,8 +726,8 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                       Available Variables:
                     </Text>
                     <Text size="xs" c="dimmed" mb="xs">
-                      {(selectedTemplate.variables?.length ?? 0) > 0
-                        ? selectedTemplate.variables?.join(', ')
+                      {availableVariables.length > 0
+                        ? availableVariables.join(', ')
                         : 'No dynamic variables for this template'}
                     </Text>
                     <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
@@ -731,7 +760,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
                       </Text>
                       <Text size="xs" mt="xs" c="dimmed">
                         The email may not render correctly when sent. Available variables:{' '}
-                        {selectedTemplate.variables?.join(', ')}
+                        {availableVariables.join(', ')}
                       </Text>
                     </Alert>
                   )}

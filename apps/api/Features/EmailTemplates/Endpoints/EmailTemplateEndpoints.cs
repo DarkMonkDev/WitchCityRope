@@ -311,6 +311,36 @@ public static class EmailTemplateEndpoints
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
 
         // ========================================
+        // Variable Registry (Admin-only)
+        // ========================================
+
+        /// <summary>
+        /// Get available variables for a template type from the code registry
+        /// </summary>
+        group.MapGet("/variables/{category}/{templateType}", GetTemplateVariables)
+            .WithName("GetTemplateVariables")
+            .WithSummary("Get available variables for a template type")
+            .WithDescription("Returns the list of available template variables from the code registry. Used by the admin UI to show which variables can be used in templates.")
+            .Produces<string[]>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        /// <summary>
+        /// Get all unique variables grouped by category from the code registry.
+        /// Used by the test data editor to show input fields for every possible variable.
+        /// </summary>
+        group.MapGet("/variables", GetAllTemplateVariables)
+            .WithName("GetAllTemplateVariables")
+            .WithSummary("Get all template variables grouped by category")
+            .WithDescription("Returns all unique variables across all templates, grouped by category. Used by the test data editor.")
+            .Produces<Dictionary<string, string[]>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        // ========================================
         // Email Template Testing (Admin-only)
         // ========================================
 
@@ -930,6 +960,30 @@ public static class EmailTemplateEndpoints
         }
 
         return Results.Ok(result.Value);
+    }
+
+    // ========================================
+    // Variable Registry Handlers
+    // ========================================
+
+    private static Task<IResult> GetTemplateVariables(string category, string templateType)
+    {
+        if (!Enum.TryParse<EmailCategory>(category, ignoreCase: true, out var emailCategory))
+        {
+            return Task.FromResult(Results.Problem(
+                title: "Invalid Category",
+                detail: $"Invalid category. Valid values: {string.Join(", ", Enum.GetNames<EmailCategory>())}",
+                statusCode: 400));
+        }
+
+        var variables = EmailTemplateVariableRegistry.GetVariables(emailCategory, templateType);
+        return Task.FromResult(Results.Ok(variables));
+    }
+
+    private static Task<IResult> GetAllTemplateVariables()
+    {
+        var grouped = EmailTemplateVariableRegistry.GetAllVariablesGroupedByCategory();
+        return Task.FromResult(Results.Ok(grouped));
     }
 
     // ========================================

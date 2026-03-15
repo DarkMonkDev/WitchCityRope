@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.EmailTemplates.Entities;
@@ -56,14 +55,6 @@ public class GlobalEmailTemplate
     /// </summary>
     [Required]
     public string PlainTextBody { get; set; } = string.Empty;
-
-    /// <summary>
-    /// JSONB field containing available variables for this template
-    /// Example: ["{{attendee_name}}", "{{event_title}}"]
-    /// </summary>
-    [Required]
-    [Column(TypeName = "jsonb")]
-    public string Variables { get; set; } = "[]";
 
     /// <summary>
     /// Trigger type for this template

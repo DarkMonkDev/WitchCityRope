@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
@@ -63,7 +62,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Subject = t.Subject,
                 HtmlBody = t.HtmlBody,
                 PlainTextBody = t.PlainTextBody,
-                Variables = JsonSerializer.Deserialize<string[]>(t.Variables) ?? Array.Empty<string>(),
+
                 IsActive = t.IsActive,
                 Version = t.Version,
                 CreatedAt = t.CreatedAt,
@@ -109,7 +108,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Subject = template.Subject,
                 HtmlBody = template.HtmlBody,
                 PlainTextBody = template.PlainTextBody,
-                Variables = JsonSerializer.Deserialize<string[]>(template.Variables) ?? Array.Empty<string>(),
+
                 IsActive = template.IsActive,
                 Version = template.Version,
                 CreatedAt = template.CreatedAt,
@@ -169,7 +168,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Subject = template.Subject,
                 HtmlBody = template.HtmlBody,
                 PlainTextBody = template.PlainTextBody,
-                Variables = JsonSerializer.Deserialize<string[]>(template.Variables) ?? Array.Empty<string>(),
+
                 IsActive = template.IsActive,
                 Version = template.Version,
                 CreatedAt = template.CreatedAt,
@@ -251,7 +250,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Subject = template.Subject,
                 HtmlBody = template.HtmlBody,
                 PlainTextBody = template.PlainTextBody,
-                Variables = JsonSerializer.Deserialize<string[]>(template.Variables) ?? Array.Empty<string>(),
+
                 IsActive = template.IsActive,
                 Version = template.Version,
                 CreatedAt = template.CreatedAt,
@@ -311,7 +310,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Subject = template.Subject,
                 HtmlBody = template.HtmlBody,
                 PlainTextBody = template.PlainTextBody,
-                Variables = JsonSerializer.Deserialize<string[]>(template.Variables) ?? Array.Empty<string>(),
+
                 IsActive = template.IsActive,
                 Version = template.Version,
                 CreatedAt = template.CreatedAt,
@@ -358,7 +357,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Subject = t.Subject,
                 HtmlBody = t.HtmlBody,
                 PlainTextBody = t.PlainTextBody,
-                Variables = JsonSerializer.Deserialize<string[]>(t.Variables) ?? Array.Empty<string>(),
+
                 IsActive = t.IsActive,
                 Version = t.Version,
                 CreatedAt = t.CreatedAt,

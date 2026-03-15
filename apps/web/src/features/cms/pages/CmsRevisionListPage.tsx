@@ -1,6 +1,6 @@
 // CmsRevisionListPage component
 // Admin page listing all CMS-managed content pages with revision counts.
-// Provides create (modal), view (link), revision history (row click), and delete (modal) functionality.
+// Provides create (modal), view page (link), view revisions (link in revisions column), and delete (modal) functionality.
 // Title: "Content Management Pages"
 // Column order: View Page | Page Name | URL | Total Revisions | Last Edited | Last Edited By | Delete
 
@@ -99,9 +99,7 @@ export const CmsRevisionListPage: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['cms-pages'] })
   }
 
-  const handleDeleteClick = (e: React.MouseEvent, pageId: number, pageTitle: string) => {
-    // Prevent row click from navigating to revision detail
-    e.stopPropagation()
+  const handleDeleteClick = (pageId: number, pageTitle: string) => {
     setDeleteTargetId(pageId)
     setDeleteTargetTitle(pageTitle)
     setDeleteModalOpened(true)
@@ -189,7 +187,7 @@ export const CmsRevisionListPage: React.FC = () => {
       <Stack gap="md">
         {/* CMS Pages Table */}
         <Paper shadow="sm" radius="md">
-          <Table striped highlightOnHover>
+          <Table striped>
             <Table.Thead
               style={{
                 backgroundColor: '#880124',
@@ -253,22 +251,11 @@ export const CmsRevisionListPage: React.FC = () => {
             </Table.Thead>
             <Table.Tbody>
               {sortedPages.map((page) => (
-                <Table.Tr
-                  key={page.id}
-                  style={{ cursor: 'pointer' }}
-                  onClick={(e) => {
-                    // Don't navigate if clicking the View Page link or Delete link
-                    if ((e.target as HTMLElement).closest('a, button')) {
-                      return
-                    }
-                    navigate(`/admin/cms/revisions/${page.id}`)
-                  }}
-                >
+                <Table.Tr key={page.id}>
                   {/* View Page - first column */}
                   <Table.Td style={{ textAlign: 'center' }}>
                     <Anchor
                       href={`/${page.slug}`}
-                      onClick={(e) => e.stopPropagation()}
                       style={{
                         color: '#880124',
                         textDecoration: 'none',
@@ -298,11 +285,27 @@ export const CmsRevisionListPage: React.FC = () => {
                     </Text>
                   </Table.Td>
 
-                  {/* Total Revisions */}
+                  {/* Total Revisions - count with "View" link to revision detail */}
                   <Table.Td style={{ textAlign: 'center' }}>
-                    <Text size="sm" style={{ color: '#2B2B2B' }}>
-                      {page.revisionCount}
-                    </Text>
+                    <Group gap={6} justify="center">
+                      <Text size="sm" style={{ color: '#2B2B2B' }}>
+                        {page.revisionCount}
+                      </Text>
+                      <Anchor
+                        component="button"
+                        type="button"
+                        onClick={() => navigate(`/admin/cms/revisions/${page.id}`)}
+                        style={{
+                          color: '#880124',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                        }}
+                      >
+                        View
+                      </Anchor>
+                    </Group>
                   </Table.Td>
 
                   {/* Last Edited */}
@@ -324,7 +327,7 @@ export const CmsRevisionListPage: React.FC = () => {
                     <Anchor
                       component="button"
                       type="button"
-                      onClick={(e) => handleDeleteClick(e, page.id!, page.title ?? '')}
+                      onClick={() => handleDeleteClick(page.id!, page.title ?? '')}
                       style={{
                         color: '#c92a2a',
                         textDecoration: 'none',

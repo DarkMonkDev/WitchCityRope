@@ -82,12 +82,6 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
             .IsRequired()
             .HasColumnType("text");
 
-        // Variables (JSONB for PostgreSQL optimization)
-        builder.Property(e => e.Variables)
-            .IsRequired()
-            .HasColumnType("jsonb")
-            .HasDefaultValue("[]");
-
         // IsActive
         builder.Property(e => e.IsActive)
             .IsRequired()
@@ -130,11 +124,6 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
         builder.HasIndex(e => e.UpdatedAt)
             .IsDescending()
             .HasDatabaseName("IX_GlobalEmailTemplates_UpdatedAt");
-
-        // GIN Index for JSONB Variables (PostgreSQL-specific)
-        builder.HasIndex(e => e.Variables)
-            .HasDatabaseName("IX_GlobalEmailTemplates_Variables_Gin")
-            .HasMethod("gin");
 
         // Trigger configuration fields
         builder.Property(e => e.TriggerType)

@@ -17,89 +17,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { emailTemplatesApi } from '../../services/emailTemplates.api';
 
-/**
- * Variable groups for email template test data.
- * Each group contains a display name and the snake_case variable names.
- */
-const VARIABLE_GROUPS = [
-  {
-    name: 'Global',
-    variables: ['user_name', 'system_url', 'custom_message', 'custom_content'],
-  },
-  {
-    name: 'Vetting',
-    variables: [
-      'scene_name',
-      'application_number',
-      'submission_date',
-      'application_date',
-      'status_change_date',
-      'current_status',
-      'interview_link',
-      'approval_date',
-      'review_date',
-    ],
-  },
-  {
-    name: 'Events',
-    variables: [
-      'attendee_name',
-      'event_title',
-      'session_date',
-      'session_time',
-      'venue_name',
-      'venue_address',
-      'ticket_type',
-      'total_paid',
-      'confirmation_number',
-      'session_name',
-      'ticket_sessions_list',
-      'ticket_sessions_list_text',
-      'cancelled_sessions_list',
-      'cancelled_sessions_list_text',
-    ],
-  },
-  {
-    name: 'Volunteers',
-    variables: [
-      'volunteer_name',
-      'volunteer_role',
-      'shift_start',
-      'shift_end',
-    ],
-  },
-  {
-    name: 'Admin',
-    variables: [
-      'account_email',
-      'reset_url',
-      'action_required',
-      'deadline_date',
-      'verification_url',
-      'refund_amount',
-      'original_amount',
-      'payment_method',
-      'timing_message',
-      'refund_reason',
-      'refund_id',
-    ],
-  },
-  {
-    name: 'Incident',
-    variables: [
-      'reporter_name',
-      'incident_number',
-      'incident_date',
-      'coordinator_name',
-      'next_steps',
-      'status',
-    ],
-  },
-  {
-    name: 'Ad Hoc',
-    variables: ['recipient_name'],
-  },
-];
+// Variable groups are fetched from the backend registry via API.
+// No hardcoded variable lists — the registry is the single source of truth.
 
 /**
  * Converts a snake_case string to Title Case.
@@ -120,15 +39,26 @@ export const EmailTestDataTab: React.FC = () => {
   const queryClient = useQueryClient();
   const [localValues, setLocalValues] = useState<Record<string, string>>({});
 
+  // Fetch variable groups from the backend registry (single source of truth)
+  const {
+    data: variableGroups,
+    isLoading: isLoadingVariables,
+  } = useQuery<Record<string, string[]>>({
+    queryKey: ['email-template-all-variables'],
+    queryFn: () => emailTemplatesApi.getAllVariablesGrouped(),
+  });
+
   // Fetch saved test data
   const {
     data: testData,
-    isLoading,
+    isLoading: isLoadingTestData,
     error,
   } = useQuery<Record<string, string>>({
     queryKey: ['email-test-data'],
     queryFn: () => emailTemplatesApi.getTestData(),
   });
+
+  const isLoading = isLoadingVariables || isLoadingTestData;
 
   // Populate local state when data loads
   useEffect(() => {
@@ -196,14 +126,14 @@ export const EmailTestDataTab: React.FC = () => {
           sessions.
         </Text>
 
-        {VARIABLE_GROUPS.map((group, index) => (
-          <React.Fragment key={group.name}>
+        {variableGroups && Object.entries(variableGroups).map(([categoryName, variables], index) => (
+          <React.Fragment key={categoryName}>
             {index > 0 && <Divider my="md" />}
             <Text fw={600} c="burgundy" size="md" mb="xs">
-              {group.name}
+              {categoryName}
             </Text>
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-              {group.variables.map((variable) => (
+              {variables.map((variable) => (
                 <TextInput
                   key={variable}
                   label={toTitleCase(variable)}

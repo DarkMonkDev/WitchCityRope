@@ -615,6 +615,54 @@ class EmailTemplatesApiService {
 
 
   // ===================================================================
+  // TEMPLATE VARIABLE REGISTRY (Admin-only)
+  // ===================================================================
+
+  /**
+   * Get available variables for a template type from the code registry.
+   * Variables are defined in backend code, not in the database.
+   * @param category - Email category (e.g., 'Events', 'Vetting')
+   * @param templateType - Template type within category (e.g., 'RSVPConfirmation')
+   */
+  async getVariablesForTemplate(
+    category: string,
+    templateType: string
+  ): Promise<string[]> {
+    try {
+      const response = await apiClient.get<string[]>(
+        `/api/email-templates/variables/${category}/${templateType}`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error fetching template variables:', {
+        category,
+        templateType,
+        error: error.message || error,
+      });
+      return []; // Return empty array on error so UI doesn't break
+    }
+  }
+
+  /**
+   * Get all unique variables across all templates, grouped by category.
+   * Used by the test data editor to show input fields for every possible variable.
+   * Returns variables without {{}} braces (e.g., "attendee_name" not "{{attendee_name}}").
+   */
+  async getAllVariablesGrouped(): Promise<Record<string, string[]>> {
+    try {
+      const response = await apiClient.get<Record<string, string[]>>(
+        '/api/email-templates/variables'
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error fetching all template variables:', {
+        error: error.message || error,
+      });
+      return {};
+    }
+  }
+
+  // ===================================================================
   // EMAIL TEMPLATE TESTING (Admin-only)
   // ===================================================================
 
