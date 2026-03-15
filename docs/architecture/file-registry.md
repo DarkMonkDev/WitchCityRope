@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2026-03-02 -->
-<!-- Version: 4.554 -->
+<!-- Last Updated: 2026-03-14 -->
+<!-- Version: 4.555 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,8 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2026-03-14 | /docs/functional-areas/deployment/production-deployment-guide.md | MODIFIED | Complete rewrite - removed aspirational content (ELK, Kubernetes, Prometheus, blue-green, etc), replaced with actual DigitalOcean deployment facts | Librarian: Production guide accuracy cleanup | ACTIVE | Never |
+| 2026-03-14 | /docs/functional-areas/deployment/dns-cutover-plan.md | CREATED | Go-live DNS cutover plan for switching witchcityrope.com from Wix to DigitalOcean production server | Librarian: DNS cutover documentation | ACTIVE | Never |
 | 2026-03-02 | /docs/functional-areas/logging-observability/README.md | CREATED | Comprehensive audit and project plan for site-wide logging infrastructure | E19 - CC failure logging investigation | ACTIVE | N/A |
 | 2026-03-02 | /docs/functional-areas/payment-entity-consolidation/README.md | CREATED | Comprehensive audit and project plan for consolidating dual payment entities | E19 - CC failure logging investigation | ACTIVE | N/A |
 | 2026-02-23 | /apps/web/src/lib/utils/sanitizeHtml.ts | CREATED | DOMPurify HTML sanitization utility for XSS prevention | Security Audit Remediation | ACTIVE | Never |
