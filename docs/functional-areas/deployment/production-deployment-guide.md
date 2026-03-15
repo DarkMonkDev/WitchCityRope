@@ -65,6 +65,16 @@ Images are tagged with both `:latest` and `:<git-sha>` and pushed to `registry.d
 - **Vault helpers**: Use `vault-helpers.sh` shared skill for Vault operations
 - Secrets are pulled from Vault during deployment and written to `.env.production` on the server
 
+**⚠️ CRITICAL: Vault is the SINGLE SOURCE OF TRUTH for production environment variables.**
+- The template file (`deployment/.env.production.template`) is a **reference only** — editing it does NOT change production.
+- To change a production env var (e.g., `Frontend__Url`), you MUST update it in Vault:
+  ```bash
+  export VAULT_ADDR="https://vault.monksafterdark.com"
+  ~/bin/vault kv patch secret/projects/witchcityrope/production KEY=VALUE
+  ```
+- Then redeploy using the `production-deploy` skill so the updated `.env.production` is written to the server.
+- **Common mistake**: Editing the template file, redeploying, and wondering why nothing changed — because the deploy skill overwrites `.env.production` from Vault, not from the template.
+
 ## 4. Deployment Process
 
 **Use the `production-deploy` skill.** It handles the full deployment pipeline:
