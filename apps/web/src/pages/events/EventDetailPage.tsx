@@ -420,8 +420,7 @@ export const EventDetailPage: React.FC = () => {
       return (
         <ContentSection isMobile={isMobile}>
           <div className="html-content">
-            <h2>{venue.name}</h2>
-            <h3>Directions</h3>
+            <h2>Venue - {venue.name}</h2>
             <div dangerouslySetInnerHTML={{ __html: venue.directions }} />
             {venue.venueInformation && (
               <>
