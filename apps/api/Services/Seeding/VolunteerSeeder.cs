@@ -540,23 +540,23 @@ public class VolunteerSeeder
             EndTime = s2EndTimeStr
         });
 
-        // Position 3: Event-wide (no SessionId, uses EARLIEST session = S1 @ 24hr)
+        // Position 3: Event Coordinator assigned to Session 1
         // Available if: 24 >= volunteerRegistrationCloseHours (uses S1's timing)
         positions.Add(new VolunteerPosition
         {
             EventId = eventItem.Id,
-            SessionId = null, // Event-wide = uses EARLIEST session for timing
+            SessionId = s1Session.Id,
             Title = "Event Coordinator",
-            Description = $"Coordinate across both sessions. Uses EARLIEST session (S1 @ 24hr) for timing. Close window: {closeHours}hr. Expected: {(24 >= (double)closeHours ? "OPEN" : "CLOSED")}",
+            Description = $"Coordinate event logistics for Session 1. Close window: {closeHours}hr. Expected: {(24 >= (double)closeHours ? "OPEN" : "CLOSED")}",
             SlotsNeeded = 1,
             SlotsFilled = 0,
             IsPublicFacing = true,
             StartTime = s1StartTimeStr,
-            EndTime = s2EndTimeStr  // Coordinator covers both sessions
+            EndTime = s1EndTimeStr
         });
 
         _logger.LogInformation(
-            "Created volunteer positions for {Title}: S1 Helper ({S1Status}), S2 Monitor ({S2Status}), Event Coordinator ({EventStatus})",
+            "Created volunteer positions for {Title}: S1 Helper ({S1Status}), S2 Monitor ({S2Status}), S1 Coordinator ({CoordStatus})",
             eventItem.Title,
             24 >= (double)closeHours ? "OPEN" : "CLOSED",
             120 >= (double)closeHours ? "OPEN" : "CLOSED",

@@ -32,7 +32,7 @@ public class VolunteerPositionDto
 {
     public Guid Id { get; set; }
     public Guid EventId { get; set; }
-    public Guid? SessionId { get; set; }
+    public Guid SessionId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public int SlotsNeeded { get; set; }

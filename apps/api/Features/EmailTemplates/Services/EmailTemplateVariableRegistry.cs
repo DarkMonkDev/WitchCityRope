@@ -88,19 +88,21 @@ public static class EmailTemplateVariableRegistry
         },
 
         // Source: EmailSchedulerJob.ProcessSessionAsync() — volunteer branch
+        // volunteer_tasks_list contains a bulleted HTML list of all volunteer assignments.
+        // volunteer_tasks_list_text is the plain text equivalent for plain text email bodies.
         [(EmailCategory.Events, "VolunteerReminder")] = new[]
         {
             "{{volunteer_name}}", "{{attendee_name}}", "{{event_title}}", "{{session_name}}",
             "{{session_date}}", "{{session_time}}", "{{event_date}}", "{{event_time}}",
-            "{{volunteer_role}}", "{{shift_start}}", "{{shift_end}}",
+            "{{volunteer_tasks_list}}", "{{volunteer_tasks_list_text}}",
             "{{venue_name}}", "{{venue_address}}", "{{event_details_url}}", "{{event_details_button}}"
         },
 
-        // Source: Not yet wired to sending code
+        // Source: EmailSchedulerJob.ProcessSessionAsync() — volunteer branch
         [(EmailCategory.Events, "VolunteerThankYou")] = new[]
         {
             "{{volunteer_name}}", "{{attendee_name}}", "{{event_title}}", "{{session_name}}",
-            "{{session_date}}", "{{event_date}}", "{{volunteer_role}}",
+            "{{session_date}}", "{{event_date}}", "{{volunteer_tasks_list}}", "{{volunteer_tasks_list_text}}",
             "{{event_details_url}}", "{{event_details_button}}"
         },
 

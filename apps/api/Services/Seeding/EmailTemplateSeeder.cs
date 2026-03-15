@@ -341,11 +341,9 @@ public class EmailTemplateSeeder
             // VOLUNTEER TEMPLATES
             // ============================================================================
             // These target the SessionVolunteers recipient group. The EmailSchedulerJob
-            // populates volunteer-specific variables (volunteer_role, shift_start, shift_end)
-            // from the volunteer's VolunteerPosition via RecipientInfo.
-            // Event-wide volunteers (VolunteerPosition.SessionId == null) receive this email
-            // for EVERY session's trigger time. Session-specific volunteers only receive it
-            // for their session's trigger time.
+            // populates volunteer_tasks_list (HTML bulleted list) and volunteer_tasks_list_text
+            // (plain text equivalent) from ALL of the volunteer's positions for the session.
+            // All volunteer positions are session-specific — event-wide positions are not supported.
             // ============================================================================
             new GlobalEmailTemplate
             {
@@ -353,8 +351,8 @@ public class EmailTemplateSeeder
                 TemplateType = "VolunteerReminder",
                 Title = "Volunteer Reminder: {{event_title}}",
                 Subject = "Volunteer Reminder: {{event_title}} - {{session_name}}",
-                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>This is a reminder that you are volunteering for <strong>{{event_title}}</strong>!</p><h3>Your Volunteer Details</h3><p><strong>Role:</strong> {{volunteer_role}}<br><strong>Session:</strong> {{session_name}}<br><strong>Date:</strong> {{session_date}}<br><strong>Time:</strong> {{session_time}}<br><strong>Shift:</strong> {{shift_start}} - {{shift_end}}</p><p><strong>Location:</strong><br>{{venue_name}}<br>{{venue_address}}</p><p>Thank you for volunteering! If you can no longer make it, please update your status as soon as possible so we can find a replacement.</p><p>Questions? Email events@witchcityrope.com</p>",
-                PlainTextBody = "Hi {{volunteer_name}},\n\nThis is a reminder that you are volunteering for {{event_title}}!\n\nYour Volunteer Details:\nRole: {{volunteer_role}}\nSession: {{session_name}}\nDate: {{session_date}}\nTime: {{session_time}}\nShift: {{shift_start}} - {{shift_end}}\n\nLocation:\n{{venue_name}}\n{{venue_address}}\n\nThank you for volunteering! If you can no longer make it, please update your status as soon as possible so we can find a replacement.\n\nQuestions? Email events@witchcityrope.com",
+                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>This is a reminder that you are volunteering for <strong>{{event_title}}</strong>!</p><h3>Your Volunteer Assignments</h3><p><strong>Session:</strong> {{session_name}}<br><strong>Date:</strong> {{session_date}}<br><strong>Time:</strong> {{session_time}}</p>{{volunteer_tasks_list}}<p><strong>Location:</strong><br>{{venue_name}}<br>{{venue_address}}</p><p>Thank you for volunteering! If you can no longer make it, please update your status as soon as possible so we can find a replacement.</p><p>Questions? Email events@witchcityrope.com</p>",
+                PlainTextBody = "Hi {{volunteer_name}},\n\nThis is a reminder that you are volunteering for {{event_title}}!\n\nYour Volunteer Assignments:\nSession: {{session_name}}\nDate: {{session_date}}\nTime: {{session_time}}\n\n{{volunteer_tasks_list_text}}\n\nLocation:\n{{venue_name}}\n{{venue_address}}\n\nThank you for volunteering! If you can no longer make it, please update your status as soon as possible so we can find a replacement.\n\nQuestions? Email events@witchcityrope.com",
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = 2,
                 RecipientGroup = EventRecipientGroup.SessionVolunteers,
@@ -370,8 +368,8 @@ public class EmailTemplateSeeder
                 TemplateType = "VolunteerThankYou",
                 Title = "Thank you for volunteering: {{event_title}}",
                 Subject = "Thank you for volunteering at {{event_title}}!",
-                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>Thank you so much for volunteering at <strong>{{event_title}}</strong>!</p><p><strong>Your Role:</strong> {{volunteer_role}}<br><strong>Session:</strong> {{session_name}}<br><strong>Date:</strong> {{session_date}}</p><p>Our events wouldn't be possible without dedicated volunteers like you. We truly appreciate your time and effort!</p><p>We hope to see you at future events. If you have any feedback about your volunteer experience, please reach out to events@witchcityrope.com</p><p>With gratitude,<br>The Witch City Rope Team</p>",
-                PlainTextBody = "Hi {{volunteer_name}},\n\nThank you so much for volunteering at {{event_title}}!\n\nYour Role: {{volunteer_role}}\nSession: {{session_name}}\nDate: {{session_date}}\n\nOur events wouldn't be possible without dedicated volunteers like you. We truly appreciate your time and effort!\n\nWe hope to see you at future events. If you have any feedback about your volunteer experience, please reach out to events@witchcityrope.com\n\nWith gratitude,\nThe Witch City Rope Team",
+                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>Thank you so much for volunteering at <strong>{{event_title}}</strong>!</p><p><strong>Session:</strong> {{session_name}}<br><strong>Date:</strong> {{session_date}}</p><h3>Your Volunteer Assignments</h3>{{volunteer_tasks_list}}<p>Our events wouldn't be possible without dedicated volunteers like you. We truly appreciate your time and effort!</p><p>We hope to see you at future events. If you have any feedback about your volunteer experience, please reach out to events@witchcityrope.com</p><p>With gratitude,<br>The Witch City Rope Team</p>",
+                PlainTextBody = "Hi {{volunteer_name}},\n\nThank you so much for volunteering at {{event_title}}!\n\nSession: {{session_name}}\nDate: {{session_date}}\n\nYour Volunteer Assignments:\n{{volunteer_tasks_list_text}}\n\nOur events wouldn't be possible without dedicated volunteers like you. We truly appreciate your time and effort!\n\nWe hope to see you at future events. If you have any feedback about your volunteer experience, please reach out to events@witchcityrope.com\n\nWith gratitude,\nThe Witch City Rope Team",
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = -1,
                 RecipientGroup = EventRecipientGroup.SessionVolunteers,

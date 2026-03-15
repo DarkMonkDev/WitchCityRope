@@ -71,7 +71,6 @@ public class VolunteerService : IVolunteerService
             // Get user's existing signups and ticket attendances if authenticated
             List<VolunteerSignup>? userSignups = null;
             HashSet<Guid>? userTicketSessionIds = null;
-            bool userHasAnyTicket = false;
 
             if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var userGuid))
             {
@@ -80,7 +79,9 @@ public class VolunteerService : IVolunteerService
                     .Where(vs => vs.UserId == userGuid && vs.Status == VolunteerSignupStatus.Confirmed)
                     .ToListAsync(cancellationToken);
 
-                // For events that require ticket purchases, get the sessions the user has tickets for
+                // For events that require ticket purchases, get the sessions the user has tickets for.
+                // Used to validate that the user has a ticket for the specific session
+                // this volunteer position belongs to.
                 if (eventEntity.RequireTicketPurchase)
                 {
                     var userTicketAttendances = await _context.EventAttendances
@@ -95,7 +96,6 @@ public class VolunteerService : IVolunteerService
                         .ToListAsync(cancellationToken);
 
                     userTicketSessionIds = new HashSet<Guid>(userTicketAttendances);
-                    userHasAnyTicket = userTicketSessionIds.Count > 0;
                 }
             }
 
@@ -103,29 +103,15 @@ public class VolunteerService : IVolunteerService
             var positionDtos = new List<VolunteerPositionDto>();
             foreach (var vp in positions)
             {
-                Session? referenceSession;
+                // Use the session this position belongs to for timing checks.
+                // All volunteer positions are session-specific.
+                var referenceSession = eventSessions
+                    .FirstOrDefault(s => s.Id == vp.SessionId);
 
-                if (vp.SessionId.HasValue)
+                // If session is in the past or not found, skip this position entirely
+                if (referenceSession == null || referenceSession.StartTime <= DateTime.UtcNow)
                 {
-                    // Session-specific position - use that session's timing
-                    referenceSession = eventSessions
-                        .FirstOrDefault(s => s.Id == vp.SessionId);
-
-                    // If session is in the past, skip this position entirely (don't return it)
-                    if (referenceSession == null || referenceSession.StartTime <= DateTime.UtcNow)
-                    {
-                        continue; // Don't include positions for past sessions
-                    }
-                }
-                else
-                {
-                    // Event-wide position - use earliest future session
-                    referenceSession = _timeZoneService.GetEarliestFutureSession(eventSessions);
-
-                    if (referenceSession == null)
-                    {
-                        continue; // All sessions passed, don't show event-wide positions
-                    }
+                    continue;
                 }
 
                 var userSignup = userSignups?.FirstOrDefault(us => us.VolunteerPositionId == vp.Id);
@@ -161,22 +147,11 @@ public class VolunteerService : IVolunteerService
                 }
 
                 // Check 4: TICKET VALIDATION FOR CLASS/WORKSHOP EVENTS
-                // User must have a ticket for the specific session (or any ticket for event-wide positions)
+                // User must have a ticket for the specific session this position belongs to.
+                // All volunteer positions are session-specific.
                 if (canSignUp && userTicketSessionIds != null)
                 {
-                    bool hasRequiredTicket;
-                    if (vp.SessionId.HasValue)
-                    {
-                        // Session-specific position - user needs ticket for THIS session
-                        hasRequiredTicket = userTicketSessionIds.Contains(vp.SessionId.Value);
-                    }
-                    else
-                    {
-                        // Event-wide position - user needs at least one ticket
-                        hasRequiredTicket = userHasAnyTicket;
-                    }
-
-                    if (!hasRequiredTicket)
+                    if (!userTicketSessionIds.Contains(vp.SessionId))
                     {
                         canSignUp = false;
                         signupBlockedReason = "NoTicketForSession";
@@ -271,32 +246,13 @@ public class VolunteerService : IVolunteerService
             // This ensures users get timing errors BEFORE other validation errors
             if (position.Event != null)
             {
-                Session? referenceSession;
-
-                if (position.SessionId.HasValue)
+                // Use the session this position belongs to for timing checks.
+                // All volunteer positions are session-specific.
+                var referenceSession = position.Session;
+                if (referenceSession == null || referenceSession.StartTime <= DateTime.UtcNow)
                 {
-                    // Session-specific position
-                    referenceSession = position.Session;
-                    if (referenceSession == null || referenceSession.StartTime <= DateTime.UtcNow)
-                    {
-                        _logger.LogWarning("Volunteer signup attempt for past session {SessionId}", position.SessionId);
-                        return (false, null, "This session has already passed");
-                    }
-                }
-                else
-                {
-                    // Event-wide position - use earliest future session
-                    var eventSessions = await _context.Sessions
-                        .AsNoTracking()
-                        .Where(s => s.EventId == position.EventId)
-                        .ToListAsync(cancellationToken);
-
-                    referenceSession = _timeZoneService.GetEarliestFutureSession(eventSessions);
-                    if (referenceSession == null)
-                    {
-                        _logger.LogWarning("Volunteer signup attempt for event {EventId} with all sessions passed", position.EventId);
-                        return (false, null, "All sessions for this event have passed");
-                    }
+                    _logger.LogWarning("Volunteer signup attempt for past session {SessionId}", position.SessionId);
+                    return (false, null, "This session has already passed");
                 }
 
                 var isAllowed = _timeZoneService.IsActionAllowedForSession(
@@ -337,58 +293,31 @@ public class VolunteerService : IVolunteerService
             // ============================================================================
             // TICKET VALIDATION FOR EVENTS REQUIRING TICKETS
             // ============================================================================
-            // For events that require ticket purchases, users must have a ticket that covers the session
-            // the volunteer position is for. Events allowing RSVPs only require RSVP (handled below).
+            // For events that require ticket purchases, users must have a ticket for the specific
+            // session this volunteer position belongs to. All positions are session-specific.
             if (position.Event?.RequireTicketPurchase == true)
             {
-                if (position.SessionId.HasValue)
+                var hasTicketForSession = await _context.EventAttendances
+                    .AnyAsync(ea =>
+                        ea.UserId == userGuid &&
+                        ea.EventId == position.EventId &&
+                        ea.SessionId == position.SessionId &&
+                        ea.AttendanceType == AttendanceType.Ticket &&
+                        ea.Status == AttendanceStatus.Active,
+                        cancellationToken);
+
+                if (!hasTicketForSession)
                 {
-                    // Session-specific volunteer position - user must have a ticket for THIS session
-                    var hasTicketForSession = await _context.EventAttendances
-                        .AnyAsync(ea =>
-                            ea.UserId == userGuid &&
-                            ea.EventId == position.EventId &&
-                            ea.SessionId == position.SessionId &&
-                            ea.AttendanceType == AttendanceType.Ticket &&
-                            ea.Status == AttendanceStatus.Active,
-                            cancellationToken);
-
-                    if (!hasTicketForSession)
-                    {
-                        var sessionName = position.Session?.Name ?? "this session";
-                        _logger.LogWarning(
-                            "Volunteer signup denied for user {UserId} - no ticket for session {SessionId} ({SessionName})",
-                            userId, position.SessionId, sessionName);
-                        return (false, null, $"You must have a ticket for {sessionName} to volunteer for this position");
-                    }
-
-                    _logger.LogInformation(
-                        "Validated ticket ownership for user {UserId} volunteering for session {SessionId}",
-                        userId, position.SessionId);
+                    var sessionName = position.Session?.Name ?? "this session";
+                    _logger.LogWarning(
+                        "Volunteer signup denied for user {UserId} - no ticket for session {SessionId} ({SessionName})",
+                        userId, position.SessionId, sessionName);
+                    return (false, null, $"You must have a ticket for {sessionName} to volunteer for this position");
                 }
-                else
-                {
-                    // Event-wide volunteer position - user must have at least one active ticket for the event
-                    var hasAnyTicket = await _context.EventAttendances
-                        .AnyAsync(ea =>
-                            ea.UserId == userGuid &&
-                            ea.EventId == position.EventId &&
-                            ea.AttendanceType == AttendanceType.Ticket &&
-                            ea.Status == AttendanceStatus.Active,
-                            cancellationToken);
 
-                    if (!hasAnyTicket)
-                    {
-                        _logger.LogWarning(
-                            "Volunteer signup denied for user {UserId} - no ticket for event {EventId}",
-                            userId, position.EventId);
-                        return (false, null, "You must have a ticket for this event to volunteer");
-                    }
-
-                    _logger.LogInformation(
-                        "Validated ticket ownership for user {UserId} volunteering for event-wide position at {EventId}",
-                        userId, position.EventId);
-                }
+                _logger.LogInformation(
+                    "Validated ticket ownership for user {UserId} volunteering for session {SessionId}",
+                    userId, position.SessionId);
             }
 
             // Create the signup
@@ -519,26 +448,9 @@ public class VolunteerService : IVolunteerService
                 var eventEntity = position.Event!;
                 var session = position.Session;
 
-                // Calculate cancellation permission based on session-based timing rules
-                // User cannot cancel if already checked in (checked in service method CancelVolunteerSignupAsync)
-                // Here we only check if timing allows cancellation
-                Session? referenceSession;
-
-                if (position.SessionId.HasValue)
-                {
-                    // Session-specific position
-                    referenceSession = session;
-                }
-                else
-                {
-                    // Event-wide position - use earliest future session
-                    var eventSessions = await _context.Sessions
-                        .AsNoTracking()
-                        .Where(s => s.EventId == position.EventId)
-                        .ToListAsync(cancellationToken);
-
-                    referenceSession = _timeZoneService.GetEarliestFutureSession(eventSessions);
-                }
+                // Calculate cancellation permission based on session-based timing rules.
+                // All volunteer positions are session-specific.
+                var referenceSession = session;
 
                 var canCancel = _timeZoneService.IsActionAllowedForSession(
                     referenceSession,
@@ -629,36 +541,17 @@ public class VolunteerService : IVolunteerService
                 return (false, "Cannot cancel volunteer signup after checking in");
             }
 
-            // Check if cancellation is allowed based on session-based timing
+            // Check if cancellation is allowed based on session-based timing.
+            // All volunteer positions are session-specific.
             if (signup.VolunteerPosition?.Event != null)
             {
-                Session? referenceSession;
                 var position = signup.VolunteerPosition;
+                var referenceSession = position.Session;
 
-                if (position.SessionId.HasValue)
+                if (referenceSession == null || referenceSession.StartTime <= DateTime.UtcNow)
                 {
-                    // Session-specific position
-                    referenceSession = position.Session;
-                    if (referenceSession == null || referenceSession.StartTime <= DateTime.UtcNow)
-                    {
-                        _logger.LogWarning("Volunteer cancellation attempt for past session {SessionId}", position.SessionId);
-                        return (false, "Cannot cancel - this session has already passed");
-                    }
-                }
-                else
-                {
-                    // Event-wide position - use earliest future session
-                    var eventSessions = await _context.Sessions
-                        .AsNoTracking()
-                        .Where(s => s.EventId == position.EventId)
-                        .ToListAsync(cancellationToken);
-
-                    referenceSession = _timeZoneService.GetEarliestFutureSession(eventSessions);
-                    if (referenceSession == null)
-                    {
-                        _logger.LogWarning("Volunteer cancellation attempt for event {EventId} with all sessions passed", position.EventId);
-                        return (false, "Cannot cancel - all sessions for this event have passed");
-                    }
+                    _logger.LogWarning("Volunteer cancellation attempt for past session {SessionId}", position.SessionId);
+                    return (false, "Cannot cancel - this session has already passed");
                 }
 
                 var isAllowed = _timeZoneService.IsActionAllowedForSession(

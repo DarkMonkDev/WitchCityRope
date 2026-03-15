@@ -84,33 +84,16 @@ public class EventRecipientService : IEventRecipientService
 
     private async Task<List<RecipientInfo>> GetSessionVolunteersAsync(Guid sessionId, CancellationToken ct)
     {
-        // Look up the session's EventId so we can also find event-wide volunteer positions
-        var session = await _context.Sessions
-            .AsNoTracking()
-            .Where(s => s.Id == sessionId)
-            .Select(s => new { s.EventId })
-            .FirstOrDefaultAsync(ct);
-
-        if (session == null)
-        {
-            _logger.LogWarning("Session {SessionId} not found for SessionVolunteers lookup", sessionId);
-            return [];
-        }
-
-        // Confirmed volunteers for:
-        // 1. Positions linked to THIS specific session (SessionId == sessionId)
-        // 2. Event-wide positions (SessionId == null) for the same event
-        //    - Event-wide volunteers get emails for EVERY session's trigger time,
-        //      since they are volunteering for the whole event, not a specific session.
-        //    - Session-specific volunteers only get emails for their session's trigger time.
-        var recipients = await _context.VolunteerSignups
+        // Get all confirmed volunteer signups for positions linked to this specific session.
+        // All volunteer positions are session-specific (event-wide positions are not supported).
+        // A user may hold multiple positions for the same session, so we group by user
+        // and include ALL their assignments in the RecipientInfo.
+        var signups = await _context.VolunteerSignups
             .AsNoTracking()
             .Include(vs => vs.VolunteerPosition)
             .Include(vs => vs.User)
             .Where(vs => vs.Status == VolunteerSignupStatus.Confirmed
-                && (vs.VolunteerPosition!.SessionId == sessionId
-                    || (vs.VolunteerPosition!.SessionId == null
-                        && vs.VolunteerPosition!.EventId == session.EventId)))
+                && vs.VolunteerPosition!.SessionId == sessionId)
             .Select(vs => new
             {
                 vs.UserId,
@@ -118,26 +101,23 @@ public class EventRecipientService : IEventRecipientService
                 vs.User.SceneName,
                 VolunteerRole = vs.VolunteerPosition!.Title,
                 ShiftStart = vs.VolunteerPosition.StartTime,
-                ShiftEnd = vs.VolunteerPosition.EndTime,
-                // Track whether this signup is for a session-specific position.
-                // Used during deduplication to prefer session-specific roles over event-wide ones,
-                // since the email is triggered for a specific session and the session-specific
-                // role is more relevant to the recipient.
-                IsSessionSpecific = vs.VolunteerPosition.SessionId != null
+                ShiftEnd = vs.VolunteerPosition.EndTime
             })
             .ToListAsync(ct);
 
-        // Deduplicate by UserId — a volunteer with both an event-wide and session-specific
-        // position should only receive one email per session trigger.
-        // Prefer session-specific positions because the email references a specific session,
-        // so the session-specific role/shift is more relevant than the event-wide one.
-        return recipients
+        // Group by user so each volunteer gets ONE email listing ALL their assignments.
+        return signups
             .Where(r => !string.IsNullOrEmpty(r.Email))
             .GroupBy(r => r.UserId)
-            .Select(g => g.OrderByDescending(r => r.IsSessionSpecific).First())
-            .Select(r => new RecipientInfo(
-                r.UserId, r.Email!, !string.IsNullOrEmpty(r.SceneName) ? r.SceneName : r.Email!,
-                r.VolunteerRole, r.ShiftStart, r.ShiftEnd))
+            .Select(g =>
+            {
+                var first = g.First();
+                var displayName = !string.IsNullOrEmpty(first.SceneName) ? first.SceneName : first.Email!;
+                var assignments = g
+                    .Select(r => new VolunteerAssignment(r.VolunteerRole, r.ShiftStart, r.ShiftEnd))
+                    .ToList();
+                return new RecipientInfo(first.UserId, first.Email!, displayName, assignments);
+            })
             .ToList();
     }
 

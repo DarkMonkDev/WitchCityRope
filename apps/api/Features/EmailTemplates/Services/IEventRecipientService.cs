@@ -9,13 +9,21 @@ public interface IEventRecipientService
 }
 
 /// <summary>
+/// Represents a single volunteer assignment (role + shift) for a recipient.
+/// A volunteer may have multiple assignments for the same session.
+/// </summary>
+public record VolunteerAssignment(
+    string Role,
+    string? ShiftStart,
+    string? ShiftEnd);
+
+/// <summary>
 /// Represents a recipient for an email template.
-/// Volunteer-specific fields are populated only when RecipientGroup is SessionVolunteers.
+/// VolunteerAssignments is populated only when RecipientGroup is SessionVolunteers,
+/// and contains ALL volunteer positions the user holds for the session (not just one).
 /// </summary>
 public record RecipientInfo(
     Guid UserId,
     string Email,
     string DisplayName,
-    string? VolunteerRole = null,
-    string? ShiftStart = null,
-    string? ShiftEnd = null);
+    List<VolunteerAssignment>? VolunteerAssignments = null);

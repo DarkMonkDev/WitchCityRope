@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace WitchCityRope.Api.Models;
 
 /// <summary>
-/// VolunteerPosition entity representing volunteer opportunities for events
-/// Supports both event-level and session-specific volunteer positions
+/// VolunteerPosition entity representing volunteer opportunities for events.
+/// Every position is tied to a specific session — event-wide positions are not supported.
 /// </summary>
 public class VolunteerPosition
 {
@@ -20,9 +20,10 @@ public class VolunteerPosition
     public Guid EventId { get; set; }
 
     /// <summary>
-    /// Reference to specific session (null for event-wide positions)
+    /// Reference to the session this position belongs to (required — all positions are session-specific)
     /// </summary>
-    public Guid? SessionId { get; set; }
+    [Required]
+    public Guid SessionId { get; set; }
 
     /// <summary>
     /// Title of the volunteer position
@@ -74,7 +75,7 @@ public class VolunteerPosition
     public Event? Event { get; set; }
 
     /// <summary>
-    /// Navigation property to specific session (if session-specific)
+    /// Navigation property to the session this position belongs to
     /// </summary>
     public Session? Session { get; set; }
 

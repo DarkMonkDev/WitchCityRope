@@ -40,7 +40,7 @@ public class CreateTestVolunteerPositionRequest
     public bool IsPublicFacing { get; set; } = true;
 
     /// <summary>
-    /// Specific session ID (optional, null for event-wide positions)
+    /// Session ID this position belongs to (required — all positions are session-specific)
     /// </summary>
-    public Guid? SessionId { get; set; }
+    public required Guid SessionId { get; set; }
 }

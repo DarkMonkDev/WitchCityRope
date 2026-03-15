@@ -266,13 +266,31 @@ public class EmailSchedulerJob
                     ["event_details_button"] = eventDetailsButton
                 };
 
-                if (isVolunteerTemplate)
+                if (isVolunteerTemplate && recipient.VolunteerAssignments is { Count: > 0 })
                 {
-                    // Volunteer-specific variables from the recipient's VolunteerPosition
                     variables["volunteer_name"] = recipient.DisplayName;
-                    variables["volunteer_role"] = recipient.VolunteerRole ?? "";
-                    variables["shift_start"] = recipient.ShiftStart ?? "TBD";
-                    variables["shift_end"] = recipient.ShiftEnd ?? "TBD";
+
+                    // Build a bulleted HTML list of all volunteer assignments for this session.
+                    // Each assignment shows the role title and shift times (if set).
+                    // This ensures the volunteer sees ALL their tasks in a single email.
+                    var htmlItems = recipient.VolunteerAssignments.Select(a =>
+                    {
+                        var shift = a.ShiftStart != null && a.ShiftEnd != null
+                            ? $": {a.ShiftStart} - {a.ShiftEnd}"
+                            : "";
+                        return $"<li>{a.Role}{shift}</li>";
+                    });
+                    variables["volunteer_tasks_list"] = $"<ul>{string.Join("", htmlItems)}</ul>";
+
+                    // Plain text version for plain text email body
+                    var textItems = recipient.VolunteerAssignments.Select(a =>
+                    {
+                        var shift = a.ShiftStart != null && a.ShiftEnd != null
+                            ? $": {a.ShiftStart} - {a.ShiftEnd}"
+                            : "";
+                        return $"  • {a.Role}{shift}";
+                    });
+                    variables["volunteer_tasks_list_text"] = string.Join("\n", textItems);
                 }
 
                 // Pass session.EventId to use event-specific template overrides if configured

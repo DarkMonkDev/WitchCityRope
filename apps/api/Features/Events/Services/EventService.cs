@@ -1255,25 +1255,28 @@ public class EventService : IEventService
                 // Explicitly mark as modified to ensure EF Core tracks the change
                 _context.Entry(existingPosition).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
-                // Update session linkage if provided
+                // Update session linkage (required — all positions must have a session)
                 if (!string.IsNullOrEmpty(positionDto.SessionId) && Guid.TryParse(positionDto.SessionId, out var sessionId))
                 {
                     existingPosition.SessionId = sessionId;
-                }
-                else
-                {
-                    existingPosition.SessionId = null;
                 }
 
                 processedPositionIds.Add(positionId);
             }
             else
             {
-                // Add new volunteer position - DO NOT set ID, let EF generate it
-                // This includes positions with client-generated IDs that don't exist in DB
+                // Add new volunteer position - DO NOT set ID, let EF generate it.
+                // SessionId is required — all positions must belong to a session.
+                if (string.IsNullOrEmpty(positionDto.SessionId) || !Guid.TryParse(positionDto.SessionId, out var newSessionId))
+                {
+                    _logger.LogWarning("Skipping volunteer position '{Title}' — no valid SessionId provided", positionDto.Title);
+                    continue;
+                }
+
                 var newPosition = new WitchCityRope.Api.Models.VolunteerPosition
                 {
                     EventId = eventEntity.Id,
+                    SessionId = newSessionId,
                     Title = positionDto.Title,
                     Description = positionDto.Description,
                     SlotsNeeded = positionDto.SlotsNeeded,
@@ -1282,12 +1285,6 @@ public class EventService : IEventService
                     EndTime = positionDto.EndTime,
                     IsPublicFacing = positionDto.IsPublicFacing
                 };
-
-                // Set session linkage if provided
-                if (!string.IsNullOrEmpty(positionDto.SessionId) && Guid.TryParse(positionDto.SessionId, out var sessionId))
-                {
-                    newPosition.SessionId = sessionId;
-                }
 
                 // Let Entity Framework generate the ID for new positions
                 // The ID from frontend is just a temporary client-side ID
@@ -1459,10 +1456,8 @@ public class EventService : IEventService
                         Id = Guid.NewGuid(),
                         EventId = copiedEvent.Id,
 
-                        // REMAP SessionId to new session (if session-specific)
-                        SessionId = sourcePosition.SessionId.HasValue
-                            ? sessionIdMap[sourcePosition.SessionId.Value]
-                            : null,
+                        // REMAP SessionId to the corresponding new session
+                        SessionId = sessionIdMap[sourcePosition.SessionId],
 
                         // COPY properties
                         Title = sourcePosition.Title,

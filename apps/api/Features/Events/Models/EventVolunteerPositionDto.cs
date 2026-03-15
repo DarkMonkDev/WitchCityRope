@@ -57,7 +57,7 @@ public class EventVolunteerPositionDto
         Description = volunteerPosition.Description;
         SlotsNeeded = volunteerPosition.SlotsNeeded;
         SlotsFilled = volunteerPosition.SlotsFilled;
-        SessionId = volunteerPosition.SessionId?.ToString();
+        SessionId = volunteerPosition.SessionId.ToString();
         StartTime = volunteerPosition.StartTime;
         EndTime = volunteerPosition.EndTime;
         IsPublicFacing = volunteerPosition.IsPublicFacing;

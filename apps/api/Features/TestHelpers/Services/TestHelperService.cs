@@ -939,16 +939,13 @@ public class TestHelperService : ITestHelperService
                 return (false, null, $"Parent event not found: {request.EventId}");
             }
 
-            // Verify session exists if provided
-            if (request.SessionId.HasValue)
-            {
-                var sessionExists = await _context.Set<Session>()
-                    .AnyAsync(s => s.Id == request.SessionId.Value, cancellationToken);
+            // Verify session exists (required — all positions are session-specific)
+            var sessionExists = await _context.Set<Session>()
+                .AnyAsync(s => s.Id == request.SessionId, cancellationToken);
 
-                if (!sessionExists)
-                {
-                    return (false, null, $"Session not found: {request.SessionId}");
-                }
+            if (!sessionExists)
+            {
+                return (false, null, $"Session not found: {request.SessionId}");
             }
 
             var positionEntity = new VolunteerPosition

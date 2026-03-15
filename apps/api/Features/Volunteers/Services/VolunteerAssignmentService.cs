@@ -472,16 +472,15 @@ public class VolunteerAssignmentService : IVolunteerAssignmentService
                 return (true, 0, null);
             }
 
-            // Find confirmed volunteer signups for this user where:
-            // 1. The position is for one of the cancelled sessions (session-specific positions)
-            // 2. OR the position is event-wide (no session) - these should be cancelled if user has no remaining tickets
+            // Find confirmed volunteer signups for this user where
+            // the position belongs to one of the cancelled sessions.
+            // All volunteer positions are session-specific.
             var signups = await _context.VolunteerSignups
                 .Include(vs => vs.VolunteerPosition)
                 .Where(vs => vs.UserId == userId
                           && vs.VolunteerPosition.EventId == eventId
                           && vs.Status == VolunteerSignupStatus.Confirmed
-                          && vs.VolunteerPosition.SessionId.HasValue
-                          && sessionIds.Contains(vs.VolunteerPosition.SessionId.Value))
+                          && sessionIds.Contains(vs.VolunteerPosition.SessionId))
                 .ToListAsync(cancellationToken);
 
             if (signups.Count == 0)
