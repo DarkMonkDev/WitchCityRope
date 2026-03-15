@@ -25,9 +25,18 @@ namespace WitchCityRope.Api.Features.Payments.Endpoints;
 /// This replaces the old PayPalCheckoutEndpoints which created PayPal orders without creating tickets,
 /// causing a flow mismatch where tickets were never linked to payments.
 /// </summary>
+/// CSRF Note: This controller uses [IgnoreAntiforgeryToken] because:
+/// 1. All endpoints require [Authorize] (JWT cookie auth)
+/// 2. Auth cookies use SameSite=Strict which prevents cross-site request forgery
+/// 3. PayPal JS SDK makes these calls from an iframe/popup context where
+///    antiforgery tokens can't be reliably passed
+/// 4. The antiforgery middleware was causing "request field is required" errors
+///    because the token couldn't be decrypted after container restarts
+///    (DataProtection keys are ephemeral in-container)
 [ApiController]
 [Route("api/checkout/paypal")]
 [Authorize]
+[IgnoreAntiforgeryToken]
 public class PayPalCheckoutController : ControllerBase
 {
     private readonly IPayPalService _payPalService;
@@ -90,7 +99,9 @@ public class PayPalCheckoutController : ControllerBase
                     "Payment amount must be greater than zero.", paymentCharged: false);
             }
 
-            if (request.SlidingScalePercentage < 0 || request.SlidingScalePercentage > 75)
+            // Round sliding scale to integer — frontend sliders can produce floats like 66.666...
+            var slidingScalePercentage = (int)Math.Round(request.SlidingScalePercentage);
+            if (slidingScalePercentage < 0 || slidingScalePercentage > 75)
             {
                 return PayPalCheckoutProblem(correlationId, "validation",
                     "Sliding scale percentage must be between 0 and 75.", paymentCharged: false);
@@ -236,7 +247,7 @@ public class PayPalCheckoutController : ControllerBase
                     metadata["eventTitle"] = request.EventTitle;
 
                 var orderResult = await _payPalService.CreateOrderAsync(
-                    money, userId, request.SlidingScalePercentage, metadata, cancellationToken);
+                    money, userId, slidingScalePercentage, metadata, cancellationToken);
 
                 if (!orderResult.IsSuccess)
                 {
@@ -554,7 +565,12 @@ public class PayPalCheckoutCreateOrderRequest
     public Guid EventId { get; set; }
     public List<Guid> TicketTypeIds { get; set; } = new();
     public decimal Amount { get; set; }
-    public int SlidingScalePercentage { get; set; }
+    /// <summary>
+    /// Sliding scale discount percentage (0-75). Accepts decimal from frontend
+    /// (JavaScript sliders produce floats like 66.666...) and is rounded to int
+    /// before being passed to downstream services.
+    /// </summary>
+    public decimal SlidingScalePercentage { get; set; }
     public string? Currency { get; set; }
     public string? EventTitle { get; set; }
     public bool EventWaiverAccepted { get; set; }

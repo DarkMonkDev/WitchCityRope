@@ -115,11 +115,13 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
       // 1. Creates pending ticket purchase(s)
       // 2. Creates a PayPal order linked to them
       // 3. Returns the PayPal order ID
+      // Ensure slidingScalePercentage is an integer — the backend DTO expects Int32.
+      // JavaScript sliders can produce floats (e.g., 33.33) which fail deserialization.
       const response = await apiClient.post('/api/checkout/paypal/create-order', {
         eventId,
         ticketTypeIds,
         amount,
-        slidingScalePercentage,
+        slidingScalePercentage: Math.round(slidingScalePercentage),
         currency,
         eventTitle,
         eventWaiverAccepted,
