@@ -52,6 +52,18 @@ public class SentAdHocEmail
     public int RecipientCount { get; set; }
 
     /// <summary>
+    /// Number of emails successfully accepted by SendGrid.
+    /// Null for emails sent before this tracking was added.
+    /// </summary>
+    public int? SuccessCount { get; set; }
+
+    /// <summary>
+    /// Number of emails that failed to send via SendGrid.
+    /// Null for emails sent before this tracking was added.
+    /// </summary>
+    public int? FailureCount { get; set; }
+
+    /// <summary>
     /// Related event (nullable - not all ad-hoc emails are event-related)
     /// </summary>
     public Guid? EventId { get; set; }

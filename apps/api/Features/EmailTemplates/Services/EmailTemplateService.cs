@@ -778,10 +778,17 @@ public class EmailTemplateService : IEmailTemplateService
                 || sanitizedHtml.Contains("{{verification_url}}")
                 || sanitizedHtml.Contains("{{user_name}}");
 
+            // Track success/failure counts for audit and reporting
+            var successCount = 0;
+            var failureCount = 0;
+            var segmentLabel = request.Segment.HasValue ? request.Segment.Value.ToString() : "ManualList";
+
             if (needsPerUserReplacement)
             {
                 // Send individual emails with per-user variables (unique tokens per user)
-                _logger.LogInformation("Template contains per-user variables, sending personalized content to {Count} users", recipientUsers.Count);
+                _logger.LogInformation(
+                    "Ad-hoc email send starting: Subject={Subject}, Segment={Segment}, Recipients={Count}, Mode=PerUser",
+                    request.Subject, segmentLabel, recipientUsers.Count);
 
                 foreach (var user in recipientUsers)
                 {
@@ -797,16 +804,26 @@ public class EmailTemplateService : IEmailTemplateService
                         personalizedPlainText,
                         cancellationToken);
 
-                    if (!result.IsSuccess)
+                    if (result.IsSuccess)
                     {
-                        _logger.LogWarning("Failed to send personalized email to {Email}: {Error}",
-                            user.Email, result.Error);
+                        successCount++;
+                    }
+                    else
+                    {
+                        failureCount++;
+                        _logger.LogWarning(
+                            "Ad-hoc email send FAILED: Subject={Subject}, Segment={Segment}, Email={Email}, Error={Error}",
+                            request.Subject, segmentLabel, user.Email, result.Error);
                     }
                 }
             }
             else
             {
                 // Send bulk email without per-user variables
+                _logger.LogInformation(
+                    "Ad-hoc email send starting: Subject={Subject}, Segment={Segment}, Recipients={Count}, Mode=Bulk",
+                    request.Subject, segmentLabel, recipientEmails.Count);
+
                 foreach (var email in recipientEmails)
                 {
                     var result = await _emailService.SendEmailAsync(
@@ -816,15 +833,28 @@ public class EmailTemplateService : IEmailTemplateService
                         processedPlainText,
                         cancellationToken);
 
-                    if (!result.IsSuccess)
+                    if (result.IsSuccess)
                     {
-                        _logger.LogWarning("Failed to send email to {Email}: {Error}",
-                            email, result.Error);
+                        successCount++;
+                    }
+                    else
+                    {
+                        failureCount++;
+                        _logger.LogWarning(
+                            "Ad-hoc email send FAILED: Subject={Subject}, Segment={Segment}, Email={Email}, Error={Error}",
+                            request.Subject, segmentLabel, email, result.Error);
                     }
                 }
             }
 
-            // Create audit record
+            // Determine delivery status based on actual results
+            var deliveryStatus = failureCount == 0
+                ? "Sent"
+                : successCount == 0
+                    ? "Failed"
+                    : "PartialFailure";
+
+            // Create audit record with success/failure tracking
             var sentEmail = new SentAdHocEmail
             {
                 Id = Guid.NewGuid(),
@@ -834,9 +864,11 @@ public class EmailTemplateService : IEmailTemplateService
                 RecipientGroup = request.RecipientGroup,
                 RecipientEmails = recipientEmails.ToArray(),
                 RecipientCount = recipientCount,
+                SuccessCount = successCount,
+                FailureCount = failureCount,
                 EventId = request.EventId,
                 SendGridMessageId = string.Empty,
-                DeliveryStatus = "Sent",
+                DeliveryStatus = deliveryStatus,
                 SentAt = DateTime.UtcNow,
                 SentBy = sentByUserId
             };
@@ -850,20 +882,27 @@ public class EmailTemplateService : IEmailTemplateService
                 Subject = sentEmail.Subject,
                 RecipientGroup = sentEmail.RecipientGroup,
                 RecipientCount = sentEmail.RecipientCount,
+                SuccessCount = sentEmail.SuccessCount,
+                FailureCount = sentEmail.FailureCount,
                 EventId = sentEmail.EventId,
                 SendGridMessageId = sentEmail.SendGridMessageId,
                 DeliveryStatus = sentEmail.DeliveryStatus,
                 SentAt = sentEmail.SentAt
             };
 
-            _logger.LogInformation("Sent ad-hoc email {EmailId} to {RecipientCount} recipients",
-                sentEmail.Id, recipientCount);
+            // Log summary with enough context to identify the send operation
+            _logger.LogInformation(
+                "Ad-hoc email send COMPLETE: EmailId={EmailId}, Subject={Subject}, Segment={Segment}, " +
+                "Success={SuccessCount}, Failed={FailureCount}, Total={TotalCount}, Status={DeliveryStatus}",
+                sentEmail.Id, request.Subject, segmentLabel,
+                successCount, failureCount, recipientCount, deliveryStatus);
 
             return Result<SentAdHocEmailDto>.Success(dto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending ad-hoc email");
+            _logger.LogError(ex, "Ad-hoc email send ERROR: Subject={Subject}, Segment={Segment}",
+                request.Subject, request.Segment?.ToString() ?? "ManualList");
             return Result<SentAdHocEmailDto>.Failure("Failed to send email");
         }
     }
@@ -891,6 +930,8 @@ public class EmailTemplateService : IEmailTemplateService
                 Subject = e.Subject,
                 RecipientGroup = e.RecipientGroup,
                 RecipientCount = e.RecipientCount,
+                SuccessCount = e.SuccessCount,
+                FailureCount = e.FailureCount,
                 EventId = e.EventId,
                 SendGridMessageId = e.SendGridMessageId,
                 DeliveryStatus = e.DeliveryStatus,
@@ -927,6 +968,8 @@ public class EmailTemplateService : IEmailTemplateService
                 Subject = email.Subject,
                 RecipientGroup = email.RecipientGroup,
                 RecipientCount = email.RecipientCount,
+                SuccessCount = email.SuccessCount,
+                FailureCount = email.FailureCount,
                 EventId = email.EventId,
                 SendGridMessageId = email.SendGridMessageId,
                 DeliveryStatus = email.DeliveryStatus,

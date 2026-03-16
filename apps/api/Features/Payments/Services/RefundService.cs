@@ -989,7 +989,8 @@ public class RefundService : IRefundService
             var timingMessage = GetRefundTimingMessage(ticketPurchase.PaymentMethod);
             var variables = new Dictionary<string, string>
             {
-                { "user_name", ticketPurchase.User!.UserName ?? ticketPurchase.User.Email ?? "Valued Member" },
+                // Use SceneName for consistency with all other email templates (AuthenticationService, etc.)
+                { "user_name", ticketPurchase.User!.SceneName ?? ticketPurchase.User.Email ?? "Valued Member" },
                 { "refund_amount", refund.GetRefundAmount().ToDisplayString() },
                 { "original_amount", Money.Create(ticketPurchase.TotalPrice, PaymentConstants.Currency).ToDisplayString() },
                 { "payment_method", ticketPurchase.PaymentMethod },

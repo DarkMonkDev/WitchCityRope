@@ -14,6 +14,18 @@ public class SentAdHocEmailDto
     public string RecipientGroup { get; set; } = string.Empty;
     public int RecipientCount { get; set; }
 
+    /// <summary>
+    /// Number of emails successfully accepted by SendGrid.
+    /// Null for emails sent before tracking was added.
+    /// </summary>
+    public int? SuccessCount { get; set; }
+
+    /// <summary>
+    /// Number of emails that failed to send.
+    /// Null for emails sent before tracking was added.
+    /// </summary>
+    public int? FailureCount { get; set; }
+
     public Guid? EventId { get; set; }
     public string? EventTitle { get; set; }
 
