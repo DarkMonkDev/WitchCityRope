@@ -186,6 +186,18 @@ public class Event
     // COMPUTED PROPERTIES
     // ====================================================================
 
+    // ====================================================================
+    // ATTENDANCE COUNTING - IN-MEMORY METHODS
+    // These methods follow the same "display count" rules as
+    // IAttendanceCountService.GetDisplayCountAsync():
+    // - Active status only (no PendingPayment)
+    // - Type-appropriate (RSVP for social events, Ticket for classes)
+    //
+    // Use these entity methods when EventAttendances navigation property
+    // is already loaded (after .Include(e => e.EventAttendances)).
+    // Use IAttendanceCountService when querying the database directly.
+    // ====================================================================
+
     /// <summary>
     /// Gets the current number of confirmed attendees based on CORRECT business logic:
     /// - RSVP-enabled events: CurrentAttendees = RSVPs (everyone must RSVP to attend, tickets are optional donations)

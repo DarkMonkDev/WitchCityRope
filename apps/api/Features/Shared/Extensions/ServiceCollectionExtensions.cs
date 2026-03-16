@@ -133,6 +133,7 @@ public static class ServiceCollectionExtensions
 
         // Attendance feature services (renamed from Participation)
         services.AddScoped<IAttendanceService, AttendanceService>();
+        services.AddScoped<IAttendanceCountService, AttendanceCountService>();
 
         // Volunteer feature services
         services.AddScoped<IVolunteerService, VolunteerService>();

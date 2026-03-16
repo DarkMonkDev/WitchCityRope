@@ -24,7 +24,7 @@ namespace WitchCityRope.Api.Features.Participation.Services;
 // 1. TICKET PURCHASE creates TWO records (for social events):
 //    - EventAttendances (AttendanceType=Ticket, Status=Active)
 //    - EventAttendances (AttendanceType=RSVP, Status=Active)
-//    See: CreateTicketPurchaseAsync lines 515-556 (auto-RSVP creation)
+//    See: CreateTicketPurchaseAsync (auto-RSVP creation)
 //
 // 2. TICKET CANCELLATION cancels BOTH records:
 //    - Ticket record → Status=Cancelled
@@ -35,13 +35,13 @@ namespace WitchCityRope.Api.Features.Participation.Services;
 //    - User CAN RSVP after cancelling ticket
 //    - Creates NEW EventAttendances (AttendanceType=RSVP, Status=Active)
 //    - Cancelled RSVPs do NOT prevent new RSVPs
-//    See: CreateRSVPAsync lines 217-229 (only checks ACTIVE RSVPs)
+//    See: CreateRSVPAsync (only checks ACTIVE RSVPs)
 //
 // 4. QUERIES must filter by AttendanceType:
 //    - Check for existing RSVP: Filter by AttendanceType=RSVP AND Status=Active
 //    - Check for existing Ticket: Filter by AttendanceType=Ticket AND Status=Active
 //    - User can have BOTH active Ticket and active RSVP simultaneously
-//    See: GetParticipationStatusAsync lines 66-82 (separate queries for each type)
+//    See: GetParticipationStatusAsync (separate queries for each type)
 //
 // WHY THIS MATTERS:
 // - Users can hold both a ticket AND an RSVP for the same event
@@ -62,6 +62,7 @@ public class AttendanceService : IAttendanceService
     private readonly ITimeZoneService _timeZoneService;
     private readonly IRefundService _refundService;
     private readonly IEventEmailService _eventEmailService;
+    private readonly IAttendanceCountService _countService;
     private readonly ILogger<AttendanceService> _logger;
 
     public AttendanceService(
@@ -70,6 +71,7 @@ public class AttendanceService : IAttendanceService
         ITimeZoneService timeZoneService,
         IRefundService refundService,
         IEventEmailService eventEmailService,
+        IAttendanceCountService countService,
         ILogger<AttendanceService> logger)
     {
         _context = context;
@@ -77,6 +79,7 @@ public class AttendanceService : IAttendanceService
         _timeZoneService = timeZoneService;
         _refundService = refundService;
         _eventEmailService = eventEmailService;
+        _countService = countService;
         _logger = logger;
     }
 
@@ -108,12 +111,13 @@ public class AttendanceService : IAttendanceService
                 return Result<EnhancedParticipationStatusDto?>.Failure("Event not found");
             }
 
-            // Get all ACTIVE + PendingPayment attendances for this event (for capacity calculation)
-            // PendingPayment reserves capacity during the payment window
-            var activeAttendancesCount = await _context.EventAttendances
-                .Where(ea => ea.EventId == eventId &&
-                    (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingPayment))
-                .CountAsync(cancellationToken);
+            // Display count: Active only, type-appropriate — matches events list page logic.
+            // This is what users see as "X RSVPs" or "X sold" on event cards and detail pages.
+            var displayCount = await _countService.GetDisplayCountAsync(eventId, cancellationToken);
+
+            // Reserved count: Active + PendingPayment, all types — prevents overselling during checkout.
+            // Used for capacity business logic (CanRSVP check).
+            var reservedCount = await _countService.GetReservedCountAsync(eventId, cancellationToken);
 
             // Get user's owned session IDs and ticket purchase mappings (sessions they have tickets for)
             // Include TicketPurchase -> TicketType for ticket name and price
@@ -367,16 +371,18 @@ public class AttendanceService : IAttendanceService
             {
                 HasRSVP = rsvpAttendance != null,
                 HasTicket = ticketAttendance != null,
-                CanRSVP = rsvpAttendance == null && activeAttendancesCount < eventEntity.Capacity,
+                CanRSVP = rsvpAttendance == null && reservedCount < eventEntity.Capacity,
                 CanPurchaseTicket = canPurchaseTicket,
                 CanCancelRSVP = canCancelRSVP,
                 CanCancelTicket = canCancelTicket,
                 TicketPurchaseMessage = ticketPurchaseMessage,
+                // Current uses display count (Active only, type-appropriate) — consistent with events list page.
+                // Available uses display count too so Current + Available = Total for clean UI display.
                 Capacity = new CapacityInfoDto
                 {
-                    Current = activeAttendancesCount,
+                    Current = displayCount,
                     Total = eventEntity.Capacity,
-                    Available = Math.Max(0, eventEntity.Capacity - activeAttendancesCount)
+                    Available = Math.Max(0, eventEntity.Capacity - displayCount)
                 }
             };
 
@@ -584,9 +590,8 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("User already has an active RSVP for this event");
             }
 
-            // Check event capacity
-            var currentAttendanceCount = await _context.EventAttendances
-                .CountAsync(ea => ea.EventId == request.EventId && ea.Status == AttendanceStatus.Active, cancellationToken);
+            // Use reserved count (Active + PendingPayment) to prevent overselling during checkout windows
+            var currentAttendanceCount = await _countService.GetReservedCountAsync(request.EventId, cancellationToken);
 
             if (currentAttendanceCount >= eventEntity.Capacity)
             {
@@ -858,11 +863,8 @@ public class AttendanceService : IAttendanceService
                     $"You already have a ticket that includes the {overlappingSessionName} session ({existingTicketName})");
             }
 
-            // Check event capacity (rough check - detailed per-session capacity not enforced here)
-            // Include PendingPayment to reserve capacity during payment window
-            var currentAttendanceCount = await _context.EventAttendances
-                .CountAsync(ea => ea.EventId == request.EventId &&
-                    (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingPayment), cancellationToken);
+            // Use reserved count (Active + PendingPayment) to prevent overselling during checkout windows
+            var currentAttendanceCount = await _countService.GetReservedCountAsync(request.EventId, cancellationToken);
 
             if (currentAttendanceCount >= eventEntity.Capacity)
             {

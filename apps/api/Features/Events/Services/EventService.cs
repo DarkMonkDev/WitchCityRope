@@ -3,6 +3,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Events.Services;
@@ -16,15 +17,18 @@ public class EventService : IEventService
     private readonly ApplicationDbContext _context;
     private readonly ILogger<EventService> _logger;
     private readonly ITimeZoneService _timeZoneService;
+    private readonly IAttendanceCountService _countService;
 
     public EventService(
         ApplicationDbContext context,
         ILogger<EventService> logger,
-        ITimeZoneService timeZoneService)
+        ITimeZoneService timeZoneService,
+        IAttendanceCountService countService)
     {
         _context = context;
         _logger = logger;
         _timeZoneService = timeZoneService;
+        _countService = countService;
     }
 
     /// <summary>
@@ -1954,14 +1958,9 @@ public class EventService : IEventService
                 }, string.Empty);
             }
 
-            // Count tickets sold for this session (EventAttendances with AttendanceType = Ticket, Status = Active)
-            var ticketsSold = await _context.Set<WitchCityRope.Api.Features.Participation.Entities.EventAttendance>()
-                .Where(ea => ea.EventId == parsedEventId
-                          && ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
-                          && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.Ticket
-                          && ea.TicketPurchase != null
-                          && ea.TicketPurchase.TicketType.Sessions.Any(s => s.Id == parsedSessionId))
-                .CountAsync(cancellationToken);
+            // Delegate counting to the single source of truth for attendance counts.
+            // Counts active ticket attendances whose TicketType includes this session.
+            var ticketsSold = await _countService.GetTicketsSoldForSessionAsync(parsedEventId, parsedSessionId, cancellationToken);
 
             if (ticketsSold > 0)
             {
@@ -1976,25 +1975,20 @@ public class EventService : IEventService
                 }, string.Empty);
             }
 
-            // Check for multi-session ticket types that include this session with sales
-            // If any ticket type includes this session and has sales, block deletion
+            // Check for multi-session ticket types that include this session with sales.
+            // If any ticket type includes this session and has sales, block deletion.
+            // No need to Include EventAttendances/TicketPurchase — _countService does its own efficient query.
             var multiSessionTicketTypes = await _context.TicketTypes
                 .AsNoTracking()
                 .Include(tt => tt.Sessions)
-                .Include(tt => tt.Event)
-                    .ThenInclude(e => e.EventAttendances)
-                        .ThenInclude(ea => ea.TicketPurchase)
                 .Where(tt => tt.EventId == parsedEventId && tt.Sessions.Count > 1 && tt.Sessions.Any(s => s.Id == parsedSessionId))
                 .ToListAsync(cancellationToken);
 
             var affectedTicketTypeDtos = new List<AffectedTicketTypeDto>();
             foreach (var ticketType in multiSessionTicketTypes)
             {
-                var sold = ticketType.Event?.EventAttendances
-                    .Count(ea => ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
-                              && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.Ticket
-                              && ea.TicketPurchase != null
-                              && ea.TicketPurchase.TicketTypeId == ticketType.Id) ?? 0;
+                // Delegate counting to the single source of truth for attendance counts
+                var sold = await _countService.GetTicketsSoldForTicketTypeAsync(parsedEventId, ticketType.Id, cancellationToken);
 
                 if (sold > 0)
                 {
@@ -2018,23 +2012,18 @@ public class EventService : IEventService
                 }
             }
 
-            // Find single-session ticket types that reference this session
+            // Find single-session ticket types that reference this session.
+            // No need to Include EventAttendances/TicketPurchase — _countService does its own efficient query.
             var singleSessionTicketTypes = await _context.TicketTypes
                 .AsNoTracking()
                 .Include(tt => tt.Sessions)
-                .Include(tt => tt.Event)
-                    .ThenInclude(e => e.EventAttendances)
-                        .ThenInclude(ea => ea.TicketPurchase)
                 .Where(tt => tt.Sessions.Count == 1 && tt.Sessions.Any(s => s.Id == parsedSessionId))
                 .ToListAsync(cancellationToken);
 
             foreach (var ticketType in singleSessionTicketTypes)
             {
-                var sold = ticketType.Event?.EventAttendances
-                    .Count(ea => ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
-                              && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.Ticket
-                              && ea.TicketPurchase != null
-                              && ea.TicketPurchase.TicketTypeId == ticketType.Id) ?? 0;
+                // Delegate counting to the single source of truth for attendance counts
+                var sold = await _countService.GetTicketsSoldForTicketTypeAsync(parsedEventId, ticketType.Id, cancellationToken);
 
                 affectedTicketTypeDtos.Add(new AffectedTicketTypeDto
                 {
@@ -2219,11 +2208,9 @@ public class EventService : IEventService
                 return (false, null, "Invalid ticket type ID format");
             }
 
+            // No need to Include EventAttendances/TicketPurchase — _countService does its own efficient query.
             var ticketType = await _context.TicketTypes
                 .AsNoTracking()
-                .Include(tt => tt.Event)
-                    .ThenInclude(e => e.EventAttendances)
-                        .ThenInclude(ea => ea.TicketPurchase)
                 .FirstOrDefaultAsync(tt => tt.Id == parsedTicketTypeId && tt.EventId == parsedEventId, cancellationToken);
 
             if (ticketType == null)
@@ -2231,12 +2218,8 @@ public class EventService : IEventService
                 return (false, null, "Ticket type not found");
             }
 
-            // Count tickets sold for this ticket type (via EventAttendance)
-            var ticketsSold = ticketType.Event?.EventAttendances
-                .Count(ea => ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
-                          && ea.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.Ticket
-                          && ea.TicketPurchase != null
-                          && ea.TicketPurchase.TicketTypeId == ticketType.Id) ?? 0;
+            // Delegate counting to the single source of truth for attendance counts
+            var ticketsSold = await _countService.GetTicketsSoldForTicketTypeAsync(parsedEventId, ticketType.Id, cancellationToken);
 
             if (ticketsSold > 0)
             {
