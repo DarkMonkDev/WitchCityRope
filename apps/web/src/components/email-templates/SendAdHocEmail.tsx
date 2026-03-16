@@ -39,6 +39,7 @@ const AD_HOC_VARIABLES = [
   '{{user_name}}',
   '{{reset_url}}',
   '{{verification_url}}',
+  '{{system_url}}',
 ];
 
 /**
