@@ -5,7 +5,7 @@ namespace WitchCityRope.Api.Features.EmailTemplates.Entities;
 
 /// <summary>
 /// Represents a sent ad-hoc email with full audit trail.
-/// Read-only after creation (never modified or deleted).
+/// DeliveryStatus, SuccessCount, FailureCount are updated by the background send job.
 /// </summary>
 public class SentAdHocEmail
 {
@@ -82,7 +82,14 @@ public class SentAdHocEmail
     public DateTime? ScheduledSendAt { get; set; }
 
     /// <summary>
-    /// Delivery status: Pending, Sent, Delivered, Failed, Bounced
+    /// User segment used for recipient resolution (nullable for manual email lists).
+    /// Stored so the background job can re-resolve recipients from the segment query.
+    /// </summary>
+    public UserSegment? Segment { get; set; }
+
+    /// <summary>
+    /// Delivery status: Processing, Sent, PartialFailure, Failed, Scheduled
+    /// Set to "Processing" when queued, updated by background job on completion.
     /// </summary>
     [Required]
     [MaxLength(20)]

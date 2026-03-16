@@ -7,6 +7,8 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Features.Shared.Services;
+using Hangfire;
+using WitchCityRope.Api.Features.EmailTemplates.Jobs;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 
@@ -751,110 +753,16 @@ public class EmailTemplateService : IEmailTemplateService
                 return Result<SentAdHocEmailDto>.Failure("No valid recipients found");
             }
 
-            // Sanitize HTML content
+            // Sanitize HTML and replace global variables before storing.
+            // Per-user variables ({{user_name}}, {{reset_url}}, {{verification_url}}) are
+            // replaced by the background job at send time, not here.
             var sanitizedHtml = SanitizeHtml(request.HtmlBody);
-
-            // Replace global variables (not per-user) - {{system_url}}
             var systemUrl = _configuration["Frontend:Url"] ?? "https://staging.witchcityrope.com";
             sanitizedHtml = sanitizedHtml.Replace("{{system_url}}", systemUrl);
             var processedPlainText = request.PlainTextBody.Replace("{{system_url}}", systemUrl);
 
-            // Get full user objects for variable replacement
-            List<ApplicationUser> recipientUsers;
-            if (request.Segment.HasValue)
-            {
-                recipientUsers = await GetUsersForSegmentAsync(request.Segment.Value, cancellationToken);
-            }
-            else
-            {
-                // For manual email list, look up users by email
-                recipientUsers = await _context.Users
-                    .Where(u => u.Email != null && request.RecipientEmails!.Contains(u.Email))
-                    .ToListAsync(cancellationToken);
-            }
-
-            // Check if template needs per-user replacement
-            var needsPerUserReplacement = sanitizedHtml.Contains("{{reset_url}}")
-                || sanitizedHtml.Contains("{{verification_url}}")
-                || sanitizedHtml.Contains("{{user_name}}");
-
-            // Track success/failure counts for audit and reporting
-            var successCount = 0;
-            var failureCount = 0;
-            var segmentLabel = request.Segment.HasValue ? request.Segment.Value.ToString() : "ManualList";
-
-            if (needsPerUserReplacement)
-            {
-                // Send individual emails with per-user variables (unique tokens per user)
-                _logger.LogInformation(
-                    "Ad-hoc email send starting: Subject={Subject}, Segment={Segment}, Recipients={Count}, Mode=PerUser",
-                    request.Subject, segmentLabel, recipientUsers.Count);
-
-                foreach (var user in recipientUsers)
-                {
-                    if (string.IsNullOrEmpty(user.Email)) continue;
-
-                    var (personalizedHtml, personalizedPlainText) = await ReplaceVariablesForUserAsync(
-                        sanitizedHtml, processedPlainText, user, cancellationToken);
-
-                    var result = await _emailService.SendEmailAsync(
-                        user.Email,
-                        request.Subject,
-                        personalizedHtml,
-                        personalizedPlainText,
-                        cancellationToken);
-
-                    if (result.IsSuccess)
-                    {
-                        successCount++;
-                    }
-                    else
-                    {
-                        failureCount++;
-                        _logger.LogWarning(
-                            "Ad-hoc email send FAILED: Subject={Subject}, Segment={Segment}, Email={Email}, Error={Error}",
-                            request.Subject, segmentLabel, user.Email, result.Error);
-                    }
-                }
-            }
-            else
-            {
-                // Send bulk email without per-user variables
-                _logger.LogInformation(
-                    "Ad-hoc email send starting: Subject={Subject}, Segment={Segment}, Recipients={Count}, Mode=Bulk",
-                    request.Subject, segmentLabel, recipientEmails.Count);
-
-                foreach (var email in recipientEmails)
-                {
-                    var result = await _emailService.SendEmailAsync(
-                        email,
-                        request.Subject,
-                        sanitizedHtml,
-                        processedPlainText,
-                        cancellationToken);
-
-                    if (result.IsSuccess)
-                    {
-                        successCount++;
-                    }
-                    else
-                    {
-                        failureCount++;
-                        _logger.LogWarning(
-                            "Ad-hoc email send FAILED: Subject={Subject}, Segment={Segment}, Email={Email}, Error={Error}",
-                            request.Subject, segmentLabel, email, result.Error);
-                    }
-                }
-            }
-
-            // Determine delivery status based on actual results
-            var deliveryStatus = failureCount == 0
-                ? "Sent"
-                : successCount == 0
-                    ? "Failed"
-                    : "PartialFailure";
-
-            // Create audit record with success/failure tracking
+            // Create audit record with "Processing" status — the background job will
+            // update SuccessCount, FailureCount, and DeliveryStatus when it completes.
             var sentEmail = new SentAdHocEmail
             {
                 Id = Guid.NewGuid(),
@@ -864,11 +772,10 @@ public class EmailTemplateService : IEmailTemplateService
                 RecipientGroup = request.RecipientGroup,
                 RecipientEmails = recipientEmails.ToArray(),
                 RecipientCount = recipientCount,
-                SuccessCount = successCount,
-                FailureCount = failureCount,
+                Segment = request.Segment,
                 EventId = request.EventId,
                 SendGridMessageId = string.Empty,
-                DeliveryStatus = deliveryStatus,
+                DeliveryStatus = "Processing",
                 SentAt = DateTime.UtcNow,
                 SentBy = sentByUserId
             };
@@ -876,11 +783,24 @@ public class EmailTemplateService : IEmailTemplateService
             _context.SentAdHocEmails.Add(sentEmail);
             await _context.SaveChangesAsync(cancellationToken);
 
+            // Enqueue Hangfire background job to do the actual sending.
+            // This returns immediately — the job runs in its own DI scope with its own
+            // CancellationToken (from Hangfire, not the HTTP request).
+            var jobId = BackgroundJob.Enqueue<AdHocEmailSendJob>(
+                job => job.ExecuteAsync(sentEmail.Id, CancellationToken.None));
+
+            _logger.LogInformation(
+                "Ad-hoc email QUEUED: EmailId={EmailId}, Subject={Subject}, Segment={Segment}, " +
+                "Recipients={RecipientCount}, HangfireJobId={JobId}",
+                sentEmail.Id, request.Subject, request.Segment?.ToString() ?? "ManualList",
+                recipientCount, jobId);
+
             var dto = new SentAdHocEmailDto
             {
                 Id = sentEmail.Id,
                 Subject = sentEmail.Subject,
                 RecipientGroup = sentEmail.RecipientGroup,
+                Segment = sentEmail.Segment?.ToString(),
                 RecipientCount = sentEmail.RecipientCount,
                 SuccessCount = sentEmail.SuccessCount,
                 FailureCount = sentEmail.FailureCount,
@@ -889,13 +809,6 @@ public class EmailTemplateService : IEmailTemplateService
                 DeliveryStatus = sentEmail.DeliveryStatus,
                 SentAt = sentEmail.SentAt
             };
-
-            // Log summary with enough context to identify the send operation
-            _logger.LogInformation(
-                "Ad-hoc email send COMPLETE: EmailId={EmailId}, Subject={Subject}, Segment={Segment}, " +
-                "Success={SuccessCount}, Failed={FailureCount}, Total={TotalCount}, Status={DeliveryStatus}",
-                sentEmail.Id, request.Subject, segmentLabel,
-                successCount, failureCount, recipientCount, deliveryStatus);
 
             return Result<SentAdHocEmailDto>.Success(dto);
         }
@@ -929,6 +842,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Id = e.Id,
                 Subject = e.Subject,
                 RecipientGroup = e.RecipientGroup,
+                Segment = e.Segment?.ToString(),
                 RecipientCount = e.RecipientCount,
                 SuccessCount = e.SuccessCount,
                 FailureCount = e.FailureCount,
@@ -967,6 +881,7 @@ public class EmailTemplateService : IEmailTemplateService
                 Id = email.Id,
                 Subject = email.Subject,
                 RecipientGroup = email.RecipientGroup,
+                Segment = email.Segment?.ToString(),
                 RecipientCount = email.RecipientCount,
                 SuccessCount = email.SuccessCount,
                 FailureCount = email.FailureCount,

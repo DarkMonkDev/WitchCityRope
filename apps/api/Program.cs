@@ -399,6 +399,9 @@ builder.Services.AddScoped<RestoreJob>();
 builder.Services.AddScoped<DailyLogSummaryJob>();
 builder.Services.AddScoped<LogRetentionCleanupJob>();
 
+// Email background jobs (ad-hoc bulk sends processed via Hangfire fire-and-forget)
+builder.Services.AddScoped<AdHocEmailSendJob>();
+
 // Health checks for database monitoring.
 // AddNpgSql creates its own Npgsql connection pool — cap it to prevent
 // default MaxPoolSize=100 from consuming connections on our shared cluster.

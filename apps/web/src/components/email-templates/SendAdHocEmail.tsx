@@ -170,14 +170,15 @@ export const SendAdHocEmail: React.FC = () => {
         recipientGroup: data.segment || '',
       });
     },
-    onSuccess: () => {
-      const recipientCount = useDirectEmails
-        ? parsedEmails.valid.length
-        : segments?.find((s) => s.segment === selectedSegment)?.count || 0;
+    onSuccess: (data: { recipientCount?: number; deliveryStatus?: string }) => {
+      const recipientCount = data?.recipientCount
+        ?? (useDirectEmails
+          ? parsedEmails.valid.length
+          : segments?.find((s) => s.segment === selectedSegment)?.count || 0);
 
       const message = sendTiming === 'scheduled'
         ? `Email scheduled for ${recipientCount} recipient${recipientCount !== 1 ? 's' : ''}`
-        : `Email sent to ${recipientCount} recipient${recipientCount !== 1 ? 's' : ''} successfully`;
+        : `Sending ${recipientCount} email${recipientCount !== 1 ? 's' : ''} in background — check history for results`;
 
       notifications.show({
         message,

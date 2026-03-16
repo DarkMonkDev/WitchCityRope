@@ -12,6 +12,7 @@ public class SentAdHocEmailDto
     public string PlainTextBody { get; set; } = string.Empty;
 
     public string RecipientGroup { get; set; } = string.Empty;
+    public string? Segment { get; set; }
     public int RecipientCount { get; set; }
 
     /// <summary>
