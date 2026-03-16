@@ -1,580 +1,586 @@
-# 🏗️ WitchCityRope Architecture Documentation
+# WitchCityRope Architecture Documentation
 
-> **⚠️ CRITICAL FOR ALL DEVELOPERS: READ THIS FIRST!**
->
-> This document describes the Web+API architecture pattern used by WitchCityRope. WitchCityRope is **migrating from Blazor Server to React** while maintaining the proven API backend architecture. Understanding this is essential to avoid architectural mistakes that could break the entire application.
+<!-- Last Updated: 2026-03-16 -->
+<!-- Version: 3.0 -->
+<!-- Owner: Engineering Team -->
+<!-- Status: Active -->
 
----
-
-## 📋 Table of Contents
-
-1. [Architecture Overview](#-architecture-overview)
-2. [Service Communication](#-service-communication)
-3. [Port Configuration](#-port-configuration)
-4. [Authentication Flow](#-authentication-flow)
-5. [Database Access Patterns](#-database-access-patterns)
-6. [Key Files and Their Purposes](#-key-files-and-their-purposes)
-7. [Development Environment](#-development-environment)
-8. [Common Mistakes to Avoid](#-common-mistakes-to-avoid)
-9. [Troubleshooting](#-troubleshooting)
+> **For developer configuration details, test accounts, and quick commands, see [CLAUDE.md](./CLAUDE.md).**
 
 ---
 
-## 🏛️ Architecture Overview
+## Table of Contents
 
-WitchCityRope uses a **Web+API microservices architecture** with the following services:
-
-```
-┌─────────────────┐    HTTP Calls    ┌─────────────────┐
-│                 │ ───────────────► │                 │
-│ React Frontend  │                  │  API Service    │
-│ (Mantine UI)    │ ◄─────────────── │  (Minimal API)  │
-│                 │   JSON Responses │                 │
-└─────────────────┘                  └─────────────────┘
-        │                                      │
-        │ No Direct DB Access                  │ Full DB Access
-        │ (API-only communication)             │ (All Operations)
-        ▼                                      ▼
-                ┌─────────────────────────────────────┐
-                │        PostgreSQL Database          │
-                │     (Single source of truth)       │
-                └─────────────────────────────────────┘
-```
-
-### Services Explained
-
-1. **React Frontend (apps/web)**
-   - **Technology**: React + TypeScript + Vite + Mantine UI Framework
-   - **Purpose**: Modern single-page application, responsive user interface
-   - **Database Access**: None (calls API for all data)
-   - **Port**: 5173 (HTTP) - Development and Docker
-   - **UI Framework**: Mantine v7 (ADR-004) - TypeScript-first, WCAG compliant
-   - **Rich Text Editor**: @mantine/tiptap (Tiptap v2 with Mantine integration)
-     - Replaced TinyMCE on October 8, 2025
-     - 100% client-side, no API keys or usage quotas
-     - ~70% smaller bundle size than TinyMCE
-     - Variable insertion support for email templates
-
-2. **API Service (apps/api)**
-   - **Technology**: ASP.NET Core Minimal API (.NET 10)
-   - **Purpose**: Business logic, data operations, authentication endpoints
-   - **Database Access**: Full access to all business entities and Identity
-   - **Port**: 5655 (HTTP) - Development and Docker
-
-3. **Database Service**
-   - **Technology**: PostgreSQL 16
-   - **Purpose**: Data persistence
-   - **Port**: 5433 (mapped from internal 5432)
+1. [Architecture Overview](#architecture-overview)
+2. [Architecture Diagram](#architecture-diagram)
+3. [Services](#services)
+4. [Port Configuration](#port-configuration)
+5. [Authentication and Security](#authentication-and-security)
+6. [Data Protection](#data-protection)
+7. [Database](#database)
+8. [Feature Areas](#feature-areas)
+9. [Background Jobs](#background-jobs)
+10. [Frontend Architecture](#frontend-architecture)
+11. [API Architecture](#api-architecture)
+12. [Logging and Observability](#logging-and-observability)
+13. [Deployment Architecture](#deployment-architecture)
+14. [Development Environment](#development-environment)
+15. [Key Files](#key-files)
+16. [History](#history)
 
 ---
 
-## 🔄 Service Communication
+## Architecture Overview
 
-### Web → API Communication
-
-The Web service communicates with the API service via HTTP calls:
-
-**Key Files:**
-- `/src/WitchCityRope.Web/Services/ApiClient.cs` - HTTP client wrapper
-- `/src/WitchCityRope.Web/Services/AuthService.cs` - Authentication service proxy
-
-**Communication Pattern:**
-```csharp
-// Example: Web service calling API
-var events = await _apiClient.GetAsync<List<EventDto>>("api/v1/events");
-```
-
-**Configuration Location:**
-```csharp
-// In Program.cs (Web Service)
-builder.Services.AddHttpClient<ApiClient>(client =>
-{
-    var apiUrl = builder.Configuration["ApiUrl"] ?? "https://localhost:8181";
-    client.BaseAddress = new Uri(apiUrl);
-});
-```
-
-### API Endpoints
-
-The API service exposes RESTful endpoints under `/api/v1/`:
-
-**Key Endpoints:**
-- `GET /api/v1/events` - List events
-- `POST /api/v1/auth/login` - User authentication
-- `GET /api/v1/users/profile` - User profile
-- `POST /api/v1/events/{id}/register` - Event registration
-
-**Implementation Location:**
-- `/src/WitchCityRope.Api/Program.cs` (lines 183-628)
+WitchCityRope is a membership and event management platform built with a **Web+API microservices architecture**. The React frontend communicates with a .NET Minimal API backend via HTTP, with PostgreSQL for persistence. Background job processing is handled by Hangfire, email delivery by SendGrid, and payments by PayPal and Authorize.Net.
 
 ---
 
-## 🔌 Port Configuration
+## Architecture Diagram
 
-### Development Ports
-
-| Service | Development | Docker External | Docker Internal | URL |
-|---------|-------------|-----------------|-----------------|-----|
-| React | 5173 | 5173 | 5173 | http://localhost:5173 |
-| API | 5655 | 5655 | 8080 | http://localhost:5655 |
-| Database | - | 5433 | 5432 | localhost:5433 |
-| pgAdmin | - | 5050 | 80 | http://localhost:5050 |
-
-### Configuration Files
-
-**Docker Compose:**
-```yaml
-# docker-compose.dev.yml - Web service
-web:
-  ports:
-    - "5173:5173"  # Web service (host:container)
-
-# docker-compose.dev.yml - API service
-api:
-  ports:
-    - "5655:8080"  # API service (host:container)
 ```
-
-**Environment Variables:**
-```yaml
-# docker-compose.dev.yml - API communication
-- ApiBaseUrl=http://api:8080/              # Internal container communication
-- ApiBaseUrlExternal=http://localhost:5655  # External access from host
+                                    Internet
+                                       |
+                              ┌────────┴────────┐
+                              │   Nginx Reverse  │
+                              │      Proxy       │
+                              │  (staging/prod)  │
+                              └───┬──────────┬───┘
+                                  │          │
+                    ┌─────────────┘          └─────────────┐
+                    ▼                                      ▼
+          ┌─────────────────┐                    ┌─────────────────┐
+          │  React Frontend │    HTTP/JSON        │   API Service   │
+          │  (apps/web)     │ ──────────────────► │   (apps/api)    │
+          │                 │                     │                 │
+          │  React 18       │ ◄────────────────── │  .NET 10        │
+          │  TypeScript     │    JSON + Cookies    │  Minimal API    │
+          │  Vite           │                     │                 │
+          │  Mantine v7     │                     │  Hangfire       │
+          └─────────────────┘                     └────────┬────────┘
+                                                           │
+                          ┌────────────────────────────────┤
+                          │                │               │
+                          ▼                ▼               ▼
+                 ┌──────────────┐  ┌─────────────┐  ┌──────────┐
+                 │  PostgreSQL  │  │   SendGrid   │  │  Payment │
+                 │  Database    │  │   (Email)    │  │Processors│
+                 │              │  └─────────────┘  │          │
+                 │  Dev: Docker │                    │  PayPal  │
+                 │  Stg/Prod:   │                    │Auth.Net  │
+                 │  DO Managed  │                    └──────────┘
+                 └──────────────┘
+                        │
+                 ┌──────┴──────┐
+                 │  DO Spaces  │
+                 │  (Backups)  │
+                 └─────────────┘
 ```
 
 ---
 
-## 🔐 Authentication Flow
+## Services
 
-### Architecture Pattern: BFF (Backend-for-Frontend) with httpOnly Cookies
+### React Frontend (`apps/web`)
 
-The application uses a **secure BFF authentication pattern** with httpOnly cookie management:
+- **Technology**: React 18 + TypeScript + Vite
+- **UI Framework**: Mantine v7 (WCAG compliant, TypeScript-first)
+- **State Management**: Zustand (auth, CSRF), TanStack Query (server state)
+- **Rich Text**: @mantine/tiptap (Tiptap v2)
+- **Database Access**: None -- all data via API calls
+- **Port**: 5173 (development), 80 (production container, behind Nginx)
 
-1. **React Frontend Authentication**
-   - Uses httpOnly cookies exclusively (no localStorage token storage)
-   - HttpOnly cookies prevent XSS attacks and provide automatic CSRF protection
-   - React handles login/logout UI interactions with seamless cookie management
-   - **Frontend**: React + TypeScript + Mantine UI Framework
+### API Service (`apps/api`)
 
-2. **BFF Authentication Pattern**
-   - React app calls authentication endpoints that set httpOnly cookies
-   - All React→API calls use cookie-based authentication automatically
-   - Silent token refresh prevents authentication timeouts
-   - **📖 See detailed implementation**: `/session-work/2025-09-12/bff-authentication-implementation-summary.md`
+- **Technology**: ASP.NET Core Minimal API on .NET 10
+- **Pattern**: Vertical slice architecture under `Features/`
+- **Database Access**: Full access via Entity Framework Core with `ApplicationDbContext`
+- **Port**: 8080 (internal container), 5655 (development host), 5001/5002 (production/staging host)
 
-3. **API Service Authentication**
-   - Validates JWT tokens from httpOnly cookies for all protected endpoints
-   - Automatic token refresh mechanism prevents user interruption
-   - Dual authentication support (Bearer tokens + cookies) for backwards compatibility
+### PostgreSQL Database
 
-### Authentication Components
+- **Development**: PostgreSQL 16 Alpine in Docker container
+- **Staging/Production**: DigitalOcean Managed PostgreSQL (port 25060)
+- **Connection**: Direct NpgsqlDataSource with explicit pool sizing (no PgBouncer)
 
-**React Frontend (BFF authentication):**
-```typescript
-// BFF pattern - no token handling in JavaScript
-export const authService = {
-  async login(email: string, password: string) {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      credentials: 'include', // Essential for httpOnly cookies
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    // Cookie set automatically, no token in response body
-    return response.ok;
-  },
+### Redis
 
-  async getCurrentUser() {
-    const response = await fetch('/api/auth/user', {
-      credentials: 'include'
-    });
-    return response.ok ? response.json() : null;
-  },
-
-  async refresh() {
-    const response = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      credentials: 'include'
-    });
-    return response.ok; // Silent refresh
-  }
-};
-```
-
-**API Service (JWT-based):**
-```csharp
-// Program.cs (lines 46-50)
-- Jwt__Secret=${JWT_SECRET:-YourSuperSecretKeyForDevelopmentPurposesOnly!123}
-- Jwt__Issuer=WitchCityRope
-- Jwt__Audience=WitchCityRopeUsers
-- Jwt__ExpiresInMinutes=60
-```
-
-### BFF Authentication Flow
-
-```
-1. User logs in via React UI → Calls /api/auth/login → API sets httpOnly cookie
-2. React automatically sends cookies with all requests → No token management needed
-3. API validates JWT from cookie → Returns data to React
-4. Token nears expiry → Silent refresh via /api/auth/refresh → New cookie set
-5. User logs out → /api/auth/logout → Cookie deleted server-side
-```
-
-**Evidence in Code:**
-- `/src/WitchCityRope.Web/Services/AuthService.cs` (lines 77-95) - Login flow
-- `/src/WitchCityRope.Api/Program.cs` (lines 188-205) - API login endpoint
+- **Purpose**: Available in staging/production compose files
+- **Image**: redis:7-alpine
+- **Configuration**: 256MB max memory, LRU eviction, AOF persistence
 
 ---
 
-## 🗄️ Database Access Patterns
+## Port Configuration
 
-### Shared Database Architecture
+### Development
 
-Both services access the **same PostgreSQL database** but with different responsibilities:
+| Service    | Host Port | Container Port | URL                       |
+|------------|-----------|----------------|---------------------------|
+| React Web  | 5173      | 5173           | http://localhost:5173      |
+| API        | 5655      | 8080           | http://localhost:5655      |
+| PostgreSQL | **5434**  | 5432           | localhost:5434             |
+| HMR WS     | 24678     | 24678          | --                        |
+| .NET Debug | 40000     | 40000          | --                        |
 
-**Web Service Database Access:**
-- **Scope**: Identity operations only (login, user management)
-- **Context**: `WitchCityRopeIdentityDbContext`
-- **Tables**: AspNetUsers, AspNetRoles, etc.
+**Note**: PostgreSQL uses port **5434** (not 5432 or 5433) to avoid conflicts with other local PostgreSQL instances.
 
-**API Service Database Access:**
-- **Scope**: All business logic (events, registrations, payments)
-- **Context**: `WitchCityRopeIdentityDbContext` (same context, full access)
-- **Tables**: Events, Registrations, Tickets, etc.
+### Staging
 
-### Database Configuration
+| Service    | Host Port | Container Port | URL                              |
+|------------|-----------|----------------|----------------------------------|
+| API        | 5002      | 8080           | https://staging.notfai.com/api   |
+| Web        | 3002      | 80             | https://staging.notfai.com       |
+| Redis      | --        | 6379           | Internal only                    |
+| PostgreSQL | --        | 25060          | DigitalOcean Managed             |
 
-**Connection String (Shared):**
-```yaml
-# docker-compose.yml (line 44)
-ConnectionStrings__DefaultConnection=Host=${POSTGRES_HOST:-postgres};Port=5432;Database=${POSTGRES_DB:-witchcityrope_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-WitchCity2024!}
-```
+### Production
 
-**Context Registration:**
-```csharp
-// Web Service Program.cs (lines 44-51)
-builder.Services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseNpgsql(connectionString);
-});
-```
-
-### Database Auto-Initialization System
-
-**NEW (August 2025)**: WitchCityRope now features a comprehensive database auto-initialization system that eliminates manual setup:
-
-#### Automatic Operations
-- **Migrations**: Applied automatically on API startup using BackgroundService pattern
-- **Seed Data**: Comprehensive test users and sample events created automatically
-- **Performance**: Complete initialization in under 5 minutes (95%+ improvement from manual setup)
-- **Environment Safety**: Production environments skip seed data automatically
-
-#### Key Components
-- **DatabaseInitializationService**: `/apps/api/Services/DatabaseInitializationService.cs`
-- **SeedDataService**: `/apps/api/Services/SeedDataService.cs`
-- **Health Check**: `/api/health/database` endpoint for monitoring
-- **Test Accounts**: 7 comprehensive test accounts (admin@witchcityrope.com, etc.)
-- **Sample Events**: 12 realistic events for development testing
-
-#### Migration Files
-- **Location**: `/apps/api/Migrations/`
-- **Applied by**: DatabaseInitializationService automatically
-- **Retry Logic**: Exponential backoff for Docker container coordination
+| Service    | Host Port | Container Port | URL                              |
+|------------|-----------|----------------|----------------------------------|
+| API        | 5001      | 8080           | https://witchcityrope.com/api    |
+| Web        | 3001      | 80             | https://witchcityrope.com        |
+| Redis      | --        | 6379           | Internal only                    |
+| PostgreSQL | --        | 25060          | DigitalOcean Managed             |
 
 ---
 
-## 📁 Key Files and Their Purposes
+## Authentication and Security
 
-### React Frontend Key Files
+### Architecture: BFF with httpOnly Cookies
 
-| File | Purpose | Critical Details |
-|------|---------|------------------|
-| `/apps/web/src/main.tsx` | React application entry point | React root, Mantine provider setup |
-| `/apps/web/src/services/authService.ts` | Authentication service | HTTP calls to API auth endpoints |
-| `/apps/web/src/contexts/AuthContext.tsx` | React authentication context | Global auth state management |
-| `/apps/web/src/App.tsx` | Root React component | Router setup, layout, Mantine theme |
-| `/apps/web/vite.config.ts` | Vite configuration | Dev server, API proxy, build settings |
-| `/apps/web/src/components/forms/MantineTiptapEditor.tsx` | Rich text editor component | Tiptap editor with variable insertion support |
+The application uses a Backend-for-Frontend authentication pattern. JWT tokens are stored in httpOnly cookies, never in localStorage or JavaScript-accessible storage.
 
-### API Service Key Files
+**Flow**:
+1. User submits credentials to `/api/auth/login`
+2. API validates credentials, generates JWT, sets `auth-token` httpOnly cookie
+3. All subsequent requests automatically include the cookie
+4. API extracts JWT from cookie (or Bearer header) via `OnMessageReceived` event
+5. Token refresh via `/api/auth/refresh` (silent, cookie-based)
+6. Logout via `/api/auth/logout` deletes the cookie server-side
 
-| File | Purpose | Critical Details |
-|------|---------|------------------|
-| `/apps/api/Program.cs` | API service configuration | Minimal API setup, CORS, Identity, endpoints |
-| `/apps/api/Controllers/` | API controllers | Business logic endpoints |
-| `/apps/api/Services/` | Business services | Authentication, business logic services |
-| `/apps/api/Models/` | Data models and DTOs | Request/response models for API |
+**Client-Side State**: Zustand store (`authStore.ts`) manages authentication state. TanStack Query mutations handle login/logout/register operations.
 
-### Shared Infrastructure Files
+### CSRF Protection
 
-| File | Purpose | Critical Details |
-|------|---------|------------------|
-| `/apps/api/Data/ApplicationDbContext.cs` | Database context | EF Core context for all data operations |
-| `/apps/api/Migrations/` | Database migrations | EF Core migrations |
-| `/apps/api/Models/` | Domain entities | Business objects and DTOs |
+- Antiforgery tokens via ASP.NET Core (`X-CSRF-TOKEN` header)
+- Token cookie (`XSRF-TOKEN`) is JavaScript-readable; validation cookie (`.AspNetCore.Antiforgery`) is httpOnly
+- Token endpoint (`/api/antiforgery/token`) is anonymous -- tokens are fetched before login
+- CSRF store (`csrfStore.ts`) manages token initialization
 
-### Configuration Files
+### Authorization Roles
 
-| File | Purpose | Critical Details |
-|------|---------|------------------|
-| `docker-compose.yml` | Production service configuration | Service definitions, ports, environment |
-| `docker-compose.dev.yml` | Development overrides | Hot reload, volume mounts |
-| `dev.sh` | Development helper script | Start/stop services, view logs |
+| Role              | Description                                |
+|-------------------|--------------------------------------------|
+| Administrator     | Full system access, Hangfire dashboard     |
+| Teacher           | Event management, content creation         |
+| VettedMember      | Full event access, community features      |
+| GeneralMember     | Basic event access                         |
+| Guest             | Public event viewing                       |
+| SafetyTeam        | Safety incident management                 |
+
+### JWT Configuration
+
+- Issuer/Audience configurable per environment
+- Signing key via `Jwt:SecretKey` (user secrets / environment variable)
+- Token lifetime: 60 minutes (production), 480 minutes (development)
+- Clock skew: 5 minutes
+- Token blacklist service for logout invalidation
+
+### Rate Limiting
+
+- Client error endpoint rate limited: 20 requests per minute per IP (fixed window)
 
 ---
 
-## 🛠️ Development Environment
+## Data Protection
 
-### Starting the Application
+ASP.NET Core Data Protection keys are persisted to PostgreSQL via Entity Framework Core (`DataProtectionKeys` table). This was a critical architectural decision -- without persistence, every container restart or deployment invalidated all outstanding password reset and email confirmation tokens.
 
-**🚀 MILESTONE ACHIEVED (2025-09-14): React App Fully Functional**
+**Configuration**:
+- `SetApplicationName("WitchCityRope")` ensures consistent key isolation across Docker image rebuilds (without it, the discriminator derives from the content root path, which changes per build)
+- Keys auto-rotate every 90 days; old keys are retained indefinitely for validation
+- Token lifespan extended to 72 hours (from default 24h) for bulk welcome emails
+- Storage: XML blobs in `DataProtectionKeys` table
+- DigitalOcean Managed PostgreSQL provides encryption at rest at the storage level
 
-The React migration from Blazor is now complete and operational:
-- React app loads successfully at http://localhost:5173
-- Login functionality working end-to-end
-- Events page loading real data from API
-- Zero TypeScript compilation errors
-- API port standardized on 5655 (webhook requirement)
+---
 
-**🚀 Zero-Configuration Setup**
+## Database
 
-With the new database auto-initialization system:
+### Context
+
+`ApplicationDbContext` extends `IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>` and implements `IDataProtectionKeyContext`. It manages all business entities and ASP.NET Core Identity tables.
+
+Identity tables are mapped to the `public` schema with custom names: `Users`, `Roles`, `UserRoles`, `UserClaims`, `UserLogins`, `UserTokens`, `RoleClaims`.
+
+### Entities (DbSets)
+
+**Core/Identity**: DataProtectionKeys, Users (ApplicationUser), Settings, UserNotes
+
+**Events**: Events, Venues, Sessions, TicketTypes, TicketPurchases, VolunteerPositions, VolunteerSignups
+
+**Check-In**: EventAttendees, CheckIns, CheckInAuditLogs, OfflineSyncQueues, CheckInSessionTokens, CheckInSessionTokenSessions
+
+**Participation**: EventAttendances, AttendanceHistory
+
+**Safety**: SafetyIncidents, IncidentAuditLogs, IncidentNotifications, IncidentNotes
+
+**Vetting**: VettingApplications, VettingAuditLogs, VettingEmailLogs, VettingNotifications, VettingBulkOperations, VettingBulkOperationItems, VettingBulkOperationLogs
+
+**Payments**: PaymentRefunds
+
+**CMS**: ContentPages, ContentRevisions
+
+**Email**: GlobalEmailTemplates, EventEmailTemplates, SentAdHocEmails, AdHocEmailTemplates, EmailTriggerLogs
+
+**Logging**: ApplicationLogs (written by Serilog), DailyLogSummaries (written by Hangfire)
+
+### Migrations
+
+- Location: `/apps/api/Migrations/`
+- Auto-applied on startup via `DatabaseInitializationService` (BackgroundService pattern with exponential backoff retry)
+- Single consolidated initial migration (~2674 lines) as of October 2025; subsequent migrations are incremental
+- Command: `dotnet ef migrations add MigrationName` (from `/apps/api` directory)
+
+### Connection Pooling
+
+Three separate Npgsql connection pools to prevent resource exhaustion on the shared managed database cluster:
+
+| Pool         | MaxPoolSize | MinPoolSize | Purpose                                    |
+|--------------|-------------|-------------|--------------------------------------------|
+| EF Core      | 20 (dev) / 5 (prod) | 5 (dev) / 1 (prod) | Application queries             |
+| Hangfire     | 3           | 1           | Background job processing                  |
+| Health Check | 2           | 0           | Database health monitoring                 |
+| Serilog      | 2           | 0           | Log writing (batched every 5s)             |
+
+### Seed Data
+
+- `DatabaseInitializationService` runs migrations, then `SeedDataService` / `SeedCoordinator` populates test data
+- 7 test accounts with predefined roles (see CLAUDE.md for credentials)
+- 12 sample events for development
+- 24 email templates across 5 categories (Vetting, Events, Admin, Incident, AdHoc)
+- 12+ CMS pages
+- Production environments use a different admin email (`ropemaster@witchcityrope.com`)
+
+---
+
+## Feature Areas
+
+The API uses a vertical slice architecture. Each feature area is self-contained under `apps/api/Features/`:
+
+| Feature            | Description                                                        |
+|--------------------|--------------------------------------------------------------------|
+| **Admin**          | Admin dashboard aggregation endpoints                              |
+| **Authentication** | Login, register, password reset, email verification, JWT issuance  |
+| **Backup**         | Automated database backups to DigitalOcean Spaces (S3-compatible)  |
+| **CheckIn**        | Session tokens, QR codes, kiosk mode, attendance tracking          |
+| **Cms**            | Content pages, revision history, dynamic routing by slug           |
+| **Dashboard**      | User dashboard data aggregation                                    |
+| **EmailTemplates** | Global and event-specific templates, ad-hoc bulk email, scheduling |
+| **Events**         | Event CRUD, sessions, ticket types, venue management               |
+| **Health**         | Health check endpoints (`/health-check`, `/api/health/database`)   |
+| **Logging**        | Structured logging infrastructure, log viewer, daily summaries     |
+| **Metadata**       | Application metadata endpoints                                     |
+| **Participation**  | RSVPs, ticket purchases, attendance records, cancellation          |
+| **Payments**       | PayPal integration, Authorize.Net credit cards, unified checkout, refunds |
+| **Safety**         | Incident reporting, investigation notes, notifications, audit logs |
+| **Shared**         | Cross-cutting extensions, base services, feature registration      |
+| **Users**          | Member profiles, admin member management                           |
+| **Venues**         | Venue CRUD                                                         |
+| **Vetting**        | Member vetting applications, bulk operations, approval workflow    |
+| **VettingHold**    | Vetting hold management                                            |
+| **Volunteers**     | Volunteer positions, shift sign-ups, scheduling                    |
+| **Webhooks**       | PayPal webhook signature verification and processing               |
+
+Features register their own services and endpoints via `AddFeatureServices()` and `MapFeatureEndpoints()` extension methods.
+
+---
+
+## Background Jobs
+
+Hangfire processes background jobs with PostgreSQL storage (schema: `hangfire`). Configuration: 1 worker, 30-second heartbeat.
+
+### Recurring Jobs
+
+| Job ID                  | Schedule       | Implementation            | Description                                  |
+|-------------------------|----------------|---------------------------|----------------------------------------------|
+| `daily-backup`          | 2:00 AM local  | `BackupJob`               | Database backup to DigitalOcean Spaces       |
+| `daily-log-summary`     | 1:00 AM UTC    | `DailyLogSummaryJob`      | Aggregate application logs into daily stats  |
+| `log-retention-cleanup` | 3:00 AM UTC    | `LogRetentionCleanupJob`  | Delete logs older than 90 days               |
+| `event-email-scheduler` | Hourly (0 min) | `EmailSchedulerJob`       | Event reminders and thank-you emails         |
+
+### Fire-and-Forget Jobs
+
+- **Ad-hoc email sends** (`AdHocEmailSendJob`): Bulk email sends are enqueued as fire-and-forget jobs when administrators send ad-hoc emails
+
+### Dashboard
+
+- Accessible at `/hangfire` (admin-only, protected by `HangfireAuthorizationFilter`)
+- Requires authenticated user with `Administrator` role
+
+---
+
+## Frontend Architecture
+
+### Technology Stack
+
+| Library                         | Version | Purpose                              |
+|---------------------------------|---------|--------------------------------------|
+| React                           | 18.x    | UI framework                         |
+| TypeScript                      | 5.x     | Type safety                          |
+| Vite                            | 5.x     | Build tool and dev server            |
+| Mantine                         | 7.x     | UI component library                 |
+| TanStack Query                  | 5.x     | Server state management              |
+| Zustand                         | 5.x     | Client state management              |
+| React Router                    | 7.x     | Client-side routing                  |
+| @mantine/form                   | 7.x     | Form management (Mantine integration)|
+| React Hook Form + Zod           | 7.x/4.x | Form management and validation       |
+| @mantine/tiptap                 | 7.x     | Rich text editing                    |
+| @paypal/react-paypal-js         | 8.x     | PayPal button integration            |
+| Framer Motion                   | 12.x    | Animations                           |
+| Tailwind CSS                    | 4.x     | Utility CSS                          |
+| qrcode.react                    | 4.x     | QR code generation for check-in      |
+
+### Project Structure
+
+```
+apps/web/src/
+  features/           # Feature-based modules
+    admin/            # Admin panel components
+    auth/             # Authentication UI
+    checkin/          # Kiosk check-in interface
+    cms/              # Dynamic CMS pages
+    events/           # Event browsing and management
+    members/          # Member profiles
+    payments/         # Payment forms and confirmation
+    safety/           # Incident reporting
+    vetting/          # Vetting application form
+    volunteers/       # Volunteer management
+  stores/             # Zustand stores (authStore, csrfStore)
+  routes/             # React Router config, loaders, guards
+  components/         # Shared layout, forms, errors
+  hooks/              # Custom React hooks
+  lib/api/            # API client, hooks (TanStack Query), services
+  utils/              # Utility functions
+  types/              # TypeScript type definitions
+```
+
+### Auto-Generated Types
+
+TypeScript interfaces are generated from the API's OpenAPI specification using `openapi-typescript`. The `@witchcityrope/shared-types` package (monorepo workspace dependency) provides these types.
+
+**Generation**: `cd packages/shared-types && npm run generate`
+**Usage**: `import type { components } from '@witchcityrope/shared-types'`
+
+Manually creating TypeScript interfaces for API data is prohibited. All types must come from the generated package.
+
+### Routing
+
+React Router v7 with `createBrowserRouter` provides:
+- Public routes (home, events, login, register, safety report, vetting application, CMS pages)
+- Protected routes with `authLoader` (dashboard, profile, payments, my reports)
+- Admin routes with `adminLoader` validating `Administrator` role
+- Kiosk check-in routes outside the main layout (session-token auth, not user login)
+- Dynamic CMS catch-all route (`:slug`) for database-driven pages
+- `LowercaseUrlRedirect` wrapper normalizes URLs to prevent case-sensitivity 404s
+
+### Build Optimization
+
+Vite is configured with manual chunk splitting for cache efficiency:
+- `vendor`: react, react-dom
+- `router`: react-router-dom
+- `ui`: @mantine/core, @mantine/notifications
+- `query`: @tanstack/react-query
+- `forms`: react-hook-form, zod
+
+---
+
+## API Architecture
+
+### Endpoint Pattern
+
+Routes use the `/api/` prefix (no version segment). Most endpoints use the Minimal API pattern. PayPal webhook handling uses a controller (`MapControllers()`).
+
+### OpenAPI Documentation
+
+- Microsoft native OpenAPI support (.NET 10) with `AddOpenApi()`
+- NSwag provides Swagger UI in development at `/swagger`
+- Custom schema transformers: `BearerSecuritySchemeTransformer`, `NumericSchemaTransformer`
+- OpenAPI spec exported post-build for frontend type generation
+
+### CORS
+
+Environment-aware CORS policies:
+- **Development**: Allows `localhost:5173`, `localhost:3000`, `127.0.0.1:5173`, `localhost:8080`
+- **Production/Staging**: Configured via `CORS:AllowedOrigins` environment variable
+
+### Validation
+
+FluentValidation for request validation with dependency injection integration.
+
+### Content Sanitization
+
+HtmlSanitizer for user-submitted HTML content (CMS, email templates).
+
+---
+
+## Logging and Observability
+
+### Serilog
+
+Two-stage initialization:
+1. **Bootstrap logger**: Console-only, captures startup errors before DI is available
+2. **Full configuration**: Console + PostgreSQL sink (non-development environments)
+
+PostgreSQL sink writes to `logging.application_logs` table with custom columns:
+- timestamp, level, message, exception, source_context, properties (JSONB)
+- user_id, correlation_id, request_path, machine_name
+
+### Middleware Pipeline
+
+1. `CorrelationIdMiddleware` -- assigns correlation ID to all requests (before auth)
+2. `UserContextMiddleware` -- enriches logs with authenticated user info (after auth)
+3. `UseSerilogRequestLogging` -- structured request/response logging (after both)
+
+### Sensitive Data
+
+Serilog enricher masks: password, token, secret, key, authorization, cookie, nonce, creditcard.
+
+### Health Checks
+
+- `/health-check` -- ASP.NET Core health check (database connectivity via `AddNpgSql`)
+- Feature-specific health endpoints under `/api/health/`
+
+---
+
+## Deployment Architecture
+
+### Infrastructure
+
+- **Host**: DigitalOcean Droplet
+- **Database**: DigitalOcean Managed PostgreSQL (shared cluster across multiple apps)
+- **Object Storage**: DigitalOcean Spaces (S3-compatible) for database backups
+- **Container Registry**: DigitalOcean Container Registry (`registry.digitalocean.com/witchcityrope/`)
+- **Reverse Proxy**: System-level Nginx with Let's Encrypt SSL
+- **Deployment Automation**: Custom skills (`staging-deploy`, `production-deploy`)
+
+### Environments
+
+| Environment | Domain                    | Database                   | Deployment Path              |
+|-------------|---------------------------|----------------------------|------------------------------|
+| Development | localhost:5173            | Docker PostgreSQL (local)  | `./dev.sh`                   |
+| Staging     | staging.notfai.com        | DO Managed (witchcityrope_staging) | `/opt/witchcityrope/staging/` |
+| Production  | witchcityrope.com         | DO Managed (witchcityrope_production) | `/opt/witchcityrope/production/` |
+
+### Container Images
+
+| Image                                                         | Environment |
+|---------------------------------------------------------------|-------------|
+| `registry.digitalocean.com/witchcityrope/staging-api-witchcityrope`  | Staging     |
+| `registry.digitalocean.com/witchcityrope/staging-web-witchcityrope`  | Staging     |
+| `registry.digitalocean.com/witchcityrope/production-api-witchcityrope` | Production  |
+| `registry.digitalocean.com/witchcityrope/production-web-witchcityrope` | Production  |
+
+### Resource Limits (Staging/Production)
+
+| Service | Memory Limit | CPU Limit | Memory Reserved |
+|---------|-------------|-----------|-----------------|
+| API     | 2 GB        | 2.0 cores | 512 MB          |
+| Web     | 512 MB      | 0.5 cores | 128 MB          |
+| Redis   | 256 MB      | 0.25 cores| --              |
+
+### Maintenance Mode
+
+Deployment skills support maintenance mode during deployments. Nginx serves a static maintenance page while containers are being updated.
+
+---
+
+## Development Environment
+
+### Docker-Only Development
+
+Local dev servers are **disabled** to prevent confusion between Docker and non-Docker environments. `npm run dev` will fail with an error message directing developers to use `./dev.sh`.
+
+### Starting Development
 
 ```bash
-# Single command setup - database initializes automatically
+# Start all services (database, API with hot reload, React with HMR)
 ./dev.sh
-# Database migrations and seed data populate automatically in under 5 minutes
+
+# Access points:
+# React:      http://localhost:5173
+# API:        http://localhost:5655
+# Swagger:    http://localhost:5655/swagger (development only)
+# Database:   localhost:5434 (postgres/devpass123)
 ```
 
-**Local Development**:
-```bash
-# Terminal 1: Start API (database auto-initializes)
-cd apps/api
-dotnet run
+### Hot Reload
 
-# Terminal 2: Start React
-cd apps/web
-npm run dev
-```
+- **React**: Vite HMR with polling-based file watching (required for Docker volume mounts)
+- **API**: `dotnet watch run` with polling file watcher
 
-**Docker Development**:
-```bash
-# Use the restart-dev-containers skill, or manually:
-./dev.sh
-```
+### Test Accounts
 
-**📊 Test Accounts Available Immediately**:
-- admin@witchcityrope.com / Test123!
-- teacher@witchcityrope.com / Test123!
-- vetted@witchcityrope.com / Test123!
-- member@witchcityrope.com / Test123!
-- guest@witchcityrope.com / Test123!
+Seven test accounts are seeded automatically. See [CLAUDE.md](./CLAUDE.md) for full credentials.
 
-### Development Workflow
+### Testing
 
-1. **Start Services**: Local (above) or `./dev.sh` → Option 1
-2. **Access Application**: http://localhost:5173 (React - local and Docker)
-3. **Access API**: http://localhost:5655 (API - local and Docker)
-4. **View Logs**: `./dev.sh` → Options 4-6 (Docker only)
-5. **Hot Reload**: Automatic when files change (Vite HMR)
-
-### Development Tools
-
-**Built-in Tools:**
-- `./dev.sh` - Development menu system
-- `docker-compose logs -f` - View logs
-- pgAdmin at http://localhost:5050 - Database management
-
-**Hot Reload Configuration:**
-```yaml
-# docker-compose.dev.yml (lines 20-21)
-- DOTNET_USE_POLLING_FILE_WATCHER=true
-- DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER=true
-```
+- **React unit tests**: Vitest + Testing Library
+- **E2E tests**: Playwright (in `tests/playwright/`)
+- **Backend unit tests**: xUnit
+- **Backend integration tests**: xUnit with Docker database
 
 ---
 
-## ❌ Common Mistakes to Avoid
+## Key Files
 
-### 1. Wrong Docker Command
-```bash
-# ❌ WRONG - Uses production build, will fail
-docker-compose up
+### Frontend
 
-# ✅ CORRECT - Use the restart-dev-containers skill or ./dev.sh
-./dev.sh
-```
+| File | Purpose |
+|------|---------|
+| `apps/web/src/App.tsx` | Root component: auth check, CSRF init, router |
+| `apps/web/src/routes/router.tsx` | All route definitions with loaders/guards |
+| `apps/web/src/stores/authStore.ts` | Zustand auth state management |
+| `apps/web/src/stores/csrfStore.ts` | CSRF token management |
+| `apps/web/vite.config.ts` | Vite config: proxy, HMR, build optimization |
+| `apps/web/package.json` | Frontend dependencies |
+| `packages/shared-types/` | Auto-generated TypeScript types from API |
 
-### 2. Incorrect API Communication
-```typescript
-// ❌ WRONG - No direct database access from React
-// React cannot access database directly
+### Backend
 
-// ✅ CORRECT - Using API service from React
-const user = await authService.getCurrentUser();
-// OR
-const user = await fetch('/api/users/profile').then(r => r.json());
-```
+| File | Purpose |
+|------|---------|
+| `apps/api/Program.cs` | API bootstrap: DI, middleware pipeline, Hangfire, auth |
+| `apps/api/Data/ApplicationDbContext.cs` | EF Core context, all DbSets, entity configuration |
+| `apps/api/Services/DatabaseInitializationService.cs` | Auto-migration on startup |
+| `apps/api/Services/SeedDataService.cs` | Development seed data |
+| `apps/api/Features/Shared/Extensions/` | Feature service/endpoint registration |
+| `apps/api/WitchCityRope.Api.csproj` | Backend dependencies |
 
-### 3. Wrong Authentication Pattern
-```typescript
-// ❌ WRONG - Storing tokens in localStorage (XSS risk)
-localStorage.setItem('token', token);
-fetch('/api/data', {
-  headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-});
+### Infrastructure
 
-// ✅ CORRECT - BFF pattern with httpOnly cookies
-const response = await fetch('/api/auth/login', {
-  method: 'POST',
-  credentials: 'include', // Essential for httpOnly cookies
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, password })
-});
+| File | Purpose |
+|------|---------|
+| `docker-compose.yml` | Base service definitions |
+| `docker-compose.dev.yml` | Development overrides (ports, hot reload, volumes) |
+| `deployment/docker-compose.staging.yml` | Staging deployment config |
+| `deployment/docker-compose.production.yml` | Production deployment config |
+| `dev.sh` | Development environment management script |
+| `apps/api/Dockerfile` | Multi-stage API Dockerfile |
+| `apps/web/Dockerfile` | Multi-stage Web Dockerfile |
 
-// ✅ CORRECT - All subsequent requests automatically include cookies
-fetch('/api/data', {
-  credentials: 'include' // No manual token management needed
-});
-```
+### Documentation
 
-### 4. UI Framework Violations
-```typescript
-// ❌ WRONG - Mixing UI frameworks
-import { ChakraProvider } from '@chakra-ui/react';
-import { Button } from '@mui/material';
-
-// ✅ CORRECT - Consistent Mantine usage (ADR-004)
-import { MantineProvider, Button } from '@mantine/core';
-```
-
-### 5. Vite Proxy Configuration Errors
-```typescript
-// ❌ WRONG - Missing API proxy in vite.config.ts
-export default defineConfig({
-  plugins: [react()]
-});
-
-// ✅ CORRECT - Proper API proxy configuration
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5655', // Local API
-        changeOrigin: true
-      }
-    }
-  }
-});
-```
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | Developer configuration, test accounts, quick commands |
+| `PROGRESS.md` | Current development status |
+| `DOCKER_DEV_GUIDE.md` | Docker development workflow |
+| `docs/architecture/functional-area-master-index.md` | Documentation navigation |
 
 ---
 
-## 🔧 Troubleshooting
+## History
 
-### React Hot Reload Not Working
-
-**Symptoms**: Changes not reflected, build errors
-**Solution**:
-```bash
-# Local development
-Ctrl+C and restart: npm run dev
-
-# Docker development
-./dev.sh → Option 7 (Rebuild and restart)
-```
-
-### Service Communication Failures
-
-**Symptoms**: API calls failing, 500 errors
-**Check**:
-1. Both services are running: `docker ps`
-2. API service logs: `./dev.sh` → Option 6
-3. Network connectivity between containers
-
-### Database Connection Issues
-
-**Symptoms**: Migration errors, connection timeouts
-**Check**:
-1. PostgreSQL is running: `docker ps | grep postgres`
-2. Database health: `./dev.sh` → Option 10 OR `/api/health/database` endpoint
-3. Connection string in both services
-4. **NEW**: Check initialization logs for retry attempts and error classification
-
-**🆕 Enhanced Database Troubleshooting**:
-- **Health Check**: Visit `/api/health/database` to see initialization status
-- **Automatic Retries**: System retries database connections with exponential backoff
-- **Detailed Logging**: Check API logs for correlation IDs and error classification
-- **Environment Detection**: Verify environment-specific behavior (dev vs production)
-
-### Authentication Problems
-
-**Symptoms**: Login failures, authorization errors
-**Check**:
-1. Identity tables exist in database
-2. JWT configuration matches between services
-3. Cookie settings in Web service
-
-### Port Already in Use
-
-**Symptoms**: Container startup failures
-**Solution**:
-```bash
-# Check what's using the port
-sudo lsof -i :5173
-sudo lsof -i :5655
-
-# Stop conflicting processes or change ports in docker-compose.yml
-```
-
----
-
-## 🔍 Architecture Evidence
-
-### How to Verify the Architecture
-
-**1. Check Service Definitions:**
-```bash
-# View service configuration
-cat docker-compose.yml | grep -A 10 "api:"
-cat docker-compose.yml | grep -A 10 "web:"
-```
-
-**2. Verify API Communication:**
-```bash
-# Check Web→API calls in code
-grep -r "ApiClient" src/WitchCityRope.Web/Services/
-grep -r "HttpClient" src/WitchCityRope.Web/Program.cs
-```
-
-**3. Confirm Database Access:**
-```bash
-# Check database contexts
-find . -name "*DbContext.cs"
-grep -r "WitchCityRopeIdentityDbContext" src/
-```
-
-**4. Validate Port Configuration:**
-```bash
-# Check running containers
-docker ps --format "table {{.Names}}\t{{.Ports}}"
-```
-
----
-
-## 📚 Additional Resources
-
-- **React Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
-- **UI Framework Decision (Mantine)**: `/docs/architecture/decisions/adr-004-ui-framework-mantine.md`
-- **Mantine Documentation**: https://mantine.dev/
-- **JWT Service-to-Service Authentication**: `/docs/functional-areas/authentication/jwt-service-to-service-auth.md`
-- **Docker Development Guide**: `/docs/guides-setup/docker-operations-guide.md`
-- **API Documentation**: Auto-generated Swagger at http://localhost:5655/swagger
-- **React Testing Guide**: `/tests/README.md`
-- **HTML Editor Migration**: `/docs/functional-areas/html-editor-migration/` - TinyMCE to @mantine/tiptap migration documentation
-
----
-
-> **🚨 Remember**: This is a React + API architecture with Mantine UI framework. React communicates with API via HTTP calls with httpOnly cookie authentication. Always use Mantine components for UI consistency (ADR-004). When in doubt, check this document first!
+WitchCityRope was originally built as a Blazor Server application. In August-September 2025, the frontend was migrated to React + TypeScript + Vite while the backend was rewritten as a .NET Minimal API with vertical slice architecture. The migration was completed in September 2025, and the legacy Blazor code has been archived. The platform reached production readiness in late 2025 and continues to receive feature enhancements.
