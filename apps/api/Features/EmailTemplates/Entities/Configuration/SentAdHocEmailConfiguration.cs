@@ -17,10 +17,10 @@ public class SentAdHocEmailConfiguration : IEntityTypeConfiguration<SentAdHocEma
                 "CHK_SentAdHocEmails_RecipientCount",
                 "\"RecipientCount\" >= 0"
             );
-            t.HasCheckConstraint(
-                "CHK_SentAdHocEmails_DeliveryStatus",
-                "\"DeliveryStatus\" IN ('Pending', 'Scheduled', 'Sent', 'Delivered', 'Failed', 'Bounced')"
-            );
+            // DeliveryStatus check constraint removed — values are controlled by application
+            // code, and constraining them at the DB level is fragile (requires migrations
+            // for every new status). Kept Subject and RecipientCount constraints since those
+            // are genuine data integrity rules.
         });
 
         // Primary Key
@@ -100,8 +100,7 @@ public class SentAdHocEmailConfiguration : IEntityTypeConfiguration<SentAdHocEma
             .HasDatabaseName("IX_SentAdHocEmails_SentAt");
 
         builder.HasIndex(e => e.DeliveryStatus)
-            .HasDatabaseName("IX_SentAdHocEmails_DeliveryStatus")
-            .HasFilter("\"DeliveryStatus\" IN ('Pending', 'Failed')");
+            .HasDatabaseName("IX_SentAdHocEmails_DeliveryStatus");
 
         // Scheduled send field
         builder.Property(e => e.ScheduledSendAt)
