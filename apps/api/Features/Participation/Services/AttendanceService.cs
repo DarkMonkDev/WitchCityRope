@@ -877,14 +877,18 @@ public class AttendanceService : IAttendanceService
 
             foreach (var ticketType in ticketTypesWithSessions)
             {
-                // Create TicketPurchase record for this ticket type
+                // Create TicketPurchase record for this ticket type.
+                // TotalPrice uses the amount from the checkout request (already includes sliding scale discount).
+                // Falls back to ticketType.Price for fixed-price tickets, or 0 if neither is set
+                // (should not happen — checkout endpoints always pass Amount).
                 var ticketPurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
                     TicketTypeId = ticketType.Id,
                     UserId = userId,
                     Quantity = 1,
-                    TotalPrice = ticketType.Price ?? 0m,
+                    TotalPrice = request.Amount ?? ticketType.Price ?? 0m,
+                    SlidingScalePercentage = request.SlidingScalePercentage,
                     PaymentStatus = TicketPurchasePaymentStatus.Pending,
                     PaymentMethod = request.PaymentMethodId ?? "Unknown",
                     PaymentReference = $"WCR-{Guid.NewGuid().ToString()[..8].ToUpper()}",

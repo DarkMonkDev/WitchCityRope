@@ -37,4 +37,19 @@ public class CreateTicketPurchaseRequest
     /// </summary>
     [Required]
     public bool EventWaiverAccepted { get; set; }
+
+    /// <summary>
+    /// Actual amount to charge for this purchase (after sliding scale discount).
+    /// Calculated by the frontend and validated by the checkout endpoint.
+    /// Used to set TicketPurchase.TotalPrice instead of the base ticket type price,
+    /// which is null for sliding scale tickets and would result in $0.
+    /// </summary>
+    public decimal? Amount { get; set; }
+
+    /// <summary>
+    /// Sliding scale discount percentage applied (0-75%).
+    /// Stored on TicketPurchase for audit trail and refund calculations.
+    /// 0 = full price, 75 = maximum discount.
+    /// </summary>
+    public decimal SlidingScalePercentage { get; set; }
 }

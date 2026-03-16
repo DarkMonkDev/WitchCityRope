@@ -178,7 +178,9 @@ public class PayPalCheckoutController : ControllerBase
                 TicketTypeIds = request.TicketTypeIds,
                 EventWaiverAccepted = request.EventWaiverAccepted,
                 PaymentMethodId = "paypal-pending",
-                Notes = $"PayPal Checkout {correlationId}"
+                Notes = $"PayPal Checkout {correlationId}",
+                Amount = request.Amount,
+                SlidingScalePercentage = slidingScalePercentage
             };
 
             var ticketResult = await _attendanceService.CreateTicketPurchaseAsync(
@@ -364,6 +366,13 @@ public class PayPalCheckoutController : ControllerBase
         // Finalize all ticket purchases
         try
         {
+            // Finalize each ticket purchase with PayPal capture details.
+            // Also set TotalPrice from the captured amount as a safety net —
+            // it should already be set during pending creation, but if it was $0
+            // (e.g., sliding scale ticket where ticketType.Price was null), this
+            // ensures we record what PayPal actually charged.
+            var capturedAmount = capture.Amount.GetDecimalValue();
+
             foreach (var tp in pendingPurchases)
             {
                 tp.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(capture.CaptureId);
@@ -374,6 +383,15 @@ public class PayPalCheckoutController : ControllerBase
                 tp.PaymentMethod = "PayPal";
                 tp.ProcessedAt = DateTime.UtcNow;
                 tp.UpdatedAt = DateTime.UtcNow;
+
+                // Safety net: update TotalPrice from PayPal's captured amount if it's still $0
+                if (tp.TotalPrice == 0m && capturedAmount > 0m)
+                {
+                    _logger.LogWarning(
+                        "TicketPurchase {Id} had TotalPrice=$0, updating from PayPal captured amount ${Amount}",
+                        tp.Id, capturedAmount);
+                    tp.TotalPrice = capturedAmount;
+                }
             }
 
             await _context.SaveChangesAsync(cancellationToken);

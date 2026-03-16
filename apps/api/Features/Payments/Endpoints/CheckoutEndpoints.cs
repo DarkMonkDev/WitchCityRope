@@ -171,7 +171,8 @@ public class CheckoutEndpoints : ControllerBase
                 TicketTypeIds = request.TicketTypeIds,
                 EventWaiverAccepted = request.EventWaiverAccepted,
                 PaymentMethodId = "authnet-pending",
-                Notes = $"Checkout {correlationId}"
+                Notes = $"Checkout {correlationId}",
+                Amount = request.Amount
             };
 
             var ticketResult = await _attendanceService.CreateTicketPurchaseAsync(
@@ -282,6 +283,15 @@ public class CheckoutEndpoints : ControllerBase
                     tp.PaymentMethod = "authorize-net";
                     tp.ProcessedAt = DateTime.UtcNow;
                     tp.UpdatedAt = DateTime.UtcNow;
+
+                    // Safety net: update TotalPrice from the charged amount if it's still $0
+                    if (tp.TotalPrice == 0m && request.Amount > 0m)
+                    {
+                        _logger.LogWarning(
+                            "TicketPurchase {Id} had TotalPrice=$0, updating from charged amount ${Amount}",
+                            tp.Id, request.Amount);
+                        tp.TotalPrice = request.Amount;
+                    }
                 }
 
                 await _context.SaveChangesAsync(cancellationToken);
