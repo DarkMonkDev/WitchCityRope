@@ -47,6 +47,10 @@ export const ResetPasswordPage: React.FC = () => {
       newPassword: (value) => {
         if (!value || !value.trim()) return 'Password is required'
         if (value.length < 8) return 'Password must be at least 8 characters'
+        if (!/[A-Z]/.test(value)) return 'Password must contain at least one uppercase letter'
+        if (!/[a-z]/.test(value)) return 'Password must contain at least one lowercase letter'
+        if (!/[0-9]/.test(value)) return 'Password must contain at least one number'
+        if (!/[^A-Za-z0-9]/.test(value)) return 'Password must contain at least one special character'
         return null
       },
       confirmPassword: (value, values) => {
@@ -335,6 +339,17 @@ export const ResetPasswordPage: React.FC = () => {
                     },
                   }}
                 />
+                <Text
+                  size="sm"
+                  c="dimmed"
+                  style={{
+                    marginTop: 'var(--space-xs)',
+                    fontSize: '12px',
+                    color: 'var(--color-smoke)',
+                  }}
+                >
+                  8+ characters with uppercase, lowercase, number, and special character
+                </Text>
               </Box>
 
               <Box>
