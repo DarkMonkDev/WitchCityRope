@@ -32,7 +32,7 @@ namespace WitchCityRope.Api.Features.Payments.Endpoints;
 ///    antiforgery tokens can't be reliably passed
 /// 4. The antiforgery middleware was causing "request field is required" errors
 ///    because the token couldn't be decrypted after container restarts
-///    (DataProtection keys are ephemeral in-container)
+///    (DataProtection keys are now persisted to the database)
 [ApiController]
 [Route("api/checkout/paypal")]
 [Authorize]

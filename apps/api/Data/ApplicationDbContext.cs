@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -88,12 +89,20 @@ namespace WitchCityRope.Api.Data;
 /// dotnet ef database update
 /// </code>
 /// </summary>
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IDataProtectionKeyContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
+
+    /// <summary>
+    /// Data Protection keys table - persists ASP.NET Core Data Protection keys to the database.
+    /// Required for token validity (password reset, email confirmation) to survive container restarts.
+    /// Without this, all outstanding tokens become invalid whenever the API container restarts.
+    /// See: https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/implementation/key-storage-providers
+    /// </summary>
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
     /// <summary>
     /// Events table for event management

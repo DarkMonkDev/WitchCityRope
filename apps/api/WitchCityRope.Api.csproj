@@ -27,6 +27,9 @@
     <!-- CRC32 for PayPal webhook signature verification -->
     <PackageReference Include="Crc32.NET" />
 
+    <!-- Data Protection persistence -->
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
+
     <!-- Authentication packages -->
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />

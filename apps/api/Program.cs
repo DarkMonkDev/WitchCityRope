@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -280,6 +281,19 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
+
+// Persist Data Protection keys to the database so tokens (password reset, email confirmation)
+// survive container restarts and deployments. Without this, all outstanding tokens become
+// invalid whenever the API container restarts because the signing keys are lost.
+// SetApplicationName ensures consistent key isolation across Docker image rebuilds -
+// without it, the discriminator derives from the content root path which changes per build.
+// Keys are stored as XML in the DataProtectionKeys table. DigitalOcean Managed PostgreSQL
+// provides encryption at rest at the storage level; application-level encryption can be
+// added later via ProtectKeysWithCertificate() if needed (DPAPI is not available on Linux).
+// Key rotation is automatic: new key every 90 days, old keys kept for validation indefinitely.
+builder.Services.AddDataProtection()
+    .SetApplicationName("WitchCityRope")
+    .PersistKeysToDbContext<ApplicationDbContext>();
 
 // Extend password reset and email confirmation token lifespan to 72 hours.
 // Default is 24 hours, but bulk welcome emails (NewWebsiteUser) need more time
