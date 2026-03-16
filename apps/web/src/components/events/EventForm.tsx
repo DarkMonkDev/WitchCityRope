@@ -88,11 +88,17 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
     !!eventId
   ) as { data: EventParticipationDto[]; isLoading: boolean }
 
-  // Group participations by user, combining RSVP + Ticket into single row
+  // Group participations by user, combining RSVP + Ticket into single row.
+  // Filter to only Active statuses so cancelled RSVPs and refunded tickets
+  // don't appear in the attendees list. The same API endpoint intentionally
+  // returns cancelled/refunded entries for the RSVP/Tickets tab's audit view,
+  // but the Attendees tab should only show people with valid participation.
   const groupedParticipations = React.useMemo(() => {
     const grouped = new Map<string, EventParticipationDto & { ticketAmount?: number; checkedInSessions?: string[] }>()
 
-    participations.forEach((p) => {
+    const activeParticipations = participations.filter(p => p.status === 'Active')
+
+    activeParticipations.forEach((p) => {
       const existing = grouped.get(p.userId ?? '')
 
       if (!existing) {
