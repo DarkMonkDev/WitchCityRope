@@ -206,11 +206,18 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // Handle rate limiting (429) - nginx returns HTML, not JSON RFC 9457.
+    // Must set a user-friendly message before the RFC 9457 extraction below,
+    // which would fail silently on HTML responses leaving the raw axios message.
+    if (response?.status === 429) {
+      error.message = "You're making requests too quickly. Please wait a moment and try again."
+    }
+
     // Extract API error message from RFC 9457 Problem Details format
     // This replaces generic "Request failed with status code 400" with actual API message
     // See: /docs/standards-processes/frontend/api-error-handling-standard.md
     const apiData = response?.data
-    if (apiData) {
+    if (apiData && typeof apiData === 'object') {
       const apiMessage = apiData.detail || apiData.title || apiData.message
       if (apiMessage && typeof apiMessage === 'string') {
         error.message = apiMessage
