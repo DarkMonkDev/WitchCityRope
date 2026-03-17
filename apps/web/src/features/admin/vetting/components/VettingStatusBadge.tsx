@@ -62,6 +62,12 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
           color: 'white',
           label: 'Withdrawn'
         };
+      case 'not applied':
+        return {
+          backgroundColor: '#adb5bd',
+          color: 'white',
+          label: 'Not Applied'
+        };
       default:
         return {
           backgroundColor: '#868e96',
@@ -108,6 +114,8 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
         return 'status-on-hold';
       case 'withdrawn':
         return 'status-withdrawn';
+      case 'not applied':
+        return 'status-not-applied';
       default:
         return 'status-unknown';
     }

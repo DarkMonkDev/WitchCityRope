@@ -105,9 +105,13 @@ public class MemberDetailsService : IMemberDetailsService
             var noShows = totalPastEventsRegistered - totalAttended;
 
             // Map vetting status to display string
+            // Map vetting status int to display string
+            // VettingStatus defaults to 0 (UnderReview) for all users, so we must check
+            // HasVettingApplication to distinguish "hasn't applied" from "actually under review"
+            // This matches the same logic used in MembersList.tsx getVettingStatusBadge()
             var vettingStatusDisplay = user.VettingStatus switch
             {
-                0 => "Under Review",
+                0 => user.HasVettingApplication ? "Under Review" : "Not Applied",
                 1 => "Interview Approved",
                 2 => "Final Review",
                 3 => "Approved",
