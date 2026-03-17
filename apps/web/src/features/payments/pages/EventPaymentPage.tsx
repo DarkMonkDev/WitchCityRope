@@ -670,15 +670,12 @@ export const EventPaymentPage: React.FC = () => {
                 {/* Ticket Type Selection */}
                 {ticketTypes.length > 0 && (
                   <Paper
-                    p="lg"
+                    p={{ base: 0, md: 'lg' }}
                     pt={{ base: 14, md: 'lg' }}
+                    pb={{ base: 'sm', md: 'lg' }}
                     radius="md"
                     mb={{ base: 0, md: 'xs' }}
-                    style={{
-                      background: 'var(--mantine-color-gray-0)',
-                      /* Remove left/right padding on mobile so ticket cards span full width */
-                      ...(isMobile ? { paddingLeft: 0, paddingRight: 0 } : {})
-                    }}
+                    style={{ background: 'var(--mantine-color-gray-0)' }}
                   >
                     <Stack gap="sm">
                       <Text fw={600} size="lg" style={isMobile ? { marginLeft: 20 } : undefined}>
@@ -710,6 +707,7 @@ export const EventPaymentPage: React.FC = () => {
                             <Paper
                               key={tt.id || Math.random()}
                               p="md"
+                              radius={isMobile ? 0 : undefined}
                               style={{
                                 background: isSelected ? 'rgba(136, 1, 36, 0.05)' : 'white',
                                 border: isSelected
@@ -730,7 +728,7 @@ export const EventPaymentPage: React.FC = () => {
                                       handleTicketTypeToggle(tt.id ?? '', e.currentTarget.checked);
                                     }}
                                     color="wcr"
-                                    style={{ alignSelf: 'flex-start', marginTop: 2 }}
+                                    style={{ alignSelf: 'center' }}
                                   />
                                 )}
                                 <Box style={{ flex: 1 }}>
