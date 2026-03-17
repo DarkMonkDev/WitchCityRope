@@ -333,6 +333,7 @@ export const EventDetailPage: React.FC = () => {
                         onClick={handleTicketPurchase}
                         variant="filled"
                         color="blue"
+                        fullWidth={isMobile}
                         leftSection={<IconTicket size={18} />}
                         data-testid="ticket-options-purchase-button"
                         styles={{
