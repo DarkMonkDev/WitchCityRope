@@ -795,7 +795,7 @@ export const EventPaymentPage: React.FC = () => {
                 )}
 
 
-                <Group justify={isMobile ? 'center' : 'flex-end'} mt={0}>
+                <Group justify="center" mt={0}>
                   <Button
                     onClick={handleContinue}
                     size="lg"
