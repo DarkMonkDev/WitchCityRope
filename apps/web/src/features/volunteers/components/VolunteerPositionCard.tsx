@@ -195,15 +195,17 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
           )}
         </Group>
 
-        {/* Bottom row: spots filled (left) and action button (right), vertically centered */}
-        <Group justify="space-between" align="center" mt="xs">
+        {/* Bottom row: spots filled (left) and action button (right), vertically centered.
+            Hidden when user has already signed up — the green alert below provides sufficient context. */}
+        {!position.hasUserSignedUp && (
+        <Group justify="space-between" align="center" mt={0}>
           {/* Spots filled count - same font size as title */}
           <Text size="md" c="dimmed">
             {position.slotsFilled} / {position.slotsNeeded} spots filled
           </Text>
 
           {/* Sign Up / Login / Blocked message on the right */}
-          {!position.hasUserSignedUp && !position.isFullyStaffed && position.canSignUp ? (
+          {!position.isFullyStaffed && position.canSignUp ? (
             isAuthenticated ? (
               <Button
                 variant="outline"
@@ -246,7 +248,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                 Login to Volunteer
               </Button>
             )
-          ) : !position.hasUserSignedUp && !position.isFullyStaffed && !position.canSignUp ? (
+          ) : !position.isFullyStaffed && !position.canSignUp ? (
             <Text size="sm" c="dimmed">
               {position.signupBlockedReason === 'NoTicketForSession'
                 ? 'Purchase a ticket to volunteer'
@@ -254,6 +256,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
             </Text>
           ) : null}
         </Group>
+        )}
 
           {/* Inline Signup Confirmation */}
           <Collapse in={showSignupConfirm}>
@@ -375,6 +378,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
             color="green"
             variant="light"
             icon={<IconCheck size={16} />}
+            p={8}
             style={isMobile ? {
               marginLeft: 'calc(-1 * var(--space-md))',
               marginRight: 'calc(-1 * var(--space-md))',
