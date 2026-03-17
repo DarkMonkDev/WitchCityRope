@@ -38,6 +38,7 @@ import { useMembers } from '../hooks/useMembers';
 import { apiClient } from '../../../../lib/api/client';
 import type { UserDto, MemberFilterRequest } from '../types/members.types';
 import type { components } from '@witchcityrope/shared-types';
+import { getUserRoles } from '../../../../utils/roleUtils';
 
 export const MembersList: React.FC = () => {
   const navigate = useNavigate();
@@ -380,9 +381,9 @@ export const MembersList: React.FC = () => {
 
                 {/* Roles */}
                 <Table.Td>
-                  {member.role ? (
+                  {getUserRoles(member).length > 0 ? (
                     <Group gap="xs">
-                      {member.role.split(',').map((role, idx) => (
+                      {getUserRoles(member).map((role, idx) => (
                         <Badge key={idx} color="blue" size="sm">
                           {formatRoleName(role.trim())}
                         </Badge>

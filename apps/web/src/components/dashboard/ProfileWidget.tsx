@@ -4,6 +4,7 @@ import { DashboardCard } from './DashboardCard';
 import { useCurrentUser } from '../../features/auth/api/queries';
 import { useNavigate } from 'react-router-dom';
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
+import { getUserRoles } from '../../utils/roleUtils';
 
 /**
  * Profile Widget for Dashboard
@@ -24,7 +25,7 @@ export const ProfileWidget: React.FC = () => {
     if (user.sceneName) completed++;
     if (user.email) completed++;
     if (user.pronouns) completed++;
-    if (user.role) completed++;
+    if (getUserRoles(user).length > 0) completed++;
     // Note: UserDto doesn't have firstName/lastName fields
     // Using available fields: sceneName, email, pronouns, role, isVetted
     

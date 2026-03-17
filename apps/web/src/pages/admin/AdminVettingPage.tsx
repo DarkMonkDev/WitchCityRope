@@ -6,6 +6,7 @@ import { VettingApplicationsList } from '../../features/admin/vetting/components
 import { OnHoldModal } from '../../features/admin/vetting/components/OnHoldModal';
 import { SendReminderModal } from '../../features/admin/vetting/components/SendReminderModal';
 import { useUser } from '../../stores/authStore';
+import { hasRole } from '../../utils/roleUtils';
 
 /**
  * Admin Vetting Applications List Page
@@ -25,14 +26,14 @@ export const AdminVettingPage: React.FC = () => {
 
   // Component-level role verification (defense-in-depth)
   useEffect(() => {
-    if (user && user.role !== 'Administrator') {
+    if (user && !hasRole(user, 'Administrator')) {
       console.error('AdminVettingPage: Unauthorized access attempt by non-admin user:', user.email);
       navigate('/unauthorized', { replace: true });
     }
   }, [user, navigate]);
 
   // Show error if somehow accessed without proper role
-  if (!user || user.role !== 'Administrator') {
+  if (!user || !hasRole(user, 'Administrator')) {
     return (
       <Container size="xl" py="xl">
         <Alert icon={<IconLock size={16} />} color="red" title="Access Denied">

@@ -15,6 +15,7 @@ import { Container, Title, Alert } from '@mantine/core';
 import { IconLock } from '@tabler/icons-react';
 import { MembersList } from '../../features/admin/members/components/MembersList';
 import { useUser } from '../../stores/authStore';
+import { hasRole } from '../../utils/roleUtils';
 
 export const AdminMembersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export const AdminMembersPage: React.FC = () => {
 
   // Component-level role verification (defense-in-depth)
   useEffect(() => {
-    if (user && user.role !== 'Administrator') {
+    if (user && !hasRole(user, 'Administrator')) {
       console.error(
         'AdminMembersPage: Unauthorized access attempt by non-admin user:',
         user.email
@@ -32,7 +33,7 @@ export const AdminMembersPage: React.FC = () => {
   }, [user, navigate]);
 
   // Show error if somehow accessed without proper role
-  if (!user || user.role !== 'Administrator') {
+  if (!user || !hasRole(user, 'Administrator')) {
     return (
       <Container size="xl" py="xl">
         <Alert icon={<IconLock size={16} />} color="red" title="Access Denied">

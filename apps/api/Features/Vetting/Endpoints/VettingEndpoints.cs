@@ -546,8 +546,8 @@ public static class VettingEndpoints
         try
         {
             // Check if user has Administrator role FIRST - before extracting user ID
-            var userRole = user.FindFirst(ClaimTypes.Role)?.Value;
-            if (userRole != UserRole.Administrator.ToRoleString())
+            // Multi-role support: IsInRole checks all role claims in JWT
+            if (!user.IsInRole(UserRole.Administrator.ToRoleString()))
             {
                 return Results.Problem(
                     title: "Access Denied",

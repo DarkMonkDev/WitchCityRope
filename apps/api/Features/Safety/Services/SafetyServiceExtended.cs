@@ -4,6 +4,7 @@ using WitchCityRope.Api.Features.Safety.Entities;
 using WitchCityRope.Api.Features.Safety.Models;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Users.Extensions;
 
 namespace WitchCityRope.Api.Features.Safety.Services;
 
@@ -310,9 +311,11 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         {
             // Only show users with SafetyTeam role in the coordinator assignment dropdown
             var safetyTeamRole = UserRole.SafetyTeam.ToRoleString();
+            // Multi-role support: WhereHasRole matches users who have the role
+            // anywhere in their comma-separated Role field
             var users = await _context.Users
                 .AsNoTracking()
-                .Where(u => u.Role == safetyTeamRole)
+                .WhereHasRole(safetyTeamRole)
                 .Select(u => new UserCoordinatorDto
                 {
                     Id = u.Id,

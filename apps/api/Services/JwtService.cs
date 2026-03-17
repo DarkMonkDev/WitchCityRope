@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using WitchCityRope.Api.Features.Authentication.Models;
+using WitchCityRope.Api.Features.Users.Constants;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Services;
@@ -49,15 +50,22 @@ public class JwtService : IJwtService
     {
         try
         {
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
                 new Claim("scene_name", user.SceneName ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? ""), // Empty string = no special role; "Member" is not a valid role
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
+
+            // Emit one ClaimTypes.Role claim per role so ASP.NET Core's built-in
+            // [Authorize(Roles=...)], .RequireRole(), and User.IsInRole() work
+            // automatically for users with multiple comma-separated roles
+            foreach (var role in UserRoleConstants.ParseRoles(user.Role))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

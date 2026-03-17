@@ -4,6 +4,7 @@ import { Container, Button, Text, Alert, Stack } from '@mantine/core';
 import { IconArrowLeft, IconAlertCircle, IconLock } from '@tabler/icons-react';
 import { VettingApplicationDetail } from '../../features/admin/vetting/components/VettingApplicationDetail';
 import { useUser } from '../../stores/authStore';
+import { hasRole } from '../../utils/roleUtils';
 
 /**
  * Admin Vetting Application Detail Page
@@ -25,7 +26,7 @@ export const AdminVettingApplicationDetailPage: React.FC = () => {
 
   // Component-level role verification (defense-in-depth)
   useEffect(() => {
-    if (user && user.role !== 'Administrator') {
+    if (user && !hasRole(user, 'Administrator')) {
       console.error('AdminVettingApplicationDetailPage: Unauthorized access attempt by non-admin user:', user.email);
       navigate('/unauthorized', { replace: true });
     }
@@ -36,7 +37,7 @@ export const AdminVettingApplicationDetailPage: React.FC = () => {
   };
 
   // Show error if somehow accessed without proper role
-  if (!user || user.role !== 'Administrator') {
+  if (!user || !hasRole(user, 'Administrator')) {
     return (
       <Container size="xl" py="xl">
         <Alert icon={<IconLock size={16} />} color="red" title="Access Denied">

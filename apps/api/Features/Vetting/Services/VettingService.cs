@@ -1597,7 +1597,11 @@ public class VettingService : IVettingService
                 _context.UserNotes.Add(approvalNote);
             }
 
-            // Update user role and vetting status if user is linked
+            // Update vetting status if user is linked
+            // DO NOT modify user.Role here. The user's Role field stores their organizational roles
+            // (Administrator, Teacher, SafetyTeam, etc.) and must be preserved during vetting approval.
+            // Vetting status is tracked separately via VettingStatus and IsVetted properties,
+            // which are the source of truth for vetting-based access control.
             if (application.UserId.HasValue)
             {
                 // Load user explicitly (don't rely on navigation property which might not be tracked)
@@ -1606,9 +1610,6 @@ public class VettingService : IVettingService
 
                 if (user != null)
                 {
-                    // Update the Role property
-                    user.Role = "VettedMember";
-
                     // Sync User.VettingStatus (source of truth for permissions/access control)
                     user.VettingStatus = (int)VettingStatus.Approved;
 
@@ -1616,43 +1617,8 @@ public class VettingService : IVettingService
                     _context.Users.Update(user);
 
                     _logger.LogInformation(
-                        "Set Role=VettedMember and VettingStatus=Approved for user {UserId} for approved application {ApplicationId}",
-                        application.UserId.Value, applicationId);
-
-                    // Get the VettedMember role from database
-                    var vettedMemberRole = await _context.Roles
-                        .FirstOrDefaultAsync(r => r.Name == "VettedMember", cancellationToken);
-
-                    if (vettedMemberRole != null)
-                    {
-                        // Remove all existing role assignments for this user
-                        var existingUserRoles = await _context.UserRoles
-                            .Where(ur => ur.UserId == user.Id)
-                            .ToListAsync(cancellationToken);
-
-                        if (existingUserRoles.Any())
-                        {
-                            _context.UserRoles.RemoveRange(existingUserRoles);
-                        }
-
-                        // Add VettedMember role assignment
-                        var newUserRole = new Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>
-                        {
-                            UserId = user.Id,
-                            RoleId = vettedMemberRole.Id
-                        };
-                        _context.UserRoles.Add(newUserRole);
-
-                        _logger.LogInformation(
-                            "Granted VettedMember role assignment to user {UserId} for approved application {ApplicationId}",
-                            application.UserId.Value, applicationId);
-                    }
-                    else
-                    {
-                        _logger.LogWarning(
-                            "VettedMember role not found in database - cannot grant role assignment for application {ApplicationId}. IsVetted flag is still set.",
-                            applicationId);
-                    }
+                        "Set VettingStatus=Approved for user {UserId} for approved application {ApplicationId}. User Role preserved as '{Role}'",
+                        application.UserId.Value, applicationId, user.Role);
                 }
                 else
                 {

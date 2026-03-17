@@ -66,8 +66,10 @@ public class ProcessVariableRefund
                 statusCode: 401);
         }
 
-        var userRole = user.FindFirst(ClaimTypes.Role)?.Value;
-        if (userRole != "Administrator" && userRole != "Teacher")
+        // Multi-role support: IsInRole checks all role claims in JWT
+        // Collect role string for logging and audit notes below
+        var userRole = string.Join(",", user.FindAll(ClaimTypes.Role).Select(c => c.Value));
+        if (!user.IsInRole("Administrator") && !user.IsInRole("Teacher"))
         {
             logger.LogWarning(
                 "Unauthorized refund attempt by user {UserId} with role {Role}",
@@ -196,7 +198,7 @@ public class ProcessVariableRefund
                     ["original_amount"] = ticketPurchase.TotalPrice,
                     ["total_previously_refunded"] = totalRefunded,
                     ["remaining_after_this_refund"] = remainingRefundableAmount - request.RefundAmount,
-                    ["user_role"] = userRole ?? "Unknown",
+                    ["user_role"] = string.IsNullOrEmpty(userRole) ? "Unknown" : userRole,
                     ["cancel_ticket"] = request.CancelTicket,
                     ["also_remove_rsvp"] = request.AlsoRemoveRsvp
                 }

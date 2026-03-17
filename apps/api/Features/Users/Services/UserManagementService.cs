@@ -144,18 +144,25 @@ public class UserManagementService : IUserManagementService
             // Case-insensitive: user-provided filter casing shouldn't affect results
             if (request.RoleFilters != null && request.RoleFilters.Length > 0)
             {
-                // User matches if their Role field contains ANY of the requested roles
-                // This supports users with multiple comma-separated roles like "Teacher,SafetyTeam"
-                var lowerRoleFilters = request.RoleFilters.Select(r => r.ToLower()).ToArray();
-                query = query.Where(u =>
-                    lowerRoleFilters.Any(role =>
-                        u.Role != null && u.Role.ToLower().Contains(role)));
+                // Multi-role support: CSV-aware matching for each role filter
+                // Matches exact role boundaries to avoid false positives (e.g., "Admin" matching "Administrator")
+                var roleFilters = request.RoleFilters.ToArray();
+                query = query.Where(u => u.Role != null && roleFilters.Any(role =>
+                    u.Role == role ||
+                    u.Role.StartsWith(role + ",") ||
+                    u.Role.EndsWith("," + role) ||
+                    u.Role.Contains("," + role + ",")));
             }
             else if (!string.IsNullOrWhiteSpace(request.Role))
             {
                 // Legacy single role filter (kept for backward compatibility)
-                var roleLower = request.Role.ToLower();
-                query = query.Where(u => u.Role != null && u.Role.ToLower() == roleLower);
+                // Multi-role support: CSV-aware matching instead of exact string equality
+                var roleFilter = request.Role;
+                query = query.Where(u => u.Role != null && (
+                    u.Role == roleFilter ||
+                    u.Role.StartsWith(roleFilter + ",") ||
+                    u.Role.EndsWith("," + roleFilter) ||
+                    u.Role.Contains("," + roleFilter + ",")));
             }
 
             // Apply active status filter
@@ -359,12 +366,15 @@ public class UserManagementService : IUserManagementService
         {
             _logger.LogDebug("Getting users by role: {Role}", role);
 
-            // Query users with the specified role using Entity Framework
-            // Support comma-separated roles (e.g., "Teacher,SafetyTeam")
+            // Multi-role support: CSV-aware matching for comma-separated Role field
+            // Matches exact role boundaries in all positions (exact, start, end, middle)
             var users = await _context.Users
                 .AsNoTracking()
-                // Case-insensitive role matching for comma-separated role strings
-                .Where(u => u.IsActive && u.Role != null && (u.Role.ToLower() == role.ToLower() || u.Role.ToLower().Contains(role.ToLower() + ",") || u.Role.ToLower().Contains("," + role.ToLower())))
+                .Where(u => u.IsActive && u.Role != null && (
+                    u.Role == role ||
+                    u.Role.StartsWith(role + ",") ||
+                    u.Role.EndsWith("," + role) ||
+                    u.Role.Contains("," + role + ",")))
                 .OrderBy(u => u.SceneName ?? u.Email)
                 .Select(u => new UserOptionDto
                 {

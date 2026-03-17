@@ -44,4 +44,26 @@ public static class UserRoleConstants
         return Enum.GetValues<UserRole>()
             .Where(r => r != UserRole.Member);
     }
+
+    /// <summary>
+    /// Splits a comma-separated role string into individual role strings.
+    /// Handles null/empty input, trims whitespace, and filters empty entries.
+    /// This is the single source of truth for parsing the Role CSV field.
+    /// </summary>
+    public static string[] ParseRoles(string? roleString)
+    {
+        if (string.IsNullOrWhiteSpace(roleString))
+            return Array.Empty<string>();
+        return roleString.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
+
+    /// <summary>
+    /// Checks if a comma-separated role string contains a specific role.
+    /// Case-insensitive comparison. Use this for in-memory checks on ApplicationUser.Role.
+    /// For database queries, use RoleQueryExtensions.WhereHasRole instead.
+    /// </summary>
+    public static bool HasRole(string? roleString, string targetRole)
+    {
+        return ParseRoles(roleString).Any(r => string.Equals(r, targetRole, StringComparison.OrdinalIgnoreCase));
+    }
 }

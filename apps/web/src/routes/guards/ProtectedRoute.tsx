@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useUser, useIsAuthenticated, useIsLoading } from '../../stores/authStore';
 import { Loader, Box, Text } from '@mantine/core';
+import { hasRole } from '../../utils/roleUtils';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -55,12 +56,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check role requirement if specified
   if (requiredRole) {
-    const userRole = user.role || '';
-
-    if (userRole !== requiredRole) {
+    if (!hasRole(user, requiredRole)) {
       console.warn('Access denied - user lacks required role:', {
         required: requiredRole,
-        actual: userRole,
+        actual: user.role,
         user: user.sceneName
       });
 
@@ -70,7 +69,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     console.log('Role check passed:', {
       required: requiredRole,
-      actual: userRole,
+      actual: user.role,
       user: user.sceneName
     });
   }

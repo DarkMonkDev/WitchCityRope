@@ -8,8 +8,8 @@ import { useQuery } from '@tanstack/react-query';
 import { vettingApi } from '../api/vettingApi';
 import type { ApplicationSummaryDto } from '../types/vetting.types';
 import { APPLICATION_STATUS_CONFIGS, ApplicationStatus } from '../types/vetting.types';
-import type { components } from '@witchcityrope/shared-types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
+import { hasRole } from '../../../utils/roleUtils';
 
 interface ReviewerDashboardPageProps {
   className?: string;
@@ -51,8 +51,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
 
   // Check if user has reviewer permissions
   // Note: VettingReviewer and VettingAdmin roles were deleted - only Administrators can access vetting dashboard
-  type UserRole = components['schemas']['UserRole'];
-  const hasReviewerAccess = user?.role === ('Administrator' as UserRole);
+  const hasReviewerAccess = hasRole(user, 'Administrator');
 
   if (!hasReviewerAccess) {
     return (

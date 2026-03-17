@@ -6,7 +6,7 @@ import { useUser, useIsAuthenticated } from '../../stores/authStore'
 import { useLogout } from '../../features/auth/api/mutations'
 import { useMenuVisibility } from '../../features/vetting/hooks/useMenuVisibility'
 import { useEffect, useState, useCallback } from 'react'
-import type { components } from '@witchcityrope/shared-types'
+import { hasRole } from '../../utils/roleUtils'
 
 /**
  * Navigation Component - Main header navigation
@@ -94,7 +94,7 @@ export const Navigation: React.FC = () => {
         {/* Admin link - only for administrators */}
         {/* Backend now returns user.roles - proper role-based access control */}
         {/* Type-safe role check using auto-generated UserRole */}
-        {user?.role === ('Administrator' as components['schemas']['UserRole']) && (
+        {hasRole(user, 'Administrator') && (
           <Box
             component={Link}
             to="/admin"
@@ -323,7 +323,7 @@ export const Navigation: React.FC = () => {
           )}
 
           {/* Admin link - only for administrators */}
-          {user?.role === ('Administrator' as components['schemas']['UserRole']) && (
+          {hasRole(user, 'Administrator') && (
             <Box
               component={Link}
               to="/admin"

@@ -36,6 +36,7 @@ import { useNavigate } from 'react-router-dom';
 import { Paper, Stack, Alert, Group, Text, Box, Button, LoadingOverlay, Progress, Modal, Textarea, Checkbox, Title, Divider } from '@mantine/core';
 import { IconTicket, IconCalendarCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
+import { hasAnyRole } from '../../utils/roleUtils';
 import {
   EnhancedParticipationStatusDto
 } from '../../types/participation.types';
@@ -214,23 +215,14 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
     debugLog('  - user.role:', (user as any).role);
     debugLog('  - user.roles:', (user as any).roles);
 
-    // New structure: Check isVetted boolean OR admin/teacher role
+    // Primary: check isVetted boolean (source of truth from backend)
     if ('isVetted' in user && user.isVetted === true) {
       isVetted = true;
       debugLog('  ✅ isVetted = true (via isVetted boolean)');
-    } else if ('role' in user && typeof user.role === 'string') {
-      const adminTeacherRoles = ['Administrator', 'Teacher'];
-      isVetted = adminTeacherRoles.includes(user.role);
-      debugLog(`  - Checking role '${user.role}' against [${adminTeacherRoles.join(', ')}]: ${isVetted}`);
-      if (isVetted) debugLog('  ✅ isVetted = true (via admin/teacher role)');
-    }
-
-    // Legacy structure: Check roles array (fallback)
-    if (!isVetted && 'roles' in user && Array.isArray(user.roles)) {
-      const legacyRoles = ['Vetted', 'Teacher', 'Administrator'];
-      isVetted = user.roles.some(role => legacyRoles.includes(role));
-      debugLog(`  - Checking roles array [${user.roles.join(', ')}] against [${legacyRoles.join(', ')}]: ${isVetted}`);
-      if (isVetted) debugLog('  ✅ isVetted = true (via legacy roles array)');
+    } else if (hasAnyRole(user as any, ['Administrator', 'Teacher'])) {
+      // Fallback: Administrators and Teachers are implicitly vetted
+      isVetted = true;
+      debugLog('  ✅ isVetted = true (via admin/teacher role)');
     }
   }
 

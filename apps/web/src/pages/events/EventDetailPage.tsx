@@ -18,6 +18,7 @@ import type { EventDto, EventSessionDto, EventTicketTypeDto } from '../../lib/ap
 import type { EnhancedParticipationStatusDto } from '../../types/participation.types';
 import type { UserDto } from '../../lib/api/types/auth.types';
 import type { components } from '@witchcityrope/shared-types';
+import { hasRole, hasAnyRole } from '../../utils/roleUtils';
 import styles from './EventDetailPage.module.css'
 import { sanitizeHtml } from '../../lib/utils/sanitizeHtml'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
@@ -52,8 +53,8 @@ export const EventDetailPage: React.FC = () => {
   const cancelRSVPMutation = useCancelRSVP();
   const cancelTicketMutation = useCancelTicket();
 
-  // Check if current user is admin (type-safe using auto-generated UserRole)
-  const isAdmin = currentUser?.role === 'Administrator';
+  // Check if current user is admin (multi-role aware)
+  const isAdmin = hasRole(currentUser, 'Administrator');
   
   if (isLoading) {
     return (
@@ -218,8 +219,7 @@ export const EventDetailPage: React.FC = () => {
 
   // Check if user is vetted (same logic as ParticipationCard)
   const isVetted = currentUser?.isVetted === true ||
-    (currentUser?.role ? ['Administrator', 'Teacher'].includes(currentUser.role) : false) ||
-    (currentUser?.roles ? currentUser.roles.some(role => ['Vetted', 'Teacher', 'Administrator'].includes(role)) : false);
+    hasAnyRole(currentUser, ['Administrator', 'Teacher']);
 
   // Allow volunteering if:
   // - For social events (RSVP only, no ticket required): User must be vetted

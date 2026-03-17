@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.DTOs;
 using WitchCityRope.Api.Features.Events.Models;
@@ -35,8 +34,8 @@ public static class VenueEndpoints
                 }
 
                 // Verify admin role
-                var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
-                if (userRole != "Administrator")
+                // Multi-role support: IsInRole checks all role claims in JWT
+                if (!context.User.IsInRole("Administrator"))
                 {
                     return Results.Problem(
                         title: "Insufficient Permissions",
@@ -96,8 +95,8 @@ public static class VenueEndpoints
                 }
 
                 // Verify admin role
-                var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
-                if (userRole != "Administrator")
+                // Multi-role support: IsInRole checks all role claims in JWT
+                if (!context.User.IsInRole("Administrator"))
                 {
                     return Results.Problem(
                         title: "Insufficient Permissions",
@@ -159,8 +158,8 @@ public static class VenueEndpoints
                 }
 
                 // Verify admin role
-                var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
-                if (userRole != "Administrator")
+                // Multi-role support: IsInRole checks all role claims in JWT
+                if (!context.User.IsInRole("Administrator"))
                 {
                     return Results.Problem(
                         title: "Insufficient Permissions",
@@ -230,8 +229,8 @@ public static class VenueEndpoints
                 }
 
                 // Verify admin role
-                var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
-                if (userRole != "Administrator")
+                // Multi-role support: IsInRole checks all role claims in JWT
+                if (!context.User.IsInRole("Administrator"))
                 {
                     return Results.Problem(
                         title: "Insufficient Permissions",
@@ -359,8 +358,8 @@ public static class VenueEndpoints
                 }
 
                 // Verify admin role
-                var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
-                if (userRole != "Administrator")
+                // Multi-role support: IsInRole checks all role claims in JWT
+                if (!context.User.IsInRole("Administrator"))
                 {
                     return Results.Problem(
                         title: "Insufficient Permissions",
@@ -493,8 +492,8 @@ public static class VenueEndpoints
                 }
 
                 // Verify admin role
-                var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
-                if (userRole != "Administrator")
+                // Multi-role support: IsInRole checks all role claims in JWT
+                if (!context.User.IsInRole("Administrator"))
                 {
                     return Results.Problem(
                         title: "Insufficient Permissions",

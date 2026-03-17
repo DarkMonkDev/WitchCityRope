@@ -15,6 +15,7 @@ import { MemberEventsTab } from '../../components/members/MemberEventsTab'
 import { MemberVolunteerTab } from '../../components/members/MemberVolunteerTab'
 import { MemberIncidentsTab } from '../../components/members/MemberIncidentsTab'
 import { MemberHistoryTab } from '../../components/members/MemberHistoryTab'
+import { getUserRoles } from '../../utils/roleUtils'
 
 export const AdminMemberDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -67,7 +68,7 @@ export const AdminMemberDetailsPage: React.FC = () => {
         {memberDetails && !isLoading && !error && (
           <Group gap="xs">
             {/* Role Badges */}
-            {(memberDetails.role ?? '').split(',').filter(role => role.trim()).map((role, index) => (
+            {getUserRoles(memberDetails).map((role, index) => (
               <Badge key={index} color="blue" size="lg" variant="filled">
                 {role.trim().toUpperCase()}
               </Badge>

@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs, redirect } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { apiClient } from '../../lib/api/client';
+import { hasRole } from '../../utils/roleUtils';
 
 /**
  * Admin-specific loader for protected admin routes
@@ -31,7 +32,7 @@ export async function adminLoader({ request }: LoaderFunctionArgs) {
     console.log('User already authenticated, checking role...');
 
     // Check if user has Administrator role
-    if (user.role !== 'Administrator') {
+    if (!hasRole(user, 'Administrator')) {
       console.warn('Access denied - user lacks Administrator role:', {
         email: user.email,
         role: user.role,
@@ -68,7 +69,7 @@ export async function adminLoader({ request }: LoaderFunctionArgs) {
     console.log('Server auth validation successful, user:', userData?.email, 'role:', userData?.role);
 
     // User is authenticated - check role before granting access
-    if (userData.role !== 'Administrator') {
+    if (!hasRole(userData, 'Administrator')) {
       console.warn('Access denied - authenticated user lacks Administrator role:', {
         email: userData.email,
         role: userData.role,

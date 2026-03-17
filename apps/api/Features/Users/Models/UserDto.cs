@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Users.Constants;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Users.Models;
@@ -40,7 +41,7 @@ public class UserDto
         DiscordName = user.DiscordName;
         Bio = user.Bio;
         Role = user.Role;
-        Roles = new[] { user.Role }; // Frontend expects roles array, provide single role as array
+        Roles = UserRoleConstants.ParseRoles(user.Role); // Multi-role support: parse CSV roles into array
         Pronouns = user.Pronouns;
         IsActive = user.IsActive;
         EmailConfirmed = user.EmailConfirmed;

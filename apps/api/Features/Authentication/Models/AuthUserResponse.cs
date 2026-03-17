@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Users.Constants;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Authentication.Models;
@@ -70,8 +71,8 @@ public class AuthUserResponse
         CreatedAt = user.CreatedAt;
         LastLoginAt = user.LastLoginAt;
         Role = user.Role;
-        // Frontend expects roles array; only include non-empty roles (empty string = no special role)
-        Roles = string.IsNullOrWhiteSpace(user.Role) ? Array.Empty<string>() : new[] { user.Role };
+        // Multi-role support: parse comma-separated roles into array for frontend
+        Roles = UserRoleConstants.ParseRoles(user.Role);
         IsActive = user.IsActive;
         IsVetted = user.IsVetted;
     }
