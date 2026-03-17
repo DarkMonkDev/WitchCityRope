@@ -306,20 +306,20 @@ export const EventDetailPage: React.FC = () => {
                   <Box style={{ flex: 1 }}>
                     <Text fw={600} size="md" mb="xs">{ticket.name}</Text>
                     {ticket.pricingType === 'SlidingScale' ? (
-                      <Text size="sm" c="dimmed">
+                      <Text size="md" c="dimmed">
                         ${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)
                       </Text>
                     ) : (
-                      <Text size="sm" c="dimmed">
+                      <Text size="md" c="dimmed">
                         ${ticket.price}
                       </Text>
                     )}
                     {ticket.referenceSessionName && (
-                      <Text size="xs" c="dimmed" mt="xs">
+                      <Text size="md" c="dimmed" mt="xs">
                         For: {ticket.referenceSessionName}
                       </Text>
                     )}
-                    <Text size="xs" c="dimmed" mt="xs">
+                    <Text size="md" c="dimmed" mt="xs">
                       {(ticket.quantityAvailable ?? 0) - (ticket.quantitySold ?? 0)} / {ticket.quantityAvailable ?? 0} available
                     </Text>
                   </Box>
@@ -336,7 +336,7 @@ export const EventDetailPage: React.FC = () => {
         {unavailableTickets.length > 0 && (
           <>
             {purchasableTickets.length > 0 && (
-              <Text size="sm" c="dimmed" mt="md">Other ticket options:</Text>
+              <Text size="md" c="dimmed" mt="md">Other ticket options:</Text>
             )}
             <Stack gap="sm">
               {unavailableTickets.map((ticket: EventTicketTypeDto) => (
@@ -354,12 +354,12 @@ export const EventDetailPage: React.FC = () => {
                     <Box style={{ flex: 1 }}>
                       <Text fw={500} size="md" mb="xs">{ticket.name}</Text>
                       {ticket.availabilityMessage && (
-                        <Text size="sm" c="dimmed" mb="xs">
+                        <Text size="md" c="dimmed" mb="xs">
                           {ticket.availabilityMessage}
                         </Text>
                       )}
                       {ticket.referenceSessionName && (
-                        <Text size="xs" c="dimmed">
+                        <Text size="md" c="dimmed">
                           For: {ticket.referenceSessionName}
                         </Text>
                       )}
