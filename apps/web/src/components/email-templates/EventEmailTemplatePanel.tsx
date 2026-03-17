@@ -312,8 +312,8 @@ export const EventEmailTemplatePanel: React.FC<EventEmailTemplatePanelProps> = (
       id: template.id,
       title:
         showCustomSuffix && template.isCustomized
-          ? `${template.templateType} - CUSTOM`
-          : template.templateType,
+          ? `${template.title || template.templateType} - CUSTOM`
+          : (template.title || template.templateType),
       subject: template.subject,
       htmlBody: template.htmlBody,
       plainTextBody: template.plainTextBody,
@@ -341,7 +341,7 @@ export const EventEmailTemplatePanel: React.FC<EventEmailTemplatePanelProps> = (
         id: template.globalTemplateId || template.id,
         category: 'Events',
         templateType: template.templateType,
-        title: template.templateType,
+        title: template.title || template.templateType,
         subject: template.subject,
         htmlBody: template.htmlBody,
         plainTextBody: template.plainTextBody,
@@ -514,8 +514,8 @@ export const EventEmailTemplatePanel: React.FC<EventEmailTemplatePanelProps> = (
               <Group gap="sm" style={{ flex: 1, minWidth: 0 }}>
                 <Text fw={600} c="burgundy" size="lg" style={{ whiteSpace: 'nowrap' }}>
                   {selectedTemplate.isCustomized
-                    ? `${selectedTemplate.templateType} - CUSTOM`
-                    : selectedTemplate.templateType}
+                    ? `${selectedTemplate.title || selectedTemplate.templateType} - CUSTOM`
+                    : (selectedTemplate.title || selectedTemplate.templateType)}
                 </Text>
               </Group>
 
@@ -680,7 +680,7 @@ export const EventEmailTemplatePanel: React.FC<EventEmailTemplatePanelProps> = (
             <Tabs.Panel value="test" pt="lg">
               <SendTestEmail
                 template={mapForTestEmail(selectedTemplate)}
-                currentTitle={selectedTemplate.templateType ?? ''}
+                currentTitle={selectedTemplate.title || selectedTemplate.templateType || ''}
                 currentSubject={subject}
                 currentHtmlBody={htmlBody}
                 onSaveTemplate={handleSaveAsync}
@@ -702,7 +702,7 @@ export const EventEmailTemplatePanel: React.FC<EventEmailTemplatePanelProps> = (
         centered
       >
         <Text mb="md">
-          Are you sure you want to reset <strong>{templateToReset?.templateType}</strong> to
+          Are you sure you want to reset <strong>{templateToReset?.title || templateToReset?.templateType}</strong> to
           the global default template? This will delete your customizations and cannot be
           undone.
         </Text>

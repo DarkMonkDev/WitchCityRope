@@ -11,6 +11,13 @@ public class EventEmailTemplateDto
 
     public string TemplateType { get; set; } = string.Empty;
 
+    /// <summary>
+    /// User-friendly display title from the global template.
+    /// Always populated from the global template's Title field, regardless of
+    /// whether the event has a customized override.
+    /// </summary>
+    public string Title { get; set; } = string.Empty;
+
     public string Subject { get; set; } = string.Empty;
     public string HtmlBody { get; set; } = string.Empty;
     public string PlainTextBody { get; set; } = string.Empty;

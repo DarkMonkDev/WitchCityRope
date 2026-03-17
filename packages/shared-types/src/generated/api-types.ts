@@ -2527,6 +2527,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vetting/reviewer/applications/{id}/send-reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send interview reminder email to applicant */
+        post: operations["SendReminder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vetting/status": {
         parameters: {
             query?: never;
@@ -4080,6 +4097,10 @@ export interface components {
             priority?: number;
             /** Format: date-time */
             interviewScheduledFor?: null | string;
+            /** Format: int32 */
+            remindersSentCount?: number;
+            /** Format: date-time */
+            lastReminderSentAt?: null | string;
             references?: components["schemas"]["ReferenceDetailDto"][];
             notes?: components["schemas"]["ApplicationNoteDto"][];
             decisions?: components["schemas"]["ReviewDecisionDto"][];
@@ -4825,6 +4846,7 @@ export interface components {
             /** Format: uuid */
             globalTemplateId?: string;
             templateType?: string;
+            title?: string;
             subject?: string;
             htmlBody?: string;
             plainTextBody?: string;
@@ -5646,6 +5668,15 @@ export interface components {
             recipientGroup: string;
             /** Format: uuid */
             eventId?: null | string;
+        };
+        SendReminderRequest: {
+            customMessage?: null | string;
+        };
+        SendReminderResponse: {
+            /** Format: int32 */
+            remindersSentCount?: number;
+            /** Format: date-time */
+            lastReminderSentAt?: null | string;
         };
         SendTestEmailRequest: {
             email?: string;
@@ -12965,6 +12996,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReviewDecisionResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SendReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendReminderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendReminderResponse"];
                 };
             };
             /** @description Bad Request */
