@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Group, Text, Badge, Button, Stack, Switch } from '@mantine/core';
+import { Card, Group, Text, Badge, Stack, Switch } from '@mantine/core';
 import type { GlobalEmailTemplateDto } from '../../services/emailTemplates.api';
 
 /**
@@ -23,10 +23,6 @@ export interface EnhancedTemplateCardProps {
   isSelected?: boolean;
   onClick?: () => void;
   onToggleSending?: (templateId: string, enabled: boolean) => void;
-  /** @deprecated Used by EventForm emails tab — will be removed when EventForm adopts tabbed pattern */
-  onEditTrigger?: (templateId: string) => void;
-  /** @deprecated Used by EventForm emails tab — will be removed when EventForm adopts tabbed pattern */
-  onEditContent?: (templateId: string) => void;
 }
 
 /**
@@ -49,6 +45,10 @@ const getRecipientGroupLabel = (group?: EventRecipientGroup): string => {
  * Enhanced Template Card for Events Tab
  *
  * Displays email template with trigger configuration badges and controls.
+ * Used by both the global EmailCategoryPanel (Events tab) and the
+ * per-event EventEmailTemplatePanel. Click-to-select pattern with
+ * inline toggle for sending enabled/disabled.
+ *
  * Follows Design System v7 patterns with burgundy/plum color scheme.
  */
 export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
@@ -56,11 +56,7 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
   isSelected = false,
   onClick,
   onToggleSending,
-  onEditTrigger,
-  onEditContent,
 }) => {
-  const showLegacyButtons = !!(onEditTrigger || onEditContent);
-
   const {
     id,
     title,
@@ -193,34 +189,6 @@ export const EnhancedTemplateCard: React.FC<EnhancedTemplateCardProps> = ({
             </Badge>
           )}
         </Group>
-
-        {/* Legacy action buttons for EventForm emails tab */}
-        {showLegacyButtons && (
-          <Group justify="flex-end" gap="xs">
-            {onEditTrigger && (
-              <Button
-                variant="light"
-                color="burgundy"
-                size="compact-xs"
-                styles={{ root: { fontSize: '12px', minHeight: 'unset', padding: '4px 12px' } }}
-                onClick={(e) => { e.stopPropagation(); onEditTrigger(id || ''); }}
-              >
-                Edit Trigger
-              </Button>
-            )}
-            {onEditContent && (
-              <Button
-                variant="outline"
-                color="burgundy"
-                size="compact-xs"
-                styles={{ root: { fontSize: '12px', minHeight: 'unset', padding: '4px 12px' } }}
-                onClick={(e) => { e.stopPropagation(); onEditContent(id || ''); }}
-              >
-                Edit Email
-              </Button>
-            )}
-          </Group>
-        )}
       </Stack>
     </Card>
   );

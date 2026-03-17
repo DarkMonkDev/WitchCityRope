@@ -72,6 +72,11 @@ const beforeAfterOptions = [
 /**
  * Trigger Configuration Modal
  *
+ * NOTE: This modal is only used by EmailCategoryPanel for non-Events categories
+ * as a future-proofing measure. The Events tab in both the global templates page
+ * and the per-event page now use the inline TriggerConfigPanel instead.
+ * The TriggerConfig type export is still needed by TriggerConfigPanel.
+ *
  * Allows configuration of:
  * - Trigger type (Fixed Event vs Time-Based)
  * - Timing offset (for Time-Based triggers)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Stack,
   Group,
@@ -25,6 +25,8 @@ import { SendTestEmail } from './SendTestEmail';
 import { EnhancedTemplateCard } from './EnhancedTemplateCard';
 import { TriggerConfigModal, type TriggerConfig } from './TriggerConfigModal';
 import { TriggerConfigPanel } from './TriggerConfigPanel';
+import { useTemplateVariableValidation } from '../../hooks/useTemplateVariableValidation';
+import { htmlToPlainText } from '../../utils/htmlToPlainText';
 
 interface EmailCategoryPanelProps {
   category: 'Vetting' | 'Events' | 'Admin' | 'Incident' | 'AdHoc';
@@ -42,9 +44,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
   const [htmlBody, setHtmlBody] = useState('');
-  const [_plainTextBody, setPlainTextBody] = useState('');
-  const [invalidVariables, setInvalidVariables] = useState<string[]>([]);
-  const [availableVariables, setAvailableVariables] = useState<string[]>([]);
+  const [, setPlainTextBody] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // State for inline title editing
@@ -56,14 +56,22 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
 
   // State for trigger config modal (non-Events categories that might need it in future)
   const [triggerModalOpened, setTriggerModalOpened] = useState(false);
-  const [selectedTemplateForTrigger, _setSelectedTemplateForTrigger] = useState<GlobalEmailTemplateDto | null>(null);
+  const [selectedTemplateForTrigger] = useState<GlobalEmailTemplateDto | null>(null);
+
+  // Variable validation via shared hook (DRY — also used by EventEmailTemplatePanel)
+  const { availableVariables, invalidVariables } = useTemplateVariableValidation(
+    selectedTemplate?.category ?? undefined,
+    selectedTemplate?.templateType ?? undefined,
+    subject,
+    htmlBody
+  );
 
   // Fetch global templates for this category
   const {
     data: templates,
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<GlobalEmailTemplateDto[]>({
     queryKey: ['email-templates', 'global', category],
     queryFn: () => emailTemplatesApi.getGlobalTemplatesByCategory(category),
   });
@@ -174,85 +182,14 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       setSubject(selectedTemplate.subject ?? '');
       setHtmlBody(selectedTemplate.htmlBody ?? '');
       setPlainTextBody(selectedTemplate.plainTextBody ?? '');
-      setInvalidVariables([]);
       setHasUnsavedChanges(false);
       setIsEditingTitle(false);
     }
   }, [selectedTemplate]);
 
-  // Fetch available variables from code registry when template selection changes
-  useEffect(() => {
-    if (!selectedTemplate?.category || !selectedTemplate?.templateType) {
-      setAvailableVariables([]);
-      return;
-    }
-
-    let cancelled = false;
-
-    emailTemplatesApi
-      .getVariablesForTemplate(selectedTemplate.category, selectedTemplate.templateType)
-      .then((vars) => {
-        if (!cancelled) {
-          setAvailableVariables(vars);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedTemplate?.id, selectedTemplate?.category, selectedTemplate?.templateType]);
-
-  // Real-time variable validation
-  useEffect(() => {
-    if (!selectedTemplate || !htmlBody) {
-      setInvalidVariables([]);
-      return;
-    }
-
-    // Extract variables from subject + htmlBody
-    const variablePattern = /\{\{([a-zA-Z0-9_]+)\}\}/g;
-    const extractedVars = new Set<string>();
-
-    // Extract from subject
-    let match;
-    while ((match = variablePattern.exec(subject)) !== null) {
-      extractedVars.add(`{{${match[1]}}}`);
-    }
-
-    // Extract from HTML body
-    variablePattern.lastIndex = 0; // Reset regex
-    while ((match = variablePattern.exec(htmlBody)) !== null) {
-      extractedVars.add(`{{${match[1]}}}`);
-    }
-
-    // Compare with allowed variables from code registry
-    // Only validate if variables have been fetched (non-empty array)
-    // to avoid false warnings while the API request is in flight
-    if (availableVariables.length === 0) {
-      setInvalidVariables([]);
-      return;
-    }
-    const invalid = Array.from(extractedVars).filter(
-      (v) => !availableVariables.includes(v)
-    );
-    setInvalidVariables(invalid);
-  }, [subject, htmlBody, selectedTemplate, availableVariables]);
-
-  // Convert plain text from HTML (simple strip tags approach)
-  const generatePlainText = (html: string): string => {
-    // Simple HTML to plain text conversion
-    // TODO: Use a proper HTML-to-text library for production
-    return html
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .trim();
-  };
-
   // Handle save
   const handleSave = () => {
-    const plainText = generatePlainText(htmlBody);
+    const plainText = htmlToPlainText(htmlBody);
     saveMutation.mutate({
       title,
       subject,
@@ -263,7 +200,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
 
   // Handle save (async version for SendTestEmail integration)
   const handleSaveAsync = async (): Promise<void> => {
-    const plainText = generatePlainText(htmlBody);
+    const plainText = htmlToPlainText(htmlBody);
     await saveMutation.mutateAsync({
       title,
       subject,
@@ -279,11 +216,22 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     setSubject('');
     setHtmlBody('');
     setPlainTextBody('');
-    setInvalidVariables([]);
     setHasUnsavedChanges(false);
     setActiveEditorTab('email');
     setIsEditingTitle(false);
   };
+
+  // Sort: enabled templates first (memoized — must be before early returns per hooks rules)
+  const sortedTemplates = useMemo(
+    () =>
+      [...(templates || [])].sort((a, b) => {
+        if (a.sendingEnabled !== b.sendingEnabled) {
+          return a.sendingEnabled ? -1 : 1;
+        }
+        return 0;
+      }),
+    [templates]
+  );
 
   // Loading state
   if (isLoading) {
@@ -327,17 +275,16 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
       {/* Template Cards - Horizontal Scrollable Group */}
       <div>
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-          {[...templates].sort((a, b) => {
-            // Enabled templates first, disabled last
-            if (a.sendingEnabled !== b.sendingEnabled) {
-              return a.sendingEnabled ? -1 : 1;
-            }
-            return 0;
-          }).map((template) => (
+          {sortedTemplates.map((template) => (
             category === 'Events' ? (
               <EnhancedTemplateCard
                 key={template.id}
-                template={template}
+                template={{
+                  ...template,
+                  // Convert null → undefined for fields where DTO uses null but card expects undefined
+                  timingOffsetDays: template.timingOffsetDays ?? undefined,
+                  recipientGroup: template.recipientGroup ?? undefined,
+                }}
                 isSelected={selectedTemplate?.id === template.id}
                 onClick={() => {
                   setSelectedTemplate(template);

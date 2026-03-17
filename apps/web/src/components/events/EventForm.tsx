@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Card, Tabs, TextInput, Group, Text, Select, Stack, Title, MultiSelect, Badge, Table, Alert, Modal, Button, NumberInput, Box, Checkbox, SimpleGrid } from '@mantine/core'
+import { Card, Tabs, TextInput, Group, Text, Select, Stack, Title, MultiSelect, Badge, Table, Alert, NumberInput, Box, Checkbox, SimpleGrid } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../lib/api/client'
 import { notifications } from '@mantine/notifications'
 import { IconCheck, IconAlertCircle, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
@@ -26,16 +26,7 @@ import {
 import { useUpdateEvent } from '../../lib/api/hooks/useEvents'
 import { eventKeys } from '../../lib/api/utils/cache'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone'
-import {
-  emailTemplatesApi,
-  type EventEmailTemplateDto,
-  type UpdateEventTemplateRequest,
-} from '../../services/emailTemplates.api'
-import { EnhancedTemplateCard } from '../email-templates/EnhancedTemplateCard'
-import type { EventRecipientGroup } from '../email-templates/EnhancedTemplateCard'
-import { TriggerConfigModal } from '../email-templates/TriggerConfigModal'
-import type { TriggerConfig } from '../email-templates/TriggerConfigModal'
-import type { GlobalEmailTemplateDto } from '../../services/emailTemplates.api'
+import { EventEmailTemplatePanel } from '../email-templates/EventEmailTemplatePanel'
 
 /**
  * Extract user-friendly error message from API errors
@@ -401,9 +392,6 @@ export const EventForm: React.FC<EventFormProps> = ({
   attendeesRightSection,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info')
-  const [activeEmailTemplate, setActiveEmailTemplate] = useState<string | null>(null)
-  const [_rsvpTimingOpen, _setRsvpTimingOpen] = useState(false)
-  const [_volunteerTimingOpen, _setVolunteerTimingOpen] = useState(false)
 
   // Track timing-specific changes separately
   const [rsvpTimingDirty, setRsvpTimingDirty] = useState(false)
@@ -446,36 +434,6 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Mutation for updating event data immediately
   const updateEventMutation = useUpdateEvent()
 
-  // Email template mutations
-  const resetTemplateMutation = useMutation({
-    mutationFn: async ({ eventId, templateType }: { eventId: string; templateType: string }) => {
-      await emailTemplatesApi.deleteEventTemplate(eventId, templateType)
-    },
-    onSuccess: () => {
-      if (eventId) {
-        // Refresh templates list
-        emailTemplatesApi.getEventTemplates(eventId).then(setEventTemplates)
-      }
-      notifications.show({
-        title: 'Success',
-        message: 'Template reset to default',
-        color: 'green',
-        icon: <IconCheck />,
-      })
-      setResetModalOpen(false)
-      setTemplateToReset(null)
-      setContentEditTemplate(null)
-    },
-    onError: (error: Error) => {
-      console.error('Failed to reset template:', error)
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to reset template to default',
-        color: 'red',
-        icon: <IconAlertCircle />,
-      })
-    },
-  })
 
   // Modal state management
   const [sessionModalOpen, setSessionModalOpen] = useState(false)
@@ -489,7 +447,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [deleteItemId, setDeleteItemId] = useState<string>('')
   const [deleteItemName, setDeleteItemName] = useState<string>('')
   const [deletionCheckResponse, setDeletionCheckResponse] = useState<any>(null)
-  const [_isCheckingDeletion, setIsCheckingDeletion] = useState(false)
+  const [, setIsCheckingDeletion] = useState(false)
   const [isDeletingItem, setIsDeletingItem] = useState(false)
 
   // RSVP/Ticket removal modal state
@@ -507,16 +465,6 @@ export const EventForm: React.FC<EventFormProps> = ({
   >('name')
   const [ticketsSortDirection, setTicketsSortDirection] = useState<'asc' | 'desc'>('asc')
 
-  // Email templates state
-  const [eventTemplates, setEventTemplates] = useState<EventEmailTemplateDto[]>([])
-  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false)
-  const [resetModalOpen, setResetModalOpen] = useState(false)
-  const [templateToReset, setTemplateToReset] = useState<EventEmailTemplateDto | null>(null)
-
-  // Trigger config modal state
-  const [triggerEditTemplate, setTriggerEditTemplate] = useState<EventEmailTemplateDto | null>(null)
-  // Content editor state (which template's content is being edited inline)
-  const [contentEditTemplate, setContentEditTemplate] = useState<EventEmailTemplateDto | null>(null)
 
   // Helper function to toggle sort
   const handleRsvpSort = (column: typeof rsvpSortColumn) => {
@@ -721,29 +669,6 @@ export const EventForm: React.FC<EventFormProps> = ({
     initialTimingValues.volunteer,
   ])
 
-  // Fetch event email templates when Emails tab is active
-  useEffect(() => {
-    if (activeTab === 'emails' && eventId) {
-      setIsLoadingTemplates(true)
-      emailTemplatesApi
-        .getEventTemplates(eventId)
-        .then((templates) => {
-          setEventTemplates(templates)
-        })
-        .catch((error) => {
-          console.error('Failed to fetch event templates:', error)
-          notifications.show({
-            title: 'Error',
-            message: 'Failed to load email templates',
-            color: 'red',
-            icon: <IconAlertCircle />,
-          })
-        })
-        .finally(() => {
-          setIsLoadingTemplates(false)
-        })
-    }
-  }, [activeTab, eventId])
 
   // Format venues for Select dropdown from API data
   const venues =
@@ -1202,7 +1127,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       // Close modal
       setRemoveRsvpModalOpen(false)
       setSelectedParticipant(null)
-    } catch (error) {
+    } catch {
       notifications.show({
         message: 'Failed to remove RSVP',
         color: 'red',
@@ -1223,169 +1148,28 @@ export const EventForm: React.FC<EventFormProps> = ({
       throw new Error('No transaction ID available for refund')
     }
 
-    try {
-      const response = await apiClient.post(
-        `/api/payments/transactions/${ticketPurchaseId}/refund`,
-        {
-          refundAmount,
-          refundReason,
-          cancelTicket,
-          alsoRemoveRsvp,
-        }
-      )
-
-      if (response.status !== 200) {
-        throw new Error('Failed to process request')
+    const response = await apiClient.post(
+      `/api/payments/transactions/${ticketPurchaseId}/refund`,
+      {
+        refundAmount,
+        refundReason,
+        cancelTicket,
+        alsoRemoveRsvp,
       }
+    )
 
-      // Refetch participations to update the tables
-      if (eventId) {
-        queryClient.invalidateQueries({ queryKey: eventKeys.participations(eventId) })
-      }
-
-      // Close modal and clear selection
-      setRefundTicketModalOpen(false)
-      setSelectedParticipant(null)
-    } catch (error: any) {
-      // Re-throw to let modal handle the error display
-      throw error
+    if (response.status !== 200) {
+      throw new Error('Failed to process request')
     }
-  }
 
-  // Email template state for editing
-  const [templateSubject, setTemplateSubject] = useState<string>('')
-  const [templateContent, setTemplateContent] = useState<string>('')
-  const [targetSessions, setTargetSessions] = useState<string[]>(['all'])
-
-  // Update editor state when content edit template changes
-  useEffect(() => {
-    if (contentEditTemplate) {
-      setTemplateSubject(contentEditTemplate.subject || '')
-      setTemplateContent(contentEditTemplate.htmlBody || '')
-      setTargetSessions(contentEditTemplate.targetSessions || ['all'])
-    } else if (activeEmailTemplate === 'ad-hoc') {
-      // Reset editor for ad-hoc
-      setTemplateSubject('')
-      setTemplateContent('')
-      setTargetSessions(['all'])
+    // Refetch participations to update the tables
+    if (eventId) {
+      queryClient.invalidateQueries({ queryKey: eventKeys.participations(eventId) })
     }
-  }, [contentEditTemplate, activeEmailTemplate])
 
-  // Email template helper functions
-  const getActiveTemplateTitle = () => {
-    if (activeEmailTemplate === 'ad-hoc') {
-      return 'Ad-Hoc Email'
-    }
-    return contentEditTemplate?.templateType || activeEmailTemplate
-  }
-
-  const getTemplateSubject = () => {
-    return templateSubject
-  }
-
-  const getTemplateContent = () => {
-    return templateContent
-  }
-
-  // Save template mutation
-  const saveTemplateMutation = useMutation({
-    mutationFn: async ({
-      eventId,
-      templateType,
-      request,
-    }: {
-      eventId: string
-      templateType: string
-      request: UpdateEventTemplateRequest
-    }) => {
-      await emailTemplatesApi.updateEventTemplate(eventId, templateType, request)
-    },
-    onSuccess: () => {
-      if (eventId) {
-        emailTemplatesApi.getEventTemplates(eventId).then(setEventTemplates)
-      }
-      notifications.show({
-        title: 'Success',
-        message: 'Template saved successfully',
-        color: 'green',
-        icon: <IconCheck />,
-      })
-    },
-    onError: () => {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to save template',
-        color: 'red',
-        icon: <IconAlertCircle />,
-      })
-    },
-  })
-
-  const handleSaveTemplate = () => {
-    const templateType = contentEditTemplate?.templateType
-    if (!eventId || !templateType) return
-
-    saveTemplateMutation.mutate({
-      eventId,
-      templateType,
-      request: {
-        subject: templateSubject,
-        htmlBody: templateContent,
-        plainTextBody: templateContent.replace(/<[^>]*>/g, ''), // Strip HTML for plain text
-        targetSessions: targetSessions,
-      },
-    })
-  }
-
-  // Handle saving trigger config from TriggerConfigModal
-  const handleSaveTriggerConfig = async (config: TriggerConfig) => {
-    if (!eventId || !triggerEditTemplate) return
-
-    await emailTemplatesApi.updateEventTemplate(eventId, triggerEditTemplate.templateType!, {
-      subject: triggerEditTemplate.subject || '',
-      htmlBody: triggerEditTemplate.htmlBody || '',
-      plainTextBody: triggerEditTemplate.plainTextBody || '',
-      overrideSendingEnabled: config.sendingEnabled,
-      overrideTimingOffsetDays: config.timingOffsetDays,
-      overrideRecipientGroup: config.recipientGroup || null,
-    })
-
-    // Refresh templates
-    const templates = await emailTemplatesApi.getEventTemplates(eventId)
-    setEventTemplates(templates)
-
-    notifications.show({
-      title: 'Success',
-      message: 'Trigger configuration saved',
-      color: 'green',
-      icon: <IconCheck />,
-    })
-  }
-
-  /**
-   * Map EventEmailTemplateDto to the shape EnhancedTemplateCard expects.
-   * EnhancedTemplateCard expects GlobalEmailTemplateDto & trigger extensions.
-   */
-  const mapEventTemplateToCardProps = (template: EventEmailTemplateDto) => {
-    return {
-      // Map to GlobalEmailTemplateDto shape
-      id: template.id,
-      title: template.isCustomized ? `${template.templateType} - CUSTOM` : template.templateType,
-      subject: template.subject,
-      htmlBody: template.htmlBody,
-      plainTextBody: template.plainTextBody,
-      templateType: template.templateType,
-      // Trigger extension fields
-      triggerType: (template.triggerType as 'FixedEvent' | 'TimeBased' | 'Manual') || undefined,
-      sendingEnabled: template.sendingEnabled ?? false,
-      timingOffsetDays: template.timingOffsetDays ?? undefined,
-      recipientGroup: (template.recipientGroup as EventRecipientGroup) || undefined,
-    } as GlobalEmailTemplateDto & {
-      triggerType?: 'FixedEvent' | 'TimeBased' | 'Manual'
-      sendingEnabled?: boolean
-      timingOffsetDays?: number
-      recipientGroup?: EventRecipientGroup
-    }
+    // Close modal and clear selection
+    setRefundTicketModalOpen(false)
+    setSelectedParticipant(null)
   }
 
   // Save RSVP/Ticket timing fields only
@@ -1776,256 +1560,17 @@ export const EventForm: React.FC<EventFormProps> = ({
             </Stack>
           </Tabs.Panel>
 
-          {/* Emails Tab - Enhanced with EnhancedTemplateCard + TriggerConfigModal */}
+          {/* Emails Tab — delegated to EventEmailTemplatePanel for consistent UI with global templates */}
           <Tabs.Panel value="emails" pt="xl" data-testid="panel-emails">
-            <Stack gap="xl">
-              <Title
-                order={2}
-                c="burgundy"
-                mb="md"
-                style={{
-                  borderBottom: '2px solid var(--mantine-color-burgundy-3)',
-                  paddingBottom: '8px',
-                }}
-              >
-                Email Templates
-              </Title>
-
-              <Text size="sm" c="dimmed" mb="lg">
-                Use "Edit Trigger" to configure when emails are sent, or "Edit Email" to customize
-                content. Select "Send Ad-Hoc Email" to send one-time messages.
-              </Text>
-
-              {/* Template Cards Container - Dynamic from API */}
-              {isLoadingTemplates ? (
-                <Text c="dimmed">Loading email templates...</Text>
-              ) : (
-                <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-                  {/* Send Ad-Hoc Email Card - Always Present */}
-                  <Card
-                    withBorder
-                    p="md"
-                    style={{
-                      cursor: 'pointer',
-                      borderColor:
-                        activeEmailTemplate === 'ad-hoc'
-                          ? 'var(--mantine-color-burgundy-6)'
-                          : 'var(--mantine-color-rose-3)',
-                      backgroundColor:
-                        activeEmailTemplate === 'ad-hoc' ? 'rgba(136, 1, 36, 0.05)' : 'white',
-                      transition: 'all 0.3s ease',
-                    }}
-                    onClick={() => {
-                      setActiveEmailTemplate('ad-hoc')
-                      setContentEditTemplate(null)
-                    }}
-                  >
-                    <Text fw={600} c="burgundy" mb={4}>
-                      Send Ad-Hoc Email
-                    </Text>
-                    <Text size="sm" c="stone" mb="xs">
-                      Send one-time messages to specific groups
-                    </Text>
-                    <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                      Any recipients
-                    </Text>
-                  </Card>
-
-                  {/* Dynamic Template Cards - EnhancedTemplateCard */}
-                  {eventTemplates.map((template) => (
-                    <EnhancedTemplateCard
-                      key={template.id}
-                      template={mapEventTemplateToCardProps(template)}
-                      onEditTrigger={() => {
-                        setTriggerEditTemplate(template)
-                      }}
-                      onEditContent={() => {
-                        setActiveEmailTemplate(null)
-                        setContentEditTemplate(template)
-                      }}
-                    />
-                  ))}
-                </SimpleGrid>
-              )}
-
-              {/* Inline Editor Section - Show for ad-hoc or when Edit Email is clicked */}
-              {(activeEmailTemplate === 'ad-hoc' || contentEditTemplate) && (
-                <div style={{ marginTop: 'var(--mantine-spacing-xl)' }}>
-                  <div style={{ marginBottom: 'var(--mantine-spacing-md)' }}>
-                    <Group justify="space-between" align="center">
-                      <Text fw={600} c="burgundy">
-                        Currently Editing: {getActiveTemplateTitle()}
-                      </Text>
-                      {contentEditTemplate && (
-                        <Button
-                          variant="subtle"
-                          color="gray"
-                          size="compact-sm"
-                          onClick={() => setContentEditTemplate(null)}
-                        >
-                          Close Editor
-                        </Button>
-                      )}
-                    </Group>
-                  </div>
-
-                  {/* Recipient Group (shown for ad-hoc) */}
-                  {activeEmailTemplate === 'ad-hoc' && (
-                    <Select
-                      label="Recipient Group"
-                      data={[
-                        { value: 'all-tickets', label: 'All Ticket Holders' },
-                        { value: 'all-rsvps', label: 'All RSVPs' },
-                        { value: 'volunteers', label: 'All Volunteers' },
-                        { value: 'everyone', label: 'Everyone' },
-                        { value: 'teachers', label: 'Teachers' },
-                        { value: 'session-s1', label: 'S1 Attendees' },
-                        { value: 'session-s2', label: 'S2 Attendees' },
-                        { value: 'session-s3', label: 'S3 Attendees' },
-                      ]}
-                      mb="md"
-                    />
-                  )}
-
-                  {/* Target Sessions (shown for template editing) */}
-                  {contentEditTemplate && (
-                    <MultiSelect
-                      label="Target Sessions"
-                      description="Which sessions should trigger this email? Hold Ctrl/Cmd for multiple selections."
-                      data={[
-                        { value: 'all', label: 'All Sessions' },
-                        { value: 's1', label: 'S1' },
-                        { value: 's2', label: 'S2' },
-                        { value: 's3', label: 'S3' },
-                      ]}
-                      value={targetSessions}
-                      onChange={setTargetSessions}
-                      mb="md"
-                    />
-                  )}
-
-                  <TextInput
-                    label="Subject Line"
-                    value={getTemplateSubject()}
-                    onChange={(e) => setTemplateSubject(e.currentTarget.value)}
-                    mb="md"
-                  />
-
-                  <div>
-                    <Text size="sm" fw={500} mb={5}>
-                      Email Content
-                    </Text>
-                    <Text size="xs" c="dimmed" mb="xs">
-                      Available variables: {'{name}'}, {'{event}'}, {'{date}'}, {'{time}'},{' '}
-                      {'{venue}'}, {'{venue_address}'}
-                    </Text>
-                    <MantineTiptapEditor
-                      value={getTemplateContent()}
-                      onChange={setTemplateContent}
-                      minRows={10}
-                      placeholder="Enter email content..."
-                    />
-                  </div>
-
-                  <Group mt="md" justify="space-between">
-                    <div>
-                      {/* Reset to Default button - only show for customized templates */}
-                      {contentEditTemplate && contentEditTemplate.isCustomized && (
-                        <Button
-                          variant="light"
-                          color="red"
-                          onClick={() => {
-                            setTemplateToReset(contentEditTemplate)
-                            setResetModalOpen(true)
-                          }}
-                          styles={{
-                            root: {
-                              fontWeight: 600,
-                              height: '44px',
-                              paddingTop: '12px',
-                              paddingBottom: '12px',
-                              fontSize: '14px',
-                              lineHeight: '1.2',
-                            },
-                          }}
-                        >
-                          Reset to Default
-                        </Button>
-                      )}
-                    </div>
-                    <div>
-                      {activeEmailTemplate === 'ad-hoc' ? (
-                        <WCRButton variant="primary" size="lg" disabled>
-                          Send Email
-                        </WCRButton>
-                      ) : (
-                        <WCRButton
-                          variant="primary"
-                          size="lg"
-                          onClick={handleSaveTemplate}
-                          disabled={!eventId || saveTemplateMutation.isPending}
-                        >
-                          {saveTemplateMutation.isPending ? 'Saving...' : 'Save Changes'}
-                        </WCRButton>
-                      )}
-                    </div>
-                  </Group>
-                </div>
-              )}
-            </Stack>
+            {eventId ? (
+              <EventEmailTemplatePanel
+                eventId={eventId}
+                sessions={form.values.sessions}
+              />
+            ) : (
+              <Text c="dimmed">Save the event first to configure email templates.</Text>
+            )}
           </Tabs.Panel>
-
-          {/* Trigger Config Modal for event-level trigger overrides */}
-          {triggerEditTemplate && (
-            <TriggerConfigModal
-              opened={!!triggerEditTemplate}
-              onClose={() => setTriggerEditTemplate(null)}
-              template={mapEventTemplateToCardProps(triggerEditTemplate)}
-              onSave={handleSaveTriggerConfig}
-            />
-          )}
-
-          {/* Reset Template Confirmation Modal */}
-          <Modal
-            opened={resetModalOpen}
-            onClose={() => {
-              setResetModalOpen(false)
-              setTemplateToReset(null)
-            }}
-            title={<Title order={3}>Reset Template to Default?</Title>}
-          >
-            <Text mb="md">
-              Are you sure you want to reset <strong>{templateToReset?.templateType}</strong> to
-              the global default template? This will delete your customizations and cannot be
-              undone.
-            </Text>
-
-            <Group justify="flex-end" mt="lg">
-              <Button
-                variant="default"
-                onClick={() => {
-                  setResetModalOpen(false)
-                  setTemplateToReset(null)
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                color="red"
-                onClick={() => {
-                  if (eventId && templateToReset) {
-                    resetTemplateMutation.mutate({
-                      eventId,
-                      templateType: templateToReset.templateType!,
-                    })
-                  }
-                }}
-                loading={resetTemplateMutation.isPending}
-              >
-                Reset to Default
-              </Button>
-            </Group>
-          </Modal>
 
           {/* Volunteers Tab - Modal-based consistent with other tabs */}
           <Tabs.Panel value="volunteers" pt="xl" data-testid="panel-volunteers">
