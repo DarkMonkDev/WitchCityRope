@@ -142,58 +142,57 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
       }}
     >
       <Stack gap="xs">
-        {/* Main content row: stacked info on left, badge on right
-            Matches the ticket box layout pattern from EventDetailPage */}
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <Box style={{ flex: 1 }}>
-            {/* Position title - matches ticket name styling (fw={600} size="md") */}
-            <Text fw={600} size="md" mb="xs">
-              {position.title}
-              {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
-              {position.sessionName && !position.sessionName.includes('Main Session') && (
-                <> - {position.sessionName}</>
-              )}
-            </Text>
-
-            {/* Date and time - use position shift times if available, otherwise session times */}
-            {position.sessionStartTime && (
-              <Text size="md" c="dimmed">
-                {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
-                {(position.startTime || position.endTime) ? (
-                  <> · {formatShiftTime(position.startTime ?? undefined)} - {formatShiftTime(position.endTime ?? undefined)}</>
-                ) : position.sessionEndTime ? (
-                  <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime ?? undefined)}</>
-                ) : null}
-              </Text>
+        {/* Title row: name on left, status badge on right */}
+        <Group justify="space-between" align="center" wrap="nowrap">
+          <Text fw={600} size="md">
+            {position.title}
+            {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
+            {position.sessionName && !position.sessionName.includes('Main Session') && (
+              <> - {position.sessionName}</>
             )}
-
-            {/* Description - uses default text color for readability */}
-            {position.description && (
-              <Text size="md" mt="xs">
-                {position.description}
-              </Text>
-            )}
-          </Box>
+          </Text>
 
           {/* Status badge on the right - matches ticket badge placement */}
           {position.hasUserSignedUp ? (
-            <Badge color="green" variant="light">
+            <Badge color="green" variant="light" style={{ flexShrink: 0 }}>
               Signed Up
             </Badge>
           ) : position.isFullyStaffed ? (
-            <Badge color="gray" variant="light">
+            <Badge color="gray" variant="light" style={{ flexShrink: 0 }}>
               Full
             </Badge>
           ) : position.canSignUp ? (
-            <Badge color="green" variant="light">
+            <Badge color="green" variant="light" style={{ flexShrink: 0 }}>
               Open
             </Badge>
           ) : (
-            <Badge color="gray" variant="light">
+            <Badge color="gray" variant="light" style={{ flexShrink: 0 }}>
               Closed
             </Badge>
           )}
         </Group>
+
+        {/* Date/time and description — full width, not constrained by badge column */}
+        <Box>
+          {/* Date and time - use position shift times if available, otherwise session times */}
+          {position.sessionStartTime && (
+            <Text size="md" c="dimmed">
+              {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
+              {(position.startTime || position.endTime) ? (
+                <> · {formatShiftTime(position.startTime ?? undefined)} - {formatShiftTime(position.endTime ?? undefined)}</>
+              ) : position.sessionEndTime ? (
+                <> · {formatTime(position.sessionStartTime)} - {formatTime(position.sessionEndTime ?? undefined)}</>
+              ) : null}
+            </Text>
+          )}
+
+          {/* Description - uses default text color for readability */}
+          {position.description && (
+            <Text size="md" mt="xs">
+              {position.description}
+            </Text>
+          )}
+        </Box>
 
         {/* Bottom row: spots filled (left) and action button (right), vertically centered.
             Hidden when user has already signed up — the green alert below provides sufficient context. */}
@@ -377,7 +376,8 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
           <Alert
             color="green"
             variant="light"
-            icon={<IconCheck size={16} />}
+            /* Hide icon on mobile for cleaner compact layout; show on desktop */
+            icon={!isMobile ? <IconCheck size={16} /> : undefined}
             p={8}
             style={isMobile ? {
               marginLeft: 'calc(-1 * var(--space-md))',
@@ -385,33 +385,69 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               marginBottom: 'calc(-1 * var(--space-md))',
               borderRadius: 0
             } : undefined}
+            styles={{
+              /* Align the icon vertically with the compact 8px padding */
+              icon: { marginRight: 8, alignSelf: 'center' },
+              body: { alignItems: 'center' }
+            }}
           >
-            <Group justify="space-between" align="center">
-              <Text size="sm">You're already signed up for this position</Text>
-              {position.canCancel ? (
-                <Button
-                  size="xs"
-                  variant="subtle"
-                  color="red"
-                  onClick={() => cancelMutation.mutate()}
-                  loading={cancelMutation.isPending}
-                  styles={{
-                    root: {
-                      fontWeight: 600,
-                      height: '32px',
-                      paddingTop: '6px',
-                      paddingBottom: '6px',
-                      fontSize: '12px',
-                      lineHeight: '1.2'
-                    }
-                  }}
-                >
-                  Cancel Signup
-                </Button>
-              ) : (
-                <Text size="xs" c="dimmed">Cannot cancel</Text>
-              )}
-            </Group>
+            {isMobile ? (
+              /* Mobile: centered text and cancel button stacked vertically */
+              <Stack gap={4} align="center">
+                <Text size="sm" ta="center">You're already signed up for this position</Text>
+                {position.canCancel ? (
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    color="red"
+                    onClick={() => cancelMutation.mutate()}
+                    loading={cancelMutation.isPending}
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '32px',
+                        paddingTop: '6px',
+                        paddingBottom: '6px',
+                        fontSize: '12px',
+                        lineHeight: '1.2'
+                      }
+                    }}
+                  >
+                    Cancel Signup
+                  </Button>
+                ) : (
+                  <Text size="xs" c="dimmed">Cannot cancel</Text>
+                )}
+              </Stack>
+            ) : (
+              /* Desktop: text left, cancel button right */
+              <Group justify="space-between" align="center">
+                <Text size="sm">You're already signed up for this position</Text>
+                {position.canCancel ? (
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    color="red"
+                    onClick={() => cancelMutation.mutate()}
+                    loading={cancelMutation.isPending}
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '32px',
+                        paddingTop: '6px',
+                        paddingBottom: '6px',
+                        fontSize: '12px',
+                        lineHeight: '1.2'
+                      }
+                    }}
+                  >
+                    Cancel Signup
+                  </Button>
+                ) : (
+                  <Text size="xs" c="dimmed">Cannot cancel</Text>
+                )}
+              </Group>
+            )}
           </Alert>
         )}
 
