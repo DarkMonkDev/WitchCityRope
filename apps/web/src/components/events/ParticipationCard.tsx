@@ -1038,7 +1038,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                         <Box>
                           <Text size="sm" c="dimmed" ta="center" mb="sm">
                             {validParticipation?.hasRSVP
-                              ? "Support the event with an optional ticket purchase"
+                              ? "You're RSVP'd! Grab your ticket below"
                               : "Purchase a ticket for this event"}
                           </Text>
                           <Button
