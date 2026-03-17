@@ -1005,6 +1005,20 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                               >
                                 Event Waiver
                               </a>
+                              {' '}and{' '}
+                              <a
+                                href="/terms-of-service"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  color: 'var(--color-burgundy)',
+                                  textDecoration: 'underline',
+                                  fontWeight: 700
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Terms of Service
+                              </a>
                             </Text>
                           </Group>
 
