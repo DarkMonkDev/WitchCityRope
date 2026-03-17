@@ -669,9 +669,19 @@ export const EventPaymentPage: React.FC = () => {
 
                 {/* Ticket Type Selection */}
                 {ticketTypes.length > 0 && (
-                  <Paper p="lg" pt={{ base: 14, md: 'lg' }} radius="md" mb={{ base: 0, md: 'xs' }} style={{ background: 'var(--mantine-color-gray-0)' }}>
+                  <Paper
+                    p="lg"
+                    pt={{ base: 14, md: 'lg' }}
+                    radius="md"
+                    mb={{ base: 0, md: 'xs' }}
+                    style={{
+                      background: 'var(--mantine-color-gray-0)',
+                      /* Remove left/right padding on mobile so ticket cards span full width */
+                      ...(isMobile ? { paddingLeft: 0, paddingRight: 0 } : {})
+                    }}
+                  >
                     <Stack gap="sm">
-                      <Text fw={600} size="lg">
+                      <Text fw={600} size="lg" style={isMobile ? { marginLeft: 20 } : undefined}>
                         {ticketTypes.length === 1 ? 'Ticket' : 'Select Tickets'}
                       </Text>
                       <Stack gap="md">
@@ -710,46 +720,49 @@ export const EventPaymentPage: React.FC = () => {
                               }}
                               onClick={() => showCheckbox && !isDisabledDueToOverlap && handleTicketTypeToggle(tt.id ?? '', !isSelected)}
                             >
-                              <Group justify="space-between" wrap="nowrap">
-                                <Group gap="sm" style={{ flex: 1 }}>
-                                  {showCheckbox && (
-                                    <Checkbox
-                                      checked={isSelected}
-                                      disabled={isDisabledDueToOverlap}
-                                      onChange={(e) => {
-                                        e.stopPropagation();
-                                        handleTicketTypeToggle(tt.id ?? '', e.currentTarget.checked);
-                                      }}
-                                      color="wcr"
-                                    />
-                                  )}
-                                  <Box style={{ flex: 1 }}>
+                              <Group gap="sm" wrap="nowrap">
+                                {showCheckbox && (
+                                  <Checkbox
+                                    checked={isSelected}
+                                    disabled={isDisabledDueToOverlap}
+                                    onChange={(e) => {
+                                      e.stopPropagation();
+                                      handleTicketTypeToggle(tt.id ?? '', e.currentTarget.checked);
+                                    }}
+                                    color="wcr"
+                                    style={{ alignSelf: 'flex-start', marginTop: 2 }}
+                                  />
+                                )}
+                                <Box style={{ flex: 1 }}>
+                                  {/* Title and price on the same row */}
+                                  <Group justify="space-between" wrap="nowrap">
                                     <Text fw={600} size="md">{tt.name}</Text>
-                                    {(() => {
-                                      const sessionInfo = getTicketSessions(tt);
-                                      if (sessionInfo.length > 0) {
-                                        return (
-                                          <Stack gap={2} mt={4}>
-                                            {sessionInfo.map((session, idx) => (
-                                              <Text key={idx} size="sm" c="dimmed">
-                                                {session.name} - {session.date}
-                                              </Text>
-                                            ))}
-                                          </Stack>
-                                        );
-                                      }
-                                      return null;
-                                    })()}
-                                    {isDisabledDueToOverlap && (
-                                      <Text size="xs" c="dimmed" mt={4}>
-                                        Sessions overlap with selected ticket
-                                      </Text>
-                                    )}
-                                  </Box>
-                                </Group>
-                                <Text fw={700} size="lg" c="#880124" style={{ whiteSpace: 'nowrap' }}>
-                                  {priceDisplay}
-                                </Text>
+                                    <Text fw={700} size="lg" c="#880124" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                      {priceDisplay}
+                                    </Text>
+                                  </Group>
+                                  {/* Session names + dates listed below */}
+                                  {(() => {
+                                    const sessionInfo = getTicketSessions(tt);
+                                    if (sessionInfo.length > 0) {
+                                      return (
+                                        <Stack gap={2} mt={4}>
+                                          {sessionInfo.map((session, idx) => (
+                                            <Text key={idx} size="sm" c="dimmed">
+                                              {session.name} - {session.date}
+                                            </Text>
+                                          ))}
+                                        </Stack>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                  {isDisabledDueToOverlap && (
+                                    <Text size="xs" c="dimmed" mt={4}>
+                                      Sessions overlap with selected ticket
+                                    </Text>
+                                  )}
+                                </Box>
                               </Group>
                             </Paper>
                           );
@@ -784,7 +797,7 @@ export const EventPaymentPage: React.FC = () => {
                 )}
 
 
-                <Group justify="flex-end" mt={0} style={{ marginRight: isMobile ? 20 : 0 }}>
+                <Group justify={isMobile ? 'center' : 'flex-end'} mt={0}>
                   <Button
                     onClick={handleContinue}
                     size="lg"
