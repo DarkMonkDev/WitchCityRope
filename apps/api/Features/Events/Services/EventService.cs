@@ -1355,7 +1355,12 @@ public class EventService : IEventService
             try
             {
                 // 4. Calculate date offset for session time adjustments
-                var dateOffset = request.NewStartDate - sourceEvent.StartDate;
+                // CRITICAL: sourceEvent.StartDate is a DateTime with Kind=Unspecified from EF/PostgreSQL,
+                // but the value IS UTC. We must explicitly specify UTC kind before subtracting from
+                // the DateTimeOffset request value, otherwise C# implicitly converts using the server's
+                // local timezone offset, causing session times to shift by the UTC offset (e.g., ±4-5 hours).
+                var sourceStartUtc = new DateTimeOffset(DateTime.SpecifyKind(sourceEvent.StartDate, DateTimeKind.Utc));
+                var dateOffset = request.NewStartDate - sourceStartUtc;
 
                 // 5. Create new event with copied properties
                 var copiedEvent = new WitchCityRope.Api.Models.Event
@@ -1363,7 +1368,8 @@ public class EventService : IEventService
                     // NEW values
                     Id = Guid.NewGuid(),
                     Title = request.NewTitle,
-                    StartDate = request.NewStartDate.DateTime,
+                    // Use .UtcDateTime to preserve UTC semantics (not .DateTime which strips timezone info)
+                    StartDate = request.NewStartDate.UtcDateTime,
                     EndDate = sourceEvent.EndDate.Add(dateOffset),
                     IsPublished = false, // Always create as draft
                     CreatedAt = DateTime.UtcNow,
