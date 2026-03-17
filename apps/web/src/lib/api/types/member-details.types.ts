@@ -83,6 +83,12 @@ export type UpdateMemberStatusRequest = components['schemas']['UpdateMemberStatu
  */
 export type UpdateMemberRoleRequest = components['schemas']['UpdateMemberRoleRequest']
 
+/**
+ * Admin update contact info request (admin-only, excludes Bio)
+ * @generated from AdminUpdateContactInfoDto DTO
+ */
+export type AdminUpdateContactInfoDto = components['schemas']['AdminUpdateContactInfoDto']
+
 // ============================================================================
 // FRONTEND EXTENSIONS - Field Mappings and Missing Properties
 // ============================================================================

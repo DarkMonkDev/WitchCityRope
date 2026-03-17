@@ -10,7 +10,15 @@ declare module 'axios' {
     /** Request timing metadata */
     metadata?: { requestStartTime: number }
   }
+  export interface InternalAxiosRequestConfig {
+    /** Internal flag to prevent recursive refresh retry on 401 */
+    _isRetryAfterRefresh?: boolean
+  }
 }
+
+// Module-level lock to prevent concurrent refresh attempts.
+// When multiple requests fail with 401 simultaneously, only one refresh call is made.
+let refreshPromise: Promise<any> | null = null
 
 // Use environment variable for API base URL, fallback to development default
 // Note: Vite replaces import.meta.env.VITE_* with literal values at build time
@@ -93,7 +101,42 @@ apiClient.interceptors.response.use(
     return response
   },
   async (error) => {
-    const { response, config } = error
+    const { response, config: originalRequest } = error
+
+    // Silent refresh retry for expired JWT access tokens.
+    // When any API call returns 401 (expired JWT), attempt to refresh the session
+    // using the httpOnly refresh-token cookie before redirecting to login.
+    if (
+      response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._isRetryAfterRefresh &&
+      !originalRequest.skipAutoRedirect
+    ) {
+      originalRequest._isRetryAfterRefresh = true
+
+      if (!refreshPromise) {
+        refreshPromise = apiClient
+          .post('/api/auth/refresh', null, {
+            skipAutoRedirect: true,
+            _isRetryAfterRefresh: true, // Prevent recursive retry
+          } as any)
+          .finally(() => {
+            refreshPromise = null
+          })
+      }
+
+      try {
+        await refreshPromise
+        // Refresh succeeded - retry the original request with the new auth-token cookie
+        return apiClient(originalRequest)
+      } catch {
+        // Refresh failed - fall through to existing 401 handling below.
+        // This means the refresh token is also expired/invalid.
+      }
+    }
+
+    // Use 'config' alias for backward compatibility with existing code below
+    const config = originalRequest
 
     // Determine which errors should be suppressed from logging
     const currentPath = window.location.pathname

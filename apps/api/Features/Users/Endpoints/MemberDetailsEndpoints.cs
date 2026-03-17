@@ -115,6 +115,17 @@ public static class MemberDetailsEndpoints
             .Produces(403)
             .Produces(404)
             .Produces(500);
+
+        // Endpoint 10: Update member contact information (admin)
+        group.MapPut("/contact-info", UpdateMemberContactInfo)
+            .WithName("UpdateMemberContactInfo")
+            .WithSummary("Update member contact information (admin) - auto-creates audit note")
+            .Produces(204)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(500);
     }
 
     /// <summary>
@@ -483,5 +494,71 @@ public static class MemberDetailsEndpoints
         }
 
         return Results.Ok(response);
+    }
+
+    /// <summary>
+    /// Endpoint 10: Update member contact information
+    /// PUT /api/users/{userId}/contact-info
+    /// Admin-only endpoint that updates contact fields and auto-creates an audit note
+    /// </summary>
+    private static async Task<IResult> UpdateMemberContactInfo(
+        Guid userId,
+        [FromBody] AdminUpdateContactInfoDto request,
+        HttpContext context,
+        IAntiforgery antiforgery,
+        ClaimsPrincipal user,
+        [FromServices] IMemberDetailsService service,
+        CancellationToken cancellationToken)
+    {
+        // CRITICAL: Validate anti-forgery token FIRST
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        // Get current user ID (admin performing the action)
+        var performedByIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                              ?? user.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(performedByIdClaim) || !Guid.TryParse(performedByIdClaim, out var performedById))
+        {
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
+        }
+
+        var (success, error) = await service.UpdateMemberContactInfoAsync(userId, request, performedById, cancellationToken);
+
+        if (!success)
+        {
+            if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            {
+                return Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404);
+            }
+            if (error.Contains("Invalid", StringComparison.OrdinalIgnoreCase))
+            {
+                return Results.Problem(
+                    title: "Bad Request",
+                    detail: error,
+                    statusCode: 400);
+            }
+            return Results.Problem(
+                title: "Server Error",
+                detail: error,
+                statusCode: 500);
+        }
+
+        return Results.NoContent();
     }
 }

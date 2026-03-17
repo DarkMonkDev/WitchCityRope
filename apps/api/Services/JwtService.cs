@@ -2,8 +2,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using WitchCityRope.Api.Features.Authentication.Models;
 using WitchCityRope.Api.Models;
-using WitchCityRope.Api.Models.Auth;
 
 namespace WitchCityRope.Api.Services;
 
@@ -33,7 +33,7 @@ public class JwtService : IJwtService
         _secretKey = _configuration["Jwt:SecretKey"] ?? "DevSecret-JWT-WitchCityRope-AuthTest-2024-32CharMinimum!";
         _issuer = _configuration["Jwt:Issuer"] ?? "WitchCityRope-API";
         _audience = _configuration["Jwt:Audience"] ?? "WitchCityRope-Services";
-        _expirationMinutes = int.Parse(_configuration["Jwt:ExpirationMinutes"] ?? "60");
+        _expirationMinutes = int.Parse(_configuration["Jwt:ExpirationMinutes"] ?? "15");
 
         // Validate secret key length for security
         if (_secretKey.Length < 32)
@@ -131,7 +131,8 @@ public class JwtService : IJwtService
     }
 
     /// <summary>
-    /// Check if token is near expiry (within 30 minutes) for refresh purposes
+    /// Check if token is near expiry (within 5 minutes) for refresh purposes.
+    /// With 15-minute JWT lifetime, 5 minutes gives adequate warning before expiration.
     /// </summary>
     public bool IsTokenNearExpiry(string token)
     {
@@ -141,8 +142,8 @@ public class JwtService : IJwtService
             var expiry = jsonToken.ValidTo;
             var now = DateTime.UtcNow;
 
-            // Token is near expiry if it expires within the next 30 minutes
-            return expiry.Subtract(now).TotalMinutes <= 30;
+            // Token is near expiry if it expires within the next 5 minutes
+            return expiry.Subtract(now).TotalMinutes <= 5;
         }
         catch (Exception ex)
         {

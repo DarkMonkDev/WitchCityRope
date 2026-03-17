@@ -19,6 +19,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtService _jwtService;
+    private readonly IRefreshTokenService _refreshTokenService;
     private readonly IReturnUrlValidator _returnUrlValidator;
     private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
@@ -29,6 +30,7 @@ public class AuthenticationService : IAuthenticationService
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IJwtService jwtService,
+        IRefreshTokenService refreshTokenService,
         IReturnUrlValidator returnUrlValidator,
         IEmailService emailService,
         IConfiguration configuration,
@@ -38,6 +40,7 @@ public class AuthenticationService : IAuthenticationService
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtService = jwtService;
+        _refreshTokenService = refreshTokenService;
         _returnUrlValidator = returnUrlValidator;
         _emailService = emailService;
         _configuration = configuration;
@@ -176,12 +179,21 @@ public class AuthenticationService : IAuthenticationService
 
                 // Generate JWT token
                 var jwtToken = _jwtService.GenerateToken(user);
+
+                // Generate database-backed refresh token for persistent login
+                var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+                var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(
+                    user.Id, request.RememberMe, userAgent, cancellationToken);
+
                 var response = new LoginResponse
                 {
                     Token = jwtToken.Token,
                     ExpiresAt = jwtToken.ExpiresAt,
                     User = new AuthUserResponse(user),
-                    ReturnUrl = validatedReturnUrl // Null if not provided or validation failed
+                    ReturnUrl = validatedReturnUrl, // Null if not provided or validation failed
+                    RefreshToken = refreshToken.Token,
+                    RefreshTokenExpiresAt = refreshToken.ExpiresAt,
+                    RememberMe = request.RememberMe
                 };
 
                 _logger.LogInformation("User logged in successfully. Email={Email}, Method={Method}, UserId={UserId}", user.Email, "Password", user.Id);

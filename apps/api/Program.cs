@@ -33,6 +33,8 @@ using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
 using NpgsqlTypes;
+using WitchCityRope.Api.Features.Authentication.Jobs;
+using WitchCityRope.Api.Features.Authentication.Services;
 using WitchCityRope.Api.Features.Logging.Infrastructure;
 
 // Enable Serilog self-diagnostics so sink errors appear in stderr
@@ -389,6 +391,9 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 // Token blacklist service for logout functionality (singleton for shared state)
 builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
 
+// Refresh token service for database-backed persistent login sessions
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
 // Health service for health check endpoints
 builder.Services.AddScoped<IHealthService, HealthService>();
 
@@ -412,6 +417,9 @@ builder.Services.AddScoped<RestoreJob>();
 // Logging background jobs
 builder.Services.AddScoped<DailyLogSummaryJob>();
 builder.Services.AddScoped<LogRetentionCleanupJob>();
+
+// Authentication background jobs
+builder.Services.AddScoped<RefreshTokenCleanupJob>();
 
 // Email background jobs (ad-hoc bulk sends processed via Hangfire fire-and-forget)
 builder.Services.AddScoped<AdHocEmailSendJob>();
@@ -656,6 +664,14 @@ RecurringJob.AddOrUpdate<LogRetentionCleanupJob>(
     "log-retention-cleanup",
     job => job.ExecuteAsync(CancellationToken.None),
     "0 3 * * *",
+    new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
+);
+
+// Schedule refresh token cleanup at 4 AM UTC daily (deletes expired tokens older than 30 days)
+RecurringJob.AddOrUpdate<RefreshTokenCleanupJob>(
+    "refresh-token-cleanup",
+    job => job.ExecuteAsync(CancellationToken.None),
+    "0 4 * * *",
     new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
 );
 

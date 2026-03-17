@@ -195,7 +195,7 @@ export interface paths {
         put?: never;
         /**
          * Logout current user
-         * @description Logs out the current user, clears cookies, and blacklists tokens. Works even with expired tokens.
+         * @description Logs out the current user, clears cookies, blacklists JWT, and revokes refresh tokens. Works even with expired tokens.
          */
         post: operations["Logout"];
         delete?: never;
@@ -234,8 +234,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Refresh authentication token silently
-         * @description BFF pattern - refreshes httpOnly cookie with new JWT token
+         * Refresh authentication token using database-backed refresh token
+         * @description BFF pattern - validates refresh token cookie, rotates token, and issues new JWT access token
          */
         post: operations["RefreshToken"];
         delete?: never;
@@ -1846,6 +1846,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users/{userId}/contact-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update member contact information (admin) - auto-creates audit note */
+        put: operations["UpdateMemberContactInfo"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/safety/incidents": {
         parameters: {
             query?: never;
@@ -3008,6 +3025,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email-templates/variables/{category}/{templateType}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get available variables for a template type
+         * @description Returns the list of available template variables from the code registry. Used by the admin UI to show which variables can be used in templates.
+         */
+        get: operations["GetTemplateVariables"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/variables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all template variables grouped by category
+         * @description Returns all unique variables across all templates, grouped by category. Used by the test data editor.
+         */
+        get: operations["GetAllTemplateVariables"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/email-templates/test-data": {
         parameters: {
             query?: never;
@@ -3979,6 +4036,17 @@ export interface components {
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
         };
+        AdminUpdateContactInfoDto: {
+            sceneName: string;
+            firstName?: null | string;
+            lastName?: null | string;
+            email: string;
+            pronouns?: null | string;
+            discordName?: null | string;
+            fetLifeName?: null | string;
+            phoneNumber?: null | string;
+            otherNames?: null | string;
+        };
         AffectedTicketTypeDto: {
             /** Format: uuid */
             id?: string;
@@ -4576,7 +4644,7 @@ export interface components {
             slotsFilled?: number;
             isPublicFacing?: boolean;
             /** Format: uuid */
-            sessionId?: null | string;
+            sessionId: string;
         };
         CreateTicketPurchaseRequest: {
             /** Format: uuid */
@@ -4585,6 +4653,10 @@ export interface components {
             notes?: null | string;
             paymentMethodId?: null | string;
             eventWaiverAccepted: boolean;
+            /** Format: double */
+            amount?: null | number;
+            /** Format: double */
+            slidingScalePercentage?: number;
         };
         CreateUserNoteRequest: {
             content?: string;
@@ -4901,7 +4973,6 @@ export interface components {
             subject?: string;
             htmlBody?: string;
             plainTextBody?: string;
-            variables?: string[];
             isActive?: boolean;
             /** Format: int32 */
             version?: number;
@@ -5074,6 +5145,7 @@ export interface components {
             emailOrSceneName: string;
             password: string;
             returnUrl?: null | string;
+            rememberMe?: boolean;
         };
         LoginResponse: {
             token?: string;
@@ -5110,6 +5182,11 @@ export interface components {
             email?: null | string;
             discordName?: null | string;
             fetLifeHandle?: null | string;
+            firstName?: null | string;
+            lastName?: null | string;
+            phoneNumber?: null | string;
+            otherNames?: null | string;
+            pronouns?: string;
             role?: string;
             isActive?: boolean;
             /** Format: date-time */
@@ -5327,7 +5404,7 @@ export interface components {
             ticketTypeIds?: string[];
             /** Format: double */
             amount?: number;
-            /** Format: int32 */
+            /** Format: double */
             slidingScalePercentage?: number;
             currency?: null | string;
             eventTitle?: null | string;
@@ -5583,8 +5660,13 @@ export interface components {
             htmlBody?: string;
             plainTextBody?: string;
             recipientGroup?: string;
+            segment?: null | string;
             /** Format: int32 */
             recipientCount?: number;
+            /** Format: int32 */
+            successCount?: null | number;
+            /** Format: int32 */
+            failureCount?: null | number;
             /** Format: uuid */
             eventId?: null | string;
             eventTitle?: null | string;
@@ -6253,7 +6335,7 @@ export interface components {
             /** Format: uuid */
             eventId?: string;
             /** Format: uuid */
-            sessionId?: null | string;
+            sessionId?: string;
             title?: string;
             description?: string;
             /** Format: int32 */
@@ -10955,6 +11037,65 @@ export interface operations {
             };
         };
     };
+    UpdateMemberContactInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUpdateContactInfoDto"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     SubmitIncident: {
         parameters: {
             query?: never;
@@ -14289,6 +14430,96 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetTemplateVariables: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category: string;
+                templateType: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetAllTemplateVariables: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string[];
+                    };
                 };
             };
             /** @description Unauthorized */

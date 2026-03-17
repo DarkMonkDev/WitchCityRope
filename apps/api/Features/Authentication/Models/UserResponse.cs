@@ -46,31 +46,3 @@ public class UserResponse
     /// </summary>
     public bool EmailConfirmed { get; set; }
 }
-
-/// <summary>
-/// Login response with user data and token
-/// </summary>
-public class LoginResponse
-{
-    /// <summary>
-    /// JWT token for API authentication
-    /// </summary>
-    public string Token { get; set; } = string.Empty;
-
-    /// <summary>
-    /// When the token expires
-    /// </summary>
-    public DateTime ExpiresAt { get; set; }
-
-    /// <summary>
-    /// User information
-    /// </summary>
-    public AuthUserResponse User { get; set; } = new();
-
-    /// <summary>
-    /// Validated return URL to redirect to after successful login
-    /// Null if no return URL was provided or validation failed (client should default to /dashboard)
-    /// Guaranteed to be safe (OWASP-compliant validation applied)
-    /// </summary>
-    public string? ReturnUrl { get; set; }
-}

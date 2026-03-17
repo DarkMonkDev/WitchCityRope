@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Models;
-using WitchCityRope.Api.Models.Auth;
 
 namespace WitchCityRope.Api.Features.Admin.Endpoints;
 

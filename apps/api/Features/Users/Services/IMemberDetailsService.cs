@@ -79,4 +79,14 @@ public interface IMemberDetailsService
     Task<(bool Success, List<ProfileChangeHistoryDto>? Response, string Error)> GetProfileChangeHistoryAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Update member contact information (admin only)
+    /// Creates audit notes for all changed fields
+    /// </summary>
+    Task<(bool Success, string Error)> UpdateMemberContactInfoAsync(
+        Guid userId,
+        AdminUpdateContactInfoDto request,
+        Guid performedByUserId,
+        CancellationToken cancellationToken = default);
 }

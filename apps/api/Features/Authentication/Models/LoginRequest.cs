@@ -26,4 +26,11 @@ public class LoginRequest
     /// If not provided or validation fails, defaults to /dashboard
     /// </summary>
     public string? ReturnUrl { get; set; }
+
+    /// <summary>
+    /// Whether to create a persistent login session (14 days) or session-only (24 hours).
+    /// When true, the refresh token cookie will persist across browser restarts.
+    /// When false, the refresh token uses a session cookie that's cleared when the browser closes.
+    /// </summary>
+    public bool RememberMe { get; set; }
 }

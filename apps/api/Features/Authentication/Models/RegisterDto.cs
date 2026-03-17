@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace WitchCityRope.Api.Models.Auth;
+namespace WitchCityRope.Api.Features.Authentication.Models;
 
 /// <summary>
-/// Registration request DTO for new user accounts
-/// For authentication vertical slice test
+/// Legacy registration request DTO for the original IAuthService/AuthService.
+/// Does not include Terms of Service acceptance.
+/// The vertical slice equivalent is RegisterRequest which requires ToS acceptance.
 /// </summary>
 public class RegisterDto
 {

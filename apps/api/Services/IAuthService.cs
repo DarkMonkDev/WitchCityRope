@@ -1,4 +1,3 @@
-using WitchCityRope.Api.Models.Auth;
 using WitchCityRope.Api.Features.Authentication.Models;
 
 namespace WitchCityRope.Api.Services;
@@ -21,7 +20,7 @@ public interface IAuthService
     /// </summary>
     /// <param name="loginDto">Login credentials</param>
     /// <returns>User data and JWT token or error</returns>
-    Task<(bool Success, WitchCityRope.Api.Models.Auth.LoginResponse? Response, string ErrorMessage)> LoginAsync(LoginDto loginDto);
+    Task<(bool Success, LoginResponse? Response, string ErrorMessage)> LoginAsync(LoginDto loginDto);
 
     /// <summary>
     /// Get JWT token for existing user (service-to-service authentication)
@@ -29,7 +28,7 @@ public interface IAuthService
     /// <param name="userId">User ID</param>
     /// <param name="email">User email for verification</param>
     /// <returns>JWT token response or error</returns>
-    Task<(bool Success, WitchCityRope.Api.Models.Auth.LoginResponse? Response, string ErrorMessage)> GetServiceTokenAsync(string userId, string email);
+    Task<(bool Success, LoginResponse? Response, string ErrorMessage)> GetServiceTokenAsync(string userId, string email);
 
     /// <summary>
     /// Get user by ID

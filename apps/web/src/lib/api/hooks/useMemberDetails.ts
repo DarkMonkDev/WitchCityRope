@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../client'
-import type { MemberDetailsResponse, VettingDetailsResponse, VettingDetailsResponseExtended, EventHistoryResponse, VolunteerHistoryResponse, MemberIncidentsResponse, UserNoteResponse, MemberNoteHistoryResponse, CreateUserNoteRequest, UpdateMemberStatusRequest } from '../types/member-details.types'
+import type { MemberDetailsResponse, VettingDetailsResponse, VettingDetailsResponseExtended, EventHistoryResponse, VolunteerHistoryResponse, MemberIncidentsResponse, UserNoteResponse, MemberNoteHistoryResponse, CreateUserNoteRequest, UpdateMemberStatusRequest, AdminUpdateContactInfoDto } from '../types/member-details.types'
 import { membersKeys } from '../../../features/admin/members/hooks/useMembers'
 
 // Query keys for caching
@@ -219,6 +219,34 @@ export function useUpdateMemberRole() {
     },
     onError: (error: Error) => {
       console.error('Failed to update role:', error)
+    },
+  })
+}
+
+// Update member contact information mutation (admin)
+export function useUpdateMemberContactInfo() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      request,
+    }: {
+      userId: string
+      request: AdminUpdateContactInfoDto
+    }): Promise<void> => {
+      await apiClient.put(`/api/users/${userId}/contact-info`, request)
+    },
+    onSuccess: (_data: void, variables: { userId: string; request: AdminUpdateContactInfoDto }) => {
+      // Invalidate member details so the updated contact info is refetched
+      queryClient.invalidateQueries({ queryKey: memberDetailsKeys.details(variables.userId) })
+      // Invalidate notes so the admin audit note appears in the notes section
+      queryClient.invalidateQueries({ queryKey: memberDetailsKeys.notes(variables.userId) })
+      // Invalidate admin members list so navigation back shows updated data
+      queryClient.invalidateQueries({ queryKey: membersKeys.all })
+    },
+    onError: (error: Error) => {
+      console.error('Failed to update member contact info:', error)
     },
   })
 }

@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace WitchCityRope.Api.Models.Auth;
+namespace WitchCityRope.Api.Features.Authentication.Models;
 
 /// <summary>
-/// Login request DTO for user authentication
-/// For authentication vertical slice test
+/// Legacy login request DTO for the original IAuthService/AuthService.
+/// Uses email-only login (no scene name support).
+/// The vertical slice equivalent is LoginRequest which supports email OR scene name.
 /// </summary>
 public class LoginDto
 {

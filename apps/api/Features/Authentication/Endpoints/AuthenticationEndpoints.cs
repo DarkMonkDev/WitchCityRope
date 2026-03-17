@@ -71,17 +71,33 @@ public static class AuthenticationEndpoints
 
                 if (success && response != null)
                 {
-                    // Set httpOnly cookie with JWT token for BFF pattern
-                    var cookieOptions = new CookieOptions
+                    // Set access token as session cookie (NO Expires - cleared when browser closes)
+                    // JWT has its own 15-minute expiration enforced server-side
+                    var accessCookieOptions = new CookieOptions
                     {
                         HttpOnly = true,
-                        Secure = context.Request.IsHttps, // Use HTTPS in production
-                        SameSite = SameSiteMode.Strict, // SECURITY: Maximum CSRF protection (changed from Lax)
-                        Path = "/",
-                        Expires = response.ExpiresAt
+                        Secure = context.Request.IsHttps,
+                        SameSite = SameSiteMode.Strict,
+                        Path = "/"
+                        // NO Expires - session cookie only
                     };
+                    context.Response.Cookies.Append("auth-token", response.Token, accessCookieOptions);
 
-                    context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
+                    // Set refresh token cookie scoped to auth endpoints only (minimizes exposure)
+                    var refreshCookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = context.Request.IsHttps,
+                        SameSite = SameSiteMode.Strict,
+                        Path = "/api/auth" // SCOPED: Only sent to auth endpoints
+                    };
+                    // Only set Expires for "remember me" - makes it a persistent cookie
+                    // Without Expires, it's a session cookie (cleared when browser closes)
+                    if (response.RememberMe && response.RefreshTokenExpiresAt.HasValue)
+                    {
+                        refreshCookieOptions.Expires = response.RefreshTokenExpiresAt.Value;
+                    }
+                    context.Response.Cookies.Append("refresh-token", response.RefreshToken!, refreshCookieOptions);
 
                     // CRITICAL: Regenerate CSRF token after successful login
                     // This prevents session fixation attacks and ensures fresh token for authenticated session
@@ -209,7 +225,7 @@ public static class AuthenticationEndpoints
             .Produces(401)
             .Produces(404);
 
-        // Logout endpoint with cookie clearing and token blacklisting
+        // Logout endpoint with cookie clearing, token blacklisting, and refresh token revocation
         // CRITICAL SECURITY: CSRF protection REQUIRED to prevent logout CSRF attacks
         // .NET 10 Minimal APIs with JSON do NOT validate CSRF automatically - must inject IAntiforgery and validate manually
         app.MapPost("/api/auth/logout", async (
@@ -218,6 +234,7 @@ public static class AuthenticationEndpoints
             ILogger<IAuthenticationService> logger,
             IJwtService jwtService,
             ITokenBlacklistService tokenBlacklistService,
+            IRefreshTokenService refreshTokenService,
             CancellationToken cancellationToken) =>
             {
                 // CRITICAL: Validate anti-forgery token FIRST before any logout logic
@@ -234,90 +251,52 @@ public static class AuthenticationEndpoints
                         statusCode: 400);
                 }
 
+                logger.LogInformation("Logout request received from {RemoteIP}", context.Connection.RemoteIpAddress);
 
-                logger.LogInformation("🔐 LOGOUT DEBUG: Logout request received from {RemoteIP}", context.Connection.RemoteIpAddress);
-
-                // DEBUG: Log all incoming cookies
-                logger.LogInformation("🔐 LOGOUT DEBUG: All incoming cookies: {Cookies}",
-                    string.Join(", ", context.Request.Cookies.Select(c => $"{c.Key}={c.Value?.Substring(0, Math.Min(c.Value.Length, 20))}...")));
                 try
                 {
-                    // Log logout attempt and blacklist the token
+                    // Blacklist the JWT access token to prevent use during remaining lifetime
                     var authCookie = context.Request.Cookies["auth-token"];
+                    Guid? userGuid = null;
+
                     if (!string.IsNullOrEmpty(authCookie))
                     {
-                        logger.LogInformation("🔐 LOGOUT DEBUG: Found auth-token cookie, length: {Length}", authCookie.Length);
-
-                        // Extract JTI and add to blacklist to invalidate the token server-side
                         var jti = jwtService.ExtractJti(authCookie);
                         if (!string.IsNullOrEmpty(jti))
                         {
-                            logger.LogInformation("🔐 LOGOUT DEBUG: Extracted JTI: {Jti}", jti);
-
-                            // Get token expiration time
                             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
                             try
                             {
                                 var jsonToken = handler.ReadJwtToken(authCookie);
                                 var expirationTime = jsonToken.ValidTo;
-
-                                // Add token to blacklist
                                 tokenBlacklistService.BlacklistToken(jti, expirationTime);
-                                logger.LogInformation("🔐 LOGOUT DEBUG: Token with JTI {Jti} blacklisted until {ExpirationTime}", jti, expirationTime);
+                                logger.LogDebug("JWT blacklisted: JTI {Jti}, expires {ExpirationTime}", jti, expirationTime);
+
+                                // Extract user ID for refresh token revocation
+                                var userIdClaim = jsonToken.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
+                                if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var parsedGuid))
+                                {
+                                    userGuid = parsedGuid;
+                                }
                             }
                             catch (Exception ex)
                             {
-                                logger.LogWarning(ex, "🔐 LOGOUT DEBUG: Failed to parse token for blacklisting, but continuing with logout");
+                                logger.LogWarning(ex, "Failed to parse JWT for blacklisting, continuing with logout");
                             }
                         }
-                        else
-                        {
-                            logger.LogWarning("🔐 LOGOUT DEBUG: Could not extract JTI from token for blacklisting");
-                        }
-                    }
-                    else
-                    {
-                        logger.LogInformation("🔐 LOGOUT DEBUG: No auth-token cookie found - clearing any stale cookies");
                     }
 
-                    // Clear the httpOnly authentication cookie with EXACTLY the same options as when set
-                    // CRITICAL: Use same options as login to ensure proper deletion
-                    var cookieOptions = new CookieOptions
+                    // Revoke all refresh tokens for this user (terminates all sessions)
+                    if (userGuid.HasValue)
                     {
-                        HttpOnly = true,
-                        Secure = context.Request.IsHttps, // Use HTTPS in production
-                        SameSite = SameSiteMode.Strict, // Must match login cookie settings (changed to Strict)
-                        Path = "/",
-                        Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set to past date for deletion
-                    };
+                        await refreshTokenService.RevokeAllUserTokensAsync(userGuid.Value, cancellationToken);
+                        logger.LogInformation("Revoked all refresh tokens for user {UserId} on logout", userGuid.Value);
+                    }
 
-                    logger.LogInformation("🔐 LOGOUT DEBUG: Clearing cookie with options - HttpOnly: {HttpOnly}, Secure: {Secure}, SameSite: {SameSite}, Path: {Path}, Expires: {Expires}",
-                        cookieOptions.HttpOnly, cookieOptions.Secure, cookieOptions.SameSite, cookieOptions.Path, cookieOptions.Expires);
+                    // Clear all authentication cookies
+                    ClearAuthCookies(context);
 
-                    // Method 1: Explicitly set cookie to empty with past expiration
-                    context.Response.Cookies.Append("auth-token", "", cookieOptions);
-                    logger.LogInformation("🔐 LOGOUT DEBUG: Called Append with empty value and past expiration");
-
-                    // Method 2: Also use Delete method as backup
-                    context.Response.Cookies.Delete("auth-token", new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = context.Request.IsHttps,
-                        SameSite = SameSiteMode.Strict, // Must match login cookie settings (changed to Strict)
-                        Path = "/"
-                    });
-                    logger.LogInformation("🔐 LOGOUT DEBUG: Called Delete method as backup");
-
-                    // DEBUG: Log response headers being set
-                    context.Response.OnStarting(() =>
-                    {
-                        var setCookieHeaders = context.Response.Headers["Set-Cookie"];
-                        logger.LogInformation("🔐 LOGOUT DEBUG: Set-Cookie headers: {Headers}",
-                            string.Join("; ", setCookieHeaders.ToArray()));
-                        return Task.CompletedTask;
-                    });
-
-                    logger.LogInformation("🔐 LOGOUT DEBUG: Logout completed successfully");
+                    logger.LogInformation("Logout completed successfully");
 
                     return Results.Ok(new
                     {
@@ -327,7 +306,7 @@ public static class AuthenticationEndpoints
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "🔐 LOGOUT DEBUG: Logout error occurred");
+                    logger.LogError(ex, "Logout error occurred");
                     // Still return success - logout should always succeed from user perspective
                     return Results.Ok(new
                     {
@@ -340,7 +319,7 @@ public static class AuthenticationEndpoints
             // CSRF validation handled via IAntiforgery.ValidateRequestAsync() in endpoint logic above
             .WithName("Logout")
             .WithSummary("Logout current user")
-            .WithDescription("Logs out the current user, clears cookies, and blacklists tokens. Works even with expired tokens.")
+            .WithDescription("Logs out the current user, clears cookies, blacklists JWT, and revokes refresh tokens. Works even with expired tokens.")
             .WithTags("Authentication")
             .Produces<object>(200);
 
@@ -367,27 +346,8 @@ public static class AuthenticationEndpoints
                     // Validate token and extract user ID
                     if (!jwtService.ValidateToken(token))
                     {
-                        // Clear invalid cookie with same options as when set
-                        var clearCookieOptions = new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = context.Request.IsHttps,
-                            SameSite = SameSiteMode.Strict, // Must match login cookie settings (changed to Strict)
-                            Path = "/",
-                            Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set to past date for deletion
-                        };
-
-                        // Method 1: Set to empty with past expiration
-                        context.Response.Cookies.Append("auth-token", "", clearCookieOptions);
-
-                        // Method 2: Also use Delete as backup
-                        context.Response.Cookies.Delete("auth-token", new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = context.Request.IsHttps,
-                            SameSite = SameSiteMode.Strict, // Must match login cookie settings (changed to Strict)
-                            Path = "/"
-                        });
+                        // Clear all auth cookies when token is invalid
+                        ClearAuthCookies(context);
 
                         return Results.Problem(
                             title: "Invalid Token",
@@ -436,18 +396,19 @@ public static class AuthenticationEndpoints
             .Produces(404)
             .Produces(500);
 
-        // Refresh token endpoint for silent token refresh
-        // SECURITY: CSRF protection REQUIRED to prevent session hijacking via CSRF
+        // Refresh token endpoint using database-backed refresh tokens with rotation
+        // SECURITY: CSRF protection REQUIRED for defense-in-depth
         // .NET 10 Minimal APIs with JSON do NOT validate CSRF automatically - must inject IAntiforgery and validate manually
         app.MapPost("/api/auth/refresh", async (
             HttpContext context,
             IAntiforgery antiforgery,
+            IRefreshTokenService refreshTokenService,
             IAuthenticationService authService,
-            IJwtService jwtService,
             ILogger<IAuthenticationService> logger,
             CancellationToken cancellationToken) =>
             {
-                // CRITICAL: Validate anti-forgery token FIRST before any refresh logic
+                // CSRF validation for defense-in-depth
+                // NOTE: On wake-from-sleep, CSRF token may be stale. Frontend handles retry.
                 try
                 {
                     await antiforgery.ValidateRequestAsync(context);
@@ -463,75 +424,94 @@ public static class AuthenticationEndpoints
 
                 try
                 {
-                    // Get current token from cookie
-                    var currentToken = context.Request.Cookies["auth-token"];
-                    if (string.IsNullOrEmpty(currentToken))
+                    // Read refresh token from scoped httpOnly cookie
+                    var refreshTokenCookie = context.Request.Cookies["refresh-token"];
+                    if (string.IsNullOrEmpty(refreshTokenCookie))
                     {
                         return Results.Problem(
-                            title: "No Token",
-                            detail: "No authentication token found for refresh",
+                            title: "No Refresh Token",
+                            detail: "No refresh token found",
                             statusCode: 401);
                     }
 
-                    // Validate current token structure (allow expired for refresh)
-                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                    System.IdentityModel.Tokens.Jwt.JwtSecurityToken jsonToken;
+                    var deviceInfo = context.Request.Headers.UserAgent.ToString();
 
-                    try
+                    // Rotate the refresh token (validates, revokes old, creates new)
+                    var (newToken, userId, error) = await refreshTokenService.RotateRefreshTokenAsync(
+                        refreshTokenCookie, deviceInfo, cancellationToken);
+
+                    if (newToken is null || userId is null)
                     {
-                        jsonToken = handler.ReadJwtToken(currentToken);
-                    }
-                    catch
-                    {
+                        // Token invalid, expired, or reuse detected - clear all auth cookies
+                        ClearAuthCookies(context);
+
+                        logger.LogWarning("Refresh token rotation failed: {Error}", error);
                         return Results.Problem(
-                            title: "Invalid Token",
-                            detail: "Token format is invalid",
+                            title: "Refresh Failed",
+                            detail: error,
                             statusCode: 401);
                     }
 
-                    // Extract user info from token
-                    var userId = jsonToken?.Claims?.FirstOrDefault(x => x.Type == "sub")?.Value;
-                    var email = jsonToken?.Claims?.FirstOrDefault(x => x.Type == "email")?.Value;
+                    // Look up user to get email for JWT generation
+                    var (userSuccess, userResponse, userError) = await authService.GetCurrentUserAsync(
+                        userId.Value.ToString(), cancellationToken);
 
-                    if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
+                    if (!userSuccess || userResponse is null)
                     {
+                        ClearAuthCookies(context);
                         return Results.Problem(
-                            title: "Invalid Token Claims",
-                            detail: "Required user information not found in token",
+                            title: "User Not Found",
+                            detail: "Could not find user for token refresh",
                             statusCode: 401);
                     }
 
-                    // Generate new token for the user
-                    var (success, response, error) = await authService.GetServiceTokenAsync(userId, email, cancellationToken);
+                    // Generate new JWT access token via service token endpoint
+                    var (tokenSuccess, tokenResponse, tokenError) = await authService.GetServiceTokenAsync(
+                        userId.Value.ToString(), userResponse.Email, cancellationToken);
 
-                    if (success && response != null)
+                    if (!tokenSuccess || tokenResponse is null)
                     {
-                        // Set new httpOnly cookie
-                        var cookieOptions = new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = context.Request.IsHttps,
-                            SameSite = SameSiteMode.Strict,
-                            Path = "/",
-                            Expires = response.ExpiresAt
-                        };
-
-                        context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
-
-                        logger.LogDebug("Token refreshed successfully for user {UserId}", userId);
-
-                        return Results.Ok(new
-                        {
-                            Success = true,
-                            Message = "Token refreshed successfully",
-                            ExpiresAt = response.ExpiresAt
-                        });
+                        ClearAuthCookies(context);
+                        return Results.Problem(
+                            title: "Token Generation Failed",
+                            detail: "Could not generate new access token",
+                            statusCode: 500);
                     }
 
-                    return Results.Problem(
-                        title: "Refresh Failed",
-                        detail: error,
-                        statusCode: 400);
+                    // Set new access token cookie (session cookie - no Expires)
+                    var accessCookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = context.Request.IsHttps,
+                        SameSite = SameSiteMode.Strict,
+                        Path = "/"
+                    };
+                    context.Response.Cookies.Append("auth-token", tokenResponse.Token, accessCookieOptions);
+
+                    // Set new refresh token cookie (persistent if remember-me, session otherwise)
+                    var refreshCookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = context.Request.IsHttps,
+                        SameSite = SameSiteMode.Strict,
+                        Path = "/api/auth"
+                    };
+                    // Determine if this is a remember-me session based on token expiration window
+                    var isRememberMe = (newToken.ExpiresAt - newToken.CreatedAt).TotalHours > 25;
+                    if (isRememberMe)
+                    {
+                        refreshCookieOptions.Expires = newToken.ExpiresAt;
+                    }
+                    context.Response.Cookies.Append("refresh-token", newToken.Token, refreshCookieOptions);
+
+                    logger.LogDebug("Token refreshed successfully for user {UserId}", userId);
+
+                    return Results.Ok(new
+                    {
+                        Success = true,
+                        Message = "Token refreshed successfully",
+                        ExpiresAt = tokenResponse.ExpiresAt
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -542,11 +522,11 @@ public static class AuthenticationEndpoints
                         statusCode: 500);
                 }
             })
-            .AllowAnonymous() // Uses cookie-based authentication
+            .AllowAnonymous() // Uses cookie-based authentication (refresh token in httpOnly cookie)
             // CSRF validation handled via IAntiforgery.ValidateRequestAsync() in endpoint logic above
             .WithName("RefreshToken")
-            .WithSummary("Refresh authentication token silently")
-            .WithDescription("BFF pattern - refreshes httpOnly cookie with new JWT token")
+            .WithSummary("Refresh authentication token using database-backed refresh token")
+            .WithDescription("BFF pattern - validates refresh token cookie, rotates token, and issues new JWT access token")
             .WithTags("Authentication")
             .Produces<object>(200)
             .Produces(400)
@@ -659,5 +639,30 @@ public static class AuthenticationEndpoints
             .Produces<object>(200)
             .Produces(400);
 
+    }
+
+    /// <summary>
+    /// Clear all authentication cookies (access token + refresh token).
+    /// Used on refresh failure, logout, and invalid token detection to ensure clean state.
+    /// </summary>
+    private static void ClearAuthCookies(HttpContext context)
+    {
+        // Clear access token cookie
+        context.Response.Cookies.Delete("auth-token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = context.Request.IsHttps,
+            SameSite = SameSiteMode.Strict,
+            Path = "/"
+        });
+
+        // Clear refresh token cookie (must match the Path used when setting it)
+        context.Response.Cookies.Delete("refresh-token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = context.Request.IsHttps,
+            SameSite = SameSiteMode.Strict,
+            Path = "/api/auth"
+        });
     }
 }

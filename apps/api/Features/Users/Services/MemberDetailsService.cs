@@ -124,6 +124,11 @@ public class MemberDetailsService : IMemberDetailsService
                 Email = user.Email,
                 DiscordName = user.DiscordName,
                 FetLifeHandle = user.FetLifeName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                OtherNames = user.OtherNames,
+                Pronouns = user.Pronouns,
                 Role = user.Role,
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
@@ -771,6 +776,165 @@ public class MemberDetailsService : IMemberDetailsService
         {
             _logger.LogError(ex, "Failed to get profile change history for user {UserId}", userId);
             return (false, null, "Failed to retrieve profile change history");
+        }
+    }
+
+    /// <summary>
+    /// Update member contact information (admin only)
+    /// Endpoint 10: PUT /api/users/{id}/contact-info
+    /// Creates audit notes for all changed fields
+    /// </summary>
+    public async Task<(bool Success, string Error)> UpdateMemberContactInfoAsync(
+        Guid userId,
+        AdminUpdateContactInfoDto request,
+        Guid performedByUserId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Admin {AdminId} updating contact info for user {UserId}", performedByUserId, userId);
+
+            // Use a retry loop to handle optimistic concurrency conflicts
+            const int maxRetries = 3;
+            for (int attempt = 0; attempt < maxRetries; attempt++)
+            {
+                // Fetch fresh user data for each attempt to ensure we have latest ConcurrencyStamp
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    _logger.LogWarning("Cannot update contact info - user not found: {UserId}", userId);
+                    return (false, "User not found");
+                }
+
+                // Store the original concurrency stamp for logging
+                var originalStamp = user.ConcurrencyStamp;
+
+                // Track changed fields for audit logging
+                var changedFields = new List<(string FieldName, string? OldValue, string? NewValue)>();
+
+                // Helper method for change detection (normalize null and empty string)
+                bool HasChanged(string? oldValue, string? newValue)
+                {
+                    var normalizedOld = string.IsNullOrWhiteSpace(oldValue) ? null : oldValue.Trim();
+                    var normalizedNew = string.IsNullOrWhiteSpace(newValue) ? null : newValue.Trim();
+                    return !string.Equals(normalizedOld, normalizedNew, StringComparison.Ordinal);
+                }
+
+                // Detect changes for each field
+                if (HasChanged(user.SceneName, request.SceneName))
+                    changedFields.Add(("Scene Name", user.SceneName, request.SceneName));
+
+                if (HasChanged(user.FirstName, request.FirstName))
+                    changedFields.Add(("First Name", user.FirstName, request.FirstName));
+
+                if (HasChanged(user.LastName, request.LastName))
+                    changedFields.Add(("Last Name", user.LastName, request.LastName));
+
+                if (HasChanged(user.Email, request.Email))
+                    changedFields.Add(("Email", user.Email, request.Email));
+
+                if (HasChanged(user.Pronouns, request.Pronouns))
+                    changedFields.Add(("Pronouns", user.Pronouns, request.Pronouns));
+
+                if (HasChanged(user.DiscordName, request.DiscordName))
+                    changedFields.Add(("Discord Name", user.DiscordName, request.DiscordName));
+
+                if (HasChanged(user.FetLifeName, request.FetLifeName))
+                    changedFields.Add(("FetLife Name", user.FetLifeName, request.FetLifeName));
+
+                if (HasChanged(user.PhoneNumber, request.PhoneNumber))
+                    changedFields.Add(("Phone Number", user.PhoneNumber, request.PhoneNumber));
+
+                if (HasChanged(user.OtherNames, request.OtherNames))
+                    changedFields.Add(("Other Names", user.OtherNames, request.OtherNames));
+
+                // Apply field updates to the user entity
+                user.SceneName = request.SceneName;
+                user.FirstName = request.FirstName;
+                user.LastName = request.LastName;
+                user.Email = request.Email;
+                user.UserName = request.Email; // Keep UserName in sync with Email
+                user.Pronouns = request.Pronouns ?? string.Empty;
+                user.DiscordName = request.DiscordName;
+                user.FetLifeName = request.FetLifeName;
+                user.PhoneNumber = request.PhoneNumber;
+                user.OtherNames = request.OtherNames;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                // UserManager.UpdateAsync handles optimistic concurrency automatically via ConcurrencyStamp
+                var updateResult = await _userManager.UpdateAsync(user);
+
+                if (updateResult.Succeeded)
+                {
+                    // Create audit note for changed fields
+                    if (changedFields.Count > 0)
+                    {
+                        // Fetch admin's scene name for the audit note
+                        var adminUser = await _context.Users
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(u => u.Id == performedByUserId, cancellationToken);
+                        var adminSceneName = adminUser?.SceneName ?? "Unknown Admin";
+
+                        // Build a single audit note summarizing all changes
+                        var changeDescriptions = changedFields.Select(cf =>
+                            $"{cf.FieldName} from \"{cf.OldValue ?? "(empty)"}\" to \"{cf.NewValue ?? "(empty)"}\"");
+                        var noteContent = $"[Admin Edit by {adminSceneName}] Changed: {string.Join(", ", changeDescriptions)}";
+
+                        var auditNote = new WitchCityRope.Api.Data.Entities.UserNote(
+                            userId: userId,
+                            content: noteContent,
+                            noteType: "Administrative",
+                            authorId: performedByUserId
+                        );
+
+                        _context.UserNotes.Add(auditNote);
+                        await _context.SaveChangesAsync(cancellationToken);
+
+                        _logger.LogInformation(
+                            "Admin {AdminId} updated {ChangeCount} fields for user {UserId}. Changes: {Changes}",
+                            performedByUserId, changedFields.Count, userId,
+                            string.Join(", ", changedFields.Select(cf => cf.FieldName)));
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No changes detected for user {UserId} contact info update", userId);
+                    }
+
+                    return (true, string.Empty);
+                }
+
+                // Check if the failure is due to concurrency conflict
+                var concurrencyError = updateResult.Errors.FirstOrDefault(e =>
+                    e.Code == "ConcurrencyFailure" || e.Description.Contains("concurrency", StringComparison.OrdinalIgnoreCase));
+
+                if (concurrencyError != null && attempt < maxRetries - 1)
+                {
+                    // Concurrency conflict detected - retry with fresh data
+                    _logger.LogWarning(
+                        "Concurrency conflict updating contact info for user {UserId} (attempt {Attempt}/{MaxRetries}). " +
+                        "Original stamp: {OriginalStamp}. Retrying...",
+                        userId, attempt + 1, maxRetries, originalStamp);
+
+                    // Small delay before retry to reduce contention
+                    await Task.Delay(50 * (attempt + 1), cancellationToken);
+                    continue;
+                }
+
+                // Non-concurrency error or final retry exhausted
+                var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+                _logger.LogError(
+                    "Failed to update contact info for user {UserId} after {Attempt} attempts. Errors: {Errors}",
+                    userId, attempt + 1, errors);
+                return (false, $"Failed to update contact information: {errors}");
+            }
+
+            // Should never reach here, but just in case
+            return (false, "Failed to update contact information after multiple attempts");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update contact info for user {UserId}", userId);
+            return (false, "Failed to update contact information");
         }
     }
 

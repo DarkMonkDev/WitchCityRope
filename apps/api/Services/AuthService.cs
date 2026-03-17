@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
-using WitchCityRope.Api.Models;
-using WitchCityRope.Api.Models.Auth;
 using WitchCityRope.Api.Features.Authentication.Models;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Services;
 
@@ -86,7 +85,7 @@ public class AuthService : IAuthService
     /// <summary>
     /// Authenticate user and generate JWT token
     /// </summary>
-    public async Task<(bool Success, WitchCityRope.Api.Models.Auth.LoginResponse? Response, string ErrorMessage)> LoginAsync(LoginDto loginDto)
+    public async Task<(bool Success, LoginResponse? Response, string ErrorMessage)> LoginAsync(LoginDto loginDto)
     {
         try
         {
@@ -107,7 +106,7 @@ public class AuthService : IAuthService
 
                 // Generate JWT token
                 var jwtToken = _jwtService.GenerateToken(user);
-                var response = new WitchCityRope.Api.Models.Auth.LoginResponse
+                var response = new LoginResponse
                 {
                     Token = jwtToken.Token,
                     ExpiresAt = jwtToken.ExpiresAt,
@@ -138,7 +137,7 @@ public class AuthService : IAuthService
     /// Generate service token for existing authenticated user
     /// Used for service-to-service authentication bridge
     /// </summary>
-    public async Task<(bool Success, WitchCityRope.Api.Models.Auth.LoginResponse? Response, string ErrorMessage)> GetServiceTokenAsync(string userId, string email)
+    public async Task<(bool Success, LoginResponse? Response, string ErrorMessage)> GetServiceTokenAsync(string userId, string email)
     {
         try
         {
@@ -159,7 +158,7 @@ public class AuthService : IAuthService
 
             // Generate JWT token
             var jwtToken = _jwtService.GenerateToken(user);
-            var response = new WitchCityRope.Api.Models.Auth.LoginResponse
+            var response = new LoginResponse
             {
                 Token = jwtToken.Token,
                 ExpiresAt = jwtToken.ExpiresAt,

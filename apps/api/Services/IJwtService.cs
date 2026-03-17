@@ -1,5 +1,5 @@
+using WitchCityRope.Api.Features.Authentication.Models;
 using WitchCityRope.Api.Models;
-using WitchCityRope.Api.Models.Auth;
 
 namespace WitchCityRope.Api.Services;
 

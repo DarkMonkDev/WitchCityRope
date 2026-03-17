@@ -18,6 +18,8 @@ using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Entities.Configuration;
 using WitchCityRope.Api.Features.Logging.Entities;
 using WitchCityRope.Api.Features.Logging.Configuration;
+using WitchCityRope.Api.Features.Authentication.Entities;
+using WitchCityRope.Api.Features.Authentication.Entities.Configuration;
 
 namespace WitchCityRope.Api.Data;
 
@@ -293,6 +295,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// Daily log summaries table (written by Hangfire aggregation jobs)
     /// </summary>
     public DbSet<DailyLogSummary> DailyLogSummaries { get; set; }
+
+    /// <summary>
+    /// Database-backed refresh tokens for persistent login sessions
+    /// </summary>
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1157,6 +1164,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Apply Logging configurations
         modelBuilder.ApplyConfiguration(new ApplicationLogConfiguration());
         modelBuilder.ApplyConfiguration(new DailyLogSummaryConfiguration());
+
+        // Authentication configurations
+        modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
 
         // Settings entity configuration
         modelBuilder.Entity<WitchCityRope.Api.Core.Entities.Setting>(entity =>

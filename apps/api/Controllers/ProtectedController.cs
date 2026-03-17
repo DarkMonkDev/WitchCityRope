@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using WitchCityRope.Api.Models;
-using WitchCityRope.Api.Models.Auth;
-using WitchCityRope.Api.Services;
 using WitchCityRope.Api.Features.Authentication.Models;
+using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Services;
 
 namespace WitchCityRope.Api.Controllers;
 
