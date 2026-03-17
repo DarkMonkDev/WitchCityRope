@@ -188,7 +188,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
 
           {/* Description - uses default text color for readability */}
           {position.description && (
-            <Text size="md" mt={0}>
+            <Text size="md" mt={8}>
               {position.description}
             </Text>
           )}
@@ -378,17 +378,23 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
             variant="light"
             /* Hide icon on mobile for cleaner compact layout; show on desktop */
             icon={!isMobile ? <IconCheck size={16} /> : undefined}
-            p={8}
-            style={isMobile ? {
-              marginLeft: 'calc(-1 * var(--space-md))',
-              marginRight: 'calc(-1 * var(--space-md))',
-              marginBottom: 'calc(-1 * var(--space-md))',
-              borderRadius: 0
-            } : undefined}
+            style={{
+              marginTop: 8,
+              paddingTop: 0,
+              paddingBottom: 0,
+              paddingLeft: 8,
+              paddingRight: 8,
+              ...(isMobile ? {
+                marginLeft: 'calc(-1 * var(--space-md))',
+                marginRight: 'calc(-1 * var(--space-md))',
+                marginBottom: 'calc(-1 * var(--space-md))',
+                borderRadius: 0
+              } : {})
+            }}
             styles={{
-              /* Align the icon vertically with the compact 8px padding */
               icon: { marginRight: 8, alignSelf: 'center' },
-              body: { alignItems: 'center' }
+              /* Desktop: let body stretch full width so justify="space-between" works */
+              body: { flex: 1 }
             }}
           >
             {isMobile ? (
