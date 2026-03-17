@@ -34,12 +34,6 @@ export function useAuthRefresh() {
       } catch (error: any) {
         if (error.response?.status === 401) {
           console.log('Token refresh failed - session may have expired')
-        } else if (error.response?.status === 400) {
-          // CSRF validation failed - this is expected after sleep when CSRF token is stale
-          // The 401 interceptor in client.ts will handle it on the next actual API call
-          console.log(
-            'Token refresh CSRF failed (expected after sleep) - will retry on next API call'
-          )
         } else {
           console.warn('Token refresh failed:', error.message)
         }

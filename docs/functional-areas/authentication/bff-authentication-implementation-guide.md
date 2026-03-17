@@ -144,6 +144,7 @@ All three mechanisms use `credentials: 'include'` so cookies are sent automatica
 ### CSRF Protection
 - **SameSite=Strict**: Prevents cross-site cookie transmission
 - **Secure Flag**: HTTPS-only transmission in all environments
+- **Refresh endpoint**: CSRF validation intentionally disabled — SameSite=Strict + httpOnly + Path scoping + token rotation provide equivalent protection. CSRF on refresh caused a catch-22: when the JWT expired, the user's identity changed to anonymous, causing CSRF validation to fail with "meant for a different claims-based user" and blocking the refresh that was needed to restore the identity.
 
 ### Token Theft Mitigation
 - **Refresh rotation**: Each refresh revokes the old token, so a stolen token can only be used once

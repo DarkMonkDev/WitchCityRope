@@ -397,8 +397,20 @@ public static class AuthenticationEndpoints
             .Produces(500);
 
         // Refresh token endpoint using database-backed refresh tokens with rotation
-        // SECURITY: CSRF protection REQUIRED for defense-in-depth
-        // .NET 10 Minimal APIs with JSON do NOT validate CSRF automatically - must inject IAntiforgery and validate manually
+        // SECURITY: CSRF validation is intentionally DISABLED on this endpoint.
+        // When the JWT expires, the user's identity changes to "anonymous", which causes
+        // antiforgery validation to fail with "meant for a different claims-based user"
+        // because the CSRF token was minted for the authenticated user identity.
+        // This created a catch-22: refresh is needed BECAUSE the JWT expired, but CSRF
+        // validation requires a valid JWT identity — so refresh could never succeed after expiry.
+        //
+        // This is safe because:
+        // 1. SameSite=Strict on refresh-token cookie prevents cross-site request forgery
+        // 2. The refresh token itself is a cryptographic secret (equivalent CSRF protection)
+        // 3. httpOnly cookie prevents JavaScript access (XSS can't steal the token)
+        // 4. Path=/api/auth scoping limits cookie transmission to auth endpoints only
+        // 5. Token rotation means each refresh token is single-use
+        // This matches industry standards (Auth0, OWASP) for httpOnly + SameSite refresh tokens.
         app.MapPost("/api/auth/refresh", async (
             HttpContext context,
             IAntiforgery antiforgery,
@@ -407,21 +419,6 @@ public static class AuthenticationEndpoints
             ILogger<IAuthenticationService> logger,
             CancellationToken cancellationToken) =>
             {
-                // CSRF validation for defense-in-depth
-                // NOTE: On wake-from-sleep, CSRF token may be stale. Frontend handles retry.
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException ex)
-                {
-                    logger.LogWarning("CSRF validation failed for token refresh: {Message}", ex.Message);
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
-
                 try
                 {
                     // Read refresh token from scoped httpOnly cookie
@@ -504,6 +501,20 @@ public static class AuthenticationEndpoints
                     }
                     context.Response.Cookies.Append("refresh-token", newToken.Token, refreshCookieOptions);
 
+                    // Regenerate CSRF token after successful refresh so it's bound to the
+                    // new authenticated identity. Without this, the CSRF token would remain
+                    // bound to the old/expired identity, causing CSRF failures on subsequent
+                    // state-changing requests (logout, form submissions, etc.)
+                    var csrfTokens = antiforgery.GetAndStoreTokens(context);
+                    context.Response.Cookies.Append("XSRF-TOKEN", csrfTokens.RequestToken!,
+                        new CookieOptions
+                        {
+                            HttpOnly = false, // JavaScript must read this token
+                            SameSite = SameSiteMode.Lax,
+                            Secure = context.Request.IsHttps,
+                            Path = "/"
+                        });
+
                     logger.LogDebug("Token refreshed successfully for user {UserId}", userId);
 
                     return Results.Ok(new
@@ -523,7 +534,7 @@ public static class AuthenticationEndpoints
                 }
             })
             .AllowAnonymous() // Uses cookie-based authentication (refresh token in httpOnly cookie)
-            // CSRF validation handled via IAntiforgery.ValidateRequestAsync() in endpoint logic above
+            .DisableAntiforgery() // CSRF disabled - see security comment above; SameSite=Strict + httpOnly + token rotation provide equivalent protection
             .WithName("RefreshToken")
             .WithSummary("Refresh authentication token using database-backed refresh token")
             .WithDescription("BFF pattern - validates refresh token cookie, rotates token, and issues new JWT access token")
