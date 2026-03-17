@@ -39,7 +39,7 @@ services:
       - Jwt__SecretKey=${JWT_SECRET}
       - Jwt__Issuer=https://staging.notfai.com
       - Jwt__Audience=https://staging.notfai.com
-      - Jwt__ExpirationMinutes=60
+      - Jwt__ExpirationMinutes=15
       - CORS__AllowedOrigins=https://staging.notfai.com
       - CORS__AllowCredentials=true
       - Serilog__MinimumLevel__Default=Debug

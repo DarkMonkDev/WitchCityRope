@@ -20,13 +20,12 @@ declare module 'axios' {
 // When multiple requests fail with 401 simultaneously, only one refresh call is made.
 let refreshPromise: Promise<any> | null = null
 
-// Use environment variable for API base URL, fallback to development default
-// Note: Vite replaces import.meta.env.VITE_* with literal values at build time
-// Empty string means same-origin requests (production/staging), not localhost
+// Use environment variable for API base URL.
+// Empty/undefined = same-origin requests via proxy (dev uses Vite proxy, staging/prod use nginx).
+// This enables SameSite=Strict cookies because all requests are same-origin.
+// Note: Vite replaces import.meta.env.VITE_* with literal values at build time.
 const envApiUrl = import.meta.env.VITE_API_BASE_URL
-const API_BASE_URL = envApiUrl === ''
-  ? '' // Empty string = same-origin requests (staging/production)
-  : (envApiUrl || 'http://localhost:5655') // Any other string or undefined = use value or fallback
+const API_BASE_URL = envApiUrl && envApiUrl.length > 0 ? envApiUrl : ''
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

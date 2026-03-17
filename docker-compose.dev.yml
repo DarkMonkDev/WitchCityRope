@@ -72,7 +72,7 @@ services:
       Jwt__SecretKey: dev-jwt-secret-for-local-testing-make-it-long-enough
       Jwt__Issuer: WitchCityRope-API
       Jwt__Audience: WitchCityRope-Services
-      Jwt__ExpirationMinutes: 480  # 8 hours for development convenience
+      Jwt__ExpirationMinutes: 15  # 15 min - short-lived JWTs, refresh tokens handle persistence
       Authentication__RequireHttps: "false"
 
       # Frontend URL for email links (interview scheduling, event details, etc.)
@@ -164,7 +164,10 @@ services:
       DOCKER_ENV: "true"
 
       # API connection (external for browser access)
-      VITE_API_BASE_URL: http://localhost:5655
+      # Empty string = same-origin requests via Vite proxy (matches staging/production pattern)
+      # Vite proxy in vite.config.ts forwards /api/* to the API container
+      # This enables SameSite=Strict cookies (same-origin required)
+      VITE_API_BASE_URL: ""
 
       # Development features
       VITE_ENABLE_DEBUG: "true"

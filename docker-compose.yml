@@ -103,7 +103,7 @@ services:
       Jwt__SecretKey: ${JWT_SECRET:-dev-jwt-secret-for-local-development-minimum-32-chars}
       Jwt__Issuer: ${JWT_ISSUER:-WitchCityRope-API}
       Jwt__Audience: ${JWT_AUDIENCE:-WitchCityRope-Services}
-      Jwt__ExpirationMinutes: ${JWT_EXPIRY_MINUTES:-60}
+      Jwt__ExpirationMinutes: ${JWT_EXPIRY_MINUTES:-15}
       Authentication__RequireHttps: ${AUTH_REQUIRE_HTTPS:-false}
       
       # CORS configuration
@@ -145,7 +145,9 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       
       # API communication
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5655}
+      # Empty default = same-origin via Vite proxy (enables SameSite=Strict cookies)
+      # Dev override in docker-compose.dev.yml, staging/prod use /api via nginx
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
       
       # Application configuration
       VITE_APP_NAME: ${VITE_APP_NAME:-WitchCityRope}

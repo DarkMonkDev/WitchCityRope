@@ -30,32 +30,14 @@ public class RefreshTokenService : IRefreshTokenService
         Guid userId, bool rememberMe, string? deviceInfo,
         CancellationToken cancellationToken = default)
     {
-        // Generate cryptographically secure random token
-        var randomBytes = new byte[64];
-        RandomNumberGenerator.Fill(randomBytes);
-        var tokenString = Convert.ToBase64String(randomBytes);
-
-        // Determine expiration based on rememberMe flag
-        var expiresAt = rememberMe
-            ? DateTime.UtcNow.AddDays(
-                _configuration.GetValue<int>("RefreshToken:RememberMeExpirationDays", 14))
-            : DateTime.UtcNow.AddHours(
-                _configuration.GetValue<int>("RefreshToken:SessionExpirationHours", 24));
-
-        var refreshToken = new RefreshToken
-        {
-            UserId = userId,
-            Token = tokenString,
-            ExpiresAt = expiresAt,
-            DeviceInfo = deviceInfo?.Length > 256 ? deviceInfo[..256] : deviceInfo
-        };
+        var refreshToken = CreateRefreshTokenEntity(userId, rememberMe, deviceInfo);
 
         _context.RefreshTokens.Add(refreshToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Generated refresh token for user {UserId}, expires at {ExpiresAt}, rememberMe: {RememberMe}",
-            userId, expiresAt, rememberMe);
+            userId, refreshToken.ExpiresAt, rememberMe);
 
         return refreshToken;
     }
@@ -73,11 +55,14 @@ public class RefreshTokenService : IRefreshTokenService
             return (null, null, "Invalid refresh token");
         }
 
-        // REUSE DETECTION: If token is already revoked, someone is replaying a stolen token
+        // REUSE DETECTION: If token is already revoked, someone is replaying a stolen token.
+        // This can also happen legitimately when concurrent requests both try to refresh
+        // the same token (e.g., 401 interceptor + visibilitychange fire simultaneously).
+        // Either way, the safe response is the same: reject and clear cookies.
         if (existingToken.IsRevoked)
         {
             _logger.LogWarning(
-                "Refresh token reuse detected for user {UserId}. Revoking all tokens. This may indicate token theft.",
+                "Refresh token reuse detected for user {UserId}. Revoking all tokens. This may indicate token theft or a concurrent refresh race condition.",
                 existingToken.UserId);
 
             await RevokeAllUserTokensAsync(existingToken.UserId, cancellationToken);
@@ -90,22 +75,70 @@ public class RefreshTokenService : IRefreshTokenService
             return (null, null, "Refresh token has expired");
         }
 
-        // ROTATION: Revoke current token and generate new one
-        existingToken.IsRevoked = true;
-        existingToken.RevokedAt = DateTime.UtcNow;
-        existingToken.LastUsedAt = DateTime.UtcNow;
+        // ROTATION: Revoke current token and generate new one in a single save.
+        // Using a single SaveChangesAsync prevents the race condition where concurrent
+        // requests both load the same token before either saves the revocation.
+        try
+        {
+            existingToken.IsRevoked = true;
+            existingToken.RevokedAt = DateTime.UtcNow;
+            existingToken.LastUsedAt = DateTime.UtcNow;
 
-        // Determine if this was a "remember me" token based on expiration window
-        // Session tokens are <= 24 hours, remember me tokens are longer
-        var wasRememberMe = (existingToken.ExpiresAt - existingToken.CreatedAt).TotalHours > 25;
+            // Determine if this was a "remember me" token based on expiration window
+            // Session tokens are <= 24 hours, remember me tokens are longer
+            var wasRememberMe = (existingToken.ExpiresAt - existingToken.CreatedAt).TotalHours > 25;
 
-        var newToken = await GenerateRefreshTokenAsync(
-            existingToken.UserId, wasRememberMe, deviceInfo, cancellationToken);
+            // Create new token entity without saving yet (single atomic save below)
+            var newToken = CreateRefreshTokenEntity(existingToken.UserId, wasRememberMe, deviceInfo);
+            _context.RefreshTokens.Add(newToken);
 
-        existingToken.ReplacedByToken = newToken.Token;
-        await _context.SaveChangesAsync(cancellationToken);
+            existingToken.ReplacedByToken = newToken.Token;
 
-        return (newToken, existingToken.UserId, null);
+            // Single atomic save: revoke old token + create new token
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Rotated refresh token for user {UserId}, rememberMe: {RememberMe}",
+                existingToken.UserId, wasRememberMe);
+
+            return (newToken, existingToken.UserId, null);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Another concurrent request already rotated this token.
+            // This is expected when multiple API calls fail with 401 simultaneously
+            // and both trigger refresh. The first one wins; this one should fail gracefully.
+            _logger.LogWarning(
+                "Concurrent refresh token rotation detected for user {UserId}. Another request already rotated this token.",
+                existingToken.UserId);
+
+            return (null, null, "Token was already refreshed by another request. Please retry.");
+        }
+    }
+
+    /// <summary>
+    /// Creates a RefreshToken entity without saving to the database.
+    /// Used by both GenerateRefreshTokenAsync (standalone) and RotateRefreshTokenAsync (atomic save).
+    /// </summary>
+    private RefreshToken CreateRefreshTokenEntity(Guid userId, bool rememberMe, string? deviceInfo)
+    {
+        var randomBytes = new byte[64];
+        RandomNumberGenerator.Fill(randomBytes);
+        var tokenString = Convert.ToBase64String(randomBytes);
+
+        var expiresAt = rememberMe
+            ? DateTime.UtcNow.AddDays(
+                _configuration.GetValue<int>("RefreshToken:RememberMeExpirationDays", 14))
+            : DateTime.UtcNow.AddHours(
+                _configuration.GetValue<int>("RefreshToken:SessionExpirationHours", 24));
+
+        return new RefreshToken
+        {
+            UserId = userId,
+            Token = tokenString,
+            ExpiresAt = expiresAt,
+            DeviceInfo = deviceInfo?.Length > 256 ? deviceInfo[..256] : deviceInfo
+        };
     }
 
     /// <inheritdoc />

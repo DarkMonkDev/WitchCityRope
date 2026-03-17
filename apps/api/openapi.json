@@ -275,7 +275,7 @@
           "Authentication"
         ],
         "summary": "Logout current user",
-        "description": "Logs out the current user, clears cookies, and blacklists tokens. Works even with expired tokens.",
+        "description": "Logs out the current user, clears cookies, blacklists JWT, and revokes refresh tokens. Works even with expired tokens.",
         "operationId": "Logout",
         "responses": {
           "200": {
@@ -325,8 +325,8 @@
         "tags": [
           "Authentication"
         ],
-        "summary": "Refresh authentication token silently",
-        "description": "BFF pattern - refreshes httpOnly cookie with new JWT token",
+        "summary": "Refresh authentication token using database-backed refresh token",
+        "description": "BFF pattern - validates refresh token cookie, rotates token, and issues new JWT access token",
         "operationId": "RefreshToken",
         "responses": {
           "200": {
@@ -5270,6 +5270,56 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/contact-info": {
+      "put": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Update member contact information (admin) - auto-creates audit note",
+        "operationId": "UpdateMemberContactInfo",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateContactInfoDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
@@ -11477,6 +11527,79 @@
           }
         }
       },
+      "AdminUpdateContactInfoDto": {
+        "required": [
+          "sceneName",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "sceneName": {
+            "maxLength": 50,
+            "minLength": 3,
+            "type": "string"
+          },
+          "firstName": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": "string"
+          },
+          "pronouns": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "discordName": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fetLifeName": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phoneNumber": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "otherNames": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "AffectedTicketTypeDto": {
         "type": "object",
         "properties": {
@@ -13468,7 +13591,8 @@
       "CreateTestVolunteerPositionRequest": {
         "required": [
           "eventId",
-          "title"
+          "title",
+          "sessionId"
         ],
         "type": "object",
         "properties": {
@@ -13497,10 +13621,7 @@
             "type": "boolean"
           },
           "sessionId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": "string",
             "format": "uuid"
           }
         }
@@ -13540,6 +13661,17 @@
           },
           "eventWaiverAccepted": {
             "type": "boolean"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "slidingScalePercentage": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -15128,6 +15260,9 @@
               "null",
               "string"
             ]
+          },
+          "rememberMe": {
+            "type": "boolean"
           }
         }
       },
@@ -15246,6 +15381,33 @@
               "null",
               "string"
             ]
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phoneNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "otherNames": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pronouns": {
+            "type": "string"
           },
           "role": {
             "type": "string"
@@ -15849,8 +16011,8 @@
             "format": "double"
           },
           "slidingScalePercentage": {
-            "type": "integer",
-            "format": "int32"
+            "type": "number",
+            "format": "double"
           },
           "currency": {
             "type": [
@@ -16739,8 +16901,28 @@
           "recipientGroup": {
             "type": "string"
           },
+          "segment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "recipientCount": {
             "type": "integer",
+            "format": "int32"
+          },
+          "successCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "failureCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           },
           "eventId": {
@@ -19073,10 +19255,7 @@
             "format": "uuid"
           },
           "sessionId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": "string",
             "format": "uuid"
           },
           "title": {

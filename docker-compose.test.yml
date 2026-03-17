@@ -89,7 +89,7 @@ services:
       Jwt__SecretKey: test-jwt-secret-for-ci-make-it-predictable-and-long-enough
       Jwt__Issuer: WitchCityRope-API
       Jwt__Audience: WitchCityRope-Services
-      Jwt__ExpirationMinutes: 60
+      Jwt__ExpirationMinutes: 15
       Authentication__RequireHttps: "false"
 
       # Test CORS - internal container communication only
