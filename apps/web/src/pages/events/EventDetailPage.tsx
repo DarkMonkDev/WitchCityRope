@@ -305,20 +305,16 @@ export const EventDetailPage: React.FC = () => {
                 <Group justify="space-between" align="flex-start" wrap="nowrap">
                   <Box style={{ flex: 1 }}>
                     <Text fw={600} size="md" mb="xs">{ticket.name}</Text>
-                    {ticket.pricingType === 'SlidingScale' ? (
-                      <Text size="md" c="dimmed">
-                        ${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)
-                      </Text>
-                    ) : (
-                      <Text size="md" c="dimmed">
-                        ${ticket.price}
-                      </Text>
-                    )}
-                    {ticket.referenceSessionName && (
-                      <Text size="md" c="dimmed" mt="xs">
-                        For: {ticket.referenceSessionName}
-                      </Text>
-                    )}
+                    {/* Session name (black) and price on the same line for desktop */}
+                    <Text size="md">
+                      {ticket.referenceSessionName && (
+                        <>{ticket.referenceSessionName} · </>
+                      )}
+                      {ticket.pricingType === 'SlidingScale'
+                        ? <Text span c="dimmed">${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)</Text>
+                        : <Text span c="dimmed">${ticket.price}</Text>
+                      }
+                    </Text>
                     <Text size="md" c="dimmed" mt="xs">
                       {(ticket.quantityAvailable ?? 0) - (ticket.quantitySold ?? 0)} / {ticket.quantityAvailable ?? 0} available
                     </Text>
@@ -353,16 +349,16 @@ export const EventDetailPage: React.FC = () => {
                   <Group justify="space-between" align="flex-start" wrap="nowrap">
                     <Box style={{ flex: 1 }}>
                       <Text fw={500} size="md" mb="xs">{ticket.name}</Text>
-                      {ticket.availabilityMessage && (
-                        <Text size="md" c="dimmed" mb="xs">
-                          {ticket.availabilityMessage}
-                        </Text>
-                      )}
-                      {ticket.referenceSessionName && (
-                        <Text size="md" c="dimmed">
-                          For: {ticket.referenceSessionName}
-                        </Text>
-                      )}
+                      {/* Session name (black) and availability message on the same line */}
+                      <Text size="md">
+                        {ticket.referenceSessionName && (
+                          <>{ticket.referenceSessionName}</>
+                        )}
+                        {ticket.referenceSessionName && ticket.availabilityMessage && ' · '}
+                        {ticket.availabilityMessage && (
+                          <Text span c="dimmed">{ticket.availabilityMessage}</Text>
+                        )}
+                      </Text>
                     </Box>
                     <Badge color="gray" variant="light">
                       Not Available
