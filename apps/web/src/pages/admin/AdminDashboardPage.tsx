@@ -112,10 +112,10 @@ export const AdminDashboardPage: React.FC = () => {
       color: '#2E8B57',
     },
     {
-      title: 'Payment Analytics',
-      description: 'View payment transactions, process refunds, and manage revenue',
+      title: 'Reports',
+      description: 'View analytics dashboards, transaction charts, and payment reports',
       icon: <IconChartBar size={32} />,
-      link: '/admin/analytics/payments',
+      link: '/admin/reports',
       color: '#228B22',
     },
     {

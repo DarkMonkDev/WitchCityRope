@@ -88,6 +88,9 @@ bash .claude/skills/restart-dev-containers/execute.sh
 
 # For automation - skip confirmation
 SKIP_CONFIRMATION=true bash .claude/skills/restart-dev-containers/execute.sh
+
+# Force full rebuild (bypass Docker layer cache) - use after adding new npm/NuGet packages
+NO_CACHE=true SKIP_CONFIRMATION=true bash .claude/skills/restart-dev-containers/execute.sh
 ```
 
 **No manual steps documented here** -- all logic lives in `execute.sh`. If the script is unavailable, read `execute.sh` directly for the correct procedure.

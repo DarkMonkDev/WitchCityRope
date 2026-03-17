@@ -13,6 +13,7 @@ using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Features.VettingHold.Services;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.Models.AuthorizeNet;
+using WitchCityRope.Api.Features.Reports.Services;
 using WitchCityRope.Api.Features.Webhooks.Services;
 using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.TestHelpers.Services;
@@ -90,6 +91,9 @@ public static class ServiceCollectionExtensions
 
         // FluentValidation for Vetting feature - TEMPORARILY DISABLED FOR MIGRATION
         // services.AddValidatorsFromAssemblyContaining<CreateApplicationValidator>();
+
+        // Reports feature services
+        services.AddScoped<IReportService, ReportService>();
 
         // Payment feature services
         services.AddScoped<IPaymentListService, PaymentListService>();

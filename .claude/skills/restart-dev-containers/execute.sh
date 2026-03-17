@@ -125,14 +125,32 @@ echo "1️⃣  Stopping containers..."
 # CRITICAL: Use -p witchcityrope-dev to isolate from test containers
 # Without this flag, restarting dev containers will DELETE test containers!
 # See: docs/test-baselines/test-parity-investigation-2025-12-01.md (Session 10)
-docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml down
-echo "   ✅ Containers stopped"
+if [ "$NO_CACHE" = "true" ]; then
+    # When NO_CACHE is set, also remove named volumes (e.g., node_modules_cache).
+    # Without -v, the cached node_modules volume persists and overrides the freshly
+    # built node_modules from the Docker image, defeating the purpose of --no-cache.
+    docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml down -v
+    echo "   ✅ Containers and volumes removed (NO_CACHE mode)"
+else
+    docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml down
+    echo "   ✅ Containers stopped"
+fi
 echo ""
 
 # Step 2: Start with development overlay (CRITICAL)
 echo "2️⃣  Starting containers with dev overlay..."
 echo "   Using: docker-compose.yml + docker-compose.dev.yml"
 echo "   Project: witchcityrope-dev (isolated from test containers)"
+
+# When NO_CACHE=true, run a separate build step first to bypass Docker layer cache.
+# This is needed after adding new npm/NuGet packages since the cached npm install
+# layer won't include the new dependency.
+# Usage: NO_CACHE=true bash execute.sh
+if [ "$NO_CACHE" = "true" ]; then
+    echo "   🔄 NO_CACHE=true — forcing full rebuild (Docker layer cache bypassed)"
+    docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
+fi
+
 # CRITICAL: Use -p witchcityrope-dev to isolate from test containers
 docker-compose -p witchcityrope-dev -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 

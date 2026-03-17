@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
@@ -68,6 +68,11 @@ import { CmsRevisionDetailPage } from '../features/cms/pages/CmsRevisionDetailPa
 // Payment system pages
 import { EventPaymentPage } from '../features/payments'
 import { PaymentTestPage } from '../pages/PaymentTestPage'
+
+// Admin Reports section — nested layout with shared left-nav
+import { AdminReportsLayout } from '../features/admin/reports/components/AdminReportsLayout'
+import { AdminReportsHomePage } from '../pages/admin/AdminReportsHomePage'
+import { AdminTransactionsReportPage } from '../pages/admin/AdminTransactionsReportPage'
 
 /**
  * React Router v7 configuration following validated patterns
@@ -307,10 +312,30 @@ export const router = createBrowserRouter([
         element: <EmailTemplatesAdminPage />,
         loader: adminLoader,
       },
+      // Redirect old analytics URL to new reports location
       {
         path: 'admin/analytics/payments',
-        element: <AdminPaymentsPage />,
+        element: <Navigate to="/admin/reports/payments" replace />,
+      },
+      // Admin Reports section — nested routes with shared left-nav layout
+      {
+        path: 'admin/reports',
+        element: <AdminReportsLayout />,
         loader: adminLoader,
+        children: [
+          {
+            index: true,
+            element: <AdminReportsHomePage />,
+          },
+          {
+            path: 'payments',
+            element: <AdminPaymentsPage />,
+          },
+          {
+            path: 'transactions',
+            element: <AdminTransactionsReportPage />,
+          },
+        ],
       },
       // CMS admin routes
       {

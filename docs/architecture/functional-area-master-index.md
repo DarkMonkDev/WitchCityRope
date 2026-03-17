@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2026-03-02 - Logging & Payment Entity Consolidation Added -->
-<!-- Version: 3.6 -->
+<!-- Last Updated: 2026-03-17 - Admin Reports & Analytics Added -->
+<!-- Version: 3.7 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 
 | Functional Area | Base Path | Current Work Path | Description | Status | Last Updated |
 |-----------------|-----------|-------------------|-------------|--------|--------------|
+| **Admin Reports & Analytics** | `/docs/functional-areas/admin-reports/` | `/docs/functional-areas/admin-reports/requirements/` | **NEW FEATURE** - Centralized admin reporting section with left-nav layout. Dashboard home with user summary stats, payments report (migrated from admin dashboard), daily transactions chart with failed CC and incomplete payment tracking. Uses @mantine/charts. | **Phase 1 - Requirements (Draft)** | 2026-03-17 |
 | **AI Workflow Orchestration** | `/docs/functional-areas/ai-workflow-orchstration/` | `/docs/functional-areas/ai-workflow-orchstration/new-work/2025-11-04-plugins-marketplace-research/` | **ACTIVE RESEARCH** - Comprehensive analysis of Claude Code plugins & marketplace (released Oct 9, 2025). Analyzing 227+ community plugins, comparing vs our 16-agent system, identifying Blazor artifacts, and developing marketplace strategy. Deliverables: Official docs analysis, community survey, agent audit, comparative analysis, improvement recommendations, marketplace submission strategy. Timeline: 2025-11-04 to 2025-11-08 | **Phase 1 - Research (Started)** | 2025-11-04 |
 | **API Architecture Modernization** | `/docs/functional-areas/api-architecture-modernization/` | `/docs/functional-areas/api-architecture-modernization/new-work/2025-08-22-minimal-api-research/` | ✅ COMPLETE - Simplified vertical slice architecture with 49ms response times, $28K+ annual savings, zero breaking changes | IMPLEMENTATION COMPLETE | 2025-08-22 |
 | **API Data Alignment** | `/docs/functional-areas/api-data-alignment/` | `/docs/functional-areas/api-data-alignment/new-work/2025-08-19-dto-database-alignment-strategy/` | DTO alignment strategy for React migration - API DTOs as source of truth, TypeScript interface alignment requirements | Enhanced | 2025-08-19 |

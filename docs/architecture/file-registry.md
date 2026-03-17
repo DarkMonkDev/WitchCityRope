@@ -1,6 +1,6 @@
 # File Registry
 <!-- Last Updated: 2026-03-17 -->
-<!-- Version: 4.556 -->
+<!-- Version: 4.557 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,8 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2026-03-17 | /docs/functional-areas/admin-reports/requirements/business-requirements.md | CREATED | Business requirements for admin reports section: dashboard home, payments migration, transactions chart, user summary stats, left-nav layout | Admin Reports & Analytics - Requirements Phase | ACTIVE | Never |
+| 2026-03-17 | /docs/architecture/research/2026-03-17-charting-library-research.md | CREATED | Comprehensive charting library comparison: @mantine/charts vs Recharts vs Chart.js vs Nivo vs Google Charts vs Tremor. Recommendation: @mantine/charts (90% confidence) | Technology Researcher: Charting library evaluation | ACTIVE | Never |
 | 2026-03-17 | /docs/standards-processes/development-standards/authentication-patterns.md | MODIFIED | Replaced Blazor-era auth patterns with redirect to current auth documentation locations | Librarian: Auth documentation Priority 2 update | ACTIVE | Never |
 | 2026-03-17 | /docs/functional-areas/authentication/bff-authentication-implementation-guide.md | MODIFIED | Updated for dual-cookie system, refresh token rotation, RememberMe, 15-min JWT, rate limits, frontend refresh strategy | Librarian: Auth documentation Priority 2 update | ACTIVE | Never |
 | 2026-03-17 | /docs/functional-areas/authentication/README.md | MODIFIED | Updated for dual-cookie BFF, refresh token rotation, RememberMe, rate limits, current architecture details | Librarian: Auth documentation Priority 2 update | ACTIVE | Never |

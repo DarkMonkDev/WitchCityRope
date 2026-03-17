@@ -15,6 +15,7 @@ using WitchCityRope.Api.Features.Metadata.Endpoints;
 using WitchCityRope.Api.Features.Admin.Settings.Endpoints;
 using WitchCityRope.Api.Features.EmailTemplates.Endpoints;
 using WitchCityRope.Api.Features.Payments.Endpoints;
+using WitchCityRope.Api.Features.Reports.Endpoints;
 using WitchCityRope.Api.Features.Logging.Endpoints;
 using WitchCityRope.Api.Endpoints.Admin;
 using WitchCityRope.Api.Endpoints;
@@ -55,6 +56,7 @@ public static class WebApplicationExtensions
         app.MapSettingsEndpoints();
         app.MapVenueEndpoints(); // Admin venue endpoints
         app.MapAdminPaymentEndpoints(); // Admin payment transaction endpoints
+        app.MapAdminReportEndpoints(); // Admin report/analytics endpoints
 
         // Public venue endpoints (authenticated users)
         app.MapPublicVenueEndpoints();
