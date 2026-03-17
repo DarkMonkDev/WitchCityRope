@@ -157,7 +157,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
 
             {/* Date and time - use position shift times if available, otherwise session times */}
             {position.sessionStartTime && (
-              <Text size="sm" c="dimmed">
+              <Text size="md" c="dimmed">
                 {formatUtcToLocalDate(position.sessionStartTime, eventTimeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
                 {(position.startTime || position.endTime) ? (
                   <> · {formatShiftTime(position.startTime ?? undefined)} - {formatShiftTime(position.endTime ?? undefined)}</>
@@ -169,7 +169,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
 
             {/* Description - uses default text color for readability */}
             {position.description && (
-              <Text size="sm" mt="xs">
+              <Text size="md" mt="xs">
                 {position.description}
               </Text>
             )}
