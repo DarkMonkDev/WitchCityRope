@@ -21,7 +21,7 @@ public class VettingEmailLogConfiguration : IEntityTypeConfiguration<VettingEmai
 
         builder.Property(e => e.TemplateType)
                .IsRequired()
-               .HasConversion<int>();
+               .HasMaxLength(100);
 
         builder.Property(e => e.RecipientEmail)
                .IsRequired()

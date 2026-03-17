@@ -44,6 +44,14 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
             .IsRequired()
             .HasColumnType("timestamptz");
 
+        // Reminder tracking
+        builder.Property(x => x.RemindersSentCount)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.Property(x => x.LastReminderSentAt)
+            .HasColumnType("timestamptz");
+
         // Foreign key relationship to User
         builder.HasOne(x => x.User)
             .WithMany()

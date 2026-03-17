@@ -5,113 +5,54 @@ import {
   Textarea,
   Button,
   Group,
-  Title
+  Title,
+  Text,
+  Alert
 } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { vettingAdminApi } from '../services/vettingAdminApi';
-import { useVettingApplications } from '../hooks/useVettingApplications';
-import type { ApplicationFilterRequest } from '../types/vetting.types';
+import { IconMail, IconInfoCircle } from '@tabler/icons-react';
+import { useSendReminder } from '../hooks/useSendReminder';
 
 interface SendReminderModalProps {
   opened: boolean;
   onClose: () => void;
+  applicationId: string;
+  applicantName: string;
   onSuccess?: () => void;
 }
 
+/**
+ * Modal for sending an interview reminder email to a specific applicant.
+ * Uses the InterviewReminder email template from the vetting templates.
+ * The custom message is optional and replaces the {{custom_message}} variable in the template.
+ */
 export const SendReminderModal: React.FC<SendReminderModalProps> = ({
   opened,
   onClose,
+  applicationId,
+  applicantName,
   onSuccess
 }) => {
-  const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customMessage, setCustomMessage] = useState('');
 
-  // Fetch all pending applications to send reminders to
-  const filters: ApplicationFilterRequest = {
-    page: 1,
-    pageSize: 100, // Get all applications
-    statusFilters: ['PendingInterview'], // Only pending interview applications
-    priorityFilters: [],
-    skillsFilters: [],
-    searchQuery: '',
-    sortBy: 'SubmittedAt',
-    sortDirection: 'Desc'
-  };
-
-  const { data: applicationsData } = useVettingApplications(filters, {
-    enabled: opened // Only fetch when modal is open
+  const { mutate: sendReminder, isPending } = useSendReminder(() => {
+    setCustomMessage('');
+    onClose();
+    onSuccess?.();
   });
-  const applications = applicationsData?.items || [];
 
-  const handleSubmit = async () => {
-    if (!message.trim()) {
-      notifications.show({
-        title: 'Validation Error',
-        message: 'Please provide a reminder message',
-        color: 'yellow'
-      });
-      return;
-    }
-
-    if (applications.length === 0) {
-      notifications.show({
-        title: 'No Applications',
-        message: 'No pending applications found to send reminders to',
-        color: 'yellow'
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // Send reminders to all pending applications
-      await Promise.all(
-        applications.map(app => vettingAdminApi.sendApplicationReminder(app.id || '', message))
-      );
-
-      notifications.show({
-        title: 'Reminders Sent',
-        message: `Reminders have been sent to ${applications.length} pending application(s)`,
-        color: 'green'
-      });
-
-      setMessage('');
-      onClose();
-      onSuccess?.();
-    } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error?.detail || error?.message || 'Failed to send reminder(s)',
-        color: 'red'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSubmit = () => {
+    sendReminder({
+      applicationId,
+      customMessage: customMessage.trim() || undefined
+    });
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
-      setMessage('');
+    if (!isPending) {
+      setCustomMessage('');
       onClose();
     }
   };
-
-  // Pre-fill with a default message template
-  React.useEffect(() => {
-    if (opened && !message) {
-      setMessage(
-        `Hi,\n\nThis is a friendly reminder regarding your vetting application to join WitchCityRope. ` +
-        `We are waiting for additional information or references to complete the review process.\n\n` +
-        `Please let us know if you have any questions or need assistance.\n\n` +
-        `Thank you,\nWitchCityRope Vetting Team`
-      );
-    }
-
-    // Cleanup function to prevent memory leaks
-    return () => {
-      // No cleanup needed for this effect, but including for best practice
-    };
-  }, [opened]); // Remove 'message' from dependencies to prevent circular dependency
 
   return (
     <Modal
@@ -119,7 +60,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       onClose={handleClose}
       title={
         <Title order={3} style={{ color: '#880124' }}>
-          Send Reminder
+          Send Interview Reminder
         </Title>
       }
       centered
@@ -127,14 +68,31 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       data-testid="send-reminder-modal"
     >
       <Stack gap="md">
+        <Text>
+          Send an interview reminder email to <Text span fw={600}>{applicantName}</Text> using
+          the Interview Reminder template.
+        </Text>
+
+        <Alert
+          icon={<IconInfoCircle size={16} />}
+          color="blue"
+          variant="light"
+        >
+          <Text size="sm">
+            This will use the Interview Reminder email template configured in the
+            Email Templates admin page. Template variables (scene name, application
+            number, etc.) will be automatically populated.
+          </Text>
+        </Alert>
+
         <Textarea
-          label="Reminder message"
-          placeholder="Enter the reminder message..."
-          value={message}
-          onChange={(e) => setMessage(e.currentTarget.value)}
-          minRows={6}
-          required
-          data-testid="reminder-message-textarea"
+          label="Custom message (optional)"
+          description="This message will be included in the email template's {{custom_message}} section"
+          placeholder="Add any additional context for the applicant..."
+          value={customMessage}
+          onChange={(e) => setCustomMessage(e.currentTarget.value)}
+          minRows={4}
+          data-testid="reminder-custom-message-textarea"
           styles={{
             input: {
               borderRadius: '8px',
@@ -147,7 +105,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
           <Button
             variant="light"
             onClick={handleClose}
-            disabled={isSubmitting}
+            disabled={isPending}
             data-testid="reminder-cancel-button"
             style={{
               minHeight: 40,
@@ -161,8 +119,8 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
           <Button
             color="orange"
             onClick={handleSubmit}
-            loading={isSubmitting}
-            disabled={!message.trim()}
+            loading={isPending}
+            leftSection={<IconMail size={16} />}
             data-testid="reminder-submit-button"
             style={{
               minHeight: 40,

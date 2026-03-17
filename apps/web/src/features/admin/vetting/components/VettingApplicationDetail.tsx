@@ -430,6 +430,12 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                       </Text>
                       <Text>{application.otherNames || 'Not provided'}</Text>
                     </Group>
+                    <Group gap="md" wrap="nowrap" data-testid="reminders-sent-field">
+                      <Text fw={600} style={{ minWidth: '140px' }}>
+                        Reminders Sent:
+                      </Text>
+                      <Text>{(application as any).remindersSentCount ?? 0}</Text>
+                    </Group>
                   </Stack>
                 </Grid.Col>
               </Grid>
@@ -486,6 +492,8 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       <SendReminderModal
         opened={reminderModalOpen}
         onClose={() => setReminderModalOpen(false)}
+        applicationId={applicationId}
+        applicantName={application.sceneName || 'Unknown'}
         onSuccess={() => refetch()}
       />
 

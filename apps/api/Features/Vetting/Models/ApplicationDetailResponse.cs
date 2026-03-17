@@ -35,6 +35,10 @@ public class ApplicationDetailResponse
     public int Priority { get; set; }
     public DateTime? InterviewScheduledFor { get; set; }
 
+    // Reminder tracking - how many interview reminders have been sent to this applicant
+    public int RemindersSentCount { get; set; }
+    public DateTime? LastReminderSentAt { get; set; }
+
     // References
     public List<ReferenceDetailDto> References { get; set; } = new();
 

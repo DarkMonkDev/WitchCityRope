@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Title, Group, Button, Alert } from '@mantine/core';
-import { IconMail, IconClock, IconAlertTriangle, IconLock } from '@tabler/icons-react';
+import { IconMail, IconClock, IconLock } from '@tabler/icons-react';
 import { VettingApplicationsList } from '../../features/admin/vetting/components/VettingApplicationsList';
 import { OnHoldModal } from '../../features/admin/vetting/components/OnHoldModal';
-import { SendReminderModal } from '../../features/admin/vetting/components/SendReminderModal';
+// SendReminderModal is now per-application (on the detail page), not bulk
 import { useUser } from '../../stores/authStore';
 import { hasRole } from '../../utils/roleUtils';
 
@@ -47,8 +47,6 @@ export const AdminVettingPage: React.FC = () => {
   const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set());
   const [selectedApplicationsData, setSelectedApplicationsData] = useState<any[]>([]);
   const [onHoldModalOpen, setOnHoldModalOpen] = useState(false);
-  const [sendReminderModalOpen, setSendReminderModalOpen] = useState(false);
-
   const handleEmailTemplatesClick = () => {
     navigate('/admin/email-templates?tab=vetting');
   };
@@ -56,10 +54,6 @@ export const AdminVettingPage: React.FC = () => {
   const handlePutOnHoldClick = () => {
     if (selectedApplications.size === 0) return;
     setOnHoldModalOpen(true);
-  };
-
-  const handleSendReminderClick = () => {
-    setSendReminderModalOpen(true);
   };
 
   const handleSelectionChange = useCallback((selectedIds: Set<string>, applicationsData: any[]) => {
@@ -115,30 +109,6 @@ export const AdminVettingPage: React.FC = () => {
           </Button>
 
           <Button
-            leftSection={<IconAlertTriangle size={16} />}
-            variant="outline"
-            color="blue"
-            size="md"
-            onClick={handleSendReminderClick}
-            styles={{
-              root: {
-                borderColor: '#4A90E2',
-                color: '#4A90E2',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                height: '44px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                fontSize: '14px',
-                lineHeight: '1.2'
-              }
-            }}
-          >
-            SEND REMINDER
-          </Button>
-
-          <Button
             leftSection={<IconMail size={16} />}
             variant="filled"
             color="blue"
@@ -184,16 +154,6 @@ export const AdminVettingPage: React.FC = () => {
         />
       )}
 
-      {/* Send Reminder works independently of selections */}
-      <SendReminderModal
-        opened={sendReminderModalOpen}
-        onClose={() => setSendReminderModalOpen(false)}
-        onSuccess={() => {
-          setSelectedApplications(new Set());
-          setSelectedApplicationsData([]);
-          // TODO: Refresh the applications list
-        }}
-      />
     </Container>
   );
 };

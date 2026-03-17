@@ -260,6 +260,8 @@ public class VettingService : IVettingService
                 ReviewStartedAt = application.ReviewStartedAt,
                 Priority = 1,
                 InterviewScheduledFor = application.InterviewScheduledFor,
+                RemindersSentCount = application.RemindersSentCount,
+                LastReminderSentAt = application.LastReminderSentAt,
                 References = new List<ReferenceDetailDto>(), // Not implemented yet
                 Notes = notes, // Created from audit logs with reviewer SceneName
                 Decisions = decisions, // Created from audit logs with reviewer SceneName and simplified notes
@@ -709,6 +711,8 @@ public class VettingService : IVettingService
                 OtherNames = application.OtherNames,
                 SubmittedAt = application.SubmittedAt,
                 UpdatedAt = application.UpdatedAt,
+                RemindersSentCount = application.RemindersSentCount,
+                LastReminderSentAt = application.LastReminderSentAt,
                 ExperienceDescription = application.ExperienceDescription ?? string.Empty,
                 WhyJoinCommunity = application.WhyJoinCommunity ?? "Not provided",
                 HowDidYouHearAboutUs = application.HowDidYouHearAboutUs,
@@ -1686,6 +1690,99 @@ public class VettingService : IVettingService
             adminNotes,
             adminUserId,
             cancellationToken);
+    }
+
+    /// <summary>
+    /// Send interview reminder email to applicant
+    /// Validates InterviewApproved status, sends email, logs it, and tracks count
+    /// </summary>
+    public async Task<Result<SendReminderResponse>> SendReminderAsync(
+        Guid applicationId,
+        string? customMessage,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Verify admin access
+            var admin = await _context.Users.FindAsync(new object[] { adminUserId }, cancellationToken);
+            if (admin == null || !string.Equals(admin.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            {
+                return Result<SendReminderResponse>.Failure(
+                    "Access denied", "Only administrators can send reminder emails.");
+            }
+
+            // Fetch application with tracking (need to update RemindersSentCount)
+            var application = await _context.VettingApplications
+                .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<SendReminderResponse>.Failure(
+                    "Application not found", $"No application found with ID {applicationId}");
+            }
+
+            // Validate status - reminders only make sense for InterviewApproved
+            if (application.WorkflowStatus != VettingStatus.InterviewApproved)
+            {
+                return Result<SendReminderResponse>.Failure(
+                    "Invalid status for reminder",
+                    $"Reminders can only be sent when application is in InterviewApproved status. Current status: {application.WorkflowStatus}");
+            }
+
+            // Send the reminder email using the InterviewReminder template
+            var emailResult = await _emailService.SendReminderAsync(
+                application,
+                application.Email,
+                application.SceneName,
+                customMessage,
+                cancellationToken);
+
+            if (!emailResult.IsSuccess)
+            {
+                _logger.LogError(
+                    "Failed to send reminder email for application {ApplicationId}: {Error}",
+                    applicationId, emailResult.Error);
+                return Result<SendReminderResponse>.Failure(
+                    "Failed to send reminder email", emailResult.Error);
+            }
+
+            // Log the email send to VettingEmailLog for audit trail
+            var emailLog = new VettingEmailLog
+            {
+                Id = Guid.NewGuid(),
+                ApplicationId = application.Id,
+                TemplateType = "InterviewReminder",
+                RecipientEmail = application.Email,
+                Subject = "Interview Reminder",
+                SentAt = DateTime.UtcNow,
+                DeliveryStatus = EmailDeliveryStatus.Sent
+            };
+            _context.VettingEmailLogs.Add(emailLog);
+
+            // Update reminder tracking on the application
+            application.RemindersSentCount++;
+            application.LastReminderSentAt = DateTime.UtcNow;
+            application.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Interview reminder sent for application {ApplicationId} by admin {AdminUserId}. Total reminders: {Count}",
+                applicationId, adminUserId, application.RemindersSentCount);
+
+            return Result<SendReminderResponse>.Success(new SendReminderResponse
+            {
+                RemindersSentCount = application.RemindersSentCount,
+                LastReminderSentAt = application.LastReminderSentAt
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending reminder for application {ApplicationId}", applicationId);
+            return Result<SendReminderResponse>.Failure(
+                "Failed to send reminder", ex.Message);
+        }
     }
 
     /// <summary>

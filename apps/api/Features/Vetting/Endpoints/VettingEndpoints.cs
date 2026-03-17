@@ -133,6 +133,18 @@ public static class VettingEndpoints
             .ProducesProblem(404)
             .ProducesProblem(500);
 
+        // POST: Send interview reminder email to applicant
+        // SECURITY: CSRF protection enabled automatically via middleware
+        // Only available for InterviewApproved applications
+        group.MapPost("/reviewer/applications/{id}/send-reminder", SendReminder)
+            .WithName("SendReminder")
+            .WithSummary("Send interview reminder email to applicant")
+            .Produces<SendReminderResponse>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(403)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
+
         // GET: Current user's vetting status
         group.MapGet("/status", GetVettingStatus)
             .WithName("GetVettingStatus")
@@ -774,6 +786,80 @@ public static class VettingEndpoints
         {
             return Results.Problem(
                 title: "Failed to Deny Application",
+                detail: ex.Message,
+                statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Send interview reminder email to applicant
+    /// POST /api/vetting/reviewer/applications/{id}/send-reminder
+    /// Uses the InterviewReminder email template with variables populated from the application
+    /// </summary>
+    private static async Task<IResult> SendReminder(
+        HttpContext context,
+        IAntiforgery antiforgery,
+        Guid id,
+        SendReminderRequest request,
+        [FromServices] IVettingService vettingService,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        try
+        {
+            // Extract user ID from JWT claims with fallback for administrators
+            var reviewerIdClaim = user.FindFirst("ReviewerId")?.Value;
+            Guid reviewerId;
+
+            if (!string.IsNullOrEmpty(reviewerIdClaim) && Guid.TryParse(reviewerIdClaim, out reviewerId))
+            {
+                // Use specific reviewer ID if available
+            }
+            else
+            {
+                // Fallback: Use user ID for administrators
+                var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdClaim, out reviewerId))
+                {
+                    return Results.Problem(
+                        title: "User Information Not Found",
+                        detail: "User information not found",
+                        statusCode: 400);
+                }
+            }
+
+            var result = await vettingService.SendReminderAsync(id, request.CustomMessage, reviewerId, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Ok(result.Value);
+            }
+
+            var statusCode = result.Error.Contains("Access denied") ? 403 :
+                           result.Error.Contains("not found") ? 404 : 400;
+
+            return Results.Problem(
+                title: "Failed to Send Reminder",
+                detail: result.Error,
+                statusCode: statusCode);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(
+                title: "Failed to Send Reminder",
                 detail: ex.Message,
                 statusCode: 500);
         }

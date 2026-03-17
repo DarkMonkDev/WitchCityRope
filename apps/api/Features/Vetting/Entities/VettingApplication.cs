@@ -28,6 +28,7 @@ public class VettingApplication
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
         AuditLogs = new List<VettingAuditLog>();
+        RemindersSentCount = 0;
     }
 
     // Legacy property for backwards compatibility
@@ -79,6 +80,11 @@ public class VettingApplication
     public DateTime? LastReviewedAt { get; set; } // Last status change
     public DateTime? DecisionMadeAt { get; set; }
     public DateTime? InterviewScheduledFor { get; set; }
+
+    // Reminder tracking - counts how many interview reminder emails have been sent
+    public int RemindersSentCount { get; set; }
+    public DateTime? LastReminderSentAt { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

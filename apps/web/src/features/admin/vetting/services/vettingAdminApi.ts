@@ -141,21 +141,18 @@ export class VettingAdminApiService {
   }
 
   /**
-   * Send reminder to application references
+   * Send interview reminder email to applicant using the InterviewReminder template.
+   * The custom message replaces the {{custom_message}} variable in the template.
    */
   async sendApplicationReminder(
-    _applicationId: string,
-    _message: string
-  ): Promise<{ success: boolean; message: string }> {
-    // TODO: Implement when API endpoint is available
-    // For now, simulate the API call
-    // Simulate delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    return {
-      success: true,
-      message: 'Reminder sent successfully'
-    };
+    applicationId: string,
+    customMessage?: string
+  ): Promise<{ remindersSentCount: number; lastReminderSentAt: string | null }> {
+    const response = await apiClient.post<{ remindersSentCount: number; lastReminderSentAt: string | null }>(
+      `/api/vetting/reviewer/applications/${applicationId}/send-reminder`,
+      { customMessage }
+    );
+    return response.data;
   }
 }
 

@@ -136,6 +136,22 @@ public interface IVettingService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Send interview reminder email to applicant and track the send.
+    /// Application must be in InterviewApproved status.
+    /// Increments reminder count, logs the email send, and creates VettingEmailLog entry.
+    /// </summary>
+    /// <param name="applicationId">ID of the application</param>
+    /// <param name="customMessage">Optional custom message to include in the email template</param>
+    /// <param name="adminUserId">ID of the administrator sending the reminder</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result containing reminder count and timestamp</returns>
+    Task<Result<SendReminderResponse>> SendReminderAsync(
+        Guid applicationId,
+        string? customMessage,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Submit simplified public vetting application (for E2E testing and simple submissions)
     /// Creates application with minimal required fields
     /// </summary>
