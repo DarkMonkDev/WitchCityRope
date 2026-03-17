@@ -302,27 +302,54 @@ export const EventDetailPage: React.FC = () => {
                   borderRadius: '8px'
                 }}
               >
-                <Group justify="space-between" align="flex-start" wrap="nowrap">
-                  <Box style={{ flex: 1 }}>
-                    <Text fw={600} size="md" mb="xs">{ticket.name}</Text>
-                    {/* Session name (black) and price on the same line for desktop */}
-                    <Text size="md">
-                      {ticket.referenceSessionName && (
-                        <>{ticket.referenceSessionName} · </>
-                      )}
-                      {ticket.pricingType === 'SlidingScale'
-                        ? <Text span c="dimmed">${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)</Text>
-                        : <Text span c="dimmed">${ticket.price}</Text>
-                      }
-                    </Text>
-                    <Text size="md" c="dimmed" mt="xs">
+                <Stack gap={0}>
+                  {/* Title row with badge */}
+                  <Group justify="space-between" align="center" wrap="nowrap">
+                    <Text fw={600} size="md">{ticket.name}</Text>
+                    <Badge color="green" variant="light" style={{ flexShrink: 0 }}>
+                      Available Now
+                    </Badge>
+                  </Group>
+
+                  {/* Session name and price — full width */}
+                  <Text size="md">
+                    {ticket.referenceSessionName && (
+                      <>{ticket.referenceSessionName} · </>
+                    )}
+                    {ticket.pricingType === 'SlidingScale'
+                      ? <Text span c="dimmed">${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)</Text>
+                      : <Text span c="dimmed">${ticket.price}</Text>
+                    }
+                  </Text>
+
+                  {/* Bottom row: availability (left) and purchase button (right) —
+                      matches volunteer card layout with spots filled + sign up button */}
+                  <Group justify="space-between" align="center" mt={4}>
+                    <Text size="md" c="dimmed">
                       {(ticket.quantityAvailable ?? 0) - (ticket.quantitySold ?? 0)} / {ticket.quantityAvailable ?? 0} available
                     </Text>
-                  </Box>
-                  <Badge color="green" variant="light">
-                    Available Now
-                  </Badge>
-                </Group>
+                    {canPurchaseFromOptions && (
+                      <Button
+                        onClick={handleTicketPurchase}
+                        variant="filled"
+                        color="blue"
+                        leftSection={<IconTicket size={18} />}
+                        data-testid="ticket-options-purchase-button"
+                        styles={{
+                          root: {
+                            height: '44px',
+                            paddingTop: '12px',
+                            paddingBottom: '12px',
+                            fontSize: '14px',
+                            lineHeight: '1.2'
+                          }
+                        }}
+                      >
+                        Purchase Ticket
+                      </Button>
+                    )}
+                  </Group>
+                </Stack>
               </Paper>
             ))}
           </Stack>
@@ -379,31 +406,7 @@ export const EventDetailPage: React.FC = () => {
           </Alert>
         )}
 
-        {/* Purchase Ticket button — mirrors the ParticipationCard's purchase button.
-            Shown when there are purchasable tickets AND the user is eligible to buy
-            (either first ticket or additional sessions for multi-session events). */}
-        {canPurchaseFromOptions && (
-          <Group justify="flex-end" mt="md">
-            <Button
-              onClick={handleTicketPurchase}
-              variant="filled"
-              color="blue"
-              leftSection={<IconTicket size={18} />}
-              data-testid="ticket-options-purchase-button"
-              styles={{
-                root: {
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2'
-                }
-              }}
-            >
-              Purchase Ticket
-            </Button>
-          </Group>
-        )}
+        {/* Purchase button is now inside each individual ticket card */}
       </Stack>
     </ContentSection>
   ) : null;
