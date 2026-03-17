@@ -678,7 +678,7 @@ export const EventPaymentPage: React.FC = () => {
                     style={{ background: 'var(--mantine-color-gray-0)' }}
                   >
                     <Stack gap="sm">
-                      <Text fw={600} size="lg" style={isMobile ? { marginLeft: 20 } : undefined}>
+                      <Text fw={600} size="lg" styles={isMobile ? { root: { marginLeft: '20px !important' } } : undefined}>
                         {ticketTypes.length === 1 ? 'Ticket' : 'Select Tickets'}
                       </Text>
                       <Stack gap="md">
