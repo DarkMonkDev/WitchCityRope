@@ -141,7 +141,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         borderRadius: '8px'
       }}
     >
-      <Stack gap="xs">
+      <Stack gap={0}>
         {/* Title row: name on left, status badge on right */}
         <Group justify="space-between" align="center" wrap="nowrap">
           <Text fw={600} size="md">
@@ -188,7 +188,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
 
           {/* Description - uses default text color for readability */}
           {position.description && (
-            <Text size="md" mt="xs">
+            <Text size="md" mt={0}>
               {position.description}
             </Text>
           )}
@@ -197,7 +197,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         {/* Bottom row: spots filled (left) and action button (right), vertically centered.
             Hidden when user has already signed up — the green alert below provides sufficient context. */}
         {!position.hasUserSignedUp && (
-        <Group justify="space-between" align="center" mt={0}>
+        <Group justify="space-between" align="center" mt={4}>
           {/* Spots filled count - same font size as title */}
           <Text size="md" c="dimmed">
             {position.slotsFilled} / {position.slotsNeeded} spots filled
