@@ -1,7 +1,7 @@
 # WitchCityRope Architecture Documentation
 
-<!-- Last Updated: 2026-03-16 -->
-<!-- Version: 3.0 -->
+<!-- Last Updated: 2026-03-17 -->
+<!-- Version: 3.1 -->
 <!-- Owner: Engineering Team -->
 <!-- Status: Active -->
 
@@ -179,17 +179,31 @@ The application uses a Backend-for-Frontend authentication pattern. JWT tokens a
 | Guest             | Public event viewing                       |
 | SafetyTeam        | Safety incident management                 |
 
-### JWT Configuration
+### JWT and Token Configuration
 
 - Issuer/Audience configurable per environment
 - Signing key via `Jwt:SecretKey` (user secrets / environment variable)
-- Token lifetime: 60 minutes (production), 480 minutes (development)
+- **JWT lifetime: 15 minutes** (all environments) -- short-lived by design
 - Clock skew: 5 minutes
 - Token blacklist service for logout invalidation
 
-### Rate Limiting
+**Dual-cookie system** keeps sessions alive despite the short JWT lifetime:
 
-- Client error endpoint rate limited: 20 requests per minute per IP (fixed window)
+| Cookie          | Content                | Lifetime                                                      | SameSite | Path          |
+|-----------------|------------------------|---------------------------------------------------------------|----------|---------------|
+| `auth-token`    | 15-min JWT             | Session cookie (no Expires)                                   | Strict   | `/`           |
+| `refresh-token` | DB-backed opaque token | Remember Me ON: 14-day persistent; OFF: 24-hour session       | Strict   | `/api/auth`   |
+
+**Refresh token rotation**: Each call to `/api/auth/refresh` revokes the old token and issues a new one. Reuse of a revoked token triggers revocation of ALL tokens for that user (stolen-token detection).
+
+**Frontend refresh strategy**: Axios 401 interceptor retries with a silent refresh, `visibilitychange` listener detects tab wake, and a 13-minute proactive refresh interval keeps the JWT current before expiry.
+
+### Rate Limiting (Nginx)
+
+Split rate-limit zones (staging/production, applied by Nginx reverse proxy):
+- **Login / Register**: 5 requests per minute per IP (strict)
+- **Refresh / User / Logout**: 30 requests per minute per IP (permissive)
+- **Client error endpoint**: 20 requests per minute per IP (fixed window, ASP.NET Core)
 
 ---
 
@@ -309,6 +323,7 @@ Hangfire processes background jobs with PostgreSQL storage (schema: `hangfire`).
 | `daily-log-summary`     | 1:00 AM UTC    | `DailyLogSummaryJob`      | Aggregate application logs into daily stats  |
 | `log-retention-cleanup` | 3:00 AM UTC    | `LogRetentionCleanupJob`  | Delete logs older than 90 days               |
 | `event-email-scheduler` | Hourly (0 min) | `EmailSchedulerJob`       | Event reminders and thank-you emails         |
+| `refresh-token-cleanup` | 4:00 AM UTC    | `RefreshTokenCleanupJob`  | Delete expired refresh tokens                |
 
 ### Fire-and-Forget Jobs
 

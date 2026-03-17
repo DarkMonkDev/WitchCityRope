@@ -1,6 +1,6 @@
 # Secrets Management Guide - WitchCityRope
-<!-- Last Updated: 2025-10-24 -->
-<!-- Version: 1.0 -->
+<!-- Last Updated: 2026-03-17 -->
+<!-- Version: 1.1 -->
 <!-- Owner: DevOps/Security Team -->
 <!-- Status: Active -->
 
@@ -164,7 +164,7 @@ echo "Setting up .NET User Secrets for WitchCityRope..."
 dotnet user-secrets set "Jwt:SecretKey" "dev-jwt-secret-for-local-testing-make-it-long-enough"
 dotnet user-secrets set "Jwt:Issuer" "WitchCityRope-API"
 dotnet user-secrets set "Jwt:Audience" "WitchCityRope-Services"
-dotnet user-secrets set "Jwt:ExpirationMinutes" "480"
+dotnet user-secrets set "Jwt:ExpirationMinutes" "15"
 
 # Safety System
 dotnet user-secrets set "Safety:EncryptionKey" "NAQntjSAGLxD4SAO59B9VwRm7gUfv31+1F1R2F51zDg="
@@ -207,7 +207,7 @@ environment:
   Jwt__SecretKey: dev-jwt-secret-for-local-testing-make-it-long-enough
   Jwt__Issuer: WitchCityRope-API
   Jwt__Audience: WitchCityRope-Services
-  Jwt__ExpirationMinutes: 480  # 8 hours for development convenience
+  Jwt__ExpirationMinutes: 15  # 15 min - short-lived JWTs, refresh tokens handle session persistence
 
   # Safety encryption key for development
   Safety__EncryptionKey: "NAQntjSAGLxD4SAO59B9VwRm7gUfv31+1F1R2F51zDg="
@@ -221,7 +221,7 @@ environment:
 #### ⚠️ DEVELOPMENT ONLY - NEVER USE IN PRODUCTION
 These secrets are **INTENTIONALLY INSECURE** for development convenience:
 - Simple, easy-to-remember values
-- Longer token lifetimes (8 hours vs 15 minutes)
+- Same short-lived JWT lifetime as production (15 minutes)
 - Visible in docker-compose files
 - Same across all developer machines
 
@@ -962,5 +962,6 @@ docker exec -it witchcity-api printenv
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-03-17 | 1.1 | Updated JWT expiration from 480 to 15 minutes (all environments now use short-lived JWTs with refresh tokens) | Librarian Agent |
 | 2025-10-24 | 1.0 | Initial creation - comprehensive secrets management guide covering local, Docker, and production | Librarian Agent |
 

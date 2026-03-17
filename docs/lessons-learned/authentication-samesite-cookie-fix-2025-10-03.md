@@ -1,5 +1,11 @@
 # Authentication SameSite Cookie Fix - October 3, 2025
 
+> **UPDATE (2026-03-17): Architecture Change Supersedes This Fix**
+>
+> The Strict-to-Lax fix described in this document was correct for the architecture at the time it was written. However, as of March 2026, the authentication system was refactored to use database-backed refresh tokens (persistent login refactor). As part of that work, `VITE_API_BASE_URL` was changed to empty in development, routing all API calls through the Vite proxy and making them same-origin. Staging and production already used same-origin via nginx proxy. With all environments now operating as same-origin, SameSite was changed **back to Strict** for maximum CSRF protection. The cross-port request issue described below no longer exists because the architecture eliminated cross-port API calls entirely.
+>
+> The original investigation below remains valuable -- the core lesson that **different ports are treated as different origins** by browsers is important knowledge for any future architectural decisions.
+
 ## Problem Summary
 
 **Issue**: 40.9% of E2E tests failing with 401 Unauthorized errors (101 out of 247 tests)

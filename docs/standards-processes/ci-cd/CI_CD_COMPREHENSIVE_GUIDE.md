@@ -1,6 +1,6 @@
 # CI/CD Comprehensive Guide - WitchCityRope React
-<!-- Last Updated: 2025-08-17 -->
-<!-- Version: 1.0 -->
+<!-- Last Updated: 2026-03-17 -->
+<!-- Version: 1.1 -->
 <!-- Owner: DevOps Team -->
 <!-- Status: Active -->
 
@@ -126,7 +126,7 @@ curl http://localhost:5655/health  # API
 #### CI Environment Variables
 ```bash
 export BASE_URL=http://localhost:5173
-export VITE_API_BASE_URL=http://localhost:5655
+export VITE_API_BASE_URL=  # empty = same-origin via Vite proxy (dev) or nginx (staging/prod)
 export CI=true
 export PLAYWRIGHT_BROWSERS_PATH=0
 export HEADLESS=true
@@ -136,7 +136,7 @@ export NODE_ENV=test
 #### Local Development
 ```bash
 export BASE_URL=http://localhost:5173
-export VITE_API_BASE_URL=http://localhost:5655
+export VITE_API_BASE_URL=  # empty = same-origin via Vite proxy
 export CI=false
 export DEBUG=true
 export HEADED=true
@@ -527,5 +527,5 @@ tests/
 
 ---
 
-**Last Updated**: 2025-08-17 - Consolidated all CI/CD documentation into single source of truth
-**Version**: 1.0 - Post React migration comprehensive guide
+**Last Updated**: 2026-03-17 - Updated VITE_API_BASE_URL to empty (same-origin via proxy)
+**Version**: 1.1 - Updated environment variable defaults

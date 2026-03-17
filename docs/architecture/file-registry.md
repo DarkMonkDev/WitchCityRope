@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2026-03-14 -->
-<!-- Version: 4.555 -->
+<!-- Last Updated: 2026-03-17 -->
+<!-- Version: 4.556 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,9 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2026-03-17 | /docs/standards-processes/development-standards/authentication-patterns.md | MODIFIED | Replaced Blazor-era auth patterns with redirect to current auth documentation locations | Librarian: Auth documentation Priority 2 update | ACTIVE | Never |
+| 2026-03-17 | /docs/functional-areas/authentication/bff-authentication-implementation-guide.md | MODIFIED | Updated for dual-cookie system, refresh token rotation, RememberMe, 15-min JWT, rate limits, frontend refresh strategy | Librarian: Auth documentation Priority 2 update | ACTIVE | Never |
+| 2026-03-17 | /docs/functional-areas/authentication/README.md | MODIFIED | Updated for dual-cookie BFF, refresh token rotation, RememberMe, rate limits, current architecture details | Librarian: Auth documentation Priority 2 update | ACTIVE | Never |
 | 2026-03-14 | /docs/functional-areas/deployment/production-deployment-guide.md | MODIFIED | Complete rewrite - removed aspirational content (ELK, Kubernetes, Prometheus, blue-green, etc), replaced with actual DigitalOcean deployment facts | Librarian: Production guide accuracy cleanup | ACTIVE | Never |
 | 2026-03-14 | /docs/functional-areas/deployment/dns-cutover-plan.md | CREATED | Go-live DNS cutover plan for switching witchcityrope.com from Wix to DigitalOcean production server | Librarian: DNS cutover documentation | ACTIVE | Never |
 | 2026-03-02 | /docs/functional-areas/logging-observability/README.md | CREATED | Comprehensive audit and project plan for site-wide logging infrastructure | E19 - CC failure logging investigation | ACTIVE | N/A |
