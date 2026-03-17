@@ -31,7 +31,7 @@ import { useSlidingScale } from '../hooks/useSlidingScale';
 import { useCheckout } from '../../../lib/api/hooks/usePayments';
 import type { CheckoutResponse } from '../../../lib/api/services/payments';
 import { eventsManagementService } from '../../../api/services/eventsManagement.service';
-import { formatAbbreviatedDate, formatUtcTimeRange } from '../../../utils/eventUtils';
+import { getTicketSessionInfo, getTicketSessionDetails } from '../../../utils/eventUtils';
 import type { NonceData } from '../components/checkout/CreditCardForm';
 import type { PayPalCheckoutResult } from '../components/PayPalButton';
 import { useParticipation } from '../../../hooks/useParticipation';
@@ -503,61 +503,13 @@ export const EventPaymentPage: React.FC = () => {
     }
   };
 
-  /**
-   * Get formatted session info for a ticket (for ticket selection display)
-   * Returns array of { name, date } for each session the ticket covers
-   * Format: "Session Name - Day, Date" (no time)
-   */
-  const getTicketSessionInfo = (ticket: TicketTypeDto): Array<{ name: string; date: string }> => {
-    if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
-      return [];
-    }
+  // Session info/details helpers — thin wrappers around shared utilities in eventUtils.ts
+  // that bind the local `sessions` state so callers just pass a ticket.
+  const getTicketSessions = (ticket: TicketTypeDto) =>
+    getTicketSessionInfo(ticket.sessionIdentifiers || [], sessions);
 
-    // Find sessions matching the ticket's session identifiers
-    const matchingSessions = sessions.filter(session =>
-      ticket.sessionIdentifiers?.includes(session.sessionIdentifier || '')
-    );
-
-    if (matchingSessions.length === 0) {
-      return [];
-    }
-
-    // Return array of session name + date (no time) for each session
-    return matchingSessions
-      .filter(session => session.startDate)
-      .map((session, index) => ({
-        name: session.name || `Session ${index + 1}`,
-        date: formatAbbreviatedDate(session.startDate!),
-      }));
-  };
-
-  /**
-   * Get full session details for a ticket (for confirmation page)
-   * Returns array with name, date, and time for each session
-   */
-  const getTicketSessionDetails = (ticket: TicketTypeDto): Array<{ name: string; date: string; timeRange: string }> => {
-    if (!ticket.sessionIdentifiers || ticket.sessionIdentifiers.length === 0) {
-      return [];
-    }
-
-    const matchingSessions = sessions.filter(session =>
-      ticket.sessionIdentifiers?.includes(session.sessionIdentifier || '')
-    );
-
-    if (matchingSessions.length === 0) {
-      return [];
-    }
-
-    return matchingSessions
-      .filter(session => session.startDate)
-      .map((session, index) => ({
-        name: session.name || `Session ${index + 1}`,
-        date: formatAbbreviatedDate(session.startDate!),
-        timeRange: session.startTime && session.endTime
-          ? formatUtcTimeRange(session.startTime, session.endTime)
-          : '',
-      }));
-  };
+  const getTicketSessionDetailsFull = (ticket: TicketTypeDto) =>
+    getTicketSessionDetails(ticket.sessionIdentifiers || [], sessions);
 
   // Checkout error helper functions
   const getCheckoutErrorTitle = (error: any): string => {
@@ -774,7 +726,7 @@ export const EventPaymentPage: React.FC = () => {
                                   <Box style={{ flex: 1 }}>
                                     <Text fw={600} size="md">{tt.name}</Text>
                                     {(() => {
-                                      const sessionInfo = getTicketSessionInfo(tt);
+                                      const sessionInfo = getTicketSessions(tt);
                                       if (sessionInfo.length > 0) {
                                         return (
                                           <Stack gap={2} mt={4}>
@@ -936,7 +888,7 @@ export const EventPaymentPage: React.FC = () => {
                 purchasedTickets={selectedTickets.map(ticket => ({
                   id: ticket.id || '',
                   name: ticket.name || '',
-                  sessions: getTicketSessionDetails(ticket)
+                  sessions: getTicketSessionDetailsFull(ticket)
                 }))}
                 onViewRegistrations={handleViewRegistrations}
                 onRegisterMore={handleRegisterMore}

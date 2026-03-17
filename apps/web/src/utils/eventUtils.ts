@@ -450,3 +450,70 @@ export const formatAbbreviatedDate = (isoDate: string, timezone: string = 'Ameri
     day: 'numeric'
   });
 };
+
+// =============================================================================
+// TICKET SESSION RESOLUTION
+// =============================================================================
+// Shared utilities for resolving a ticket's sessionIdentifiers (codes) into
+// human-readable session info by matching against the event's sessions array.
+// Used by EventDetailPage and EventPaymentPage to avoid duplicating this logic.
+// =============================================================================
+
+interface SessionLike {
+  sessionIdentifier?: string | null;
+  name?: string | null;
+  startDate?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+}
+
+/**
+ * Resolve a ticket's session identifiers to session names + abbreviated dates.
+ * Returns one entry per covered session, sorted by the session array order.
+ * Format: "Session Name - Day, Date" (no time).
+ */
+export function getTicketSessionInfo(
+  sessionIdentifiers: string[],
+  sessions: SessionLike[]
+): Array<{ name: string; date: string }> {
+  if (!sessionIdentifiers || sessionIdentifiers.length === 0) return [];
+
+  const matching = sessions.filter(s =>
+    s.sessionIdentifier && sessionIdentifiers.includes(s.sessionIdentifier)
+  );
+  if (matching.length === 0) return [];
+
+  return matching
+    .filter(s => s.startDate)
+    .map((s, i) => ({
+      name: s.name || `Session ${i + 1}`,
+      date: formatAbbreviatedDate(s.startDate!),
+    }));
+}
+
+/**
+ * Resolve a ticket's session identifiers to session names + dates + time ranges.
+ * Returns one entry per covered session with full timing details.
+ * Used on payment confirmation pages where time info is needed.
+ */
+export function getTicketSessionDetails(
+  sessionIdentifiers: string[],
+  sessions: SessionLike[]
+): Array<{ name: string; date: string; timeRange: string }> {
+  if (!sessionIdentifiers || sessionIdentifiers.length === 0) return [];
+
+  const matching = sessions.filter(s =>
+    s.sessionIdentifier && sessionIdentifiers.includes(s.sessionIdentifier)
+  );
+  if (matching.length === 0) return [];
+
+  return matching
+    .filter(s => s.startDate)
+    .map((s, i) => ({
+      name: s.name || `Session ${i + 1}`,
+      date: formatAbbreviatedDate(s.startDate!),
+      timeRange: s.startTime && s.endTime
+        ? formatUtcTimeRange(s.startTime, s.endTime)
+        : '',
+    }));
+}

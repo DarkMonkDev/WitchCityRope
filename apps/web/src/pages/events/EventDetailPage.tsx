@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Container, Stack, Title, Text, Breadcrumbs, Anchor, Alert, Button, Box, Group, Paper, Skeleton, Grid, Badge } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconExternalLink, IconTicket } from '@tabler/icons-react';
-import { formatUtcToLocalDate, formatUtcTimeRange } from '../../utils/eventUtils';
+import { formatUtcToLocalDate, formatUtcTimeRange, getTicketSessionInfo } from '../../utils/eventUtils';
 import { useEvent } from '../../lib/api/hooks/useEvents';
 import { useParticipation, useCreateRSVP, useCancelRSVP, useCancelTicket } from '../../hooks/useParticipation';
 import { ParticipationCard, type ParticipationCardProps } from '../../components/events/ParticipationCard';
@@ -303,24 +303,42 @@ export const EventDetailPage: React.FC = () => {
                 }}
               >
                 <Stack gap={0}>
-                  {/* Title row with badge */}
+                  {/* Title row: ticket name, price, and badge */}
                   <Group justify="space-between" align="center" wrap="nowrap">
-                    <Text fw={600} size="md">{ticket.name}</Text>
+                    <Text fw={600} size="md">
+                      {ticket.name}
+                      {' · '}
+                      <Text span c="dimmed">
+                        {ticket.pricingType === 'SlidingScale'
+                          ? `$${ticket.minPrice} - $${ticket.maxPrice}`
+                          : `$${ticket.price}`
+                        }
+                      </Text>
+                    </Text>
                     <Badge color="green" variant="light" style={{ flexShrink: 0 }}>
                       Available Now
                     </Badge>
                   </Group>
 
-                  {/* Session name and price — full width */}
-                  <Text size="md">
-                    {ticket.referenceSessionName && (
-                      <>{ticket.referenceSessionName} · </>
-                    )}
-                    {ticket.pricingType === 'SlidingScale'
-                      ? <Text span c="dimmed">${ticket.minPrice} - ${ticket.maxPrice} (Sliding Scale)</Text>
-                      : <Text span c="dimmed">${ticket.price}</Text>
+                  {/* Session names — resolved from sessionIdentifiers via shared utility.
+                      Shows all sessions this ticket covers (important for multi-session tickets). */}
+                  {(() => {
+                    const sessionInfo = getTicketSessionInfo(
+                      ticket.sessionIdentifiers || [], eventSessions
+                    );
+                    if (sessionInfo.length > 0) {
+                      return (
+                        <Stack gap={2} mt={2}>
+                          {sessionInfo.map((session, idx) => (
+                            <Text key={idx} size="md" c="dimmed">
+                              {session.name} - {session.date}
+                            </Text>
+                          ))}
+                        </Stack>
+                      );
                     }
-                  </Text>
+                    return null;
+                  })()}
 
                   {/* Bottom row: availability (left) and purchase button (right) —
                       matches volunteer card layout with spots filled + sign up button */}
@@ -374,24 +392,41 @@ export const EventDetailPage: React.FC = () => {
                     opacity: 0.7
                   }}
                 >
-                  <Group justify="space-between" align="flex-start" wrap="nowrap">
-                    <Box style={{ flex: 1 }}>
-                      <Text fw={500} size="md" mb="xs">{ticket.name}</Text>
-                      {/* Session name (black) and availability message on the same line */}
-                      <Text size="md">
-                        {ticket.referenceSessionName && (
-                          <>{ticket.referenceSessionName}</>
-                        )}
-                        {ticket.referenceSessionName && ticket.availabilityMessage && ' · '}
-                        {ticket.availabilityMessage && (
-                          <Text span c="dimmed">{ticket.availabilityMessage}</Text>
-                        )}
+                  <Stack gap={0}>
+                    {/* Title row with badge */}
+                    <Group justify="space-between" align="center" wrap="nowrap">
+                      <Text fw={500} size="md">{ticket.name}</Text>
+                      <Badge color="gray" variant="light" style={{ flexShrink: 0 }}>
+                        Not Available
+                      </Badge>
+                    </Group>
+
+                    {/* Session names — resolved from sessionIdentifiers via shared utility */}
+                    {(() => {
+                      const sessionInfo = getTicketSessionInfo(
+                        ticket.sessionIdentifiers || [], eventSessions
+                      );
+                      if (sessionInfo.length > 0) {
+                        return (
+                          <Stack gap={2} mt={2}>
+                            {sessionInfo.map((session, idx) => (
+                              <Text key={idx} size="md" c="dimmed">
+                                {session.name} - {session.date}
+                              </Text>
+                            ))}
+                          </Stack>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                    {/* Availability message */}
+                    {ticket.availabilityMessage && (
+                      <Text size="md" c="dimmed" mt={2}>
+                        {ticket.availabilityMessage}
                       </Text>
-                    </Box>
-                    <Badge color="gray" variant="light">
-                      Not Available
-                    </Badge>
-                  </Group>
+                    )}
+                  </Stack>
                 </Paper>
               ))}
             </Stack>
