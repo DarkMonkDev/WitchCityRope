@@ -269,6 +269,7 @@ export const LoginPage: React.FC = () => {
               <Box>
                 <Text
                   component="label"
+                  htmlFor="login-username"
                   style={{
                     display: 'block',
                     fontFamily: 'var(--font-heading)',
@@ -283,8 +284,10 @@ export const LoginPage: React.FC = () => {
                   Email or Scene Name
                 </Text>
                 <TextInput
+                  id="login-username"
                   placeholder="Scene Name or email@example.com"
                   required
+                  autoComplete="username"
                   data-testid="email-or-scenename-input"
                   key={form.key('emailOrSceneName')}
                   {...form.getInputProps('emailOrSceneName')}
@@ -312,6 +315,7 @@ export const LoginPage: React.FC = () => {
               <Box>
                 <Text
                   component="label"
+                  htmlFor="login-password"
                   style={{
                     display: 'block',
                     fontFamily: 'var(--font-heading)',
@@ -326,8 +330,10 @@ export const LoginPage: React.FC = () => {
                   Password
                 </Text>
                 <PasswordInput
+                  id="login-password"
                   placeholder="Enter your password"
                   required
+                  autoComplete="current-password"
                   data-testid="password-input"
                   key={form.key('password')}
                   {...form.getInputProps('password')}
