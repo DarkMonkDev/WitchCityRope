@@ -117,14 +117,15 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         <Text
           component="label"
           htmlFor="terms-checkbox"
-          size="sm"
+          size="md"
           onClick={(e) => {
             if ((e.target as HTMLElement).tagName !== 'A') {
               setTermsAccepted(!termsAccepted);
             }
           }}
           style={{
-            color: 'var(--color-stone)',
+            color: '#000000',
+            fontWeight: 600,
             lineHeight: 1.4,
             cursor: disabled ? 'not-allowed' : 'pointer',
             userSelect: 'none'
