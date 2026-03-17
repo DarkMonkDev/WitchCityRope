@@ -93,8 +93,9 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         Payment Method
       </Title>
 
-      {/* Terms and Conditions - applies to both payment methods */}
-      <Group gap="sm" align="center">
+      {/* Terms and Conditions - applies to both payment methods.
+          wrap="nowrap" keeps checkbox and label text on the same row on mobile. */}
+      <Group gap="sm" align="flex-start" wrap="nowrap">
         <Checkbox
           id="terms-checkbox"
           checked={termsAccepted}
