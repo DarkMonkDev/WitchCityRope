@@ -167,17 +167,12 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               </Text>
             )}
 
-            {/* Description */}
+            {/* Description - uses default text color for readability */}
             {position.description && (
-              <Text size="sm" c="dimmed" mt="xs">
+              <Text size="sm" mt="xs">
                 {position.description}
               </Text>
             )}
-
-            {/* Spots availability - matches ticket availability line styling */}
-            <Text size="xs" c="dimmed" mt="xs">
-              {position.slotsFilled} / {position.slotsNeeded} spots filled
-            </Text>
           </Box>
 
           {/* Status badge on the right - matches ticket badge placement */}
@@ -200,11 +195,16 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
           )}
         </Group>
 
-        {/* Sign Up button row - shown below the card content, similar to how
-            the ticket purchase button sits below ticket cards */}
-        {!position.hasUserSignedUp && !position.isFullyStaffed && position.canSignUp && (
-          <Group justify="flex-end" mt="xs">
-            {isAuthenticated ? (
+        {/* Bottom row: spots filled (left) and action button (right), vertically centered */}
+        <Group justify="space-between" align="center" mt="xs">
+          {/* Spots filled count - same font size as title */}
+          <Text size="md" c="dimmed">
+            {position.slotsFilled} / {position.slotsNeeded} spots filled
+          </Text>
+
+          {/* Sign Up / Login / Blocked message on the right */}
+          {!position.hasUserSignedUp && !position.isFullyStaffed && position.canSignUp ? (
+            isAuthenticated ? (
               <Button
                 variant="outline"
                 color="burgundy"
@@ -245,20 +245,15 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               >
                 Login to Volunteer
               </Button>
-            )}
-          </Group>
-        )}
-
-        {/* Show message when signup is blocked (not full, but can't sign up) */}
-        {!position.hasUserSignedUp && !position.isFullyStaffed && !position.canSignUp && (
-          <Group justify="flex-end">
+            )
+          ) : !position.hasUserSignedUp && !position.isFullyStaffed && !position.canSignUp ? (
             <Text size="sm" c="dimmed">
               {position.signupBlockedReason === 'NoTicketForSession'
                 ? 'Purchase a ticket to volunteer'
                 : 'Signup closed'}
             </Text>
-          </Group>
-        )}
+          ) : null}
+        </Group>
 
           {/* Inline Signup Confirmation */}
           <Collapse in={showSignupConfirm}>
