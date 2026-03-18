@@ -107,7 +107,9 @@ public class PayPalCheckoutController : ControllerBase
                     "Sliding scale percentage must be between 0 and 75.", paymentCharged: false);
             }
 
-            if (request.TicketTypeIds == null || request.TicketTypeIds.Count == 0)
+            // Validate ticket selection: either TicketSelections or TicketTypeIds must be provided
+            var hasTicketSelections = request.TicketSelections != null && request.TicketSelections.Count > 0;
+            if (!hasTicketSelections && (request.TicketTypeIds == null || request.TicketTypeIds.Count == 0))
             {
                 return PayPalCheckoutProblem(correlationId, "validation",
                     "No tickets selected.", paymentCharged: false);
@@ -176,6 +178,7 @@ public class PayPalCheckoutController : ControllerBase
             {
                 EventId = request.EventId,
                 TicketTypeIds = request.TicketTypeIds,
+                TicketSelections = request.TicketSelections,
                 EventWaiverAccepted = request.EventWaiverAccepted,
                 PaymentMethodId = "paypal-pending",
                 Notes = $"PayPal Checkout {correlationId}",
@@ -593,6 +596,13 @@ public class PayPalCheckoutCreateOrderRequest
     public string? EventTitle { get; set; }
     public bool EventWaiverAccepted { get; set; }
     public string IdempotencyKey { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional structured ticket selections with quantity and assignment info.
+    /// When present, takes precedence over TicketTypeIds for determining quantities.
+    /// Backward compatible: if null/empty, falls back to TicketTypeIds (one per type).
+    /// </summary>
+    public List<TicketSelectionItem>? TicketSelections { get; set; }
 }
 
 public class PayPalCheckoutCreateOrderResponse

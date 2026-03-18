@@ -109,7 +109,9 @@ public class CheckoutEndpoints : ControllerBase
                     paymentCharged: false);
             }
 
-            if (request.TicketTypeIds == null || request.TicketTypeIds.Count == 0)
+            // Validate ticket selection: either TicketSelections or TicketTypeIds must be provided
+            var hasTicketSelections = request.TicketSelections != null && request.TicketSelections.Count > 0;
+            if (!hasTicketSelections && (request.TicketTypeIds == null || request.TicketTypeIds.Count == 0))
             {
                 return CheckoutProblem(correlationId, "validation",
                     "No tickets selected.",
@@ -169,10 +171,12 @@ public class CheckoutEndpoints : ControllerBase
             {
                 EventId = request.EventId,
                 TicketTypeIds = request.TicketTypeIds,
+                TicketSelections = request.TicketSelections,
                 EventWaiverAccepted = request.EventWaiverAccepted,
                 PaymentMethodId = "authnet-pending",
                 Notes = $"Checkout {correlationId}",
-                Amount = request.Amount
+                Amount = request.Amount,
+                SlidingScalePercentage = request.SlidingScalePercentage
             };
 
             var ticketResult = await _attendanceService.CreateTicketPurchaseAsync(
@@ -490,6 +494,19 @@ public class CheckoutRequest
     [Required]
     [MaxLength(50)]
     public string IdempotencyKey { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Sliding scale discount percentage applied (0-75%).
+    /// Passed through to ticket purchase for audit trail.
+    /// </summary>
+    public decimal SlidingScalePercentage { get; set; }
+
+    /// <summary>
+    /// Optional structured ticket selections with quantity and assignment info.
+    /// When present, takes precedence over TicketTypeIds for determining quantities.
+    /// Backward compatible: if null/empty, falls back to TicketTypeIds (one per type).
+    /// </summary>
+    public List<TicketSelectionItem>? TicketSelections { get; set; }
 }
 
 public class CheckoutResponse
@@ -500,4 +517,23 @@ public class CheckoutResponse
     public string Status { get; set; } = string.Empty;
     public string? AuthCode { get; set; }
     public decimal AmountCharged { get; set; }
+
+    /// <summary>
+    /// Details of ticket assignments made during checkout (null if no assignments).
+    /// Only populated when TicketSelections with assignees were provided.
+    /// </summary>
+    public List<TicketAssignmentResultDto>? Assignments { get; set; }
+}
+
+/// <summary>
+/// Result of a single ticket assignment made during checkout.
+/// </summary>
+public class TicketAssignmentResultDto
+{
+    public Guid AttendanceId { get; set; }
+    public Guid TicketPurchaseId { get; set; }
+    public string TicketTypeName { get; set; } = string.Empty;
+    public Guid? AssignedToUserId { get; set; }
+    public string? AssignedToSceneName { get; set; }
+    public string Status { get; set; } = string.Empty;
 }

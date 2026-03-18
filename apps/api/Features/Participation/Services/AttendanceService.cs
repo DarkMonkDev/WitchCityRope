@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.AuthorizedContacts.Services;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Shared.Models;
@@ -63,6 +64,7 @@ public class AttendanceService : IAttendanceService
     private readonly IRefundService _refundService;
     private readonly IEventEmailService _eventEmailService;
     private readonly IAttendanceCountService _countService;
+    private readonly IAuthorizedContactService _authorizedContactService;
     private readonly ILogger<AttendanceService> _logger;
 
     public AttendanceService(
@@ -72,6 +74,7 @@ public class AttendanceService : IAttendanceService
         IRefundService refundService,
         IEventEmailService eventEmailService,
         IAttendanceCountService countService,
+        IAuthorizedContactService authorizedContactService,
         ILogger<AttendanceService> logger)
     {
         _context = context;
@@ -80,6 +83,7 @@ public class AttendanceService : IAttendanceService
         _refundService = refundService;
         _eventEmailService = eventEmailService;
         _countService = countService;
+        _authorizedContactService = authorizedContactService;
         _logger = logger;
     }
 
@@ -747,7 +751,9 @@ public class AttendanceService : IAttendanceService
 
     /// <summary>
     /// Purchase one or more tickets for a class event (any authenticated user)
-    /// Supports both single ticket (backward compatible) and batch ticket purchases
+    /// Supports both single ticket (backward compatible) and multi-ticket purchases with optional assignees.
+    /// When TicketSelections is provided, it takes precedence over TicketTypeIds.
+    /// Backward compatible: if TicketSelections is null/empty, falls back to TicketTypeIds (one per type).
     /// </summary>
     public async Task<Result<ParticipationStatusDto>> CreateTicketPurchaseAsync(
         CreateTicketPurchaseRequest request,
@@ -756,8 +762,24 @@ public class AttendanceService : IAttendanceService
     {
         try
         {
-            _logger.LogInformation("Creating ticket purchase for user {UserId} in event {EventId} with {TicketCount} ticket type(s)",
-                userId, request.EventId, request.TicketTypeIds.Count);
+            // ============================================================================
+            // NORMALIZE: Convert old format to new format for unified processing (backward compat)
+            // ============================================================================
+            var selections = request.TicketSelections?.Any() == true
+                ? request.TicketSelections
+                : request.TicketTypeIds.Select(id => new TicketSelectionItem
+                {
+                    TicketTypeId = id,
+                    Quantity = 1,
+                    Assignees = null
+                }).ToList();
+
+            var totalNewTickets = selections.Sum(s => s.Quantity);
+            var allTicketTypeIds = selections.Select(s => s.TicketTypeId).Distinct().ToList();
+
+            _logger.LogInformation(
+                "Creating ticket purchase for user {UserId} in event {EventId} with {SelectionCount} selection(s), {TotalTickets} total ticket(s)",
+                userId, request.EventId, selections.Count, totalNewTickets);
 
             // Check if event exists FIRST (need event for timing check)
             var eventEntity = await _context.Events
@@ -780,14 +802,14 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("User not found");
             }
 
-            // VETTING ENFORCEMENT: Check if event requires vetted members
+            // VETTING ENFORCEMENT: Check if event requires vetted members (purchaser)
             // Must run before waiver/timing checks so non-vetted users get clear denial message
             if (eventEntity.VettedMembersOnly && !user.IsVetted)
             {
                 return Result<ParticipationStatusDto>.Failure("This event is limited to vetted members only");
             }
 
-            // CRITICAL: Validate Event Waiver acceptance
+            // CRITICAL: Validate Event Waiver acceptance (for purchaser's own ticket)
             if (!request.EventWaiverAccepted)
             {
                 return Result<ParticipationStatusDto>.Failure("You must accept the Event Waiver to purchase a ticket");
@@ -796,15 +818,35 @@ public class AttendanceService : IAttendanceService
             // Load all ticket types with their sessions
             var ticketTypesWithSessions = await _context.TicketTypes
                 .Include(tt => tt.Sessions)
-                .Where(tt => request.TicketTypeIds.Contains(tt.Id))
+                .Where(tt => allTicketTypeIds.Contains(tt.Id))
                 .ToListAsync(cancellationToken);
 
             // Validate all ticket types exist
-            if (ticketTypesWithSessions.Count != request.TicketTypeIds.Count)
+            if (ticketTypesWithSessions.Count != allTicketTypeIds.Count)
             {
-                var missingIds = request.TicketTypeIds.Except(ticketTypesWithSessions.Select(tt => tt.Id)).ToList();
+                var missingIds = allTicketTypeIds.Except(ticketTypesWithSessions.Select(tt => tt.Id)).ToList();
                 _logger.LogWarning("Ticket type(s) not found: {MissingIds}", string.Join(", ", missingIds));
                 return Result<ParticipationStatusDto>.Failure("One or more ticket types not found");
+            }
+
+            // ============================================================================
+            // VALIDATE: MaxQuantityPerPurchase per selection (BR-010)
+            // ============================================================================
+            foreach (var selection in selections)
+            {
+                var ticketType = ticketTypesWithSessions.First(tt => tt.Id == selection.TicketTypeId);
+                if (selection.Quantity > ticketType.MaxQuantityPerPurchase)
+                {
+                    return Result<ParticipationStatusDto>.Failure(
+                        $"Maximum {ticketType.MaxQuantityPerPurchase} tickets allowed per purchase for '{ticketType.Name}'");
+                }
+
+                // Validate assignees list length: must be <= Quantity - 1 (first ticket is for purchaser)
+                if (selection.Assignees != null && selection.Assignees.Count > selection.Quantity - 1)
+                {
+                    return Result<ParticipationStatusDto>.Failure(
+                        $"Too many assignees for '{ticketType.Name}'. Maximum {selection.Quantity - 1} assignees for {selection.Quantity} tickets (first ticket is for purchaser).");
+                }
             }
 
             // Collect all session IDs across all ticket types for overlap detection
@@ -839,13 +881,15 @@ public class AttendanceService : IAttendanceService
                 }
             }
 
-            // Check if user already has a ticket for ANY of these sessions
-            // Include PendingPayment to prevent duplicate purchases during payment window
+            // Check if purchaser already has a ticket for ANY of these sessions
+            // Include PendingPayment and PendingAcceptance to prevent duplicate purchases
             var overlappingAttendance = await _context.EventAttendances
                 .AsNoTracking()
                 .Where(ea =>
                     ea.UserId == userId &&
-                    (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingPayment) &&
+                    (ea.Status == AttendanceStatus.Active ||
+                     ea.Status == AttendanceStatus.PendingPayment ||
+                     ea.Status == AttendanceStatus.PendingAcceptance) &&
                     ea.AttendanceType == AttendanceType.Ticket &&
                     ea.SessionId.HasValue &&
                     allRequestedSessionIds.Contains(ea.SessionId.Value))
@@ -863,109 +907,257 @@ public class AttendanceService : IAttendanceService
                     $"You already have a ticket that includes the {overlappingSessionName} session ({existingTicketName})");
             }
 
-            // Use reserved count (Active + PendingPayment) to prevent overselling during checkout windows
-            var currentAttendanceCount = await _countService.GetReservedCountAsync(request.EventId, cancellationToken);
+            // ============================================================================
+            // VALIDATE ASSIGNEES (BR-012, BR-020, BR-035 / AD-014)
+            // ============================================================================
+            var allAssigneeIds = selections
+                .Where(s => s.Assignees != null)
+                .SelectMany(s => s.Assignees!)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value)
+                .Distinct()
+                .ToList();
 
-            if (currentAttendanceCount >= eventEntity.Capacity)
+            if (allAssigneeIds.Count > 0)
             {
-                return Result<ParticipationStatusDto>.Failure("Event is at full capacity");
+                // Load assignee users for vetting checks
+                var assigneeUsers = await _context.Users
+                    .AsNoTracking()
+                    .Where(u => allAssigneeIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, cancellationToken);
+
+                foreach (var assigneeId in allAssigneeIds)
+                {
+                    // Validate assignee exists
+                    if (!assigneeUsers.ContainsKey(assigneeId))
+                    {
+                        return Result<ParticipationStatusDto>.Failure(
+                            $"Assigned user not found: {assigneeId}");
+                    }
+
+                    // BR-020: Check authorization (purchaser must be authorized delegate for each assignee/principal)
+                    var isAuthorized = await _authorizedContactService.IsAuthorizedDelegateAsync(
+                        assigneeId, userId, cancellationToken);
+                    if (!isAuthorized)
+                    {
+                        var assigneeUser = assigneeUsers[assigneeId];
+                        return Result<ParticipationStatusDto>.Failure(
+                            $"You are not authorized to purchase tickets for '{assigneeUser.SceneName}'. They must add you as an authorized contact first.");
+                    }
+
+                    // BR-035 / AD-014: Vetting check at assignment time for VettedMembersOnly events
+                    if (eventEntity.VettedMembersOnly)
+                    {
+                        var assigneeUser = assigneeUsers[assigneeId];
+                        if (!assigneeUser.IsVetted)
+                        {
+                            return Result<ParticipationStatusDto>.Failure(
+                                $"'{assigneeUser.SceneName}' is not a vetted member. This event is limited to vetted members only.");
+                        }
+                    }
+
+                    // BR-012: Check if assignee already has a ticket for overlapping sessions
+                    var assigneeOverlap = await _context.EventAttendances
+                        .AsNoTracking()
+                        .Where(ea =>
+                            ea.UserId == assigneeId &&
+                            (ea.Status == AttendanceStatus.Active ||
+                             ea.Status == AttendanceStatus.PendingPayment ||
+                             ea.Status == AttendanceStatus.PendingAcceptance) &&
+                            ea.AttendanceType == AttendanceType.Ticket &&
+                            ea.SessionId.HasValue &&
+                            allRequestedSessionIds.Contains(ea.SessionId.Value))
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (assigneeOverlap != null)
+                    {
+                        var assigneeUser = assigneeUsers[assigneeId];
+                        return Result<ParticipationStatusDto>.Failure(
+                            $"'{assigneeUser.SceneName}' already has a ticket for this event or overlapping session.");
+                    }
+                }
             }
 
             // ============================================================================
-            // PROCESS ALL TICKET TYPES IN A SINGLE TRANSACTION
+            // CAPACITY CHECK: Account for total quantity across all selections (BR-013)
+            // ============================================================================
+            var currentAttendanceCount = await _countService.GetReservedCountAsync(request.EventId, cancellationToken);
+
+            if (currentAttendanceCount + totalNewTickets > eventEntity.Capacity)
+            {
+                return Result<ParticipationStatusDto>.Failure(
+                    totalNewTickets > 1
+                        ? $"Not enough capacity for {totalNewTickets} tickets. Only {eventEntity.Capacity - currentAttendanceCount} spot(s) remaining."
+                        : "Event is at full capacity");
+            }
+
+            // ============================================================================
+            // CALCULATE PER-TICKET PRICE
+            // The checkout Amount is the TOTAL for the entire purchase.
+            // Split evenly across all tickets (AD-012: uniform sliding scale).
+            // ============================================================================
+            var perTicketPrice = totalNewTickets > 0 && request.Amount.HasValue
+                ? request.Amount.Value / totalNewTickets
+                : 0m;
+
+            // ============================================================================
+            // PROCESS ALL TICKET SELECTIONS IN A SINGLE TRANSACTION
+            // Creates N TicketPurchase records based on quantities, with assignment info.
             // ============================================================================
             var allAttendances = new List<EventAttendance>();
             var ticketPurchases = new List<TicketPurchase>();
 
-            foreach (var ticketType in ticketTypesWithSessions)
+            foreach (var selection in selections)
             {
-                // Create TicketPurchase record for this ticket type.
-                // TotalPrice uses the amount from the checkout request (already includes sliding scale discount).
-                // Falls back to ticketType.Price for fixed-price tickets, or 0 if neither is set
-                // (should not happen — checkout endpoints always pass Amount).
-                var ticketPurchase = new TicketPurchase
-                {
-                    Id = Guid.NewGuid(),
-                    TicketTypeId = ticketType.Id,
-                    UserId = userId,
-                    Quantity = 1,
-                    TotalPrice = request.Amount ?? ticketType.Price ?? 0m,
-                    SlidingScalePercentage = request.SlidingScalePercentage,
-                    PaymentStatus = TicketPurchasePaymentStatus.Pending,
-                    PaymentMethod = request.PaymentMethodId ?? "Unknown",
-                    PaymentReference = $"WCR-{Guid.NewGuid().ToString()[..8].ToUpper()}",
-                    Notes = request.Notes ?? $"Ticket purchase - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
-                    EventWaiverAccepted = request.EventWaiverAccepted,
-                    EventWaiverAcceptedAt = DateTime.UtcNow,
-                    PurchaseDate = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                _context.TicketPurchases.Add(ticketPurchase);
-                ticketPurchases.Add(ticketPurchase);
-
-                // Create EventAttendance records for each session in this ticket type
+                var ticketType = ticketTypesWithSessions.First(tt => tt.Id == selection.TicketTypeId);
                 var sessionIds = ticketType.Sessions.Select(s => s.Id).ToList();
 
-                foreach (var session in ticketType.Sessions)
+                for (var ticketIndex = 0; ticketIndex < selection.Quantity; ticketIndex++)
                 {
-                    var attendance = new EventAttendance(request.EventId, userId, AttendanceType.Ticket)
+                    // Determine who this ticket is for:
+                    // Index 0 = purchaser's own ticket
+                    // Index 1+ = check assignees list (assignee index = ticketIndex - 1)
+                    var isForPurchaser = ticketIndex == 0;
+                    Guid? assigneeId = null;
+
+                    if (!isForPurchaser && selection.Assignees != null)
                     {
-                        SessionId = session.Id,
-                        TicketPurchaseId = ticketPurchase.Id,
-                        Status = AttendanceStatus.PendingPayment,
-                        Notes = request.Notes,
-                        EventWaiverAccepted = true,
-                        EventWaiverAcceptedAt = DateTime.UtcNow,
-                        CreatedBy = userId
+                        var assigneeIndex = ticketIndex - 1;
+                        if (assigneeIndex < selection.Assignees.Count)
+                        {
+                            assigneeId = selection.Assignees[assigneeIndex];
+                        }
+                    }
+
+                    // Determine the attendee UserId for the EventAttendance records
+                    var attendeeUserId = assigneeId ?? userId;
+                    var isAssigned = assigneeId.HasValue && assigneeId.Value != userId;
+
+                    // Create TicketPurchase record for this individual ticket.
+                    // Each ticket gets its own TicketPurchase so it can be independently
+                    // managed (refunded, assigned, etc.)
+                    var ticketPurchase = new TicketPurchase
+                    {
+                        Id = Guid.NewGuid(),
+                        TicketTypeId = ticketType.Id,
+                        UserId = userId, // Always the purchaser
+                        PurchasedForUserId = isAssigned ? assigneeId : null,
+                        Quantity = 1,
+                        TotalPrice = perTicketPrice > 0 ? perTicketPrice : (ticketType.Price ?? 0m),
+                        SlidingScalePercentage = request.SlidingScalePercentage,
+                        PaymentStatus = TicketPurchasePaymentStatus.Pending,
+                        PaymentMethod = request.PaymentMethodId ?? "Unknown",
+                        PaymentReference = $"WCR-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                        Notes = request.Notes ?? $"Ticket purchase - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
+                        EventWaiverAccepted = isForPurchaser ? request.EventWaiverAccepted : false,
+                        EventWaiverAcceptedAt = isForPurchaser ? DateTime.UtcNow : null,
+                        PurchaseDate = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
 
-                    allAttendances.Add(attendance);
-                    _context.EventAttendances.Add(attendance);
-                }
+                    _context.TicketPurchases.Add(ticketPurchase);
+                    ticketPurchases.Add(ticketPurchase);
 
-                // Create audit history for this ticket type's purchase
-                var primaryAttendanceForType = allAttendances.LastOrDefault();
-                if (primaryAttendanceForType == null)
-                {
-                    _logger.LogError(
-                        "No attendance records created for ticket type {TicketTypeId} '{TicketTypeName}' " +
-                        "for user {UserId} in event {EventId}. Sessions loaded: {SessionCount}",
-                        ticketType.Id, ticketType.Name, userId, request.EventId, ticketType.Sessions.Count);
-                    return Result<ParticipationStatusDto>.Failure(
-                        $"Failed to create attendance records for ticket '{ticketType.Name}'. " +
-                        "The ticket may not be configured correctly. Please contact support.");
-                }
-                var history = new AttendanceHistory(primaryAttendanceForType.Id, "Created")
-                {
-                    NewValues = System.Text.Json.JsonSerializer.Serialize(new
+                    // Create EventAttendance records for each session in this ticket type
+                    foreach (var session in ticketType.Sessions)
                     {
-                        EventId = primaryAttendanceForType.EventId,
-                        UserId = primaryAttendanceForType.UserId,
-                        AttendanceType = primaryAttendanceForType.AttendanceType,
-                        TicketTypeName = ticketType.Name,
-                        SessionIds = sessionIds,
-                        SessionCount = sessionIds.Count,
-                        Notes = primaryAttendanceForType.Notes,
-                        PaymentMethodId = request.PaymentMethodId
-                    }),
-                    ChangedBy = userId,
-                    ChangeReason = sessionIds.Count > 1
-                        ? $"Multi-session ticket '{ticketType.Name}' purchased by user ({sessionIds.Count} sessions)"
-                        : $"Ticket '{ticketType.Name}' purchased by user"
-                };
+                        var attendance = new EventAttendance(request.EventId, attendeeUserId, AttendanceType.Ticket)
+                        {
+                            SessionId = session.Id,
+                            TicketPurchaseId = ticketPurchase.Id,
+                            Status = AttendanceStatus.PendingPayment,
+                            Notes = request.Notes,
+                            CreatedBy = userId
+                        };
 
-                _context.AttendanceHistory.Add(history);
+                        if (isForPurchaser)
+                        {
+                            // Purchaser's own ticket: waiver accepted at checkout (BR-033)
+                            attendance.EventWaiverAccepted = true;
+                            attendance.EventWaiverAcceptedAt = DateTime.UtcNow;
+                        }
+                        else if (isAssigned)
+                        {
+                            // Assigned ticket: waiver NOT accepted (BR-030, BR-033)
+                            // Assignee must accept waiver themselves
+                            attendance.EventWaiverAccepted = false;
+                            attendance.EventWaiverAcceptedAt = null;
+                            attendance.AssignedByUserId = userId;
+                            attendance.AssignedAt = DateTime.UtcNow;
+                        }
+                        else
+                        {
+                            // Unassigned extra ticket: belongs to purchaser, assign later (BR-016, AD-007)
+                            attendance.EventWaiverAccepted = true;
+                            attendance.EventWaiverAcceptedAt = DateTime.UtcNow;
+                        }
 
-                _logger.LogInformation("Prepared TicketPurchase {TicketPurchaseId} for ticket type '{TicketTypeName}' ({SessionCount} sessions)",
-                    ticketPurchase.Id, ticketType.Name, sessionIds.Count);
+                        allAttendances.Add(attendance);
+                        _context.EventAttendances.Add(attendance);
+                    }
+
+                    // Create audit history
+                    var primaryAttendanceForTicket = allAttendances.LastOrDefault();
+                    if (primaryAttendanceForTicket == null)
+                    {
+                        _logger.LogError(
+                            "No attendance records created for ticket type {TicketTypeId} '{TicketTypeName}' " +
+                            "ticket index {TicketIndex} for user {UserId} in event {EventId}. Sessions loaded: {SessionCount}",
+                            ticketType.Id, ticketType.Name, ticketIndex, userId, request.EventId, ticketType.Sessions.Count);
+                        return Result<ParticipationStatusDto>.Failure(
+                            $"Failed to create attendance records for ticket '{ticketType.Name}'. " +
+                            "The ticket may not be configured correctly. Please contact support.");
+                    }
+
+                    var changeReason = isAssigned
+                        ? $"Ticket '{ticketType.Name}' purchased by user and assigned to {attendeeUserId}"
+                        : isForPurchaser
+                            ? $"Ticket '{ticketType.Name}' purchased by user"
+                            : $"Extra ticket '{ticketType.Name}' purchased (unassigned)";
+
+                    if (sessionIds.Count > 1)
+                    {
+                        changeReason = $"Multi-session {changeReason} ({sessionIds.Count} sessions)";
+                    }
+
+                    var history = new AttendanceHistory(primaryAttendanceForTicket.Id, "Created")
+                    {
+                        NewValues = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            EventId = primaryAttendanceForTicket.EventId,
+                            UserId = primaryAttendanceForTicket.UserId,
+                            AttendanceType = primaryAttendanceForTicket.AttendanceType,
+                            TicketTypeName = ticketType.Name,
+                            SessionIds = sessionIds,
+                            SessionCount = sessionIds.Count,
+                            Notes = primaryAttendanceForTicket.Notes,
+                            PaymentMethodId = request.PaymentMethodId,
+                            IsAssigned = isAssigned,
+                            AssignedByUserId = isAssigned ? (Guid?)userId : null,
+                            AssignedToUserId = isAssigned ? assigneeId : null,
+                            TicketIndex = ticketIndex,
+                            TotalInPurchase = selection.Quantity
+                        }),
+                        ChangedBy = userId,
+                        ChangeReason = changeReason
+                    };
+
+                    _context.AttendanceHistory.Add(history);
+
+                    _logger.LogInformation(
+                        "Prepared TicketPurchase {TicketPurchaseId} for ticket type '{TicketTypeName}' " +
+                        "(ticket {TicketIndex}/{TotalQuantity}, assigned={IsAssigned}, attendee={AttendeeUserId}, {SessionCount} sessions)",
+                        ticketPurchase.Id, ticketType.Name, ticketIndex + 1, selection.Quantity,
+                        isAssigned, attendeeUserId, sessionIds.Count);
+                }
             }
 
             // EventAttendee (check-in system) creation is deferred to ActivateAttendanceForPurchasesAsync
             // which is called after payment is confirmed. This prevents unpaid users from appearing in check-in.
 
-            // Auto-RSVP for events that allow RSVPs
+            // Auto-RSVP for events that allow RSVPs - ONLY for the purchaser's own tickets
+            // Assigned tickets get their auto-RSVP when the assignee accepts (handled by TicketAssignmentService)
             if (eventEntity.AllowRsvps)
             {
                 var existingRsvp = await _context.EventAttendances
@@ -1015,8 +1207,8 @@ public class AttendanceService : IAttendanceService
             {
                 _logger.LogError(
                     "No attendance records were created for user {UserId} in event {EventId} " +
-                    "despite processing {TicketTypeCount} ticket types",
-                    userId, request.EventId, request.TicketTypeIds.Count);
+                    "despite processing {SelectionCount} selection(s)",
+                    userId, request.EventId, selections.Count);
                 return Result<ParticipationStatusDto>.Failure(
                     "Failed to create ticket purchase records. Please try again or contact support.");
             }
@@ -1032,8 +1224,8 @@ public class AttendanceService : IAttendanceService
             }
 
             _logger.LogInformation(
-                "Successfully created and verified {TicketTypeCount} ticket purchase(s) for user {UserId} in event {EventId} ({AttendanceCount} attendance records total)",
-                request.TicketTypeIds.Count, userId, request.EventId, allAttendances.Count);
+                "Successfully created and verified {TotalTickets} ticket purchase(s) for user {UserId} in event {EventId} ({AttendanceCount} attendance records total)",
+                totalNewTickets, userId, request.EventId, allAttendances.Count);
 
             var dto = new ParticipationStatusDto
             {
@@ -1766,8 +1958,10 @@ public class AttendanceService : IAttendanceService
 
     /// <summary>
     /// Activate attendance records for completed ticket purchases.
-    /// Transitions PendingPayment attendance to Active after payment confirmation.
-    /// Also creates/updates EventAttendee records for the check-in system.
+    /// Transitions PendingPayment to Active for purchaser's own tickets,
+    /// and PendingPayment to PendingAcceptance for assigned tickets.
+    /// Also creates/updates EventAttendee records for the check-in system
+    /// (only for Active tickets, not PendingAcceptance).
     /// </summary>
     public async Task<Result> ActivateAttendanceForPurchasesAsync(
         List<Guid> ticketPurchaseIds,
@@ -1789,14 +1983,48 @@ public class AttendanceService : IAttendanceService
                 return Result.Success();
             }
 
+            // Get all purchaser user IDs from the ticket purchases to determine ownership
+            var purchaserLookup = await _context.TicketPurchases
+                .AsNoTracking()
+                .Where(tp => ticketPurchaseIds.Contains(tp.Id))
+                .ToDictionaryAsync(tp => tp.Id, tp => tp.UserId, cancellationToken);
+
+            var activatedCount = 0;
+            var pendingAcceptanceCount = 0;
+
             foreach (var attendance in attendances)
             {
-                attendance.Status = AttendanceStatus.Active;
+                var purchaserUserId = attendance.TicketPurchaseId.HasValue
+                    && purchaserLookup.TryGetValue(attendance.TicketPurchaseId.Value, out var purchaser)
+                    ? purchaser
+                    : (Guid?)null;
+
+                // Assigned tickets (AssignedByUserId set AND attendee is not the purchaser)
+                // go to PendingAcceptance so the assignee can accept waiver + ToS
+                if (attendance.AssignedByUserId != null
+                    && purchaserUserId.HasValue
+                    && attendance.UserId != purchaserUserId.Value)
+                {
+                    attendance.Status = AttendanceStatus.PendingAcceptance;
+                    pendingAcceptanceCount++;
+                }
+                else
+                {
+                    attendance.Status = AttendanceStatus.Active;
+                    activatedCount++;
+                }
+
                 attendance.UpdatedAt = DateTime.UtcNow;
             }
 
             // Create/update EventAttendee records for the check-in system
-            var userEventPairs = attendances
+            // ONLY for Active tickets (purchaser's own). PendingAcceptance tickets
+            // get their EventAttendee created when the assignee accepts.
+            var activeAttendances = attendances
+                .Where(a => a.Status == AttendanceStatus.Active)
+                .ToList();
+
+            var userEventPairs = activeAttendances
                 .Select(a => new { a.UserId, a.EventId })
                 .Distinct()
                 .ToList();
@@ -1834,8 +2062,9 @@ public class AttendanceService : IAttendanceService
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Activated {Count} attendance record(s) for ticket purchases [{TicketPurchaseIds}]",
-                attendances.Count, string.Join(", ", ticketPurchaseIds));
+                "Post-payment activation for ticket purchases [{TicketPurchaseIds}]: " +
+                "{ActivatedCount} activated, {PendingAcceptanceCount} set to PendingAcceptance (assigned tickets)",
+                string.Join(", ", ticketPurchaseIds), activatedCount, pendingAcceptanceCount);
 
             return Result.Success();
         }

@@ -985,3 +985,41 @@ curl 'http://localhost:5173/api/events/{eventId}/participation' -b cookies.txt |
 **Reference**: `/docs/standards-processes/backend/serilog-logging-guide.md`
 
 **Tags**: #serilog #postgresql #pgbouncer #logging #uuid #deployment #staging
+
+---
+
+## Backward-Compatible DTO Extension Pattern for Checkout Flow Modifications (2026-03-18)
+
+### Problem
+Modifying the atomic checkout flow (validate -> create pending -> charge -> finalize) is high-risk. Adding multi-ticket support with assignees must not break existing single-ticket purchases.
+
+### Solution: Optional Field + Normalization
+1. Add optional `TicketSelections` field alongside existing `TicketTypeIds`
+2. At the start of the service method, normalize both formats into a unified `List<TicketSelectionItem>`
+3. All processing uses the normalized list -- no branching logic deeper in the method
+
+```csharp
+var selections = request.TicketSelections?.Any() == true
+    ? request.TicketSelections
+    : request.TicketTypeIds.Select(id => new TicketSelectionItem
+    {
+        TicketTypeId = id,
+        Quantity = 1,
+        Assignees = null
+    }).ToList();
+```
+
+### Key Decisions
+- **One TicketPurchase per individual ticket** (not per selection) -- enables independent refund/assignment
+- **Assigned tickets transition: PendingPayment -> PendingAcceptance** (not Active) after payment
+- **Purchaser's own tickets transition: PendingPayment -> Active** as before
+- **GetReservedCountAsync must include PendingAcceptance** for capacity enforcement (BR-013)
+- **Auto-RSVP only for purchaser's own tickets** -- assignee gets RSVP when they accept
+
+### Mistakes to Avoid
+- DO NOT forget to update `GetReservedCountAsync` to include PendingAcceptance -- causes overselling
+- DO NOT create EventAttendee check-in records for PendingAcceptance tickets -- only for Active
+- DO NOT accept waiver on behalf of assignees at checkout (BR-030, BR-033)
+- DO NOT skip authorization check (BR-020) -- purchaser must be an authorized delegate for each assignee
+
+**Tags**: #checkout #multi-ticket #backward-compatibility #assignment #capacity

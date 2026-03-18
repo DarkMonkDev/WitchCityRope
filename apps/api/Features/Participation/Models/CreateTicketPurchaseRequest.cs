@@ -52,4 +52,40 @@ public class CreateTicketPurchaseRequest
     /// 0 = full price, 75 = maximum discount.
     /// </summary>
     public decimal SlidingScalePercentage { get; set; }
+
+    /// <summary>
+    /// Optional structured ticket selections with quantity and assignment info.
+    /// When present, takes precedence over TicketTypeIds.
+    /// Each item specifies a ticket type, quantity (1-N), and optional assignees.
+    /// Backward compatible: if null/empty, falls back to TicketTypeIds (one per type).
+    /// </summary>
+    public List<TicketSelectionItem>? TicketSelections { get; set; }
+}
+
+/// <summary>
+/// Represents a ticket type selection with quantity and optional assignees.
+/// Used in multi-ticket purchase flow.
+/// </summary>
+public class TicketSelectionItem
+{
+    /// <summary>
+    /// The ticket type being purchased
+    /// </summary>
+    [Required]
+    public Guid TicketTypeId { get; set; }
+
+    /// <summary>
+    /// Number of tickets of this type to purchase (1-10)
+    /// </summary>
+    [Required]
+    [Range(1, 10)]
+    public int Quantity { get; set; } = 1;
+
+    /// <summary>
+    /// Optional per-ticket assignees. Length must be less than or equal to Quantity - 1.
+    /// First ticket is always for the purchaser. Remaining can be assigned.
+    /// Null entries in the list = "assign later" (ticket stays with purchaser).
+    /// Null/empty list = all tickets are for the purchaser (or assign later).
+    /// </summary>
+    public List<Guid?>? Assignees { get; set; }
 }

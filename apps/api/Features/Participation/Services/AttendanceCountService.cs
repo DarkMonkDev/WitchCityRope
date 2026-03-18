@@ -56,12 +56,16 @@ public class AttendanceCountService : IAttendanceCountService
     public async Task<int> GetReservedCountAsync(Guid eventId, CancellationToken ct = default)
     {
         // Includes PendingPayment to reserve capacity during payment windows.
+        // Includes PendingAcceptance because assigned tickets reserve a spot even before
+        // the assignee accepts (BR-013, BR-054 - purchased tickets hold capacity).
         // Counts ALL attendance types (RSVP + Ticket) because any reservation
         // occupies capacity regardless of type. This prevents overselling when
         // a user has started checkout but hasn't completed payment yet.
         return await _context.EventAttendances
             .CountAsync(ea => ea.EventId == eventId
-                && (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingPayment), ct);
+                && (ea.Status == AttendanceStatus.Active
+                    || ea.Status == AttendanceStatus.PendingPayment
+                    || ea.Status == AttendanceStatus.PendingAcceptance), ct);
     }
 
     /// <inheritdoc />
