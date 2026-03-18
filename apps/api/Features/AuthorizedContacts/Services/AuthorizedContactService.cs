@@ -239,17 +239,25 @@ public class AuthorizedContactService : IAuthorizedContactService
                 .Select(ac => ac.DelegateId)
                 .ToListAsync(ct);
 
-            // Search users by scene name (case-insensitive), excluding self and already-authorized
-            // AD-009: Return ONLY UserId and SceneName for privacy
+            // Search users across multiple fields for discoverability, but only
+            // return scene name in results for privacy (AD-009).
+            // Users can search by: scene name, email, FetLife name, or Discord name.
+            // This allows finding someone even if you only know their email or FetLife handle.
+            var searchPattern = $"%{trimmedQuery}%";
             var results = await _context.Users
                 .AsNoTracking()
                 .Where(u =>
                     u.Id != currentUserId
                     && !alreadyAuthorizedDelegateIds.Contains(u.Id)
                     && u.SceneName != null
-                    && EF.Functions.ILike(u.SceneName, $"%{trimmedQuery}%"))
+                    && (EF.Functions.ILike(u.SceneName, searchPattern)
+                        || (u.Email != null && EF.Functions.ILike(u.Email, searchPattern))
+                        || (u.FetLifeName != null && EF.Functions.ILike(u.FetLifeName, searchPattern))
+                        || (u.DiscordName != null && EF.Functions.ILike(u.DiscordName, searchPattern))))
                 .OrderBy(u => u.SceneName)
                 .Take(10)
+                // AD-009: Only return scene name - do NOT expose email, FetLife, or Discord
+                // in the results. The search fields are for matching only.
                 .Select(u => new UserSearchResultDto
                 {
                     UserId = u.Id,
