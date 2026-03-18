@@ -271,7 +271,7 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
-            SessionId = sessionId, // null = event-wide position
+            SessionId = sessionId ?? Guid.Empty, // SessionId is now required (non-nullable)
             Title = title,
             Description = "Test volunteer position",
             SlotsNeeded = 3,

@@ -102,11 +102,18 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
         var volunteerService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Volunteers.Services.IVolunteerAssignmentService>();
         var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<AttendanceService>>();
 
+        var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
+        var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
+        var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+
         var attendanceService = new AttendanceService(
             serviceContext,
             volunteerService,
             timeZoneService,
             refundService,
+            eventEmailService,
+            countService,
+            authorizedContactService,
             logger);
 
         var result = await attendanceService.GetParticipationStatusAsync(eventEntity.Id, userId);
@@ -190,11 +197,18 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
         var volunteerService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Volunteers.Services.IVolunteerAssignmentService>();
         var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<AttendanceService>>();
 
+        var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
+        var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
+        var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+
         var attendanceService = new AttendanceService(
             serviceContext,
             volunteerService,
             timeZoneService,
             refundService,
+            eventEmailService,
+            countService,
+            authorizedContactService,
             logger);
 
         var result = await attendanceService.GetParticipationStatusAsync(eventEntity.Id, userId);
@@ -269,11 +283,18 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
         var volunteerService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Volunteers.Services.IVolunteerAssignmentService>();
         var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<AttendanceService>>();
 
+        var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
+        var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
+        var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+
         var attendanceService = new AttendanceService(
             serviceContext,
             volunteerService,
             timeZoneService,
             refundService,
+            eventEmailService,
+            countService,
+            authorizedContactService,
             logger);
 
         var result = await attendanceService.GetParticipationStatusAsync(eventEntity.Id, userId);
@@ -341,11 +362,18 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
         var volunteerService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Volunteers.Services.IVolunteerAssignmentService>();
         var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<AttendanceService>>();
 
+        var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
+        var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
+        var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+
         var attendanceService = new AttendanceService(
             serviceContext,
             volunteerService,
             timeZoneService,
             refundService,
+            eventEmailService,
+            countService,
+            authorizedContactService,
             logger);
 
         var result = await attendanceService.GetParticipationStatusAsync(eventEntity.Id, userId);
@@ -409,11 +437,18 @@ public class AttendanceServiceCancellationTests : IntegrationTestBase, IDisposab
         var volunteerService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Volunteers.Services.IVolunteerAssignmentService>();
         var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<AttendanceService>>();
 
+        var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
+        var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
+        var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+
         var attendanceService = new AttendanceService(
             serviceContext,
             volunteerService,
             timeZoneService,
             refundService,
+            eventEmailService,
+            countService,
+            authorizedContactService,
             logger);
 
         var result = await attendanceService.GetParticipationStatusAsync(eventEntity.Id, userId);

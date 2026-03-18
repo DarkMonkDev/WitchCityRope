@@ -430,7 +430,6 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
             Subject = $"Global {templateType} Subject",
             HtmlBody = $"<p>Global {templateType} HTML</p>",
             PlainTextBody = $"Global {templateType} Text",
-            Variables = "[\"{{event_title}}\", \"{{attendee_name}}\"]",
             IsActive = true,
             Version = 1,
             UpdatedBy = userId,

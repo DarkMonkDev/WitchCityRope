@@ -8,6 +8,7 @@ using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Participation.Services;
 using Xunit;
 using FluentAssertions;
 using Testcontainers.PostgreSql;
@@ -59,7 +60,8 @@ public class EventServiceTests : IAsyncLifetime
         _timeZoneService = Substitute.For<ITimeZoneService>();
 
         // Create service instance
-        _service = new EventService(_context, _logger, _timeZoneService);
+        var countService = Substitute.For<IAttendanceCountService>();
+        _service = new EventService(_context, _logger, _timeZoneService, countService);
     }
 
     public async Task DisposeAsync()

@@ -357,7 +357,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Should().HaveCountGreaterOrEqualTo(1);
+        result.Value!.Should().HaveCountGreaterThanOrEqualTo(1);
         result.Value[0].AttendanceType.Should().Be("Ticket");
         result.Value[0].EventTitle.Should().Be("TA Test Event");
         result.Value[0].AssignedBySceneName.Should().Be("Purchaser");
@@ -379,7 +379,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Should().HaveCountGreaterOrEqualTo(1);
+        result.Value!.Should().HaveCountGreaterThanOrEqualTo(1);
         var ticket = result.Value.First(t => t.AttendanceId == attendance.Id);
         ticket.CanReassign.Should().BeTrue("Declined tickets should allow reassignment");
         ticket.Status.Should().Be("Active");
@@ -785,7 +785,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Should().HaveCountGreaterOrEqualTo(1);
+        result.Value!.Should().HaveCountGreaterThanOrEqualTo(1);
         var assignment = result.Value.First(a => a.AttendanceId == attendance.Id);
         assignment.AssignedByUserId.Should().Be(_purchaserId);
         assignment.AttendeeUserId.Should().Be(_assigneeId);

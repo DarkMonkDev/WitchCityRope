@@ -12,7 +12,7 @@ using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Models;
-using WitchCityRope.Api.Models.Auth;
+using WitchCityRope.Api.Features.Authentication.Models;
 using WitchCityRope.Api.Services;
 using Xunit;
 using FluentAssertions;
@@ -115,7 +115,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
 
         // Setup JWT service mock
         _jwtService = Substitute.For<IJwtService>();
-        _jwtService.GenerateToken(Arg.Any<ApplicationUser>()).Returns(new WitchCityRope.Api.Models.Auth.JwtToken
+        _jwtService.GenerateToken(Arg.Any<ApplicationUser>()).Returns(new JwtToken
         {
             Token = "test-jwt-token",
             ExpiresAt = DateTime.UtcNow.AddHours(1)
@@ -160,11 +160,13 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _logger = Substitute.For<ILogger<AuthenticationService>>();
 
         // Create service instance
+        var refreshTokenService = Substitute.For<IRefreshTokenService>();
         _service = new AuthenticationService(
             _context,
             _userManager,
             _signInManager,
             _jwtService,
+            refreshTokenService,
             _returnUrlValidator,
             _emailService,
             _configuration,

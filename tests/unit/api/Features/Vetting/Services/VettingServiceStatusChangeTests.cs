@@ -59,6 +59,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<VettingStatus>(),
+                It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(WitchCityRope.Api.Features.Shared.Models.Result<bool>.Success(true));
 
@@ -490,6 +491,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
             It.IsAny<string>(),
             It.IsAny<string>(),
             VettingStatus.OnHold,
+            It.IsAny<string?>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -546,6 +548,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
             It.IsAny<string>(),
             It.IsAny<string>(),
             VettingStatus.Denied,
+            It.IsAny<string?>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -594,6 +597,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
             It.IsAny<string>(),
             It.IsAny<string>(),
             VettingStatus.Approved,
+            It.IsAny<string?>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -611,6 +615,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<VettingStatus>(),
+                It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(WitchCityRope.Api.Features.Shared.Models.Result<bool>.Failure("Email failed", "SendGrid error"));
 

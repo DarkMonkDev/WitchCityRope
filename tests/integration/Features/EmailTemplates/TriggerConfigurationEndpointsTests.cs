@@ -373,7 +373,6 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
             Subject = subject,
             HtmlBody = $"<p>{subject}</p>",
             PlainTextBody = subject,
-            Variables = "[]",
             TriggerType = TemplateTriggerType.FixedEvent,
             SendingEnabled = true,
             IsActive = true,

@@ -10,6 +10,7 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Tests.Fixtures;
 using Microsoft.Extensions.Logging;
 using Moq;
+using WitchCityRope.Api.Features.Participation.Services;
 
 namespace WitchCityRope.Api.Tests.Integration;
 
@@ -44,7 +45,8 @@ public class TicketTypeDeletionTests : IAsyncLifetime
         _eventService = new EventService(
             _context,
             new Mock<ILogger<EventService>>().Object,
-            mockTimeZoneService.Object);
+            mockTimeZoneService.Object,
+            new Mock<IAttendanceCountService>().Object);
 
         // Ensure venue exists for FK constraint
         var venue = await _context.Venues.FindAsync(1);

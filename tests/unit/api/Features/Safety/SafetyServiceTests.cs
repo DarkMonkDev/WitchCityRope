@@ -50,10 +50,12 @@ public class SafetyServiceTests : IAsyncLifetime
 
         // Create fresh context and service for each test
         _context = _fixture.CreateDbContext();
+        var mockIncidentEmailService = new Mock<IIncidentEmailService>();
         _sut = new SafetyService(
             _context,
             _mockEncryptionService.Object,
             _mockAuditService.Object,
+            mockIncidentEmailService.Object,
             _mockLogger.Object);
 
         // Setup default encryption behavior

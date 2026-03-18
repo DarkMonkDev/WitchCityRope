@@ -7,6 +7,7 @@ using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
+using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using WitchCityRope.Api.Tests.TestBase;
@@ -38,7 +39,8 @@ public class EventServiceCreateTests : DatabaseTestBase
         await base.InitializeAsync();
 
         // Create SUT after DbContext is initialized
-        _sut = new EventService(DbContext, _mockLogger.Object, _mockTimeZoneService.Object);
+        var mockCountService = new Mock<IAttendanceCountService>();
+        _sut = new EventService(DbContext, _mockLogger.Object, _mockTimeZoneService.Object, mockCountService.Object);
 
         // Create test venue for FK constraint
         var venue = new Venue

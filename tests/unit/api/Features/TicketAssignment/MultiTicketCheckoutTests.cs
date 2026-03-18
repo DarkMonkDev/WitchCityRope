@@ -247,7 +247,7 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
         var attendances = await _context.EventAttendances
             .Where(ea => ea.EventId == _eventId && ea.UserId == _purchaserId && ea.AttendanceType == AttendanceType.Ticket)
             .ToListAsync();
-        attendances.Should().HaveCountGreaterOrEqualTo(2);
+        attendances.Should().HaveCountGreaterThanOrEqualTo(2);
     }
 
     #endregion
@@ -346,7 +346,7 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
                 && ea.UserId == _purchaserId
                 && ea.AttendanceType == AttendanceType.Ticket)
             .ToListAsync();
-        purchaserAttendances.Should().HaveCountGreaterOrEqualTo(2);
+        purchaserAttendances.Should().HaveCountGreaterThanOrEqualTo(2);
     }
 
     #endregion

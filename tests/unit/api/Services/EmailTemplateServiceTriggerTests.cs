@@ -101,7 +101,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             Subject = "Event Reminder",
             HtmlBody = "<p>Reminder about {{event_name}}</p>",
             PlainTextBody = "Reminder about {{event_name}}",
-            Variables = "[\"event_name\"]",
+
             TriggerType = TemplateTriggerType.FixedEvent,
             SendingEnabled = true,
             Version = 1,
@@ -170,7 +170,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             Subject = "Session Reminder",
             HtmlBody = "<p>Session reminder</p>",
             PlainTextBody = "Session reminder",
-            Variables = "[]",
+
             TriggerType = TemplateTriggerType.Manual,
             UpdatedBy = _testUserId
         };
@@ -208,7 +208,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             Subject = "Application Received",
             HtmlBody = "<p>Application received</p>",
             PlainTextBody = "Application received",
-            Variables = "[]",
+
             UpdatedBy = _testUserId
         };
         _context.GlobalEmailTemplates.Add(template);
@@ -245,7 +245,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             Subject = "Event Reminder",
             HtmlBody = "<p>Reminder</p>",
             PlainTextBody = "Reminder",
-            Variables = "[]",
+
             UpdatedBy = _testUserId
         };
         _context.GlobalEmailTemplates.Add(template);
@@ -282,7 +282,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             Subject = "Event Reminder",
             HtmlBody = "<p>Reminder</p>",
             PlainTextBody = "Reminder",
-            Variables = "[]",
+
             UpdatedBy = _testUserId
         };
         _context.GlobalEmailTemplates.Add(template);
@@ -323,7 +323,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             Subject = "Event in 3 Days",
             HtmlBody = "<p>Event reminder</p>",
             PlainTextBody = "Event reminder",
-            Variables = "[]",
+
             TriggerType = TemplateTriggerType.TimeBased,
             SendingEnabled = true,
             TimingOffsetDays = 3,
@@ -340,7 +340,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             Subject = "Registration Confirmed",
             HtmlBody = "<p>Confirmation</p>",
             PlainTextBody = "Confirmation",
-            Variables = "[]",
+
             TriggerType = TemplateTriggerType.FixedEvent,
             SendingEnabled = true,
             IsActive = true,
@@ -355,7 +355,7 @@ public class EmailTemplateServiceTriggerTests : IAsyncLifetime
             Subject = "Disabled",
             HtmlBody = "<p>Disabled</p>",
             PlainTextBody = "Disabled",
-            Variables = "[]",
+
             TriggerType = TemplateTriggerType.TimeBased,
             SendingEnabled = false, // Disabled
             TimingOffsetDays = 1,

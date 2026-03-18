@@ -33,6 +33,7 @@ public class SafetyWorkflowIntegrationTests : IClassFixture<DatabaseTestFixture>
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<ILogger<SafetyService>> _mockLogger;
     private readonly Mock<ILogger<SafetyServiceExtended>> _mockLoggerExtended;
+    private readonly Mock<IIncidentEmailService> _mockIncidentEmailService;
     private SafetyServiceExtended _sut = null!; // System Under Test - initialized in InitializeAsync
     private ApplicationDbContext _context = null!; // Initialized in InitializeAsync
 
@@ -43,6 +44,7 @@ public class SafetyWorkflowIntegrationTests : IClassFixture<DatabaseTestFixture>
         _mockAuditService = new Mock<IAuditService>();
         _mockLogger = new Mock<ILogger<SafetyService>>();
         _mockLoggerExtended = new Mock<ILogger<SafetyServiceExtended>>();
+        _mockIncidentEmailService = new Mock<IIncidentEmailService>();
     }
 
     public async Task InitializeAsync()
@@ -66,6 +68,7 @@ public class SafetyWorkflowIntegrationTests : IClassFixture<DatabaseTestFixture>
             _context,
             _mockEncryptionService.Object,
             _mockAuditService.Object,
+            _mockIncidentEmailService.Object,
             _mockLoggerExtended.Object);
     }
 
