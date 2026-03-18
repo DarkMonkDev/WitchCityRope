@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2026-03-17 -->
-<!-- Version: 4.557 -->
+<!-- Last Updated: 2026-03-18 -->
+<!-- Version: 4.558 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,14 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/README.md | CREATED | Feature overview and folder structure for ticket assignment & proxy RSVP | Ticket Assignment & Proxy RSVP - Requirements Phase | ACTIVE | Never |
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/research/codebase-analysis.md | CREATED | Current system analysis - models, services, gaps identified | Ticket Assignment & Proxy RSVP - Research | ACTIVE | Never |
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/research/industry-research-summary.md | CREATED | Industry best practices summary from Eventbrite, Ticketmaster, GoPassage, TicketSpice | Ticket Assignment & Proxy RSVP - Research | ACTIVE | Never |
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/requirements/architectural-decisions.md | CREATED | 14 architectural decisions (AD-001 through AD-014) confirmed by stakeholder | Ticket Assignment & Proxy RSVP - Requirements | ACTIVE | Never |
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/requirements/use-cases.md | CREATED | 11 detailed use cases (UC-001 through UC-011) with main flows and alternatives | Ticket Assignment & Proxy RSVP - Requirements | ACTIVE | Never |
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/requirements/business-rules.md | CREATED | Comprehensive business rules (BR-001 through BR-063) and edge cases (EC-001 through EC-007) | Ticket Assignment & Proxy RSVP - Requirements | ACTIVE | Never |
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/requirements/email-requirements.md | CREATED | 4 new email template specs (assignment + reminder for tickets and RSVPs) plus new recipient group | Ticket Assignment & Proxy RSVP - Requirements | ACTIVE | Never |
+| 2026-03-18 | /docs/architecture/functional-area-master-index.md | MODIFIED | Added Ticket Assignment & Proxy RSVP entry | Ticket Assignment & Proxy RSVP - Requirements | ACTIVE | Never |
 | 2026-03-17 | /docs/functional-areas/admin-reports/requirements/business-requirements.md | CREATED | Business requirements for admin reports section: dashboard home, payments migration, transactions chart, user summary stats, left-nav layout | Admin Reports & Analytics - Requirements Phase | ACTIVE | Never |
 | 2026-03-17 | /docs/architecture/research/2026-03-17-charting-library-research.md | CREATED | Comprehensive charting library comparison: @mantine/charts vs Recharts vs Chart.js vs Nivo vs Google Charts vs Tremor. Recommendation: @mantine/charts (90% confidence) | Technology Researcher: Charting library evaluation | ACTIVE | Never |
 | 2026-03-17 | /docs/standards-processes/development-standards/authentication-patterns.md | MODIFIED | Replaced Blazor-era auth patterns with redirect to current auth documentation locations | Librarian: Auth documentation Priority 2 update | ACTIVE | Never |
