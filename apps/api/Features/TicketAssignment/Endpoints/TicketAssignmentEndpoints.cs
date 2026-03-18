@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.TicketAssignment.Models;
 using WitchCityRope.Api.Features.TicketAssignment.Services;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Features.TicketAssignment.Endpoints;
 
@@ -376,6 +377,118 @@ public static class TicketAssignmentEndpoints
             .WithTags("TicketAssignment")
             .Produces<List<AssignedTicketStatusDto>>(200)
             .Produces(401)
+            .Produces(500);
+
+        // ============================================================================
+        // EP-18: POST /api/admin/events/{eventId}/assign-ticket
+        // Admin assigns a comp ticket to any user (bypasses authorized contacts)
+        // ============================================================================
+        app.MapPost("/api/admin/events/{eventId:guid}/assign-ticket",
+            [Authorize] async (
+                HttpContext context,
+                IAntiforgery antiforgery,
+                Guid eventId,
+                AdminAssignTicketRequest request,
+                ITicketAssignmentService assignmentService,
+                ClaimsPrincipal user,
+                CancellationToken cancellationToken) =>
+            {
+                // CSRF validation - MUST be first for state-changing operations
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
+                if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
+                {
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
+                }
+
+                var result = await assignmentService.AdminAssignTicketAsync(
+                    eventId, adminUserId, request, cancellationToken);
+
+                if (result.IsSuccess)
+                {
+                    return Results.Created(
+                        $"/api/admin/events/{eventId}/assignments",
+                        result.Value);
+                }
+
+                var statusCode = result.Error switch
+                {
+                    "Event not found" => 404,
+                    "Ticket type not found" => 404,
+                    "User not found" => 404,
+                    "User not vetted" => 400,
+                    "User already has ticket" => 409,
+                    _ => 500
+                };
+
+                return Results.Problem(
+                    title: result.Error,
+                    detail: result.Details,
+                    statusCode: statusCode);
+            })
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
+            .WithName("AdminAssignTicket")
+            .WithSummary("Admin assigns a comp ticket to any user (bypasses authorized contacts)")
+            .WithDescription("Creates a comp TicketPurchase (TotalPrice=0, PaymentMethod='admin-comp') and PendingAcceptance EventAttendance. Recipient must still accept waiver (BR-041). Admin audit trail recorded (BR-042). BR-040 bypasses authorized contacts.")
+            .WithTags("AdminTicketAssignment")
+            .Produces<TicketAssignmentDto>(201)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(409)
+            .Produces(500);
+
+        // ============================================================================
+        // EP-19: GET /api/admin/events/{eventId}/assignments
+        // Admin view of all assignments for an event with full audit info
+        // ============================================================================
+        app.MapGet("/api/admin/events/{eventId:guid}/assignments",
+            [Authorize] async (
+                Guid eventId,
+                ITicketAssignmentService assignmentService,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await assignmentService.GetEventAssignmentsAsync(eventId, cancellationToken);
+
+                if (result.IsSuccess)
+                {
+                    return Results.Ok(result.Value);
+                }
+
+                var statusCode = result.Error switch
+                {
+                    "Event not found" => 404,
+                    _ => 500
+                };
+
+                return Results.Problem(
+                    title: result.Error,
+                    detail: result.Details,
+                    statusCode: statusCode);
+            })
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
+            .WithName("AdminGetEventAssignments")
+            .WithSummary("Get all ticket/RSVP assignments for an event (admin view)")
+            .WithDescription("Returns all EventAttendance records where AssignedByUserId IS NOT NULL. Includes all statuses (Active, PendingAcceptance, Cancelled). Full audit info with attendee/assigner scene names.")
+            .WithTags("AdminTicketAssignment")
+            .Produces<List<AdminEventAssignmentDto>>(200)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
             .Produces(500);
     }
 }

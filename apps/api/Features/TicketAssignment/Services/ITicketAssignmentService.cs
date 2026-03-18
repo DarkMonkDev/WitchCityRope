@@ -95,4 +95,30 @@ public interface ITicketAssignmentService
     /// <returns>List of assigned ticket statuses</returns>
     Task<Result<List<AssignedTicketStatusDto>>> GetAssignedTicketsAsync(
         Guid userId, CancellationToken ct);
+
+    /// <summary>
+    /// Admin assigns a ticket to any user, bypassing authorized contacts (BR-040).
+    /// Creates a comp TicketPurchase (TotalPrice=0, PaymentMethod="admin-comp") and
+    /// PendingAcceptance EventAttendance records for each session in the ticket type.
+    /// Recipient must still accept waiver (BR-041). Admin userId recorded for audit trail (BR-042).
+    /// </summary>
+    /// <param name="eventId">The event to assign a ticket for</param>
+    /// <param name="adminUserId">The authenticated admin user's ID (recorded as AssignedByUserId)</param>
+    /// <param name="request">Admin assignment request with target user, ticket type, and optional notes</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>TicketAssignmentDto on success, or error details</returns>
+    Task<Result<TicketAssignmentDto>> AdminAssignTicketAsync(
+        Guid eventId, Guid adminUserId, AdminAssignTicketRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// Gets all assignments for an event (admin view with full audit info, EP-19).
+    /// Returns all EventAttendance records where AssignedByUserId IS NOT NULL,
+    /// including Active, PendingAcceptance, and Cancelled statuses.
+    /// Ordered by AssignedAt descending (most recent first).
+    /// </summary>
+    /// <param name="eventId">The event to get assignments for</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of admin event assignment DTOs</returns>
+    Task<Result<List<AdminEventAssignmentDto>>> GetEventAssignmentsAsync(
+        Guid eventId, CancellationToken ct);
 }

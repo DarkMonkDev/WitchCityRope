@@ -35,6 +35,7 @@ using Serilog.Sinks.PostgreSQL.ColumnWriters;
 using NpgsqlTypes;
 using WitchCityRope.Api.Features.Authentication.Jobs;
 using WitchCityRope.Api.Features.Authentication.Services;
+using WitchCityRope.Api.Features.TicketAssignment.Jobs;
 using WitchCityRope.Api.Features.Logging.Infrastructure;
 
 // Enable Serilog self-diagnostics so sink errors appear in stderr
@@ -421,6 +422,9 @@ builder.Services.AddScoped<LogRetentionCleanupJob>();
 // Authentication background jobs
 builder.Services.AddScoped<RefreshTokenCleanupJob>();
 
+// Ticket Assignment background jobs (24-hour reminder for unaccepted assignments)
+builder.Services.AddScoped<AssignmentReminderJob>();
+
 // Email background jobs (ad-hoc bulk sends processed via Hangfire fire-and-forget)
 builder.Services.AddScoped<AdHocEmailSendJob>();
 
@@ -678,6 +682,14 @@ RecurringJob.AddOrUpdate<RefreshTokenCleanupJob>(
 // Schedule event email automation (reminders, thank-you) hourly for 2-hour precision
 RecurringJob.AddOrUpdate<EmailSchedulerJob>(
     "event-email-scheduler",
+    job => job.ExecuteAsync(CancellationToken.None),
+    "0 * * * *",
+    new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
+);
+
+// Schedule assignment reminder emails hourly (BR-061: 24h before event for unaccepted assignments)
+RecurringJob.AddOrUpdate<AssignmentReminderJob>(
+    "assignment-reminder",
     job => job.ExecuteAsync(CancellationToken.None),
     "0 * * * *",
     new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }

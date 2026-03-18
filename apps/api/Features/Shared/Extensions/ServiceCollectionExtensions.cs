@@ -146,6 +146,7 @@ public static class ServiceCollectionExtensions
 
         // Ticket Assignment feature services (assign, accept, decline, reassign tickets)
         services.AddScoped<ITicketAssignmentService, TicketAssignmentService>();
+        services.AddScoped<IAssignmentReminderService, AssignmentReminderService>();
 
         // Attendance feature services (renamed from Participation)
         services.AddScoped<IAttendanceService, AttendanceService>();

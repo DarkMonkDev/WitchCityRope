@@ -6,6 +6,7 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.TicketAssignment.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.TicketAssignment.Services;
 
@@ -776,6 +777,311 @@ public class TicketAssignmentService : ITicketAssignmentService
                 "Error getting assigned tickets for purchaser {UserId}", userId);
             return Result<List<AssignedTicketStatusDto>>.Failure(
                 "Failed to retrieve assigned tickets",
+                ex.Message);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<TicketAssignmentDto>> AdminAssignTicketAsync(
+        Guid eventId, Guid adminUserId, AdminAssignTicketRequest request, CancellationToken ct)
+    {
+        try
+        {
+            _logger.LogInformation(
+                "Admin assigning ticket: EventId={EventId}, AdminUserId={AdminUserId}, TargetUserId={TargetUserId}, TicketTypeId={TicketTypeId}",
+                eventId, adminUserId, request.UserId, request.TicketTypeId);
+
+            // 1. Load event by eventId, verify exists
+            var eventEntity = await _context.Events
+                .Include(e => e.EventAttendances)
+                .FirstOrDefaultAsync(e => e.Id == eventId, ct);
+
+            if (eventEntity == null)
+            {
+                return Result<TicketAssignmentDto>.Failure(
+                    "Event not found",
+                    "The specified event does not exist");
+            }
+
+            // 2. Load ticket type, verify it belongs to this event
+            var ticketType = await _context.TicketTypes
+                .Include(tt => tt.Sessions)
+                .FirstOrDefaultAsync(tt => tt.Id == request.TicketTypeId && tt.EventId == eventId, ct);
+
+            if (ticketType == null)
+            {
+                return Result<TicketAssignmentDto>.Failure(
+                    "Ticket type not found",
+                    "The specified ticket type does not exist or does not belong to this event");
+            }
+
+            // 3. Load target user, verify exists
+            var targetUser = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == request.UserId, ct);
+
+            if (targetUser == null)
+            {
+                return Result<TicketAssignmentDto>.Failure(
+                    "User not found",
+                    "The specified user does not exist");
+            }
+
+            // 4. If event.VettedMembersOnly: check user.IsVetted (BR-041 still checks vetting)
+            if (eventEntity.VettedMembersOnly && !targetUser.IsVetted)
+            {
+                _logger.LogWarning(
+                    "Admin assignment denied: User {TargetUserId} is not vetted for vetted-only event {EventId} (BR-041)",
+                    request.UserId, eventId);
+                return Result<TicketAssignmentDto>.Failure(
+                    "User not vetted",
+                    "This event is limited to vetted members only. The target user is not currently vetted (BR-041).");
+            }
+
+            // 5. Check user doesn't already have Active/PendingAcceptance ticket for this event's sessions (BR-012)
+            var sessionIds = ticketType.Sessions.Select(s => s.Id).ToList();
+
+            // If ticket type has sessions, check per-session; otherwise check event-level
+            bool hasDuplicate;
+            if (sessionIds.Any())
+            {
+                hasDuplicate = await _context.EventAttendances
+                    .AsNoTracking()
+                    .AnyAsync(ea =>
+                        ea.UserId == request.UserId
+                        && ea.EventId == eventId
+                        && ea.AttendanceType == AttendanceType.Ticket
+                        && (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingAcceptance)
+                        && ea.SessionId != null
+                        && sessionIds.Contains(ea.SessionId.Value), ct);
+            }
+            else
+            {
+                hasDuplicate = await _context.EventAttendances
+                    .AsNoTracking()
+                    .AnyAsync(ea =>
+                        ea.UserId == request.UserId
+                        && ea.EventId == eventId
+                        && ea.AttendanceType == AttendanceType.Ticket
+                        && (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingAcceptance), ct);
+            }
+
+            if (hasDuplicate)
+            {
+                _logger.LogWarning(
+                    "Admin assignment denied: User {TargetUserId} already has active/pending ticket for event {EventId} (BR-012)",
+                    request.UserId, eventId);
+                return Result<TicketAssignmentDto>.Failure(
+                    "User already has ticket",
+                    "The target user already has an active or pending ticket for this event/session (BR-012).");
+            }
+
+            // 6. Create a "comp" TicketPurchase
+            var paymentReference = $"WCR-ADMIN-{Guid.NewGuid().ToString()[..8].ToUpper()}";
+            var ticketPurchase = new TicketPurchase
+            {
+                Id = Guid.NewGuid(),
+                TicketTypeId = request.TicketTypeId,
+                UserId = adminUserId, // Admin is the "purchaser"
+                PurchasedForUserId = request.UserId,
+                PurchaseDate = DateTime.UtcNow,
+                Quantity = 1,
+                TotalPrice = 0m,
+                PaymentStatus = TicketPurchasePaymentStatus.Completed,
+                PaymentMethod = "admin-comp",
+                PaymentReference = paymentReference,
+                EventWaiverAccepted = false, // Recipient must accept (BR-041)
+                RecordedByStaffId = adminUserId,
+                Notes = request.Notes ?? string.Empty,
+                ProcessedAt = DateTime.UtcNow,
+                IdempotencyKey = paymentReference,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.TicketPurchases.Add(ticketPurchase);
+
+            // 7. Create EventAttendance for each session in the ticket type (or one event-level if no sessions)
+            var now = DateTime.UtcNow;
+            EventAttendance? firstAttendance = null;
+
+            if (sessionIds.Any())
+            {
+                foreach (var sessionId in sessionIds)
+                {
+                    var attendance = new EventAttendance(eventId, request.UserId, AttendanceType.Ticket)
+                    {
+                        SessionId = sessionId,
+                        Status = AttendanceStatus.PendingAcceptance,
+                        TicketPurchaseId = ticketPurchase.Id,
+                        AssignedByUserId = adminUserId,
+                        AssignedAt = now,
+                        EventWaiverAccepted = false,
+                        CreatedBy = adminUserId,
+                        Notes = $"Admin comp ticket assigned by admin"
+                    };
+                    _context.EventAttendances.Add(attendance);
+
+                    // 8. Create AttendanceHistory
+                    var history = new AttendanceHistory(attendance.Id, "TicketAssigned")
+                    {
+                        ChangedBy = adminUserId,
+                        ChangeReason = "Admin comp ticket assignment (BR-040)",
+                        NewValues = JsonSerializer.Serialize(new
+                        {
+                            AssignedToUserId = request.UserId,
+                            AssignedByUserId = adminUserId,
+                            Status = AttendanceStatus.PendingAcceptance.ToString(),
+                            AssignedAt = now,
+                            IsAdminAssignment = true,
+                            TicketPurchaseId = ticketPurchase.Id,
+                            PaymentReference = paymentReference,
+                            Notes = request.Notes
+                        })
+                    };
+                    _context.AttendanceHistory.Add(history);
+
+                    firstAttendance ??= attendance;
+                }
+            }
+            else
+            {
+                // Single event-level attendance (no sessions)
+                var attendance = new EventAttendance(eventId, request.UserId, AttendanceType.Ticket)
+                {
+                    Status = AttendanceStatus.PendingAcceptance,
+                    TicketPurchaseId = ticketPurchase.Id,
+                    AssignedByUserId = adminUserId,
+                    AssignedAt = now,
+                    EventWaiverAccepted = false,
+                    CreatedBy = adminUserId,
+                    Notes = $"Admin comp ticket assigned by admin"
+                };
+                _context.EventAttendances.Add(attendance);
+
+                var history = new AttendanceHistory(attendance.Id, "TicketAssigned")
+                {
+                    ChangedBy = adminUserId,
+                    ChangeReason = "Admin comp ticket assignment (BR-040)",
+                    NewValues = JsonSerializer.Serialize(new
+                    {
+                        AssignedToUserId = request.UserId,
+                        AssignedByUserId = adminUserId,
+                        Status = AttendanceStatus.PendingAcceptance.ToString(),
+                        AssignedAt = now,
+                        IsAdminAssignment = true,
+                        TicketPurchaseId = ticketPurchase.Id,
+                        PaymentReference = paymentReference,
+                        Notes = request.Notes
+                    })
+                };
+                _context.AttendanceHistory.Add(history);
+
+                firstAttendance = attendance;
+            }
+
+            // 9. Save changes
+            await _context.SaveChangesAsync(ct);
+
+            _logger.LogInformation(
+                "Admin ticket assigned successfully: EventId={EventId}, TargetUserId={TargetUserId}, AdminUserId={AdminUserId}, TicketTypeId={TicketTypeId}, PaymentRef={PaymentReference}",
+                eventId, request.UserId, adminUserId, request.TicketTypeId, paymentReference);
+
+            // 10. Return DTO (reload with includes for proper DTO building)
+            var savedAttendance = await _context.EventAttendances
+                .Include(ea => ea.Event)
+                .Include(ea => ea.TicketPurchase)
+                    .ThenInclude(tp => tp!.TicketType)
+                .FirstAsync(ea => ea.Id == firstAttendance!.Id, ct);
+
+            return Result<TicketAssignmentDto>.Success(await BuildAssignmentDtoAsync(savedAttendance, ct));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error in admin ticket assignment: EventId={EventId}, AdminUserId={AdminUserId}, TargetUserId={TargetUserId}",
+                eventId, adminUserId, request.UserId);
+            return Result<TicketAssignmentDto>.Failure(
+                "Failed to assign ticket",
+                ex.Message);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<List<AdminEventAssignmentDto>>> GetEventAssignmentsAsync(
+        Guid eventId, CancellationToken ct)
+    {
+        try
+        {
+            _logger.LogDebug("Getting all assignments for event {EventId} (admin view)", eventId);
+
+            // 1. Verify event exists
+            var eventExists = await _context.Events.AnyAsync(e => e.Id == eventId, ct);
+            if (!eventExists)
+            {
+                return Result<List<AdminEventAssignmentDto>>.Failure(
+                    "Event not found",
+                    "The specified event does not exist");
+            }
+
+            // 2. Query EventAttendance where EventId matches AND AssignedByUserId IS NOT NULL
+            //    Include all statuses (Active, PendingAcceptance, Cancelled)
+            var assignments = await _context.EventAttendances
+                .AsNoTracking()
+                .Include(ea => ea.TicketPurchase)
+                    .ThenInclude(tp => tp!.TicketType)
+                .Where(ea =>
+                    ea.EventId == eventId
+                    && ea.AssignedByUserId != null)
+                .OrderByDescending(ea => ea.AssignedAt)
+                .ToListAsync(ct);
+
+            // 3. Batch resolve user scene names for attendees and assigners
+            var allUserIds = assignments
+                .SelectMany(ea => new[] { ea.UserId, ea.AssignedByUserId!.Value })
+                .Distinct()
+                .ToList();
+
+            var userSceneNames = await _context.Users
+                .AsNoTracking()
+                .Where(u => allUserIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.SceneName })
+                .ToDictionaryAsync(u => u.Id, u => u.SceneName ?? string.Empty, ct);
+
+            // 4. Map to AdminEventAssignmentDto
+            var result = assignments.Select(ea => new AdminEventAssignmentDto
+            {
+                AttendanceId = ea.Id,
+                EventId = ea.EventId,
+                AttendeeName = userSceneNames.TryGetValue(ea.UserId, out var attendeeName)
+                    ? attendeeName
+                    : string.Empty,
+                AttendeeUserId = ea.UserId,
+                AssignedByName = ea.AssignedByUserId.HasValue
+                    && userSceneNames.TryGetValue(ea.AssignedByUserId.Value, out var assignerName)
+                    ? assignerName
+                    : string.Empty,
+                AssignedByUserId = ea.AssignedByUserId!.Value,
+                TicketTypeName = ea.TicketPurchase?.TicketType?.Name ?? string.Empty,
+                AttendanceType = ea.AttendanceType == AttendanceType.Ticket ? "Ticket" : "RSVP",
+                Status = ea.Status.ToString(),
+                AssignedAt = ea.AssignedAt ?? ea.CreatedAt,
+                AcceptedAt = ea.AcceptedAt,
+                DeclinedAt = ea.DeclinedAt,
+                WaiverAccepted = ea.EventWaiverAccepted
+            }).ToList();
+
+            _logger.LogDebug(
+                "Retrieved {Count} assignments for event {EventId} (admin view)",
+                result.Count, eventId);
+
+            return Result<List<AdminEventAssignmentDto>>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error getting assignments for event {EventId} (admin view)", eventId);
+            return Result<List<AdminEventAssignmentDto>>.Failure(
+                "Failed to retrieve event assignments",
                 ex.Message);
         }
     }

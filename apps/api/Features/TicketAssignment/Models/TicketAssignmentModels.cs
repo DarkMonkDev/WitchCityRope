@@ -227,3 +227,105 @@ public class AssignedTicketStatusDto
     /// </summary>
     public bool IsUnassigned { get; set; }
 }
+
+/// <summary>
+/// Admin request to assign a ticket to any user (EP-18).
+/// Bypasses authorized contacts requirement (BR-040).
+/// Creates a comp TicketPurchase and PendingAcceptance EventAttendance.
+/// Recipient must still accept waiver (BR-041).
+/// </summary>
+public class AdminAssignTicketRequest
+{
+    /// <summary>
+    /// The user ID of the person to assign the ticket to.
+    /// Admin can assign to any registered user (BR-040: bypasses authorized contacts).
+    /// </summary>
+    [Required]
+    public Guid UserId { get; set; }
+
+    /// <summary>
+    /// The ticket type to assign. Must belong to the target event.
+    /// </summary>
+    [Required]
+    public Guid TicketTypeId { get; set; }
+
+    /// <summary>
+    /// Optional admin notes about this assignment (e.g., reason for comp ticket).
+    /// Stored in TicketPurchase.Notes for audit trail (BR-042).
+    /// </summary>
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+}
+
+/// <summary>
+/// Admin view of event assignments with full audit information (EP-19).
+/// Includes all statuses (Active, PendingAcceptance, Cancelled) and
+/// attendee/assigner scene names for the admin assignments dashboard.
+/// </summary>
+public class AdminEventAssignmentDto
+{
+    /// <summary>
+    /// The EventAttendance record ID
+    /// </summary>
+    public Guid AttendanceId { get; set; }
+
+    /// <summary>
+    /// The event this assignment belongs to
+    /// </summary>
+    public Guid EventId { get; set; }
+
+    /// <summary>
+    /// Scene name of the attendee (the person the ticket was assigned to)
+    /// </summary>
+    public string AttendeeName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User ID of the attendee
+    /// </summary>
+    public Guid AttendeeUserId { get; set; }
+
+    /// <summary>
+    /// Scene name of the person who performed the assignment (admin or delegate)
+    /// </summary>
+    public string AssignedByName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User ID of the person who performed the assignment
+    /// </summary>
+    public Guid AssignedByUserId { get; set; }
+
+    /// <summary>
+    /// Name of the ticket type (e.g., "General Admission", "VIP")
+    /// </summary>
+    public string TicketTypeName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Type of attendance: "Ticket" or "RSVP"
+    /// </summary>
+    public string AttendanceType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Current status (e.g., "Active", "PendingAcceptance", "Cancelled")
+    /// </summary>
+    public string Status { get; set; } = string.Empty;
+
+    /// <summary>
+    /// When the ticket was assigned (UTC)
+    /// </summary>
+    public DateTime AssignedAt { get; set; }
+
+    /// <summary>
+    /// When the assignee accepted the ticket (UTC). NULL if not yet accepted.
+    /// </summary>
+    public DateTime? AcceptedAt { get; set; }
+
+    /// <summary>
+    /// When the assignee declined the ticket (UTC). NULL if not declined.
+    /// </summary>
+    public DateTime? DeclinedAt { get; set; }
+
+    /// <summary>
+    /// Whether the attendee has accepted the event waiver
+    /// </summary>
+    public bool WaiverAccepted { get; set; }
+}
