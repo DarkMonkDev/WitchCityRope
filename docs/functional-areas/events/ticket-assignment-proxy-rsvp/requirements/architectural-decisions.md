@@ -177,3 +177,20 @@ All decisions confirmed by stakeholder (Chad) on 2026-03-18 unless otherwise not
 - Prevents edge case where someone's vetting is revoked between assignment and acceptance
 - Both checks are cheap (cached vetting status)
 - Safety-critical - vetted-only events must enforce vetting at all stages
+
+---
+
+### AD-015: No Separate "Declined" Status - Revert to Active
+
+**Decision:** When an assignee declines a ticket, there is NO separate `Declined` AttendanceStatus enum value. Instead, the ticket reverts to `Active` status owned by the original purchaser, with `DeclinedAt` timestamp tracking the decline.
+
+**Rationale:**
+- Keeps the AttendanceStatus enum simpler (only `PendingAcceptance = 6` added, not two new values)
+- A declined ticket is functionally "back with the purchaser" - Active is the correct status
+- The `DeclinedAt` field + `AttendanceHistory` provide full audit trail
+- The purchaser's dashboard can show "Previously declined by [SceneName]" via the `DeclinedAt` field
+- Reassignment eligibility is determined by `Status=Active AND DeclinedAt IS NOT NULL` (not a separate status)
+- Avoids edge cases around a `Declined` status that would need special handling in capacity calculations, check-in, etc.
+
+**Alternatives Considered:**
+- `Declined = 7` enum value (rejected - adds complexity without clear benefit, the ticket's real state is "owned by purchaser again")

@@ -379,8 +379,8 @@ Same modification pattern as credit card. `PayPalCheckoutCreateOrderRequest` get
 | **Request body** | `AssignTicketRequest { AssignToUserId: Guid }` |
 | **Response** | `TicketAssignmentDto` |
 | **Success** | 200 OK |
-| **Errors** | 400 (ticket not declined), 403 (not original purchaser), 404, 409 (new assignee already has ticket) |
-| **Business rules** | UC-008. Same as assign but works on tickets that were declined. Re-checks vetting (BR-035). Creates AttendanceHistory with 'TicketReassigned'. Sends notification email. |
+| **Errors** | 400 (ticket not eligible for reassignment - must be Active with `DeclinedAt` set, meaning it was returned to purchaser after decline), 403 (not original purchaser), 404, 409 (new assignee already has ticket) |
+| **Business rules** | UC-008. Works on tickets that reverted to purchaser after decline (`Status=Active` AND `DeclinedAt IS NOT NULL`). Re-checks vetting (BR-035). Clears `DeclinedAt`, sets new assignment fields. Creates AttendanceHistory with 'TicketReassigned'. Sends notification email. |
 | **Service method** | NEW: `ITicketAssignmentService.ReassignTicketAsync(attendanceId, callerUserId, newAssigneeUserId)` |
 
 ---
