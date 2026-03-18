@@ -194,6 +194,63 @@
 
 ---
 
-**Last Updated**: 2025-12-13T21:10:00Z
-**Updated By**: test-environment skill
-**Next Review**: After fixing DataFactory session tests
+## INTEGRATION TESTS - Ticket Assignment & Proxy RSVP
+
+**Added**: 2026-03-18
+**Location**: `/tests/integration/Features/TicketAssignment/`
+**Status**: NEW - Not yet executed (awaiting test container run)
+
+### AuthorizedContactEndpointTests.cs (16 tests)
+- AC-I01: GET returns empty lists for new user
+- AC-I02: POST + GET roundtrip creates and lists contact
+- AC-I03: DELETE soft-deletes, no longer in GET
+- AC-I04: Search returns matching scene names (2 tests)
+- AC-I05: Principals filtered by event vetting (2 tests)
+- AC-I07: All endpoints require auth (5 tests)
+- Edge: Self-authorization returns 400
+- Edge: Duplicate active relationship returns 409
+- Edge: Non-existent user returns 404
+- Edge: Non-principal revoke returns 403
+
+### TicketAssignmentEndpointTests.cs (12 tests)
+- TA-I01: Full assign -> accept flow
+- TA-I02: Full assign -> decline -> reassign flow
+- TA-I03: Pending assignments appear in dashboard
+- TA-I04: Assigned tickets appear in purchaser view
+- TA-I05: Unauthorized assign returns 403
+- Auth: 5 auth-required tests (401 without token)
+- Edge: Accept without waiver returns 400
+- Edge: Decline by wrong user returns 403
+
+### ProxyRsvpEndpointTests.cs (12 tests)
+- PR-I01: Full proxy RSVP create -> accept flow
+- PR-I02: Proxy RSVP create -> decline flow
+- PR-I03: Capacity enforcement (400 at capacity)
+- PR-I04: Vetting enforcement (403 for non-vetted on VettedMembersOnly)
+- Auth: 3 auth-required tests (401 without token)
+- Edge: Without authorization returns 403
+- Edge: Event doesn't allow RSVPs returns 400
+- Edge: Duplicate RSVP returns 409
+- Edge: Accept without waiver returns 400
+- Edge: Decline by wrong user returns 403
+
+### AdminAssignmentEndpointTests.cs (8 tests)
+- AA-I01: Admin assigns comp ticket (PendingAcceptance, TotalPrice=0)
+- AA-I02: Admin views assignments for event
+- AA-I03: Non-admin gets 403 (2 tests)
+- Auth: 2 auth-required tests (401 without token)
+- Edge: Non-existent event returns 404
+- Edge: Duplicate assignment returns 409
+
+### MultiTicketCheckoutEndpointTests.cs (4 tests)
+- CO-I01: Single ticket checkout backward compatible
+- CO-I02: Multi-ticket with TicketSelections (2 tests)
+- Auth: 1 auth-required test (401 without token)
+
+**Total Integration Tests Added**: 52
+
+---
+
+**Last Updated**: 2026-03-18
+**Updated By**: test-developer agent
+**Next Review**: After test execution to verify pass/fail status
