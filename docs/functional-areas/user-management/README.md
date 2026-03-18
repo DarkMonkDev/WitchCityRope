@@ -34,6 +34,7 @@ All user management related wireframes have been consolidated here:
 - Profile management (scene name, pronouns, bio, contact info)
 - Emergency contact management
 - Social media links (FetLife, Discord)
+- Admin-initiated password reset (from member details page)
 
 ### Membership Management
 - Membership status tracking (Guest, Member, Vetted Member, Teacher, Admin)
@@ -67,16 +68,17 @@ All user management related wireframes have been consolidated here:
 ## Technical Implementation Notes
 
 ### Current Architecture
-- **Web Service**: Blazor Server UI components
-- **API Service**: RESTful API for user management operations
+- **Web Service**: React 18 + TypeScript + Vite frontend (migrated from Blazor Server)
+- **API Service**: ASP.NET Core 10 Minimal API for user management operations
 - **Database**: PostgreSQL with Entity Framework Core
-- **Pattern**: Web → API → Database (never direct database access from Web)
+- **Pattern**: React → HTTP → API → Database (never direct database access from frontend)
 
 ### Key Technologies
 - ASP.NET Core Identity for authentication
 - Entity Framework Core for data access
-- Blazor Server for interactive UI components
-- Syncfusion components for UI (NO MudBlazor or other frameworks)
+- React 18 + TypeScript + Vite for frontend UI
+- Mantine v7 component library for UI
+- TanStack Query for data fetching and caching
 
 ## Getting Started
 
@@ -94,6 +96,6 @@ All user management related wireframes have been consolidated here:
 
 ---
 
-**Last Updated**: 2025-08-12
+**Last Updated**: 2026-03-18
 **Responsible Team**: Development Team
 **Documentation Status**: Consolidated and Current

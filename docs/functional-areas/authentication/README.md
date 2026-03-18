@@ -1,6 +1,6 @@
 # Authentication System Documentation
-<!-- Last Updated: 2026-03-17 -->
-<!-- Version: 4.0 -->
+<!-- Last Updated: 2026-03-18 -->
+<!-- Version: 4.1 -->
 <!-- Owner: Authentication Team -->
 <!-- Status: Active - Dual-Cookie BFF with Refresh Token Rotation -->
 
@@ -59,11 +59,13 @@ The WitchCityRope authentication system manages user identity, access control, a
 - Account lockout protection
 - Multi-tab session synchronization
 - Silent token refresh (zero authentication timeouts)
+- Self-service password reset (email-based token flow via `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`)
+- Admin-initiated password reset (admin sets new password directly via `POST /api/users/{userId}/reset-password` on member details page)
+- Authenticated user password change (requires current password via `POST /api/users/{userId}/change-password`)
 
 ### Not Yet Implemented
 - Two-factor authentication (infrastructure exists)
 - OAuth/Social login
-- Password reset flow
 - Email verification enforcement
 
 ## Related Areas
@@ -74,4 +76,4 @@ The WitchCityRope authentication system manages user identity, access control, a
 ## Contact
 - Technical Owner: Authentication Team
 - Business Owner: Community Safety Team
-- Last Major Update: 2026-03-17 (Dual-cookie refresh rotation documentation update)
+- Last Major Update: 2026-03-18 (Added password reset features to current features list)
