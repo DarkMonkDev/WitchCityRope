@@ -77,14 +77,14 @@ export function usePrincipalContacts(eventId?: string) {
  *
  * Results show scene names only (AD-009 privacy compliance).
  *
- * GET /api/members/search?sceneName={query}
+ * GET /api/authorized-contacts/search?q={query}
  */
 export function useContactSearch(query: string) {
   return useQuery<UserSearchResultDto[]>({
     queryKey: authorizedContactKeys.search(query),
     queryFn: async (): Promise<UserSearchResultDto[]> => {
-      const response = await apiClient.get('/api/members/search', {
-        params: { sceneName: query },
+      const response = await apiClient.get('/api/authorized-contacts/search', {
+        params: { q: query },
       })
       return response.data
     },
