@@ -1,6 +1,6 @@
 # File Registry
 <!-- Last Updated: 2026-03-18 -->
-<!-- Version: 4.558 -->
+<!-- Version: 4.559 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,10 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/design/api-design.md | CREATED | 19 API endpoint specifications (5 new groups + 2 modified), DTO definitions, service interfaces, impact analysis, phased implementation order | Ticket Assignment & Proxy RSVP - Design Phase | ACTIVE | Never |
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/design/database-design.md | CREATED | Complete database schema: AuthorizedContact entity, EventAttendance modifications, PendingAcceptance status, indexes, constraints, migration strategy | Ticket Assignment & Proxy RSVP - Design Phase | ACTIVE | Never |
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/design/ui-design.md | CREATED | Comprehensive UI wireframes and specifications for 6 screens: Authorized Contacts tab, Enhanced Checkout, Proxy RSVP, Pending Tickets, My Tickets enhancement, Acceptance Modal | Ticket Assignment & Proxy RSVP - Design Phase | ACTIVE | Never |
+| 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/handoffs/ui-designer-2026-03-18-handoff.md | CREATED | UI Designer handoff document for React/Backend/Test developers - key decisions, API contracts, component hierarchy, implementation priority | Ticket Assignment & Proxy RSVP - Design Phase | ACTIVE | Never |
 | 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/README.md | CREATED | Feature overview and folder structure for ticket assignment & proxy RSVP | Ticket Assignment & Proxy RSVP - Requirements Phase | ACTIVE | Never |
 | 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/research/codebase-analysis.md | CREATED | Current system analysis - models, services, gaps identified | Ticket Assignment & Proxy RSVP - Research | ACTIVE | Never |
 | 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/research/industry-research-summary.md | CREATED | Industry best practices summary from Eventbrite, Ticketmaster, GoPassage, TicketSpice | Ticket Assignment & Proxy RSVP - Research | ACTIVE | Never |
