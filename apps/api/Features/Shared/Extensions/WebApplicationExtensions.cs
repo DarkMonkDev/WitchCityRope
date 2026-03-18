@@ -7,6 +7,8 @@ using WitchCityRope.Api.Features.Safety.Endpoints;
 using WitchCityRope.Api.Features.CheckIn.Endpoints;
 using WitchCityRope.Api.Features.AuthorizedContacts.Endpoints;
 using WitchCityRope.Api.Features.Participation.Endpoints;
+using WitchCityRope.Api.Features.ProxyRsvp.Endpoints;
+using WitchCityRope.Api.Features.TicketAssignment.Endpoints;
 using WitchCityRope.Api.Features.Vetting.Endpoints;
 using WitchCityRope.Api.Features.VettingHold.Endpoints;
 using WitchCityRope.Api.Features.TestHelpers.Endpoints;
@@ -73,6 +75,12 @@ public static class WebApplicationExtensions
 
         // Participation feature endpoints
         app.MapParticipationEndpoints();
+
+        // Proxy RSVP feature endpoints (delegate RSVP on behalf of principals)
+        app.MapProxyRsvpEndpoints();
+
+        // Ticket Assignment feature endpoints (assign, accept, decline, reassign)
+        app.MapTicketAssignmentEndpoints();
 
         // Vetting feature endpoints
         app.MapVettingEndpoints();

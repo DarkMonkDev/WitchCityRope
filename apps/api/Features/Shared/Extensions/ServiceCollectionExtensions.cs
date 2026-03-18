@@ -17,6 +17,8 @@ using WitchCityRope.Api.Features.Reports.Services;
 using WitchCityRope.Api.Features.Webhooks.Services;
 using WitchCityRope.Api.Features.AuthorizedContacts.Services;
 using WitchCityRope.Api.Features.Participation.Services;
+using WitchCityRope.Api.Features.ProxyRsvp.Services;
+using WitchCityRope.Api.Features.TicketAssignment.Services;
 using WitchCityRope.Api.Features.TestHelpers.Services;
 using WitchCityRope.Api.Features.Cms;
 using WitchCityRope.Api.Features.Volunteers.Services;
@@ -138,6 +140,12 @@ public static class ServiceCollectionExtensions
 
         // Authorized Contacts feature services (ticket assignment & proxy RSVP delegation)
         services.AddScoped<IAuthorizedContactService, AuthorizedContactService>();
+
+        // Proxy RSVP feature services (delegate RSVP creation on behalf of principals)
+        services.AddScoped<IProxyRsvpService, ProxyRsvpService>();
+
+        // Ticket Assignment feature services (assign, accept, decline, reassign tickets)
+        services.AddScoped<ITicketAssignmentService, TicketAssignmentService>();
 
         // Attendance feature services (renamed from Participation)
         services.AddScoped<IAttendanceService, AttendanceService>();
