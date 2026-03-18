@@ -346,8 +346,18 @@ public static class AuthenticationEndpoints
                     // Validate token and extract user ID
                     if (!jwtService.ValidateToken(token))
                     {
-                        // Clear all auth cookies when token is invalid
-                        ClearAuthCookies(context);
+                        // Only clear the expired auth-token cookie, NOT the refresh-token cookie.
+                        // The refresh-token is the user's recovery mechanism — if we delete it here,
+                        // the frontend's refresh logic can't recover the session (e.g., on page reload
+                        // after tab discard). The 401 response will trigger the frontend to attempt
+                        // a token refresh using the preserved refresh-token cookie.
+                        context.Response.Cookies.Delete("auth-token", new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = context.Request.IsHttps,
+                            SameSite = SameSiteMode.Strict,
+                            Path = "/"
+                        });
 
                         return Results.Problem(
                             title: "Invalid Token",

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { apiClient } from '../lib/api/client'
+import { refreshAuthToken } from '../lib/api/client'
 import { useIsAuthenticated } from '../stores/authStore'
 
 /**
@@ -11,6 +11,12 @@ import { useIsAuthenticated } from '../stores/authStore'
  * 2. REACTIVE: visibilitychange listener refreshes when user returns from sleep/tab switch
  *    - Catches the case where the JWT expired while computer was asleep
  *    - The 401 interceptor in client.ts also handles this, but this is a proactive measure
+ *
+ * CRITICAL: Uses the shared refreshAuthToken() lock from client.ts to prevent concurrent
+ * refresh calls. Without this, visibilitychange + 401 interceptor can fire simultaneously,
+ * sending two refresh requests with the same token. The server treats the second as token
+ * theft (reuse detection) and revokes ALL sessions, logging the user out.
+ * This was the root cause of the "logged out after 2 hours" bug (confirmed via staging logs 2026-03-17).
  *
  * The actual auth persistence is handled by the refresh-token httpOnly cookie.
  * This hook just keeps the short-lived JWT access token fresh.
@@ -24,12 +30,11 @@ export function useAuthRefresh() {
     // PROACTIVE: Refresh JWT every 13 minutes (before 15-min expiry)
     const REFRESH_INTERVAL_MS = 13 * 60 * 1000
 
+    // Uses shared lock from client.ts — if the 401 interceptor is already refreshing,
+    // this reuses that same promise instead of making a second concurrent call.
     const silentRefresh = async () => {
       try {
-        await apiClient.post('/api/auth/refresh', null, {
-          skipAutoRedirect: true,
-          _isRetryAfterRefresh: true, // Prevent the 401 interceptor from retrying this
-        } as any)
+        await refreshAuthToken()
         console.log('Proactive token refresh successful')
       } catch (error: any) {
         if (error.response?.status === 401) {

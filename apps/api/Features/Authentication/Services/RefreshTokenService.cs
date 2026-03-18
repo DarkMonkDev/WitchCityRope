@@ -55,15 +55,43 @@ public class RefreshTokenService : IRefreshTokenService
             return (null, null, "Invalid refresh token");
         }
 
-        // REUSE DETECTION: If token is already revoked, someone is replaying a stolen token.
-        // This can also happen legitimately when concurrent requests both try to refresh
-        // the same token (e.g., 401 interceptor + visibilitychange fire simultaneously).
-        // Either way, the safe response is the same: reject and clear cookies.
+        // REUSE DETECTION: If token is already revoked, it could be:
+        // 1. A legitimate concurrent request (e.g., 401 interceptor + visibilitychange fired simultaneously)
+        // 2. An actual token theft attempt (attacker replaying a stolen token)
+        //
+        // We distinguish these cases by checking if the token was recently rotated (within 30 seconds)
+        // AND has a ReplacedByToken chain (meaning it was legitimately rotated, not revoked by logout).
+        // Concurrent race conditions have a tiny time window; real theft happens much later.
+        //
+        // FIX for 2026-03-17 bug: Previously, concurrent requests from the same browser triggered
+        // reuse detection which revoked ALL sessions, logging the user out after returning from sleep.
+        // Staging logs confirmed: two refresh calls arrived at the same millisecond, first succeeded,
+        // second triggered reuse detection and revoked 5 tokens.
         if (existingToken.IsRevoked)
         {
+            var timeSinceRevocation = DateTime.UtcNow - (existingToken.RevokedAt ?? DateTime.UtcNow);
+            var wasRecentlyRotated = timeSinceRevocation.TotalSeconds < 30;
+            var hasReplacementChain = !string.IsNullOrEmpty(existingToken.ReplacedByToken);
+
+            if (wasRecentlyRotated && hasReplacementChain)
+            {
+                // This is a concurrent request from the same client, not token theft.
+                // The first request already rotated successfully and set new cookies.
+                // Just reject this one gracefully — the client already has the new token.
+                _logger.LogInformation(
+                    "Concurrent refresh detected for user {UserId} (token rotated {SecondsAgo:F1}s ago). " +
+                    "This is a race condition, not theft. Rejecting without revoking all tokens.",
+                    existingToken.UserId, timeSinceRevocation.TotalSeconds);
+
+                return (null, null, "Token was already rotated by a concurrent request. Please retry.");
+            }
+
+            // Token was revoked a long time ago or has no replacement chain — this is likely theft.
+            // Revoke all tokens as a security measure.
             _logger.LogWarning(
-                "Refresh token reuse detected for user {UserId}. Revoking all tokens. This may indicate token theft or a concurrent refresh race condition.",
-                existingToken.UserId);
+                "Refresh token reuse detected for user {UserId}. Token was revoked {SecondsAgo:F1}s ago " +
+                "(hasReplacement: {HasReplacement}). Revoking all tokens for security.",
+                existingToken.UserId, timeSinceRevocation.TotalSeconds, hasReplacementChain);
 
             await RevokeAllUserTokensAsync(existingToken.UserId, cancellationToken);
 

@@ -17,8 +17,32 @@ declare module 'axios' {
 }
 
 // Module-level lock to prevent concurrent refresh attempts.
-// When multiple requests fail with 401 simultaneously, only one refresh call is made.
+// CRITICAL: This lock is shared between the 401 interceptor AND the useAuthRefresh hook.
+// Without this, visibilitychange + 401 interceptor can fire two concurrent refresh calls
+// with the same refresh token, triggering server-side reuse detection which revokes ALL
+// tokens and logs the user out. See staging logs from 2026-03-17 for evidence.
 let refreshPromise: Promise<any> | null = null
+
+/**
+ * Perform a token refresh using the shared lock.
+ * Both the 401 interceptor and the useAuthRefresh hook MUST use this function
+ * to prevent concurrent refresh calls that trigger reuse detection on the server.
+ *
+ * Returns the refresh promise (resolved = success, rejected = failure).
+ */
+export function refreshAuthToken(): Promise<any> {
+  if (!refreshPromise) {
+    refreshPromise = apiClient
+      .post('/api/auth/refresh', null, {
+        skipAutoRedirect: true,
+        _isRetryAfterRefresh: true, // Prevent recursive retry in 401 interceptor
+      } as any)
+      .finally(() => {
+        refreshPromise = null
+      })
+  }
+  return refreshPromise
+}
 
 // Use environment variable for API base URL.
 // Empty/undefined = same-origin requests via proxy (dev uses Vite proxy, staging/prod use nginx).
@@ -113,19 +137,8 @@ apiClient.interceptors.response.use(
     ) {
       originalRequest._isRetryAfterRefresh = true
 
-      if (!refreshPromise) {
-        refreshPromise = apiClient
-          .post('/api/auth/refresh', null, {
-            skipAutoRedirect: true,
-            _isRetryAfterRefresh: true, // Prevent recursive retry
-          } as any)
-          .finally(() => {
-            refreshPromise = null
-          })
-      }
-
       try {
-        await refreshPromise
+        await refreshAuthToken()
         // Refresh succeeded - retry the original request with the new auth-token cookie
         return apiClient(originalRequest)
       } catch {
