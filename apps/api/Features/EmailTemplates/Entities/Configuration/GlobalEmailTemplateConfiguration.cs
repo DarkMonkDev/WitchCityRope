@@ -27,7 +27,7 @@ public class GlobalEmailTemplateConfiguration : IEntityTypeConfiguration<GlobalE
             );
             t.HasCheckConstraint(
                 "CHK_GlobalEmailTemplates_RecipientGroup",
-                "\"RecipientGroup\" IS NULL OR \"RecipientGroup\" IN (0, 1, 2, 3)"
+                "\"RecipientGroup\" IS NULL OR \"RecipientGroup\" IN (0, 1, 2, 3, 4)"
             );
             t.HasCheckConstraint(
                 "CHK_GlobalEmailTemplates_Subject_NotEmpty",
