@@ -5,6 +5,7 @@ using WitchCityRope.Api.Features.Users.Endpoints;
 using WitchCityRope.Api.Features.Dashboard.Endpoints;
 using WitchCityRope.Api.Features.Safety.Endpoints;
 using WitchCityRope.Api.Features.CheckIn.Endpoints;
+using WitchCityRope.Api.Features.AuthorizedContacts.Endpoints;
 using WitchCityRope.Api.Features.Participation.Endpoints;
 using WitchCityRope.Api.Features.Vetting.Endpoints;
 using WitchCityRope.Api.Features.VettingHold.Endpoints;
@@ -66,6 +67,9 @@ public static class WebApplicationExtensions
 
         // CheckIn feature endpoints
         app.MapCheckInEndpoints();
+
+        // Authorized Contacts feature endpoints (ticket assignment & proxy RSVP delegation)
+        app.MapAuthorizedContactEndpoints();
 
         // Participation feature endpoints
         app.MapParticipationEndpoints();

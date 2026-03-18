@@ -15,6 +15,7 @@ using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.Models.AuthorizeNet;
 using WitchCityRope.Api.Features.Reports.Services;
 using WitchCityRope.Api.Features.Webhooks.Services;
+using WitchCityRope.Api.Features.AuthorizedContacts.Services;
 using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.TestHelpers.Services;
 using WitchCityRope.Api.Features.Cms;
@@ -134,6 +135,9 @@ public static class ServiceCollectionExtensions
         // PayPal webhook services
         services.AddScoped<IPayPalWebhookVerificationService, PayPalWebhookVerificationService>();
         services.AddScoped<IPayPalWebhookProcessingService, PayPalWebhookProcessingService>();
+
+        // Authorized Contacts feature services (ticket assignment & proxy RSVP delegation)
+        services.AddScoped<IAuthorizedContactService, AuthorizedContactService>();
 
         // Attendance feature services (renamed from Participation)
         services.AddScoped<IAttendanceService, AttendanceService>();

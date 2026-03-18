@@ -61,6 +61,25 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
                .HasColumnType("jsonb")
                .HasDefaultValue("{}");
 
+        // Assignment & Proxy RSVP fields
+        builder.Property(e => e.AssignedByUserId)
+               .IsRequired(false);
+
+        builder.Property(e => e.AssignedAt)
+               .HasColumnType("timestamptz");
+
+        builder.Property(e => e.AcceptedAt)
+               .HasColumnType("timestamptz");
+
+        builder.Property(e => e.DeclinedAt)
+               .HasColumnType("timestamptz");
+
+        builder.Property(e => e.DeclinedReason)
+               .HasMaxLength(1000);
+
+        builder.Property(e => e.ReminderSentAt)
+               .HasColumnType("timestamptz");
+
         // Event Waiver fields for legal compliance
         builder.Property(e => e.EventWaiverAccepted)
                .IsRequired()
@@ -88,6 +107,11 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
         builder.HasOne(e => e.UpdatedByUser)
                .WithMany()
                .HasForeignKey(e => e.UpdatedBy)
+               .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.AssignedByUser)
+               .WithMany()
+               .HasForeignKey(e => e.AssignedByUserId)
                .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(e => e.TicketPurchase)
@@ -136,6 +160,17 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
                .HasDatabaseName("IX_EventAttendances_Metadata_Gin")
                .HasMethod("gin");
 
+        // Index for the reminder email job: find PendingAcceptance records
+        // that haven't received a reminder yet (UC-011)
+        builder.HasIndex(e => new { e.Status, e.ReminderSentAt })
+               .HasDatabaseName("IX_EventAttendances_Status_ReminderSentAt")
+               .HasFilter("\"Status\" = 6 AND \"ReminderSentAt\" IS NULL");
+
+        // Index for assigned tickets lookup (delegate's view of assignments they've made)
+        builder.HasIndex(e => e.AssignedByUserId)
+               .HasDatabaseName("IX_EventAttendances_AssignedByUserId")
+               .HasFilter("\"AssignedByUserId\" IS NOT NULL");
+
         // Business rule constraints
         builder.ToTable(t => t.HasCheckConstraint(
             "CHK_EventAttendances_AttendanceType",
@@ -143,13 +178,13 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
 
         builder.ToTable(t => t.HasCheckConstraint(
             "CHK_EventAttendances_Status",
-            "\"Status\" IN (1, 2, 3, 4, 5)"));
+            "\"Status\" IN (1, 2, 3, 4, 5, 6)"));
 
         builder.ToTable(t => t.HasCheckConstraint(
             "CHK_EventAttendances_CancelledAt_Logic",
             "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)"));
 
-        // Partial unique constraint: one ACTIVE attendance per user per event PER TYPE PER SESSION
+        // Partial unique constraint: one ACTIVE or PENDING attendance per user per event PER TYPE PER SESSION
         // BUSINESS RULE: Users can have both RSVP and Ticket for the same event (social events)
         // BUSINESS RULE: For multi-session events, users can have one ticket per session
         // AttendanceType included in constraint to allow RSVP + Ticket combination
@@ -157,9 +192,10 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
         // NOTE: PostgreSQL treats NULL SessionId values as distinct, so single-session events
         //       (with NULL SessionId) allow multiple tickets - this is handled by application logic
         // Allows users to re-RSVP/repurchase after cancelling (cancelled attendances are not constrained)
+        // EC-007: Includes PendingAcceptance (6) to prevent race condition of double-assignment
         builder.HasIndex(e => new { e.UserId, e.EventId, e.AttendanceType, e.SessionId })
                .IsUnique()
                .HasDatabaseName("UQ_EventAttendances_User_Event_Type_Session_Active")
-               .HasFilter("\"Status\" = 1"); // Only enforce uniqueness for Active attendances (Status = 1)
+               .HasFilter("\"Status\" IN (1, 6)"); // Active (1) OR PendingAcceptance (6)
     }
 }

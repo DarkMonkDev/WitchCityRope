@@ -29,5 +29,14 @@ public enum AttendanceStatus
     /// Pending payment - attendance created but payment not yet confirmed.
     /// Transitions to Active on payment completion, or Cancelled on payment failure/timeout.
     /// </summary>
-    PendingPayment = 5
+    PendingPayment = 5,
+
+    /// <summary>
+    /// Ticket or RSVP has been assigned to a user but they have not yet
+    /// accepted (signed waiver + ToS). Transitions to Active on acceptance
+    /// or returns to assignable state on decline.
+    /// Created by: Ticket assignment or proxy RSVP
+    /// Transitions to: Active (on acceptance), Cancelled (on decline/expiry)
+    /// </summary>
+    PendingAcceptance = 6
 }

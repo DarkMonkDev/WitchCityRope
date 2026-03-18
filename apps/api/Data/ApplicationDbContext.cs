@@ -247,6 +247,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<AttendanceHistory> AttendanceHistory { get; set; }
 
     /// <summary>
+    /// AuthorizedContacts table for delegation authorization between users.
+    /// Tracks who can purchase tickets and create RSVPs on behalf of others.
+    /// </summary>
+    public DbSet<AuthorizedContact> AuthorizedContacts { get; set; }
+
+    /// <summary>
     /// ContentPages table for CMS content management
     /// </summary>
     public DbSet<ContentPage> ContentPages => Set<ContentPage>();
@@ -613,6 +619,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(t => t.DefaultPrice)
                   .HasColumnType("decimal(10,2)");
 
+            entity.Property(t => t.MaxQuantityPerPurchase)
+                  .IsRequired()
+                  .HasDefaultValue(3);
+
             entity.Property(t => t.CreatedAt)
                   .IsRequired()
                   .HasColumnType("timestamptz");
@@ -643,6 +653,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             // Indexes
             entity.HasIndex(t => t.EventId)
                   .HasDatabaseName("IX_TicketTypes_EventId");
+
+            // Check constraint: MaxQuantityPerPurchase must be between 1 and 10 (AD-006)
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CHK_TicketTypes_MaxQuantityPerPurchase",
+                "\"MaxQuantityPerPurchase\" >= 1 AND \"MaxQuantityPerPurchase\" <= 10"));
         });
 
         // TicketPurchase entity configuration
@@ -759,6 +774,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .HasForeignKey(p => p.RecordedByStaffId)
                   .OnDelete(DeleteBehavior.SetNull);  // Preserve purchase if staff deleted
 
+            // PurchasedForUser configuration
+            entity.Property(p => p.PurchasedForUserId)
+                  .IsRequired(false);
+
+            entity.HasOne(p => p.PurchasedForUser)
+                  .WithMany()
+                  .HasForeignKey(p => p.PurchasedForUserId)
+                  .OnDelete(DeleteBehavior.SetNull);  // Preserve purchase if recipient deleted
+
             // Indexes
             entity.HasIndex(p => p.TicketTypeId)
                   .HasDatabaseName("IX_TicketPurchases_TicketTypeId");
@@ -778,6 +802,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.HasIndex(p => p.RecordedByStaffId)
                   .HasDatabaseName("IX_TicketPurchases_RecordedByStaffId")
                   .HasFilter("\"RecordedByStaffId\" IS NOT NULL");
+
+            // Index for finding purchases made for a specific user
+            entity.HasIndex(p => p.PurchasedForUserId)
+                  .HasDatabaseName("IX_TicketPurchases_PurchasedForUserId")
+                  .HasFilter("\"PurchasedForUserId\" IS NOT NULL");
         });
 
         // VolunteerPosition entity configuration
@@ -1149,6 +1178,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Apply Attendance System configurations
         modelBuilder.ApplyConfiguration(new EventAttendanceConfiguration());
         modelBuilder.ApplyConfiguration(new AttendanceHistoryConfiguration());
+        modelBuilder.ApplyConfiguration(new AuthorizedContactConfiguration());
 
         // Apply CMS configurations
         modelBuilder.ApplyConfiguration(new ContentPageConfiguration());

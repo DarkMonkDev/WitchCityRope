@@ -60,16 +60,26 @@ public class TicketType
     public decimal? DefaultPrice { get; set; }
 
     /// <summary>
+    /// Maximum number of tickets of this type that can be purchased in a single
+    /// transaction. Configurable per ticket type per event (AD-006).
+    /// Default: 3 (covers "me + partner + friend" scenario)
+    /// Checkout quantity selector ranges from 1 to this value.
+    /// </summary>
+    [Required]
+    public int MaxQuantityPerPurchase { get; set; } = 3;
+
+    /// <summary>
     /// Total number of tickets available
     /// </summary>
     [Required]
     public int Available { get; set; }
 
     /// <summary>
-    /// Number of tickets sold for this ticket type.
+    /// Number of tickets sold (or assigned) for this ticket type.
     ///
     /// BUSINESS LOGIC:
-    /// - Counts active attendances (Status = Active) only
+    /// - Counts Active AND PendingAcceptance attendances (BR-013, BR-054)
+    /// - PendingAcceptance tickets have been purchased and reserve a spot
     /// - Automatically excludes cancelled/refunded attendances
     /// - Self-healing: Recalculates on every API call
     /// - No manual increment/decrement needed
@@ -79,7 +89,8 @@ public class TicketType
     /// Previous approach: Manually incremented Sold field became stale when tickets cancelled.
     /// Current approach: Always queries current EventAttendance records for accuracy.
     ///
-    /// FUTURE: Supports multi-ticket purchases (counts all attendances regardless of quantity)
+    /// CRITICAL: PendingAcceptance MUST count toward capacity to prevent overselling
+    /// when tickets are assigned but not yet accepted (Section 5 of database-design.md).
     /// </summary>
     [NotMapped] // Do NOT store in database
     public int Sold
@@ -89,7 +100,8 @@ public class TicketType
             if (Event?.EventAttendances == null) return 0;
 
             return Event.EventAttendances.Count(ea =>
-                ea.Status == AttendanceStatus.Active &&
+                (ea.Status == AttendanceStatus.Active ||
+                 ea.Status == AttendanceStatus.PendingAcceptance) &&
                 ea.AttendanceType == AttendanceType.Ticket &&
                 ea.TicketPurchase != null &&
                 ea.TicketPurchase.TicketTypeId == Id);

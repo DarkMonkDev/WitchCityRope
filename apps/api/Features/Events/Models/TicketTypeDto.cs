@@ -88,6 +88,13 @@ public class TicketTypeDto
     public bool CanCancel { get; set; }
 
     /// <summary>
+    /// Maximum number of tickets of this type that can be purchased in a single
+    /// transaction. Configurable per ticket type per event (AD-006).
+    /// Default: 3. Used by checkout quantity selector.
+    /// </summary>
+    public int MaxQuantityPerPurchase { get; set; } = 3;
+
+    /// <summary>
     /// Constructor to map from TicketType entity
     /// </summary>
     /// <param name="ticketType">The ticket type to map from</param>
@@ -99,6 +106,7 @@ public class TicketTypeDto
         Id = ticketType.Id.ToString();
         Name = ticketType.Name;
         PricingType = ticketType.PricingType;
+        MaxQuantityPerPurchase = ticketType.MaxQuantityPerPurchase;
 
         // Map pricing fields based on pricing type
         if (ticketType.PricingType == PricingType.SlidingScale)

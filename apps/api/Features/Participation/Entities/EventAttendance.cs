@@ -112,6 +112,51 @@ public class EventAttendance
     [Required]
     public DateTime CreatedAt { get; set; }
 
+    // ========================================
+    // Assignment & Proxy RSVP Fields
+    // ========================================
+
+    /// <summary>
+    /// User who assigned this ticket/RSVP to the attendee.
+    /// NULL for self-purchased tickets and self-RSVPs.
+    /// Set when a delegate assigns a ticket or creates a proxy RSVP.
+    /// Also set for admin assignments (BR-040, BR-042).
+    /// </summary>
+    public Guid? AssignedByUserId { get; set; }
+
+    /// <summary>
+    /// When the ticket/RSVP was assigned to the current user (UTC).
+    /// NULL for self-purchased tickets and self-RSVPs.
+    /// </summary>
+    public DateTime? AssignedAt { get; set; }
+
+    /// <summary>
+    /// When the assigned user accepted the ticket/RSVP (UTC).
+    /// NULL if not yet accepted or not an assigned ticket.
+    /// Set when Status transitions PendingAcceptance -> Active via acceptance flow.
+    /// </summary>
+    public DateTime? AcceptedAt { get; set; }
+
+    /// <summary>
+    /// When the assigned user declined the ticket/RSVP (UTC).
+    /// NULL if not declined.
+    /// Set when assignee explicitly declines.
+    /// </summary>
+    public DateTime? DeclinedAt { get; set; }
+
+    /// <summary>
+    /// Reason the assignee declined the ticket/RSVP.
+    /// Optional free-text field.
+    /// </summary>
+    public string? DeclinedReason { get; set; }
+
+    /// <summary>
+    /// When the reminder email was sent for this pending assignment (UTC).
+    /// NULL if no reminder sent yet.
+    /// Used to prevent duplicate reminder emails (BR-062: one reminder per assignment).
+    /// </summary>
+    public DateTime? ReminderSentAt { get; set; }
+
     /// <summary>
     /// When the attendance was cancelled (UTC)
     /// </summary>
@@ -176,6 +221,12 @@ public class EventAttendance
     public ApplicationUser User { get; set; } = null!;
 
     /// <summary>
+    /// Navigation property to the user who performed the assignment.
+    /// NULL for self-purchased tickets.
+    /// </summary>
+    public ApplicationUser? AssignedByUser { get; set; }
+
+    /// <summary>
     /// Navigation property to the user who created this record
     /// </summary>
     public ApplicationUser? CreatedByUser { get; set; }
@@ -220,11 +271,13 @@ public class EventAttendance
     }
 
     /// <summary>
-    /// Determines if this attendance can be cancelled
+    /// Determines if this attendance can be cancelled.
+    /// Both Active and PendingAcceptance statuses can be cancelled.
     /// </summary>
     public bool CanBeCancelled()
     {
-        return Status == AttendanceStatus.Active;
+        return Status == AttendanceStatus.Active ||
+               Status == AttendanceStatus.PendingAcceptance;
     }
 
     /// <summary>

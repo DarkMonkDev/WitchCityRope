@@ -76,8 +76,12 @@ public class AttendanceHistoryConfiguration : IEntityTypeConfiguration<Attendanc
                .HasMethod("gin");
 
         // Business rule constraints
+        // Expanded to include ticket assignment and proxy RSVP action types
         builder.ToTable(t => t.HasCheckConstraint(
             "CHK_AttendanceHistory_ActionType",
-            "\"ActionType\" IN ('Created', 'Updated', 'Cancelled', 'Refunded', 'StatusChanged', 'PaymentUpdated')"));
+            "\"ActionType\" IN ('Created', 'Updated', 'Cancelled', 'Refunded', " +
+            "'StatusChanged', 'PaymentUpdated', " +
+            "'TicketAssigned', 'TicketReassigned', 'TicketAccepted', 'TicketDeclined', " +
+            "'ProxyRSVPCreated', 'ProxyRSVPAccepted', 'ProxyRSVPDeclined', 'ReminderSent')"));
     }
 }

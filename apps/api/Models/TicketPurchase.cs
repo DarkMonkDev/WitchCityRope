@@ -177,6 +177,18 @@ public class TicketPurchase
     public DateTime? EventWaiverAcceptedAt { get; set; }
 
     /// <summary>
+    /// User the ticket was intended for when purchased, if different from the purchaser.
+    /// NULL if the purchaser bought the ticket for themselves.
+    /// This is an informational field for the checkout flow - the actual attendee
+    /// is tracked via EventAttendance.UserId.
+    ///
+    /// NOTE: The sliding scale percentage on the TicketPurchase applies uniformly
+    /// to all tickets in the purchase (AD-012). All EventAttendance records
+    /// linked to this TicketPurchase share the same pricing.
+    /// </summary>
+    public Guid? PurchasedForUserId { get; set; }
+
+    /// <summary>
     /// Navigation property to ticket type
     /// </summary>
     public TicketType? TicketType { get; set; }
@@ -185,6 +197,12 @@ public class TicketPurchase
     /// Navigation property to user (purchaser)
     /// </summary>
     public ApplicationUser? User { get; set; }
+
+    /// <summary>
+    /// Navigation property to the intended recipient.
+    /// NULL if the purchaser bought the ticket for themselves.
+    /// </summary>
+    public ApplicationUser? PurchasedForUser { get; set; }
 
     /// <summary>
     /// Navigation property to staff member who recorded door purchase
