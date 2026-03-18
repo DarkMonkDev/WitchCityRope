@@ -944,6 +944,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/reports/user-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user summary statistics for admin reports dashboard */
+        get: operations["GetUserSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports/daily-transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get daily transaction aggregations for charting */
+        get: operations["GetDailyTransactions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/venues/{id}": {
         parameters: {
             query?: never;
@@ -976,6 +1010,90 @@ export interface paths {
          * @description Returns all active venues. Requires authentication. Notes field is not exposed to public.
          */
         get: operations["GetPublicVenues"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/authorized-contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all authorized contact relationships for the current user
+         * @description Returns contacts in two lists: Delegates (people I authorized) and Principals (people who authorized me)
+         */
+        get: operations["GetAuthorizedContacts"];
+        put?: never;
+        /**
+         * Add a new authorized contact (caller becomes Principal)
+         * @description Creates a delegation authorization. The caller (Principal) authorizes the specified user (Delegate) to act on their behalf for ticket purchases and RSVPs.
+         */
+        post: operations["AddAuthorizedContact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/authorized-contacts/{contactId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke an authorized contact relationship
+         * @description Soft-deletes the authorization. Only the Principal who created it can revoke. Does not affect existing tickets/RSVPs (BR-005).
+         */
+        delete: operations["RevokeAuthorizedContact"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/authorized-contacts/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search users by scene name for adding authorized contacts
+         * @description Returns up to 10 users matching the query. Excludes self and already-authorized users. Returns only scene name per AD-009 privacy.
+         */
+        get: operations["SearchUsersForAuthorizedContacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/authorized-contacts/principals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get principals who authorized the current user as their delegate
+         * @description Used in checkout/RSVP dropdowns. When eventId is provided, filters by vetting requirements (BR-035) and excludes principals who already have attendance (BR-012).
+         */
+        get: operations["GetPrincipalContacts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1147,6 +1265,226 @@ export interface paths {
          * @description Removes user's RSVP and processes ticket refund if exists. Auto-cancels volunteer shifts. Admin role required.
          */
         delete: operations["AdminRemoveRsvp"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/proxy-rsvp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a proxy RSVP for an authorized contact
+         * @description Delegate creates an RSVP for a principal who authorized them. The RSVP enters PendingAcceptance until the principal accepts the event waiver. BR-050, BR-051, BR-054.
+         */
+        post: operations["CreateProxyRsvp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/rsvp/{attendanceId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept a proxy RSVP by signing the event waiver
+         * @description Principal accepts a proxy RSVP created on their behalf. Requires event waiver acceptance (AD-003). Optionally accepts ToS (BR-031). Transitions status to Active (BR-032).
+         */
+        post: operations["AcceptProxyRsvp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/rsvp/{attendanceId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline a proxy RSVP
+         * @description Principal declines a proxy RSVP created on their behalf. The RSVP is cancelled (no reassignment flow for RSVPs, unlike tickets). The delegate can create a new proxy RSVP if desired.
+         */
+        post: operations["DeclineProxyRsvp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/tickets/{attendanceId}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assign a ticket to an authorized contact
+         * @description Post-purchase assignment. The assignee (principal) must have authorized the caller (delegate). Ticket transitions to PendingAcceptance. BR-020, BR-012, BR-035.
+         */
+        post: operations["AssignTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/tickets/{attendanceId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept an assigned ticket or proxy RSVP
+         * @description Transitions PendingAcceptance to Active. Requires waiver acceptance (AD-003). Re-checks vetting for vetted-only events (BR-036). Auto-creates RSVP for social events.
+         */
+        post: operations["AcceptAssignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/tickets/{attendanceId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline an assigned ticket
+         * @description Ticket reverts to Active status owned by original purchaser (AD-015). DeclinedAt is set for reassignment eligibility. Purchaser is notified.
+         */
+        post: operations["DeclineAssignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/tickets/{attendanceId}/reassign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reassign a previously declined ticket to a new authorized contact
+         * @description Works on tickets that reverted to purchaser after decline (Status=Active, DeclinedAt not null). UC-008, BR-020, BR-012, BR-035.
+         */
+        post: operations["ReassignTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user/pending-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get pending ticket/RSVP assignments for the current user's dashboard
+         * @description Returns all EventAttendance records where UserId = current user AND Status = PendingAcceptance. Includes both ticket and RSVP types. Ordered by event date ascending.
+         */
+        get: operations["GetPendingAssignments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user/assigned-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get tickets purchased by the current user that were assigned to others
+         * @description Shows assignment status and whether each ticket can be reassigned. CanReassign = true when Status=Active and DeclinedAt is not null (AD-015).
+         */
+        get: operations["GetAssignedTickets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{eventId}/assign-ticket": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin assigns a comp ticket to any user (bypasses authorized contacts)
+         * @description Creates a comp TicketPurchase (TotalPrice=0, PaymentMethod='admin-comp') and PendingAcceptance EventAttendance. Recipient must still accept waiver (BR-041). Admin audit trail recorded (BR-042). BR-040 bypasses authorized contacts.
+         */
+        post: operations["AdminAssignTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{eventId}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all ticket/RSVP assignments for an event (admin view)
+         * @description Returns all EventAttendance records where AssignedByUserId IS NOT NULL. Includes all statuses (Active, PendingAcceptance, Cancelled). Full audit info with attendee/assigner scene names.
+         */
+        get: operations["AdminGetEventAssignments"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1857,6 +2195,23 @@ export interface paths {
         /** Update member contact information (admin) - auto-creates audit note */
         put: operations["UpdateMemberContactInfo"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin-initiated password reset - sets a new password for a member without requiring their current password */
+        post: operations["AdminResetPassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4015,6 +4370,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AcceptAssignmentRequest: {
+            eventWaiverAccepted: boolean;
+            termsOfServiceAccepted?: boolean;
+        };
+        AcceptProxyRsvpRequest: {
+            eventWaiverAccepted: boolean;
+            termsOfServiceAccepted?: boolean;
+        };
         ActionItem: {
             /** Format: uuid */
             incidentId?: string;
@@ -4022,6 +4385,10 @@ export interface components {
             actionNeeded?: string;
             /** Format: date-time */
             dueDate?: string;
+        };
+        AddAuthorizedContactRequest: {
+            /** Format: uuid */
+            delegateUserId: string;
         };
         AddNoteRequest: {
             content?: string;
@@ -4040,10 +4407,39 @@ export interface components {
             createdBy?: string;
             createdByEmail?: string;
         };
+        AdminAssignTicketRequest: {
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            ticketTypeId: string;
+            notes?: null | string;
+        };
         AdminDashboardResponse: {
             statistics?: components["schemas"]["SafetyStatistics"];
             recentIncidents?: components["schemas"]["IncidentSummaryResponse"][];
             pendingActions?: components["schemas"]["ActionItem"][];
+        };
+        AdminEventAssignmentDto: {
+            /** Format: uuid */
+            attendanceId?: string;
+            /** Format: uuid */
+            eventId?: string;
+            attendeeName?: string;
+            /** Format: uuid */
+            attendeeUserId?: string;
+            assignedByName?: string;
+            /** Format: uuid */
+            assignedByUserId?: string;
+            ticketTypeName?: string;
+            attendanceType?: string;
+            status?: string;
+            /** Format: date-time */
+            assignedAt?: string;
+            /** Format: date-time */
+            acceptedAt?: null | string;
+            /** Format: date-time */
+            declinedAt?: null | string;
+            waiverAccepted?: boolean;
         };
         AdminRemoveRsvpResponse: {
             rsvpRemoved?: boolean;
@@ -4052,6 +4448,9 @@ export interface components {
             refundAmount?: null | number;
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
+        };
+        AdminResetPasswordRequest: {
+            newPassword: string;
         };
         AdminUpdateContactInfoDto: {
             sceneName: string;
@@ -4244,12 +4643,34 @@ export interface components {
             /** Format: uuid */
             coordinatorId?: null | string;
         };
+        AssignedTicketStatusDto: {
+            /** Format: uuid */
+            attendanceId?: string;
+            /** Format: uuid */
+            ticketPurchaseId?: string;
+            /** Format: uuid */
+            eventId?: string;
+            eventTitle?: string;
+            /** Format: date-time */
+            eventDate?: string;
+            ticketTypeName?: string;
+            status?: string;
+            /** Format: uuid */
+            assignedToUserId?: null | string;
+            assignedToSceneName?: null | string;
+            canReassign?: boolean;
+            isUnassigned?: boolean;
+        };
+        AssignTicketRequest: {
+            /** Format: uuid */
+            assignToUserId: string;
+        };
         AssignVolunteerRequest: {
             /** Format: uuid */
             userId?: string;
         };
         /** @enum {unknown} */
-        AttendanceStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted" | "PendingPayment";
+        AttendanceStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted" | "PendingPayment" | "PendingAcceptance";
         /** @enum {unknown} */
         AttendanceType: "RSVP" | "Ticket";
         AttendeeResponse: {
@@ -4280,6 +4701,20 @@ export interface components {
             userName?: null | string;
             /** Format: date-time */
             createdAt?: string;
+        };
+        AuthorizedContactDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            userId?: string;
+            sceneName?: string;
+            direction?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        AuthorizedContactsListDto: {
+            delegates?: components["schemas"]["AuthorizedContactDto"][];
+            principals?: components["schemas"]["AuthorizedContactDto"][];
         };
         AuthUserResponse: {
             /** Format: uuid */
@@ -4428,6 +4863,9 @@ export interface components {
             lastFourDigits?: null | string;
             cardType?: null | string;
             idempotencyKey: string;
+            /** Format: double */
+            slidingScalePercentage?: number;
+            ticketSelections?: null | components["schemas"]["TicketSelectionItem"][];
         };
         CheckoutResponse: {
             transactionId?: string;
@@ -4437,6 +4875,7 @@ export interface components {
             authCode?: null | string;
             /** Format: double */
             amountCharged?: number;
+            assignments?: null | components["schemas"]["TicketAssignmentResultDto"][];
         };
         ClientErrorBatch: {
             errors: components["schemas"]["ClientErrorReport"][];
@@ -4560,6 +4999,11 @@ export interface components {
             isPrivate?: boolean;
             tags?: string[];
         };
+        CreateProxyRsvpRequest: {
+            /** Format: uuid */
+            rsvpForUserId: string;
+            notes?: null | string;
+        };
         CreateRSVPRequest: {
             /** Format: uuid */
             eventId: string;
@@ -4678,6 +5122,7 @@ export interface components {
             amount?: null | number;
             /** Format: double */
             slidingScalePercentage?: number;
+            ticketSelections?: null | components["schemas"]["TicketSelectionItem"][];
         };
         CreateUserNoteRequest: {
             content?: string;
@@ -4698,6 +5143,21 @@ export interface components {
             count?: number;
             metadata?: null | string;
         };
+        DailyTransactionDay: {
+            /** Format: date */
+            date?: string;
+            /** Format: int32 */
+            completedCount?: number;
+            /** Format: double */
+            completedAmount?: number;
+            /** Format: int32 */
+            failedCount?: number;
+            /** Format: int32 */
+            incompleteCount?: number;
+        };
+        DailyTransactionsResponse: {
+            days?: components["schemas"]["DailyTransactionDay"][];
+        };
         DashboardResponse: {
             eventId?: string;
             eventTitle?: string;
@@ -4713,6 +5173,9 @@ export interface components {
             unassignedCount?: number;
             hasOldUnassigned?: boolean;
             recentIncidents?: components["schemas"]["IncidentSummaryDto"][];
+        };
+        DeclineAssignmentRequest: {
+            reason?: null | string;
         };
         DeleteSessionCheckDto: {
             canDelete?: boolean;
@@ -4957,7 +5420,7 @@ export interface components {
             remainingRefundable?: number;
         };
         /** @enum {unknown} */
-        EventRecipientGroup: "SessionAttendees" | "RSVPTicketHolders" | "SessionVolunteers" | "Teachers" | null;
+        EventRecipientGroup: "SessionAttendees" | "RSVPTicketHolders" | "SessionVolunteers" | "Teachers" | "PendingAssignmentHolders" | null;
         EventVolunteerPositionDto: {
             id?: string;
             title?: string;
@@ -5432,9 +5895,25 @@ export interface components {
             eventTitle?: null | string;
             eventWaiverAccepted?: boolean;
             idempotencyKey?: string;
+            ticketSelections?: null | components["schemas"]["TicketSelectionItem"][];
         };
         PayPalCheckoutCreateOrderResponse: {
             orderId?: string;
+        };
+        PendingAssignmentDto: {
+            /** Format: uuid */
+            attendanceId?: string;
+            /** Format: uuid */
+            eventId?: string;
+            eventTitle?: string;
+            /** Format: date-time */
+            eventDate?: string;
+            assignedBySceneName?: string;
+            attendanceType?: string;
+            ticketTypeName?: string;
+            sessionNames?: string[];
+            /** Format: date-time */
+            assignedAt?: string;
         };
         PendingCheckIn: {
             localId: string;
@@ -5450,6 +5929,12 @@ export interface components {
         };
         /** @enum {unknown} */
         PricingType: "Fixed" | "SlidingScale";
+        PrincipalContactDto: {
+            /** Format: uuid */
+            userId?: string;
+            sceneName?: string;
+            isVetted?: boolean;
+        };
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -5471,6 +5956,22 @@ export interface components {
             /** Format: date-time */
             serverTime?: string;
             tokenClaims?: components["schemas"]["TokenClaims"];
+        };
+        ProxyRsvpDto: {
+            /** Format: uuid */
+            attendanceId?: string;
+            /** Format: uuid */
+            eventId?: string;
+            eventTitle?: string;
+            status?: string;
+            rsvpForSceneName?: null | string;
+            /** Format: uuid */
+            rsvpForUserId?: null | string;
+            createdBySceneName?: null | string;
+            /** Format: uuid */
+            createdByUserId?: null | string;
+            /** Format: date-time */
+            createdAt?: string;
         };
         PublicApplicationSubmissionRequest: {
             email: string;
@@ -5865,6 +6366,36 @@ export interface components {
         };
         /** @enum {unknown} */
         TemplateTriggerType: "Manual" | "FixedEvent" | "TimeBased";
+        TicketAssignmentDto: {
+            /** Format: uuid */
+            attendanceId?: string;
+            /** Format: uuid */
+            eventId?: string;
+            eventTitle?: string;
+            ticketTypeName?: string;
+            status?: string;
+            assignedToSceneName?: null | string;
+            /** Format: uuid */
+            assignedToUserId?: null | string;
+            assignedBySceneName?: null | string;
+            /** Format: uuid */
+            assignedByUserId?: null | string;
+            /** Format: date-time */
+            assignedAt?: null | string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        TicketAssignmentResultDto: {
+            /** Format: uuid */
+            attendanceId?: string;
+            /** Format: uuid */
+            ticketPurchaseId?: string;
+            ticketTypeName?: string;
+            /** Format: uuid */
+            assignedToUserId?: null | string;
+            assignedToSceneName?: null | string;
+            status?: string;
+        };
         TicketDetailsDto: {
             /** Format: uuid */
             id?: string;
@@ -5886,6 +6417,13 @@ export interface components {
             totalPrice?: number;
             canCancel?: boolean;
             cancellationMessage?: null | string;
+        };
+        TicketSelectionItem: {
+            /** Format: uuid */
+            ticketTypeId: string;
+            /** Format: int32 */
+            quantity: number;
+            assignees?: null | (null | string)[];
         };
         TicketTypeDto: {
             id?: string;
@@ -5909,6 +6447,8 @@ export interface components {
             referenceSessionName?: null | string;
             availabilityMessage?: string;
             canCancel?: boolean;
+            /** Format: int32 */
+            maxQuantityPerPurchase?: number;
         };
         ToggleSendingEnabledRequest: {
             enabled: boolean;
@@ -6203,9 +6743,6 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             sceneName?: string;
-            email?: string;
-            discordName?: null | string;
-            fullName?: null | string;
         };
         /** @enum {unknown} */
         UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | "NewImportedUsers" | null;
@@ -6224,6 +6761,18 @@ export interface components {
             startTime?: string;
             /** Format: date-time */
             endTime?: string;
+        };
+        UserSummaryResponse: {
+            /** Format: int32 */
+            totalUsers?: number;
+            /** Format: int32 */
+            verifiedUsers?: number;
+            /** Format: int32 */
+            unverifiedUsers?: number;
+            /** Format: int32 */
+            vettedMembers?: number;
+            /** Format: int32 */
+            vettingApplicationsSubmitted?: number;
         };
         UserTicketDto: {
             ticketTypeName?: string;
@@ -8850,6 +9399,84 @@ export interface operations {
             };
         };
     };
+    GetUserSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSummaryResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetDailyTransactions: {
+        parameters: {
+            query: {
+                dateFrom: string;
+                dateTo: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyTransactionsResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetPublicVenue: {
         parameters: {
             query?: never;
@@ -8934,6 +9561,240 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
+            };
+        };
+    };
+    GetAuthorizedContacts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizedContactsListDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AddAuthorizedContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddAuthorizedContactRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizedContactDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RevokeAuthorizedContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SearchUsersForAuthorizedContacts: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSearchResultDto"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetPrincipalContacts: {
+        parameters: {
+            query?: {
+                eventId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrincipalContactDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -9422,6 +10283,640 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminRemoveRsvpResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CreateProxyRsvp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProxyRsvpRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProxyRsvpDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AcceptProxyRsvp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                attendanceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptProxyRsvpRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProxyRsvpDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeclineProxyRsvp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                attendanceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AssignTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                attendanceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketAssignmentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AcceptAssignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                attendanceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptAssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketAssignmentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeclineAssignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                attendanceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": null | components["schemas"]["DeclineAssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketAssignmentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReassignTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                attendanceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketAssignmentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetPendingAssignments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingAssignmentDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetAssignedTickets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignedTicketStatusDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminAssignTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAssignTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketAssignmentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGetEventAssignments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventAssignmentDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -11080,6 +12575,65 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AdminUpdateContactInfoDto"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminResetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminResetPasswordRequest"];
             };
         };
         responses: {

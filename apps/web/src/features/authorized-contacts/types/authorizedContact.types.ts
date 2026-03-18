@@ -1,58 +1,52 @@
 /**
- * Authorized Contacts Types
+ * Authorized Contacts Types - Using Auto-Generated Types
  *
- * Types for the Authorized Contacts feature, which allows users to designate
- * other members who can purchase tickets and RSVP on their behalf.
+ * DTO ALIGNMENT STRATEGY - CRITICAL RULES:
+ * ========================================
+ * 1. API DTOs (C#) are the SOURCE OF TRUTH
+ * 2. TypeScript types are AUTO-GENERATED from OpenAPI spec via @witchcityrope/shared-types
+ * 3. NEVER manually create TypeScript interfaces for API request/response data
+ * 4. If a type is missing, expose it in the backend API (add .Produces<> to endpoint)
+ * 5. Regenerate types: cd packages/shared-types && npm run generate
  *
- * These are frontend-only types for now since the backend API endpoints
- * have not yet been created. Once backend DTOs exist, these should be
- * replaced with auto-generated types from @witchcityrope/shared-types.
+ * WHY: Prevents type mismatches, ensures type safety, eliminates manual sync work
+ * SEE: /docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md
+ * ========================================
  *
  * Terminology:
  * - Principal: The person granting authority (the account owner)
  * - Delegate: The person receiving authority (can act on principal's behalf)
  */
 
-/** A single authorized contact relationship */
-export interface AuthorizedContactDto {
-  /** Unique relationship ID */
-  id: string
-  /** The other user's ID in this relationship */
-  userId: string
-  /** The other user's scene name (privacy-safe display name per AD-009) */
-  sceneName: string
-  /** ISO 8601 timestamp of when the relationship was created */
-  createdAt: string
-}
+import type { components } from '@witchcityrope/shared-types'
 
-/** Response from GET /api/authorized-contacts - returns both directions */
-export interface AuthorizedContactsListDto {
-  /** People I have authorized to act on my behalf (I am the principal) */
-  delegates: AuthorizedContactDto[]
-  /** People who have authorized me to act on their behalf (I am the delegate) */
-  principals: AuthorizedContactDto[]
-}
+/**
+ * A single authorized contact relationship.
+ * Source: C# AuthorizedContactDto via NSwag generation
+ */
+export type AuthorizedContactDto = components['schemas']['AuthorizedContactDto']
 
-/** Request body for POST /api/authorized-contacts */
-export interface AddAuthorizedContactRequest {
-  /** The user ID of the person being granted delegate authority */
-  delegateUserId: string
-}
+/**
+ * Response from GET /api/authorized-contacts - returns both directions.
+ * Source: C# AuthorizedContactsListDto via NSwag generation
+ */
+export type AuthorizedContactsListDto = components['schemas']['AuthorizedContactsListDto']
 
-/** Search result for member scene name lookup */
-export interface UserSearchResultDto {
-  /** The user's ID */
-  userId: string
-  /** The user's scene name (only field exposed per AD-009 privacy) */
-  sceneName: string
-}
+/**
+ * Request body for POST /api/authorized-contacts.
+ * Source: C# AddAuthorizedContactRequest via NSwag generation
+ */
+export type AddAuthorizedContactRequest = components['schemas']['AddAuthorizedContactRequest']
+
+/**
+ * Search result for member scene name lookup.
+ * Source: C# UserSearchResultDto via NSwag generation
+ */
+export type UserSearchResultDto = components['schemas']['UserSearchResultDto']
 
 /**
  * A principal contact with vetting status.
  * Used in checkout/RSVP flows to show who the current user can act for.
+ * Source: C# PrincipalContactDto via NSwag generation
  */
-export interface PrincipalContactDto {
-  userId: string
-  sceneName: string
-  isVetted: boolean
-}
+export type PrincipalContactDto = components['schemas']['PrincipalContactDto']

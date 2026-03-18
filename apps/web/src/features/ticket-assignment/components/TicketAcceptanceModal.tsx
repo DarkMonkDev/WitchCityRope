@@ -174,21 +174,21 @@ export const TicketAcceptanceModal: React.FC<TicketAcceptanceModalProps> = ({
           <Text size="sm">
             Date:{' '}
             <Text component="span" fw={600}>
-              {formatUtcToLocalDate(assignment.eventDate, eventTimeZone, {
+              {formatUtcToLocalDate(assignment.eventDate ?? '', eventTimeZone, {
                 weekday: 'long',
                 month: 'long',
                 day: 'numeric',
                 year: 'numeric',
               })}
               {' at '}
-              {formatUtcToLocalTime(assignment.eventDate, eventTimeZone)}
+              {formatUtcToLocalTime(assignment.eventDate ?? '', eventTimeZone)}
             </Text>
           </Text>
-          {assignment.sessionNames.length > 0 && (
+          {(assignment.sessionNames ?? []).length > 0 && (
             <Text size="sm">
               Sessions:{' '}
               <Text component="span" fw={600}>
-                {assignment.sessionNames.join(', ')}
+                {(assignment.sessionNames ?? []).join(', ')}
               </Text>
             </Text>
           )}

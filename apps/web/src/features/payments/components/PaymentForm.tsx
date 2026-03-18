@@ -15,13 +15,7 @@ import { IconShieldCheck } from '@tabler/icons-react';
 import { PayPalButton, type PayPalCheckoutResult } from './PayPalButton';
 import { CreditCardForm, type NonceData } from './checkout/CreditCardForm';
 import type { PaymentEventInfo } from '../types/payment.types';
-
-/** A single ticket selection with quantity and optional assignees (multi-ticket support) */
-interface TicketSelectionItem {
-  ticketTypeId: string;
-  quantity: number;
-  assignees?: (string | null)[];
-}
+import type { TicketSelectionItem } from '../../ticket-assignment/types/ticketAssignment.types';
 
 interface PaymentFormProps {
   /** Event information for payment */

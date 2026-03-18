@@ -179,20 +179,20 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
 
         {/* Date and Time */}
         <Text size="sm" c="dimmed">
-          {formatUtcToLocalDate(assignment.eventDate, eventTimeZone, {
+          {formatUtcToLocalDate(assignment.eventDate ?? '', eventTimeZone, {
             weekday: 'short',
             month: 'short',
             day: 'numeric',
             year: 'numeric',
           })}
           {' at '}
-          {formatUtcToLocalTime(assignment.eventDate, eventTimeZone)}
+          {formatUtcToLocalTime(assignment.eventDate ?? '', eventTimeZone)}
         </Text>
 
         {/* Sessions (if multi-session) */}
-        {assignment.sessionNames.length > 0 && (
+        {(assignment.sessionNames ?? []).length > 0 && (
           <Text size="sm" c="dimmed">
-            {assignment.sessionNames.join(', ')}
+            {(assignment.sessionNames ?? []).join(', ')}
           </Text>
         )}
 

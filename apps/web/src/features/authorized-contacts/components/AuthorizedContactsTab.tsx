@@ -90,7 +90,7 @@ export const AuthorizedContactsTab: React.FC = () => {
   const principals = contacts?.principals ?? []
 
   // Collect existing delegate scene names for duplicate validation
-  const existingDelegateSceneNames = delegates.map((d) => d.sceneName)
+  const existingDelegateSceneNames = delegates.map((d) => d.sceneName ?? '')
 
   return (
     <Box

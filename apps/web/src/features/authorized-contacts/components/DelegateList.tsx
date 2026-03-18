@@ -73,8 +73,8 @@ export const DelegateList: React.FC<DelegateListProps> = ({ delegates }) => {
   const handleConfirmRemove = () => {
     if (!contactToRemove) return
 
-    removedSceneNameRef.current = contactToRemove.sceneName
-    removeContactMutation.mutate(contactToRemove.id)
+    removedSceneNameRef.current = contactToRemove.sceneName ?? ''
+    removeContactMutation.mutate(contactToRemove.id ?? '')
   }
 
   // Empty state

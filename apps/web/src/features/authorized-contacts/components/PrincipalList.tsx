@@ -60,7 +60,7 @@ export const PrincipalList: React.FC<PrincipalListProps> = ({ principals }) => {
           <Group justify="space-between" align="center">
             <Text fw={500}>{principal.sceneName}</Text>
             <Text size="sm" c="dimmed">
-              added {formatDate(principal.createdAt)}
+              added {formatDate(principal.createdAt ?? '')}
             </Text>
           </Group>
         </Paper>

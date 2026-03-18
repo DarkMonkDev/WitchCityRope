@@ -64,8 +64,8 @@ export const AssignTicketDropdown: React.FC<AssignTicketDropdownProps> = ({
 
   // Transform contacts into Select data format
   const selectData = (contacts || []).map((contact) => ({
-    value: contact.userId,
-    label: contact.sceneName,
+    value: contact.userId ?? '',
+    label: contact.sceneName ?? '',
   }))
 
   const handleConfirm = () => {

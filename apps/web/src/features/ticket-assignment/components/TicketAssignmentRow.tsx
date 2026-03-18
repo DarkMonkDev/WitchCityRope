@@ -68,8 +68,8 @@ export const TicketAssignmentRow: React.FC<TicketAssignmentRowProps> = ({
   // Build dropdown data: contacts + "Assign later"
   const dropdownData = [
     ...contacts.map((contact) => ({
-      value: contact.userId,
-      label: contact.sceneName,
+      value: contact.userId ?? '',
+      label: contact.sceneName ?? '',
     })),
     { value: '__assign_later__', label: 'Assign later' },
   ];

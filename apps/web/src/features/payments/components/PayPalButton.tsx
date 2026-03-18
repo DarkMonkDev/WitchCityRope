@@ -4,13 +4,7 @@ import { Alert, Button, Box, Text, Loader } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { debugLog } from '../../../utils/debug';
 import { apiClient } from '../../../lib/api/client';
-
-/** A single ticket selection with quantity and optional assignees (multi-ticket support) */
-interface TicketSelectionItem {
-  ticketTypeId: string;
-  quantity: number;
-  assignees?: (string | null)[];
-}
+import type { TicketSelectionItem } from '../../ticket-assignment/types/ticketAssignment.types';
 
 export interface PayPalButtonProps {
   /** Event ID for the ticket purchase */

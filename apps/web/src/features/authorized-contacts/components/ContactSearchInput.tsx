@@ -105,8 +105,9 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
 
     searchResultsMap.current.clear()
     return searchResults.map((result) => {
-      searchResultsMap.current.set(result.sceneName, result)
-      return result.sceneName
+      const name = result.sceneName ?? ''
+      searchResultsMap.current.set(name, result)
+      return name
     })
   }, [searchResults])
 
@@ -141,7 +142,7 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
       // Clear any previous error, track scene name for notification, and submit
       setInlineError(null)
       pendingSceneNameRef.current = selectedSceneName
-      addContactMutation.mutate({ delegateUserId: selectedUser.userId })
+      addContactMutation.mutate({ delegateUserId: selectedUser.userId ?? '' })
     },
     [addContactMutation, currentUserSceneName, existingDelegateSceneNames]
   )

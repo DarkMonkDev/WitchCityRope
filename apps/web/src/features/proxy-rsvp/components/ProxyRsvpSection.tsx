@@ -93,8 +93,8 @@ export const ProxyRsvpSection: React.FC<ProxyRsvpSectionProps> = ({
   };
 
   const dropdownData = contacts.map((contact) => ({
-    value: contact.userId,
-    label: contact.sceneName,
+    value: contact.userId ?? '',
+    label: contact.sceneName ?? '',
   }));
 
   return (

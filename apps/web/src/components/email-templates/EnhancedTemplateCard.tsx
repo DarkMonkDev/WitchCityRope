@@ -10,7 +10,8 @@ export type EventRecipientGroup =
   | 'SessionAttendees'
   | 'RSVPTicketHolders'
   | 'SessionVolunteers'
-  | 'Teachers';
+  | 'Teachers'
+  | 'PendingAssignmentHolders';
 
 export interface EnhancedTemplateCardProps {
   template: GlobalEmailTemplateDto & {
