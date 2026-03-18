@@ -16,6 +16,13 @@ import { PayPalButton, type PayPalCheckoutResult } from './PayPalButton';
 import { CreditCardForm, type NonceData } from './checkout/CreditCardForm';
 import type { PaymentEventInfo } from '../types/payment.types';
 
+/** A single ticket selection with quantity and optional assignees (multi-ticket support) */
+interface TicketSelectionItem {
+  ticketTypeId: string;
+  quantity: number;
+  assignees?: (string | null)[];
+}
+
 interface PaymentFormProps {
   /** Event information for payment */
   eventInfo: PaymentEventInfo;
@@ -29,6 +36,8 @@ interface PaymentFormProps {
   initialSlidingScale?: number;
   /** Total amount to charge (after sliding scale, summing all selected tickets) */
   totalAmount: number;
+  /** Multi-ticket selections for PayPal (optional) */
+  ticketSelections?: TicketSelectionItem[];
   /** Callback when card nonce is ready (tokenized) - parent handles checkout */
   onNonceReady?: (data: NonceData) => void;
   /** Callback when PayPal payment succeeds */
@@ -51,6 +60,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   eventWaiverAccepted = false,
   initialSlidingScale = 0,
   totalAmount,
+  ticketSelections,
   onNonceReady,
   onPaymentSuccess,
   onPaymentError,
@@ -226,6 +236,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
           eventTitle={eventInfo.title}
           eventWaiverAccepted={eventWaiverAccepted}
           idempotencyKey={idempotencyKey}
+          ticketSelections={ticketSelections}
           onPaymentSuccess={handlePaymentSuccess}
           onPaymentError={handlePaymentError}
           onPaymentCancel={handlePaymentCancel}

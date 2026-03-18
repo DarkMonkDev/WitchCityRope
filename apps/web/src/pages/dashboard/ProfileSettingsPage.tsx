@@ -33,12 +33,14 @@ import { HoldMembershipModal } from '../../components/vetting/HoldMembershipModa
 import { ReinstateMembershipModal } from '../../components/vetting/ReinstateMembershipModal'
 import { vettingHoldService } from '../../services/vettingHold.api'
 import { useCurrentUser } from '../../features/auth/api/queries'
+import { AuthorizedContactsTab } from '../../features/authorized-contacts/components/AuthorizedContactsTab'
 
 /**
- * Profile Settings Page with 3 tabs
+ * Profile Settings Page with 4 tabs
  * - Personal: Scene name, email, pronouns, bio, Discord, FetLife, phone (3-column layout)
  * - Change Password: Change password
  * - Vetting & Membership: Read-only vetting status with membership hold option
+ * - Authorized Contacts: Manage who can buy tickets/RSVP on user's behalf
  */
 export const ProfileSettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string | null>('personal')
@@ -231,6 +233,13 @@ export const ProfileSettingsPage: React.FC = () => {
                 <VettingStatusDisplay profile={profile} />
               </Accordion.Panel>
             </Accordion.Item>
+
+            <Accordion.Item value="authorized-contacts">
+              <Accordion.Control>Authorized Contacts</Accordion.Control>
+              <Accordion.Panel>
+                <AuthorizedContactsTab />
+              </Accordion.Panel>
+            </Accordion.Item>
           </Accordion>
         ) : (
           <Tabs
@@ -257,6 +266,7 @@ export const ProfileSettingsPage: React.FC = () => {
               <Tabs.Tab value="personal">Personal</Tabs.Tab>
               <Tabs.Tab value="security">Change Password</Tabs.Tab>
               <Tabs.Tab value="vetting">Vetting & Membership</Tabs.Tab>
+              <Tabs.Tab value="authorized-contacts">Authorized Contacts</Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value="personal">
@@ -269,6 +279,10 @@ export const ProfileSettingsPage: React.FC = () => {
 
             <Tabs.Panel value="vetting">
               <VettingStatusDisplay profile={profile} />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="authorized-contacts">
+              <AuthorizedContactsTab />
             </Tabs.Panel>
           </Tabs>
         )}

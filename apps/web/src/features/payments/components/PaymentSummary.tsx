@@ -27,8 +27,10 @@ interface PaymentSummaryProps {
   calculation?: SlidingScaleCalculation;
   /** Selected tickets (new multi-ticket support) */
   selectedTickets?: TicketTypeDto[];
-  /** Prices for each selected ticket (ticketId -> price) */
+  /** Prices for each selected ticket (ticketId -> total price for all of this type) */
   ticketPrices?: Record<string, number>;
+  /** Quantities for each ticket type (ticketId -> quantity) */
+  ticketQuantities?: Record<string, number>;
   /** Event sessions for showing dates */
   sessions?: SessionDto[];
   /** Processing fees (if any) */
@@ -47,6 +49,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
   calculation,
   selectedTickets = [],
   ticketPrices = {},
+  ticketQuantities = {},
   sessions = [],
   processingFee = 0,
   detailed = true,
@@ -135,14 +138,22 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
           <Stack gap="sm">
             {/* Individual Ticket Line Items */}
             {selectedTickets.map((ticket) => {
-              const price = ticketPrices[ticket.id || ''] || 0;
+              const totalPrice = ticketPrices[ticket.id || ''] || 0;
+              const quantity = ticketQuantities[ticket.id || ''] || 1;
+              const perUnitPrice = quantity > 0 ? totalPrice / quantity : totalPrice;
               const ticketSessions = getTicketSessions(ticket);
               return (
                 <Box key={ticket.id}>
                   <Group justify="space-between" align="flex-start">
-                    <Text size="sm" fw={500}>{ticket.name}</Text>
+                    <Text size="sm" fw={500}>
+                      {ticket.name}
+                      {quantity > 1 && ` x${quantity}`}
+                    </Text>
                     <Text size="sm" style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>
-                      {formatCurrency(price)}
+                      {quantity > 1
+                        ? `${formatCurrency(perUnitPrice)} x ${quantity}`
+                        : formatCurrency(totalPrice)
+                      }
                     </Text>
                   </Group>
                   {/* Show each session this ticket covers */}

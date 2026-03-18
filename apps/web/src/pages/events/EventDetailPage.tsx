@@ -22,6 +22,7 @@ import { hasRole, hasAnyRole } from '../../utils/roleUtils';
 import styles from './EventDetailPage.module.css'
 import { sanitizeHtml } from '../../lib/utils/sanitizeHtml'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
+import { ProxyRsvpSection } from '../../features/proxy-rsvp/components/ProxyRsvpSection';
 
 type VenueDto = components['schemas']['VenueDto'];
 type UserProfileDto = components['schemas']['UserProfileDto'];
@@ -642,6 +643,15 @@ export const EventDetailPage: React.FC = () => {
         {/* Mobile Participation Card - FULL WIDTH, mobile only */}
         <Box hiddenFrom="md" mt={{ base: 0, md: 'lg' }}>
           <ParticipationCard {...participationCardProps} isMobile={isMobile} />
+          {/* Proxy RSVP Section - mobile */}
+          <Box px="md" mt="xs">
+            <ProxyRsvpSection
+              eventId={id!}
+              eventTitle={event.title || 'Event'}
+              allowRsvps={allowRsvps}
+              isAuthenticated={isAuthenticated}
+            />
+          </Box>
         </Box>
 
         {/* Mobile Volunteer Shifts - FULL WIDTH, mobile only */}
@@ -764,6 +774,13 @@ export const EventDetailPage: React.FC = () => {
             {/* Desktop Participation Card - Shown only on desktop */}
             <Box visibleFrom="md">
               <ParticipationCard {...participationCardProps} />
+              {/* Proxy RSVP Section - desktop */}
+              <ProxyRsvpSection
+                eventId={id!}
+                eventTitle={event.title || 'Event'}
+                allowRsvps={allowRsvps}
+                isAuthenticated={isAuthenticated}
+              />
             </Box>
 
             {/* Volunteer Encouragement Box (if user hasn't volunteered) - Desktop only */}

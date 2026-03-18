@@ -7,8 +7,9 @@ namespace WitchCityRope.Api.Services.Seeding;
 
 /// <summary>
 /// Seeds default email templates for all 5 categories: Vetting, Events, Admin, Incident, and Ad Hoc.
-/// Total: 27 templates (Vetting: 6, Events: 11, Admin: 5, Incident: 4, Ad Hoc: 1)
+/// Total: 31 templates (Vetting: 6, Events: 15, Admin: 5, Incident: 4, Ad Hoc: 1)
 /// Vetting templates are migrated from the legacy VettingEmailTemplates table.
+/// Events templates include 4 ticket assignment / proxy RSVP templates.
 /// </summary>
 public class EmailTemplateSeeder
 {
@@ -22,9 +23,10 @@ public class EmailTemplateSeeder
     }
 
     /// <summary>
-    /// Seeds 27 default email templates across 5 categories.
+    /// Seeds 31 default email templates across 5 categories.
     /// This includes 6 Vetting templates migrated from VettingEmailTemplates table,
-    /// plus 21 templates for Events (11), Admin (5), Incident (4), and Ad Hoc (1).
+    /// plus 25 templates for Events (15), Admin (5), Incident (4), and Ad Hoc (1).
+    /// Events includes 4 ticket assignment / proxy RSVP templates.
     /// </summary>
     /// <param name="adminUserEmail">Email of admin user for UpdatedBy field. Defaults to admin@witchcityrope.com for dev/staging. Production uses ropemaster@witchcityrope.com.</param>
     /// <param name="cancellationToken">Cancellation token for async operation</param>
@@ -184,7 +186,7 @@ public class EmailTemplateSeeder
 
     private async Task SeedEventsTemplatesAsync(Guid adminUserId, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Seeding Events templates (10)...");
+        _logger.LogInformation("Seeding Events templates (15)...");
 
         var templates = new[]
         {
@@ -373,6 +375,228 @@ public class EmailTemplateSeeder
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = -1,
                 RecipientGroup = EventRecipientGroup.SessionVolunteers,
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            // ============================================================================
+            // TICKET ASSIGNMENT & PROXY RSVP TEMPLATES
+            // ============================================================================
+            // These 4 templates support the ticket assignment and proxy RSVP feature.
+            // They are sent programmatically by AssignmentReminderService (reminders) and
+            // the ticket assignment flow (notifications), NOT by the EmailSchedulerJob.
+            // RecipientGroup is null because the sending services handle their own recipient
+            // selection logic. TriggerType is FixedEvent (business-event driven).
+            //
+            // Variable keys use snake_case to match AssignmentReminderService variables dict.
+            // Template type constants are defined in AssignmentEmailTemplates static class.
+            // ============================================================================
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Events,
+                TemplateType = "TicketAssignmentNotification",
+                Title = "Ticket Assigned: {{event_title}}",
+                Subject = "{{delegate_scene_name}} purchased a ticket for you to {{event_title}}",
+                HtmlBody = @"<p style=""margin-bottom: 16px;"">Hi {{recipient_scene_name}},</p>
+<p style=""margin-bottom: 16px;""><strong>{{delegate_scene_name}}</strong> has purchased a ticket for you to attend <strong>{{event_title}}</strong>!</p>
+<h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Event Details</h2>
+<p style=""margin-bottom: 16px;"">
+<strong>Event:</strong> {{event_title}}<br>
+<strong>Date:</strong> {{event_date}}<br>
+<strong>Time:</strong> {{event_time}}<br>
+<strong>Venue:</strong> {{event_venue}}<br>
+<strong>Ticket Type:</strong> {{ticket_type_name}}</p>
+<h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Accept Your Ticket</h2>
+<p style=""margin-bottom: 16px;"">To attend this event, you need to accept your ticket. This includes reviewing and agreeing to the event waiver and terms of service.</p>
+<p style=""margin-bottom: 24px; text-align: center;"">{{accept_button}}</p>
+<p style=""margin-bottom: 16px; color: #666;"">This ticket will remain available for you to accept until the event begins.</p>
+<p style=""margin-bottom: 16px;"">If you have any questions, please contact <a href=""mailto:events@witchcityrope.com"" style=""color: #880124;"">events@witchcityrope.com</a></p>
+<p style=""margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;"">WitchCityRope &bull; Salem, MA &bull; <a href=""https://witchcityrope.com"" style=""color: #880124;"">witchcityrope.com</a></p>",
+                PlainTextBody = @"Hi {{recipient_scene_name}},
+
+{{delegate_scene_name}} has purchased a ticket for you to attend {{event_title}}!
+
+EVENT DETAILS
+=============
+Event: {{event_title}}
+Date: {{event_date}}
+Time: {{event_time}}
+Venue: {{event_venue}}
+Ticket Type: {{ticket_type_name}}
+
+ACCEPT YOUR TICKET
+==================
+To attend this event, you need to accept your ticket. This includes reviewing and agreeing to the event waiver and terms of service.
+
+Accept your ticket here: {{accept_url}}
+
+This ticket will remain available for you to accept until the event begins.
+
+If you have any questions, please contact events@witchcityrope.com
+
+---
+WitchCityRope - Salem, MA - witchcityrope.com",
+                TriggerType = TemplateTriggerType.FixedEvent,
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Events,
+                TemplateType = "RsvpAssignmentNotification",
+                Title = "RSVP Created: {{event_title}}",
+                Subject = "{{delegate_scene_name}} RSVP'd for you to {{event_title}}",
+                HtmlBody = @"<p style=""margin-bottom: 16px;"">Hi {{recipient_scene_name}},</p>
+<p style=""margin-bottom: 16px;""><strong>{{delegate_scene_name}}</strong> has RSVP'd for you to attend <strong>{{event_title}}</strong>!</p>
+<h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Event Details</h2>
+<p style=""margin-bottom: 16px;"">
+<strong>Event:</strong> {{event_title}}<br>
+<strong>Date:</strong> {{event_date}}<br>
+<strong>Time:</strong> {{event_time}}<br>
+<strong>Venue:</strong> {{event_venue}}</p>
+<h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Accept Your RSVP</h2>
+<p style=""margin-bottom: 16px;"">To attend this event, you need to accept your RSVP. This includes reviewing and agreeing to the event waiver and terms of service.</p>
+<p style=""margin-bottom: 24px; text-align: center;"">{{accept_button}}</p>
+<p style=""margin-bottom: 16px; color: #666;"">This RSVP will remain available for you to accept until the event begins.</p>
+<p style=""margin-bottom: 16px;"">If you have any questions, please contact <a href=""mailto:events@witchcityrope.com"" style=""color: #880124;"">events@witchcityrope.com</a></p>
+<p style=""margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;"">WitchCityRope &bull; Salem, MA &bull; <a href=""https://witchcityrope.com"" style=""color: #880124;"">witchcityrope.com</a></p>",
+                PlainTextBody = @"Hi {{recipient_scene_name}},
+
+{{delegate_scene_name}} has RSVP'd for you to attend {{event_title}}!
+
+EVENT DETAILS
+=============
+Event: {{event_title}}
+Date: {{event_date}}
+Time: {{event_time}}
+Venue: {{event_venue}}
+
+ACCEPT YOUR RSVP
+=================
+To attend this event, you need to accept your RSVP. This includes reviewing and agreeing to the event waiver and terms of service.
+
+Accept your RSVP here: {{accept_url}}
+
+This RSVP will remain available for you to accept until the event begins.
+
+If you have any questions, please contact events@witchcityrope.com
+
+---
+WitchCityRope - Salem, MA - witchcityrope.com",
+                TriggerType = TemplateTriggerType.FixedEvent,
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Events,
+                TemplateType = "TicketAcceptanceReminder",
+                Title = "Reminder: Accept your ticket for {{event_title}}",
+                Subject = "Reminder: Accept your ticket for {{event_title}} - Event is tomorrow!",
+                HtmlBody = @"<p style=""margin-bottom: 16px;"">Hi {{recipient_scene_name}},</p>
+<p style=""margin-bottom: 16px;""><strong>Your ticket for {{event_title}} is still waiting for your acceptance!</strong></p>
+<p style=""margin-bottom: 16px;"">{{delegate_scene_name}} purchased a ticket for you, and the event is coming up soon.</p>
+<h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Event Details</h2>
+<p style=""margin-bottom: 16px;"">
+<strong>Event:</strong> {{event_title}}<br>
+<strong>Date:</strong> {{event_date}}<br>
+<strong>Time:</strong> {{event_start_time}}<br>
+<strong>Venue:</strong> {{event_venue}}<br>
+<strong>Ticket Type:</strong> {{ticket_type_name}}</p>
+<h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Accept Your Ticket Now</h2>
+<p style=""margin-bottom: 16px;"">To attend this event, you need to accept your ticket and agree to the event waiver and terms of service.</p>
+<p style=""margin-bottom: 24px; text-align: center;"">{{accept_button}}</p>
+<p style=""margin-bottom: 16px; color: #666;"">You can accept this ticket right up until the event, but we recommend accepting now to avoid any issues.</p>
+<p style=""margin-bottom: 16px;"">If you have any questions, please contact <a href=""mailto:events@witchcityrope.com"" style=""color: #880124;"">events@witchcityrope.com</a></p>
+<p style=""margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;"">WitchCityRope &bull; Salem, MA &bull; <a href=""https://witchcityrope.com"" style=""color: #880124;"">witchcityrope.com</a></p>",
+                PlainTextBody = @"Hi {{recipient_scene_name}},
+
+Your ticket for {{event_title}} is still waiting for your acceptance!
+
+{{delegate_scene_name}} purchased a ticket for you, and the event is coming up soon.
+
+EVENT DETAILS
+=============
+Event: {{event_title}}
+Date: {{event_date}}
+Time: {{event_start_time}}
+Venue: {{event_venue}}
+Ticket Type: {{ticket_type_name}}
+
+ACCEPT YOUR TICKET NOW
+======================
+To attend this event, you need to accept your ticket and agree to the event waiver and terms of service.
+
+Accept your ticket here: {{accept_url}}
+
+You can accept this ticket right up until the event, but we recommend accepting now to avoid any issues.
+
+If you have any questions, please contact events@witchcityrope.com
+
+---
+WitchCityRope - Salem, MA - witchcityrope.com",
+                TriggerType = TemplateTriggerType.FixedEvent,
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Events,
+                TemplateType = "RsvpAcceptanceReminder",
+                Title = "Reminder: Accept your RSVP for {{event_title}}",
+                Subject = "Reminder: Accept your RSVP for {{event_title}} - Event is tomorrow!",
+                HtmlBody = @"<p style=""margin-bottom: 16px;"">Hi {{recipient_scene_name}},</p>
+<p style=""margin-bottom: 16px;""><strong>Your RSVP for {{event_title}} is still waiting for your acceptance!</strong></p>
+<p style=""margin-bottom: 16px;"">{{delegate_scene_name}} RSVP'd for you, and the event is coming up soon.</p>
+<h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Event Details</h2>
+<p style=""margin-bottom: 16px;"">
+<strong>Event:</strong> {{event_title}}<br>
+<strong>Date:</strong> {{event_date}}<br>
+<strong>Time:</strong> {{event_start_time}}<br>
+<strong>Venue:</strong> {{event_venue}}</p>
+<h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Accept Your RSVP Now</h2>
+<p style=""margin-bottom: 16px;"">To attend this event, you need to accept your RSVP and agree to the event waiver and terms of service.</p>
+<p style=""margin-bottom: 24px; text-align: center;"">{{accept_button}}</p>
+<p style=""margin-bottom: 16px; color: #666;"">You can accept this RSVP right up until the event, but we recommend accepting now to avoid any issues.</p>
+<p style=""margin-bottom: 16px;"">If you have any questions, please contact <a href=""mailto:events@witchcityrope.com"" style=""color: #880124;"">events@witchcityrope.com</a></p>
+<p style=""margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;"">WitchCityRope &bull; Salem, MA &bull; <a href=""https://witchcityrope.com"" style=""color: #880124;"">witchcityrope.com</a></p>",
+                PlainTextBody = @"Hi {{recipient_scene_name}},
+
+Your RSVP for {{event_title}} is still waiting for your acceptance!
+
+{{delegate_scene_name}} RSVP'd for you, and the event is coming up soon.
+
+EVENT DETAILS
+=============
+Event: {{event_title}}
+Date: {{event_date}}
+Time: {{event_start_time}}
+Venue: {{event_venue}}
+
+ACCEPT YOUR RSVP NOW
+====================
+To attend this event, you need to accept your RSVP and agree to the event waiver and terms of service.
+
+Accept your RSVP here: {{accept_url}}
+
+You can accept this RSVP right up until the event, but we recommend accepting now to avoid any issues.
+
+If you have any questions, please contact events@witchcityrope.com
+
+---
+WitchCityRope - Salem, MA - witchcityrope.com",
+                TriggerType = TemplateTriggerType.FixedEvent,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,

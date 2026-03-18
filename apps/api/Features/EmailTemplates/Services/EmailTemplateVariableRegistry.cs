@@ -12,7 +12,7 @@ public static class EmailTemplateVariableRegistry
     private static readonly Dictionary<(EmailCategory Category, string TemplateType), string[]> Registry = new()
     {
         // ========================================
-        // Events Category (11 templates)
+        // Events Category (15 templates)
         // ========================================
         // Source: EventEmailService.SendConfirmationAsync()
 
@@ -104,6 +104,38 @@ public static class EmailTemplateVariableRegistry
             "{{volunteer_name}}", "{{attendee_name}}", "{{event_title}}", "{{session_name}}",
             "{{session_date}}", "{{event_date}}", "{{volunteer_tasks_list}}", "{{volunteer_tasks_list_text}}",
             "{{event_details_url}}", "{{event_details_button}}"
+        },
+
+        // Source: Ticket assignment flow (not yet wired) — sent on ticket assignment
+        [(EmailCategory.Events, "TicketAssignmentNotification")] = new[]
+        {
+            "{{recipient_scene_name}}", "{{delegate_scene_name}}", "{{event_title}}",
+            "{{event_date}}", "{{event_time}}", "{{event_venue}}", "{{ticket_type_name}}",
+            "{{accept_url}}", "{{accept_button}}"
+        },
+
+        // Source: Proxy RSVP flow (not yet wired) — sent on proxy RSVP creation
+        [(EmailCategory.Events, "RsvpAssignmentNotification")] = new[]
+        {
+            "{{recipient_scene_name}}", "{{delegate_scene_name}}", "{{event_title}}",
+            "{{event_date}}", "{{event_time}}", "{{event_venue}}",
+            "{{accept_url}}", "{{accept_button}}"
+        },
+
+        // Source: AssignmentReminderService.SendReminderForAttendanceAsync() — ticket reminders
+        [(EmailCategory.Events, "TicketAcceptanceReminder")] = new[]
+        {
+            "{{recipient_scene_name}}", "{{delegate_scene_name}}", "{{event_title}}",
+            "{{event_date}}", "{{event_time}}", "{{event_start_time}}", "{{event_venue}}",
+            "{{ticket_type_name}}", "{{accept_url}}", "{{accept_button}}"
+        },
+
+        // Source: AssignmentReminderService.SendReminderForAttendanceAsync() — RSVP reminders
+        [(EmailCategory.Events, "RsvpAcceptanceReminder")] = new[]
+        {
+            "{{recipient_scene_name}}", "{{delegate_scene_name}}", "{{event_title}}",
+            "{{event_date}}", "{{event_time}}", "{{event_start_time}}", "{{event_venue}}",
+            "{{accept_url}}", "{{accept_button}}"
         },
 
         // ========================================

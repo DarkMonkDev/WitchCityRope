@@ -15,7 +15,8 @@ import {
   Paper,
   Box,
   Checkbox,
-  Loader
+  Loader,
+  Divider
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft, IconAlertCircle, IconCheck } from '@tabler/icons-react';
@@ -38,6 +39,10 @@ import { useParticipation } from '../../../hooks/useParticipation';
 import { useCurrentUser } from '../../../lib/api/hooks/useAuth';
 
 import type { PaymentEventInfo } from '../types/payment.types';
+import { TicketQuantitySelector } from '../../ticket-assignment/components/TicketQuantitySelector';
+import { TicketAssignmentRow } from '../../ticket-assignment/components/TicketAssignmentRow';
+import { usePrincipalContacts } from '../../authorized-contacts/api/queries';
+import type { TicketSelectionItem } from '../../ticket-assignment/types/ticketAssignment.types';
 
 // Use generated types from OpenAPI spec
 type EventDto = components["schemas"]["EventDto"];
@@ -84,12 +89,24 @@ export const EventPaymentPage: React.FC = () => {
   const [ticketPrices, setTicketPrices] = useState<Record<string, number>>({});
   const [checkoutErrorDismissed, setCheckoutErrorDismissed] = useState(false);
 
+  // Multi-ticket quantity and assignment state
+  // ticketQuantities: ticketTypeId -> quantity (default 1)
+  const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
+  // ticketAssignments: ticketTypeId -> array of contactUserId|null (one per extra ticket)
+  const [ticketAssignments, setTicketAssignments] = useState<Record<string, (string | null)[]>>({});
+
   // Sliding scale management
   const {
     discountPercentage,
     calculation,
     updateDiscountPercentage
   } = useSlidingScale(eventInfo?.basePrice || 0, 0);
+
+  // Fetch authorized contacts (principals) for ticket assignment dropdowns
+  // Only fetch when user is authenticated and we have an eventId
+  const { data: principalContacts = [] } = usePrincipalContacts(
+    isAuthenticated && eventId ? eventId : undefined
+  );
 
   // Unified checkout mutation (ticket + payment in single request)
   const checkout = useCheckout();
@@ -273,7 +290,11 @@ export const EventPaymentPage: React.FC = () => {
       return;
     }
 
-    debugLog('Starting unified checkout:', { eventId, ticketIds, totalAmount, idempotencyKey });
+    // Build ticket selections for multi-ticket support
+    const ticketSelections = buildTicketSelections();
+    const hasMultiTicket = ticketSelections.some(ts => ts.quantity > 1);
+
+    debugLog('Starting unified checkout:', { eventId, ticketIds, totalAmount, idempotencyKey, ticketSelections });
     setCheckoutErrorDismissed(false);
 
     try {
@@ -286,8 +307,10 @@ export const EventPaymentPage: React.FC = () => {
         amount: totalAmount,
         lastFourDigits: nonceData.lastFourDigits,
         cardType: nonceData.cardType,
-        idempotencyKey
-      });
+        idempotencyKey,
+        // Multi-ticket support: include ticket selections when purchasing multiple
+        ...(hasMultiTicket ? { ticketSelections } : {}),
+      } as any);
 
       debugLog('Checkout completed:', result);
 
@@ -401,6 +424,94 @@ export const EventPaymentPage: React.FC = () => {
    */
   const handleRegisterMore = () => {
     navigate('/events');
+  };
+
+  /**
+   * Handle quantity change for a ticket type
+   */
+  const handleQuantityChange = (ticketTypeId: string, newQuantity: number) => {
+    setTicketQuantities(prev => ({
+      ...prev,
+      [ticketTypeId]: newQuantity,
+    }));
+
+    // Adjust the assignments array: keep existing assignments, trim or pad with null
+    setTicketAssignments(prev => {
+      const existingAssignments = prev[ticketTypeId] || [];
+      const extraTickets = newQuantity - 1; // First ticket is always for purchaser
+
+      if (extraTickets <= 0) {
+        // No extra tickets, clear assignments
+        const updated = { ...prev };
+        delete updated[ticketTypeId];
+        return updated;
+      }
+
+      // Trim or pad the array
+      const newAssignments = existingAssignments.slice(0, extraTickets);
+      while (newAssignments.length < extraTickets) {
+        newAssignments.push(null);
+      }
+
+      return {
+        ...prev,
+        [ticketTypeId]: newAssignments,
+      };
+    });
+
+    // Update ticket prices: quantity * per-unit price
+    setTicketPrices(prev => {
+      const ticket = ticketTypes.find(tt => tt.id === ticketTypeId);
+      if (!ticket) return prev;
+
+      // Get the per-unit price (current price / current quantity)
+      const currentQty = ticketQuantities[ticketTypeId] || 1;
+      const currentTotal = prev[ticketTypeId] || 0;
+      const perUnitPrice = currentQty > 0 ? currentTotal / currentQty : 0;
+
+      // If per-unit price is 0, use the ticket's default price
+      const unitPrice = perUnitPrice > 0 ? perUnitPrice : (
+        ticket.pricingType === 'Fixed'
+          ? (ticket.price ?? 0)
+          : (ticket.defaultPrice ?? ticket.minPrice ?? 0)
+      );
+
+      return {
+        ...prev,
+        [ticketTypeId]: unitPrice * newQuantity,
+      };
+    });
+  };
+
+  /**
+   * Handle assignment change for a specific extra ticket
+   */
+  const handleAssignmentChange = (ticketTypeId: string, ticketIndex: number, contactUserId: string | null) => {
+    setTicketAssignments(prev => {
+      const existing = prev[ticketTypeId] || [];
+      const updated = [...existing];
+      updated[ticketIndex] = contactUserId;
+      return {
+        ...prev,
+        [ticketTypeId]: updated,
+      };
+    });
+  };
+
+  /**
+   * Build ticket selections for the checkout request
+   */
+  const buildTicketSelections = (): TicketSelectionItem[] => {
+    return selectedTicketTypeIds.map(ticketTypeId => {
+      const quantity = ticketQuantities[ticketTypeId] || 1;
+      const assignments = ticketAssignments[ticketTypeId] || [];
+
+      return {
+        ticketTypeId,
+        quantity,
+        assignees: quantity > 1 ? assignments : undefined,
+      };
+    });
   };
 
   /**
@@ -760,38 +871,96 @@ export const EventPaymentPage: React.FC = () => {
                                       Sessions overlap with selected ticket
                                     </Text>
                                   )}
+
+                                  {/* Quantity selector - only for selected tickets */}
+                                  {isSelected && !isDisabledDueToOverlap && (
+                                    <Box onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                      <TicketQuantitySelector
+                                        quantity={ticketQuantities[tt.id || ''] || 1}
+                                        max={(tt as any).maxQuantityPerPurchase || 3}
+                                        onChange={(qty) => handleQuantityChange(tt.id || '', qty)}
+                                      />
+                                      {/* Info text when user has no contacts but quantity > 1 */}
+                                      {(ticketQuantities[tt.id || ''] || 1) > 1 && principalContacts.length === 0 && (
+                                        <Text size="xs" c="dimmed" mt={4}>
+                                          Add authorized contacts in Profile Settings to assign tickets to others.
+                                        </Text>
+                                      )}
+                                    </Box>
+                                  )}
                                 </Box>
                               </Group>
                             </Paper>
                           );
                         })}
                       </Stack>
+
+                      {/* Ticket Assignment Rows - shown when any selected ticket has quantity > 1 */}
+                      {selectedTickets.some(t => (ticketQuantities[t.id!] || 1) > 1) && (
+                        <>
+                          <Divider my="sm" />
+                          <Text fw={600} size="md">
+                            Ticket Assignments
+                          </Text>
+                          <Stack gap="xs">
+                            {selectedTickets.flatMap((ticket) => {
+                              const quantity = ticketQuantities[ticket.id!] || 1;
+                              const assignments = ticketAssignments[ticket.id!] || [];
+
+                              return Array.from({ length: quantity }, (_, i) => (
+                                <TicketAssignmentRow
+                                  key={`${ticket.id}-${i}`}
+                                  ticketNumber={i + 1}
+                                  isPurchaserTicket={i === 0}
+                                  contacts={principalContacts}
+                                  selectedContactId={i === 0 ? null : (assignments[i - 1] ?? null)}
+                                  onAssignmentChange={(contactId) => {
+                                    if (i > 0) {
+                                      handleAssignmentChange(ticket.id!, i - 1, contactId);
+                                    }
+                                  }}
+                                />
+                              ));
+                            })}
+                          </Stack>
+                        </>
+                      )}
                     </Stack>
                   </Paper>
                 )}
 
                 {/* Sliding Scale Selector - only show if any selected ticket has sliding scale */}
                 {hasAnySlidingScaleTicket && firstSlidingTicket && (
-                  <SlidingScaleSelector
-                    basePrice={eventInfo.basePrice}
-                    currency={eventInfo.currency}
-                    onAmountChange={(amount, percentage) => {
-                      updateDiscountPercentage(percentage);
-                      // Update all sliding scale tickets' prices in real-time
-                      const updatedPrices = { ...ticketPrices };
-                      selectedTickets.forEach(ticket => {
-                        if (ticket.pricingType === 'SlidingScale') {
-                          updatedPrices[ticket.id!] = amount;
-                        }
-                      });
-                      setTicketPrices(updatedPrices);
-                    }}
-                    title="Choose Your Payment Amount"
-                    forceSliding={true}
-                    minPrice={firstSlidingTicket.minPrice ?? undefined}
-                    maxPrice={firstSlidingTicket.maxPrice ?? undefined}
-                    defaultPrice={firstSlidingTicket.defaultPrice ?? undefined}
-                  />
+                  <>
+                    <SlidingScaleSelector
+                      basePrice={eventInfo.basePrice}
+                      currency={eventInfo.currency}
+                      onAmountChange={(amount, percentage) => {
+                        updateDiscountPercentage(percentage);
+                        // Update all sliding scale tickets' prices in real-time
+                        // For multi-ticket: per-unit price * quantity (AD-012: uniform sliding scale)
+                        const updatedPrices = { ...ticketPrices };
+                        selectedTickets.forEach(ticket => {
+                          if (ticket.pricingType === 'SlidingScale') {
+                            const quantity = ticketQuantities[ticket.id!] || 1;
+                            updatedPrices[ticket.id!] = amount * quantity;
+                          }
+                        });
+                        setTicketPrices(updatedPrices);
+                      }}
+                      title="Choose Your Payment Amount"
+                      forceSliding={true}
+                      minPrice={firstSlidingTicket.minPrice ?? undefined}
+                      maxPrice={firstSlidingTicket.maxPrice ?? undefined}
+                      defaultPrice={firstSlidingTicket.defaultPrice ?? undefined}
+                    />
+                    {/* Show note when purchasing multiple tickets with sliding scale */}
+                    {selectedTickets.some(t => (ticketQuantities[t.id!] || 1) > 1) && (
+                      <Text size="sm" c="dimmed" ta="center" mt={-8}>
+                        (Applies to all tickets in this purchase)
+                      </Text>
+                    )}
+                  </>
                 )}
 
 
@@ -883,6 +1052,7 @@ export const EventPaymentPage: React.FC = () => {
                   eventWaiverAccepted={true}
                   initialSlidingScale={discountPercentage}
                   totalAmount={Object.values(ticketPrices).reduce((sum, price) => sum + price, 0)}
+                  ticketSelections={buildTicketSelections().some(ts => ts.quantity > 1) ? buildTicketSelections() : undefined}
                   onNonceReady={handleNonceReady}
                   onPaymentSuccess={handlePayPalSuccess}
                   onPaymentError={handlePaymentError}
@@ -916,6 +1086,7 @@ export const EventPaymentPage: React.FC = () => {
                   calculation={calculation}
                   selectedTickets={selectedTickets}
                   ticketPrices={ticketPrices}
+                  ticketQuantities={ticketQuantities}
                   sessions={sessions}
                   detailed={true}
                 />

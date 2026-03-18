@@ -6,6 +6,7 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { VettingAlertBox } from './components/VettingAlertBox';
 import { FilterBar } from './components/FilterBar';
 import { EventCard } from './components/EventCard';
+import { PendingTicketsCard } from '../../features/ticket-assignment/components/PendingTicketsCard';
 import { BaseEventsTable, type TableColumn } from '../../components/events/BaseEventsTable';
 import { useUserEvents, useVettingStatus } from '../../hooks/useDashboard';
 import { useUser } from '../../stores/authStore';
@@ -310,6 +311,9 @@ export const MyEventsPage: React.FC = () => {
         {vettingStatus && vettingStatus.status !== 'Approved' && (
           <VettingAlertBox status={vettingStatus} />
         )}
+
+        {/* Pending Tickets & RSVPs - shown at top when user has items awaiting acceptance */}
+        <PendingTicketsCard />
 
         {/* Filter Bar */}
         <FilterBar

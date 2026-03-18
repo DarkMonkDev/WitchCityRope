@@ -5,6 +5,13 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { debugLog } from '../../../utils/debug';
 import { apiClient } from '../../../lib/api/client';
 
+/** A single ticket selection with quantity and optional assignees (multi-ticket support) */
+interface TicketSelectionItem {
+  ticketTypeId: string;
+  quantity: number;
+  assignees?: (string | null)[];
+}
+
 export interface PayPalButtonProps {
   /** Event ID for the ticket purchase */
   eventId: string;
@@ -22,6 +29,8 @@ export interface PayPalButtonProps {
   eventWaiverAccepted?: boolean;
   /** Idempotency key to prevent duplicate purchases */
   idempotencyKey: string;
+  /** Multi-ticket selections (optional, takes precedence over ticketTypeIds) */
+  ticketSelections?: TicketSelectionItem[];
   /** Callback when PayPal payment completes successfully */
   onPaymentSuccess?: (details: PayPalCheckoutResult) => void;
   /** Callback when PayPal payment fails */
@@ -58,6 +67,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
   eventTitle,
   eventWaiverAccepted = false,
   idempotencyKey,
+  ticketSelections,
   onPaymentSuccess,
   onPaymentError,
   onPaymentCancel,
@@ -125,7 +135,8 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
         currency,
         eventTitle,
         eventWaiverAccepted,
-        idempotencyKey
+        idempotencyKey,
+        ...(ticketSelections && ticketSelections.length > 0 ? { ticketSelections } : {}),
       });
 
       const { orderId } = response.data;

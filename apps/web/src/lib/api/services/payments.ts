@@ -27,6 +27,23 @@ export interface TicketPurchaseResponse {
   paymentStatus?: 'Pending' | 'Completed' | 'Failed';
 }
 
+/** A single ticket selection with quantity and optional assignees (multi-ticket support) */
+export interface TicketSelectionItem {
+  ticketTypeId: string;
+  quantity: number;
+  assignees?: (string | null)[];
+}
+
+/** Result of a ticket assignment from checkout */
+export interface TicketAssignmentResult {
+  attendanceId: string;
+  ticketPurchaseId: string;
+  ticketTypeName: string;
+  assignedToUserId?: string | null;
+  assignedToSceneName?: string | null;
+  status: string;
+}
+
 export interface CheckoutRequest {
   eventId: string;
   ticketTypeIds: string[];
@@ -37,6 +54,8 @@ export interface CheckoutRequest {
   lastFourDigits?: string;
   cardType?: string;
   idempotencyKey: string;
+  /** Multi-ticket selections (optional, takes precedence over ticketTypeIds when present) */
+  ticketSelections?: TicketSelectionItem[];
 }
 
 export interface CheckoutResponse {
@@ -46,6 +65,8 @@ export interface CheckoutResponse {
   status: string;
   authCode?: string;
   amountCharged: number;
+  /** Assignment results when multi-ticket checkout includes assignments */
+  assignments?: TicketAssignmentResult[];
 }
 
 /**
