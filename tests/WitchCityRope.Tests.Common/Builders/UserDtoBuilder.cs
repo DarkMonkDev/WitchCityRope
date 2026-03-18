@@ -1,4 +1,4 @@
-using WitchCityRope.Api.Features.Authentication.Models;
+using WitchCityRope.Api.Features.Users.Models;
 
 namespace WitchCityRope.Tests.Common.Builders;
 
@@ -116,16 +116,13 @@ public class UserDtoBuilder
     {
         return new UserDto
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             Email = _email,
             SceneName = _sceneName,
-            FirstName = _firstName,
-            LastName = _lastName,
             Roles = _roles,
             IsActive = _isActive,
-            CreatedAt = _createdAt.ToString("O"),
-            UpdatedAt = _updatedAt.ToString("O"),
-            LastLoginAt = _lastLoginAt?.ToString("O")
+            CreatedAt = _createdAt,
+            LastLoginAt = _lastLoginAt
         };
     }
 
