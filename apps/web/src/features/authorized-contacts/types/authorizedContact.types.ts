@@ -36,7 +36,7 @@ export interface AuthorizedContactsListDto {
 /** Request body for POST /api/authorized-contacts */
 export interface AddAuthorizedContactRequest {
   /** The user ID of the person being granted delegate authority */
-  targetUserId: string
+  delegateUserId: string
 }
 
 /** Search result for member scene name lookup */

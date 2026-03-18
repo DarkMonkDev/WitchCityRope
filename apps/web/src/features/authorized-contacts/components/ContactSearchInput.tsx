@@ -141,7 +141,7 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
       // Clear any previous error, track scene name for notification, and submit
       setInlineError(null)
       pendingSceneNameRef.current = selectedSceneName
-      addContactMutation.mutate({ targetUserId: selectedUser.userId })
+      addContactMutation.mutate({ delegateUserId: selectedUser.userId })
     },
     [addContactMutation, currentUserSceneName, existingDelegateSceneNames]
   )
