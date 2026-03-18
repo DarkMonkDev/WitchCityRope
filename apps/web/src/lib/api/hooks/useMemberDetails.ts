@@ -251,6 +251,32 @@ export function useUpdateMemberContactInfo() {
   })
 }
 
+// Admin reset password mutation - allows admins to set a new password for a member
+export function useAdminResetPassword() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      newPassword,
+    }: {
+      userId: string
+      newPassword: string
+    }): Promise<void> => {
+      await apiClient.post(`/api/users/${userId}/reset-password`, { newPassword })
+    },
+    onSuccess: (_data: void, variables: { userId: string; newPassword: string }) => {
+      // Invalidate notes since the password reset creates an audit note
+      queryClient.invalidateQueries({ queryKey: memberDetailsKeys.notes(variables.userId) })
+    },
+    onError: (error: Error) => {
+      console.error('Failed to reset password:', error)
+      // Note: User-facing error notification is handled in the component's catch block
+      // via resetPasswordMutation.mutateAsync rejection
+    },
+  })
+}
+
 // Change vetting status mutation
 export function useChangeVettingStatus() {
   const queryClient = useQueryClient()

@@ -305,3 +305,21 @@ public class AdminUpdateContactInfoDto
     [StringLength(500, ErrorMessage = "Other names cannot exceed 500 characters")]
     public string? OtherNames { get; set; }
 }
+
+/// <summary>
+/// Request model for admin-initiated password reset.
+/// Allows administrators to set a new password for a member without requiring the member's current password.
+/// Password must meet the same requirements as the public reset password page.
+/// </summary>
+public class AdminResetPasswordRequest
+{
+    /// <summary>
+    /// The new password to set for the member.
+    /// Must be at least 8 characters with uppercase, lowercase, number, and special character.
+    /// </summary>
+    [Required(ErrorMessage = "New password is required")]
+    [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$",
+        ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character")]
+    public string NewPassword { get; set; } = string.Empty;
+}

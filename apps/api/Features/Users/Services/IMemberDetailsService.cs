@@ -89,4 +89,15 @@ public interface IMemberDetailsService
         AdminUpdateContactInfoDto request,
         Guid performedByUserId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Admin-initiated password reset for a member.
+    /// Generates a reset token and immediately uses it to set the new password.
+    /// Creates an audit note documenting the password reset.
+    /// </summary>
+    Task<(bool Success, string Error)> AdminResetPasswordAsync(
+        Guid userId,
+        AdminResetPasswordRequest request,
+        Guid performedByUserId,
+        CancellationToken cancellationToken = default);
 }

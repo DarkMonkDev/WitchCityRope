@@ -6,6 +6,7 @@ import { useMemberDetails, useMemberNotes, useUpdateMemberRole, useCreateMemberN
 import { NotesSection } from '../notes/NotesSection'
 import { MemberNoteRenderer } from '../notes/MemberNoteRenderer'
 import { WCRButton } from '../ui/WCRButton'
+import { ResetPasswordSection } from './ResetPasswordSection'
 import { notifications } from '@mantine/notifications'
 import { useValidRoles, formatRolesForSelect } from '../../lib/api/hooks/useValidRoles'
 
@@ -415,6 +416,9 @@ export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }
           />
         </Card>
       </div>
+
+      {/* Reset Password Section */}
+      <ResetPasswordSection memberId={memberId} sceneName={memberDetails.sceneName ?? ''} />
 
       {/* Participation Summary */}
       <div>

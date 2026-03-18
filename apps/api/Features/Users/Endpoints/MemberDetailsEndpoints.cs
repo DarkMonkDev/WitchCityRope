@@ -126,6 +126,19 @@ public static class MemberDetailsEndpoints
             .Produces(403)
             .Produces(404)
             .Produces(500);
+
+        // Endpoint 11: Admin reset member password
+        // CRITICAL SECURITY NOTE: CSRF protection is AUTOMATICALLY ENABLED via app.UseAntiforgery() middleware
+        // Only administrators can reset passwords - prevents unauthorized password changes
+        group.MapPost("/reset-password", AdminResetPassword)
+            .WithName("AdminResetPassword")
+            .WithSummary("Admin-initiated password reset - sets a new password for a member without requiring their current password")
+            .Produces(204)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(500);
     }
 
     /// <summary>
@@ -557,6 +570,67 @@ public static class MemberDetailsEndpoints
                 title: "Server Error",
                 detail: error,
                 statusCode: 500);
+        }
+
+        return Results.NoContent();
+    }
+
+    /// <summary>
+    /// Endpoint 11: Admin reset member password
+    /// POST /api/users/{userId}/reset-password
+    /// Allows administrators to set a new password for a member.
+    /// Requires CSRF token and admin authorization.
+    /// </summary>
+    private static async Task<IResult> AdminResetPassword(
+        Guid userId,
+        [FromBody] AdminResetPasswordRequest request,
+        HttpContext context,
+        IAntiforgery antiforgery,
+        ClaimsPrincipal user,
+        [FromServices] IMemberDetailsService service,
+        CancellationToken cancellationToken)
+    {
+        // CRITICAL: Validate anti-forgery token FIRST
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
+        // Get current user ID (admin performing the action)
+        var performedByIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                              ?? user.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(performedByIdClaim) || !Guid.TryParse(performedByIdClaim, out var performedById))
+        {
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
+        }
+
+        var (success, error) = await service.AdminResetPasswordAsync(userId, request, performedById, cancellationToken);
+
+        if (!success)
+        {
+            if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            {
+                return Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404);
+            }
+            // Password validation errors from Identity
+            return Results.Problem(
+                title: "Bad Request",
+                detail: error,
+                statusCode: 400);
         }
 
         return Results.NoContent();

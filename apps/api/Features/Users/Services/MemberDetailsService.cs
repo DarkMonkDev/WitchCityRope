@@ -943,6 +943,66 @@ public class MemberDetailsService : IMemberDetailsService
     }
 
     /// <summary>
+    /// Admin-initiated password reset for a member.
+    /// Generates a reset token and immediately uses it to set the new password,
+    /// bypassing the need for the member's current password or email verification.
+    /// Creates an audit note documenting that the admin reset the password.
+    /// Endpoint 11: POST /api/users/{id}/reset-password
+    /// </summary>
+    public async Task<(bool Success, string Error)> AdminResetPasswordAsync(
+        Guid userId,
+        AdminResetPasswordRequest request,
+        Guid performedByUserId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                _logger.LogWarning("Admin password reset failed - user not found: {UserId}", userId);
+                return (false, "User not found");
+            }
+
+            // Generate a reset token and immediately use it to set the new password.
+            // This approach uses ASP.NET Identity's built-in token validation pipeline,
+            // ensuring password policy enforcement and proper security token updates.
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, request.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                _logger.LogWarning("Admin password reset failed for user {UserId}: {Errors}", userId, errors);
+                return (false, errors);
+            }
+
+            // Create an audit note documenting the password reset
+            var auditNote = new WitchCityRope.Api.Data.Entities.UserNote(
+                userId: userId,
+                content: "Password was reset by an administrator.",
+                noteType: "Administrative",
+                authorId: performedByUserId
+            );
+
+            _context.UserNotes.Add(auditNote);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Admin {AdminId} reset password for user {UserId}",
+                performedByUserId,
+                userId);
+
+            return (true, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during admin password reset for user {UserId}", userId);
+            return (false, "An unexpected error occurred while resetting the password");
+        }
+    }
+
+    /// <summary>
     /// Extract field name from profile change content
     /// Format: "Field Name changed from \"old\" to \"new\""
     /// </summary>
