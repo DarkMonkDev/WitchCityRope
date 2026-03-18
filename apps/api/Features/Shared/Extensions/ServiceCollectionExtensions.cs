@@ -146,7 +146,8 @@ public static class ServiceCollectionExtensions
 
         // Ticket Assignment feature services (assign, accept, decline, reassign tickets)
         services.AddScoped<ITicketAssignmentService, TicketAssignmentService>();
-        services.AddScoped<IAssignmentReminderService, AssignmentReminderService>();
+        // Assignment reminders handled by existing EmailSchedulerJob with TimeBased templates
+        // and PendingAssignmentHolders recipient group - no separate service needed
 
         // Attendance feature services (renamed from Participation)
         services.AddScoped<IAttendanceService, AttendanceService>();

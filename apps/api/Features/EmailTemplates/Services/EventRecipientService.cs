@@ -26,6 +26,7 @@ public class EventRecipientService : IEventRecipientService
             EventRecipientGroup.SessionAttendees => await GetSessionAttendeesAsync(sessionId, ct),
             EventRecipientGroup.SessionVolunteers => await GetSessionVolunteersAsync(sessionId, ct),
             EventRecipientGroup.Teachers => await GetTeachersAsync(sessionId, ct),
+            EventRecipientGroup.PendingAssignmentHolders => await GetPendingAssignmentHoldersAsync(sessionId, ct),
             _ => throw new ArgumentOutOfRangeException(nameof(group), group, "Unknown recipient group")
         };
     }
@@ -118,6 +119,48 @@ public class EventRecipientService : IEventRecipientService
                     .ToList();
                 return new RecipientInfo(first.UserId, first.Email!, displayName, assignments);
             })
+            .ToList();
+    }
+
+    /// <summary>
+    /// Gets users with PendingAcceptance tickets or RSVPs for this session's event.
+    /// These are users who were assigned a ticket or had a proxy RSVP created
+    /// on their behalf but haven't yet accepted (waiver + ToS).
+    /// Used by TicketAcceptanceReminder and RsvpAcceptanceReminder templates
+    /// to send 1-day-before reminders via the existing EmailSchedulerJob.
+    /// </summary>
+    private async Task<List<RecipientInfo>> GetPendingAssignmentHoldersAsync(Guid sessionId, CancellationToken ct)
+    {
+        // Get the event ID from the session
+        var session = await _context.Sessions
+            .AsNoTracking()
+            .Where(s => s.Id == sessionId)
+            .Select(s => new { s.EventId })
+            .FirstOrDefaultAsync(ct);
+
+        if (session == null)
+        {
+            _logger.LogWarning("Session {SessionId} not found for PendingAssignmentHolders lookup", sessionId);
+            return [];
+        }
+
+        // Find all users with PendingAcceptance EventAttendances for this event
+        // Includes both Ticket and RSVP types (BR-061: same pattern for both)
+        var recipients = await _context.EventAttendances
+            .AsNoTracking()
+            .Include(ea => ea.User)
+            .Where(ea => ea.EventId == session.EventId
+                && ea.Status == AttendanceStatus.PendingAcceptance
+                && (ea.AttendanceType == AttendanceType.RSVP || ea.AttendanceType == AttendanceType.Ticket))
+            .Select(ea => new { ea.UserId, ea.User!.Email, ea.User.SceneName })
+            .Distinct()
+            .ToListAsync(ct);
+
+        return recipients
+            .Where(r => !string.IsNullOrEmpty(r.Email))
+            .GroupBy(r => r.UserId)
+            .Select(g => g.First())
+            .Select(r => new RecipientInfo(r.UserId, r.Email!, !string.IsNullOrEmpty(r.SceneName) ? r.SceneName : r.Email!))
             .ToList();
     }
 

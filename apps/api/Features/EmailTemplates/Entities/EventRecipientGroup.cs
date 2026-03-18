@@ -29,5 +29,14 @@ public enum EventRecipientGroup
     /// Teachers assigned to the session
     /// Based on Session entity teacher assignments
     /// </summary>
-    Teachers = 3
+    Teachers = 3,
+
+    /// <summary>
+    /// Users with PendingAcceptance tickets or RSVPs for the session's event.
+    /// These are users who were assigned a ticket or had a proxy RSVP created
+    /// on their behalf but have not yet accepted (waiver + ToS).
+    /// Used by TicketAcceptanceReminder and RsvpAcceptanceReminder templates.
+    /// Based on EventAttendances where Status = PendingAcceptance.
+    /// </summary>
+    PendingAssignmentHolders = 4
 }

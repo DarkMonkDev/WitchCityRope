@@ -543,7 +543,14 @@ If you have any questions, please contact events@witchcityrope.com
 
 ---
 WitchCityRope - Salem, MA - witchcityrope.com",
-                TriggerType = TemplateTriggerType.FixedEvent,
+                // TimeBased trigger: EmailSchedulerJob fires this 1 day before session start.
+                // PendingAssignmentHolders recipient group resolves users with PendingAcceptance status.
+                // This replaces the need for a custom AssignmentReminderJob.
+                TriggerType = TemplateTriggerType.TimeBased,
+                TimingOffsetDays = 1,
+                TimingOffsetHours = 0,
+                RecipientGroup = EventRecipientGroup.PendingAssignmentHolders,
+                SendingEnabled = true,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -596,7 +603,13 @@ If you have any questions, please contact events@witchcityrope.com
 
 ---
 WitchCityRope - Salem, MA - witchcityrope.com",
-                TriggerType = TemplateTriggerType.FixedEvent,
+                // TimeBased trigger: EmailSchedulerJob fires this 1 day before session start.
+                // PendingAssignmentHolders recipient group resolves users with PendingAcceptance status.
+                TriggerType = TemplateTriggerType.TimeBased,
+                TimingOffsetDays = 1,
+                TimingOffsetHours = 0,
+                RecipientGroup = EventRecipientGroup.PendingAssignmentHolders,
+                SendingEnabled = true,
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
