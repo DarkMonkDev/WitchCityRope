@@ -251,6 +251,47 @@
 
 ---
 
+## E2E TESTS - Ticket Assignment & Proxy RSVP
+
+**Added**: 2026-03-18
+**Location**: `/tests/e2e/`
+**Status**: NEW - Created, awaiting first execution
+**Test Plan Reference**: `/docs/functional-areas/events/ticket-assignment-proxy-rsvp/design/test-plan.md` Section 8
+
+### authorized-contacts.spec.ts (5 tests)
+- Flow 1: Empty state display (no contacts)
+- Flow 1: Add contact via scene name search
+- Flow 1: Remove contact with confirmation modal
+- Flow 1: Cancel search toggle (progressive disclosure)
+- Flow 1: Principal list shows authorizer (bidirectional verification)
+
+### ticket-acceptance.spec.ts (4 tests)
+- Flow 2/3: Pending tickets card visibility on dashboard
+- Flow 2/3: Acceptance modal waiver checkbox requirement
+- Flow 2/3: Full accept flow (waiver + ToS + API confirm)
+- Flow 2/3: Decline flow with optional reason
+
+### proxy-rsvp.spec.ts (3 tests)
+- Flow 3: Proxy RSVP section visibility for delegate
+- Flow 3: Create proxy RSVP with confirmation modal
+- Flow 3: Pending RSVP appears on assignee dashboard
+
+### ticket-assignment-checkout.spec.ts (3 tests, 2 fixme)
+- Flow 2: Navigate to paid event and see ticket options
+- Flow 2: FIXME - Quantity selector and assignee dropdown (needs payment infra)
+- Flow 2: FIXME - Complete multi-ticket purchase (needs payment infra)
+
+### ticket-decline-reassign.spec.ts (3 tests, 2 fixme)
+- Flow 4: Decline pending ticket with reason
+- Flow 4: FIXME - Declined status and reassign from purchaser dashboard
+- Flow 4: FIXME - Pending ticket on new assignee after reassignment
+
+**Total E2E Tests Added**: 18 (14 active, 4 fixme)
+**Note**: Tests requiring ticket assignment DataFactory support use defensive
+skip patterns and will auto-activate when prerequisites are met.
+
+---
+
 **Last Updated**: 2026-03-18
 **Updated By**: test-developer agent
 **Next Review**: After test execution to verify pass/fail status
