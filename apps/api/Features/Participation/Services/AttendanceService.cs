@@ -1753,12 +1753,20 @@ public class AttendanceService : IAttendanceService
                     }
                 }
 
+                // Compare by distinct TicketPurchaseId, not raw attendance count.
+                // Multi-session tickets have multiple EventAttendance records per purchase.
+                var assigneePurchaseIds = assigneeAttendances
+                    .Where(ea => ea.TicketPurchaseId.HasValue)
+                    .Select(ea => ea.TicketPurchaseId!.Value)
+                    .Distinct()
+                    .ToHashSet();
+
                 _logger.LogDebug(
                     "Assignee return check: UserId={UserId}, UnauthorizedPurchases={UnauthorizedCount}, " +
-                    "AttendancesToCancel={AttendancesCount}, AssigneeMatches={AssigneeCount}",
-                    userId, unauthorizedPurchases.Count, attendancesToCancel.Count, assigneeAttendances.Count);
+                    "AttendancesToCancel={AttendancesCount}, AssigneeMatchPurchases={AssigneePurchaseCount}",
+                    userId, unauthorizedPurchases.Count, attendancesToCancel.Count, assigneePurchaseIds.Count);
 
-                if (assigneeAttendances.Count == unauthorizedPurchases.Count)
+                if (assigneePurchaseIds.Count == unauthorizedPurchases.Count)
                 {
                     // All "unauthorized" purchases are actually assigned-to-user tickets.
                     // Revert them to the original purchaser instead of cancelling/refunding.
