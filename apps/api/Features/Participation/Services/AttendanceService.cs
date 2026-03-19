@@ -239,6 +239,126 @@ public class AttendanceService : IAttendanceService
                 };
             }
 
+            // ============================================================================
+            // TICKETS PURCHASED FOR OTHERS
+            // Include in the same ticketPurchases dict with IsForOther=true so the
+            // ParticipationCard can show them alongside the user's own tickets.
+            // ============================================================================
+            var ticketsForOthers = await _context.TicketPurchases
+                .AsNoTracking()
+                .Include(tp => tp.TicketType)
+                    .ThenInclude(tt => tt!.Sessions)
+                .Where(tp => tp.UserId == userId
+                    && tp.IsPaymentCompleted
+                    && tp.TicketType != null
+                    && tp.TicketType.EventId == eventId
+                    // Exclude tickets already in the dict (user's own tickets)
+                    && !ticketPurchaseIds.Contains(tp.Id))
+                .ToListAsync(cancellationToken);
+
+            if (ticketsForOthers.Count > 0)
+            {
+                // Load EventAttendance records for these purchases to determine assignment status
+                var forOthersPurchaseIds = ticketsForOthers.Select(tp => tp.Id).ToList();
+                var forOthersAttendances = await _context.EventAttendances
+                    .AsNoTracking()
+                    .Where(ea => ea.TicketPurchaseId.HasValue
+                        && forOthersPurchaseIds.Contains(ea.TicketPurchaseId.Value))
+                    .Select(ea => new { ea.TicketPurchaseId, ea.UserId, ea.Status, ea.AcceptedAt })
+                    .ToListAsync(cancellationToken);
+
+                // Batch-resolve assignee scene names
+                var assigneeUserIds = forOthersAttendances
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .Where(uid => uid != userId) // Exclude the purchaser themselves
+                    .ToList();
+
+                var assigneeSceneNames = assigneeUserIds.Count > 0
+                    ? await _context.Users.AsNoTracking()
+                        .Where(u => assigneeUserIds.Contains(u.Id))
+                        .ToDictionaryAsync(u => u.Id, u => u.SceneName ?? string.Empty, cancellationToken)
+                    : new Dictionary<Guid, string>();
+
+                foreach (var tp in ticketsForOthers)
+                {
+                    var attendance = forOthersAttendances
+                        .FirstOrDefault(a => a.TicketPurchaseId == tp.Id);
+
+                    // Determine assignee status
+                    string assigneeStatus;
+                    string? assigneeSceneName = null;
+                    bool canCancelForOther;
+                    string? cancelMsg = null;
+
+                    if (attendance == null)
+                    {
+                        // No EventAttendance = unassigned "assign later" ticket
+                        assigneeStatus = "Unassigned";
+                        canCancelForOther = true;
+                    }
+                    else if (attendance.Status == AttendanceStatus.PendingAcceptance)
+                    {
+                        // Assigned but not yet accepted
+                        assigneeStatus = "PendingAcceptance";
+                        assigneeSceneNames.TryGetValue(attendance.UserId, out assigneeSceneName);
+                        canCancelForOther = true;
+                    }
+                    else if (attendance.Status == AttendanceStatus.Active)
+                    {
+                        // Accepted by assignee - cannot cancel
+                        assigneeStatus = "Active";
+                        assigneeSceneNames.TryGetValue(attendance.UserId, out assigneeSceneName);
+                        canCancelForOther = false;
+                        cancelMsg = $"Ticket accepted by {assigneeSceneName ?? "assignee"} — cannot cancel";
+                    }
+                    else
+                    {
+                        // Cancelled, refunded, etc. - skip these
+                        continue;
+                    }
+
+                    // Also check timing window for cancellable tickets
+                    if (canCancelForOther && tp.TicketType != null)
+                    {
+                        var refSession = _timeZoneService.GetReferenceSessionForTicketType(
+                            tp.TicketType, eventEntity.Sessions);
+                        if (refSession == null)
+                        {
+                            canCancelForOther = false;
+                            cancelMsg = "All sessions have passed";
+                        }
+                        else
+                        {
+                            var timingOk = _timeZoneService.IsActionAllowedForSession(
+                                refSession, null, eventEntity.CancellationCloseHours);
+                            if (!timingOk)
+                            {
+                                canCancelForOther = false;
+                                cancelMsg = "Cancellation window has closed";
+                            }
+                        }
+                    }
+
+                    if (canCancelForOther)
+                        hasAnyCancelableTicket = true;
+
+                    var sessionIds = tp.TicketType?.Sessions.Select(s => s.Id).ToList() ?? new List<Guid>();
+
+                    ticketPurchases[tp.Id] = new TicketPurchaseInfoDto
+                    {
+                        TicketTypeName = tp.TicketType?.Name ?? "Event Ticket",
+                        SessionIds = sessionIds,
+                        TotalPrice = tp.TotalPrice,
+                        CanCancel = canCancelForOther,
+                        CancellationMessage = cancelMsg,
+                        IsForOther = true,
+                        AssigneeSceneName = assigneeSceneName,
+                        AssigneeStatus = assigneeStatus
+                    };
+                }
+            }
+
             // Calculate per-session sold counts
             // This needs to handle two cases:
             // 1. Tickets with SessionId set → count directly
@@ -1486,20 +1606,62 @@ public class AttendanceService : IAttendanceService
                 return Result.Failure("Event not found");
             }
 
-            // Find ALL active attendances for these ticket purchases
-            // CRITICAL: Must include ALL sessions, not just one attendance per ticket
+            // Find ALL cancellable attendances for these ticket purchases.
+            // Includes BOTH the user's own tickets (Active, UserId=current user)
+            // AND tickets purchased for others that haven't been accepted yet (PendingAcceptance).
+            // CRITICAL: Must include ALL sessions per ticket, not just one attendance.
             var attendancesToCancel = await _context.EventAttendances
                 .Where(ea =>
                     ea.EventId == eventId &&
-                    ea.UserId == userId &&
-                    ea.Status == AttendanceStatus.Active &&
                     ea.TicketPurchaseId.HasValue &&
-                    ticketPurchaseIds.Contains(ea.TicketPurchaseId.Value))
+                    ticketPurchaseIds.Contains(ea.TicketPurchaseId.Value) &&
+                    (
+                        // User's own active tickets (existing behavior)
+                        (ea.UserId == userId && ea.Status == AttendanceStatus.Active) ||
+                        // Tickets purchased for others that are pending acceptance (not yet accepted)
+                        // The purchaser can cancel these because the assignee hasn't accepted yet.
+                        (ea.Status == AttendanceStatus.PendingAcceptance)
+                    ))
                 .ToListAsync(cancellationToken);
 
-            if (attendancesToCancel.Count == 0)
+            // Also check for "assign later" tickets: TicketPurchases with NO EventAttendance.
+            // These are tickets the purchaser bought but hasn't assigned to anyone yet.
+            var purchaseIdsWithAttendance = attendancesToCancel
+                .Where(ea => ea.TicketPurchaseId.HasValue)
+                .Select(ea => ea.TicketPurchaseId!.Value)
+                .Distinct()
+                .ToHashSet();
+
+            var unassignedPurchaseIds = ticketPurchaseIds
+                .Where(id => !purchaseIdsWithAttendance.Contains(id))
+                .ToList();
+
+            // For unassigned tickets, verify they actually have no attendance (truly unassigned)
+            if (unassignedPurchaseIds.Count > 0)
             {
-                return Result.Failure("No active ticket attendances found for the specified ticket purchases");
+                var hasAttendance = await _context.EventAttendances
+                    .Where(ea => ea.TicketPurchaseId.HasValue
+                        && unassignedPurchaseIds.Contains(ea.TicketPurchaseId.Value)
+                        && ea.Status == AttendanceStatus.Active)
+                    .Select(ea => ea.TicketPurchaseId!.Value)
+                    .Distinct()
+                    .ToListAsync(cancellationToken);
+
+                // If any "unassigned" ticket actually has an Active attendance owned by someone else,
+                // that means it was accepted - block cancellation
+                if (hasAttendance.Count > 0)
+                {
+                    _logger.LogWarning(
+                        "User {UserId} attempted to cancel accepted tickets: {Ids}",
+                        userId, string.Join(", ", hasAttendance));
+                    return Result.Failure(
+                        "Cannot cancel tickets that have been accepted by the assignee");
+                }
+            }
+
+            if (attendancesToCancel.Count == 0 && unassignedPurchaseIds.Count == 0)
+            {
+                return Result.Failure("No cancellable ticket purchases found");
             }
 
             // SECURITY: Verify all ticket purchases belong to this user
@@ -1687,6 +1849,46 @@ public class AttendanceService : IAttendanceService
 
                 _context.AttendanceHistory.Add(rsvpHistory);
                 _logger.LogInformation("Cancelled associated RSVP {RsvpId}", associatedRsvp.Id);
+            }
+
+            // ============================================================================
+            // HANDLE UNASSIGNED TICKETS (no EventAttendance, just TicketPurchase)
+            // These are "assign later" tickets - mark them as refunded/cancelled.
+            // ============================================================================
+            if (unassignedPurchaseIds.Count > 0)
+            {
+                var unassignedPurchases = ticketPurchases
+                    .Where(tp => unassignedPurchaseIds.Contains(tp.Id))
+                    .ToList();
+
+                foreach (var tp in unassignedPurchases)
+                {
+                    _logger.LogInformation(
+                        "Cancelling unassigned ticket purchase {TicketPurchaseId} (no EventAttendance) for user {UserId}",
+                        tp.Id, userId);
+
+                    // Process refund for unassigned tickets
+                    if (!processedRefunds.Contains(tp.Id))
+                    {
+                        // For unassigned tickets, we pass a dummy attendanceId since there's no attendance
+                        // The refund method uses the TicketPurchaseId internally
+                        await ProcessAutomaticRefundAsync(
+                            Guid.Empty, // No attendance
+                            userId,
+                            reason,
+                            cancellationToken);
+                        processedRefunds.Add(tp.Id);
+                    }
+
+                    // Mark TicketPurchase as refunded
+                    tp.PaymentStatus = TicketPurchasePaymentStatus.Refunded;
+                    tp.UpdatedAt = DateTime.UtcNow;
+                    _context.TicketPurchases.Update(tp);
+                }
+
+                _logger.LogInformation(
+                    "Cancelled {Count} unassigned ticket purchase(s) for user {UserId}",
+                    unassignedPurchases.Count, userId);
             }
 
             // ============================================================================

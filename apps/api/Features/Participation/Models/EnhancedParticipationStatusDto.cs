@@ -220,6 +220,28 @@ public class TicketPurchaseInfoDto
     /// Null when CanCancel is true
     /// </summary>
     public string? CancellationMessage { get; set; }
+
+    /// <summary>
+    /// Whether this ticket was purchased for someone else (not the current user).
+    /// When true, the ticket may be assigned to an authorized contact or unassigned ("assign later").
+    /// The purchaser can cancel this ticket if it hasn't been accepted yet.
+    /// </summary>
+    public bool IsForOther { get; set; }
+
+    /// <summary>
+    /// Scene name of the person this ticket is assigned to (null if unassigned or own ticket).
+    /// Only populated when IsForOther=true and the ticket has been assigned.
+    /// </summary>
+    public string? AssigneeSceneName { get; set; }
+
+    /// <summary>
+    /// Status of the assignment: "Unassigned", "PendingAcceptance", "Active" (accepted).
+    /// Only populated when IsForOther=true.
+    /// - Unassigned: No EventAttendance, ticket can be cancelled
+    /// - PendingAcceptance: Assigned but not accepted, ticket can be cancelled
+    /// - Active: Accepted by assignee, ticket CANNOT be cancelled by purchaser
+    /// </summary>
+    public string? AssigneeStatus { get; set; }
 }
 
 /// <summary>
