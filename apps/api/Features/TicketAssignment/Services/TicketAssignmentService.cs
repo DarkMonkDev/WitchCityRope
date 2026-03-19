@@ -1070,6 +1070,8 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             // 1. Find EventAttendance records linked to TicketPurchases made by this user
             //    where the ticket has been assigned (AssignedByUserId IS NOT NULL)
+            //    Exclude Cancelled/Refunded attendances — those tickets may have been
+            //    returned by the assignee and are now available for reassignment.
             var assignedAttendances = await _context.EventAttendances
                 .AsNoTracking()
                 .Include(ea => ea.Event)
@@ -1078,7 +1080,9 @@ public class TicketAssignmentService : ITicketAssignmentService
                 .Where(ea =>
                     ea.TicketPurchase != null
                     && ea.TicketPurchase.UserId == userId
-                    && ea.AssignedByUserId != null)
+                    && ea.AssignedByUserId != null
+                    && ea.Status != AttendanceStatus.Cancelled
+                    && ea.Status != AttendanceStatus.Refunded)
                 .OrderBy(ea => ea.Event.StartDate)
                 .ToListAsync(ct);
 
@@ -1112,10 +1116,9 @@ public class TicketAssignmentService : ITicketAssignmentService
                 IsUnassigned = false
             }));
 
-            // 2. Find "assign later" tickets: TicketPurchases with NO EventAttendance records.
-            //    These are extra tickets bought during multi-ticket checkout where the purchaser
-            //    chose "Assign later". They only have a TicketPurchase record (no EventAttendance)
-            //    until they are assigned to someone via the dashboard.
+            // 2. Find unassigned/returned tickets: TicketPurchases with NO active EventAttendance.
+            //    Includes "assign later" tickets (never had attendance) AND tickets returned by
+            //    assignees (attendance exists but is Cancelled). Both are available for (re)assignment.
             var unassignedPurchases = await _context.TicketPurchases
                 .AsNoTracking()
                 .Include(tp => tp.TicketType)
@@ -1127,7 +1130,12 @@ public class TicketAssignmentService : ITicketAssignmentService
                     && (tp.PaymentStatus == TicketPurchasePaymentStatus.Completed
                         || tp.PaymentStatus == TicketPurchasePaymentStatus.Confirmed
                         || tp.PaymentStatus == TicketPurchasePaymentStatus.PartiallyRefunded)
-                    && !_context.EventAttendances.Any(ea => ea.TicketPurchaseId == tp.Id))
+                    // No ACTIVE attendance — Cancelled/Refunded attendances don't count
+                    // (the ticket was returned and is available for reassignment)
+                    && !_context.EventAttendances.Any(ea =>
+                        ea.TicketPurchaseId == tp.Id
+                        && ea.Status != AttendanceStatus.Cancelled
+                        && ea.Status != AttendanceStatus.Refunded))
                 .OrderBy(tp => tp.TicketType!.Event!.StartDate)
                 .ToListAsync(ct);
 
