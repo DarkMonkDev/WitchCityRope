@@ -4923,6 +4923,11 @@ export interface components {
             lastModifiedBy?: string;
             isPublished?: boolean;
         };
+        ContactSearchResultDto: {
+            /** Format: uuid */
+            userId?: string;
+            sceneName?: string;
+        };
         ContentPageDto: {
             /** Format: int32 */
             id?: number;
@@ -6767,6 +6772,9 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             sceneName?: string;
+            email?: string;
+            discordName?: null | string;
+            fullName?: null | string;
         };
         /** @enum {unknown} */
         UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | "NewImportedUsers" | null;
@@ -9753,7 +9761,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserSearchResultDto"][];
+                    "application/json": components["schemas"]["ContactSearchResultDto"][];
                 };
             };
             /** @description Bad Request */

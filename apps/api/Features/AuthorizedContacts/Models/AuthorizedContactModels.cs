@@ -72,8 +72,13 @@ public class AddAuthorizedContactRequest
 /// <summary>
 /// Search result DTO for user lookup when adding authorized contacts.
 /// Returns only UserId and SceneName per AD-009 privacy requirements.
+///
+/// Named distinctly from Volunteers.Models.UserSearchResultDto (which includes
+/// Email, DiscordName, FullName for admin-level volunteer search) to avoid
+/// OpenAPI schema name collisions. Both DTOs map to different endpoints with
+/// different privacy levels — this one is privacy-scoped for any authenticated user.
 /// </summary>
-public class UserSearchResultDto
+public class ContactSearchResultDto
 {
     /// <summary>
     /// The user's unique identifier

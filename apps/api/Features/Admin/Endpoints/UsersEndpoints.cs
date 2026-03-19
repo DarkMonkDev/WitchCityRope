@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Users.Models;
 
 namespace WitchCityRope.Api.Features.Admin.Endpoints;
 
@@ -55,12 +56,5 @@ public static class UsersEndpoints
     }
 }
 
-/// <summary>
-/// Simple DTO for user dropdown options
-/// </summary>
-public class UserOptionDto
-{
-    public string Id { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-}
+// UserOptionDto is defined in WitchCityRope.Api.Features.Users.Models.UserOptionDto
+// Do NOT re-declare here — single source of truth avoids OpenAPI schema collisions.

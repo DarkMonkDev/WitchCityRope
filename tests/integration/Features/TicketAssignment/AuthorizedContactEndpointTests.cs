@@ -161,7 +161,7 @@ public class AuthorizedContactEndpointTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var results = await response.Content.ReadFromJsonAsync<List<UserSearchResultDto>>(JsonOptions);
+        var results = await response.Content.ReadFromJsonAsync<List<ContactSearchResultDto>>(JsonOptions);
         results.Should().NotBeNull();
         results.Should().Contain(r => r.UserId == targetUserId,
             "search should find the user with matching scene name prefix");

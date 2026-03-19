@@ -3181,7 +3181,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserSearchResultDto"
+                    "$ref": "#/components/schemas/ContactSearchResultDto"
                   }
                 }
               }
@@ -4278,6 +4278,64 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/tickets/{ticketPurchaseId}/assign": {
+      "post": {
+        "tags": [
+          "TicketAssignment"
+        ],
+        "summary": "Assign an unassigned 'assign later' ticket to an authorized contact",
+        "description": "For tickets purchased with 'Assign later' that have no EventAttendance yet. Creates attendance records and sets PendingAcceptance status.",
+        "operationId": "AssignUnassignedTicket",
+        "parameters": [
+          {
+            "name": "ticketPurchaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignTicketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketAssignmentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
           }
         }
       }
@@ -14046,6 +14104,9 @@
             "items": {
               "$ref": "#/components/schemas/TicketSelectionItem"
             }
+          },
+          "buyForOthersOnly": {
+            "type": "boolean"
           }
         }
       },
@@ -14174,6 +14235,18 @@
           },
           "isPublished": {
             "type": "boolean"
+          }
+        }
+      },
+      "ContactSearchResultDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sceneName": {
+            "type": "string"
           }
         }
       },
@@ -15010,6 +15083,9 @@
             "items": {
               "$ref": "#/components/schemas/TicketSelectionItem"
             }
+          },
+          "buyForOthersOnly": {
+            "type": "boolean"
           }
         }
       },
@@ -15455,6 +15531,9 @@
             }
           },
           "canPurchaseAdditionalSessions": {
+            "type": "boolean"
+          },
+          "canBuyForOthers": {
             "type": "boolean"
           },
           "sessionAvailability": {
@@ -17430,6 +17509,9 @@
             "items": {
               "$ref": "#/components/schemas/TicketSelectionItem"
             }
+          },
+          "buyForOthersOnly": {
+            "type": "boolean"
           }
         }
       },
@@ -20346,6 +20428,21 @@
           },
           "sceneName": {
             "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "discordName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fullName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -229,7 +229,7 @@ public static class AuthorizedContactEndpoints
             .WithSummary("Search users by scene name for adding authorized contacts")
             .WithDescription("Returns up to 10 users matching the query. Excludes self and already-authorized users. Returns only scene name per AD-009 privacy.")
             .WithTags("AuthorizedContacts")
-            .Produces<List<UserSearchResultDto>>(200)
+            .Produces<List<ContactSearchResultDto>>(200)
             .Produces(400)
             .Produces(401)
             .Produces(500);

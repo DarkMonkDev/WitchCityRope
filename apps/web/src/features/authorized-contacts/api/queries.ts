@@ -13,7 +13,7 @@ import { apiClient } from '../../../lib/api/client'
 import type {
   AuthorizedContactsListDto,
   PrincipalContactDto,
-  UserSearchResultDto,
+  ContactSearchResultDto,
 } from '../types/authorizedContact.types'
 
 /**
@@ -80,9 +80,9 @@ export function usePrincipalContacts(eventId?: string) {
  * GET /api/authorized-contacts/search?q={query}
  */
 export function useContactSearch(query: string) {
-  return useQuery<UserSearchResultDto[]>({
+  return useQuery<ContactSearchResultDto[]>({
     queryKey: authorizedContactKeys.search(query),
-    queryFn: async (): Promise<UserSearchResultDto[]> => {
+    queryFn: async (): Promise<ContactSearchResultDto[]> => {
       const response = await apiClient.get('/api/authorized-contacts/search', {
         params: { q: query },
       })

@@ -218,14 +218,14 @@ public class AuthorizedContactService : IAuthorizedContactService
     }
 
     /// <inheritdoc />
-    public async Task<Result<List<UserSearchResultDto>>> SearchUsersAsync(Guid currentUserId, string query, CancellationToken ct)
+    public async Task<Result<List<ContactSearchResultDto>>> SearchUsersAsync(Guid currentUserId, string query, CancellationToken ct)
     {
         try
         {
             // Validate minimum query length
             if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < 2)
             {
-                return Result<List<UserSearchResultDto>>.Failure(
+                return Result<List<ContactSearchResultDto>>.Failure(
                     "Query too short",
                     "Search query must be at least 2 characters");
             }
@@ -262,7 +262,7 @@ public class AuthorizedContactService : IAuthorizedContactService
                 .Take(10)
                 // AD-009: Only return scene name - do NOT expose email, FetLife, or Discord
                 // in the results. The search fields are for matching only.
-                .Select(u => new UserSearchResultDto
+                .Select(u => new ContactSearchResultDto
                 {
                     UserId = u.Id,
                     SceneName = u.SceneName ?? string.Empty
@@ -273,14 +273,14 @@ public class AuthorizedContactService : IAuthorizedContactService
                 "User search for '{Query}' by user {UserId}: {ResultCount} results",
                 trimmedQuery, currentUserId, results.Count);
 
-            return Result<List<UserSearchResultDto>>.Success(results);
+            return Result<List<ContactSearchResultDto>>.Success(results);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
                 "Error searching users with query '{Query}' for user {UserId}",
                 query, currentUserId);
-            return Result<List<UserSearchResultDto>>.Failure(
+            return Result<List<ContactSearchResultDto>>.Failure(
                 "Search failed",
                 ex.Message);
         }

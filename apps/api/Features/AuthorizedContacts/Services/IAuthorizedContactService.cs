@@ -52,7 +52,7 @@ public interface IAuthorizedContactService
     /// <param name="query">Scene name search query (minimum 2 characters)</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of matching users (max 10)</returns>
-    Task<Result<List<UserSearchResultDto>>> SearchUsersAsync(Guid currentUserId, string query, CancellationToken ct);
+    Task<Result<List<ContactSearchResultDto>>> SearchUsersAsync(Guid currentUserId, string query, CancellationToken ct);
 
     /// <summary>
     /// Gets the list of principals who have authorized the current user as their delegate.

@@ -1,19 +1,42 @@
 // Payment API Service
 // Integrates with backend payment endpoints and PayPal webhook system
+//
+// Type Strategy: Uses auto-generated types from @witchcityrope/shared-types for all
+// types that have backend DTO equivalents. TicketPurchaseResponse remains manual
+// because the backend does not expose a corresponding DTO in the OpenAPI schema.
+// See: /docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md
 
+import type { components } from '@witchcityrope/shared-types';
 import { apiClient } from '../client';
-
 import { debugLog } from '../../../utils/debug';
 
-export interface CreateTicketPurchaseRequest {
-  eventId: string;
-  /** Ticket type IDs to purchase */
-  ticketTypeIds: string[];
-  notes?: string;
-  paymentMethodId?: string;
-  eventWaiverAccepted: boolean;
-}
+// =============================================================================
+// Auto-generated type aliases from @witchcityrope/shared-types
+// These MUST stay in sync with C# DTOs via NSwag generation.
+// DO NOT manually edit — regenerate: cd packages/shared-types && npm run generate
+// =============================================================================
 
+/** Request payload for credit card checkout (atomic ticket + payment) */
+export type CheckoutRequest = components['schemas']['CheckoutRequest'];
+
+/** Response from credit card checkout */
+export type CheckoutResponse = components['schemas']['CheckoutResponse'];
+
+/** Request payload for ticket purchase (non-payment flow) */
+export type CreateTicketPurchaseRequest = components['schemas']['CreateTicketPurchaseRequest'];
+
+/** A single ticket selection with quantity and optional assignees (multi-ticket support) */
+export type TicketSelectionItem = components['schemas']['TicketSelectionItem'];
+
+/** Result of a ticket assignment from checkout */
+export type TicketAssignmentResult = components['schemas']['TicketAssignmentResultDto'];
+
+// =============================================================================
+// Manual type — no backend DTO equivalent in OpenAPI schema
+// This can be removed once the backend exposes a TicketPurchaseResponse DTO
+// =============================================================================
+
+// eslint-disable-next-line no-restricted-syntax
 export interface TicketPurchaseResponse {
   id: string;
   eventId: string;
@@ -25,50 +48,6 @@ export interface TicketPurchaseResponse {
   notes?: string;
   paymentMethodId?: string;
   paymentStatus?: 'Pending' | 'Completed' | 'Failed';
-}
-
-/** A single ticket selection with quantity and optional assignees (multi-ticket support) */
-export interface TicketSelectionItem {
-  ticketTypeId: string;
-  quantity: number;
-  assignees?: (string | null)[];
-}
-
-/** Result of a ticket assignment from checkout */
-export interface TicketAssignmentResult {
-  attendanceId: string;
-  ticketPurchaseId: string;
-  ticketTypeName: string;
-  assignedToUserId?: string | null;
-  assignedToSceneName?: string | null;
-  status: string;
-}
-
-export interface CheckoutRequest {
-  eventId: string;
-  ticketTypeIds: string[];
-  eventWaiverAccepted: boolean;
-  nonce: string;
-  dataDescriptor: string;
-  amount: number;
-  lastFourDigits?: string;
-  cardType?: string;
-  idempotencyKey: string;
-  /** Multi-ticket selections (optional, takes precedence over ticketTypeIds when present) */
-  ticketSelections?: TicketSelectionItem[];
-  /** When true, all tickets are for assignees (purchaser already has a ticket) */
-  buyForOthersOnly?: boolean;
-}
-
-export interface CheckoutResponse {
-  transactionId: string;
-  ticketPurchaseIds: string[];
-  confirmationNumber: string;
-  status: string;
-  authCode?: string;
-  amountCharged: number;
-  /** Assignment results when multi-ticket checkout includes assignments */
-  assignments?: TicketAssignmentResult[];
 }
 
 /**

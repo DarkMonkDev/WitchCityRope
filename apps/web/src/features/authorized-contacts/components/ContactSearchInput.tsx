@@ -20,7 +20,7 @@ import { notifications } from '@mantine/notifications'
 import { IconCheck, IconAlertCircle } from '@tabler/icons-react'
 import { useContactSearch } from '../api/queries'
 import { useAddAuthorizedContact } from '../api/mutations'
-import type { UserSearchResultDto } from '../types/authorizedContact.types'
+import type { ContactSearchResultDto } from '../types/authorizedContact.types'
 
 interface ContactSearchInputProps {
   /** Called after a contact is successfully added, so parent can collapse this input */
@@ -100,7 +100,7 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
   // Use userId as the unique value to prevent Mantine "duplicate options" crash
   // when multiple users share the same scene name (e.g., "Alejandro").
   // Store the full result objects keyed by userId for lookup on selection.
-  const searchResultsMap = useRef<Map<string, UserSearchResultDto>>(new Map())
+  const searchResultsMap = useRef<Map<string, ContactSearchResultDto>>(new Map())
 
   const autocompleteData = React.useMemo(() => {
     if (!searchResults || searchResults.length === 0) return []

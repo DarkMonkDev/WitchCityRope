@@ -39,10 +39,12 @@ export type AuthorizedContactsListDto = components['schemas']['AuthorizedContact
 export type AddAuthorizedContactRequest = components['schemas']['AddAuthorizedContactRequest']
 
 /**
- * Search result for member scene name lookup.
- * Source: C# UserSearchResultDto via NSwag generation
+ * Search result for member scene name lookup (privacy-scoped: scene name only per AD-009).
+ * Named ContactSearchResultDto to distinguish from Volunteers' UserSearchResultDto
+ * which includes Email, DiscordName, FullName for admin-level search.
+ * Source: C# ContactSearchResultDto via NSwag generation
  */
-export type UserSearchResultDto = components['schemas']['UserSearchResultDto']
+export type ContactSearchResultDto = components['schemas']['ContactSearchResultDto']
 
 /**
  * A principal contact with vetting status.
