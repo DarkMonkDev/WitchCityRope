@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Card, Text, Badge, Box, Stack, Group, Button } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { useNavigate } from 'react-router-dom'
-import { IconHeart, IconTicket } from '@tabler/icons-react'
+import { IconHeart, IconTicket, IconUsers } from '@tabler/icons-react'
 import type { UserEventDto } from '../../../types/dashboard.types'
+import type { AssignedTicketStatusDto, AssignTicketRequest } from '../../../features/ticket-assignment/types/ticketAssignment.types'
 import type { VolunteerShiftWithEvent } from '../../../components/dashboard/UserVolunteerShifts'
+import { TicketStatusBadge } from '../../../features/ticket-assignment/components/TicketStatusBadge'
+import { AssignTicketDropdown } from '../../../features/ticket-assignment/components/AssignTicketDropdown'
+import { useAssignTicket, useReassignTicket } from '../../../features/ticket-assignment/api/mutations'
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone'
 import { formatUtcTimeRange, formatUtcToLocalDate, formatUtcToLocalTime } from '../../../utils/eventUtils'
 
@@ -12,6 +16,8 @@ interface EventCardProps {
   event: UserEventDto
   className?: string
   volunteerShifts?: VolunteerShiftWithEvent[]
+  /** Tickets the user purchased for this event (from useAssignedTickets) */
+  assignedTickets?: AssignedTicketStatusDto[]
 }
 
 /**
@@ -25,7 +31,7 @@ interface EventCardProps {
  * - Shows registration status badge
  * - Shows volunteer shift information if user is volunteering
  */
-export const EventCard: React.FC<EventCardProps> = ({ event, className, volunteerShifts = [] }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, className, volunteerShifts = [], assignedTickets = [] }) => {
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 991px)')
   const eventTimeZone = useEventTimeZone();
@@ -343,6 +349,16 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           return null;
         })()}
 
+        {/* Your Tickets Section - Show when user has extra tickets (more than just their own) */}
+        {assignedTickets.length > 1 && (
+          <YourTicketsSection
+            tickets={assignedTickets}
+            eventId={event.id || ''}
+            eventTitle={event.title || ''}
+            isMobile={isMobile ?? false}
+          />
+        )}
+
         {/* Description */}
         {event.description && (
           <Text size="sm" c="dimmed">
@@ -445,3 +461,318 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
     </Card>
   )
 }
+
+// ---------------------------------------------------------------------------
+// Your Tickets Section - Sub-components for ticket assignment management
+// ---------------------------------------------------------------------------
+
+interface YourTicketsSectionProps {
+  tickets: AssignedTicketStatusDto[]
+  eventId: string
+  eventTitle: string
+  isMobile: boolean
+}
+
+/**
+ * Displays a "Your Tickets" section within the EventCard showing all tickets
+ * the user purchased for this event with assignment status and action buttons.
+ *
+ * Design reference: ui-design.md Screen 5 - Dashboard My Tickets
+ */
+const YourTicketsSection: React.FC<YourTicketsSectionProps> = ({
+  tickets,
+  eventId,
+  eventTitle,
+  isMobile,
+}) => {
+  const [assignModalTicket, setAssignModalTicket] = useState<AssignedTicketStatusDto | null>(null)
+  const [assignMode, setAssignMode] = useState<'assign' | 'reassign'>('assign')
+
+  const handleOpenAssign = useCallback((ticket: AssignedTicketStatusDto, mode: 'assign' | 'reassign') => {
+    setAssignModalTicket(ticket)
+    setAssignMode(mode)
+  }, [])
+
+  const handleCloseModal = useCallback(() => {
+    setAssignModalTicket(null)
+  }, [])
+
+  return (
+    <>
+      <Box
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        style={{
+          background: 'linear-gradient(135deg, rgba(155, 74, 117, 0.06) 0%, rgba(136, 1, 36, 0.06) 100%)',
+          borderRadius: '8px',
+          padding: 'var(--space-xs)',
+          border: '1px solid rgba(155, 74, 117, 0.15)',
+        }}
+        data-testid="your-tickets-section"
+      >
+        <Group gap="xs" mb={8}>
+          <IconUsers size={16} color="var(--color-plum)" />
+          <Text
+            fw={700}
+            size="sm"
+            c="var(--color-plum)"
+            tt="uppercase"
+            style={{ letterSpacing: '0.5px' }}
+          >
+            Your Tickets
+          </Text>
+        </Group>
+        <Stack gap="xs">
+          {tickets.map((ticket) => (
+            <TicketAssignmentRow
+              key={ticket.attendanceId || ticket.ticketPurchaseId}
+              ticket={ticket}
+              eventId={eventId}
+              isMobile={isMobile}
+              onAssign={() => handleOpenAssign(ticket, 'assign')}
+              onReassign={() => handleOpenAssign(ticket, 'reassign')}
+            />
+          ))}
+        </Stack>
+      </Box>
+
+      {/* Assign/Reassign Modal - renders outside the card click area */}
+      {assignModalTicket && (
+        <AssignTicketModal
+          ticket={assignModalTicket}
+          eventId={eventId}
+          eventTitle={eventTitle}
+          mode={assignMode}
+          onClose={handleCloseModal}
+        />
+      )}
+    </>
+  )
+}
+
+YourTicketsSection.displayName = 'YourTicketsSection'
+
+// ---------------------------------------------------------------------------
+
+interface TicketAssignmentRowProps {
+  ticket: AssignedTicketStatusDto
+  eventId: string
+  isMobile: boolean
+  onAssign: () => void
+  onReassign: () => void
+}
+
+/**
+ * A single row within the "Your Tickets" section.
+ * Shows ticket type name, status badge, and action button if applicable.
+ *
+ * Layout: Group with justify="space-between"
+ * - Left: ticket type name + TicketStatusBadge
+ * - Right: Assign or Reassign button (when applicable)
+ */
+const TicketAssignmentRow: React.FC<TicketAssignmentRowProps> = ({
+  ticket,
+  isMobile,
+  onAssign,
+  onReassign,
+}) => {
+  const status = ticket.status || 'Unassigned'
+  const isOwnTicket = status.toLowerCase() === 'active' && !ticket.assignedToUserId && !ticket.isUnassigned
+  const showAssignButton = ticket.isUnassigned === true
+  const showReassignButton = ticket.canReassign === true && status.toLowerCase() === 'declined'
+
+  return (
+    <Box
+      style={{
+        background: 'rgba(255, 255, 255, 0.5)',
+        borderRadius: '6px',
+        padding: '8px 12px',
+      }}
+    >
+      {isMobile ? (
+        // Mobile: stacked layout
+        <Stack gap={4}>
+          <Text size="sm" fw={600} c="var(--color-charcoal)">
+            {ticket.ticketTypeName || 'Ticket'}
+          </Text>
+          <Group justify="space-between" wrap="nowrap">
+            <TicketStatusBadge
+              status={status}
+              isOwnTicket={isOwnTicket}
+              assigneeSceneName={ticket.assignedToSceneName ?? undefined}
+            />
+            {showAssignButton && (
+              <Button
+                size="xs"
+                variant="outline"
+                color="burgundy"
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation()
+                  onAssign()
+                }}
+                data-testid="assign-ticket-button"
+                styles={{
+                  root: {
+                    height: 'auto',
+                    minHeight: '30px',
+                    padding: '4px 12px',
+                    lineHeight: 1.2,
+                    flexShrink: 0,
+                  },
+                }}
+              >
+                Assign
+              </Button>
+            )}
+            {showReassignButton && (
+              <Button
+                size="xs"
+                variant="outline"
+                color="burgundy"
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation()
+                  onReassign()
+                }}
+                data-testid="reassign-ticket-button"
+                styles={{
+                  root: {
+                    height: 'auto',
+                    minHeight: '30px',
+                    padding: '4px 12px',
+                    lineHeight: 1.2,
+                    flexShrink: 0,
+                  },
+                }}
+              >
+                Reassign
+              </Button>
+            )}
+          </Group>
+        </Stack>
+      ) : (
+        // Desktop: inline layout
+        <Group justify="space-between" wrap="nowrap">
+          <Group gap="sm" wrap="nowrap">
+            <Text size="sm" fw={600} c="var(--color-charcoal)" style={{ flexShrink: 0 }}>
+              {ticket.ticketTypeName || 'Ticket'}
+            </Text>
+            <TicketStatusBadge
+              status={status}
+              isOwnTicket={isOwnTicket}
+              assigneeSceneName={ticket.assignedToSceneName ?? undefined}
+            />
+          </Group>
+          {showAssignButton && (
+            <Button
+              size="xs"
+              variant="outline"
+              color="burgundy"
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation()
+                onAssign()
+              }}
+              data-testid="assign-ticket-button"
+              styles={{
+                root: {
+                  height: 'auto',
+                  minHeight: '30px',
+                  padding: '4px 12px',
+                  lineHeight: 1.2,
+                  flexShrink: 0,
+                },
+              }}
+            >
+              Assign
+            </Button>
+          )}
+          {showReassignButton && (
+            <Button
+              size="xs"
+              variant="outline"
+              color="burgundy"
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation()
+                onReassign()
+              }}
+              data-testid="reassign-ticket-button"
+              styles={{
+                root: {
+                  height: 'auto',
+                  minHeight: '30px',
+                  padding: '4px 12px',
+                  lineHeight: 1.2,
+                  flexShrink: 0,
+                },
+              }}
+            >
+              Reassign
+            </Button>
+          )}
+        </Group>
+      )}
+    </Box>
+  )
+}
+
+TicketAssignmentRow.displayName = 'TicketAssignmentRow'
+
+// ---------------------------------------------------------------------------
+
+interface AssignTicketModalProps {
+  ticket: AssignedTicketStatusDto
+  eventId: string
+  eventTitle: string
+  mode: 'assign' | 'reassign'
+  onClose: () => void
+}
+
+/**
+ * Wrapper component that manages the assign/reassign mutation for a specific ticket.
+ * Uses the mutation hooks with the correct attendanceId from the ticket being acted upon.
+ */
+const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
+  ticket,
+  eventId,
+  eventTitle,
+  mode,
+  onClose,
+}) => {
+  const attendanceId = ticket.attendanceId || ''
+
+  const assignMutation = useAssignTicket(eventId, attendanceId)
+  const reassignMutation = useReassignTicket(eventId, attendanceId)
+
+  const isPending = mode === 'reassign' ? reassignMutation.isPending : assignMutation.isPending
+  const isSuccess = mode === 'reassign' ? reassignMutation.isSuccess : assignMutation.isSuccess
+
+  // Close modal on successful mutation
+  useEffect(() => {
+    if (isSuccess) {
+      onClose()
+    }
+  }, [isSuccess, onClose])
+
+  const handleAssign = useCallback((userId: string) => {
+    const request: AssignTicketRequest = { assignToUserId: userId }
+
+    if (mode === 'reassign') {
+      reassignMutation.mutate(request)
+    } else {
+      assignMutation.mutate(request)
+    }
+  }, [mode, assignMutation, reassignMutation])
+
+  return (
+    <AssignTicketDropdown
+      opened={true}
+      onClose={onClose}
+      eventId={eventId}
+      onAssign={handleAssign}
+      isAssigning={isPending}
+      title={mode === 'reassign' ? 'Reassign Ticket' : 'Assign Ticket'}
+      ticketTypeName={ticket.ticketTypeName}
+      eventTitle={eventTitle}
+    />
+  )
+}
+
+AssignTicketModal.displayName = 'AssignTicketModal'

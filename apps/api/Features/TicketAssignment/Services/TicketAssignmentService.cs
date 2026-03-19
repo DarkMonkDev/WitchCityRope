@@ -718,8 +718,10 @@ public class TicketAssignmentService : ITicketAssignmentService
         {
             _logger.LogDebug("Getting assigned tickets for purchaser {UserId}", userId);
 
-            // Find all EventAttendance records linked to TicketPurchases made by this user
-            // where the ticket has been assigned at some point (AssignedByUserId IS NOT NULL)
+            var result = new List<AssignedTicketStatusDto>();
+
+            // 1. Find EventAttendance records linked to TicketPurchases made by this user
+            //    where the ticket has been assigned (AssignedByUserId IS NOT NULL)
             var assignedAttendances = await _context.EventAttendances
                 .AsNoTracking()
                 .Include(ea => ea.Event)
@@ -744,7 +746,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 .Select(u => new { u.Id, u.SceneName })
                 .ToDictionaryAsync(u => u.Id, u => u.SceneName ?? string.Empty, ct);
 
-            var result = assignedAttendances.Select(ea => new AssignedTicketStatusDto
+            result.AddRange(assignedAttendances.Select(ea => new AssignedTicketStatusDto
             {
                 AttendanceId = ea.Id,
                 TicketPurchaseId = ea.TicketPurchaseId ?? Guid.Empty,
@@ -759,15 +761,42 @@ public class TicketAssignmentService : ITicketAssignmentService
                     : null,
                 // AD-015: Can reassign if Active + previously declined
                 CanReassign = ea.Status == AttendanceStatus.Active && ea.DeclinedAt != null,
-                // Ticket is unassigned if it's Active, owned by the purchaser, and has no pending assignment
-                IsUnassigned = ea.Status == AttendanceStatus.Active
-                    && ea.UserId == userId
-                    && ea.DeclinedAt == null
-            }).ToList();
+                IsUnassigned = false
+            }));
+
+            // 2. Find "assign later" tickets: TicketPurchases with NO EventAttendance records.
+            //    These are extra tickets bought during multi-ticket checkout where the purchaser
+            //    chose "Assign later". They only have a TicketPurchase record (no EventAttendance)
+            //    until they are assigned to someone via the dashboard.
+            var unassignedPurchases = await _context.TicketPurchases
+                .AsNoTracking()
+                .Include(tp => tp.TicketType)
+                    .ThenInclude(tt => tt!.Event)
+                .Where(tp =>
+                    tp.UserId == userId
+                    && tp.IsPaymentCompleted
+                    && !_context.EventAttendances.Any(ea => ea.TicketPurchaseId == tp.Id))
+                .OrderBy(tp => tp.TicketType!.Event!.StartDate)
+                .ToListAsync(ct);
+
+            result.AddRange(unassignedPurchases.Select(tp => new AssignedTicketStatusDto
+            {
+                AttendanceId = Guid.Empty, // No attendance yet - will be created on assignment
+                TicketPurchaseId = tp.Id,
+                EventId = tp.TicketType?.Event?.Id ?? Guid.Empty,
+                EventTitle = tp.TicketType?.Event?.Title ?? string.Empty,
+                EventDate = tp.TicketType?.Event?.StartDate ?? DateTime.MinValue,
+                TicketTypeName = tp.TicketType?.Name ?? string.Empty,
+                Status = "Unassigned",
+                AssignedToUserId = null,
+                AssignedToSceneName = null,
+                CanReassign = false,
+                IsUnassigned = true
+            }));
 
             _logger.LogDebug(
-                "Retrieved {Count} assigned tickets for purchaser {UserId}",
-                result.Count, userId);
+                "Retrieved {AssignedCount} assigned + {UnassignedCount} unassigned tickets for purchaser {UserId}",
+                assignedAttendances.Count, unassignedPurchases.Count, userId);
 
             return Result<List<AssignedTicketStatusDto>>.Success(result);
         }

@@ -11,6 +11,7 @@ import { BaseEventsTable, type TableColumn } from '../../components/events/BaseE
 import { useUserEvents, useVettingStatus } from '../../hooks/useDashboard';
 import { useUser } from '../../stores/authStore';
 import { useUserVolunteerShifts } from '../../features/volunteers/hooks/useVolunteerPositions';
+import { useAssignedTickets } from '../../features/ticket-assignment/api/queries';
 import { formatShortDate, formatEventTime } from '../../utils/eventUtils';
 import type { UserEventDto } from '../../types/dashboard.types';
 import type { VolunteerShiftWithEvent } from '../../components/dashboard/UserVolunteerShifts';
@@ -42,6 +43,25 @@ export const MyEventsPage: React.FC = () => {
 
   // Fetch user's volunteer shifts
   const { data: volunteerShiftsResponse } = useUserVolunteerShifts();
+
+  // Fetch tickets the current user purchased (for assign/reassign in EventCard)
+  const { data: assignedTicketsData } = useAssignedTickets();
+
+  // Group assigned tickets by eventId for efficient lookup in EventCard
+  const assignedTicketsByEvent = useMemo(() => {
+    if (!assignedTicketsData || assignedTicketsData.length === 0) return {};
+
+    const grouped: Record<string, typeof assignedTicketsData> = {};
+    for (const ticket of assignedTicketsData) {
+      const eid = ticket.eventId || '';
+      if (!eid) continue;
+      if (!grouped[eid]) {
+        grouped[eid] = [];
+      }
+      grouped[eid].push(ticket);
+    }
+    return grouped;
+  }, [assignedTicketsData]);
 
   // Transform volunteer shifts to dashboard format
   const volunteerShifts: VolunteerShiftWithEvent[] = useMemo(() => {
@@ -341,6 +361,7 @@ export const MyEventsPage: React.FC = () => {
                 key={event.id}
                 event={event}
                 volunteerShifts={volunteerShifts}
+                assignedTickets={event.id ? assignedTicketsByEvent[event.id] : undefined}
                 className={event.isPastEvent ? 'past-event' : ''}
               />
             ))}
