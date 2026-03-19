@@ -1122,7 +1122,11 @@ public class TicketAssignmentService : ITicketAssignmentService
                     .ThenInclude(tt => tt!.Event)
                 .Where(tp =>
                     tp.UserId == userId
-                    && tp.IsPaymentCompleted
+                    // Inline IsPaymentCompleted check — computed properties can't be
+                    // translated to SQL by EF Core (causes InvalidOperationException)
+                    && (tp.PaymentStatus == TicketPurchasePaymentStatus.Completed
+                        || tp.PaymentStatus == TicketPurchasePaymentStatus.Confirmed
+                        || tp.PaymentStatus == TicketPurchasePaymentStatus.PartiallyRefunded)
                     && !_context.EventAttendances.Any(ea => ea.TicketPurchaseId == tp.Id))
                 .OrderBy(tp => tp.TicketType!.Event!.StartDate)
                 .ToListAsync(ct);

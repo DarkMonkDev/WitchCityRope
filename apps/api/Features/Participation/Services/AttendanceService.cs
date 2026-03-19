@@ -249,7 +249,11 @@ public class AttendanceService : IAttendanceService
                 .Include(tp => tp.TicketType)
                     .ThenInclude(tt => tt!.Sessions)
                 .Where(tp => tp.UserId == userId
-                    && tp.IsPaymentCompleted
+                    // Inline IsPaymentCompleted check — computed properties can't be
+                    // translated to SQL by EF Core (causes InvalidOperationException)
+                    && (tp.PaymentStatus == TicketPurchasePaymentStatus.Completed
+                        || tp.PaymentStatus == TicketPurchasePaymentStatus.Confirmed
+                        || tp.PaymentStatus == TicketPurchasePaymentStatus.PartiallyRefunded)
                     && tp.TicketType != null
                     && tp.TicketType.EventId == eventId
                     // Exclude tickets already in the dict (user's own tickets)
