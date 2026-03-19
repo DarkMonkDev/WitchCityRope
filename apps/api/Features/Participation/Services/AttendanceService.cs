@@ -1778,11 +1778,15 @@ public class AttendanceService : IAttendanceService
                     {
                         var originalPurchaserId = ea.TicketPurchase!.UserId;
 
-                        // Revert ownership to purchaser (same pattern as DeclineAssignmentAsync)
-                        ea.UserId = originalPurchaserId;
-                        ea.Status = AttendanceStatus.Active;
+                        // Cancel the assignee's attendance rather than reverting UserId.
+                        // Reverting UserId would violate the unique constraint if the purchaser
+                        // already has their own active attendance for the same event+session.
+                        // The TicketPurchase record remains owned by the purchaser, so they
+                        // can reassign it via the dashboard (it becomes an "assign later" ticket).
+                        ea.Status = AttendanceStatus.Cancelled;
+                        ea.CancelledAt = DateTime.UtcNow;
+                        ea.CancellationReason = reason ?? "Returned by assignee";
                         ea.DeclinedAt = DateTime.UtcNow;
-                        ea.DeclinedReason = reason ?? "Returned by assignee";
                         ea.UpdatedAt = DateTime.UtcNow;
                         ea.UpdatedBy = userId;
 
@@ -1798,16 +1802,16 @@ public class AttendanceService : IAttendanceService
                             }),
                             NewValues = System.Text.Json.JsonSerializer.Serialize(new
                             {
-                                UserId = originalPurchaserId,
-                                Status = AttendanceStatus.Active.ToString(),
-                                DeclinedAt = ea.DeclinedAt,
-                                ReturnedByAssignee = true
+                                Status = AttendanceStatus.Cancelled.ToString(),
+                                CancelledAt = ea.CancelledAt,
+                                ReturnedByAssignee = true,
+                                OriginalPurchaserId = originalPurchaserId
                             })
                         };
                         _context.AttendanceHistory.Add(returnHistory);
 
                         _logger.LogInformation(
-                            "Returned ticket: AttendanceId={AttendanceId}, ReturnedBy={UserId}, RevertedTo={PurchaserId}",
+                            "Returned ticket: AttendanceId={AttendanceId}, ReturnedBy={UserId}, PurchaserId={PurchaserId} (ticket available for reassignment)",
                             ea.Id, userId, originalPurchaserId);
                     }
 
