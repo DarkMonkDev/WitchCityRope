@@ -11,13 +11,14 @@
  * - Attention-drawing style with brass left border
  * - Count badge showing number of pending items
  * - Each item shows event name, date, sessions, type, purchaser
- * - Accept and Decline action buttons
- * - Accept opens TicketAcceptanceModal
+ * - Inline waiver checkbox (no modal) following ParticipationCard pattern
+ * - Accept button disabled until waiver checkbox is checked
  * - Decline opens TicketDeclineModal
+ * - Vetting error handling shown inline via Alert
  * - Responsive: stacked cards on mobile, full-width on desktop
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Paper,
   Stack,
@@ -28,10 +29,15 @@ import {
   Button,
   Loader,
   Center,
+  Checkbox,
+  Alert,
+  Box,
 } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
+import { IconAlertCircle } from '@tabler/icons-react'
 import { useMediaQuery } from '@mantine/hooks'
 import { usePendingAssignments } from '../api/queries'
-import { TicketAcceptanceModal } from './TicketAcceptanceModal'
+import { useAcceptAssignment } from '../api/mutations'
 import { TicketDeclineModal } from './TicketDeclineModal'
 import type { PendingAssignmentDto } from '../types/ticketAssignment.types'
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone'
@@ -43,8 +49,7 @@ export const PendingTicketsCard: React.FC = () => {
 
   const { data: pendingAssignments, isLoading } = usePendingAssignments()
 
-  // Modal state
-  const [acceptModalOpen, setAcceptModalOpen] = useState(false)
+  // Decline modal state (accept no longer uses a modal)
   const [declineModalOpen, setDeclineModalOpen] = useState(false)
   const [selectedAssignment, setSelectedAssignment] = useState<PendingAssignmentDto | null>(null)
 
@@ -59,11 +64,6 @@ export const PendingTicketsCard: React.FC = () => {
 
   if (!pendingAssignments || pendingAssignments.length === 0) {
     return null
-  }
-
-  const handleAcceptClick = (assignment: PendingAssignmentDto) => {
-    setSelectedAssignment(assignment)
-    setAcceptModalOpen(true)
   }
 
   const handleDeclineClick = (assignment: PendingAssignmentDto) => {
@@ -107,22 +107,11 @@ export const PendingTicketsCard: React.FC = () => {
               assignment={assignment}
               isMobile={isMobile || false}
               eventTimeZone={eventTimeZone}
-              onAccept={() => handleAcceptClick(assignment)}
               onDecline={() => handleDeclineClick(assignment)}
             />
           ))}
         </Stack>
       </Paper>
-
-      {/* Acceptance Modal */}
-      <TicketAcceptanceModal
-        opened={acceptModalOpen}
-        onClose={() => {
-          setAcceptModalOpen(false)
-          setSelectedAssignment(null)
-        }}
-        assignment={selectedAssignment}
-      />
 
       {/* Decline Modal */}
       <TicketDeclineModal
@@ -147,7 +136,6 @@ interface PendingAssignmentItemProps {
   assignment: PendingAssignmentDto
   isMobile: boolean
   eventTimeZone: string
-  onAccept: () => void
   onDecline: () => void
 }
 
@@ -155,10 +143,78 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
   assignment,
   isMobile,
   eventTimeZone,
-  onAccept,
   onDecline,
 }) => {
   const isTicket = assignment.attendanceType === 'Ticket'
+
+  // Local waiver checkbox state per card
+  const [waiverAccepted, setWaiverAccepted] = useState(false)
+  const [vettingError, setVettingError] = useState<string | null>(null)
+
+  // Accept mutation - each card manages its own
+  const acceptMutation = useAcceptAssignment(
+    assignment.eventId || '',
+    assignment.attendanceId || ''
+  )
+
+  // Handle mutation success (project TanStack Query v5 pattern)
+  useEffect(() => {
+    if (acceptMutation.isSuccess) {
+      notifications.show({
+        title: 'Success',
+        message: `${isTicket ? 'Ticket' : 'RSVP'} accepted! You're registered for ${assignment.eventTitle}`,
+        color: 'green',
+      })
+    }
+  }, [acceptMutation.isSuccess])
+
+  // Handle mutation error (project TanStack Query v5 pattern)
+  useEffect(() => {
+    if (acceptMutation.isError) {
+      const message = acceptMutation.error?.message || ''
+
+      // Check for vetting-related errors (AD-014 edge case)
+      if (
+        message.toLowerCase().includes('vetting') ||
+        message.toLowerCase().includes('vetted')
+      ) {
+        setVettingError(
+          'This event requires vetted membership. Your vetting status has changed since this ticket was assigned. Please contact an admin for assistance.'
+        )
+        return
+      }
+
+      // Check for event-passed errors
+      if (
+        message.toLowerCase().includes('started') ||
+        message.toLowerCase().includes('passed')
+      ) {
+        setVettingError(
+          'This event has already started. Contact an admin for assistance.'
+        )
+        return
+      }
+
+      // Generic error - show notification
+      notifications.show({
+        title: 'Error',
+        message: message || 'Failed to accept. Please try again.',
+        color: 'red',
+      })
+    }
+  }, [acceptMutation.isError])
+
+  const handleAccept = () => {
+    if (!waiverAccepted || vettingError) return
+
+    acceptMutation.mutate({
+      eventWaiverAccepted: true,
+      termsOfServiceAccepted: true,
+    })
+  }
+
+  // Unique checkbox ID for label association
+  const checkboxId = `waiver-checkbox-${assignment.attendanceId}`
 
   return (
     <Paper
@@ -219,6 +275,75 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
           </Text>
         )}
 
+        {/* Vetting Error Alert (AD-014) */}
+        {vettingError && (
+          <Alert
+            icon={<IconAlertCircle size={16} />}
+            color="red"
+            title="Unable to Accept"
+            variant="light"
+            data-testid="vetting-error-alert"
+          >
+            <Text size="sm">{vettingError}</Text>
+          </Alert>
+        )}
+
+        {/* Inline Waiver Checkbox - following ParticipationCard pattern */}
+        {!vettingError && (
+          <Box mt="xs">
+            <Group gap="sm" align="center">
+              <Checkbox
+                id={checkboxId}
+                checked={waiverAccepted}
+                onChange={(event) => setWaiverAccepted(event.currentTarget.checked)}
+                size="md"
+                color="var(--color-burgundy)"
+                data-testid="waiver-checkbox"
+              />
+              <Text
+                component="label"
+                htmlFor={checkboxId}
+                size="sm"
+                style={{
+                  cursor: 'pointer',
+                  color: '#000000',
+                  fontWeight: 700,
+                  lineHeight: 1.5,
+                }}
+              >
+                I agree to the{' '}
+                <a
+                  href="/event-waiver"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'var(--color-burgundy)',
+                    textDecoration: 'underline',
+                    fontWeight: 700,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Event Waiver
+                </a>
+                {' '}and{' '}
+                <a
+                  href="/terms-of-service"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'var(--color-burgundy)',
+                    textDecoration: 'underline',
+                    fontWeight: 700,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Terms of Service
+                </a>
+              </Text>
+            </Group>
+          </Box>
+        )}
+
         {/* Action Buttons */}
         <Group justify="flex-end" gap="sm" mt="xs">
           <Button
@@ -226,6 +351,7 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
             color="gray"
             size={isMobile ? 'sm' : 'md'}
             onClick={onDecline}
+            disabled={acceptMutation.isPending}
             data-testid="decline-button"
             style={{
               minHeight: 40,
@@ -236,31 +362,35 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
           >
             Decline
           </Button>
-          <Button
-            color="burgundy"
-            size={isMobile ? 'sm' : 'md'}
-            onClick={onAccept}
-            data-testid="accept-button"
-            styles={{
-              root: {
-                borderRadius: '12px 6px 12px 6px',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                transition: 'all 0.3s ease',
-                height: 'auto',
-                minHeight: 40,
-                paddingTop: '10px',
-                paddingBottom: '10px',
-                paddingLeft: '20px',
-                paddingRight: '20px',
-                lineHeight: '1.2',
-              },
-            }}
-          >
-            {isTicket ? 'Accept Ticket' : 'Accept RSVP'}
-          </Button>
+          {!vettingError && (
+            <Button
+              color="burgundy"
+              size={isMobile ? 'sm' : 'md'}
+              onClick={handleAccept}
+              loading={acceptMutation.isPending}
+              disabled={!waiverAccepted || acceptMutation.isPending}
+              data-testid="accept-button"
+              styles={{
+                root: {
+                  borderRadius: '12px 6px 12px 6px',
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  transition: 'all 0.3s ease',
+                  height: 'auto',
+                  minHeight: 40,
+                  paddingTop: '10px',
+                  paddingBottom: '10px',
+                  paddingLeft: '20px',
+                  paddingRight: '20px',
+                  lineHeight: '1.2',
+                },
+              }}
+            >
+              {isTicket ? 'Accept Ticket' : 'Accept RSVP'}
+            </Button>
+          )}
         </Group>
       </Stack>
     </Paper>
