@@ -1431,43 +1431,63 @@ public class AttendanceService : IAttendanceService
             // CRITICAL: Save all changes in a single transaction
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Verify persistence
+            // Verify persistence.
+            // When BuyForOthersOnly with all "assign later" tickets, allAttendances is empty
+            // because EventAttendance records are created later during assignment.
+            // In that case, TicketPurchase records are sufficient — skip the attendance check.
             var primaryAttendance = allAttendances.FirstOrDefault();
-            if (primaryAttendance == null)
+            if (primaryAttendance == null && ticketPurchases.Count == 0)
             {
                 _logger.LogError(
-                    "No attendance records were created for user {UserId} in event {EventId} " +
+                    "No attendance records AND no ticket purchases were created for user {UserId} in event {EventId} " +
                     "despite processing {SelectionCount} selection(s)",
                     userId, request.EventId, selections.Count);
                 return Result<ParticipationStatusDto>.Failure(
                     "Failed to create ticket purchase records. Please try again or contact support.");
             }
-            var savedAttendance = await _context.EventAttendances
-                .AsNoTracking()
-                .FirstOrDefaultAsync(ea => ea.Id == primaryAttendance.Id, cancellationToken);
-
-            if (savedAttendance == null)
+            // Verify persistence — skip attendance verification for all-unassigned purchases
+            // (no EventAttendance exists yet, only TicketPurchase records).
+            if (primaryAttendance != null)
             {
-                _logger.LogError("CRITICAL: Ticket purchase {AttendanceId} for user {UserId} in event {EventId} failed to persist to database",
-                    primaryAttendance.Id, userId, request.EventId);
-                return Result<ParticipationStatusDto>.Failure("Failed to save ticket purchase to database");
+                var savedAttendance = await _context.EventAttendances
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(ea => ea.Id == primaryAttendance.Id, cancellationToken);
+
+                if (savedAttendance == null)
+                {
+                    _logger.LogError("CRITICAL: Ticket purchase {AttendanceId} for user {UserId} in event {EventId} failed to persist to database",
+                        primaryAttendance.Id, userId, request.EventId);
+                    return Result<ParticipationStatusDto>.Failure("Failed to save ticket purchase to database");
+                }
             }
 
             _logger.LogInformation(
-                "Successfully created and verified {TotalTickets} ticket purchase(s) for user {UserId} in event {EventId} ({AttendanceCount} attendance records total)",
-                totalNewTickets, userId, request.EventId, allAttendances.Count);
+                "Successfully created and verified {TotalTickets} ticket purchase(s) for user {UserId} in event {EventId} ({AttendanceCount} attendance records, {PurchaseCount} ticket purchases)",
+                totalNewTickets, userId, request.EventId, allAttendances.Count, ticketPurchases.Count);
 
-            var dto = new ParticipationStatusDto
-            {
-                EventId = primaryAttendance.EventId,
-                UserId = primaryAttendance.UserId,
-                ParticipationType = primaryAttendance.AttendanceType,
-                Status = primaryAttendance.Status,
-                ParticipationDate = primaryAttendance.CreatedAt,
-                Notes = primaryAttendance.Notes,
-                CanCancel = primaryAttendance.CanBeCancelled(),
-                Metadata = primaryAttendance.Metadata
-            };
+            // Build response DTO. For all-unassigned purchases (no attendance), return
+            // a minimal DTO with the event/user info since there's no attendance to reference.
+            var dto = primaryAttendance != null
+                ? new ParticipationStatusDto
+                {
+                    EventId = primaryAttendance.EventId,
+                    UserId = primaryAttendance.UserId,
+                    ParticipationType = primaryAttendance.AttendanceType,
+                    Status = primaryAttendance.Status,
+                    ParticipationDate = primaryAttendance.CreatedAt,
+                    Notes = primaryAttendance.Notes,
+                    CanCancel = primaryAttendance.CanBeCancelled(),
+                    Metadata = primaryAttendance.Metadata
+                }
+                : new ParticipationStatusDto
+                {
+                    EventId = request.EventId,
+                    UserId = userId,
+                    ParticipationType = AttendanceType.Ticket,
+                    Status = AttendanceStatus.PendingPayment,
+                    ParticipationDate = DateTime.UtcNow,
+                    CanCancel = false
+                };
 
             return Result<ParticipationStatusDto>.Success(dto);
         }
