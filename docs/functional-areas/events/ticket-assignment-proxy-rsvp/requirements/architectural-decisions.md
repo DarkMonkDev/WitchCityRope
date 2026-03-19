@@ -50,15 +50,23 @@ All decisions confirmed by stakeholder (Chad) on 2026-03-18 unless otherwise not
 
 ---
 
-### AD-004: No Ticket Expiration / No Auto-Expiration
+### AD-004: 4-Hour Grace Period After Last Session Start (Updated 2026-03-19)
 
-**Decision:** Assigned tickets do NOT auto-expire. Recipients can accept a ticket right up until they walk in the door at the event.
+**Decision:** Assigned tickets and proxy RSVPs can be accepted up to **4 hours after the last session's start time** that the ticket covers. After that cutoff, acceptance is blocked and the user is directed to contact an admin.
+
+**Session-based logic:**
+- For tickets: uses the LAST session the ticket type covers (not the first)
+- For RSVPs: uses the event's last session
+- If no sessions found: no timing restriction (unrestricted acceptance)
 
 **Rationale:**
-- Stakeholder preference for flexibility
-- Community events are informal - last-minute decisions are normal
+- People may show up at the door and need to accept their ticket at check-in
+- 4 hours after session start covers late arrivals generously
+- Session-based (not event-based) ensures multi-session tickets use the latest relevant session
 - Reminder email 1 day before handles the "forgot to accept" case
-- Avoids complex expiration logic and edge cases
+- Previous decision was "no expiration" but stakeholder revised to add a reasonable cutoff
+
+**Implementation:** `GetAcceptanceCutoffAsync()` in TicketAssignmentService, `GetAcceptanceCutoffForEventAsync()` in ProxyRsvpService
 
 ---
 

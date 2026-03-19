@@ -239,6 +239,22 @@ public class TicketAssignmentService : ITicketAssignmentService
                     "Only the assigned user can accept this ticket");
             }
 
+            // 2b. TIMING CHECK: Acceptance allowed up to 4 hours after the LAST session starts.
+            // Session-based: uses the latest session the ticket covers (via TicketType.Sessions).
+            // If no sessions found, falls back to Event.StartDate.
+            // Grace period: 4 hours after session start (people may show up and accept at the door).
+            var acceptanceCutoff = await GetAcceptanceCutoffAsync(attendance, ct);
+            if (acceptanceCutoff.HasValue && DateTime.UtcNow > acceptanceCutoff.Value)
+            {
+                _logger.LogWarning(
+                    "Accept denied: Attendance {AttendanceId} acceptance window expired. " +
+                    "Cutoff was {Cutoff}, current time {Now}",
+                    attendanceId, acceptanceCutoff.Value, DateTime.UtcNow);
+                return Result<TicketAssignmentDto>.Failure(
+                    "Acceptance window expired",
+                    "The acceptance window for this ticket has closed. Tickets can be accepted up to 4 hours after the last session starts. Please contact an admin for assistance.");
+            }
+
             // 3. Verify waiver acceptance (AD-003)
             if (!request.EventWaiverAccepted)
             {
@@ -1353,5 +1369,65 @@ public class TicketAssignmentService : ITicketAssignmentService
             AssignedAt = attendance.AssignedAt,
             CreatedAt = attendance.CreatedAt
         };
+    }
+
+    /// <summary>
+    /// Calculates the acceptance cutoff time for a ticket or RSVP.
+    /// Acceptance is allowed up to 4 hours after the LAST session's start time
+    /// that the ticket covers. For RSVPs (no ticket type), uses the event's last session.
+    ///
+    /// BUSINESS RULE: People may show up at the door and need to accept at check-in.
+    /// The 4-hour grace period after last session start allows this.
+    /// Session-based: uses the latest session the ticket covers, not the first.
+    ///
+    /// Returns null if no sessions found (acceptance is unrestricted).
+    /// </summary>
+    private async Task<DateTime?> GetAcceptanceCutoffAsync(
+        EventAttendance attendance, CancellationToken ct)
+    {
+        const int GraceHoursAfterLastSession = 4;
+
+        DateTime? latestSessionStart = null;
+
+        // For tickets: find the latest session the ticket type covers
+        if (attendance.TicketPurchase?.TicketType != null)
+        {
+            // Load sessions for this ticket type if not already loaded
+            var ticketTypeSessions = await _context.Sessions
+                .AsNoTracking()
+                .Where(s => s.TicketTypes.Any(tt => tt.Id == attendance.TicketPurchase.TicketTypeId))
+                .OrderByDescending(s => s.StartTime)
+                .Select(s => s.StartTime)
+                .ToListAsync(ct);
+
+            if (ticketTypeSessions.Count > 0)
+            {
+                latestSessionStart = ticketTypeSessions.First();
+            }
+        }
+
+        // For RSVPs or if ticket type had no sessions: use the event's last session
+        if (latestSessionStart == null)
+        {
+            var eventSessions = await _context.Sessions
+                .AsNoTracking()
+                .Where(s => s.EventId == attendance.EventId)
+                .OrderByDescending(s => s.StartTime)
+                .Select(s => s.StartTime)
+                .FirstOrDefaultAsync(ct);
+
+            if (eventSessions != default)
+            {
+                latestSessionStart = eventSessions;
+            }
+        }
+
+        // If no sessions found at all, no timing restriction
+        if (!latestSessionStart.HasValue)
+        {
+            return null;
+        }
+
+        return latestSessionStart.Value.AddHours(GraceHoursAfterLastSession);
     }
 }

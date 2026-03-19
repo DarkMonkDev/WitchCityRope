@@ -286,6 +286,21 @@ public class ProxyRsvpService : IProxyRsvpService
                     "Only the person this RSVP was created for can accept it");
             }
 
+            // 2b. TIMING CHECK: Acceptance allowed up to 4 hours after the LAST session starts.
+            // For RSVPs, uses the event's last session start time.
+            // Grace period: 4 hours (people may accept at the door).
+            var acceptanceCutoff = await GetAcceptanceCutoffForEventAsync(attendance.EventId, ct);
+            if (acceptanceCutoff.HasValue && DateTime.UtcNow > acceptanceCutoff.Value)
+            {
+                _logger.LogWarning(
+                    "Accept proxy RSVP denied: Attendance {AttendanceId} acceptance window expired. " +
+                    "Cutoff was {Cutoff}, current time {Now}",
+                    attendanceId, acceptanceCutoff.Value, DateTime.UtcNow);
+                return Result<ProxyRsvpDto>.Failure(
+                    "Acceptance window expired",
+                    "The acceptance window for this RSVP has closed. RSVPs can be accepted up to 4 hours after the last session starts. Please contact an admin for assistance.");
+            }
+
             // 3. Verify event waiver is accepted (AD-003, BR-030, BR-053)
             if (!request.EventWaiverAccepted)
             {
@@ -510,5 +525,29 @@ public class ProxyRsvpService : IProxyRsvpService
                 "Failed to decline proxy RSVP",
                 ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Calculates the acceptance cutoff for an RSVP based on the event's last session.
+    /// Acceptance is allowed up to 4 hours after the last session's start time.
+    /// Returns null if no sessions found (acceptance is unrestricted).
+    /// </summary>
+    private async Task<DateTime?> GetAcceptanceCutoffForEventAsync(Guid eventId, CancellationToken ct)
+    {
+        const int GraceHoursAfterLastSession = 4;
+
+        var latestSessionStart = await _context.Sessions
+            .AsNoTracking()
+            .Where(s => s.EventId == eventId)
+            .OrderByDescending(s => s.StartTime)
+            .Select(s => (DateTime?)s.StartTime)
+            .FirstOrDefaultAsync(ct);
+
+        if (!latestSessionStart.HasValue)
+        {
+            return null;
+        }
+
+        return latestSessionStart.Value.AddHours(GraceHoursAfterLastSession);
     }
 }
