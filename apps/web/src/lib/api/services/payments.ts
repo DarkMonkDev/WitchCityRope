@@ -56,6 +56,8 @@ export interface CheckoutRequest {
   idempotencyKey: string;
   /** Multi-ticket selections (optional, takes precedence over ticketTypeIds when present) */
   ticketSelections?: TicketSelectionItem[];
+  /** When true, all tickets are for assignees (purchaser already has a ticket) */
+  buyForOthersOnly?: boolean;
 }
 
 export interface CheckoutResponse {

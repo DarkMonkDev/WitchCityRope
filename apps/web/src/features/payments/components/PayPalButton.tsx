@@ -25,6 +25,8 @@ export interface PayPalButtonProps {
   idempotencyKey: string;
   /** Multi-ticket selections (optional, takes precedence over ticketTypeIds) */
   ticketSelections?: TicketSelectionItem[];
+  /** Whether this is a buy-for-others-only checkout (all tickets for assignees) */
+  buyForOthersOnly?: boolean;
   /** Callback when PayPal payment completes successfully */
   onPaymentSuccess?: (details: PayPalCheckoutResult) => void;
   /** Callback when PayPal payment fails */
@@ -62,6 +64,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
   eventWaiverAccepted = false,
   idempotencyKey,
   ticketSelections,
+  buyForOthersOnly = false,
   onPaymentSuccess,
   onPaymentError,
   onPaymentCancel,
@@ -131,6 +134,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
         eventWaiverAccepted,
         idempotencyKey,
         ...(ticketSelections && ticketSelections.length > 0 ? { ticketSelections } : {}),
+        ...(buyForOthersOnly ? { buyForOthersOnly: true } : {}),
       });
 
       const { orderId } = response.data;

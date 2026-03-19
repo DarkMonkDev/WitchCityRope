@@ -2,7 +2,7 @@
 // Complete payment flow for event registration
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Container,
   Stack,
@@ -19,7 +19,7 @@ import {
   Divider
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconArrowLeft, IconAlertCircle, IconCheck } from '@tabler/icons-react';
+import { IconArrowLeft, IconAlertCircle, IconCheck, IconGift } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { debugLog } from '../../../utils/debug';
@@ -59,7 +59,11 @@ export const EventPaymentPage: React.FC = () => {
   }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 991px)');
+
+  // Check if this is a "buy for others" flow (user already has a ticket and is buying for someone else)
+  const buyForOthersOnly = (location.state as any)?.buyForOthersOnly === true;
 
   // Fetch user's participation status from API to determine which sessions they already own.
   // This replaces the old approach of relying on navigation state (location.state.ownedSessionIds)
@@ -186,10 +190,12 @@ export const EventPaymentPage: React.FC = () => {
         // Filter tickets using the same logic as EventDetailPage (lines 200-206):
         // 1. Must be purchasable (canPurchase = true, backend-driven timing/stock)
         // 2. Must NOT cover any session the user already owns
+        //    EXCEPTION: When buyForOthersOnly, skip the ownership check since the user
+        //    is buying for someone else - their own sessions are irrelevant.
         // Note: canPurchase is returned by the API but not yet in the auto-generated TicketTypeDto,
         // so we cast to any (same approach as EventDetailPage)
         const availableTicketTypes = eventTicketTypes.filter((tt: any) =>
-          tt.canPurchase && !isTicketOwnedByUser(tt)
+          tt.canPurchase && (buyForOthersOnly || !isTicketOwnedByUser(tt))
         );
 
         setTicketTypes(availableTicketTypes);
@@ -226,6 +232,16 @@ export const EventPaymentPage: React.FC = () => {
 
         setSelectedTicketTypeIds(initialSelectedIds);
         setTicketPrices(initialPrices);
+
+        // When buyForOthersOnly, initialize assignment arrays for auto-selected tickets
+        // even at quantity=1, since every ticket is for an assignee
+        if (buyForOthersOnly && initialSelectedIds.length > 0) {
+          const initialAssignments: Record<string, (string | null)[]> = {};
+          initialSelectedIds.forEach(id => {
+            initialAssignments[id] = [null]; // One assignee slot per ticket at quantity=1
+          });
+          setTicketAssignments(initialAssignments);
+        }
 
         // Calculate base price from first selected ticket (or first available)
         const firstSelectedId = initialSelectedIds[0] || availableTicketTypes[0]?.id;
@@ -294,7 +310,7 @@ export const EventPaymentPage: React.FC = () => {
     const ticketSelections = buildTicketSelections();
     const hasMultiTicket = ticketSelections.some(ts => ts.quantity > 1);
 
-    debugLog('Starting unified checkout:', { eventId, ticketIds, totalAmount, idempotencyKey, ticketSelections });
+    debugLog('Starting unified checkout:', { eventId, ticketIds, totalAmount, idempotencyKey, ticketSelections, buyForOthersOnly });
     setCheckoutErrorDismissed(false);
 
     try {
@@ -309,7 +325,9 @@ export const EventPaymentPage: React.FC = () => {
         cardType: nonceData.cardType,
         idempotencyKey,
         // Multi-ticket support: include ticket selections when purchasing multiple
-        ...(hasMultiTicket ? { ticketSelections } : {}),
+        ...(hasMultiTicket || buyForOthersOnly ? { ticketSelections } : {}),
+        // Signal backend to skip purchaser overlap check
+        ...(buyForOthersOnly ? { buyForOthersOnly: true } : {}),
       } as any);
 
       debugLog('Checkout completed:', result);
@@ -436,9 +454,10 @@ export const EventPaymentPage: React.FC = () => {
     }));
 
     // Adjust the assignments array: keep existing assignments, trim or pad with null
+    // When buyForOthersOnly, ALL tickets are for assignees (no purchaser ticket)
     setTicketAssignments(prev => {
       const existingAssignments = prev[ticketTypeId] || [];
-      const extraTickets = newQuantity - 1; // First ticket is always for purchaser
+      const extraTickets = buyForOthersOnly ? newQuantity : newQuantity - 1;
 
       if (extraTickets <= 0) {
         // No extra tickets, clear assignments
@@ -499,17 +518,21 @@ export const EventPaymentPage: React.FC = () => {
   };
 
   /**
-   * Build ticket selections for the checkout request
+   * Build ticket selections for the checkout request.
+   * When buyForOthersOnly, ALL assignments are included (no purchaser ticket skipped).
    */
   const buildTicketSelections = (): TicketSelectionItem[] => {
     return selectedTicketTypeIds.map(ticketTypeId => {
       const quantity = ticketQuantities[ticketTypeId] || 1;
       const assignments = ticketAssignments[ticketTypeId] || [];
 
+      // When buyForOthersOnly, always include assignees since every ticket needs one
+      const includeAssignees = buyForOthersOnly || quantity > 1;
+
       return {
         ticketTypeId,
         quantity,
-        assignees: quantity > 1 ? assignments : undefined,
+        assignees: includeAssignees ? assignments : undefined,
       };
     });
   };
@@ -590,11 +613,28 @@ export const EventPaymentPage: React.FC = () => {
           : (ticket.defaultPrice ?? ticket.minPrice ?? 0);
         newPrices[ticketTypeId] = price;
       }
+
+      // When buyForOthersOnly, initialize assignment array for newly selected ticket
+      if (buyForOthersOnly) {
+        setTicketAssignments(prev => ({
+          ...prev,
+          [ticketTypeId]: [null], // One assignee slot at quantity=1
+        }));
+      }
     } else {
       // Remove ticket from selection
       newSelectedIds = selectedTicketTypeIds.filter(id => id !== ticketTypeId);
       // Remove price for this ticket
       delete newPrices[ticketTypeId];
+
+      // Clean up assignments for deselected ticket
+      if (buyForOthersOnly) {
+        setTicketAssignments(prev => {
+          const updated = { ...prev };
+          delete updated[ticketTypeId];
+          return updated;
+        });
+      }
     }
 
     setSelectedTicketTypeIds(newSelectedIds);
@@ -747,6 +787,20 @@ export const EventPaymentPage: React.FC = () => {
           </Stepper>
         </Box>
 
+        {/* Buy-for-Others Banner */}
+        {buyForOthersOnly && (
+          <Alert
+            icon={<IconGift size={18} />}
+            color="grape"
+            variant="light"
+            radius="md"
+          >
+            <Text size="sm" fw={500}>
+              You're purchasing tickets for someone else. Select the ticket type and choose who to assign each ticket to.
+            </Text>
+          </Alert>
+        )}
+
         {/* Step Content */}
         <Group align="flex-start" gap="xl">
           {/* Main Content */}
@@ -895,8 +949,13 @@ export const EventPaymentPage: React.FC = () => {
                         })}
                       </Stack>
 
-                      {/* Ticket Assignment Rows - shown when any selected ticket has quantity > 1 */}
-                      {selectedTickets.some(t => (ticketQuantities[t.id!] || 1) > 1) && (
+                      {/* Ticket Assignment Rows - shown when:
+                          - Normal flow: any selected ticket has quantity > 1
+                          - Buy-for-others flow: always (every ticket needs an assignee) */}
+                      {(buyForOthersOnly
+                        ? selectedTickets.length > 0
+                        : selectedTickets.some(t => (ticketQuantities[t.id!] || 1) > 1)
+                      ) && (
                         <>
                           <Divider my="sm" />
                           <Text fw={600} size="md">
@@ -907,20 +966,28 @@ export const EventPaymentPage: React.FC = () => {
                               const quantity = ticketQuantities[ticket.id!] || 1;
                               const assignments = ticketAssignments[ticket.id!] || [];
 
-                              return Array.from({ length: quantity }, (_, i) => (
-                                <TicketAssignmentRow
-                                  key={`${ticket.id}-${i}`}
-                                  ticketNumber={i + 1}
-                                  isPurchaserTicket={i === 0}
-                                  contacts={principalContacts}
-                                  selectedContactId={i === 0 ? null : (assignments[i - 1] ?? null)}
-                                  onAssignmentChange={(contactId) => {
-                                    if (i > 0) {
-                                      handleAssignmentChange(ticket.id!, i - 1, contactId);
-                                    }
-                                  }}
-                                />
-                              ));
+                              return Array.from({ length: quantity }, (_, i) => {
+                                // When buyForOthersOnly, ALL tickets are for assignees (no purchaser row)
+                                const isPurchaser = buyForOthersOnly ? false : i === 0;
+                                // Assignment index: in normal flow, index 0 is purchaser so assignments start at i-1
+                                // In buyForOthersOnly, all indices map directly to assignments array
+                                const assignmentIndex = buyForOthersOnly ? i : i - 1;
+
+                                return (
+                                  <TicketAssignmentRow
+                                    key={`${ticket.id}-${i}`}
+                                    ticketNumber={i + 1}
+                                    isPurchaserTicket={isPurchaser}
+                                    contacts={principalContacts}
+                                    selectedContactId={isPurchaser ? null : (assignments[assignmentIndex] ?? null)}
+                                    onAssignmentChange={(contactId) => {
+                                      if (!isPurchaser) {
+                                        handleAssignmentChange(ticket.id!, assignmentIndex, contactId);
+                                      }
+                                    }}
+                                  />
+                                );
+                              });
                             })}
                           </Stack>
                         </>
@@ -1052,7 +1119,12 @@ export const EventPaymentPage: React.FC = () => {
                   eventWaiverAccepted={true}
                   initialSlidingScale={discountPercentage}
                   totalAmount={Object.values(ticketPrices).reduce((sum, price) => sum + price, 0)}
-                  ticketSelections={buildTicketSelections().some(ts => ts.quantity > 1) ? buildTicketSelections() : undefined}
+                  ticketSelections={
+                    buyForOthersOnly || buildTicketSelections().some(ts => ts.quantity > 1)
+                      ? buildTicketSelections()
+                      : undefined
+                  }
+                  buyForOthersOnly={buyForOthersOnly}
                   onNonceReady={handleNonceReady}
                   onPaymentSuccess={handlePayPalSuccess}
                   onPaymentError={handlePaymentError}

@@ -34,7 +34,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Paper, Stack, Alert, Group, Text, Box, Button, LoadingOverlay, Progress, Modal, Textarea, Checkbox, Title, Divider } from '@mantine/core';
-import { IconTicket, IconCalendarCheck, IconAlertCircle } from '@tabler/icons-react';
+import { IconTicket, IconCalendarCheck, IconAlertCircle, IconGift } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import { hasAnyRole } from '../../utils/roleUtils';
 import {
@@ -935,6 +935,47 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       Get Additional Tickets
                     </Button>
                   </Box>
+                </Box>
+              )}
+
+              {/* Buy Ticket for Someone Else - Show when backend allows */}
+              {(validParticipation as any)?.canBuyForOthers && (
+                <Box mt="md">
+                  <Button
+                    onClick={() => {
+                      navigate(`/checkout/${eventId}`, {
+                        state: {
+                          buyForOthersOnly: true,
+                          eventInfo: {
+                            id: eventId,
+                            title: eventTitle,
+                            startDateTime: eventStartDateTime || new Date().toISOString(),
+                            endDateTime: eventEndDateTime || new Date().toISOString(),
+                            instructor: eventInstructor,
+                            location: eventLocation,
+                            price: ticketPrice
+                          }
+                        }
+                      });
+                    }}
+                    fullWidth
+                    variant="outline"
+                    color="#880124"
+                    leftSection={<IconGift size={18} />}
+                    disabled={isLoading || isLoadingUser}
+                    data-testid="button-buy-for-others"
+                    styles={{
+                      root: {
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
+                      }
+                    }}
+                  >
+                    Buy Ticket for Someone Else
+                  </Button>
                 </Box>
               )}
             </Box>

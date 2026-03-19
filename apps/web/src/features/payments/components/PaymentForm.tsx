@@ -32,6 +32,8 @@ interface PaymentFormProps {
   totalAmount: number;
   /** Multi-ticket selections for PayPal (optional) */
   ticketSelections?: TicketSelectionItem[];
+  /** Whether this is a buy-for-others-only checkout (all tickets for assignees) */
+  buyForOthersOnly?: boolean;
   /** Callback when card nonce is ready (tokenized) - parent handles checkout */
   onNonceReady?: (data: NonceData) => void;
   /** Callback when PayPal payment succeeds */
@@ -55,6 +57,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   initialSlidingScale = 0,
   totalAmount,
   ticketSelections,
+  buyForOthersOnly = false,
   onNonceReady,
   onPaymentSuccess,
   onPaymentError,
@@ -231,6 +234,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
           eventWaiverAccepted={eventWaiverAccepted}
           idempotencyKey={idempotencyKey}
           ticketSelections={ticketSelections}
+          buyForOthersOnly={buyForOthersOnly}
           onPaymentSuccess={handlePaymentSuccess}
           onPaymentError={handlePaymentError}
           onPaymentCancel={handlePaymentCancel}

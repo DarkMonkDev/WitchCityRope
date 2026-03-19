@@ -1450,6 +1450,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tickets/{ticketPurchaseId}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assign an unassigned 'assign later' ticket to an authorized contact
+         * @description For tickets purchased with 'Assign later' that have no EventAttendance yet. Creates attendance records and sets PendingAcceptance status.
+         */
+        post: operations["AssignUnassignedTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/events/{eventId}/assign-ticket": {
         parameters: {
             query?: never;
@@ -4866,6 +4886,7 @@ export interface components {
             /** Format: double */
             slidingScalePercentage?: number;
             ticketSelections?: null | components["schemas"]["TicketSelectionItem"][];
+            buyForOthersOnly?: boolean;
         };
         CheckoutResponse: {
             transactionId?: string;
@@ -5123,6 +5144,7 @@ export interface components {
             /** Format: double */
             slidingScalePercentage?: number;
             ticketSelections?: null | components["schemas"]["TicketSelectionItem"][];
+            buyForOthersOnly?: boolean;
         };
         CreateUserNoteRequest: {
             content?: string;
@@ -5259,6 +5281,7 @@ export interface components {
                 [key: string]: components["schemas"]["TicketPurchaseInfoDto"];
             };
             canPurchaseAdditionalSessions?: boolean;
+            canBuyForOthers?: boolean;
             sessionAvailability?: components["schemas"]["SessionAvailabilityDto"][];
         };
         EventDto: {
@@ -5896,6 +5919,7 @@ export interface components {
             eventWaiverAccepted?: boolean;
             idempotencyKey?: string;
             ticketSelections?: null | components["schemas"]["TicketSelectionItem"][];
+            buyForOthersOnly?: boolean;
         };
         PayPalCheckoutCreateOrderResponse: {
             orderId?: string;
@@ -10824,6 +10848,67 @@ export interface operations {
             };
             /** @description Internal Server Error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AssignUnassignedTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketPurchaseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketAssignmentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
