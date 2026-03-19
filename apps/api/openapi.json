@@ -19232,6 +19232,21 @@
               "null",
               "string"
             ]
+          },
+          "isForOther": {
+            "type": "boolean"
+          },
+          "assigneeSceneName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assigneeStatus": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
