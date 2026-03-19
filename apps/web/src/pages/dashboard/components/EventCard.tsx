@@ -36,6 +36,12 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
   const isMobile = useMediaQuery('(max-width: 991px)')
   const eventTimeZone = useEventTimeZone();
 
+  // Assign modal state lifted to EventCard level so the modal renders OUTSIDE
+  // the Card element, preventing click propagation issues (clicks in the portaled
+  // modal were bubbling through React's synthetic event system to the Card's onClick).
+  const [assignModalTicket, setAssignModalTicket] = useState<AssignedTicketStatusDto | null>(null);
+  const [assignMode, setAssignMode] = useState<'assign' | 'reassign'>('assign');
+
   // Find volunteer shifts for this specific event, sorted by earliest shift first
   const eventVolunteerShifts = volunteerShifts
     .filter(shift => shift.eventId === event.id)
@@ -62,7 +68,9 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
   }
 
   // Handle card click with setTimeout pattern (see react-developer-lessons-learned.md)
+  // Skip navigation when an assign modal is open to prevent accidental navigation.
   const handleCardClick = () => {
+    if (assignModalTicket) return;
     setTimeout(() => {
       navigate(`/events/${event.id}`)
     }, 0)
@@ -77,6 +85,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
   }
 
   return (
+    <>
     <Card
       shadow={isMobile ? undefined : "sm"}
       padding="0"
@@ -356,6 +365,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
             eventId={event.id || ''}
             eventTitle={event.title || ''}
             isMobile={isMobile ?? false}
+            onOpenAssignModal={(ticket, mode) => {
+              setAssignModalTicket(ticket);
+              setAssignMode(mode);
+            }}
           />
         )}
 
@@ -459,6 +472,20 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
         )}
       </Stack>
     </Card>
+
+    {/* Assign modal rendered OUTSIDE the Card to prevent click propagation.
+        React synthetic events bubble through the component tree, not the DOM tree,
+        so a portaled modal inside a Card still triggers the Card's onClick. */}
+    {assignModalTicket && (
+      <AssignTicketModal
+        ticket={assignModalTicket}
+        eventId={event.id || ''}
+        eventTitle={event.title || ''}
+        mode={assignMode}
+        onClose={() => setAssignModalTicket(null)}
+      />
+    )}
+    </>
   )
 }
 
@@ -471,31 +498,26 @@ interface YourTicketsSectionProps {
   eventId: string
   eventTitle: string
   isMobile: boolean
+  /** Callback to open the assign modal — lifted to EventCard so the modal
+      renders outside the Card element and avoids click propagation issues. */
+  onOpenAssignModal: (ticket: AssignedTicketStatusDto, mode: 'assign' | 'reassign') => void
 }
 
 /**
  * Displays a "Your Tickets" section within the EventCard showing all tickets
  * the user purchased for this event with assignment status and action buttons.
  *
+ * The assign modal is managed by the parent EventCard (not here) to prevent
+ * click events in the portaled modal from propagating to the Card's onClick.
+ *
  * Design reference: ui-design.md Screen 5 - Dashboard My Tickets
  */
 const YourTicketsSection: React.FC<YourTicketsSectionProps> = ({
   tickets,
   eventId,
-  eventTitle,
   isMobile,
+  onOpenAssignModal,
 }) => {
-  const [assignModalTicket, setAssignModalTicket] = useState<AssignedTicketStatusDto | null>(null)
-  const [assignMode, setAssignMode] = useState<'assign' | 'reassign'>('assign')
-
-  const handleOpenAssign = useCallback((ticket: AssignedTicketStatusDto, mode: 'assign' | 'reassign') => {
-    setAssignModalTicket(ticket)
-    setAssignMode(mode)
-  }, [])
-
-  const handleCloseModal = useCallback(() => {
-    setAssignModalTicket(null)
-  }, [])
 
   return (
     <>
@@ -528,23 +550,12 @@ const YourTicketsSection: React.FC<YourTicketsSectionProps> = ({
               ticket={ticket}
               eventId={eventId}
               isMobile={isMobile}
-              onAssign={() => handleOpenAssign(ticket, 'assign')}
-              onReassign={() => handleOpenAssign(ticket, 'reassign')}
+              onAssign={() => onOpenAssignModal(ticket, 'assign')}
+              onReassign={() => onOpenAssignModal(ticket, 'reassign')}
             />
           ))}
         </Stack>
       </Box>
-
-      {/* Assign/Reassign Modal - renders outside the card click area */}
-      {assignModalTicket && (
-        <AssignTicketModal
-          ticket={assignModalTicket}
-          eventId={eventId}
-          eventTitle={eventTitle}
-          mode={assignMode}
-          onClose={handleCloseModal}
-        />
-      )}
     </>
   )
 }

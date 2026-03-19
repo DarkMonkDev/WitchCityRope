@@ -1315,7 +1315,18 @@ public class AttendanceService : IAttendanceService
                             ticketIndex, ticketType.Name, ticketPurchase.Id);
                     }
 
-                    // Create audit history
+                    // Create audit history.
+                    // For unassigned extras, no EventAttendance exists yet (created on assignment).
+                    // Skip the attendance-based audit for these — the TicketPurchase log above is sufficient.
+                    if (isUnassignedExtra)
+                    {
+                        _logger.LogInformation(
+                            "Prepared TicketPurchase {TicketPurchaseId} for unassigned '{TicketTypeName}' " +
+                            "(ticket {TicketIndex}/{TotalQuantity}, will be assigned later)",
+                            ticketPurchase.Id, ticketType.Name, ticketIndex + 1, selection.Quantity);
+                        continue; // Skip to next ticket — no attendance to audit
+                    }
+
                     var primaryAttendanceForTicket = allAttendances.LastOrDefault();
                     if (primaryAttendanceForTicket == null)
                     {
