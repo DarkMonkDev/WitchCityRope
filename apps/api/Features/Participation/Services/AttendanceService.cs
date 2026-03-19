@@ -1728,14 +1728,18 @@ public class AttendanceService : IAttendanceService
                 // Check if the user is the ASSIGNEE of these tickets (received from someone else).
                 // Assignees can "return" tickets — this reverts ownership to the original purchaser
                 // rather than triggering a refund. Like the decline flow but for accepted tickets.
+                // Find active ticket attendances where the current user is the attendee but
+                // the TicketPurchase belongs to someone else. This proves they received the ticket.
+                // Note: We don't require AssignedByUserId to be set — some tickets may have been
+                // assigned through paths that didn't populate this field (e.g., seeder data).
+                var unauthorizedPurchaseIds = unauthorizedPurchases.Select(p => p.Id).ToList();
                 var assigneeAttendances = await _context.EventAttendances
                     .Where(ea =>
                         ea.UserId == userId
                         && ea.Status == AttendanceStatus.Active
                         && ea.AttendanceType == AttendanceType.Ticket
                         && ea.TicketPurchaseId.HasValue
-                        && unauthorizedPurchases.Select(p => p.Id).Contains(ea.TicketPurchaseId.Value)
-                        && ea.AssignedByUserId.HasValue)
+                        && unauthorizedPurchaseIds.Contains(ea.TicketPurchaseId.Value))
                     .Include(ea => ea.TicketPurchase)
                     .ToListAsync(cancellationToken);
 
