@@ -1728,20 +1728,35 @@ public class AttendanceService : IAttendanceService
                 // Check if the user is the ASSIGNEE of these tickets (received from someone else).
                 // Assignees can "return" tickets — this reverts ownership to the original purchaser
                 // rather than triggering a refund. Like the decline flow but for accepted tickets.
-                // Find active ticket attendances where the current user is the attendee but
-                // the TicketPurchase belongs to someone else. This proves they received the ticket.
-                // Note: We don't require AssignedByUserId to be set — some tickets may have been
-                // assigned through paths that didn't populate this field (e.g., seeder data).
-                var unauthorizedPurchaseIds = unauthorizedPurchases.Select(p => p.Id).ToList();
-                var assigneeAttendances = await _context.EventAttendances
+                //
+                // We use the already-fetched attendancesToCancel list rather than re-querying,
+                // since that query already found active attendances for the user + these purchase IDs.
+                var unauthorizedPurchaseIds = unauthorizedPurchases.Select(p => p.Id).ToHashSet();
+                var assigneeAttendances = attendancesToCancel
                     .Where(ea =>
                         ea.UserId == userId
                         && ea.Status == AttendanceStatus.Active
                         && ea.AttendanceType == AttendanceType.Ticket
                         && ea.TicketPurchaseId.HasValue
                         && unauthorizedPurchaseIds.Contains(ea.TicketPurchaseId.Value))
-                    .Include(ea => ea.TicketPurchase)
-                    .ToListAsync(cancellationToken);
+                    .ToList();
+
+                // Need to load TicketPurchase nav property for the revert (it wasn't Included in attendancesToCancel)
+                if (assigneeAttendances.Count > 0)
+                {
+                    foreach (var ea in assigneeAttendances)
+                    {
+                        if (ea.TicketPurchase == null && ea.TicketPurchaseId.HasValue)
+                        {
+                            ea.TicketPurchase = ticketPurchases.FirstOrDefault(tp => tp.Id == ea.TicketPurchaseId.Value);
+                        }
+                    }
+                }
+
+                _logger.LogDebug(
+                    "Assignee return check: UserId={UserId}, UnauthorizedPurchases={UnauthorizedCount}, " +
+                    "AttendancesToCancel={AttendancesCount}, AssigneeMatches={AssigneeCount}",
+                    userId, unauthorizedPurchases.Count, attendancesToCancel.Count, assigneeAttendances.Count);
 
                 if (assigneeAttendances.Count == unauthorizedPurchases.Count)
                 {
