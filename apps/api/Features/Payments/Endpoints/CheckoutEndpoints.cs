@@ -176,7 +176,8 @@ public class CheckoutEndpoints : ControllerBase
                 PaymentMethodId = "authnet-pending",
                 Notes = $"Checkout {correlationId}",
                 Amount = request.Amount,
-                SlidingScalePercentage = request.SlidingScalePercentage
+                SlidingScalePercentage = request.SlidingScalePercentage,
+                BuyForOthersOnly = request.BuyForOthersOnly
             };
 
             var ticketResult = await _attendanceService.CreateTicketPurchaseAsync(
@@ -507,6 +508,12 @@ public class CheckoutRequest
     /// Backward compatible: if null/empty, falls back to TicketTypeIds (one per type).
     /// </summary>
     public List<TicketSelectionItem>? TicketSelections { get; set; }
+
+    /// <summary>
+    /// When true, all tickets are for other people (authorized contacts), not the purchaser.
+    /// Skips the purchaser's own session overlap check.
+    /// </summary>
+    public bool BuyForOthersOnly { get; set; }
 }
 
 public class CheckoutResponse

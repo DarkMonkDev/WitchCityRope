@@ -490,9 +490,20 @@ public class AttendanceService : IAttendanceService
                 }
             }
 
+            // Calculate CanBuyForOthers: user has a ticket AND there are purchasable ticket types
+            // with capacity remaining. Unlike CanPurchaseTicket (for self) or CanPurchaseAdditionalSessions
+            // (for sessions user doesn't own), this ignores what the user already owns because the
+            // tickets would be for other people via the BuyForOthersOnly checkout flow.
+            if (dto.HasTicket && dto.Capacity.Available > 0)
+            {
+                // Check if any ticket type has remaining capacity
+                dto.CanBuyForOthers = dto.CanPurchaseTicket || dto.CanPurchaseAdditionalSessions
+                    || eventEntity.TicketTypes.Any(tt => tt.Remaining > 0);
+            }
+
             _logger.LogInformation(
-                "Attendance status for user {UserId} in event {EventId}: HasRSVP={HasRSVP}, HasTicket={HasTicket}, CanRSVP={CanRSVP}, CanCancelRSVP={CanCancelRSVP}, CanCancelTicket={CanCancelTicket}, Capacity={Current}/{Total}",
-                userId, eventId, dto.HasRSVP, dto.HasTicket, dto.CanRSVP, dto.CanCancelRSVP, dto.CanCancelTicket, dto.Capacity.Current, dto.Capacity.Total);
+                "Attendance status for user {UserId} in event {EventId}: HasRSVP={HasRSVP}, HasTicket={HasTicket}, CanRSVP={CanRSVP}, CanCancelRSVP={CanCancelRSVP}, CanCancelTicket={CanCancelTicket}, CanBuyForOthers={CanBuyForOthers}, Capacity={Current}/{Total}",
+                userId, eventId, dto.HasRSVP, dto.HasTicket, dto.CanRSVP, dto.CanCancelRSVP, dto.CanCancelTicket, dto.CanBuyForOthers, dto.Capacity.Current, dto.Capacity.Total);
 
             return Result<EnhancedParticipationStatusDto?>.Success(dto);
         }
@@ -881,30 +892,41 @@ public class AttendanceService : IAttendanceService
                 }
             }
 
-            // Check if purchaser already has a ticket for ANY of these sessions
-            // Include PendingPayment and PendingAcceptance to prevent duplicate purchases
-            var overlappingAttendance = await _context.EventAttendances
-                .AsNoTracking()
-                .Where(ea =>
-                    ea.UserId == userId &&
-                    (ea.Status == AttendanceStatus.Active ||
-                     ea.Status == AttendanceStatus.PendingPayment ||
-                     ea.Status == AttendanceStatus.PendingAcceptance) &&
-                    ea.AttendanceType == AttendanceType.Ticket &&
-                    ea.SessionId.HasValue &&
-                    allRequestedSessionIds.Contains(ea.SessionId.Value))
-                .Include(ea => ea.Session)
-                .Include(ea => ea.TicketPurchase)
-                    .ThenInclude(tp => tp != null ? tp.TicketType : null)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (overlappingAttendance != null)
+            // Check if purchaser already has a ticket for ANY of these sessions.
+            // SKIP this check when BuyForOthersOnly=true because the purchaser is NOT getting
+            // a ticket for themselves - they're buying exclusively for their authorized contacts.
+            // Each assignee still gets their own overlap check in the assignee validation below.
+            if (!request.BuyForOthersOnly)
             {
-                var overlappingSessionName = overlappingAttendance.Session?.Name ?? "a session";
-                var existingTicketName = overlappingAttendance.TicketPurchase?.TicketType?.Name ?? "an existing ticket";
+                var overlappingAttendance = await _context.EventAttendances
+                    .AsNoTracking()
+                    .Where(ea =>
+                        ea.UserId == userId &&
+                        (ea.Status == AttendanceStatus.Active ||
+                         ea.Status == AttendanceStatus.PendingPayment ||
+                         ea.Status == AttendanceStatus.PendingAcceptance) &&
+                        ea.AttendanceType == AttendanceType.Ticket &&
+                        ea.SessionId.HasValue &&
+                        allRequestedSessionIds.Contains(ea.SessionId.Value))
+                    .Include(ea => ea.Session)
+                    .Include(ea => ea.TicketPurchase)
+                        .ThenInclude(tp => tp != null ? tp.TicketType : null)
+                    .FirstOrDefaultAsync(cancellationToken);
 
-                return Result<ParticipationStatusDto>.Failure(
-                    $"You already have a ticket that includes the {overlappingSessionName} session ({existingTicketName})");
+                if (overlappingAttendance != null)
+                {
+                    var overlappingSessionName = overlappingAttendance.Session?.Name ?? "a session";
+                    var existingTicketName = overlappingAttendance.TicketPurchase?.TicketType?.Name ?? "an existing ticket";
+
+                    return Result<ParticipationStatusDto>.Failure(
+                        $"You already have a ticket that includes the {overlappingSessionName} session ({existingTicketName})");
+                }
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "BuyForOthersOnly=true: Skipping purchaser overlap check for user {UserId} in event {EventId}",
+                    userId, request.EventId);
             }
 
             // ============================================================================
@@ -1015,15 +1037,17 @@ public class AttendanceService : IAttendanceService
                 for (var ticketIndex = 0; ticketIndex < selection.Quantity; ticketIndex++)
                 {
                     // Determine who this ticket is for:
-                    // Index 0 = purchaser's own ticket
-                    // Index 1+ = check assignees list (assignee index = ticketIndex - 1)
-                    var isForPurchaser = ticketIndex == 0;
+                    // Normal mode: Index 0 = purchaser's own ticket, Index 1+ = assignees
+                    // BuyForOthersOnly mode: ALL indexes are for assignees (purchaser gets nothing)
+                    var isForPurchaser = !request.BuyForOthersOnly && ticketIndex == 0;
                     Guid? assigneeId = null;
 
                     if (!isForPurchaser && selection.Assignees != null)
                     {
-                        var assigneeIndex = ticketIndex - 1;
-                        if (assigneeIndex < selection.Assignees.Count)
+                        // In BuyForOthersOnly mode, assignee index matches ticket index directly
+                        // In normal mode, assignee index is offset by 1 (ticket 0 = purchaser)
+                        var assigneeIndex = request.BuyForOthersOnly ? ticketIndex : ticketIndex - 1;
+                        if (assigneeIndex >= 0 && assigneeIndex < selection.Assignees.Count)
                         {
                             assigneeId = selection.Assignees[assigneeIndex];
                         }
@@ -1168,9 +1192,10 @@ public class AttendanceService : IAttendanceService
             // EventAttendee (check-in system) creation is deferred to ActivateAttendanceForPurchasesAsync
             // which is called after payment is confirmed. This prevents unpaid users from appearing in check-in.
 
-            // Auto-RSVP for events that allow RSVPs - ONLY for the purchaser's own tickets
-            // Assigned tickets get their auto-RSVP when the assignee accepts (handled by TicketAssignmentService)
-            if (eventEntity.AllowRsvps)
+            // Auto-RSVP for events that allow RSVPs - ONLY for the purchaser's own tickets.
+            // Assigned tickets get their auto-RSVP when the assignee accepts (handled by TicketAssignmentService).
+            // BuyForOthersOnly: Skip auto-RSVP because the purchaser is NOT attending - they're buying for others.
+            if (eventEntity.AllowRsvps && !request.BuyForOthersOnly)
             {
                 var existingRsvp = await _context.EventAttendances
                     .FirstOrDefaultAsync(ea =>

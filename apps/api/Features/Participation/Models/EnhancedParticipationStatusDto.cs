@@ -93,6 +93,14 @@ public class EnhancedParticipationStatusDto
     public bool CanPurchaseAdditionalSessions { get; set; }
 
     /// <summary>
+    /// Whether user can buy tickets for other people (authorized contacts).
+    /// True when: user already has a ticket AND there are purchasable ticket types
+    /// with available capacity within timing windows. Distinct from CanPurchaseTicket
+    /// (which checks if user can buy for themselves).
+    /// </summary>
+    public bool CanBuyForOthers { get; set; }
+
+    /// <summary>
     /// Per-session availability information (for multi-session events)
     /// </summary>
     public List<SessionAvailabilityDto> SessionAvailability { get; set; } = new();

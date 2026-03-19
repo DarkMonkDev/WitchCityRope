@@ -60,6 +60,18 @@ public class CreateTicketPurchaseRequest
     /// Backward compatible: if null/empty, falls back to TicketTypeIds (one per type).
     /// </summary>
     public List<TicketSelectionItem>? TicketSelections { get; set; }
+
+    /// <summary>
+    /// When true, ALL tickets in this purchase are for other people (assignees), NOT the purchaser.
+    /// Used when a user who already has a ticket wants to buy additional tickets for their
+    /// authorized contacts. Changes behavior:
+    /// - Skips the purchaser's session overlap check (they already have a ticket, that's fine)
+    /// - Ticket index 0 is treated as an assignee ticket, not the purchaser's ticket
+    /// - No auto-RSVP created for the purchaser
+    /// - Assignees are read from Assignees[0..N-1] instead of Assignees[0..N-2]
+    /// Default: false (standard flow where ticket 0 is for the purchaser)
+    /// </summary>
+    public bool BuyForOthersOnly { get; set; }
 }
 
 /// <summary>
@@ -82,10 +94,13 @@ public class TicketSelectionItem
     public int Quantity { get; set; } = 1;
 
     /// <summary>
-    /// Optional per-ticket assignees. Length must be less than or equal to Quantity - 1.
-    /// First ticket is always for the purchaser. Remaining can be assigned.
-    /// Null entries in the list = "assign later" (ticket stays with purchaser).
-    /// Null/empty list = all tickets are for the purchaser (or assign later).
+    /// Optional per-ticket assignees.
+    /// Normal mode (BuyForOthersOnly=false): Length &lt;= Quantity - 1. First ticket is for purchaser.
+    ///   Assignees[0] = second ticket, Assignees[1] = third ticket, etc.
+    /// Buy-for-others mode (BuyForOthersOnly=true): Length &lt;= Quantity. ALL tickets are assignable.
+    ///   Assignees[0] = first ticket, Assignees[1] = second ticket, etc.
+    /// Null entries = "assign later" (ticket has no EventAttendance until assigned from dashboard).
+    /// Null/empty list = all tickets unassigned.
     /// </summary>
     public List<Guid?>? Assignees { get; set; }
 }

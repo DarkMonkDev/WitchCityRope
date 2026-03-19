@@ -183,7 +183,8 @@ public class PayPalCheckoutController : ControllerBase
                 PaymentMethodId = "paypal-pending",
                 Notes = $"PayPal Checkout {correlationId}",
                 Amount = request.Amount,
-                SlidingScalePercentage = slidingScalePercentage
+                SlidingScalePercentage = slidingScalePercentage,
+                BuyForOthersOnly = request.BuyForOthersOnly
             };
 
             var ticketResult = await _attendanceService.CreateTicketPurchaseAsync(
@@ -603,6 +604,11 @@ public class PayPalCheckoutCreateOrderRequest
     /// Backward compatible: if null/empty, falls back to TicketTypeIds (one per type).
     /// </summary>
     public List<TicketSelectionItem>? TicketSelections { get; set; }
+
+    /// <summary>
+    /// When true, all tickets are for other people, not the purchaser.
+    /// </summary>
+    public bool BuyForOthersOnly { get; set; }
 }
 
 public class PayPalCheckoutCreateOrderResponse
