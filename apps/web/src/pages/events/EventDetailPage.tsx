@@ -650,6 +650,8 @@ export const EventDetailPage: React.FC = () => {
               eventTitle={event.title || 'Event'}
               allowRsvps={allowRsvps}
               isAuthenticated={isAuthenticated}
+              vettedMembersOnly={vettedMembersOnly}
+              isVetted={isVetted}
             />
           </Box>
         </Box>
