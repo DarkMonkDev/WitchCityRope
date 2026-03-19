@@ -176,6 +176,11 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
         onChange={setSearchValue}
         onOptionSubmit={handleSelect}
         data={autocompleteData}
+        // Disable client-side filtering - the API already filters by scene name,
+        // email, FetLife, and Discord. Mantine's default filter would hide results
+        // where the scene name doesn't match the query (e.g., searching "rope" finds
+        // a user by email but their scene name is "Bee" - without this, Mantine hides it).
+        filter={({ options }) => options}
         error={inlineError}
         rightSection={
           isSearching || addContactMutation.isPending ? (
