@@ -6446,6 +6446,9 @@ export interface components {
             totalPrice?: number;
             canCancel?: boolean;
             cancellationMessage?: null | string;
+            isForOther?: boolean;
+            assigneeSceneName?: null | string;
+            assigneeStatus?: null | string;
         };
         TicketSelectionItem: {
             /** Format: uuid */

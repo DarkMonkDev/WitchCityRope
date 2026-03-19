@@ -630,7 +630,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       {/* Get ticket purchases from the map */}
                       {(() => {
                         // Use ticketPurchases (includes ticket type name) if available, fall back to ticketPurchaseSessionMap
-                        const ticketPurchases = (validParticipation as any)?.ticketPurchases as Record<string, { ticketTypeName: string; sessionIds: string[]; canCancel?: boolean; cancellationMessage?: string | null }> | undefined;
+                        const ticketPurchases = (validParticipation as any)?.ticketPurchases as Record<string, { ticketTypeName: string; sessionIds: string[]; canCancel?: boolean; cancellationMessage?: string | null; isForOther?: boolean; assigneeSceneName?: string | null; assigneeStatus?: string | null }> | undefined;
                         const ticketPurchaseMap = (validParticipation as any)?.ticketPurchaseSessionMap as Record<string, string[]> | undefined;
                         debugLog('🎫 Cancel Mode - ticketPurchases:', ticketPurchases);
                         debugLog('🎫 Cancel Mode - ticketPurchaseMap:', ticketPurchaseMap);
@@ -653,18 +653,24 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                               sessionIds: info.sessionIds,
                               ticketTypeName: info.ticketTypeName,
                               canCancel: info.canCancel !== false, // Default to true if not specified
-                              cancellationMessage: info.cancellationMessage || null
+                              cancellationMessage: info.cancellationMessage || null,
+                              isForOther: info.isForOther || false,
+                              assigneeSceneName: info.assigneeSceneName || null,
+                              assigneeStatus: info.assigneeStatus || null
                             }))
                           : Object.entries(ticketPurchaseMap || {}).map(([id, sessionIds]) => ({
                               ticketPurchaseId: id,
                               sessionIds,
                               ticketTypeName: null as string | null,
                               canCancel: true, // Legacy data without the new field - assume cancelable
-                              cancellationMessage: null as string | null
+                              cancellationMessage: null as string | null,
+                              isForOther: false,
+                              assigneeSceneName: null as string | null,
+                              assigneeStatus: null as string | null
                             }));
 
                         // Render each ticket purchase as a selectable item
-                        return purchaseEntries.map(({ ticketPurchaseId, sessionIds, ticketTypeName, canCancel, cancellationMessage }) => {
+                        return purchaseEntries.map(({ ticketPurchaseId, sessionIds, ticketTypeName, canCancel, cancellationMessage, isForOther, assigneeSceneName, assigneeStatus }) => {
                           const ticketSessions = eventSessions?.filter(s => sessionIds.includes(s.id || '')) || [];
                           const isSelected = selectedTicketPurchaseIds.includes(ticketPurchaseId);
 
@@ -696,7 +702,21 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                                   mt={2}
                                 />
                                 <Box style={{ flex: 1 }}>
-                                  <Text size="sm" fw={500}>{ticketName}</Text>
+                                  <Group gap="xs" align="center" wrap="wrap">
+                                    <Text size="sm" fw={500}>{ticketName}</Text>
+                                    {isForOther && (
+                                      <Text size="xs" c="dimmed" span>
+                                        — {assigneeSceneName ? `For: ${assigneeSceneName}` : 'Unassigned'}
+                                      </Text>
+                                    )}
+                                    {isForOther && assigneeStatus && (
+                                      <TicketStatusBadge
+                                        status={assigneeStatus}
+                                        isOwnTicket={false}
+                                        assigneeSceneName={assigneeSceneName || undefined}
+                                      />
+                                    )}
+                                  </Group>
                                   {/* Show cancellation message if ticket can't be cancelled */}
                                   {!canCancel && cancellationMessage && (
                                     <Text size="xs" c="red" mt={4}>
@@ -751,8 +771,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                     <>
                       <Stack gap="md">
                         {(() => {
-                          // Get ticket purchases dictionary (includes ticket type name and price)
-                          const ticketPurchases = validParticipation?.ticketPurchases as Record<string, { ticketTypeName?: string; sessionIds?: string[]; totalPrice?: number }> | undefined;
+                          // Get ticket purchases dictionary (includes ticket type name, price, and for-others info)
+                          const ticketPurchases = validParticipation?.ticketPurchases as Record<string, { ticketTypeName?: string; sessionIds?: string[]; totalPrice?: number; isForOther?: boolean; assigneeSceneName?: string | null; assigneeStatus?: string | null }> | undefined;
 
                           // If ticketPurchases exists and has entries, show grouped by purchase
                           if (ticketPurchases && Object.keys(ticketPurchases).length > 0) {
@@ -767,8 +787,22 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                                   <Group gap="xs" align="flex-start">
                                     <IconTicket size={16} color="#6B0119" style={{ marginTop: 2, flexShrink: 0 }} />
                                     <Box style={{ flex: 1 }}>
-                                      <Group justify="space-between" align="center">
-                                        <Text size="sm" fw={500}>{ticketName}</Text>
+                                      <Group justify="space-between" align="center" wrap="wrap">
+                                        <Group gap="xs" align="center" wrap="wrap">
+                                          <Text size="sm" fw={500}>{ticketName}</Text>
+                                          {purchase.isForOther && (
+                                            <Text size="xs" c="dimmed" span>
+                                              — {purchase.assigneeSceneName ? `For: ${purchase.assigneeSceneName}` : 'Unassigned'}
+                                            </Text>
+                                          )}
+                                          {purchase.isForOther && purchase.assigneeStatus && (
+                                            <TicketStatusBadge
+                                              status={purchase.assigneeStatus}
+                                              isOwnTicket={false}
+                                              assigneeSceneName={purchase.assigneeSceneName || undefined}
+                                            />
+                                          )}
+                                        </Group>
                                         {purchase.totalPrice != null && purchase.totalPrice > 0 && (
                                           <Text size="sm" fw={600} c="#880124">${purchase.totalPrice.toFixed(2)}</Text>
                                         )}
