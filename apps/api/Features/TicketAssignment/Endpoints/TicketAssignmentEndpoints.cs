@@ -380,6 +380,73 @@ public static class TicketAssignmentEndpoints
             .Produces(500);
 
         // ============================================================================
+        // POST /api/tickets/{ticketPurchaseId}/assign
+        // Assign an unassigned "assign later" ticket to an authorized contact.
+        // These tickets have a TicketPurchase but no EventAttendance yet.
+        // Creates EventAttendance records during assignment.
+        // ============================================================================
+        app.MapPost("/api/tickets/{ticketPurchaseId:guid}/assign",
+            [Authorize] async (
+                HttpContext context,
+                IAntiforgery antiforgery,
+                Guid ticketPurchaseId,
+                AssignTicketRequest request,
+                ITicketAssignmentService assignmentService,
+                ClaimsPrincipal user,
+                CancellationToken cancellationToken) =>
+            {
+                // CSRF validation
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
+                if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                {
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
+                }
+
+                var result = await assignmentService.AssignUnassignedTicketAsync(
+                    ticketPurchaseId, userId, request.AssignToUserId, cancellationToken);
+
+                if (result.IsSuccess)
+                    return Results.Ok(result.Value);
+
+                var error = result.Error ?? "Assignment failed";
+                var statusCode = error.Contains("not found", StringComparison.OrdinalIgnoreCase) ? 404
+                    : error.Contains("not authorized", StringComparison.OrdinalIgnoreCase) ? 403
+                    : error.Contains("already", StringComparison.OrdinalIgnoreCase) ? 409
+                    : error.Contains("vetting", StringComparison.OrdinalIgnoreCase) ? 403
+                    : 400;
+
+                return Results.Problem(
+                    title: "Assignment Failed",
+                    detail: result.Details ?? error,
+                    statusCode: statusCode);
+            })
+            .RequireAuthorization()
+            .WithName("AssignUnassignedTicket")
+            .WithSummary("Assign an unassigned 'assign later' ticket to an authorized contact")
+            .WithDescription("For tickets purchased with 'Assign later' that have no EventAttendance yet. Creates attendance records and sets PendingAcceptance status.")
+            .WithTags("TicketAssignment")
+            .Produces<TicketAssignmentDto>(200)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(409);
+
+        // ============================================================================
         // EP-18: POST /api/admin/events/{eventId}/assign-ticket
         // Admin assigns a comp ticket to any user (bypasses authorized contacts)
         // ============================================================================

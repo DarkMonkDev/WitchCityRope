@@ -37,6 +37,7 @@ const getRecipientGroupLabel = (group?: EventRecipientGroup): string => {
     RSVPTicketHolders: 'RSVP/Ticket Holders',
     SessionVolunteers: 'Session Volunteers',
     Teachers: 'Teachers',
+    PendingAssignmentHolders: 'Pending Assignment Holders',
   };
 
   return labels[group];

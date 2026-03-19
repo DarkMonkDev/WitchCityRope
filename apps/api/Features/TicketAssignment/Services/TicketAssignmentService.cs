@@ -644,6 +644,189 @@ public class TicketAssignmentService : ITicketAssignmentService
     }
 
     /// <inheritdoc />
+    public async Task<Result<TicketAssignmentDto>> AssignUnassignedTicketAsync(
+        Guid ticketPurchaseId, Guid callerUserId, Guid assignToUserId, CancellationToken ct)
+    {
+        try
+        {
+            _logger.LogInformation(
+                "Assigning unassigned ticket: TicketPurchaseId={TicketPurchaseId}, CallerUserId={CallerUserId}, AssignToUserId={AssignToUserId}",
+                ticketPurchaseId, callerUserId, assignToUserId);
+
+            // 1. Load the TicketPurchase with TicketType and Sessions
+            var ticketPurchase = await _context.TicketPurchases
+                .Include(tp => tp.TicketType)
+                    .ThenInclude(tt => tt!.Sessions)
+                .Include(tp => tp.TicketType)
+                    .ThenInclude(tt => tt!.Event)
+                .FirstOrDefaultAsync(tp => tp.Id == ticketPurchaseId, ct);
+
+            if (ticketPurchase == null)
+            {
+                return Result<TicketAssignmentDto>.Failure(
+                    "Ticket not found",
+                    "The specified ticket purchase does not exist");
+            }
+
+            // 2. Verify the caller is the purchaser
+            if (ticketPurchase.UserId != callerUserId)
+            {
+                return Result<TicketAssignmentDto>.Failure(
+                    "Not authorized",
+                    "You can only assign tickets you purchased");
+            }
+
+            // 3. Verify no EventAttendance exists yet (truly unassigned)
+            var hasAttendance = await _context.EventAttendances
+                .AnyAsync(ea => ea.TicketPurchaseId == ticketPurchaseId, ct);
+
+            if (hasAttendance)
+            {
+                return Result<TicketAssignmentDto>.Failure(
+                    "Ticket already assigned",
+                    "This ticket already has an attendance record. Use the standard assign endpoint.");
+            }
+
+            // 4. Check authorized delegate (BR-020)
+            var isAuthorized = await _authorizedContactService.IsAuthorizedDelegateAsync(
+                assignToUserId, callerUserId, ct);
+
+            if (!isAuthorized)
+            {
+                return Result<TicketAssignmentDto>.Failure(
+                    "Not authorized by contact",
+                    "The target user has not authorized you to assign tickets on their behalf");
+            }
+
+            // 5. Check vetting for VettedMembersOnly events (BR-035)
+            var eventEntity = ticketPurchase.TicketType?.Event;
+            if (eventEntity != null && eventEntity.VettedMembersOnly)
+            {
+                var assignee = await _context.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == assignToUserId, ct);
+
+                if (assignee == null || !assignee.IsVetted)
+                {
+                    return Result<TicketAssignmentDto>.Failure(
+                        "Vetting required",
+                        "This event is limited to vetted members only");
+                }
+            }
+
+            // 6. Check assignee doesn't already have tickets for overlapping sessions (BR-012)
+            var sessionIds = ticketPurchase.TicketType?.Sessions.Select(s => s.Id).ToList() ?? new List<Guid>();
+            if (sessionIds.Count > 0)
+            {
+                var assigneeOverlap = await _context.EventAttendances
+                    .AsNoTracking()
+                    .AnyAsync(ea =>
+                        ea.UserId == assignToUserId
+                        && (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingAcceptance)
+                        && ea.AttendanceType == AttendanceType.Ticket
+                        && ea.SessionId.HasValue
+                        && sessionIds.Contains(ea.SessionId.Value), ct);
+
+                if (assigneeOverlap)
+                {
+                    return Result<TicketAssignmentDto>.Failure(
+                        "Duplicate ticket",
+                        "The target user already has a ticket for overlapping sessions in this event");
+                }
+            }
+
+            // 7. Create EventAttendance records for each session (PendingAcceptance)
+            var eventId = ticketPurchase.TicketType?.Event?.Id ?? Guid.Empty;
+            EventAttendance? primaryAttendance = null;
+
+            foreach (var session in ticketPurchase.TicketType?.Sessions ?? Enumerable.Empty<Session>())
+            {
+                var attendance = new EventAttendance(eventId, assignToUserId, AttendanceType.Ticket)
+                {
+                    SessionId = session.Id,
+                    TicketPurchaseId = ticketPurchase.Id,
+                    Status = AttendanceStatus.PendingAcceptance,
+                    AssignedByUserId = callerUserId,
+                    AssignedAt = DateTime.UtcNow,
+                    EventWaiverAccepted = false,
+                    CreatedBy = callerUserId
+                };
+
+                _context.EventAttendances.Add(attendance);
+                primaryAttendance ??= attendance;
+            }
+
+            // If ticket type has no sessions (event-level), create one event-level attendance
+            if (primaryAttendance == null)
+            {
+                primaryAttendance = new EventAttendance(eventId, assignToUserId, AttendanceType.Ticket)
+                {
+                    TicketPurchaseId = ticketPurchase.Id,
+                    Status = AttendanceStatus.PendingAcceptance,
+                    AssignedByUserId = callerUserId,
+                    AssignedAt = DateTime.UtcNow,
+                    EventWaiverAccepted = false,
+                    CreatedBy = callerUserId
+                };
+                _context.EventAttendances.Add(primaryAttendance);
+            }
+
+            // 8. Update TicketPurchase to record the intended recipient
+            ticketPurchase.PurchasedForUserId = assignToUserId;
+            ticketPurchase.UpdatedAt = DateTime.UtcNow;
+
+            // 9. Create audit history
+            var history = new AttendanceHistory(primaryAttendance.Id, "TicketAssigned")
+            {
+                NewValues = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    TicketPurchaseId = ticketPurchase.Id,
+                    AssignedTo = assignToUserId,
+                    AssignedBy = callerUserId,
+                    FromUnassigned = true,
+                    SessionCount = sessionIds.Count
+                }),
+                ChangedBy = callerUserId,
+                ChangeReason = "Unassigned ticket assigned from dashboard (UC-007)"
+            };
+            _context.AttendanceHistory.Add(history);
+
+            await _context.SaveChangesAsync(ct);
+
+            _logger.LogInformation(
+                "Unassigned ticket {TicketPurchaseId} assigned to {AssignToUserId} by {CallerUserId}. " +
+                "Created {SessionCount} EventAttendance records in PendingAcceptance.",
+                ticketPurchaseId, assignToUserId, callerUserId, sessionIds.Count);
+
+            // Build response DTO
+            var assigneeUser = await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == assignToUserId, ct);
+
+            return Result<TicketAssignmentDto>.Success(new TicketAssignmentDto
+            {
+                AttendanceId = primaryAttendance.Id,
+                EventId = eventId,
+                EventTitle = eventEntity?.Title ?? string.Empty,
+                TicketTypeName = ticketPurchase.TicketType?.Name ?? string.Empty,
+                Status = "PendingAcceptance",
+                AssignedToUserId = assignToUserId,
+                AssignedToSceneName = assigneeUser?.SceneName,
+                AssignedByUserId = callerUserId,
+                AssignedAt = primaryAttendance.AssignedAt,
+                CreatedAt = primaryAttendance.CreatedAt
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error assigning unassigned ticket {TicketPurchaseId} to {AssignToUserId}",
+                ticketPurchaseId, assignToUserId);
+            return Result<TicketAssignmentDto>.Failure(
+                "Assignment failed",
+                ex.Message);
+        }
+    }
+
+    /// <inheritdoc />
     public async Task<Result<List<PendingAssignmentDto>>> GetPendingAssignmentsAsync(
         Guid userId, CancellationToken ct)
     {

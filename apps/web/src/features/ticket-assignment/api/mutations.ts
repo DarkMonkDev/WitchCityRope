@@ -27,7 +27,7 @@ import type {
 
 /**
  * Assign a ticket to an authorized contact (post-purchase).
- * Used when a purchaser wants to assign an unassigned ticket from their dashboard.
+ * Used when a purchaser wants to assign a ticket that already has an EventAttendance record.
  *
  * EP-08: POST /api/events/{eventId}/tickets/{attendanceId}/assign
  */
@@ -43,15 +43,40 @@ export function useAssignTicket(eventId: string, attendanceId: string) {
       return response.data
     },
     onSuccess: () => {
-      // Invalidate both pending and assigned queries
       queryClient.invalidateQueries({ queryKey: ticketAssignmentKeys.all })
-      // Also invalidate the user events query (dashboard may show updated status)
       queryClient.invalidateQueries({ queryKey: ['user-events'] })
-      // Invalidate event detail for capacity updates
       queryClient.invalidateQueries({ queryKey: queryKeys.event(eventId) })
     },
     onError: (error: Error) => {
       console.error('Failed to assign ticket:', error)
+    },
+  })
+}
+
+/**
+ * Assign an unassigned "assign later" ticket by TicketPurchaseId.
+ * These tickets only have a TicketPurchase record (no EventAttendance yet).
+ * The backend creates EventAttendance records during assignment.
+ *
+ * POST /api/tickets/{ticketPurchaseId}/assign
+ */
+export function useAssignUnassignedTicket(ticketPurchaseId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation<TicketAssignmentDto, Error, AssignTicketRequest>({
+    mutationFn: async (data: AssignTicketRequest): Promise<TicketAssignmentDto> => {
+      const response = await apiClient.post(
+        `/api/tickets/${ticketPurchaseId}/assign`,
+        data
+      )
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ticketAssignmentKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['user-events'] })
+    },
+    onError: (error: Error) => {
+      console.error('Failed to assign unassigned ticket:', error)
     },
   })
 }

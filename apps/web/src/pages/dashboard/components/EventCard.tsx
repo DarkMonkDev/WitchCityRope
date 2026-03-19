@@ -8,7 +8,7 @@ import type { AssignedTicketStatusDto, AssignTicketRequest } from '../../../feat
 import type { VolunteerShiftWithEvent } from '../../../components/dashboard/UserVolunteerShifts'
 import { TicketStatusBadge } from '../../../features/ticket-assignment/components/TicketStatusBadge'
 import { AssignTicketDropdown } from '../../../features/ticket-assignment/components/AssignTicketDropdown'
-import { useAssignTicket, useReassignTicket } from '../../../features/ticket-assignment/api/mutations'
+import { useAssignTicket, useAssignUnassignedTicket, useReassignTicket } from '../../../features/ticket-assignment/api/mutations'
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone'
 import { formatUtcTimeRange, formatUtcToLocalDate, formatUtcToLocalTime } from '../../../utils/eventUtils'
 
@@ -737,12 +737,21 @@ const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
   onClose,
 }) => {
   const attendanceId = ticket.attendanceId || ''
+  const ticketPurchaseId = ticket.ticketPurchaseId || ''
+  // "Assign later" tickets have no attendanceId (Guid.Empty from backend)
+  const isUnassignedTicket = ticket.isUnassigned === true && (!attendanceId || attendanceId === '00000000-0000-0000-0000-000000000000')
 
+  // Use the appropriate mutation hook based on whether the ticket has an attendance record
   const assignMutation = useAssignTicket(eventId, attendanceId)
+  const unassignedMutation = useAssignUnassignedTicket(ticketPurchaseId)
   const reassignMutation = useReassignTicket(eventId, attendanceId)
 
-  const isPending = mode === 'reassign' ? reassignMutation.isPending : assignMutation.isPending
-  const isSuccess = mode === 'reassign' ? reassignMutation.isSuccess : assignMutation.isSuccess
+  const activeMutation = mode === 'reassign' ? reassignMutation
+    : isUnassignedTicket ? unassignedMutation
+    : assignMutation
+
+  const isPending = activeMutation.isPending
+  const isSuccess = activeMutation.isSuccess
 
   // Close modal on successful mutation
   useEffect(() => {
@@ -753,13 +762,8 @@ const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
 
   const handleAssign = useCallback((userId: string) => {
     const request: AssignTicketRequest = { assignToUserId: userId }
-
-    if (mode === 'reassign') {
-      reassignMutation.mutate(request)
-    } else {
-      assignMutation.mutate(request)
-    }
-  }, [mode, assignMutation, reassignMutation])
+    activeMutation.mutate(request)
+  }, [activeMutation])
 
   return (
     <AssignTicketDropdown

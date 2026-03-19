@@ -86,6 +86,20 @@ public interface ITicketAssignmentService
         Guid userId, CancellationToken ct);
 
     /// <summary>
+    /// Assigns an unassigned "assign later" ticket by TicketPurchaseId.
+    /// These tickets only have a TicketPurchase record (no EventAttendance yet).
+    /// This method creates the EventAttendance records for each session and assigns
+    /// them to the specified user in PendingAcceptance status.
+    /// Used when purchaser clicks "Assign" on an unassigned ticket from the dashboard.
+    /// </summary>
+    /// <param name="ticketPurchaseId">The TicketPurchase to assign</param>
+    /// <param name="callerUserId">The authenticated user (must be the purchaser)</param>
+    /// <param name="assignToUserId">The user to assign the ticket to</param>
+    /// <param name="ct">Cancellation token</param>
+    Task<Result<TicketAssignmentDto>> AssignUnassignedTicketAsync(
+        Guid ticketPurchaseId, Guid callerUserId, Guid assignToUserId, CancellationToken ct);
+
+    /// <summary>
     /// Gets assigned ticket status for the purchaser's dashboard (EP-17).
     /// Returns tickets the current user purchased that were assigned to others,
     /// including current status and whether reassignment is possible.
