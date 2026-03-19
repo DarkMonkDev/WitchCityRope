@@ -178,7 +178,7 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
     >
       <Autocomplete
         ref={inputRef}
-        label="Search by scene name, email, FetLife name, or Discord name"
+        label="Search by scene name, email, FetLife name, or Discord name (first 10 results shown)"
         placeholder="Type at least 2 characters..."
         value={searchValue}
         onChange={setSearchValue}

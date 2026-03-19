@@ -254,7 +254,11 @@ public class AuthorizedContactService : IAuthorizedContactService
                         || (u.Email != null && EF.Functions.ILike(u.Email, searchPattern))
                         || (u.FetLifeName != null && EF.Functions.ILike(u.FetLifeName, searchPattern))
                         || (u.DiscordName != null && EF.Functions.ILike(u.DiscordName, searchPattern))))
-                .OrderBy(u => u.SceneName)
+                // Prioritize scene name matches first, then matches from other fields.
+                // Users most likely search by scene name, so those should appear at the top.
+                // Within each group, sort alphabetically by scene name.
+                .OrderBy(u => EF.Functions.ILike(u.SceneName!, searchPattern) ? 0 : 1)
+                .ThenBy(u => u.SceneName)
                 .Take(10)
                 // AD-009: Only return scene name - do NOT expose email, FetLife, or Discord
                 // in the results. The search fields are for matching only.
