@@ -135,10 +135,13 @@ public class AttendanceService : IAttendanceService
                 .Select(ea => new {
                     ea.SessionId,
                     ea.TicketPurchaseId,
+                    ea.AssignedByUserId,
                     TicketTypeName = ea.TicketPurchase != null && ea.TicketPurchase.TicketType != null
                         ? ea.TicketPurchase.TicketType.Name
                         : null,
-                    TotalPrice = ea.TicketPurchase != null ? ea.TicketPurchase.TotalPrice : 0m
+                    TotalPrice = ea.TicketPurchase != null ? ea.TicketPurchase.TotalPrice : 0m,
+                    // Track whether the ticket was purchased by someone else (assigned to current user)
+                    PurchaserUserId = ea.TicketPurchase != null ? ea.TicketPurchase.UserId : (Guid?)null
                 })
                 .ToListAsync(cancellationToken);
 
@@ -173,6 +176,20 @@ public class AttendanceService : IAttendanceService
                     .Where(tp => ticketPurchaseIds.Contains(tp.Id))
                     .ToListAsync(cancellationToken)
                 : new List<TicketPurchase>();
+
+            // Resolve AssignedByUserId -> SceneName for tickets assigned to the current user.
+            // This allows the frontend to show "From: SceneName" on received tickets.
+            var assignedByUserIds = userTicketAttendanceData
+                .Where(x => x.AssignedByUserId.HasValue)
+                .Select(x => x.AssignedByUserId!.Value)
+                .Distinct()
+                .ToList();
+
+            var assignedBySceneNames = assignedByUserIds.Count > 0
+                ? await _context.Users.AsNoTracking()
+                    .Where(u => assignedByUserIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => u.SceneName ?? string.Empty, cancellationToken)
+                : new Dictionary<Guid, string>();
 
             var ticketPurchases = new Dictionary<Guid, TicketPurchaseInfoDto>();
             var hasAnyCancelableTicket = false;
@@ -229,13 +246,36 @@ public class AttendanceService : IAttendanceService
                     .Select(x => x.TicketTypeName)
                     .FirstOrDefault() ?? "Event Ticket";
 
+                // Check if this ticket was assigned to the current user by someone else.
+                // If so, resolve the assigner's scene name for the "From:" badge.
+                var attendanceForPurchase = userTicketAttendanceData
+                    .FirstOrDefault(x => x.TicketPurchaseId == ticketPurchaseEntity.Id);
+
+                string? assignedByName = null;
+                var isReceivedTicket = attendanceForPurchase?.PurchaserUserId != null
+                    && attendanceForPurchase.PurchaserUserId != userId;
+
+                if (isReceivedTicket && attendanceForPurchase?.AssignedByUserId != null)
+                {
+                    assignedBySceneNames.TryGetValue(attendanceForPurchase.AssignedByUserId.Value, out assignedByName);
+                }
+
+                // Received tickets (assigned to current user by someone else) can be returned.
+                // "Return" reverts the ticket to the original purchaser — no refund needed.
+                if (isReceivedTicket && !canCancelThisPurchase)
+                {
+                    canCancelThisPurchase = true;
+                    cancellationMessage = null;
+                }
+
                 ticketPurchases[ticketPurchaseEntity.Id] = new TicketPurchaseInfoDto
                 {
                     TicketTypeName = ticketTypeName,
                     SessionIds = sessionIds,
                     TotalPrice = ticketPurchaseEntity.TotalPrice,
                     CanCancel = canCancelThisPurchase,
-                    CancellationMessage = cancellationMessage
+                    CancellationMessage = cancellationMessage,
+                    AssignedBySceneName = assignedByName
                 };
             }
 
@@ -1685,6 +1725,87 @@ public class AttendanceService : IAttendanceService
             var unauthorizedPurchases = ticketPurchases.Where(tp => tp.UserId != userId).ToList();
             if (unauthorizedPurchases.Any())
             {
+                // Check if the user is the ASSIGNEE of these tickets (received from someone else).
+                // Assignees can "return" tickets — this reverts ownership to the original purchaser
+                // rather than triggering a refund. Like the decline flow but for accepted tickets.
+                var assigneeAttendances = await _context.EventAttendances
+                    .Where(ea =>
+                        ea.UserId == userId
+                        && ea.Status == AttendanceStatus.Active
+                        && ea.AttendanceType == AttendanceType.Ticket
+                        && ea.TicketPurchaseId.HasValue
+                        && unauthorizedPurchases.Select(p => p.Id).Contains(ea.TicketPurchaseId.Value)
+                        && ea.AssignedByUserId.HasValue)
+                    .Include(ea => ea.TicketPurchase)
+                    .ToListAsync(cancellationToken);
+
+                if (assigneeAttendances.Count == unauthorizedPurchases.Count)
+                {
+                    // All "unauthorized" purchases are actually assigned-to-user tickets.
+                    // Revert them to the original purchaser instead of cancelling/refunding.
+                    _logger.LogInformation(
+                        "User {UserId} returning {Count} assigned ticket(s) to original purchaser(s) in event {EventId}",
+                        userId, assigneeAttendances.Count, eventId);
+
+                    foreach (var ea in assigneeAttendances)
+                    {
+                        var originalPurchaserId = ea.TicketPurchase!.UserId;
+
+                        // Revert ownership to purchaser (same pattern as DeclineAssignmentAsync)
+                        ea.UserId = originalPurchaserId;
+                        ea.Status = AttendanceStatus.Active;
+                        ea.DeclinedAt = DateTime.UtcNow;
+                        ea.DeclinedReason = reason ?? "Returned by assignee";
+                        ea.UpdatedAt = DateTime.UtcNow;
+                        ea.UpdatedBy = userId;
+
+                        // Audit trail
+                        var returnHistory = new AttendanceHistory(ea.Id, "TicketDeclined")
+                        {
+                            ChangedBy = userId,
+                            ChangeReason = reason ?? "Ticket returned by assignee after acceptance",
+                            OldValues = System.Text.Json.JsonSerializer.Serialize(new
+                            {
+                                UserId = userId,
+                                Status = AttendanceStatus.Active.ToString()
+                            }),
+                            NewValues = System.Text.Json.JsonSerializer.Serialize(new
+                            {
+                                UserId = originalPurchaserId,
+                                Status = AttendanceStatus.Active.ToString(),
+                                DeclinedAt = ea.DeclinedAt,
+                                ReturnedByAssignee = true
+                            })
+                        };
+                        _context.AttendanceHistory.Add(returnHistory);
+
+                        _logger.LogInformation(
+                            "Returned ticket: AttendanceId={AttendanceId}, ReturnedBy={UserId}, RevertedTo={PurchaserId}",
+                            ea.Id, userId, originalPurchaserId);
+                    }
+
+                    // Also cancel any auto-created RSVP for the returning user
+                    var rsvpToCancel = await _context.EventAttendances
+                        .FirstOrDefaultAsync(ea =>
+                            ea.EventId == eventId
+                            && ea.UserId == userId
+                            && ea.AttendanceType == AttendanceType.RSVP
+                            && ea.Status == AttendanceStatus.Active, cancellationToken);
+
+                    if (rsvpToCancel != null)
+                    {
+                        rsvpToCancel.Status = AttendanceStatus.Cancelled;
+                        rsvpToCancel.CancelledAt = DateTime.UtcNow;
+                        rsvpToCancel.CancellationReason = "Auto-cancelled: assigned ticket returned";
+                        rsvpToCancel.UpdatedAt = DateTime.UtcNow;
+                        rsvpToCancel.UpdatedBy = userId;
+                    }
+
+                    await _context.SaveChangesAsync(cancellationToken);
+                    return Result.Success();
+                }
+
+                // Some purchases are truly unauthorized (not assignee-owned)
                 _logger.LogWarning(
                     "User {UserId} attempted to cancel ticket purchases belonging to other users: {Ids}",
                     userId, string.Join(", ", unauthorizedPurchases.Select(p => p.Id)));

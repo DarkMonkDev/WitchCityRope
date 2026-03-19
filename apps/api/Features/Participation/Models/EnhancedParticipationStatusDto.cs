@@ -222,6 +222,14 @@ public class TicketPurchaseInfoDto
     public string? CancellationMessage { get; set; }
 
     /// <summary>
+    /// Scene name of the person who assigned this ticket to the current user.
+    /// Populated when the current user received this ticket from someone else
+    /// (i.e., the EventAttendance has AssignedByUserId set and the current user
+    /// is the attendee, not the purchaser). Null for self-purchased tickets.
+    /// </summary>
+    public string? AssignedBySceneName { get; set; }
+
+    /// <summary>
     /// Whether this ticket was purchased for someone else (not the current user).
     /// When true, the ticket may be assigned to an authorized contact or unassigned ("assign later").
     /// The purchaser can cancel this ticket if it hasn't been accepted yet.

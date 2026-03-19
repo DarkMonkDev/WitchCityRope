@@ -776,7 +776,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       <Stack gap="md">
                         {(() => {
                           // Get ticket purchases dictionary (includes ticket type name, price, and for-others info)
-                          const ticketPurchases = validParticipation?.ticketPurchases as Record<string, { ticketTypeName?: string; sessionIds?: string[]; totalPrice?: number; isForOther?: boolean; assigneeSceneName?: string | null; assigneeStatus?: string | null }> | undefined;
+                          const ticketPurchases = validParticipation?.ticketPurchases as Record<string, { ticketTypeName?: string; sessionIds?: string[]; totalPrice?: number; isForOther?: boolean; assigneeSceneName?: string | null; assigneeStatus?: string | null; assignedBySceneName?: string | null }> | undefined;
 
                           // If ticketPurchases exists and has entries, show grouped by purchase
                           if (ticketPurchases && Object.keys(ticketPurchases).length > 0) {
@@ -803,6 +803,13 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                                       <Group justify="space-between" align="center" wrap="wrap">
                                         <Group gap="xs" align="center" wrap="wrap">
                                           <Text size="sm" fw={500}>{ticketName}</Text>
+                                          {/* Badge for tickets assigned TO the current user by someone else */}
+                                          {purchase.assignedBySceneName && (
+                                            <Text size="xs" c="dimmed" span>
+                                              — From: {purchase.assignedBySceneName}
+                                            </Text>
+                                          )}
+                                          {/* Badge for tickets the current user purchased FOR someone else */}
                                           {purchase.isForOther && (
                                             <Text size="xs" c="dimmed" span>
                                               — {purchase.assigneeSceneName ? `For: ${purchase.assigneeSceneName}` : 'Unassigned'}
