@@ -976,11 +976,17 @@ public class AttendanceService : IAttendanceService
                         $"Maximum {ticketType.MaxQuantityPerPurchase} tickets allowed per purchase for '{ticketType.Name}'");
                 }
 
-                // Validate assignees list length: must be <= Quantity - 1 (first ticket is for purchaser)
-                if (selection.Assignees != null && selection.Assignees.Count > selection.Quantity - 1)
+                // Validate assignees list length.
+                // Normal mode: first ticket is for the purchaser, so max assignees = Quantity - 1.
+                // BuyForOthersOnly mode: ALL tickets are for assignees, so max = Quantity.
+                var maxAssignees = request.BuyForOthersOnly ? selection.Quantity : selection.Quantity - 1;
+                if (selection.Assignees != null && selection.Assignees.Count > maxAssignees)
                 {
+                    var detail = request.BuyForOthersOnly
+                        ? $"Maximum {selection.Quantity} assignees for {selection.Quantity} tickets."
+                        : $"Maximum {maxAssignees} assignees for {selection.Quantity} tickets (first ticket is for purchaser).";
                     return Result<ParticipationStatusDto>.Failure(
-                        $"Too many assignees for '{ticketType.Name}'. Maximum {selection.Quantity - 1} assignees for {selection.Quantity} tickets (first ticket is for purchaser).");
+                        $"Too many assignees for '{ticketType.Name}'. {detail}");
                 }
             }
 
