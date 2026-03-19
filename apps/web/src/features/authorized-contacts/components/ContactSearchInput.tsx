@@ -97,7 +97,9 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
   }, [addContactMutation.isError, addContactMutation.error])
 
   // Map search results to Autocomplete data format
-  // Store the full result objects for lookup on selection
+  // Use userId as the unique value to prevent Mantine "duplicate options" crash
+  // when multiple users share the same scene name (e.g., "Alejandro").
+  // Store the full result objects keyed by userId for lookup on selection.
   const searchResultsMap = useRef<Map<string, UserSearchResultDto>>(new Map())
 
   const autocompleteData = React.useMemo(() => {
@@ -105,9 +107,10 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
 
     searchResultsMap.current.clear()
     return searchResults.map((result) => {
-      const name = result.sceneName ?? ''
-      searchResultsMap.current.set(name, result)
-      return name
+      const userId = result.userId ?? ''
+      searchResultsMap.current.set(userId, result)
+      // Mantine Autocomplete: value must be unique (userId), label is what's displayed (sceneName)
+      return { value: userId, label: result.sceneName ?? '' }
     })
   }, [searchResults])
 
@@ -116,11 +119,14 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
    * Validates against self-authorization and duplicate contacts before calling mutation.
    */
   const handleSelect = useCallback(
-    (selectedSceneName: string) => {
-      const selectedUser = searchResultsMap.current.get(selectedSceneName)
+    (selectedUserId: string) => {
+      // onOptionSubmit receives the unique value (userId), look up the full result
+      const selectedUser = searchResultsMap.current.get(selectedUserId)
       if (!selectedUser) return
 
-      // Validate: cannot authorize yourself
+      const selectedSceneName = selectedUser.sceneName ?? ''
+
+      // Validate: cannot authorize yourself (backend also checks, but quick client-side feedback)
       if (
         currentUserSceneName &&
         selectedSceneName.toLowerCase() === currentUserSceneName.toLowerCase()
@@ -142,6 +148,8 @@ export const ContactSearchInput: React.FC<ContactSearchInputProps> = ({
       // Clear any previous error, track scene name for notification, and submit
       setInlineError(null)
       pendingSceneNameRef.current = selectedSceneName
+      // Clear the search input after selection (prevents showing userId GUID in input)
+      setSearchValue('')
       addContactMutation.mutate({ delegateUserId: selectedUser.userId ?? '' })
     },
     [addContactMutation, currentUserSceneName, existingDelegateSceneNames]
