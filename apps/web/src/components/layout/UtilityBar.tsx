@@ -67,6 +67,8 @@ export const UtilityBar: React.FC = () => {
         {/* LEFT: User greeting */}
         {isAuthenticated && user ? (
           <Box
+            component={Link}
+            to="/dashboard/profile-settings"
             data-testid="user-menu"
             style={{
               color: 'var(--color-taupe)',
@@ -75,9 +77,13 @@ export const UtilityBar: React.FC = () => {
               textTransform: 'uppercase',
               letterSpacing: '1px',
               fontWeight: 500,
+              textDecoration: 'none',
+              transition: 'all 0.3s ease',
             }}
+            className="utility-bar-link"
           >
-            <Box data-testid="user-greeting">
+            {/* Links to profile settings page so users can quickly access their profile */}
+            <Box component="span" data-testid="user-greeting">
               Welcome, {user.sceneName}
             </Box>
           </Box>
