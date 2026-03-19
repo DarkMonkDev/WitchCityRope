@@ -61,9 +61,13 @@ export const ProxyRsvpSection: React.FC<ProxyRsvpSectionProps> = ({
 
   const createProxyRsvp = useCreateProxyRsvp(eventId);
 
+  // DEBUG: Log props to verify they're arriving correctly
+  console.log('[ProxyRsvpSection] Props:', { isAuthenticated, allowRsvps, vettedMembersOnly, isVetted });
+
   // Don't render if conditions aren't met.
   // Non-vetted users cannot create proxy RSVPs for vetted-only events (BR-035).
   if (!isAuthenticated || !allowRsvps || (vettedMembersOnly && !isVetted)) {
+    console.log('[ProxyRsvpSection] Hidden: vettedMembersOnly=' + vettedMembersOnly + ', isVetted=' + isVetted);
     return null;
   }
 
