@@ -743,7 +743,7 @@ const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
 
   // Use the appropriate mutation hook based on whether the ticket has an attendance record
   const assignMutation = useAssignTicket(eventId, attendanceId)
-  const unassignedMutation = useAssignUnassignedTicket(ticketPurchaseId)
+  const unassignedMutation = useAssignUnassignedTicket(ticketPurchaseId, eventId)
   const reassignMutation = useReassignTicket(eventId, attendanceId)
 
   const activeMutation = mode === 'reassign' ? reassignMutation

@@ -60,7 +60,7 @@ export function useAssignTicket(eventId: string, attendanceId: string) {
  *
  * POST /api/tickets/{ticketPurchaseId}/assign
  */
-export function useAssignUnassignedTicket(ticketPurchaseId: string) {
+export function useAssignUnassignedTicket(ticketPurchaseId: string, eventId?: string) {
   const queryClient = useQueryClient()
 
   return useMutation<TicketAssignmentDto, Error, AssignTicketRequest>({
@@ -74,6 +74,9 @@ export function useAssignUnassignedTicket(ticketPurchaseId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ticketAssignmentKeys.all })
       queryClient.invalidateQueries({ queryKey: ['user-events'] })
+      if (eventId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.event(eventId) })
+      }
     },
     onError: (error: Error) => {
       console.error('Failed to assign unassigned ticket:', error)

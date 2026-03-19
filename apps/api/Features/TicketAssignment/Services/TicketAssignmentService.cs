@@ -693,28 +693,50 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (!isAuthorized)
             {
+                _logger.LogWarning(
+                    "User {CallerUserId} attempted to assign ticket {TicketPurchaseId} to {AssignToUserId} without authorization",
+                    callerUserId, ticketPurchaseId, assignToUserId);
                 return Result<TicketAssignmentDto>.Failure(
                     "Not authorized by contact",
                     "The target user has not authorized you to assign tickets on their behalf");
             }
 
-            // 5. Check vetting for VettedMembersOnly events (BR-035)
+            // 5. Validate event and ticket type are loaded
             var eventEntity = ticketPurchase.TicketType?.Event;
-            if (eventEntity != null && eventEntity.VettedMembersOnly)
+            if (eventEntity == null || ticketPurchase.TicketType == null)
             {
-                var assignee = await _context.Users.AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == assignToUserId, ct);
-
-                if (assignee == null || !assignee.IsVetted)
-                {
-                    return Result<TicketAssignmentDto>.Failure(
-                        "Vetting required",
-                        "This event is limited to vetted members only");
-                }
+                _logger.LogWarning(
+                    "TicketPurchase {TicketPurchaseId} has null TicketType or Event - data integrity issue",
+                    ticketPurchaseId);
+                return Result<TicketAssignmentDto>.Failure(
+                    "Ticket configuration error",
+                    "Ticket type or event data is missing. Please contact support.");
             }
 
-            // 6. Check assignee doesn't already have tickets for overlapping sessions (BR-012)
-            var sessionIds = ticketPurchase.TicketType?.Sessions.Select(s => s.Id).ToList() ?? new List<Guid>();
+            // 6. Check vetting for VettedMembersOnly events (BR-035)
+            // Load assignee user once - reused for vetting check and DTO (avoid duplicate query)
+            var assigneeUser = await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == assignToUserId, ct);
+
+            if (assigneeUser == null)
+            {
+                return Result<TicketAssignmentDto>.Failure(
+                    "Assignee not found",
+                    "The target user does not exist");
+            }
+
+            if (eventEntity.VettedMembersOnly && !assigneeUser.IsVetted)
+            {
+                _logger.LogWarning(
+                    "User {CallerUserId} attempted to assign ticket {TicketPurchaseId} to non-vetted user {AssignToUserId} for VettedMembersOnly event",
+                    callerUserId, ticketPurchaseId, assignToUserId);
+                return Result<TicketAssignmentDto>.Failure(
+                    "Vetting required",
+                    "This event is limited to vetted members only");
+            }
+
+            // 7. Check assignee doesn't already have tickets for overlapping sessions (BR-012)
+            var sessionIds = ticketPurchase.TicketType.Sessions.Select(s => s.Id).ToList();
             if (sessionIds.Count > 0)
             {
                 var assigneeOverlap = await _context.EventAttendances
@@ -797,23 +819,15 @@ public class TicketAssignmentService : ITicketAssignmentService
                 "Created {SessionCount} EventAttendance records in PendingAcceptance.",
                 ticketPurchaseId, assignToUserId, callerUserId, sessionIds.Count);
 
-            // Build response DTO
-            var assigneeUser = await _context.Users.AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == assignToUserId, ct);
+            // Reload the attendance with navigation properties for BuildAssignmentDtoAsync
+            var savedAttendance = await _context.EventAttendances
+                .Include(ea => ea.Event)
+                .Include(ea => ea.TicketPurchase)
+                    .ThenInclude(tp => tp!.TicketType)
+                .FirstOrDefaultAsync(ea => ea.Id == primaryAttendance.Id, ct);
 
-            return Result<TicketAssignmentDto>.Success(new TicketAssignmentDto
-            {
-                AttendanceId = primaryAttendance.Id,
-                EventId = eventId,
-                EventTitle = eventEntity?.Title ?? string.Empty,
-                TicketTypeName = ticketPurchase.TicketType?.Name ?? string.Empty,
-                Status = "PendingAcceptance",
-                AssignedToUserId = assignToUserId,
-                AssignedToSceneName = assigneeUser?.SceneName,
-                AssignedByUserId = callerUserId,
-                AssignedAt = primaryAttendance.AssignedAt,
-                CreatedAt = primaryAttendance.CreatedAt
-            });
+            return Result<TicketAssignmentDto>.Success(
+                await BuildAssignmentDtoAsync(savedAttendance ?? primaryAttendance, ct));
         }
         catch (Exception ex)
         {
@@ -822,7 +836,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 ticketPurchaseId, assignToUserId);
             return Result<TicketAssignmentDto>.Failure(
                 "Assignment failed",
-                ex.Message);
+                "An unexpected error occurred while assigning the ticket. Please try again.");
         }
     }
 

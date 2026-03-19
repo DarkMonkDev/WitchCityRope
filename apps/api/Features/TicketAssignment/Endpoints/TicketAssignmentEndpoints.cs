@@ -422,16 +422,22 @@ public static class TicketAssignmentEndpoints
                 if (result.IsSuccess)
                     return Results.Ok(result.Value);
 
-                var error = result.Error ?? "Assignment failed";
-                var statusCode = error.Contains("not found", StringComparison.OrdinalIgnoreCase) ? 404
-                    : error.Contains("not authorized", StringComparison.OrdinalIgnoreCase) ? 403
-                    : error.Contains("already", StringComparison.OrdinalIgnoreCase) ? 409
-                    : error.Contains("vetting", StringComparison.OrdinalIgnoreCase) ? 403
-                    : 400;
+                var statusCode = result.Error switch
+                {
+                    "Ticket not found" => 404,
+                    "Assignee not found" => 404,
+                    "Not authorized" => 403,
+                    "Not authorized by contact" => 403,
+                    "Ticket already assigned" => 409,
+                    "Vetting required" => 403,
+                    "Duplicate ticket" => 400,
+                    "Ticket configuration error" => 400,
+                    _ => 500
+                };
 
                 return Results.Problem(
                     title: "Assignment Failed",
-                    detail: result.Details ?? error,
+                    detail: result.Details ?? result.Error ?? "Assignment failed",
                     statusCode: statusCode);
             })
             .RequireAuthorization()
