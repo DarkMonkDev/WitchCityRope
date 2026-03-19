@@ -18,6 +18,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../../lib/api/client'
 import { ticketAssignmentKeys } from './queries'
 import { queryKeys } from '../../../api/queryKeys'
+import { participationKeys } from '../../../hooks/useParticipation'
 import type {
   TicketAssignmentDto,
   AssignTicketRequest,
@@ -110,6 +111,8 @@ export function useAcceptAssignment(eventId: string, attendanceId: string) {
       queryClient.invalidateQueries({ queryKey: queryKeys.event(eventId) })
       // Invalidate current user (ToS may have been accepted)
       queryClient.invalidateQueries({ queryKey: queryKeys.currentUser() })
+      // Invalidate participation status (ticket acceptance may auto-activate RSVP)
+      queryClient.invalidateQueries({ queryKey: participationKeys.eventStatus(eventId) })
     },
     onError: (error: Error) => {
       console.error('Failed to accept assignment:', error)
@@ -144,6 +147,8 @@ export function useDeclineAssignment(eventId: string, attendanceId: string) {
       queryClient.invalidateQueries({ queryKey: ['user-events'] })
       // Invalidate event detail
       queryClient.invalidateQueries({ queryKey: queryKeys.event(eventId) })
+      // Invalidate participation status (ticket decline may auto-cancel RSVP)
+      queryClient.invalidateQueries({ queryKey: participationKeys.eventStatus(eventId) })
     },
     onError: (error: Error) => {
       console.error('Failed to decline assignment:', error)

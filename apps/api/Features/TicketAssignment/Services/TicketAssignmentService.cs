@@ -306,18 +306,24 @@ public class TicketAssignmentService : ITicketAssignmentService
                 }
             }
 
-            // 7. Auto-create RSVP for social events (same pattern as AttendanceService.CreateTicketPurchaseAsync)
-            if (attendance.Event.AllowRsvps)
+            // 7. Auto-create or auto-activate RSVP for social events.
+            // Only applies when accepting a TICKET (not when accepting an RSVP through this endpoint).
+            // If a PendingAcceptance proxy RSVP already exists, activate it instead of creating a duplicate.
+            // Same base pattern as AttendanceService.CreateTicketPurchaseAsync.
+            if (attendance.AttendanceType == AttendanceType.Ticket && attendance.Event.AllowRsvps)
             {
+                // Check for any existing RSVP — Active OR PendingAcceptance.
+                // PendingAcceptance RSVPs come from proxy RSVP creation (ProxyRsvpService).
                 var existingRsvp = await _context.EventAttendances
                     .FirstOrDefaultAsync(ea =>
                         ea.EventId == attendance.EventId
                         && ea.UserId == callerUserId
-                        && ea.Status == AttendanceStatus.Active
+                        && (ea.Status == AttendanceStatus.Active || ea.Status == AttendanceStatus.PendingAcceptance)
                         && ea.AttendanceType == AttendanceType.RSVP, ct);
 
                 if (existingRsvp == null)
                 {
+                    // No RSVP exists — create a new Active one (existing behavior)
                     _logger.LogInformation(
                         "Auto-creating RSVP for user {UserId} in social event {EventId} (ticket acceptance)",
                         callerUserId, attendance.EventId);
@@ -345,6 +351,42 @@ public class TicketAssignmentService : ITicketAssignmentService
                     };
                     _context.AttendanceHistory.Add(rsvpHistory);
                 }
+                else if (existingRsvp.Status == AttendanceStatus.PendingAcceptance)
+                {
+                    // A proxy RSVP exists in PendingAcceptance — auto-activate it.
+                    // The ticket acceptance covers the waiver requirement, so the RSVP
+                    // can be promoted to Active without separate acceptance.
+                    _logger.LogInformation(
+                        "Auto-activating PendingAcceptance RSVP {RsvpId} for user {UserId} in event {EventId} during ticket acceptance",
+                        existingRsvp.Id, callerUserId, attendance.EventId);
+
+                    existingRsvp.Status = AttendanceStatus.Active;
+                    existingRsvp.EventWaiverAccepted = true;
+                    existingRsvp.EventWaiverAcceptedAt = DateTime.UtcNow;
+                    existingRsvp.AcceptedAt = DateTime.UtcNow;
+                    existingRsvp.UpdatedAt = DateTime.UtcNow;
+                    existingRsvp.UpdatedBy = callerUserId;
+
+                    var rsvpHistory = new AttendanceHistory(existingRsvp.Id, "ProxyRSVPAccepted")
+                    {
+                        OldValues = JsonSerializer.Serialize(new
+                        {
+                            Status = AttendanceStatus.PendingAcceptance.ToString(),
+                            EventWaiverAccepted = false
+                        }),
+                        NewValues = JsonSerializer.Serialize(new
+                        {
+                            Status = AttendanceStatus.Active.ToString(),
+                            EventWaiverAccepted = true,
+                            AcceptedAt = existingRsvp.AcceptedAt,
+                            AutoAcceptedDuringTicketAcceptance = true
+                        }),
+                        ChangedBy = callerUserId,
+                        ChangeReason = "Auto-accepted proxy RSVP during ticket acceptance"
+                    };
+                    _context.AttendanceHistory.Add(rsvpHistory);
+                }
+                // else: Active RSVP already exists — nothing to do
             }
 
             // 8. Create or update EventAttendee record (for check-in system)
@@ -455,7 +497,47 @@ public class TicketAssignmentService : ITicketAssignmentService
                     "Only the assigned user can decline this ticket");
             }
 
-            // 3. Get the original purchaser from TicketPurchase
+            // 3. Type-specific decline handling.
+            // RSVPs are cancelled when declined (matching ProxyRsvpService.DeclineProxyRsvpAsync).
+            // Tickets are reverted to the original purchaser as Active (AD-015).
+            if (attendance.AttendanceType == AttendanceType.RSVP)
+            {
+                // RSVP decline: cancel the RSVP (no "revert to purchaser" concept for RSVPs)
+                attendance.Status = AttendanceStatus.Cancelled;
+                attendance.CancelledAt = DateTime.UtcNow;
+                attendance.CancellationReason = reason ?? "Declined by recipient";
+                attendance.DeclinedAt = DateTime.UtcNow;
+                attendance.UpdatedAt = DateTime.UtcNow;
+                attendance.UpdatedBy = callerUserId;
+
+                var rsvpDeclineHistory = new AttendanceHistory(attendance.Id, "ProxyRSVPDeclined")
+                {
+                    ChangedBy = callerUserId,
+                    ChangeReason = reason ?? "Proxy RSVP declined by recipient",
+                    OldValues = JsonSerializer.Serialize(new
+                    {
+                        UserId = attendance.UserId,
+                        Status = AttendanceStatus.PendingAcceptance.ToString()
+                    }),
+                    NewValues = JsonSerializer.Serialize(new
+                    {
+                        Status = AttendanceStatus.Cancelled.ToString(),
+                        DeclinedAt = attendance.DeclinedAt,
+                        CancellationReason = attendance.CancellationReason
+                    })
+                };
+                _context.AttendanceHistory.Add(rsvpDeclineHistory);
+
+                await _context.SaveChangesAsync(ct);
+
+                _logger.LogInformation(
+                    "RSVP declined and cancelled: AttendanceId={AttendanceId}, DeclinedBy={CallerUserId}, EventId={EventId}",
+                    attendanceId, callerUserId, attendance.EventId);
+
+                return Result<TicketAssignmentDto>.Success(await BuildAssignmentDtoAsync(attendance, ct));
+            }
+
+            // Ticket decline: revert to original purchaser as Active (AD-015)
             var originalPurchaserId = attendance.TicketPurchase?.UserId ?? callerUserId;
 
             // Store old values for history
@@ -470,7 +552,45 @@ public class TicketAssignmentService : ITicketAssignmentService
             attendance.UpdatedAt = DateTime.UtcNow;
             attendance.UpdatedBy = callerUserId;
 
-            // 5. Create AttendanceHistory "TicketDeclined"
+            // 5. Also cancel any orphaned PendingAcceptance RSVP for the same event+user.
+            // This prevents stale proxy RSVPs from lingering after the user declines the ticket.
+            var orphanedRsvp = await _context.EventAttendances
+                .FirstOrDefaultAsync(ea =>
+                    ea.EventId == attendance.EventId
+                    && ea.UserId == callerUserId
+                    && ea.AttendanceType == AttendanceType.RSVP
+                    && ea.Status == AttendanceStatus.PendingAcceptance, ct);
+
+            if (orphanedRsvp != null)
+            {
+                orphanedRsvp.Status = AttendanceStatus.Cancelled;
+                orphanedRsvp.CancelledAt = DateTime.UtcNow;
+                orphanedRsvp.CancellationReason = "Auto-cancelled: associated ticket was declined";
+                orphanedRsvp.UpdatedAt = DateTime.UtcNow;
+                orphanedRsvp.UpdatedBy = callerUserId;
+
+                var orphanHistory = new AttendanceHistory(orphanedRsvp.Id, "Cancelled")
+                {
+                    ChangedBy = callerUserId,
+                    ChangeReason = "Auto-cancelled proxy RSVP when associated ticket was declined",
+                    OldValues = JsonSerializer.Serialize(new
+                    {
+                        Status = AttendanceStatus.PendingAcceptance.ToString()
+                    }),
+                    NewValues = JsonSerializer.Serialize(new
+                    {
+                        Status = AttendanceStatus.Cancelled.ToString(),
+                        CancellationReason = orphanedRsvp.CancellationReason
+                    })
+                };
+                _context.AttendanceHistory.Add(orphanHistory);
+
+                _logger.LogInformation(
+                    "Auto-cancelled orphaned RSVP {RsvpId} for user {UserId} in event {EventId} during ticket decline",
+                    orphanedRsvp.Id, callerUserId, attendance.EventId);
+            }
+
+            // 6. Create AttendanceHistory "TicketDeclined"
             var history = new AttendanceHistory(attendance.Id, "TicketDeclined")
             {
                 ChangedBy = callerUserId,
@@ -490,14 +610,14 @@ public class TicketAssignmentService : ITicketAssignmentService
             };
             _context.AttendanceHistory.Add(history);
 
-            // 6. Save changes
+            // 7. Save changes
             await _context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
                 "Assignment declined: AttendanceId={AttendanceId}, DeclinedBy={CallerUserId}, RevertedTo={OriginalPurchaserId}, EventId={EventId}",
                 attendanceId, callerUserId, originalPurchaserId, attendance.EventId);
 
-            // 7. Return DTO
+            // 8. Return DTO
             return Result<TicketAssignmentDto>.Success(await BuildAssignmentDtoAsync(attendance, ct));
         }
         catch (Exception ex)
@@ -875,6 +995,21 @@ public class TicketAssignmentService : ITicketAssignmentService
                     && ea.Status == AttendanceStatus.PendingAcceptance)
                 .OrderBy(ea => ea.Event.StartDate)
                 .ToListAsync(ct);
+
+            // Deduplicate: When both a Ticket and an RSVP are pending for the same event,
+            // suppress the RSVP from the dashboard display. Accepting the ticket will
+            // auto-activate the RSVP (see AcceptAssignmentAsync). This prevents users
+            // from seeing two acceptance boxes for the same event.
+            // Standalone proxy RSVPs (no ticket) still appear normally.
+            var eventsWithPendingTickets = pendingAssignments
+                .Where(ea => ea.AttendanceType == AttendanceType.Ticket)
+                .Select(ea => ea.EventId)
+                .ToHashSet();
+
+            pendingAssignments = pendingAssignments
+                .Where(ea => !(ea.AttendanceType == AttendanceType.RSVP
+                                && eventsWithPendingTickets.Contains(ea.EventId)))
+                .ToList();
 
             // Resolve AssignedByUserId -> SceneName via batch lookup
             var assignedByUserIds = pendingAssignments
