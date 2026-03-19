@@ -1059,42 +1059,54 @@ public class AttendanceService : IAttendanceService
                     _context.TicketPurchases.Add(ticketPurchase);
                     ticketPurchases.Add(ticketPurchase);
 
-                    // Create EventAttendance records for each session in this ticket type
-                    foreach (var session in ticketType.Sessions)
+                    // Create EventAttendance records for each session in this ticket type.
+                    // IMPORTANT: "Assign later" tickets (unassigned extras) do NOT get EventAttendance
+                    // records yet because the purchaser already has attendance for these sessions via
+                    // their own ticket (index 0). EventAttendance is created when the ticket is
+                    // assigned to someone else via the dashboard (UC-007 post-purchase assignment).
+                    // The TicketPurchase record alone tracks the unassigned ticket's existence.
+                    var isUnassignedExtra = !isForPurchaser && !isAssigned;
+
+                    if (!isUnassignedExtra)
                     {
-                        var attendance = new EventAttendance(request.EventId, attendeeUserId, AttendanceType.Ticket)
+                        foreach (var session in ticketType.Sessions)
                         {
-                            SessionId = session.Id,
-                            TicketPurchaseId = ticketPurchase.Id,
-                            Status = AttendanceStatus.PendingPayment,
-                            Notes = request.Notes,
-                            CreatedBy = userId
-                        };
+                            var attendance = new EventAttendance(request.EventId, attendeeUserId, AttendanceType.Ticket)
+                            {
+                                SessionId = session.Id,
+                                TicketPurchaseId = ticketPurchase.Id,
+                                Status = AttendanceStatus.PendingPayment,
+                                Notes = request.Notes,
+                                CreatedBy = userId
+                            };
 
-                        if (isForPurchaser)
-                        {
-                            // Purchaser's own ticket: waiver accepted at checkout (BR-033)
-                            attendance.EventWaiverAccepted = true;
-                            attendance.EventWaiverAcceptedAt = DateTime.UtcNow;
-                        }
-                        else if (isAssigned)
-                        {
-                            // Assigned ticket: waiver NOT accepted (BR-030, BR-033)
-                            // Assignee must accept waiver themselves
-                            attendance.EventWaiverAccepted = false;
-                            attendance.EventWaiverAcceptedAt = null;
-                            attendance.AssignedByUserId = userId;
-                            attendance.AssignedAt = DateTime.UtcNow;
-                        }
-                        else
-                        {
-                            // Unassigned extra ticket: belongs to purchaser, assign later (BR-016, AD-007)
-                            attendance.EventWaiverAccepted = true;
-                            attendance.EventWaiverAcceptedAt = DateTime.UtcNow;
-                        }
+                            if (isForPurchaser)
+                            {
+                                // Purchaser's own ticket: waiver accepted at checkout (BR-033)
+                                attendance.EventWaiverAccepted = true;
+                                attendance.EventWaiverAcceptedAt = DateTime.UtcNow;
+                            }
+                            else
+                            {
+                                // Assigned ticket: waiver NOT accepted (BR-030, BR-033)
+                                // Assignee must accept waiver themselves
+                                attendance.EventWaiverAccepted = false;
+                                attendance.EventWaiverAcceptedAt = null;
+                                attendance.AssignedByUserId = userId;
+                                attendance.AssignedAt = DateTime.UtcNow;
+                            }
 
-                        allAttendances.Add(attendance);
-                        _context.EventAttendances.Add(attendance);
+                            allAttendances.Add(attendance);
+                            _context.EventAttendances.Add(attendance);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "Ticket index {TicketIndex} for '{TicketTypeName}' is unassigned (assign later). " +
+                            "TicketPurchase {TicketPurchaseId} created but no EventAttendance yet - " +
+                            "will be created when assigned via dashboard (UC-007).",
+                            ticketIndex, ticketType.Name, ticketPurchase.Id);
                     }
 
                     // Create audit history
