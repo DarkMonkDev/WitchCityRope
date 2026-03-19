@@ -92,6 +92,9 @@ export const AssignTicketDropdown: React.FC<AssignTicketDropdownProps> = ({
       }
       centered
       size="md"
+      // Prevent modal from closing on outside clicks — the searchable Select dropdown
+      // can cause unintended modal dismissal. Users close via X button or Escape key.
+      closeOnClickOutside={false}
       data-testid="assign-ticket-modal"
     >
       <Stack gap="md">

@@ -326,8 +326,17 @@ public class AttendanceService : IAttendanceService
 
                 foreach (var tp in ticketsForOthers)
                 {
-                    var attendance = forOthersAttendances
-                        .FirstOrDefault(a => a.TicketPurchaseId == tp.Id);
+                    // Find the most relevant attendance for this purchase.
+                    // Prefer Active/PendingAcceptance over Cancelled (returned tickets).
+                    // A multi-session ticket may have multiple attendances — find the first non-cancelled one.
+                    var allAttendancesForPurchase = forOthersAttendances
+                        .Where(a => a.TicketPurchaseId == tp.Id)
+                        .ToList();
+
+                    var attendance = allAttendancesForPurchase
+                        .FirstOrDefault(a => a.Status == AttendanceStatus.Active
+                            || a.Status == AttendanceStatus.PendingAcceptance)
+                        ?? allAttendancesForPurchase.FirstOrDefault();
 
                     // Determine assignee status
                     string assigneeStatus;
@@ -335,9 +344,11 @@ public class AttendanceService : IAttendanceService
                     bool canCancelForOther;
                     string? cancelMsg = null;
 
-                    if (attendance == null)
+                    if (attendance == null
+                        || attendance.Status == AttendanceStatus.Cancelled
+                        || attendance.Status == AttendanceStatus.Refunded)
                     {
-                        // No EventAttendance = unassigned "assign later" ticket
+                        // No active attendance = unassigned / returned ticket, available for (re)assignment
                         assigneeStatus = "Unassigned";
                         canCancelForOther = true;
                     }
@@ -358,8 +369,9 @@ public class AttendanceService : IAttendanceService
                     }
                     else
                     {
-                        // Cancelled, refunded, etc. - skip these
-                        continue;
+                        // Other statuses - treat as unassigned
+                        assigneeStatus = "Unassigned";
+                        canCancelForOther = true;
                     }
 
                     // Also check timing window for cancellable tickets
