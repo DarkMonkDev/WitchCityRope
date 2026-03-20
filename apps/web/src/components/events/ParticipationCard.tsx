@@ -598,8 +598,12 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             </Box>
           )}
 
-          {/* Ticket Purchase Summary */}
-          {validParticipation?.hasTicket && (
+          {/* Ticket Purchase Summary — show when user has their own ticket OR has
+              purchased tickets for others (BuyForOthersOnly creates TicketPurchase
+              records without EventAttendance for the purchaser, so hasTicket is false
+              but ticketPurchases is populated with IsForOther entries) */}
+          {(validParticipation?.hasTicket ||
+            (validParticipation?.ticketPurchases && Object.keys(validParticipation.ticketPurchases).length > 0)) && (
             <Box>
               {/* Custom display for purchased tickets */}
               <Paper
