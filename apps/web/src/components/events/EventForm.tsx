@@ -465,7 +465,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   // Tickets table sorting
   const [ticketsSortColumn, setTicketsSortColumn] = useState<
-    'name' | 'ticketType' | 'status' | 'sessions' | 'date' | 'amount'
+    'name' | 'ticketType' | 'status' | 'sessions' | 'date' | 'amount' | 'paymentMethod'
   >('name')
   const [ticketsSortDirection, setTicketsSortDirection] = useState<'asc' | 'desc'>('asc')
 
@@ -1900,6 +1900,13 @@ export const EventForm: React.FC<EventFormProps> = ({
                     }}
                   >
                     RSVPs Management
+                    {/* Show count of active RSVPs next to the title */}
+                    {participationsData && (() => {
+                      const activeRsvpCount = (participationsData as EventParticipationDto[])
+                        .filter((p) => p.participationType === 'RSVP' && p.status === 'Active')
+                        .length;
+                      return activeRsvpCount > 0 ? ` - ${activeRsvpCount}` : '';
+                    })()}
                   </Title>
                   <Text size="sm" c="dimmed" mb="lg">
                     View and manage all RSVPs for this social event.
@@ -2110,6 +2117,23 @@ export const EventForm: React.FC<EventFormProps> = ({
                   }}
                 >
                   Tickets Sold
+                  {/* Show count of active (non-cancelled) tickets next to the title */}
+                  {participationsData && (() => {
+                    // Deduplicate by ticketId (same logic as the table) then count active
+                    const ticketParticipations = (participationsData as EventParticipationDto[])
+                      .filter((p) => p.participationType === 'Ticket');
+                    const groupedByTicketId = new Map<string, EventParticipationDto>();
+                    ticketParticipations.forEach((p) => {
+                      const key = p.ticketId ?? p.id;
+                      if (!key) return;
+                      if (!groupedByTicketId.has(key)) {
+                        groupedByTicketId.set(key, { ...p });
+                      }
+                    });
+                    const activeTicketCount = Array.from(groupedByTicketId.values())
+                      .filter((p) => p.status === 'Active').length;
+                    return activeTicketCount > 0 ? ` - ${activeTicketCount}` : '';
+                  })()}
                 </Title>
                 <Text size="sm" c="dimmed" mb="lg">
                   View all sold tickets for this event.
@@ -2226,6 +2250,22 @@ export const EventForm: React.FC<EventFormProps> = ({
                         </Group>
                       </Table.Th>
                       <Table.Th
+                        onClick={() => handleTicketsSort('paymentMethod')}
+                        style={{
+                          color: 'white',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: '1px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                        }}
+                      >
+                        <Group gap={4}>
+                          Payment Method
+                          {renderSortIcon('paymentMethod', ticketsSortColumn, ticketsSortDirection)}
+                        </Group>
+                      </Table.Th>
+                      <Table.Th
                         style={{
                           color: 'white',
                           fontWeight: 600,
@@ -2240,7 +2280,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Table.Tbody>
                     {participationsLoading ? (
                       <Table.Tr>
-                        <Table.Td colSpan={7}>
+                        <Table.Td colSpan={8}>
                           <Text ta="center" c="dimmed" py="xl">
                             Loading tickets...
                           </Text>
@@ -2248,7 +2288,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                       </Table.Tr>
                     ) : participationsError ? (
                       <Table.Tr>
-                        <Table.Td colSpan={7}>
+                        <Table.Td colSpan={8}>
                           <Text ta="center" c="red" py="xl">
                             Error loading tickets: {participationsError.message}
                           </Text>
@@ -2309,6 +2349,10 @@ export const EventForm: React.FC<EventFormProps> = ({
                               aVal = a.amountPaid ?? 0
                               bVal = b.amountPaid ?? 0
                               break
+                            case 'paymentMethod':
+                              aVal = (a.paymentMethod ?? '').toLowerCase()
+                              bVal = (b.paymentMethod ?? '').toLowerCase()
+                              break
                             default:
                               aVal = a.userSceneName
                               bVal = b.userSceneName
@@ -2363,6 +2407,20 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 </Text>
                               </Table.Td>
                               <Table.Td>
+                                {/* Display payment method with friendly names for raw DB values */}
+                                <Text size="sm">
+                                  {(() => {
+                                    const method = participation.paymentMethod;
+                                    if (!method) return '—';
+                                    // Map raw database values to user-friendly display names
+                                    if (method.toLowerCase() === 'authorize-net' || method.toLowerCase() === 'authnet-pending') return 'Authorize.net';
+                                    if (method.toLowerCase() === 'paypal-pending') return 'PayPal';
+                                    // Capitalize first letter for standard values (PayPal, Cash, Venmo, Free)
+                                    return method.charAt(0).toUpperCase() + method.slice(1);
+                                  })()}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
                                 {participation.status === 'Active' && participation.ticketId && (
                                   <Text
                                     size="sm"
@@ -2414,6 +2472,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                                       -${refund.amount.toFixed(2)}
                                     </Text>
                                   </Table.Td>
+                                  <Table.Td />
                                   <Table.Td>
                                     <Text size="xs" c="dimmed">
                                       {new Date(refund.processedAt).toLocaleDateString()}
@@ -2428,7 +2487,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                         })
                     ) : (
                       <Table.Tr>
-                        <Table.Td colSpan={6}>
+                        <Table.Td colSpan={8}>
                           <Text ta="center" c="dimmed" py="xl">
                             No tickets sold yet. Ticket purchases will appear here once people buy
                             tickets.

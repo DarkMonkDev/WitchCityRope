@@ -2403,8 +2403,10 @@ public class AttendanceService : IAttendanceService
                                  ? x.Attendance.TicketPurchase.TotalPrice
                                  : (decimal?)null,
                     TicketId = x.Attendance.TicketPurchaseId,
-                    PaymentMethod = x.Attendance.TicketPurchase != null && x.Attendance.TicketPurchase.TotalPrice > 0
-                                    ? "PayPal/Venmo/Cash"
+                    // Return the actual payment method from the ticket purchase record
+                    // Values: "PayPal", "authorize-net", "Cash", "Venmo", "Free", etc.
+                    PaymentMethod = x.Attendance.TicketPurchase != null
+                                    ? x.Attendance.TicketPurchase.PaymentMethod
                                     : null,
                     CheckedInSessions = x.Attendee != null
                                         ? x.Attendee.CheckIns
