@@ -398,15 +398,22 @@ public class PayPalCheckoutController : ControllerBase
                 }
             }
 
-            await _context.SaveChangesAsync(cancellationToken);
+            // CRITICAL: Use CancellationToken.None after PayPal capture succeeds.
+            // The payment money has already been taken — if the HTTP request is canceled
+            // (e.g., browser timeout/navigation), we MUST still persist the finalization
+            // to avoid orphaned payments where money is captured but tickets stay Pending.
+            // See: 2026-03-20 production incident (Lauren Van Damme) where OperationCanceledException
+            // during SaveChangesAsync left a captured PayPal payment without a finalized ticket.
+            await _context.SaveChangesAsync(CancellationToken.None);
 
             _logger.LogInformation(
                 "PayPal capture persisted to {Count} TicketPurchase(s). IDs=[{Ids}]",
                 pendingPurchases.Count, string.Join(", ", ticketPurchaseIds));
 
             // Activate attendance records now that payment is confirmed
+            // Also uses CancellationToken.None — same reason: payment already captured.
             var activateResult = await _attendanceService.ActivateAttendanceForPurchasesAsync(
-                ticketPurchaseIds, cancellationToken);
+                ticketPurchaseIds, CancellationToken.None);
             if (!activateResult.IsSuccess)
             {
                 _logger.LogError(
@@ -415,10 +422,11 @@ public class PayPalCheckoutController : ControllerBase
             }
 
             // Post-purchase emails (non-fatal side effect)
+            // Uses CancellationToken.None to ensure confirmation email sends even if request is canceled.
             try
             {
                 await _eventEmailService.SendPostPurchaseEmailsAsync(
-                    userId, ticketPurchaseIds, cancellationToken);
+                    userId, ticketPurchaseIds, CancellationToken.None);
             }
             catch (Exception emailEx)
             {

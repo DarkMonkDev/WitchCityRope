@@ -272,10 +272,17 @@ public class CheckoutEndpoints : ControllerBase
 
             try
             {
+                // CRITICAL: Use CancellationToken.None for all post-payment operations.
+                // The credit card has already been charged — if the HTTP request is canceled
+                // (e.g., browser timeout/navigation), we MUST still persist the finalization
+                // to avoid orphaned payments where money is charged but tickets stay Pending.
+                // See: 2026-03-20 production incident where OperationCanceledException
+                // during SaveChangesAsync left a captured payment without a finalized ticket.
+
                 // Re-fetch to ensure we have tracked entities
                 var purchasesToFinalize = await _context.TicketPurchases
                     .Where(tp => ticketPurchaseIds.Contains(tp.Id))
-                    .ToListAsync(cancellationToken);
+                    .ToListAsync(CancellationToken.None);
 
                 foreach (var tp in purchasesToFinalize)
                 {
@@ -299,15 +306,16 @@ public class CheckoutEndpoints : ControllerBase
                     }
                 }
 
-                await _context.SaveChangesAsync(cancellationToken);
+                await _context.SaveChangesAsync(CancellationToken.None);
 
                 _logger.LogInformation(
                     "[Checkout:{CorrelationId}] STAGE 4 COMPLETE: All ticket purchases finalized successfully. ConfirmationNumber={ConfirmationNumber}",
                     correlationId, confirmationNumber);
 
                 // Activate attendance records now that payment is confirmed
+                // Also uses CancellationToken.None — same reason: payment already charged.
                 var activateResult = await _attendanceService.ActivateAttendanceForPurchasesAsync(
-                    ticketPurchaseIds, cancellationToken);
+                    ticketPurchaseIds, CancellationToken.None);
                 if (!activateResult.IsSuccess)
                 {
                     _logger.LogError(
@@ -316,9 +324,10 @@ public class CheckoutEndpoints : ControllerBase
                 }
 
                 // Post-purchase emails (non-fatal side effect)
+                // Uses CancellationToken.None to ensure confirmation email sends even if request is canceled.
                 try
                 {
-                    await _eventEmailService.SendPostPurchaseEmailsAsync(userId, ticketPurchaseIds, cancellationToken);
+                    await _eventEmailService.SendPostPurchaseEmailsAsync(userId, ticketPurchaseIds, CancellationToken.None);
                 }
                 catch (Exception emailEx)
                 {

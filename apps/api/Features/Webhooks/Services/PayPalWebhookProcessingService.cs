@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.Payments.Models.PayPal;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Safety.Services;
@@ -25,6 +26,7 @@ public interface IPayPalWebhookProcessingService
 public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IAttendanceService _attendanceService;
     private readonly IEncryptionService _encryptionService;
     private readonly WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService _eventEmailService;
     private readonly IPaymentNotificationService _notificationService;
@@ -33,6 +35,7 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
 
     public PayPalWebhookProcessingService(
         ApplicationDbContext context,
+        IAttendanceService attendanceService,
         IEncryptionService encryptionService,
         WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService eventEmailService,
         IPaymentNotificationService notificationService,
@@ -40,6 +43,7 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
         ILogger<PayPalWebhookProcessingService> logger)
     {
         _context = context;
+        _attendanceService = attendanceService;
         _encryptionService = encryptionService;
         _eventEmailService = eventEmailService;
         _notificationService = notificationService;
@@ -140,6 +144,28 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
             _logger.LogInformation(
                 "Webhook updated TicketPurchase {TicketPurchaseId} to Completed",
                 ticketPurchase.Id);
+
+            // Activate attendance records — critical for recovery when the capture-order
+            // endpoint's finalization was canceled (e.g., OperationCanceledException).
+            // Without this, the EventAttendance stays in PendingPayment even though
+            // payment was captured. See: 2026-03-20 production incident.
+            try
+            {
+                var activateResult = await _attendanceService.ActivateAttendanceForPurchasesAsync(
+                    new List<Guid> { ticketPurchase.Id }, ct);
+                if (!activateResult.IsSuccess)
+                {
+                    _logger.LogError(
+                        "Webhook failed to activate attendance for TicketPurchase {Id}: {Error}",
+                        ticketPurchase.Id, activateResult.Error);
+                }
+            }
+            catch (Exception attendanceEx)
+            {
+                _logger.LogError(attendanceEx,
+                    "Webhook attendance activation failed (non-fatal). TicketPurchase={Id}",
+                    ticketPurchase.Id);
+            }
 
             // Send SSE notification if kiosk session
             await TrySendSseNotificationAsync(webhookEvent, ticketPurchase);
