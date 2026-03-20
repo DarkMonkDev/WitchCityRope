@@ -295,11 +295,20 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
 
         {/* Tickets Section - Show purchased tickets OR "no tickets" indicator */}
         {(() => {
-          const tickets = (event as any).tickets as Array<{ ticketTypeName?: string; sessionName?: string | null }> | undefined;
+          const tickets = (event as any).tickets as Array<{
+            ticketTypeName?: string;
+            sessionName?: string | null;
+            sessionStartTime?: string | null;
+            sessionEndTime?: string | null;
+            assignedBySceneName?: string | null;
+          }> | undefined;
           const hasTickets = tickets && tickets.length > 0;
           const hasAvailableTickets = (event as any).hasAvailableTickets === true;
 
-          // User has purchased tickets — show green box with ticket details
+          // User has purchased tickets — show green box with ticket details.
+          // Layout matches the event detail page's "Your Tickets" section:
+          // - Ticket name + "From: [Name]" badge on same line
+          // - Session name with date/time on separate line below
           if (hasTickets) {
             return (
               <Box
@@ -316,14 +325,37 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
                     {tickets!.length === 1 ? 'Ticket' : 'Tickets'}
                   </Text>
                 </Group>
-                <Stack gap={4}>
+                <Stack gap={8}>
                   {tickets!.map((ticket, index) => {
                     const showSession = ticket.sessionName && !ticket.sessionName.includes('Main Session');
                     return (
-                      <Text key={index} size="sm" fw={500} c="var(--color-charcoal)">
-                        {ticket.ticketTypeName || 'Ticket'}
-                        {showSession && ` \u2022 ${ticket.sessionName}`}
-                      </Text>
+                      <Box key={index}>
+                        <Group gap="xs" align="center" wrap="wrap">
+                          <Text size="sm" fw={500} c="var(--color-charcoal)">
+                            {ticket.ticketTypeName || 'Ticket'}
+                          </Text>
+                          {/* "From: [Name]" badge for tickets assigned to this user by someone else */}
+                          {ticket.assignedBySceneName && (
+                            <Badge color="green" variant="light" size="sm">
+                              From: {ticket.assignedBySceneName}
+                            </Badge>
+                          )}
+                        </Group>
+                        {/* Session info below ticket name — matches event detail page format */}
+                        {ticket.sessionStartTime && (
+                          <Text size="xs" c="dimmed" mt={2}>
+                            {showSession && `${ticket.sessionName} – `}
+                            {formatUtcToLocalDate(ticket.sessionStartTime, eventTimeZone, {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                            {ticket.sessionEndTime && (
+                              <> {'\u2022'} {formatUtcTimeRange(ticket.sessionStartTime, ticket.sessionEndTime, eventTimeZone)}</>
+                            )}
+                          </Text>
+                        )}
+                      </Box>
                     );
                   })}
                 </Stack>
@@ -574,11 +606,11 @@ interface TicketAssignmentRowProps {
 
 /**
  * A single row within the "Your Tickets" section.
- * Shows ticket type name, status badge, and action button if applicable.
+ * Shows ticket type name, status badge, session info, and action button.
  *
- * Layout: Group with justify="space-between"
- * - Left: ticket type name + TicketStatusBadge
- * - Right: Assign or Reassign button (when applicable)
+ * Layout matches the event detail page's "Your Tickets" section:
+ * - Top line: ticket type name + TicketStatusBadge + Assign/Reassign button
+ * - Below: session name with date/time (dimmed text)
  */
 const TicketAssignmentRow: React.FC<TicketAssignmentRowProps> = ({
   ticket,
@@ -586,10 +618,29 @@ const TicketAssignmentRow: React.FC<TicketAssignmentRowProps> = ({
   onAssign,
   onReassign,
 }) => {
+  const eventTimeZone = useEventTimeZone();
   const status = ticket.status || 'Unassigned'
   const isOwnTicket = status.toLowerCase() === 'active' && !ticket.assignedToUserId && !ticket.isUnassigned
   const showAssignButton = ticket.isUnassigned === true
   const showReassignButton = ticket.canReassign === true && status.toLowerCase() === 'declined'
+
+  // Access session data from the DTO (added to AssignedTicketStatusDto)
+  const ticketAny = ticket as any;
+  const sessionName = ticketAny.sessionName as string | null | undefined;
+  const sessionStartTime = ticketAny.sessionStartTime as string | null | undefined;
+  const sessionEndTime = ticketAny.sessionEndTime as string | null | undefined;
+  const showSession = sessionName && !sessionName.includes('Main Session');
+
+  // Shared button styles to avoid duplication between mobile/desktop layouts
+  const actionButtonStyles = {
+    root: {
+      height: 'auto',
+      minHeight: '30px',
+      padding: '4px 12px',
+      lineHeight: 1.2,
+      flexShrink: 0,
+    },
+  };
 
   return (
     <Box
@@ -616,20 +667,9 @@ const TicketAssignmentRow: React.FC<TicketAssignmentRowProps> = ({
                 size="xs"
                 variant="outline"
                 color="burgundy"
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation()
-                  onAssign()
-                }}
+                onClick={(e: React.MouseEvent) => { e.stopPropagation(); onAssign(); }}
                 data-testid="assign-ticket-button"
-                styles={{
-                  root: {
-                    height: 'auto',
-                    minHeight: '30px',
-                    padding: '4px 12px',
-                    lineHeight: 1.2,
-                    flexShrink: 0,
-                  },
-                }}
+                styles={actionButtonStyles}
               >
                 Assign
               </Button>
@@ -639,20 +679,9 @@ const TicketAssignmentRow: React.FC<TicketAssignmentRowProps> = ({
                 size="xs"
                 variant="outline"
                 color="burgundy"
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation()
-                  onReassign()
-                }}
+                onClick={(e: React.MouseEvent) => { e.stopPropagation(); onReassign(); }}
                 data-testid="reassign-ticket-button"
-                styles={{
-                  root: {
-                    height: 'auto',
-                    minHeight: '30px',
-                    padding: '4px 12px',
-                    lineHeight: 1.2,
-                    flexShrink: 0,
-                  },
-                }}
+                styles={actionButtonStyles}
               >
                 Reassign
               </Button>
@@ -677,20 +706,9 @@ const TicketAssignmentRow: React.FC<TicketAssignmentRowProps> = ({
               size="xs"
               variant="outline"
               color="burgundy"
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation()
-                onAssign()
-              }}
+              onClick={(e: React.MouseEvent) => { e.stopPropagation(); onAssign(); }}
               data-testid="assign-ticket-button"
-              styles={{
-                root: {
-                  height: 'auto',
-                  minHeight: '30px',
-                  padding: '4px 12px',
-                  lineHeight: 1.2,
-                  flexShrink: 0,
-                },
-              }}
+              styles={actionButtonStyles}
             >
               Assign
             </Button>
@@ -700,25 +718,29 @@ const TicketAssignmentRow: React.FC<TicketAssignmentRowProps> = ({
               size="xs"
               variant="outline"
               color="burgundy"
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation()
-                onReassign()
-              }}
+              onClick={(e: React.MouseEvent) => { e.stopPropagation(); onReassign(); }}
               data-testid="reassign-ticket-button"
-              styles={{
-                root: {
-                  height: 'auto',
-                  minHeight: '30px',
-                  padding: '4px 12px',
-                  lineHeight: 1.2,
-                  flexShrink: 0,
-                },
-              }}
+              styles={actionButtonStyles}
             >
               Reassign
             </Button>
           )}
         </Group>
+      )}
+      {/* Session info below ticket name — matches event detail page format.
+          Shows session name (if not "Main Session") with date and time range. */}
+      {sessionStartTime && (
+        <Text size="xs" c="dimmed" mt={4}>
+          {showSession && `${sessionName} – `}
+          {formatUtcToLocalDate(sessionStartTime, eventTimeZone, {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          })}
+          {sessionEndTime && (
+            <> {'\u2022'} {formatUtcTimeRange(sessionStartTime, sessionEndTime, eventTimeZone)}</>
+          )}
+        </Text>
       )}
     </Box>
   )

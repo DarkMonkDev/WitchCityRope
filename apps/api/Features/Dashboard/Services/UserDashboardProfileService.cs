@@ -143,7 +143,9 @@ public class UserDashboardProfileService : IUserDashboardProfileService
 
                 // Get user's purchased tickets for this event.
                 // Joins through EventAttendance → TicketPurchase → TicketType to get the ticket type name,
-                // and optionally includes the session name for multi-session events.
+                // and optionally includes the session name/times for display below ticket name.
+                // Also includes AssignedByUser scene name so the dashboard can show a
+                // "From: [Name]" badge for tickets assigned to the user by someone else.
                 eventDto.Tickets = await _context.EventAttendances
                     .AsNoTracking()
                     .Where(ea => ea.UserId == userId
@@ -156,9 +158,15 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                         TicketTypeName = ea.TicketPurchase!.TicketType != null
                             ? ea.TicketPurchase.TicketType.Name
                             : "Ticket",
-                        SessionName = ea.Session != null ? ea.Session.Name : null
+                        SessionName = ea.Session != null ? ea.Session.Name : null,
+                        SessionStartTime = ea.Session != null ? ea.Session.StartTime : null,
+                        SessionEndTime = ea.Session != null ? ea.Session.EndTime : null,
+                        // Resolve assigner's scene name via navigation property.
+                        // Null for self-purchased tickets (AssignedByUserId is null).
+                        AssignedBySceneName = ea.AssignedByUser != null
+                            ? ea.AssignedByUser.SceneName
+                            : null
                     })
-                    .Distinct()
                     .ToListAsync(cancellationToken);
             }
 

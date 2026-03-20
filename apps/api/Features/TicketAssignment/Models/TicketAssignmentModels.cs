@@ -226,6 +226,26 @@ public class AssignedTicketStatusDto
     /// Whether this ticket is currently unassigned (owned by purchaser, not yet assigned to anyone)
     /// </summary>
     public bool IsUnassigned { get; set; }
+
+    /// <summary>
+    /// Session name for this ticket (e.g., "Main Session", "Day 1").
+    /// Used to display session info below the ticket name on the dashboard,
+    /// matching the format on the event detail page's "Your Tickets" section.
+    /// Null for single-session events where session name is "Main Session" (hidden).
+    /// </summary>
+    public string? SessionName { get; set; }
+
+    /// <summary>
+    /// Session start time (UTC). Used with SessionEndTime to display
+    /// session date and time range below the ticket name on the dashboard.
+    /// </summary>
+    public DateTime? SessionStartTime { get; set; }
+
+    /// <summary>
+    /// Session end time (UTC). Used with SessionStartTime to display
+    /// the time range (e.g., "6:00 PM - 9:00 PM").
+    /// </summary>
+    public DateTime? SessionEndTime { get; set; }
 }
 
 /// <summary>

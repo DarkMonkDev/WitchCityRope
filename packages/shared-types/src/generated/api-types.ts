@@ -4680,6 +4680,11 @@ export interface components {
             assignedToSceneName?: null | string;
             canReassign?: boolean;
             isUnassigned?: boolean;
+            sessionName?: null | string;
+            /** Format: date-time */
+            sessionStartTime?: null | string;
+            /** Format: date-time */
+            sessionEndTime?: null | string;
         };
         AssignTicketRequest: {
             /** Format: uuid */
@@ -6446,6 +6451,7 @@ export interface components {
             totalPrice?: number;
             canCancel?: boolean;
             cancellationMessage?: null | string;
+            assignedBySceneName?: null | string;
             isForOther?: boolean;
             assigneeSceneName?: null | string;
             assigneeStatus?: null | string;
@@ -6812,6 +6818,11 @@ export interface components {
         UserTicketDto: {
             ticketTypeName?: string;
             sessionName?: null | string;
+            /** Format: date-time */
+            sessionStartTime?: null | string;
+            /** Format: date-time */
+            sessionEndTime?: null | string;
+            assignedBySceneName?: null | string;
         };
         UserVolunteerShiftDto: {
             /** Format: uuid */

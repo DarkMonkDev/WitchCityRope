@@ -12,7 +12,7 @@
  * - Active (accepted by assignee) -> green  -> "Accepted: [SceneName]"
  * - PendingAcceptance            -> yellow -> "Pending: [SceneName]"
  * - Declined                     -> red    -> "Declined"
- * - Unassigned                   -> gray   -> "Unassigned"
+ * - Unassigned                   -> red    -> "Unassigned"
  */
 
 import React from 'react'
@@ -80,7 +80,7 @@ function getBadgeConfig(
   }
 
   if (normalizedStatus === 'unassigned') {
-    return { color: 'gray', label: 'Unassigned' }
+    return { color: 'red', label: 'Unassigned' }
   }
 
   // Fallback for unknown statuses

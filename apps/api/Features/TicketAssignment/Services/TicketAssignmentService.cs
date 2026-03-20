@@ -1075,6 +1075,7 @@ public class TicketAssignmentService : ITicketAssignmentService
             var assignedAttendances = await _context.EventAttendances
                 .AsNoTracking()
                 .Include(ea => ea.Event)
+                .Include(ea => ea.Session)
                 .Include(ea => ea.TicketPurchase)
                     .ThenInclude(tp => tp!.TicketType)
                 .Where(ea =>
@@ -1113,7 +1114,11 @@ public class TicketAssignmentService : ITicketAssignmentService
                     : null,
                 // AD-015: Can reassign if Active + previously declined
                 CanReassign = ea.Status == AttendanceStatus.Active && ea.DeclinedAt != null,
-                IsUnassigned = false
+                IsUnassigned = false,
+                // Session data for display below ticket name on dashboard
+                SessionName = ea.Session?.Name,
+                SessionStartTime = ea.Session?.StartTime,
+                SessionEndTime = ea.Session?.EndTime
             }));
 
             // 2. Find unassigned/returned tickets: TicketPurchases with NO active EventAttendance.
@@ -1123,6 +1128,8 @@ public class TicketAssignmentService : ITicketAssignmentService
                 .AsNoTracking()
                 .Include(tp => tp.TicketType)
                     .ThenInclude(tt => tt!.Event)
+                .Include(tp => tp.TicketType!)
+                    .ThenInclude(tt => tt.Sessions)
                 .Where(tp =>
                     tp.UserId == userId
                     // Inline IsPaymentCompleted check — computed properties can't be
@@ -1139,19 +1146,32 @@ public class TicketAssignmentService : ITicketAssignmentService
                 .OrderBy(tp => tp.TicketType!.Event!.StartDate)
                 .ToListAsync(ct);
 
-            result.AddRange(unassignedPurchases.Select(tp => new AssignedTicketStatusDto
+            result.AddRange(unassignedPurchases.Select(tp =>
             {
-                AttendanceId = Guid.Empty, // No attendance yet - will be created on assignment
-                TicketPurchaseId = tp.Id,
-                EventId = tp.TicketType?.Event?.Id ?? Guid.Empty,
-                EventTitle = tp.TicketType?.Event?.Title ?? string.Empty,
-                EventDate = tp.TicketType?.Event?.StartDate ?? DateTime.MinValue,
-                TicketTypeName = tp.TicketType?.Name ?? string.Empty,
-                Status = "Unassigned",
-                AssignedToUserId = null,
-                AssignedToSceneName = null,
-                CanReassign = false,
-                IsUnassigned = true
+                // For unassigned tickets, get session info from the TicketType's sessions.
+                // Use the first session ordered by start time (most common: single-session tickets).
+                var firstSession = tp.TicketType?.Sessions?
+                    .OrderBy(s => s.StartTime)
+                    .FirstOrDefault();
+
+                return new AssignedTicketStatusDto
+                {
+                    AttendanceId = Guid.Empty, // No attendance yet - will be created on assignment
+                    TicketPurchaseId = tp.Id,
+                    EventId = tp.TicketType?.Event?.Id ?? Guid.Empty,
+                    EventTitle = tp.TicketType?.Event?.Title ?? string.Empty,
+                    EventDate = tp.TicketType?.Event?.StartDate ?? DateTime.MinValue,
+                    TicketTypeName = tp.TicketType?.Name ?? string.Empty,
+                    Status = "Unassigned",
+                    AssignedToUserId = null,
+                    AssignedToSceneName = null,
+                    CanReassign = false,
+                    IsUnassigned = true,
+                    // Session data from the TicketType's sessions (no EventAttendance exists yet)
+                    SessionName = firstSession?.Name,
+                    SessionStartTime = firstSession?.StartTime,
+                    SessionEndTime = firstSession?.EndTime
+                };
             }));
 
             _logger.LogDebug(
