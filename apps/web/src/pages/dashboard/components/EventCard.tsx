@@ -523,6 +523,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
         eventTitle={event.title || ''}
         mode={assignMode}
         onClose={() => setAssignModalTicket(null)}
+        userHasTicket={event.hasTicket ?? false}
       />
     )}
     </>
@@ -764,6 +765,8 @@ interface AssignTicketModalProps {
   eventTitle: string
   mode: 'assign' | 'reassign'
   onClose: () => void
+  /** Whether the current user already has their own ticket for this event */
+  userHasTicket: boolean
 }
 
 /**
@@ -776,6 +779,7 @@ const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
   eventTitle,
   mode,
   onClose,
+  userHasTicket,
 }) => {
   const attendanceId = ticket.attendanceId || ''
   const ticketPurchaseId = ticket.ticketPurchaseId || ''
@@ -806,6 +810,11 @@ const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
     activeMutation.mutate(request)
   }, [activeMutation])
 
+  // Allow self-assignment when the ticket is unassigned AND the user doesn't
+  // already have their own ticket. The backend still validates eligibility
+  // (vetting, duplicate prevention) so this is just a UX gate.
+  const canSelfAssign = isUnassignedTicket && !userHasTicket
+
   return (
     <AssignTicketDropdown
       opened={true}
@@ -816,6 +825,7 @@ const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
       title={mode === 'reassign' ? 'Reassign Ticket' : 'Assign Ticket'}
       ticketTypeName={ticket.ticketTypeName}
       eventTitle={eventTitle}
+      allowSelfAssignment={canSelfAssign}
     />
   )
 }

@@ -12,7 +12,7 @@
  * - Checkout: assign tickets during purchase (future)
  */
 
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   Modal,
   Stack,
@@ -27,6 +27,7 @@ import {
 } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
 import { usePrincipalContacts } from '../../authorized-contacts/api/queries'
+import { useUser } from '../../../stores/authStore'
 
 interface AssignTicketDropdownProps {
   /** Whether the modal is open */
@@ -45,6 +46,8 @@ interface AssignTicketDropdownProps {
   ticketTypeName?: string
   /** Event title for display context */
   eventTitle?: string
+  /** When true, include "Myself" as an option (for purchasers without own ticket) */
+  allowSelfAssignment?: boolean
 }
 
 export const AssignTicketDropdown: React.FC<AssignTicketDropdownProps> = ({
@@ -56,17 +59,34 @@ export const AssignTicketDropdown: React.FC<AssignTicketDropdownProps> = ({
   title = 'Assign Ticket',
   ticketTypeName,
   eventTitle,
+  allowSelfAssignment = false,
 }) => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const currentUser = useUser()
 
   // Fetch eligible contacts for this event (filtered by vetting + existing tickets)
   const { data: contacts, isLoading, error } = usePrincipalContacts(eventId)
 
-  // Transform contacts into Select data format
-  const selectData = (contacts || []).map((contact) => ({
-    value: contact.userId ?? '',
-    label: contact.sceneName ?? '',
-  }))
+  // Build dropdown options: authorized contacts + optional "Myself" entry.
+  // "Myself" is prepended when the caller sets allowSelfAssignment=true,
+  // which means the user doesn't already have a ticket for this event.
+  // The backend still validates eligibility (vetting, duplicates) on submit.
+  const selectData = useMemo(() => {
+    const options = (contacts || []).map((contact) => ({
+      value: contact.userId ?? '',
+      label: contact.sceneName ?? '',
+    }))
+
+    // Prepend "Myself" option if allowed and user is authenticated
+    if (allowSelfAssignment && currentUser?.id) {
+      options.unshift({
+        value: currentUser.id,
+        label: `Myself (${currentUser.sceneName || currentUser.email || ''})`,
+      })
+    }
+
+    return options
+  }, [contacts, allowSelfAssignment, currentUser])
 
   const handleConfirm = () => {
     if (selectedUserId) {
@@ -153,7 +173,9 @@ export const AssignTicketDropdown: React.FC<AssignTicketDropdownProps> = ({
               data-testid="assign-contact-select"
             />
             <Text size="xs" c="dimmed">
-              Only people who have authorized you as their delegate appear here.
+              {allowSelfAssignment
+                ? 'Assign to yourself or to people who have authorized you as their delegate.'
+                : 'Only people who have authorized you as their delegate appear here.'}
             </Text>
           </>
         )}

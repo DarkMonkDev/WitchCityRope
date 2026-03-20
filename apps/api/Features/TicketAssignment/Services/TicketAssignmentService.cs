@@ -845,17 +845,24 @@ public class TicketAssignmentService : ITicketAssignmentService
             }
 
             // 4. Check authorized delegate (BR-020)
-            var isAuthorized = await _authorizedContactService.IsAuthorizedDelegateAsync(
-                assignToUserId, callerUserId, ct);
-
-            if (!isAuthorized)
+            // Self-assignment is always authorized — the purchaser owns the ticket.
+            // The duplicate attendance check (step 7) still prevents double-ticketing,
+            // and vetting check (step 6) still applies for VettedMembersOnly events.
+            var isSelfAssignment = assignToUserId == callerUserId;
+            if (!isSelfAssignment)
             {
-                _logger.LogWarning(
-                    "User {CallerUserId} attempted to assign ticket {TicketPurchaseId} to {AssignToUserId} without authorization",
-                    callerUserId, ticketPurchaseId, assignToUserId);
-                return Result<TicketAssignmentDto>.Failure(
-                    "Not authorized by contact",
-                    "The target user has not authorized you to assign tickets on their behalf");
+                var isAuthorized = await _authorizedContactService.IsAuthorizedDelegateAsync(
+                    assignToUserId, callerUserId, ct);
+
+                if (!isAuthorized)
+                {
+                    _logger.LogWarning(
+                        "User {CallerUserId} attempted to assign ticket {TicketPurchaseId} to {AssignToUserId} without authorization",
+                        callerUserId, ticketPurchaseId, assignToUserId);
+                    return Result<TicketAssignmentDto>.Failure(
+                        "Not authorized by contact",
+                        "The target user has not authorized you to assign tickets on their behalf");
+                }
             }
 
             // 5. Validate event and ticket type are loaded
@@ -962,23 +969,30 @@ public class TicketAssignmentService : ITicketAssignmentService
                     AssignedTo = assignToUserId,
                     AssignedBy = callerUserId,
                     FromUnassigned = true,
+                    IsSelfAssignment = isSelfAssignment,
                     SessionCount = sessionIds.Count
                 }),
                 ChangedBy = callerUserId,
-                ChangeReason = "Unassigned ticket assigned from dashboard (UC-007)"
+                ChangeReason = isSelfAssignment
+                    ? "Purchaser self-assigned unassigned ticket from dashboard"
+                    : "Unassigned ticket assigned from dashboard (UC-007)"
             };
             _context.AttendanceHistory.Add(history);
 
             await _context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
-                "Unassigned ticket {TicketPurchaseId} assigned to {AssignToUserId} by {CallerUserId}. " +
+                "Unassigned ticket {TicketPurchaseId} assigned to {AssignToUserId} by {CallerUserId} (SelfAssignment={IsSelfAssignment}). " +
                 "Created {SessionCount} EventAttendance records in PendingAcceptance.",
-                ticketPurchaseId, assignToUserId, callerUserId, sessionIds.Count);
+                ticketPurchaseId, assignToUserId, callerUserId, isSelfAssignment, sessionIds.Count);
 
-            // Send assignment notification email to assignee (fire-and-forget, never throws)
-            await _eventEmailService.SendTicketAssignmentNotificationAsync(
-                assignToUserId, callerUserId, eventId, primaryAttendance!.Id, ct);
+            // Send assignment notification email — skip for self-assignment
+            // (user doesn't need to be notified about their own action)
+            if (!isSelfAssignment)
+            {
+                await _eventEmailService.SendTicketAssignmentNotificationAsync(
+                    assignToUserId, callerUserId, eventId, primaryAttendance!.Id, ct);
+            }
 
             // Reload the attendance with navigation properties for BuildAssignmentDtoAsync
             var savedAttendance = await _context.EventAttendances
