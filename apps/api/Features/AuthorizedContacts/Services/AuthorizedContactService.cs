@@ -316,12 +316,15 @@ public class AuthorizedContactService : IAuthorizedContactService
                         "The specified event does not exist");
                 }
 
-                // Get IDs of principals who already have Active or PendingAcceptance attendance
-                // for this event (BR-012: one per person per event)
-                var principalsWithExistingAttendance = await _context.EventAttendances
+                // Get IDs of principals who already have an Active or PendingAcceptance TICKET
+                // for this event. Only exclude ticket holders — RSVP-only users should still
+                // appear since they RSVPed but haven't purchased a ticket yet, and the delegate
+                // should be able to buy and assign a ticket to them.
+                var principalsWithExistingTicket = await _context.EventAttendances
                     .AsNoTracking()
                     .Where(ea =>
                         ea.EventId == eventId.Value
+                        && ea.AttendanceType == AttendanceType.Ticket
                         && (ea.Status == AttendanceStatus.Active
                             || ea.Status == AttendanceStatus.PendingAcceptance))
                     .Select(ea => ea.UserId)
@@ -333,8 +336,8 @@ public class AuthorizedContactService : IAuthorizedContactService
                 var filteredResults = contacts
                     .Where(ac =>
                     {
-                        // BR-012: Exclude principals who already have attendance for this event
-                        if (principalsWithExistingAttendance.Contains(ac.PrincipalId))
+                        // BR-012: Exclude principals who already have a ticket for this event
+                        if (principalsWithExistingTicket.Contains(ac.PrincipalId))
                             return false;
 
                         // BR-035: If VettedMembersOnly, only include vetted principals
