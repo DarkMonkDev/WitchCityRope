@@ -1049,6 +1049,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                   eventTitle={eventTitle}
                   mode={assignMode}
                   onClose={() => setAssignModalTicket(null)}
+                  userHasTicket={!!validParticipation?.hasTicket}
                 />
               )}
 
@@ -1413,6 +1414,8 @@ interface TicketForOtherAssignModalProps {
   eventTitle: string;
   mode: 'assign' | 'reassign';
   onClose: () => void;
+  /** Whether the current user has their own ticket (used to determine self-assignment eligibility) */
+  userHasTicket: boolean;
 }
 
 /**
@@ -1428,12 +1431,16 @@ const TicketForOtherAssignModal: React.FC<TicketForOtherAssignModalProps> = ({
   eventTitle,
   mode,
   onClose,
+  userHasTicket,
 }) => {
   const attendanceId = ticket.attendanceId || '';
   const ticketPurchaseId = ticket.ticketPurchaseId || '';
   // "Assign later" tickets have no attendanceId (Guid.Empty from backend)
   const isUnassignedTicket = ticket.isUnassigned === true
     && (!attendanceId || attendanceId === '00000000-0000-0000-0000-000000000000');
+
+  // Allow self-assignment when ticket is unassigned and user doesn't have their own ticket
+  const canSelfAssign = isUnassignedTicket && !userHasTicket;
 
   // Use the appropriate mutation hook based on whether the ticket has an attendance record
   const assignMutation = useAssignTicket(eventId, attendanceId);
@@ -1469,6 +1476,7 @@ const TicketForOtherAssignModal: React.FC<TicketForOtherAssignModalProps> = ({
       title={mode === 'reassign' ? 'Reassign Ticket' : 'Assign Ticket'}
       ticketTypeName={ticket.ticketTypeName}
       eventTitle={eventTitle}
+      allowSelfAssignment={canSelfAssign}
     />
   );
 };
