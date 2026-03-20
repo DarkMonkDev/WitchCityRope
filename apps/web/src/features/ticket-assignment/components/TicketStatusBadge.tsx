@@ -9,7 +9,7 @@
  *
  * Status -> Color -> Text mapping:
  * - Active (own ticket)           -> green  -> "Active (You)"
- * - Active (accepted by assignee) -> green  -> "Active: [SceneName]"
+ * - Active (accepted by assignee) -> green  -> "Accepted: [SceneName]"
  * - PendingAcceptance            -> yellow -> "Pending: [SceneName]"
  * - Declined                     -> red    -> "Declined"
  * - Unassigned                   -> gray   -> "Unassigned"
@@ -64,7 +64,7 @@ function getBadgeConfig(
     }
     return {
       color: 'green',
-      label: assigneeSceneName ? `Active: ${assigneeSceneName}` : 'Active',
+      label: assigneeSceneName ? `Accepted: ${assigneeSceneName}` : 'Accepted',
     }
   }
 
