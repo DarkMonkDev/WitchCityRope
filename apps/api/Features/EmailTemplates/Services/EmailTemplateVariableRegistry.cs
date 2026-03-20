@@ -106,7 +106,7 @@ public static class EmailTemplateVariableRegistry
             "{{event_details_url}}", "{{event_details_button}}"
         },
 
-        // Source: Ticket assignment flow (not yet wired) — sent on ticket assignment
+        // Source: EventEmailService.SendTicketAssignmentNotificationAsync() — sent on ticket assignment
         [(EmailCategory.Events, "TicketAssignmentNotification")] = new[]
         {
             "{{recipient_scene_name}}", "{{delegate_scene_name}}", "{{event_title}}",
@@ -114,7 +114,7 @@ public static class EmailTemplateVariableRegistry
             "{{accept_url}}", "{{accept_button}}"
         },
 
-        // Source: Proxy RSVP flow (not yet wired) — sent on proxy RSVP creation
+        // Source: EventEmailService.SendRsvpAssignmentNotificationAsync() — sent on proxy RSVP creation
         [(EmailCategory.Events, "RsvpAssignmentNotification")] = new[]
         {
             "{{recipient_scene_name}}", "{{delegate_scene_name}}", "{{event_title}}",
@@ -122,7 +122,7 @@ public static class EmailTemplateVariableRegistry
             "{{accept_url}}", "{{accept_button}}"
         },
 
-        // Source: AssignmentReminderService.SendReminderForAttendanceAsync() — ticket reminders
+        // Source: EmailSchedulerJob (PendingAssignmentHolders branch) — ticket acceptance reminders
         [(EmailCategory.Events, "TicketAcceptanceReminder")] = new[]
         {
             "{{recipient_scene_name}}", "{{delegate_scene_name}}", "{{event_title}}",
@@ -130,7 +130,7 @@ public static class EmailTemplateVariableRegistry
             "{{ticket_type_name}}", "{{accept_url}}", "{{accept_button}}"
         },
 
-        // Source: AssignmentReminderService.SendReminderForAttendanceAsync() — RSVP reminders
+        // Source: EmailSchedulerJob (PendingAssignmentHolders branch) — RSVP acceptance reminders
         [(EmailCategory.Events, "RsvpAcceptanceReminder")] = new[]
         {
             "{{recipient_scene_name}}", "{{delegate_scene_name}}", "{{event_title}}",

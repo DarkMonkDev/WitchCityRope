@@ -128,6 +128,10 @@ public class EventRecipientService : IEventRecipientService
     /// on their behalf but haven't yet accepted (waiver + ToS).
     /// Used by TicketAcceptanceReminder and RsvpAcceptanceReminder templates
     /// to send 1-day-before reminders via the existing EmailSchedulerJob.
+    ///
+    /// Returns per-attendance records (not per-user) because each attendance has
+    /// different AssignedByUser, TicketType, and AttendanceType. The EmailSchedulerJob
+    /// uses AttendanceType to filter recipients per template (ticket vs RSVP reminders).
     /// </summary>
     private async Task<List<RecipientInfo>> GetPendingAssignmentHoldersAsync(Guid sessionId, CancellationToken ct)
     {
@@ -144,23 +148,34 @@ public class EventRecipientService : IEventRecipientService
             return [];
         }
 
-        // Find all users with PendingAcceptance EventAttendances for this event
-        // Includes both Ticket and RSVP types (BR-061: same pattern for both)
-        var recipients = await _context.EventAttendances
+        // Find all PendingAcceptance EventAttendances for this event.
+        // Includes both Ticket and RSVP types (BR-061: same pattern for both).
+        // Loads AssignedByUser for delegate scene name and TicketPurchase.TicketType
+        // for ticket type name — needed by acceptance reminder email templates.
+        var attendances = await _context.EventAttendances
             .AsNoTracking()
             .Include(ea => ea.User)
+            .Include(ea => ea.AssignedByUser)
+            .Include(ea => ea.TicketPurchase)
+                .ThenInclude(tp => tp!.TicketType)
             .Where(ea => ea.EventId == session.EventId
                 && ea.Status == AttendanceStatus.PendingAcceptance
                 && (ea.AttendanceType == AttendanceType.RSVP || ea.AttendanceType == AttendanceType.Ticket))
-            .Select(ea => new { ea.UserId, ea.User!.Email, ea.User.SceneName })
-            .Distinct()
             .ToListAsync(ct);
 
-        return recipients
-            .Where(r => !string.IsNullOrEmpty(r.Email))
-            .GroupBy(r => r.UserId)
-            .Select(g => g.First())
-            .Select(r => new RecipientInfo(r.UserId, r.Email!, !string.IsNullOrEmpty(r.SceneName) ? r.SceneName : r.Email!))
+        return attendances
+            .Where(ea => !string.IsNullOrEmpty(ea.User?.Email))
+            .Select(ea => new RecipientInfo(
+                ea.UserId,
+                ea.User!.Email!,
+                !string.IsNullOrEmpty(ea.User.SceneName) ? ea.User.SceneName : ea.User.Email!,
+                null, // No volunteer assignments for pending assignment holders
+                new AssignmentInfo(
+                    ea.AssignedByUser?.SceneName ?? "Someone",
+                    ea.TicketPurchase?.TicketType?.Name,
+                    ea.AttendanceType,
+                    ea.Id,
+                    ea.EventId)))
             .ToList();
     }
 

@@ -645,4 +645,227 @@ public class EventEmailService : IEventEmailService
             localTime.ToString("h:mm tt") + " ET"
         );
     }
+
+    // ============================================================================
+    // ASSIGNMENT NOTIFICATION HELPERS
+    // ============================================================================
+    // These helpers build accept URLs and buttons for ticket/RSVP assignment emails.
+    // The accept_url links to the event detail page where users can see the event
+    // and navigate to their dashboard to accept via PendingTicketsCard.
+    // ============================================================================
+
+    /// <summary>
+    /// Builds an HTML accept button with customizable text, using the same
+    /// WitchCityRope brand styling as GetEventDetailsButton.
+    /// </summary>
+    private static string GetAcceptButton(string url, string buttonText)
+    {
+        return $"<a href=\"{url}\" style=\"display: inline-block; padding: 12px 24px; background-color: #880124; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;\">{buttonText}</a>";
+    }
+
+    /// <summary>
+    /// Combines venue name and address into a single string for the {{event_venue}} variable.
+    /// Returns "Name, Address" if both are present, or whichever is available, or empty string.
+    /// </summary>
+    private static string FormatVenue(string? name, string? address)
+    {
+        if (string.IsNullOrEmpty(name) && string.IsNullOrEmpty(address))
+            return "";
+        if (string.IsNullOrEmpty(address))
+            return name!;
+        if (string.IsNullOrEmpty(name))
+            return address;
+        return $"{name}, {address}";
+    }
+
+    // ============================================================================
+    // TICKET & RSVP ASSIGNMENT NOTIFICATION METHODS
+    // ============================================================================
+    // These are FixedEvent-triggered emails sent immediately when a ticket is
+    // assigned to another user or a proxy RSVP is created on someone's behalf.
+    // Both follow the fire-and-forget pattern: internal try/catch ensures
+    // failures are logged but never propagate to the caller.
+    // ============================================================================
+
+    /// <summary>
+    /// Sends a ticket assignment notification email to the assignee.
+    /// Called after a ticket is successfully assigned to another user via
+    /// AssignTicketAsync, ReassignTicketAsync, AssignUnassignedTicketAsync, or AdminAssignTicketAsync.
+    /// Loads the attendance record to get ticket type name for the template.
+    /// </summary>
+    public async Task SendTicketAssignmentNotificationAsync(
+        Guid assigneeUserId, Guid assignerUserId, Guid eventId,
+        Guid attendanceId, CancellationToken ct)
+    {
+        try
+        {
+            // Load assignee (recipient) and assigner (delegate) users
+            var assignee = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == assigneeUserId, ct);
+
+            if (assignee?.Email == null)
+            {
+                _logger.LogWarning("Assignee {UserId} not found for ticket assignment notification", assigneeUserId);
+                return;
+            }
+
+            var assigner = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == assignerUserId, ct);
+
+            // Load event with venue and sessions for template variables
+            var evt = await _context.Events
+                .AsNoTracking()
+                .Include(e => e.Venue)
+                .Include(e => e.Sessions)
+                .FirstOrDefaultAsync(e => e.Id == eventId, ct);
+
+            if (evt == null)
+            {
+                _logger.LogWarning("Event {EventId} not found for ticket assignment notification", eventId);
+                return;
+            }
+
+            // Load attendance to get ticket purchase and ticket type name
+            var attendance = await _context.EventAttendances
+                .AsNoTracking()
+                .Include(ea => ea.TicketPurchase)
+                    .ThenInclude(tp => tp!.TicketType)
+                .FirstOrDefaultAsync(ea => ea.Id == attendanceId, ct);
+
+            var ticketTypeName = attendance?.TicketPurchase?.TicketType?.Name ?? "";
+
+            var assigneeDisplayName = !string.IsNullOrEmpty(assignee.SceneName) ? assignee.SceneName : assignee.Email;
+            var assignerDisplayName = !string.IsNullOrEmpty(assigner?.SceneName) ? assigner.SceneName : "Someone";
+
+            var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
+            var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
+
+            var acceptUrl = GetEventDetailsUrl(eventId);
+            var acceptButton = GetAcceptButton(acceptUrl, "Accept Your Ticket");
+
+            var variables = new Dictionary<string, string>
+            {
+                ["recipient_scene_name"] = assigneeDisplayName,
+                ["delegate_scene_name"] = assignerDisplayName,
+                ["event_title"] = evt.Title,
+                ["event_date"] = dateStr,
+                ["event_time"] = timeStr,
+                ["event_venue"] = FormatVenue(evt.Venue?.Name, evt.Venue?.Location),
+                ["ticket_type_name"] = ticketTypeName,
+                ["accept_url"] = acceptUrl,
+                ["accept_button"] = acceptButton
+            };
+
+            var result = await _emailService.SendTemplatedEmailAsync(
+                assignee.Email, assigneeDisplayName, EmailCategory.Events,
+                "TicketAssignmentNotification", variables, eventId, ct);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation(
+                    "Ticket assignment notification sent to {Email} for event {EventId} (assigned by {AssignerUserId})",
+                    assignee.Email, eventId, assignerUserId);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to send ticket assignment notification to {Email}: {Error}",
+                    assignee.Email, result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fire-and-forget: notification failure must never block the assignment flow
+            _logger.LogError(ex,
+                "Error sending ticket assignment notification for assignee {AssigneeUserId} event {EventId} (non-fatal)",
+                assigneeUserId, eventId);
+        }
+    }
+
+    /// <summary>
+    /// Sends an RSVP assignment notification email to the principal (the person being RSVP'd for).
+    /// Called after a proxy RSVP is successfully created by a delegate.
+    /// </summary>
+    public async Task SendRsvpAssignmentNotificationAsync(
+        Guid principalUserId, Guid delegateUserId, Guid eventId,
+        CancellationToken ct)
+    {
+        try
+        {
+            // Load principal (recipient) and delegate (assigner) users
+            var principal = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == principalUserId, ct);
+
+            if (principal?.Email == null)
+            {
+                _logger.LogWarning("Principal {UserId} not found for RSVP assignment notification", principalUserId);
+                return;
+            }
+
+            var delegateUser = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == delegateUserId, ct);
+
+            // Load event with venue and sessions for template variables
+            var evt = await _context.Events
+                .AsNoTracking()
+                .Include(e => e.Venue)
+                .Include(e => e.Sessions)
+                .FirstOrDefaultAsync(e => e.Id == eventId, ct);
+
+            if (evt == null)
+            {
+                _logger.LogWarning("Event {EventId} not found for RSVP assignment notification", eventId);
+                return;
+            }
+
+            var principalDisplayName = !string.IsNullOrEmpty(principal.SceneName) ? principal.SceneName : principal.Email;
+            var delegateDisplayName = !string.IsNullOrEmpty(delegateUser?.SceneName) ? delegateUser.SceneName : "Someone";
+
+            var firstSession = evt.Sessions.OrderBy(s => s.StartTime).FirstOrDefault();
+            var (dateStr, timeStr) = FormatSessionDateTime(firstSession?.StartTime);
+
+            var acceptUrl = GetEventDetailsUrl(eventId);
+            var acceptButton = GetAcceptButton(acceptUrl, "Accept Your RSVP");
+
+            var variables = new Dictionary<string, string>
+            {
+                ["recipient_scene_name"] = principalDisplayName,
+                ["delegate_scene_name"] = delegateDisplayName,
+                ["event_title"] = evt.Title,
+                ["event_date"] = dateStr,
+                ["event_time"] = timeStr,
+                ["event_venue"] = FormatVenue(evt.Venue?.Name, evt.Venue?.Location),
+                ["accept_url"] = acceptUrl,
+                ["accept_button"] = acceptButton
+            };
+
+            var result = await _emailService.SendTemplatedEmailAsync(
+                principal.Email, principalDisplayName, EmailCategory.Events,
+                "RsvpAssignmentNotification", variables, eventId, ct);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation(
+                    "RSVP assignment notification sent to {Email} for event {EventId} (created by {DelegateUserId})",
+                    principal.Email, eventId, delegateUserId);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to send RSVP assignment notification to {Email}: {Error}",
+                    principal.Email, result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fire-and-forget: notification failure must never block the proxy RSVP flow
+            _logger.LogError(ex,
+                "Error sending RSVP assignment notification for principal {PrincipalUserId} event {EventId} (non-fatal)",
+                principalUserId, eventId);
+        }
+    }
 }

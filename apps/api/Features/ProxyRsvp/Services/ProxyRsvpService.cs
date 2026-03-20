@@ -28,17 +28,21 @@ public class ProxyRsvpService : IProxyRsvpService
     private readonly ApplicationDbContext _context;
     private readonly IAuthorizedContactService _authorizedContactService;
     private readonly IAttendanceCountService _countService;
+    // Fully qualified to avoid Result<T> ambiguity with EmailTemplates.Services namespace
+    private readonly WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService _eventEmailService;
     private readonly ILogger<ProxyRsvpService> _logger;
 
     public ProxyRsvpService(
         ApplicationDbContext context,
         IAuthorizedContactService authorizedContactService,
         IAttendanceCountService countService,
+        WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService eventEmailService,
         ILogger<ProxyRsvpService> logger)
     {
         _context = context;
         _authorizedContactService = authorizedContactService;
         _countService = countService;
+        _eventEmailService = eventEmailService;
         _logger = logger;
     }
 
@@ -273,7 +277,11 @@ public class ProxyRsvpService : IProxyRsvpService
                 "Proxy RSVP created: AttendanceId {AttendanceId}, Event {EventId}, Principal {PrincipalUserId}, Delegate {DelegateUserId}",
                 attendance.Id, eventId, principalUserId, delegateUserId);
 
-            // 11. Return ProxyRsvpDto
+            // 11. Send RSVP assignment notification email to principal (fire-and-forget, never throws)
+            await _eventEmailService.SendRsvpAssignmentNotificationAsync(
+                principalUserId, delegateUserId, eventId, ct);
+
+            // 12. Return ProxyRsvpDto
             return Result<ProxyRsvpDto>.Success(new ProxyRsvpDto
             {
                 AttendanceId = attendance.Id,

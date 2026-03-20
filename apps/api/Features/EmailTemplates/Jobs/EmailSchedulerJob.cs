@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
+using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Services;
 
 namespace WitchCityRope.Api.Features.EmailTemplates.Jobs;
@@ -228,6 +229,7 @@ public class EmailSchedulerJob
         var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, EasternTimeZone);
 
         var isVolunteerTemplate = template.RecipientGroup.Value == EventRecipientGroup.SessionVolunteers;
+        var isPendingAssignment = template.RecipientGroup.Value == EventRecipientGroup.PendingAssignmentHolders;
 
         var successCount = 0;
         var failCount = 0;
@@ -236,13 +238,65 @@ public class EmailSchedulerJob
         {
             try
             {
-                // Build variables dictionary for this recipient.
-                // All templates get the base event/venue variables.
-                // Volunteer templates additionally get role and shift details
-                // from the RecipientInfo (populated by EventRecipientService).
                 var formattedDate = localTime.ToString("dddd, MMMM d, yyyy");
                 var formattedTime = localTime.ToString("h:mm tt") + " ET";
 
+                // PendingAssignmentHolders branch: builds assignment-specific variables
+                // for TicketAcceptanceReminder and RsvpAcceptanceReminder templates.
+                // These templates use different variable names (recipient_scene_name,
+                // delegate_scene_name, accept_button, etc.) than the generic templates.
+                if (isPendingAssignment && recipient.Assignment != null)
+                {
+                    // Filter by attendance type: TicketAcceptanceReminder only sends to
+                    // Ticket holders, RsvpAcceptanceReminder only to RSVP holders.
+                    // Both templates share the PendingAssignmentHolders recipient group,
+                    // so we filter here to ensure each user gets the correct template.
+                    var expectedAttendanceType = template.TemplateType == "TicketAcceptanceReminder"
+                        ? AttendanceType.Ticket
+                        : AttendanceType.RSVP;
+
+                    if (recipient.Assignment.AttendanceType != expectedAttendanceType)
+                        continue;
+
+                    var acceptUrl = GetEventDetailsUrl(session.EventId);
+                    var buttonLabel = recipient.Assignment.AttendanceType == AttendanceType.Ticket
+                        ? "Accept Your Ticket Now"
+                        : "Accept Your RSVP Now";
+                    var acceptButton = $"<a href=\"{acceptUrl}\" style=\"display: inline-block; padding: 12px 24px; background-color: #880124; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;\">{buttonLabel}</a>";
+
+                    // Combine venue name + address into single event_venue variable
+                    var eventVenue = !string.IsNullOrEmpty(session.VenueName) && !string.IsNullOrEmpty(session.VenueAddress)
+                        ? $"{session.VenueName}, {session.VenueAddress}"
+                        : session.VenueName ?? session.VenueAddress ?? "";
+
+                    var assignmentVariables = new Dictionary<string, string>
+                    {
+                        ["recipient_scene_name"] = recipient.DisplayName,
+                        ["delegate_scene_name"] = recipient.Assignment.DelegateSceneName,
+                        ["event_title"] = session.EventTitle,
+                        ["event_date"] = formattedDate,
+                        ["event_time"] = formattedTime,
+                        ["event_start_time"] = formattedTime,
+                        ["event_venue"] = eventVenue,
+                        ["ticket_type_name"] = recipient.Assignment.TicketTypeName ?? "",
+                        ["accept_url"] = acceptUrl,
+                        ["accept_button"] = acceptButton
+                    };
+
+                    var assignResult = await _emailService.SendTemplatedEmailAsync(
+                        recipient.Email, recipient.DisplayName,
+                        EmailCategory.Events, template.TemplateType, assignmentVariables, session.EventId, ct);
+
+                    if (assignResult.IsSuccess)
+                        successCount++;
+                    else
+                        failCount++;
+
+                    continue; // Skip generic variable building below
+                }
+
+                // Generic template variable building for all other recipient groups
+                // (RSVPTicketHolders, SessionAttendees, SessionVolunteers, Teachers).
                 // Populate both session_* and event_* variable names.
                 // Production templates were originally seeded with event_date/event_time,
                 // while the seeder was later updated to use session_date/session_time.

@@ -30,4 +30,23 @@ public interface IEventEmailService
     /// </summary>
     Task SendRsvpCancellationEmailAsync(
         Guid userId, Guid eventId, CancellationToken ct);
+
+    /// <summary>
+    /// Sends a ticket assignment notification email to the assignee.
+    /// Called after a ticket is successfully assigned to another user
+    /// (AssignTicketAsync, ReassignTicketAsync, AssignUnassignedTicketAsync, AdminAssignTicketAsync).
+    /// Non-fatal: failures are logged but do not propagate.
+    /// </summary>
+    Task SendTicketAssignmentNotificationAsync(
+        Guid assigneeUserId, Guid assignerUserId, Guid eventId,
+        Guid attendanceId, CancellationToken ct);
+
+    /// <summary>
+    /// Sends an RSVP assignment notification email to the principal.
+    /// Called after a proxy RSVP is successfully created on someone's behalf.
+    /// Non-fatal: failures are logged but do not propagate.
+    /// </summary>
+    Task SendRsvpAssignmentNotificationAsync(
+        Guid principalUserId, Guid delegateUserId, Guid eventId,
+        CancellationToken ct);
 }

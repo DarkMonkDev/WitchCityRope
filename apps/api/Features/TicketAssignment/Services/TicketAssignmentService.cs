@@ -18,6 +18,7 @@ namespace WitchCityRope.Api.Features.TicketAssignment.Services;
 /// - ApplicationDbContext: Data access for EventAttendance, TicketPurchase, Users
 /// - IAuthorizedContactService: Validates delegation authorization (BR-020)
 /// - IVettingAccessControlService: Checks vetting status for vetted-only events (BR-035, BR-036)
+/// - IEventEmailService: Sends ticket assignment notification emails to assignees
 /// - ILogger: Structured logging with contextual properties
 /// </summary>
 public class TicketAssignmentService : ITicketAssignmentService
@@ -27,17 +28,21 @@ public class TicketAssignmentService : ITicketAssignmentService
     // VettingAccessControlService injected for future expanded vetting checks.
     // Currently, VettedMembersOnly events use direct IsVetted check (matching AttendanceService pattern).
     private readonly IVettingAccessControlService _vettingAccessControlService;
+    // Fully qualified to avoid Result<T> ambiguity with EmailTemplates.Services namespace
+    private readonly WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService _eventEmailService;
     private readonly ILogger<TicketAssignmentService> _logger;
 
     public TicketAssignmentService(
         ApplicationDbContext context,
         IAuthorizedContactService authorizedContactService,
         IVettingAccessControlService vettingAccessControlService,
+        WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService eventEmailService,
         ILogger<TicketAssignmentService> logger)
     {
         _context = context;
         _authorizedContactService = authorizedContactService;
         _vettingAccessControlService = vettingAccessControlService;
+        _eventEmailService = eventEmailService;
         _logger = logger;
     }
 
@@ -187,7 +192,11 @@ public class TicketAssignmentService : ITicketAssignmentService
                 "Ticket assigned successfully: AttendanceId={AttendanceId}, AssignedTo={AssignToUserId}, AssignedBy={CallerUserId}, EventId={EventId}",
                 attendanceId, assignToUserId, callerUserId, attendance.EventId);
 
-            // 10. Return DTO
+            // 10. Send assignment notification email (fire-and-forget, never throws)
+            await _eventEmailService.SendTicketAssignmentNotificationAsync(
+                assignToUserId, callerUserId, attendance.EventId, attendance.Id, ct);
+
+            // 11. Return DTO
             return Result<TicketAssignmentDto>.Success(await BuildAssignmentDtoAsync(attendance, ct));
         }
         catch (Exception ex)
@@ -769,7 +778,11 @@ public class TicketAssignmentService : ITicketAssignmentService
                 "Ticket reassigned: AttendanceId={AttendanceId}, NewAssignee={NewAssigneeUserId}, ReassignedBy={CallerUserId}, EventId={EventId}",
                 attendanceId, newAssigneeUserId, callerUserId, attendance.EventId);
 
-            // 9. Return DTO
+            // 9. Send assignment notification email to new assignee (fire-and-forget, never throws)
+            await _eventEmailService.SendTicketAssignmentNotificationAsync(
+                newAssigneeUserId, callerUserId, attendance.EventId, attendance.Id, ct);
+
+            // 10. Return DTO
             return Result<TicketAssignmentDto>.Success(await BuildAssignmentDtoAsync(attendance, ct));
         }
         catch (Exception ex)
@@ -962,6 +975,10 @@ public class TicketAssignmentService : ITicketAssignmentService
                 "Unassigned ticket {TicketPurchaseId} assigned to {AssignToUserId} by {CallerUserId}. " +
                 "Created {SessionCount} EventAttendance records in PendingAcceptance.",
                 ticketPurchaseId, assignToUserId, callerUserId, sessionIds.Count);
+
+            // Send assignment notification email to assignee (fire-and-forget, never throws)
+            await _eventEmailService.SendTicketAssignmentNotificationAsync(
+                assignToUserId, callerUserId, eventId, primaryAttendance!.Id, ct);
 
             // Reload the attendance with navigation properties for BuildAssignmentDtoAsync
             var savedAttendance = await _context.EventAttendances
@@ -1403,7 +1420,11 @@ public class TicketAssignmentService : ITicketAssignmentService
                 "Admin ticket assigned successfully: EventId={EventId}, TargetUserId={TargetUserId}, AdminUserId={AdminUserId}, TicketTypeId={TicketTypeId}, PaymentRef={PaymentReference}",
                 eventId, request.UserId, adminUserId, request.TicketTypeId, paymentReference);
 
-            // 10. Return DTO (reload with includes for proper DTO building)
+            // 10. Send assignment notification email to assignee (fire-and-forget, never throws)
+            await _eventEmailService.SendTicketAssignmentNotificationAsync(
+                request.UserId, adminUserId, eventId, firstAttendance!.Id, ct);
+
+            // 11. Return DTO (reload with includes for proper DTO building)
             var savedAttendance = await _context.EventAttendances
                 .Include(ea => ea.Event)
                 .Include(ea => ea.TicketPurchase)

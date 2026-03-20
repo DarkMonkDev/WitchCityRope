@@ -3,7 +3,9 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.AuthorizedContacts.Services;
+using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.ProxyRsvp.Models;
 using WitchCityRope.Api.Features.ProxyRsvp.Services;
 using WitchCityRope.Api.Models;
@@ -27,6 +29,8 @@ public class ProxyRsvpServiceTests : IAsyncLifetime
     private ApplicationDbContext _context = null!;
     private ProxyRsvpService _sut = null!;
     private IAuthorizedContactService _mockAuthorizedContactService = null!;
+    private IAttendanceCountService _mockCountService = null!;
+    private IEventEmailService _mockEventEmailService = null!;
     private ILogger<ProxyRsvpService> _logger = null!;
 
     // Test entity IDs
@@ -46,6 +50,8 @@ public class ProxyRsvpServiceTests : IAsyncLifetime
 
         _logger = Substitute.For<ILogger<ProxyRsvpService>>();
         _mockAuthorizedContactService = Substitute.For<IAuthorizedContactService>();
+        _mockCountService = Substitute.For<IAttendanceCountService>();
+        _mockEventEmailService = Substitute.For<IEventEmailService>();
 
         // Create test users
         _delegateId = Guid.NewGuid();
@@ -84,7 +90,12 @@ public class ProxyRsvpServiceTests : IAsyncLifetime
         _context.Events.Add(eventEntity);
         await _context.SaveChangesAsync();
 
-        _sut = new ProxyRsvpService(_context, _mockAuthorizedContactService, _logger);
+        _sut = new ProxyRsvpService(
+            _context,
+            _mockAuthorizedContactService,
+            _mockCountService,
+            _mockEventEmailService,
+            _logger);
     }
 
     public async Task DisposeAsync()

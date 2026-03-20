@@ -6,6 +6,7 @@ using WitchCityRope.Api.Features.AuthorizedContacts.Services;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.TicketAssignment.Models;
+using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.TicketAssignment.Services;
 using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Models;
@@ -31,6 +32,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
     private TicketAssignmentService _sut = null!;
     private IAuthorizedContactService _mockAuthorizedContactService = null!;
     private IVettingAccessControlService _mockVettingService = null!;
+    private IEventEmailService _mockEventEmailService = null!;
     private ILogger<TicketAssignmentService> _logger = null!;
 
     // Test entity IDs
@@ -56,6 +58,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
         _logger = Substitute.For<ILogger<TicketAssignmentService>>();
         _mockAuthorizedContactService = Substitute.For<IAuthorizedContactService>();
         _mockVettingService = Substitute.For<IVettingAccessControlService>();
+        _mockEventEmailService = Substitute.For<IEventEmailService>();
 
         // Create test users
         _purchaserId = Guid.NewGuid();
@@ -131,6 +134,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
             _context,
             _mockAuthorizedContactService,
             _mockVettingService,
+            _mockEventEmailService,
             _logger);
     }
 
