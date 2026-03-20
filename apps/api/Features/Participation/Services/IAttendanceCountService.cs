@@ -11,8 +11,9 @@ namespace WitchCityRope.Api.Features.Participation.Services;
 ///    - Use <see cref="GetDisplayCountAsync"/> for this
 ///
 /// 2. RESERVED COUNT (prevents overselling during checkout):
-///    - Active + PendingPayment statuses (reserves capacity while payment is in progress)
-///    - ALL attendance types (any reservation occupies capacity regardless of type)
+///    - Active + PendingPayment + PendingAcceptance statuses
+///    - Counts DISTINCT USERS (not total records) to prevent double-counting
+///      users who have both RSVP and Ticket records for the same event
 ///    - Use <see cref="GetReservedCountAsync"/> for this
 ///
 /// RELATED IN-MEMORY METHODS:
@@ -36,9 +37,10 @@ public interface IAttendanceCountService
     Task<int> GetDisplayCountAsync(Guid eventId, CancellationToken ct = default);
 
     /// <summary>
-    /// Gets the reserved count for an event (Active + PendingPayment, all attendance types).
-    /// Used for capacity business logic checks (CanRSVP, CanPurchaseTicket) to prevent
-    /// overselling while a payment is being processed.
+    /// Gets the reserved count for an event as DISTINCT USERS with Active, PendingPayment,
+    /// or PendingAcceptance status. Counts unique people, not total records, to prevent
+    /// double-counting users who have multiple records (RSVP + Ticket, multi-session tickets).
+    /// Used for capacity business logic checks (CanRSVP, CanPurchaseTicket, ProxyRSVP).
     /// </summary>
     Task<int> GetReservedCountAsync(Guid eventId, CancellationToken ct = default);
 

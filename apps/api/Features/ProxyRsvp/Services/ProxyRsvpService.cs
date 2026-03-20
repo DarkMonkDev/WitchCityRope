@@ -4,6 +4,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.AuthorizedContacts.Services;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.ProxyRsvp.Models;
 using WitchCityRope.Api.Features.Shared.Models;
 
@@ -26,15 +27,18 @@ public class ProxyRsvpService : IProxyRsvpService
 {
     private readonly ApplicationDbContext _context;
     private readonly IAuthorizedContactService _authorizedContactService;
+    private readonly IAttendanceCountService _countService;
     private readonly ILogger<ProxyRsvpService> _logger;
 
     public ProxyRsvpService(
         ApplicationDbContext context,
         IAuthorizedContactService authorizedContactService,
+        IAttendanceCountService countService,
         ILogger<ProxyRsvpService> logger)
     {
         _context = context;
         _authorizedContactService = authorizedContactService;
+        _countService = countService;
         _logger = logger;
     }
 
@@ -126,14 +130,10 @@ public class ProxyRsvpService : IProxyRsvpService
                 }
             }
 
-            // 4. Check capacity: count Active + PendingPayment + PendingAcceptance RSVPs (BR-054)
-            var reservedCount = await _context.EventAttendances
-                .AsNoTracking()
-                .CountAsync(ea =>
-                    ea.EventId == eventId
-                    && (ea.Status == AttendanceStatus.Active
-                        || ea.Status == AttendanceStatus.PendingPayment
-                        || ea.Status == AttendanceStatus.PendingAcceptance), ct);
+            // 4. Check capacity using single source of truth (BR-054).
+            // Uses IAttendanceCountService.GetReservedCountAsync which counts DISTINCT users
+            // to prevent double-counting users with both RSVP and Ticket records.
+            var reservedCount = await _countService.GetReservedCountAsync(eventId, ct);
 
             if (reservedCount >= eventEntity.Capacity)
             {

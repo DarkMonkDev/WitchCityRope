@@ -55,17 +55,26 @@ public class AttendanceCountService : IAttendanceCountService
     /// <inheritdoc />
     public async Task<int> GetReservedCountAsync(Guid eventId, CancellationToken ct = default)
     {
+        // Counts DISTINCT USERS with reserved attendance, not total records.
+        //
+        // WHY DISTINCT: A single user can have multiple EventAttendance records:
+        //   - RSVP record + Ticket record(s) for social events (auto-RSVP on ticket purchase)
+        //   - Multiple Ticket records for multi-session tickets (one per session)
+        // Without DISTINCT, a user with 1 RSVP + 1 Ticket = 2 capacity slots consumed
+        // instead of 1. This caused production incident 2026-03-19 where 25 unique
+        // attendees inflated to 37 records, blocking ticket purchases at capacity 35.
+        //
         // Includes PendingPayment to reserve capacity during payment windows.
         // Includes PendingAcceptance because assigned tickets reserve a spot even before
         // the assignee accepts (BR-013, BR-054 - purchased tickets hold capacity).
-        // Counts ALL attendance types (RSVP + Ticket) because any reservation
-        // occupies capacity regardless of type. This prevents overselling when
-        // a user has started checkout but hasn't completed payment yet.
         return await _context.EventAttendances
-            .CountAsync(ea => ea.EventId == eventId
+            .Where(ea => ea.EventId == eventId
                 && (ea.Status == AttendanceStatus.Active
                     || ea.Status == AttendanceStatus.PendingPayment
-                    || ea.Status == AttendanceStatus.PendingAcceptance), ct);
+                    || ea.Status == AttendanceStatus.PendingAcceptance))
+            .Select(ea => ea.UserId)
+            .Distinct()
+            .CountAsync(ct);
     }
 
     /// <inheritdoc />

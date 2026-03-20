@@ -13443,6 +13443,26 @@
           },
           "isUnassigned": {
             "type": "boolean"
+          },
+          "sessionName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sessionStartTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "sessionEndTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -19233,6 +19253,12 @@
               "string"
             ]
           },
+          "assignedBySceneName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "isForOther": {
             "type": "boolean"
           },
@@ -20545,6 +20571,26 @@
             "type": "string"
           },
           "sessionName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sessionStartTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "sessionEndTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "assignedBySceneName": {
             "type": [
               "null",
               "string"
