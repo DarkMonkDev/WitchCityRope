@@ -5,22 +5,24 @@
  * Appears at the top of MyEventsPage, before the events list.
  * Only visible when there are pending assignments.
  *
- * Design reference: ui-design.md Screen 4 - Dashboard Pending Tickets/RSVPs
+ * Each pending item renders as a card matching the EventCard styling
+ * (gradient header, same fonts/layout) so the dashboard has a consistent look.
  *
  * Features:
- * - Attention-drawing style with brass left border
- * - Count badge showing number of pending items
- * - Each item shows event name, date, sessions, type, purchaser
- * - Inline waiver checkbox (no modal) following ParticipationCard pattern
- * - Accept button disabled until waiver checkbox is checked
- * - Decline opens TicketDeclineModal
+ * - Section title with count badge inline
+ * - Individual event-styled cards for each pending item
+ * - Gradient header with event title (matching EventCard)
+ * - Session date/time in burgundy uppercase (matching EventCard)
+ * - Ticket/RSVP type and purchaser info
+ * - Inline waiver checkbox (no modal)
+ * - Accept button disabled until waiver is checked
+ * - Decline uses secondary button style
  * - Vetting error handling shown inline via Alert
- * - Responsive: stacked cards on mobile, full-width on desktop
  */
 
 import React, { useState, useEffect } from 'react'
 import {
-  Paper,
+  Card,
   Stack,
   Group,
   Title,
@@ -32,16 +34,17 @@ import {
   Checkbox,
   Alert,
   Box,
+  SimpleGrid,
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { IconAlertCircle } from '@tabler/icons-react'
+import { IconAlertCircle, IconTicket } from '@tabler/icons-react'
 import { useMediaQuery } from '@mantine/hooks'
 import { usePendingAssignments } from '../api/queries'
 import { useAcceptAssignment } from '../api/mutations'
 import { TicketDeclineModal } from './TicketDeclineModal'
 import type { PendingAssignmentDto } from '../types/ticketAssignment.types'
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone'
-import { formatUtcToLocalDate, formatUtcToLocalTime } from '../../../utils/eventUtils'
+import { formatUtcToLocalDate, formatUtcTimeRange } from '../../../utils/eventUtils'
 
 export const PendingTicketsCard: React.FC = () => {
   const isMobile = useMediaQuery('(max-width: 991px)')
@@ -49,7 +52,7 @@ export const PendingTicketsCard: React.FC = () => {
 
   const { data: pendingAssignments, isLoading } = usePendingAssignments()
 
-  // Decline modal state (accept no longer uses a modal)
+  // Decline modal state
   const [declineModalOpen, setDeclineModalOpen] = useState(false)
   const [selectedAssignment, setSelectedAssignment] = useState<PendingAssignmentDto | null>(null)
 
@@ -73,18 +76,9 @@ export const PendingTicketsCard: React.FC = () => {
 
   return (
     <>
-      <Paper
-        p="lg"
-        radius="md"
-        mb="lg"
-        style={{
-          borderLeft: '4px solid var(--color-brass, #B8860B)',
-          backgroundColor: 'var(--color-ivory, #FAF6F2)',
-        }}
-        data-testid="pending-tickets-card"
-      >
-        {/* Section Header */}
-        <Group justify="space-between" mb="md">
+      <Box mb="lg" data-testid="pending-tickets-card">
+        {/* Section Header — title + count badge inline */}
+        <Group gap="sm" align="center" mb="md">
           <Title
             order={3}
             style={{
@@ -99,10 +93,10 @@ export const PendingTicketsCard: React.FC = () => {
           </Badge>
         </Group>
 
-        {/* Pending Items Stack */}
-        <Stack gap="md">
+        {/* Pending Items — individual event-styled cards */}
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
           {pendingAssignments.map((assignment) => (
-            <PendingAssignmentItem
+            <PendingAssignmentCard
               key={assignment.attendanceId}
               assignment={assignment}
               isMobile={isMobile || false}
@@ -110,8 +104,8 @@ export const PendingTicketsCard: React.FC = () => {
               onDecline={() => handleDeclineClick(assignment)}
             />
           ))}
-        </Stack>
-      </Paper>
+        </SimpleGrid>
+      </Box>
 
       {/* Decline Modal */}
       <TicketDeclineModal
@@ -129,17 +123,17 @@ export const PendingTicketsCard: React.FC = () => {
 PendingTicketsCard.displayName = 'PendingTicketsCard'
 
 // ---------------------------------------------------------------------------
-// Sub-component: Individual pending assignment item
+// Sub-component: Individual pending assignment card (matches EventCard styling)
 // ---------------------------------------------------------------------------
 
-interface PendingAssignmentItemProps {
+interface PendingAssignmentCardProps {
   assignment: PendingAssignmentDto
   isMobile: boolean
   eventTimeZone: string
   onDecline: () => void
 }
 
-const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
+const PendingAssignmentCard: React.FC<PendingAssignmentCardProps> = ({
   assignment,
   isMobile,
   eventTimeZone,
@@ -157,7 +151,7 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
     assignment.attendanceId || ''
   )
 
-  // Handle mutation success (project TanStack Query v5 pattern)
+  // Handle mutation success
   useEffect(() => {
     if (acceptMutation.isSuccess) {
       notifications.show({
@@ -168,12 +162,11 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
     }
   }, [acceptMutation.isSuccess])
 
-  // Handle mutation error (project TanStack Query v5 pattern)
+  // Handle mutation error
   useEffect(() => {
     if (acceptMutation.isError) {
       const message = acceptMutation.error?.message || ''
 
-      // Check for vetting-related errors (AD-014 edge case)
       if (
         message.toLowerCase().includes('vetting') ||
         message.toLowerCase().includes('vetted')
@@ -184,7 +177,6 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
         return
       }
 
-      // Check for event-passed errors
       if (
         message.toLowerCase().includes('started') ||
         message.toLowerCase().includes('passed')
@@ -195,7 +187,6 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
         return
       }
 
-      // Generic error - show notification
       notifications.show({
         title: 'Error',
         message: message || 'Failed to accept. Please try again.',
@@ -213,67 +204,120 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
     })
   }
 
-  // Unique checkbox ID for label association
-  const checkboxId = `waiver-checkbox-${assignment.attendanceId}`
-
   return (
-    <Paper
-      p="md"
-      radius="md"
-      withBorder
-      style={{
-        backgroundColor: 'white',
-        borderColor: 'rgba(0, 0, 0, 0.08)',
-      }}
+    <Card
+      shadow={isMobile ? undefined : 'sm'}
+      padding="0"
+      radius={isMobile ? 0 : 'md'}
+      withBorder={!isMobile}
       data-testid="pending-assignment-item"
+      style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--color-ivory)',
+        borderColor: isMobile ? 'transparent' : 'rgba(183, 109, 117, 0.1)',
+        border: isMobile ? 0 : undefined,
+      }}
     >
-      <Stack gap="xs">
-        {/* Event Title */}
-        <Text fw={700} size="md">
+      {/* Gradient Header — matches EventCard */}
+      <Box
+        h={80}
+        style={{
+          background: 'linear-gradient(135deg, var(--color-plum) 0%, var(--color-burgundy) 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '18px',
+        }}
+      >
+        <Text
+          c="white"
+          fw={700}
+          size="lg"
+          ta="center"
+          px="md"
+          style={{
+            fontFamily: 'var(--font-heading)',
+            lineHeight: 1.3,
+            textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+          }}
+        >
           {assignment.eventTitle}
         </Text>
+      </Box>
 
-        {/* Date and Time */}
-        <Text size="sm" c="dimmed">
-          {formatUtcToLocalDate(assignment.eventDate ?? '', eventTimeZone, {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          })}
-          {' at '}
-          {formatUtcToLocalTime(assignment.eventDate ?? '', eventTimeZone)}
-        </Text>
+      <Stack gap="sm" p="lg" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Date/Time — matching EventCard burgundy uppercase format */}
+        {assignment.eventDate && (
+          <Group justify="space-between">
+            <Text
+              fw={700}
+              c="burgundy"
+              size="sm"
+              tt="uppercase"
+              style={{
+                fontFamily: 'var(--font-heading)',
+                letterSpacing: '0.5px',
+              }}
+            >
+              {formatUtcToLocalDate(assignment.eventDate, eventTimeZone, {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </Text>
+            <Text
+              fw={700}
+              c="burgundy"
+              size="sm"
+              tt="uppercase"
+              style={{
+                fontFamily: 'var(--font-heading)',
+                letterSpacing: '0.5px',
+              }}
+            >
+              {formatUtcTimeRange(assignment.eventDate, undefined, eventTimeZone)}
+            </Text>
+          </Group>
+        )}
 
-        {/* Sessions (if multi-session) */}
+        {/* Sessions */}
         {(assignment.sessionNames ?? []).length > 0 && (
-          <Text size="sm" c="dimmed">
-            {(assignment.sessionNames ?? []).join(', ')}
-          </Text>
+          <Stack gap={2}>
+            {(assignment.sessionNames ?? []).map((sessionName, idx) => (
+              <Text
+                key={idx}
+                fw={600}
+                c="dimmed"
+                size="sm"
+                style={{ fontFamily: 'var(--font-heading)' }}
+              >
+                {sessionName}
+              </Text>
+            ))}
+          </Stack>
         )}
 
-        {/* Ticket type and purchaser info */}
-        {isMobile ? (
-          // Mobile: stacked layout
-          <Stack gap={4}>
-            <Text size="sm" c="dimmed">
-              {isTicket ? `${assignment.ticketTypeName} ticket` : 'RSVP'}
+        {/* Ticket/RSVP info — matching EventCard green ticket box style */}
+        <Box
+          style={{
+            background: 'linear-gradient(135deg, rgba(34, 139, 34, 0.08) 0%, rgba(46, 125, 50, 0.08) 100%)',
+            borderRadius: '8px',
+            padding: 'var(--space-xs)',
+            border: '1px solid rgba(34, 139, 34, 0.2)',
+          }}
+        >
+          <Group gap="xs" mb={4}>
+            <IconTicket size={16} color="var(--mantine-color-green-7)" />
+            <Text fw={600} size="sm" c="var(--mantine-color-green-7)">
+              {isTicket ? `${assignment.ticketTypeName || 'Ticket'}` : 'RSVP'}
             </Text>
-            <Text size="sm" fw={500}>
-              {isTicket ? 'Purchased' : 'Created'} by {assignment.assignedBySceneName}
-            </Text>
-          </Stack>
-        ) : (
-          // Desktop: inline
-          <Text size="sm">
-            {isTicket
-              ? `${assignment.ticketTypeName} ticket -- `
-              : 'RSVP -- '}
-            <Text component="span" fw={500}>
-              {isTicket ? 'Purchased' : 'Created'} by {assignment.assignedBySceneName}
-            </Text>
+          </Group>
+          <Text size="sm" fw={500}>
+            {isTicket ? 'Purchased' : 'Created'} by {assignment.assignedBySceneName}
           </Text>
-        )}
+        </Box>
 
         {/* Vetting Error Alert (AD-014) */}
         {vettingError && (
@@ -288,39 +332,25 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
           </Alert>
         )}
 
-        {/* Inline Waiver Checkbox - following ParticipationCard pattern */}
+        {/* Inline Waiver Checkbox */}
         {!vettingError && (
-          <Box mt="xs">
-            <Group gap="sm" align="center">
-              <Checkbox
-                id={checkboxId}
-                checked={waiverAccepted}
-                onChange={(event) => setWaiverAccepted(event.currentTarget.checked)}
-                size="md"
-                color="var(--color-burgundy)"
-                data-testid="waiver-checkbox"
-              />
+          <Checkbox
+            checked={waiverAccepted}
+            onChange={(event) => setWaiverAccepted(event.currentTarget.checked)}
+            size="md"
+            color="var(--color-burgundy)"
+            data-testid="waiver-checkbox"
+            label={
               <Text
-                component="label"
-                htmlFor={checkboxId}
                 size="sm"
-                style={{
-                  cursor: 'pointer',
-                  color: '#000000',
-                  fontWeight: 700,
-                  lineHeight: 1.5,
-                }}
+                style={{ color: '#000000', fontWeight: 600, lineHeight: 1.4 }}
               >
                 I agree to the{' '}
                 <a
                   href="/event-waiver"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    color: 'var(--color-burgundy)',
-                    textDecoration: 'underline',
-                    fontWeight: 700,
-                  }}
+                  style={{ color: 'var(--color-burgundy)', textDecoration: 'underline', fontWeight: 700 }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   Event Waiver
@@ -330,34 +360,39 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
                   href="/terms-of-service"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    color: 'var(--color-burgundy)',
-                    textDecoration: 'underline',
-                    fontWeight: 700,
-                  }}
+                  style={{ color: 'var(--color-burgundy)', textDecoration: 'underline', fontWeight: 700 }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   Terms of Service
                 </a>
               </Text>
-            </Group>
-          </Box>
+            }
+          />
         )}
 
         {/* Action Buttons */}
         <Group justify="flex-end" gap="sm" mt="xs">
           <Button
-            variant="subtle"
+            variant="outline"
             color="gray"
             size={isMobile ? 'sm' : 'md'}
             onClick={onDecline}
             disabled={acceptMutation.isPending}
             data-testid="decline-button"
-            style={{
-              minHeight: 40,
-              height: 'auto',
-              padding: '10px 16px',
-              lineHeight: 1.4,
+            styles={{
+              root: {
+                minHeight: 40,
+                height: 'auto',
+                padding: '10px 16px',
+                lineHeight: 1.4,
+                borderColor: 'rgba(0, 0, 0, 0.2)',
+                color: 'var(--color-charcoal, #2B2B2B)',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  borderColor: 'rgba(0, 0, 0, 0.4)',
+                },
+              },
             }}
           >
             Decline
@@ -393,6 +428,6 @@ const PendingAssignmentItem: React.FC<PendingAssignmentItemProps> = ({
           )}
         </Group>
       </Stack>
-    </Paper>
+    </Card>
   )
 }
