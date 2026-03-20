@@ -33,7 +33,7 @@
  */
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Paper, Stack, Alert, Group, Text, Box, Button, LoadingOverlay, Progress, Modal, Textarea, Checkbox, Title, Divider } from '@mantine/core';
+import { Paper, Stack, Alert, Group, Text, Box, Button, LoadingOverlay, Progress, Modal, Textarea, Checkbox, Title, Divider, Badge } from '@mantine/core';
 import { IconTicket, IconCalendarCheck, IconAlertCircle, IconGift } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import { hasAnyRole } from '../../utils/roleUtils';
@@ -805,60 +805,27 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                                           <Text size="sm" fw={500}>{ticketName}</Text>
                                           {/* Badge for tickets assigned TO the current user by someone else */}
                                           {purchase.assignedBySceneName && (
-                                            <Text size="xs" c="dimmed" span>
-                                              — From: {purchase.assignedBySceneName}
-                                            </Text>
+                                            <Badge color="green" variant="light" size="sm">
+                                              From: {purchase.assignedBySceneName}
+                                            </Badge>
                                           )}
-                                          {/* Badge for tickets the current user purchased FOR someone else */}
-                                          {purchase.isForOther && (
-                                            <Text size="xs" c="dimmed" span>
-                                              — {purchase.assigneeSceneName ? `For: ${purchase.assigneeSceneName}` : 'Unassigned'}
-                                            </Text>
-                                          )}
-                                          {purchase.isForOther && purchase.assigneeStatus && (
+                                          {/* Badges for tickets the current user purchased FOR someone else */}
+                                          {purchase.isForOther && purchase.assigneeStatus && purchase.assigneeStatus !== 'Unassigned' && (
                                             <TicketStatusBadge
                                               status={purchase.assigneeStatus}
                                               isOwnTicket={false}
                                               assigneeSceneName={purchase.assigneeSceneName || undefined}
                                             />
                                           )}
-                                        </Group>
-                                        <Group gap="xs" wrap="nowrap">
-                                          {/* Assign/Reassign buttons for tickets purchased for others */}
-                                          {showAssignBtn && matchingAssignedTicket && (
-                                            <Button
-                                              size="xs"
-                                              variant="outline"
-                                              color="burgundy"
-                                              onClick={() => {
-                                                setAssignModalTicket(matchingAssignedTicket);
-                                                setAssignMode('assign');
-                                              }}
-                                              data-testid="assign-other-ticket-button"
-                                              styles={{ root: { height: 'auto', minHeight: '28px', padding: '4px 10px', lineHeight: 1.2, flexShrink: 0 } }}
-                                            >
-                                              Assign
-                                            </Button>
-                                          )}
-                                          {showReassignBtn && matchingAssignedTicket && (
-                                            <Button
-                                              size="xs"
-                                              variant="outline"
-                                              color="burgundy"
-                                              onClick={() => {
-                                                setAssignModalTicket(matchingAssignedTicket);
-                                                setAssignMode('reassign');
-                                              }}
-                                              data-testid="reassign-other-ticket-button"
-                                              styles={{ root: { height: 'auto', minHeight: '28px', padding: '4px 10px', lineHeight: 1.2, flexShrink: 0 } }}
-                                            >
-                                              Reassign
-                                            </Button>
-                                          )}
-                                          {purchase.totalPrice != null && purchase.totalPrice > 0 && (
-                                            <Text size="sm" fw={600} c="#880124">${purchase.totalPrice.toFixed(2)}</Text>
+                                          {purchase.isForOther && (!purchase.assigneeStatus || purchase.assigneeStatus === 'Unassigned') && (
+                                            <Badge color="red" variant="light" size="sm">
+                                              Unassigned
+                                            </Badge>
                                           )}
                                         </Group>
+                                        {purchase.totalPrice != null && purchase.totalPrice > 0 && (
+                                          <Text size="sm" fw={600} c="#880124">${purchase.totalPrice.toFixed(2)}</Text>
+                                        )}
                                       </Group>
                                       <Stack gap={4} mt={4}>
                                         {ticketSessions.map((session, idx) => (
@@ -877,6 +844,39 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                                           </Text>
                                         ))}
                                       </Stack>
+                                      {/* Assign/Reassign buttons below session list */}
+                                      {showAssignBtn && matchingAssignedTicket && (
+                                        <Button
+                                          size="xs"
+                                          variant="outline"
+                                          color="burgundy"
+                                          mt={4}
+                                          onClick={() => {
+                                            setAssignModalTicket(matchingAssignedTicket);
+                                            setAssignMode('assign');
+                                          }}
+                                          data-testid="assign-other-ticket-button"
+                                          styles={{ root: { height: 'auto', minHeight: '28px', padding: '4px 10px', lineHeight: 1.2 } }}
+                                        >
+                                          Assign
+                                        </Button>
+                                      )}
+                                      {showReassignBtn && matchingAssignedTicket && (
+                                        <Button
+                                          size="xs"
+                                          variant="outline"
+                                          color="burgundy"
+                                          mt={4}
+                                          onClick={() => {
+                                            setAssignModalTicket(matchingAssignedTicket);
+                                            setAssignMode('reassign');
+                                          }}
+                                          data-testid="reassign-other-ticket-button"
+                                          styles={{ root: { height: 'auto', minHeight: '28px', padding: '4px 10px', lineHeight: 1.2 } }}
+                                        >
+                                          Reassign
+                                        </Button>
+                                      )}
                                     </Box>
                                   </Group>
                                 </Box>
