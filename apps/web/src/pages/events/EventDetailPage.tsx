@@ -653,6 +653,8 @@ export const EventDetailPage: React.FC = () => {
               vettedMembersOnly={vettedMembersOnly}
               isVetted={isVetted}
               hasParticipation={!!hasParticipation}
+              isAtCapacity={isEventFull}
+              remainingPerPerson={participation?.remainingPerPerson}
             />
           </Box>
         </Box>
@@ -786,6 +788,8 @@ export const EventDetailPage: React.FC = () => {
                 vettedMembersOnly={vettedMembersOnly}
                 isVetted={isVetted}
                 hasParticipation={!!hasParticipation}
+                isAtCapacity={isEventFull}
+                remainingPerPerson={participation?.remainingPerPerson}
               />
             </Box>
 

@@ -123,6 +123,40 @@ public class AttendanceService : IAttendanceService
             // Used for capacity business logic (CanRSVP check).
             var reservedCount = await _countService.GetReservedCountAsync(eventId, cancellationToken);
 
+            // Compute per-person participation count for DefaultMaxTicketOrRsvpPerPerson enforcement.
+            // This counts: the user's own participation (RSVP or ticket = 1) + proxy RSVPs they've created.
+            int? remainingPerPerson = null;
+            if (eventEntity.DefaultMaxTicketOrRsvpPerPerson.HasValue)
+            {
+                var perPersonLimit = eventEntity.DefaultMaxTicketOrRsvpPerPerson.Value;
+
+                // Check if user has any own participation (RSVP or Ticket, Active or PendingAcceptance)
+                var hasOwnParticipation = await _context.EventAttendances
+                    .AsNoTracking()
+                    .AnyAsync(ea =>
+                        ea.EventId == eventId
+                        && ea.UserId == userId
+                        && (ea.AttendanceType == AttendanceType.RSVP
+                            || ea.AttendanceType == AttendanceType.Ticket)
+                        && (ea.Status == AttendanceStatus.Active
+                            || ea.Status == AttendanceStatus.PendingAcceptance),
+                        cancellationToken);
+
+                // Count proxy RSVPs created by this user for this event
+                var proxyRsvpCount = await _context.EventAttendances
+                    .AsNoTracking()
+                    .CountAsync(ea =>
+                        ea.EventId == eventId
+                        && ea.AssignedByUserId == userId
+                        && ea.AttendanceType == AttendanceType.RSVP
+                        && (ea.Status == AttendanceStatus.Active
+                            || ea.Status == AttendanceStatus.PendingAcceptance),
+                        cancellationToken);
+
+                var totalUserCount = (hasOwnParticipation ? 1 : 0) + proxyRsvpCount;
+                remainingPerPerson = Math.Max(0, perPersonLimit - totalUserCount);
+            }
+
             // Get user's owned session IDs and ticket purchase mappings (sessions they have tickets for)
             // Include TicketPurchase -> TicketType for ticket name and price
             var userTicketAttendanceData = await _context.EventAttendances
@@ -563,7 +597,9 @@ public class AttendanceService : IAttendanceService
                     Current = displayCount,
                     Total = eventEntity.Capacity,
                     Available = Math.Max(0, eventEntity.Capacity - displayCount)
-                }
+                },
+                MaxPerPerson = eventEntity.DefaultMaxTicketOrRsvpPerPerson,
+                RemainingPerPerson = remainingPerPerson,
             };
 
             // Populate RSVP details if exists
@@ -670,7 +706,8 @@ public class AttendanceService : IAttendanceService
             // with capacity remaining. Unlike CanPurchaseTicket (for self) or CanPurchaseAdditionalSessions
             // (for sessions user doesn't own), this ignores what the user already owns because the
             // tickets would be for other people via the BuyForOthersOnly checkout flow.
-            if (dto.HasTicket && dto.Capacity.Available > 0)
+            if (dto.HasTicket && dto.Capacity.Available > 0
+                && (remainingPerPerson == null || remainingPerPerson > 0))
             {
                 // Check if any ticket type has remaining capacity
                 dto.CanBuyForOthers = dto.CanPurchaseTicket || dto.CanPurchaseAdditionalSessions

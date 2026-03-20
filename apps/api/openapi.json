@@ -14515,6 +14515,13 @@
               "number"
             ],
             "format": "double"
+          },
+          "defaultMaxTicketOrRsvpPerPerson": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -15561,6 +15568,20 @@
             "items": {
               "$ref": "#/components/schemas/SessionAvailabilityDto"
             }
+          },
+          "maxPerPerson": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "remainingPerPerson": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -15692,6 +15713,13 @@
               "number"
             ],
             "format": "double"
+          },
+          "defaultMaxTicketOrRsvpPerPerson": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -19597,6 +19625,13 @@
               "number"
             ],
             "format": "double"
+          },
+          "defaultMaxTicketOrRsvpPerPerson": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },

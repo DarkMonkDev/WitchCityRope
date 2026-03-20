@@ -5295,6 +5295,10 @@ export interface components {
             canPurchaseAdditionalSessions?: boolean;
             canBuyForOthers?: boolean;
             sessionAvailability?: components["schemas"]["SessionAvailabilityDto"][];
+            /** Format: int32 */
+            maxPerPerson?: null | number;
+            /** Format: int32 */
+            remainingPerPerson?: null | number;
         };
         EventDto: {
             id?: string;

@@ -685,6 +685,33 @@ export const EventPaymentPage: React.FC = () => {
     return error?.response?.data?.detail || error?.message || 'An unexpected error occurred. Please try again.';
   };
 
+  /**
+   * Compute effective max quantity for a ticket type, considering:
+   * 1. Per-transaction limit (maxQuantityPerPurchase from ticket type)
+   * 2. Per-person remaining limit (remainingPerPerson from participation data)
+   * 3. Event capacity remaining (capacity.available from participation data)
+   */
+  const getEffectiveMaxQuantity = (ticketType: TicketTypeDto): number => {
+    const perPurchaseMax = (ticketType as any).maxQuantityPerPurchase || 3;
+
+    const remainingPerPerson = (participation as any)?.remainingPerPerson;
+    const capacityAvailable = (participation as any)?.capacity?.available;
+
+    let effectiveMax = perPurchaseMax;
+
+    // Cap by per-person remaining (null means no limit)
+    if (remainingPerPerson != null) {
+      effectiveMax = Math.min(effectiveMax, Math.max(1, remainingPerPerson));
+    }
+
+    // Cap by event capacity remaining
+    if (capacityAvailable != null) {
+      effectiveMax = Math.min(effectiveMax, Math.max(1, capacityAvailable));
+    }
+
+    return effectiveMax;
+  };
+
   // Show loading state
   if (isLoading) {
     return (
@@ -931,7 +958,7 @@ export const EventPaymentPage: React.FC = () => {
                                     <Box onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                                       <TicketQuantitySelector
                                         quantity={ticketQuantities[tt.id || ''] || 1}
-                                        max={(tt as any).maxQuantityPerPurchase || 3}
+                                        max={getEffectiveMaxQuantity(tt)}
                                         onChange={(qty) => handleQuantityChange(tt.id || '', qty)}
                                       />
                                       {/* Info text when user has no contacts but quantity > 1 */}

@@ -43,6 +43,10 @@ interface ProxyRsvpSectionProps {
   isVetted?: boolean;
   /** Whether the current user already has an RSVP or ticket for this event */
   hasParticipation?: boolean;
+  /** Whether the event is at capacity (no available spots) */
+  isAtCapacity?: boolean;
+  /** Remaining tickets/RSVPs this user can create (null = no limit, 0 = at limit) */
+  remainingPerPerson?: number | null;
 }
 
 export const ProxyRsvpSection: React.FC<ProxyRsvpSectionProps> = ({
@@ -53,6 +57,8 @@ export const ProxyRsvpSection: React.FC<ProxyRsvpSectionProps> = ({
   vettedMembersOnly = false,
   isVetted = false,
   hasParticipation = false,
+  isAtCapacity = false,
+  remainingPerPerson = null,
 }) => {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -66,7 +72,8 @@ export const ProxyRsvpSection: React.FC<ProxyRsvpSectionProps> = ({
 
   // Don't render if conditions aren't met.
   // Non-vetted users cannot create proxy RSVPs for vetted-only events (BR-035).
-  if (!isAuthenticated || !allowRsvps || (vettedMembersOnly && !isVetted) || !hasParticipation) {
+  if (!isAuthenticated || !allowRsvps || (vettedMembersOnly && !isVetted) || !hasParticipation || isAtCapacity
+      || (remainingPerPerson !== null && remainingPerPerson !== undefined && remainingPerPerson <= 0)) {
     return null;
   }
 

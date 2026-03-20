@@ -104,6 +104,19 @@ public class EnhancedParticipationStatusDto
     /// Per-session availability information (for multi-session events)
     /// </summary>
     public List<SessionAvailabilityDto> SessionAvailability { get; set; } = new();
+
+    /// <summary>
+    /// Maximum tickets/RSVPs per person for this event (from Event.DefaultMaxTicketOrRsvpPerPerson).
+    /// NULL = no per-person limit. Used by frontend to proactively gate UI elements.
+    /// </summary>
+    public int? MaxPerPerson { get; set; }
+
+    /// <summary>
+    /// How many more tickets/RSVPs this user can create for this event.
+    /// Accounts for their own participation (RSVP or ticket = 1) plus proxy RSVPs they've created.
+    /// NULL = no limit (unlimited). 0 = at limit.
+    /// </summary>
+    public int? RemainingPerPerson { get; set; }
 }
 
 /// <summary>
