@@ -1121,57 +1121,42 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       {/* Show RSVP button only if user hasn't RSVP'd yet AND backend allows */}
                       {!validParticipation?.hasRSVP && validParticipation?.canRSVP && (
                         <Box>
-                          {/* Terms of Service Acceptance */}
-                          <Group gap="sm" align="center" justify="center" mb="md">
-                            <Checkbox
-                              id="rsvp-terms-checkbox"
-                              checked={rsvpTermsAccepted}
-                              onChange={(event) => setRsvpTermsAccepted(event.currentTarget.checked)}
-                              size="md"
-                              color="var(--color-burgundy)"
-                              data-testid="rsvp-terms-checkbox"
-                            />
-                            <Text
-                              component="label"
-                              htmlFor="rsvp-terms-checkbox"
-                              size="md"
-                              style={{
-                                cursor: 'pointer',
-                                color: '#000000',
-                                fontWeight: 700,
-                                lineHeight: 1.5
-                              }}
-                            >
-                              I agree to the{' '}
-                              <a
-                                href="/event-waiver"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                  color: 'var(--color-burgundy)',
-                                  textDecoration: 'underline',
-                                  fontWeight: 700
-                                }}
-                                onClick={(e) => e.stopPropagation()}
+                          {/* Terms of Service Acceptance — checkbox and label on same line */}
+                          <Checkbox
+                            checked={rsvpTermsAccepted}
+                            onChange={(event) => setRsvpTermsAccepted(event.currentTarget.checked)}
+                            size="md"
+                            color="var(--color-burgundy)"
+                            mb="md"
+                            data-testid="rsvp-terms-checkbox"
+                            label={
+                              <Text
+                                size="sm"
+                                style={{ color: '#000000', fontWeight: 600, lineHeight: 1.4 }}
                               >
-                                Event Waiver
-                              </a>
-                              {' '}and{' '}
-                              <a
-                                href="/terms-of-service"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                  color: 'var(--color-burgundy)',
-                                  textDecoration: 'underline',
-                                  fontWeight: 700
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                Terms of Service
-                              </a>
-                            </Text>
-                          </Group>
+                                I agree to the{' '}
+                                <a
+                                  href="/event-waiver"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: 'var(--color-burgundy)', textDecoration: 'underline', fontWeight: 700 }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Event Waiver
+                                </a>
+                                {' '}and{' '}
+                                <a
+                                  href="/terms-of-service"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: 'var(--color-burgundy)', textDecoration: 'underline', fontWeight: 700 }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Terms of Service
+                                </a>
+                              </Text>
+                            }
+                          />
 
                           {/* RSVP Button */}
                           <Button
