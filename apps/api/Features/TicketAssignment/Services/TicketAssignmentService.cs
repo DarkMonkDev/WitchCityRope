@@ -816,15 +816,19 @@ public class TicketAssignmentService : ITicketAssignmentService
                     "You can only assign tickets you purchased");
             }
 
-            // 3. Verify no EventAttendance exists yet (truly unassigned)
-            var hasAttendance = await _context.EventAttendances
-                .AnyAsync(ea => ea.TicketPurchaseId == ticketPurchaseId, ct);
+            // 3. Verify no ACTIVE EventAttendance exists (available for assignment).
+            // Cancelled/Refunded attendances from previous declines or returns don't count —
+            // the ticket is available for reassignment in those cases.
+            var hasActiveAttendance = await _context.EventAttendances
+                .AnyAsync(ea => ea.TicketPurchaseId == ticketPurchaseId
+                    && ea.Status != AttendanceStatus.Cancelled
+                    && ea.Status != AttendanceStatus.Refunded, ct);
 
-            if (hasAttendance)
+            if (hasActiveAttendance)
             {
                 return Result<TicketAssignmentDto>.Failure(
                     "Ticket already assigned",
-                    "This ticket already has an attendance record. Use the standard assign endpoint.");
+                    "This ticket already has an active attendance record. Use the standard assign endpoint.");
             }
 
             // 4. Check authorized delegate (BR-020)
