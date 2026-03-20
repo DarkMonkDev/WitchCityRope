@@ -537,15 +537,19 @@ public class TicketAssignmentService : ITicketAssignmentService
                 return Result<TicketAssignmentDto>.Success(await BuildAssignmentDtoAsync(attendance, ct));
             }
 
-            // Ticket decline: revert to original purchaser as Active (AD-015)
+            // Ticket decline: cancel the attendance rather than reverting UserId to purchaser.
+            // Reverting UserId would violate the unique constraint if the purchaser already
+            // has their own active attendance for the same event+session. Cancelling leaves
+            // the TicketPurchase owned by the purchaser so they can reassign it.
             var originalPurchaserId = attendance.TicketPurchase?.UserId ?? callerUserId;
 
             // Store old values for history
             var oldUserId = attendance.UserId;
 
-            // 4. Update EventAttendance (AD-015: revert to purchaser as Active)
-            attendance.UserId = originalPurchaserId;
-            attendance.Status = AttendanceStatus.Active;
+            // 4. Cancel the attendance (ticket becomes available for reassignment)
+            attendance.Status = AttendanceStatus.Cancelled;
+            attendance.CancelledAt = DateTime.UtcNow;
+            attendance.CancellationReason = reason ?? "Declined by assignee";
             attendance.DeclinedAt = DateTime.UtcNow;
             attendance.DeclinedReason = reason;
             // Keep AssignedByUserId and AssignedAt for audit trail
@@ -602,10 +606,10 @@ public class TicketAssignmentService : ITicketAssignmentService
                 }),
                 NewValues = JsonSerializer.Serialize(new
                 {
-                    UserId = originalPurchaserId,
-                    Status = AttendanceStatus.Active.ToString(),
+                    Status = AttendanceStatus.Cancelled.ToString(),
                     DeclinedAt = attendance.DeclinedAt,
-                    DeclinedReason = reason
+                    DeclinedReason = reason,
+                    OriginalPurchaserId = originalPurchaserId
                 })
             };
             _context.AttendanceHistory.Add(history);
@@ -614,7 +618,7 @@ public class TicketAssignmentService : ITicketAssignmentService
             await _context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
-                "Assignment declined: AttendanceId={AttendanceId}, DeclinedBy={CallerUserId}, RevertedTo={OriginalPurchaserId}, EventId={EventId}",
+                "Assignment declined: AttendanceId={AttendanceId}, DeclinedBy={CallerUserId}, PurchaserId={OriginalPurchaserId}, EventId={EventId} (ticket available for reassignment)",
                 attendanceId, callerUserId, originalPurchaserId, attendance.EventId);
 
             // 8. Return DTO
