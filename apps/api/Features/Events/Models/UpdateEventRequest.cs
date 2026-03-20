@@ -129,4 +129,10 @@ public class UpdateEventRequest
     /// Example: -24 = volunteers cannot cancel within 24 hours of event
     /// </summary>
     public decimal? VolunteerCancellationCloseHours { get; set; }
+
+    /// <summary>
+    /// Default maximum tickets/RSVPs per person for this event (optional).
+    /// NULL = no per-person limit.
+    /// </summary>
+    public int? DefaultMaxTicketOrRsvpPerPerson { get; set; }
 }

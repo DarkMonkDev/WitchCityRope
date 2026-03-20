@@ -31,6 +31,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       sessionIdentifiers: [] as string[],
       quantityAvailable: 100,
       quantitySold: 0,
+      maxQuantityPerPurchase: 3,
     },
     validate: {
       name: (value) => (!value ? 'Ticket name is required' : null),
@@ -73,6 +74,12 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
         if (value < values.quantitySold) return 'Cannot be less than quantity already sold';
         return null;
       },
+      maxQuantityPerPurchase: (value) => {
+        if (value === undefined || value === null) return 'Required';
+        if (value < 1) return 'Must be at least 1';
+        if (value > 100) return 'Cannot exceed 100';
+        return null;
+      },
     },
   });
 
@@ -88,6 +95,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       sessionIdentifiers: values.sessionIdentifiers,
       quantityAvailable: values.quantityAvailable,
       quantitySold: values.quantitySold,
+      maxQuantityPerPurchase: values.maxQuantityPerPurchase,
     };
     onSubmit(ticketData);
     form.reset();
@@ -134,6 +142,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
           sessionIdentifiers: ticketType.sessionIdentifiers || [],
           quantityAvailable: ticketType.quantityAvailable ?? 100,
           quantitySold: ticketType.quantitySold ?? 0,
+          maxQuantityPerPurchase: ticketType.maxQuantityPerPurchase ?? 3,
         });
       } else {
         // Reset form for new ticket type
@@ -263,6 +272,16 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
               </Group>
             </>
           )}
+
+          <NumberInput
+            label="Max Per Purchase"
+            description="Maximum tickets a person can buy at once for this type"
+            placeholder="3"
+            min={1}
+            max={100}
+            required
+            {...form.getInputProps('maxQuantityPerPurchase')}
+          />
 
           {ticketType && (
             <NumberInput

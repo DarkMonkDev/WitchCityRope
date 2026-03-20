@@ -366,6 +366,9 @@ export interface EventFormData {
   cancellationCloseHours?: number | null
   volunteerRegistrationCloseHours?: number | null
   volunteerCancellationCloseHours?: number | null
+
+  // Per-person quantity limit (nullable, null = no limit)
+  defaultMaxTicketOrRsvpPerPerson?: number | null
 }
 
 interface EventFormProps {
@@ -401,6 +404,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       registrationOpenHours: initialData?.registrationOpenHours ?? null,
       registrationCloseHours: initialData?.registrationCloseHours ?? null,
       cancellationCloseHours: initialData?.cancellationCloseHours ?? null,
+      defaultMaxTicketOrRsvpPerPerson: initialData?.defaultMaxTicketOrRsvpPerPerson ?? null,
     },
     volunteer: {
       volunteerRegistrationCloseHours: initialData?.volunteerRegistrationCloseHours ?? null,
@@ -521,6 +525,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       cancellationCloseHours: -12,
       volunteerRegistrationCloseHours: 24,
       volunteerCancellationCloseHours: 48,
+      defaultMaxTicketOrRsvpPerPerson: null,
       ...initialData,
     },
     validate: {
@@ -630,6 +635,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           registrationOpenHours: initialData.registrationOpenHours ?? null,
           registrationCloseHours: initialData.registrationCloseHours ?? null,
           cancellationCloseHours: initialData.cancellationCloseHours ?? null,
+          defaultMaxTicketOrRsvpPerPerson: initialData.defaultMaxTicketOrRsvpPerPerson ?? null,
         },
         volunteer: {
           volunteerRegistrationCloseHours: initialData.volunteerRegistrationCloseHours ?? null,
@@ -644,13 +650,15 @@ export const EventForm: React.FC<EventFormProps> = ({
     const hasRsvpTimingChanged =
       form.values.registrationOpenHours !== initialTimingValues.rsvp.registrationOpenHours ||
       form.values.registrationCloseHours !== initialTimingValues.rsvp.registrationCloseHours ||
-      form.values.cancellationCloseHours !== initialTimingValues.rsvp.cancellationCloseHours
+      form.values.cancellationCloseHours !== initialTimingValues.rsvp.cancellationCloseHours ||
+      form.values.defaultMaxTicketOrRsvpPerPerson !== initialTimingValues.rsvp.defaultMaxTicketOrRsvpPerPerson
 
     setRsvpTimingDirty(hasRsvpTimingChanged)
   }, [
     form.values.registrationOpenHours,
     form.values.registrationCloseHours,
     form.values.cancellationCloseHours,
+    form.values.defaultMaxTicketOrRsvpPerPerson,
     initialTimingValues.rsvp,
   ])
 
@@ -1187,6 +1195,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         cancellationCloseHours: form.values.cancellationCloseHours,
         volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours,
         volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours,
+        defaultMaxTicketOrRsvpPerPerson: form.values.defaultMaxTicketOrRsvpPerPerson,
       })
 
       // Update initial values to current values
@@ -1196,6 +1205,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           registrationOpenHours: form.values.registrationOpenHours ?? null,
           registrationCloseHours: form.values.registrationCloseHours ?? null,
           cancellationCloseHours: form.values.cancellationCloseHours ?? null,
+          defaultMaxTicketOrRsvpPerPerson: form.values.defaultMaxTicketOrRsvpPerPerson ?? null,
         },
       }))
       setRsvpTimingDirty(false)
@@ -1232,6 +1242,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         cancellationCloseHours: form.values.cancellationCloseHours,
         volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours,
         volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours,
+        defaultMaxTicketOrRsvpPerPerson: form.values.defaultMaxTicketOrRsvpPerPerson,
       })
 
       // Update initial values to current values
@@ -1829,6 +1840,34 @@ export const EventForm: React.FC<EventFormProps> = ({
                               style={{ flex: 1 }}
                             />
                           </Group>
+                        </Stack>
+                      </Group>
+
+                      {/* Per-person ticket/RSVP limit */}
+                      <Group grow align="flex-start">
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center" wrap="nowrap">
+                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                              Max Per Person:
+                            </Text>
+                            <NumberInput
+                              placeholder="No Limit"
+                              min={1}
+                              max={100}
+                              value={form.values.defaultMaxTicketOrRsvpPerPerson ?? undefined}
+                              onChange={(value) =>
+                                form.setFieldValue(
+                                  'defaultMaxTicketOrRsvpPerPerson',
+                                  typeof value === 'number' ? value : null
+                                )
+                              }
+                              aria-label="Max tickets or RSVPs per person"
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+                          <Text size="xs" c="dimmed">
+                            Maximum RSVPs or tickets one person can have for this event (including proxy RSVPs). Leave empty for no limit.
+                          </Text>
                         </Stack>
                       </Group>
 

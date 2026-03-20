@@ -120,7 +120,8 @@ public class EventService : IEventService
                     RegistrationCloseHours = e.RegistrationCloseHours,
                     CancellationCloseHours = e.CancellationCloseHours,
                     VolunteerRegistrationCloseHours = e.VolunteerRegistrationCloseHours,
-                    VolunteerCancellationCloseHours = e.VolunteerCancellationCloseHours
+                    VolunteerCancellationCloseHours = e.VolunteerCancellationCloseHours,
+                    DefaultMaxTicketOrRsvpPerPerson = e.DefaultMaxTicketOrRsvpPerPerson
                 };
             }).ToList();
 
@@ -326,7 +327,8 @@ public class EventService : IEventService
                 RegistrationCloseHours = eventEntity.RegistrationCloseHours,
                 CancellationCloseHours = eventEntity.CancellationCloseHours,
                 VolunteerRegistrationCloseHours = eventEntity.VolunteerRegistrationCloseHours,
-                VolunteerCancellationCloseHours = eventEntity.VolunteerCancellationCloseHours
+                VolunteerCancellationCloseHours = eventEntity.VolunteerCancellationCloseHours,
+                DefaultMaxTicketOrRsvpPerPerson = eventEntity.DefaultMaxTicketOrRsvpPerPerson
             };
 
             _logger.LogDebug("Event retrieved successfully: {EventId} ({Title})", eventId, eventEntity.Title);
@@ -417,7 +419,8 @@ public class EventService : IEventService
                 && request.RegistrationCloseHours == null
                 && request.CancellationCloseHours == null
                 && request.VolunteerRegistrationCloseHours == null
-                && request.VolunteerCancellationCloseHours == null;
+                && request.VolunteerCancellationCloseHours == null
+                && request.DefaultMaxTicketOrRsvpPerPerson == null;
 
             // Business rule: Cannot update events where ALL sessions have ended more than 48 hours ago
             // Exception: Status-only changes (draft/published toggle) are always allowed
@@ -579,7 +582,8 @@ public class EventService : IEventService
             bool hasRsvpTimingFields =
                 request.RegistrationOpenHours.HasValue ||
                 request.RegistrationCloseHours.HasValue ||
-                request.CancellationCloseHours.HasValue;
+                request.CancellationCloseHours.HasValue ||
+                request.DefaultMaxTicketOrRsvpPerPerson.HasValue;
 
             if (hasRsvpTimingFields || isTimingOnlyUpdate)
             {
@@ -590,11 +594,12 @@ public class EventService : IEventService
                 eventEntity.RegistrationOpenHours = request.RegistrationOpenHours;
                 eventEntity.RegistrationCloseHours = request.RegistrationCloseHours;
                 eventEntity.CancellationCloseHours = request.CancellationCloseHours;
+                eventEntity.DefaultMaxTicketOrRsvpPerPerson = request.DefaultMaxTicketOrRsvpPerPerson;
 
                 _logger.LogDebug("Updated RSVP timing: RegOpen={RegOpen}, RegClose={RegClose}, " +
-                    "CancelClose={CancelClose}",
+                    "CancelClose={CancelClose}, DefaultMaxPerPerson={DefaultMaxPerPerson}",
                     request.RegistrationOpenHours, request.RegistrationCloseHours,
-                    request.CancellationCloseHours);
+                    request.CancellationCloseHours, request.DefaultMaxTicketOrRsvpPerPerson);
             }
 
             // Volunteer timing fields (frontend sends both together as a group)
@@ -689,7 +694,8 @@ public class EventService : IEventService
                 RegistrationCloseHours = eventEntity.RegistrationCloseHours,
                 CancellationCloseHours = eventEntity.CancellationCloseHours,
                 VolunteerRegistrationCloseHours = eventEntity.VolunteerRegistrationCloseHours,
-                VolunteerCancellationCloseHours = eventEntity.VolunteerCancellationCloseHours
+                VolunteerCancellationCloseHours = eventEntity.VolunteerCancellationCloseHours,
+                DefaultMaxTicketOrRsvpPerPerson = eventEntity.DefaultMaxTicketOrRsvpPerPerson
             };
 
             _logger.LogInformation("Event updated successfully: {EventId} ({Title})",
@@ -1035,6 +1041,11 @@ public class EventService : IEventService
                 existingTicketType.PricingType = ticketTypeDto.PricingType;
                 existingTicketType.Available = ticketTypeDto.QuantityAvailable;
 
+                // Map MaxQuantityPerPurchase from admin UI (default to 3 if not set)
+                existingTicketType.MaxQuantityPerPurchase = ticketTypeDto.MaxQuantityPerPurchase > 0
+                    ? ticketTypeDto.MaxQuantityPerPurchase
+                    : 3;
+
                 // Set pricing fields based on pricing type
                 if (ticketTypeDto.PricingType == WitchCityRope.Models.PricingType.Fixed)
                 {
@@ -1087,7 +1098,11 @@ public class EventService : IEventService
                     Description = $"{ticketTypeDto.PricingType} ticket",
                     Available = ticketTypeDto.QuantityAvailable,
                     // DELETE: Sold is now a calculated property, not a stored field
-                    PricingType = ticketTypeDto.PricingType
+                    PricingType = ticketTypeDto.PricingType,
+                    // Map MaxQuantityPerPurchase from admin UI (default to 3 if not set)
+                    MaxQuantityPerPurchase = ticketTypeDto.MaxQuantityPerPurchase > 0
+                        ? ticketTypeDto.MaxQuantityPerPurchase
+                        : 3
                 };
 
                 // Set pricing fields based on pricing type
@@ -1385,12 +1400,13 @@ public class EventService : IEventService
                     VettedMembersOnly = sourceEvent.VettedMembersOnly,
                     VenueId = sourceEvent.VenueId,
 
-                    // COPY timing controls (5 fields)
+                    // COPY timing controls (5 fields + per-person limit)
                     RegistrationOpenHours = sourceEvent.RegistrationOpenHours,
                     RegistrationCloseHours = sourceEvent.RegistrationCloseHours,
                     CancellationCloseHours = sourceEvent.CancellationCloseHours,
                     VolunteerRegistrationCloseHours = sourceEvent.VolunteerRegistrationCloseHours,
-                    VolunteerCancellationCloseHours = sourceEvent.VolunteerCancellationCloseHours
+                    VolunteerCancellationCloseHours = sourceEvent.VolunteerCancellationCloseHours,
+                    DefaultMaxTicketOrRsvpPerPerson = sourceEvent.DefaultMaxTicketOrRsvpPerPerson
                 };
 
                 _context.Events.Add(copiedEvent);
@@ -1597,7 +1613,8 @@ public class EventService : IEventService
                     RegistrationCloseHours = copiedEventWithNav.RegistrationCloseHours,
                     CancellationCloseHours = copiedEventWithNav.CancellationCloseHours,
                     VolunteerRegistrationCloseHours = copiedEventWithNav.VolunteerRegistrationCloseHours,
-                    VolunteerCancellationCloseHours = copiedEventWithNav.VolunteerCancellationCloseHours
+                    VolunteerCancellationCloseHours = copiedEventWithNav.VolunteerCancellationCloseHours,
+                    DefaultMaxTicketOrRsvpPerPerson = copiedEventWithNav.DefaultMaxTicketOrRsvpPerPerson
                 };
 
                 return (true, eventDto, null);
@@ -1680,7 +1697,8 @@ public class EventService : IEventService
                     RegistrationCloseHours = request.RegistrationCloseHours,
                     CancellationCloseHours = request.CancellationCloseHours,
                     VolunteerRegistrationCloseHours = request.VolunteerRegistrationCloseHours,
-                    VolunteerCancellationCloseHours = request.VolunteerCancellationCloseHours
+                    VolunteerCancellationCloseHours = request.VolunteerCancellationCloseHours,
+                    DefaultMaxTicketOrRsvpPerPerson = request.DefaultMaxTicketOrRsvpPerPerson
                 };
 
                 _context.Events.Add(newEvent);
@@ -1896,7 +1914,8 @@ public class EventService : IEventService
                     RegistrationCloseHours = createdEventWithNav.RegistrationCloseHours,
                     CancellationCloseHours = createdEventWithNav.CancellationCloseHours,
                     VolunteerRegistrationCloseHours = createdEventWithNav.VolunteerRegistrationCloseHours,
-                    VolunteerCancellationCloseHours = createdEventWithNav.VolunteerCancellationCloseHours
+                    VolunteerCancellationCloseHours = createdEventWithNav.VolunteerCancellationCloseHours,
+                    DefaultMaxTicketOrRsvpPerPerson = createdEventWithNav.DefaultMaxTicketOrRsvpPerPerson
                 };
 
                 return (true, eventDto, string.Empty);

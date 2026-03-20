@@ -82,4 +82,10 @@ public class CreateEventRequest
     public decimal? CancellationCloseHours { get; set; }
     public decimal? VolunteerRegistrationCloseHours { get; set; }
     public decimal? VolunteerCancellationCloseHours { get; set; }
+
+    /// <summary>
+    /// Default maximum tickets/RSVPs per person for this event (optional).
+    /// NULL = no per-person limit.
+    /// </summary>
+    public int? DefaultMaxTicketOrRsvpPerPerson { get; set; }
 }

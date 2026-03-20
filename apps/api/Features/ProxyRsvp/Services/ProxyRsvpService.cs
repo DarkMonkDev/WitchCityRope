@@ -66,7 +66,8 @@ public class ProxyRsvpService : IProxyRsvpService
                     e.Title,
                     e.AllowRsvps,
                     e.VettedMembersOnly,
-                    e.Capacity
+                    e.Capacity,
+                    e.DefaultMaxTicketOrRsvpPerPerson
                 })
                 .FirstOrDefaultAsync(ct);
 
@@ -145,27 +146,74 @@ public class ProxyRsvpService : IProxyRsvpService
                     "This event is at full capacity (BR-054)");
             }
 
-            // 5. Check for duplicate: principal doesn't already have Active or PendingAcceptance RSVP
-            var existingRsvp = await _context.EventAttendances
+            // 5. Check for duplicate: principal doesn't already have Active or PendingAcceptance
+            // participation (RSVP or Ticket). Block proxy RSVP if they already have any
+            // form of participation — ticket purchases auto-create RSVPs for social events,
+            // but ticket-only events wouldn't have an RSVP record.
+            var existingParticipation = await _context.EventAttendances
                 .AsNoTracking()
                 .AnyAsync(ea =>
                     ea.EventId == eventId
                     && ea.UserId == principalUserId
-                    && ea.AttendanceType == AttendanceType.RSVP
+                    && (ea.AttendanceType == AttendanceType.RSVP
+                        || ea.AttendanceType == AttendanceType.Ticket)
                     && (ea.Status == AttendanceStatus.Active
                         || ea.Status == AttendanceStatus.PendingAcceptance), ct);
 
-            if (existingRsvp)
+            if (existingParticipation)
             {
                 _logger.LogWarning(
-                    "Proxy RSVP blocked: Principal {PrincipalUserId} already has Active/PendingAcceptance RSVP for event {EventId}",
+                    "Principal {PrincipalUserId} already has Active/PendingAcceptance participation for event {EventId}",
                     principalUserId, eventId);
                 return Result<ProxyRsvpDto>.Failure(
-                    "Already has RSVP",
-                    "This person already has an active or pending RSVP for this event");
+                    "Already participating",
+                    "This person already has an active or pending RSVP or ticket for this event");
             }
 
-            // 6. Load delegate and principal scene names for the response DTO
+            // 6. Check delegate cumulative limit (if event has a per-person cap).
+            // The delegate's own RSVP/ticket counts as 1, plus each proxy RSVP they've created.
+            // The +1 accounts for the new proxy RSVP being created.
+            if (eventEntity.DefaultMaxTicketOrRsvpPerPerson.HasValue)
+            {
+                var limit = eventEntity.DefaultMaxTicketOrRsvpPerPerson.Value;
+
+                // Count delegate's own participation (any RSVP or Ticket = 1)
+                var delegateHasOwnParticipation = await _context.EventAttendances
+                    .AsNoTracking()
+                    .AnyAsync(ea =>
+                        ea.EventId == eventId
+                        && ea.UserId == delegateUserId
+                        && (ea.AttendanceType == AttendanceType.RSVP
+                            || ea.AttendanceType == AttendanceType.Ticket)
+                        && (ea.Status == AttendanceStatus.Active
+                            || ea.Status == AttendanceStatus.PendingAcceptance), ct);
+
+                // Count proxy RSVPs created by this delegate for this event
+                var proxyRsvpCount = await _context.EventAttendances
+                    .AsNoTracking()
+                    .CountAsync(ea =>
+                        ea.EventId == eventId
+                        && ea.AssignedByUserId == delegateUserId
+                        && ea.AttendanceType == AttendanceType.RSVP
+                        && (ea.Status == AttendanceStatus.Active
+                            || ea.Status == AttendanceStatus.PendingAcceptance), ct);
+
+                // Total = own participation (0 or 1) + existing proxies + 1 (new proxy)
+                var totalDelegateCount = (delegateHasOwnParticipation ? 1 : 0) + proxyRsvpCount + 1;
+
+                if (totalDelegateCount > limit)
+                {
+                    _logger.LogWarning(
+                        "Proxy RSVP blocked: Delegate {DelegateUserId} would exceed per-person limit " +
+                        "({TotalCount}/{Limit}) for event {EventId}",
+                        delegateUserId, totalDelegateCount, limit, eventId);
+                    return Result<ProxyRsvpDto>.Failure(
+                        "Per-person limit reached",
+                        $"You have reached the maximum of {limit} RSVPs/tickets allowed per person for this event");
+                }
+            }
+
+            // 7. Load delegate and principal scene names for the response DTO
             var delegateUser = await _context.Users
                 .AsNoTracking()
                 .Where(u => u.Id == delegateUserId)
@@ -178,7 +226,7 @@ public class ProxyRsvpService : IProxyRsvpService
                 .Select(u => u.SceneName)
                 .FirstOrDefaultAsync(ct);
 
-            // 7. Create EventAttendance record for the proxy RSVP
+            // 8. Create EventAttendance record for the proxy RSVP
             var attendance = new EventAttendance(eventId, principalUserId, AttendanceType.RSVP)
             {
                 Status = AttendanceStatus.PendingAcceptance,
@@ -191,7 +239,7 @@ public class ProxyRsvpService : IProxyRsvpService
 
             _context.EventAttendances.Add(attendance);
 
-            // 8. Create AttendanceHistory audit record
+            // 9. Create AttendanceHistory audit record
             var history = new AttendanceHistory(attendance.Id, "ProxyRSVPCreated")
             {
                 NewValues = JsonSerializer.Serialize(new
@@ -209,14 +257,14 @@ public class ProxyRsvpService : IProxyRsvpService
 
             _context.AttendanceHistory.Add(history);
 
-            // 9. Save changes
+            // 10. Save changes
             await _context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
                 "Proxy RSVP created: AttendanceId {AttendanceId}, Event {EventId}, Principal {PrincipalUserId}, Delegate {DelegateUserId}",
                 attendance.Id, eventId, principalUserId, delegateUserId);
 
-            // 10. Return ProxyRsvpDto
+            // 11. Return ProxyRsvpDto
             return Result<ProxyRsvpDto>.Success(new ProxyRsvpDto
             {
                 AttendanceId = attendance.Id,

@@ -1048,6 +1048,51 @@ public class AttendanceService : IAttendanceService
                 .Distinct()
                 .ToList();
 
+            // ============================================================================
+            // VALIDATE: Cumulative per-person ticket limit
+            // Checks total tickets a user holds across ALL purchases for sessions
+            // covered by each ticket type, against Event.DefaultMaxTicketOrRsvpPerPerson.
+            // This is separate from MaxQuantityPerPurchase which is a per-transaction cap.
+            // ============================================================================
+            if (eventEntity.DefaultMaxTicketOrRsvpPerPerson.HasValue)
+            {
+                var cumulativeLimit = eventEntity.DefaultMaxTicketOrRsvpPerPerson.Value;
+
+                // For the purchaser (skip if BuyForOthersOnly — purchaser isn't getting tickets)
+                if (!request.BuyForOthersOnly)
+                {
+                    // Count purchaser's existing Active/PendingPayment/PendingAcceptance ticket
+                    // attendances for sessions covered by ANY of the selected ticket types
+                    var purchaserExistingCount = await _context.EventAttendances
+                        .AsNoTracking()
+                        .CountAsync(ea =>
+                            ea.EventId == request.EventId
+                            && ea.UserId == userId
+                            && ea.AttendanceType == AttendanceType.Ticket
+                            && (ea.Status == AttendanceStatus.Active
+                                || ea.Status == AttendanceStatus.PendingPayment
+                                || ea.Status == AttendanceStatus.PendingAcceptance)
+                            && ea.SessionId.HasValue
+                            && allRequestedSessionIds.Contains(ea.SessionId.Value),
+                            cancellationToken);
+
+                    // Total new tickets for the purchaser = sum of all selections minus assignee-only tickets
+                    // In normal mode, purchaser gets 1 ticket per selection; assignees get the rest
+                    var purchaserNewTickets = selections.Count; // purchaser gets 1 per ticket type selection
+
+                    if (purchaserExistingCount + purchaserNewTickets > cumulativeLimit)
+                    {
+                        _logger.LogWarning(
+                            "Cumulative ticket limit exceeded for user {UserId} in event {EventId}: " +
+                            "existing={ExistingCount}, new={NewCount}, limit={Limit}",
+                            userId, request.EventId, purchaserExistingCount, purchaserNewTickets, cumulativeLimit);
+                        return Result<ParticipationStatusDto>.Failure(
+                            $"You already have {purchaserExistingCount} ticket(s) for overlapping sessions. " +
+                            $"Maximum {cumulativeLimit} allowed per person for this event.");
+                    }
+                }
+            }
+
             // Validate timing for each ticket type
             foreach (var ticketType in ticketTypesWithSessions)
             {

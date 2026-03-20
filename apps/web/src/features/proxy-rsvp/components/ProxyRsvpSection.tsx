@@ -41,6 +41,8 @@ interface ProxyRsvpSectionProps {
   vettedMembersOnly?: boolean;
   /** Whether the current user is vetted */
   isVetted?: boolean;
+  /** Whether the current user already has an RSVP or ticket for this event */
+  hasParticipation?: boolean;
 }
 
 export const ProxyRsvpSection: React.FC<ProxyRsvpSectionProps> = ({
@@ -50,6 +52,7 @@ export const ProxyRsvpSection: React.FC<ProxyRsvpSectionProps> = ({
   isAuthenticated,
   vettedMembersOnly = false,
   isVetted = false,
+  hasParticipation = false,
 }) => {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -63,7 +66,7 @@ export const ProxyRsvpSection: React.FC<ProxyRsvpSectionProps> = ({
 
   // Don't render if conditions aren't met.
   // Non-vetted users cannot create proxy RSVPs for vetted-only events (BR-035).
-  if (!isAuthenticated || !allowRsvps || (vettedMembersOnly && !isVetted)) {
+  if (!isAuthenticated || !allowRsvps || (vettedMembersOnly && !isVetted) || !hasParticipation) {
     return null;
   }
 

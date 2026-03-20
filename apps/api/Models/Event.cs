@@ -151,6 +151,14 @@ public class Event
     /// </summary>
     public decimal? VolunteerCancellationCloseHours { get; set; }
 
+    /// <summary>
+    /// Default maximum number of tickets or RSVPs a single person can have for this event.
+    /// Applies as the cumulative per-person cap across all transactions and proxy RSVPs.
+    /// Individual TicketType.MaxQuantityPerPurchase is the per-transaction cap.
+    /// NULL = no per-person limit (only event capacity constrains).
+    /// </summary>
+    public int? DefaultMaxTicketOrRsvpPerPerson { get; set; }
+
     // ====================================================================
     // NAVIGATION PROPERTIES
     // ====================================================================

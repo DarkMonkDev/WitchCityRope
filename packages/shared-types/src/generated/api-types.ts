@@ -4999,6 +4999,8 @@ export interface components {
             volunteerRegistrationCloseHours?: null | number;
             /** Format: double */
             volunteerCancellationCloseHours?: null | number;
+            /** Format: int32 */
+            defaultMaxTicketOrRsvpPerPerson?: null | number;
         };
         CreateIncidentRequest: {
             /** Format: uuid */
@@ -5333,6 +5335,8 @@ export interface components {
             volunteerRegistrationCloseHours?: null | number;
             /** Format: double */
             volunteerCancellationCloseHours?: null | number;
+            /** Format: int32 */
+            defaultMaxTicketOrRsvpPerPerson?: null | number;
         };
         EventEmailTemplateDto: {
             /** Format: uuid */
@@ -6533,6 +6537,8 @@ export interface components {
             volunteerRegistrationCloseHours?: null | number;
             /** Format: double */
             volunteerCancellationCloseHours?: null | number;
+            /** Format: int32 */
+            defaultMaxTicketOrRsvpPerPerson?: null | number;
         };
         UpdateEventTemplateRequest: {
             subject: string;

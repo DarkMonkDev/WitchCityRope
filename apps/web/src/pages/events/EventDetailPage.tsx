@@ -652,6 +652,7 @@ export const EventDetailPage: React.FC = () => {
               isAuthenticated={isAuthenticated}
               vettedMembersOnly={vettedMembersOnly}
               isVetted={isVetted}
+              hasParticipation={!!hasParticipation}
             />
           </Box>
         </Box>
@@ -784,6 +785,7 @@ export const EventDetailPage: React.FC = () => {
                 isAuthenticated={isAuthenticated}
                 vettedMembersOnly={vettedMembersOnly}
                 isVetted={isVetted}
+                hasParticipation={!!hasParticipation}
               />
             </Box>
 
