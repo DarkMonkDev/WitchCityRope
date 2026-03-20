@@ -363,8 +363,9 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
             );
           }
 
-          // User has RSVP but no tickets, and event has ticket types — show "no tickets" indicator
-          if (!event.hasTicket && hasAvailableTickets) {
+          // User has RSVP but no tickets, and event has ticket types — show "no tickets" indicator.
+          // Skip for purchaser-only events: user deliberately didn't buy for themselves.
+          if (!event.hasTicket && hasAvailableTickets && !(event as any).isPurchaserOnly) {
             return (
               <Box
                 style={{
@@ -390,8 +391,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           return null;
         })()}
 
-        {/* Your Tickets Section - Show when user has extra tickets (more than just their own) */}
-        {assignedTickets.length > 1 && (
+        {/* Your Tickets Section - Show when user has any tickets purchased for others */}
+        {assignedTickets.length > 0 && (
           <YourTicketsSection
             tickets={assignedTickets}
             eventId={event.id || ''}
@@ -481,6 +482,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           {event.registrationStatus === 'Attended' && (
             <Badge color="grape" variant="light">
               Attended
+            </Badge>
+          )}
+
+          {/* Show Purchased for Others badge when user has no own attendance */}
+          {(event as any).isPurchaserOnly && (
+            <Badge color="orange" variant="light">
+              Purchased for Others
             </Badge>
           )}
         </Box>

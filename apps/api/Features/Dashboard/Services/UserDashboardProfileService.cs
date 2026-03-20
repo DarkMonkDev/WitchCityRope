@@ -89,7 +89,58 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 .OrderBy(e => e.StartDate)
                 .ToListAsync(cancellationToken);
 
-            // STEP 3: Populate session and ticket data for each event (post-query in-memory)
+            // STEP 3: Find "purchaser-only" events — events where the user purchased tickets
+            // for others but has no personal attendance (no own RSVP or ticket).
+            // These events are missing from the attendance-based query above.
+            var attendedEventIds = events.Select(e => e.Id).ToHashSet();
+
+            var purchaserOnlyQuery = _context.TicketPurchases
+                .AsNoTracking()
+                .Where(tp => tp.UserId == userId)
+                // Inline IsPaymentCompleted check — computed properties can't be
+                // translated to SQL by EF Core (causes InvalidOperationException)
+                .Where(tp => tp.PaymentStatus == TicketPurchasePaymentStatus.Completed
+                          || tp.PaymentStatus == TicketPurchasePaymentStatus.Confirmed
+                          || tp.PaymentStatus == TicketPurchasePaymentStatus.PartiallyRefunded)
+                .Where(tp => tp.TicketType != null && tp.TicketType.Event != null)
+                // Navigate TicketPurchase -> TicketType -> Event, exclude already-attended events
+                .Select(tp => tp.TicketType!.Event!)
+                .Where(e => !attendedEventIds.Contains(e.Id))
+                .AsQueryable();
+
+            if (!includePast)
+            {
+                purchaserOnlyQuery = purchaserOnlyQuery.Where(e => e.EndDate >= DateTime.UtcNow);
+            }
+
+            var purchaserOnlyEvents = await purchaserOnlyQuery
+                .Select(e => new { e.Id, e.Title, e.StartDate, e.EndDate,
+                    VenueName = e.Venue != null ? e.Venue.Name : string.Empty,
+                    e.ShortDescription, e.AllowRsvps, e.RequireTicketPurchase })
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            foreach (var pe in purchaserOnlyEvents)
+            {
+                events.Add(new UserEventDto
+                {
+                    Id = pe.Id,
+                    Title = pe.Title,
+                    StartDate = pe.StartDate,
+                    EndDate = pe.EndDate,
+                    Location = pe.VenueName,
+                    Description = pe.ShortDescription,
+                    IsSocialEvent = pe.AllowRsvps && !pe.RequireTicketPurchase,
+                    HasTicket = false,
+                    RegistrationStatus = "Purchased for Others",
+                    IsPurchaserOnly = true
+                });
+            }
+
+            // Re-sort after adding purchaser-only events
+            events = events.OrderBy(e => e.StartDate).ToList();
+
+            // STEP 4: Populate session and ticket data for each event (post-query in-memory)
             // This is necessary because EF Core doesn't support complex navigation in GroupBy
             foreach (var eventDto in events)
             {

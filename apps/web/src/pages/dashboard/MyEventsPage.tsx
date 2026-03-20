@@ -120,6 +120,7 @@ export const MyEventsPage: React.FC = () => {
       'RSVP Confirmed': 'blue',
       'Ticket Purchased': 'green',
       'Attended': 'grape',
+      'Purchased for Others': 'orange',
     };
 
     return [

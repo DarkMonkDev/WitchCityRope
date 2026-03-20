@@ -91,6 +91,14 @@ public class UserEventDto
     /// </summary>
     public List<UserTicketDto> Tickets { get; set; } = new();
 
+    /// <summary>
+    /// True if the user has no personal attendance but purchased tickets for others at this event.
+    /// Used by frontend to show a "Purchased for Others" badge and suppress the misleading
+    /// "No tickets purchased" indicator. The assigned tickets data flows via separate
+    /// useAssignedTickets() hook and is displayed in the EventCard's "Your Tickets" section.
+    /// </summary>
+    public bool IsPurchaserOnly { get; set; }
+
     // NO pricing fields - this is user dashboard, not sales page
     // NO capacity fields - user doesn't need to see event capacity
 }
