@@ -844,40 +844,38 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                                           </Text>
                                         ))}
                                       </Stack>
-                                      {/* Assign/Reassign buttons below session list, right-aligned */}
+                                      {/* Assign/Reassign buttons below session list */}
                                       {showAssignBtn && matchingAssignedTicket && (
-                                        <Group justify="flex-end" mt={4}>
-                                          <Button
-                                            size="xs"
-                                            variant="outline"
-                                            color="burgundy"
-                                            onClick={() => {
-                                              setAssignModalTicket(matchingAssignedTicket);
-                                              setAssignMode('assign');
-                                            }}
-                                            data-testid="assign-other-ticket-button"
-                                            styles={{ root: { height: 'auto', minHeight: '28px', padding: '4px 10px', lineHeight: 1.2 } }}
-                                          >
-                                            Assign
-                                          </Button>
-                                        </Group>
+                                        <Button
+                                          size="xs"
+                                          variant="outline"
+                                          color="burgundy"
+                                          mt={4}
+                                          onClick={() => {
+                                            setAssignModalTicket(matchingAssignedTicket);
+                                            setAssignMode('assign');
+                                          }}
+                                          data-testid="assign-other-ticket-button"
+                                          styles={{ root: { height: 'auto', minHeight: '28px', padding: '4px 10px', lineHeight: 1.2 } }}
+                                        >
+                                          Assign
+                                        </Button>
                                       )}
                                       {showReassignBtn && matchingAssignedTicket && (
-                                        <Group justify="flex-end" mt={4}>
-                                          <Button
-                                            size="xs"
-                                            variant="outline"
-                                            color="burgundy"
-                                            onClick={() => {
-                                              setAssignModalTicket(matchingAssignedTicket);
-                                              setAssignMode('reassign');
-                                            }}
-                                            data-testid="reassign-other-ticket-button"
-                                            styles={{ root: { height: 'auto', minHeight: '28px', padding: '4px 10px', lineHeight: 1.2 } }}
-                                          >
-                                            Reassign
-                                          </Button>
-                                        </Group>
+                                        <Button
+                                          size="xs"
+                                          variant="outline"
+                                          color="burgundy"
+                                          mt={4}
+                                          onClick={() => {
+                                            setAssignModalTicket(matchingAssignedTicket);
+                                            setAssignMode('reassign');
+                                          }}
+                                          data-testid="reassign-other-ticket-button"
+                                          styles={{ root: { height: 'auto', minHeight: '28px', padding: '4px 10px', lineHeight: 1.2 } }}
+                                        >
+                                          Reassign
+                                        </Button>
                                       )}
                                     </Box>
                                   </Group>
