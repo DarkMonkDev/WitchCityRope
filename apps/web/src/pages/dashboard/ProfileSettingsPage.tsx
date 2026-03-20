@@ -227,17 +227,17 @@ export const ProfileSettingsPage: React.FC = () => {
               </Accordion.Panel>
             </Accordion.Item>
 
-            <Accordion.Item value="vetting">
-              <Accordion.Control>Vetting & Membership</Accordion.Control>
-              <Accordion.Panel>
-                <VettingStatusDisplay profile={profile} />
-              </Accordion.Panel>
-            </Accordion.Item>
-
             <Accordion.Item value="authorized-contacts">
               <Accordion.Control>Authorized Contacts</Accordion.Control>
               <Accordion.Panel>
                 <AuthorizedContactsTab />
+              </Accordion.Panel>
+            </Accordion.Item>
+
+            <Accordion.Item value="vetting">
+              <Accordion.Control>Vetting & Membership</Accordion.Control>
+              <Accordion.Panel>
+                <VettingStatusDisplay profile={profile} />
               </Accordion.Panel>
             </Accordion.Item>
           </Accordion>
@@ -265,8 +265,8 @@ export const ProfileSettingsPage: React.FC = () => {
             <Tabs.List>
               <Tabs.Tab value="personal">Personal</Tabs.Tab>
               <Tabs.Tab value="security">Change Password</Tabs.Tab>
-              <Tabs.Tab value="vetting">Vetting & Membership</Tabs.Tab>
               <Tabs.Tab value="authorized-contacts">Authorized Contacts</Tabs.Tab>
+              <Tabs.Tab value="vetting">Vetting & Membership</Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value="personal">
@@ -277,12 +277,12 @@ export const ProfileSettingsPage: React.FC = () => {
               <ChangePasswordForm />
             </Tabs.Panel>
 
-            <Tabs.Panel value="vetting">
-              <VettingStatusDisplay profile={profile} />
-            </Tabs.Panel>
-
             <Tabs.Panel value="authorized-contacts">
               <AuthorizedContactsTab />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="vetting">
+              <VettingStatusDisplay profile={profile} />
             </Tabs.Panel>
           </Tabs>
         )}
