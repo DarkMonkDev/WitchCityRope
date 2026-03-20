@@ -925,54 +925,51 @@ export const EventPaymentPage: React.FC = () => {
                                   />
                                 )}
                                 <Box style={{ flex: 1 }}>
-                                  <Group justify="space-between" wrap="nowrap" align="flex-start">
-                                    {/* Left side: title, sessions, overlap warning */}
-                                    <Box style={{ flex: 1 }}>
-                                      <Text fw={600} size="md">{tt.name}</Text>
-                                      {(() => {
-                                        const sessionInfo = getTicketSessions(tt);
-                                        if (sessionInfo.length > 0) {
-                                          return (
-                                            <Stack gap={2} mt={4}>
-                                              {sessionInfo.map((session, idx) => (
-                                                <Text key={idx} size="sm" c="dimmed">
-                                                  {session.name} - {session.date}
-                                                </Text>
-                                              ))}
-                                            </Stack>
-                                          );
-                                        }
-                                        return null;
-                                      })()}
-                                      {isDisabledDueToOverlap && (
-                                        <Text size="xs" c="dimmed" mt={4}>
-                                          Sessions overlap with selected ticket
-                                        </Text>
-                                      )}
-                                      {/* Info text when user has no contacts but quantity > 1 */}
-                                      {isSelected && !isDisabledDueToOverlap &&
-                                        (ticketQuantities[tt.id || ''] || 1) > 1 && principalContacts.length === 0 && (
-                                        <Text size="xs" c="dimmed" mt={4}>
-                                          Add authorized contacts in Profile Settings to assign tickets to others.
-                                        </Text>
-                                      )}
-                                    </Box>
-                                    {/* Right side: price + quantity selector stacked */}
-                                    <Stack gap="xs" align="flex-end" style={{ flexShrink: 0 }}>
-                                      <Text fw={700} size="lg" c="#880124" style={{ whiteSpace: 'nowrap' }}>
-                                        {priceDisplay}
-                                      </Text>
-                                      {isSelected && !isDisabledDueToOverlap && (
-                                        <Box onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                                          <TicketQuantitySelector
-                                            quantity={ticketQuantities[tt.id || ''] || 1}
-                                            max={getEffectiveMaxQuantity(tt)}
-                                            onChange={(qty) => handleQuantityChange(tt.id || '', qty)}
-                                          />
-                                        </Box>
-                                      )}
-                                    </Stack>
+                                  {/* Row 1: title + price */}
+                                  <Group justify="space-between" wrap="nowrap">
+                                    <Text fw={600} size="md">{tt.name}</Text>
+                                    <Text fw={700} size="lg" c="#880124" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                      {priceDisplay}
+                                    </Text>
                                   </Group>
+                                  {/* Row 2: session info */}
+                                  {(() => {
+                                    const sessionInfo = getTicketSessions(tt);
+                                    if (sessionInfo.length > 0) {
+                                      return (
+                                        <Stack gap={2} mt={4}>
+                                          {sessionInfo.map((session, idx) => (
+                                            <Text key={idx} size="sm" c="dimmed">
+                                              {session.name} - {session.date}
+                                            </Text>
+                                          ))}
+                                        </Stack>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                  {isDisabledDueToOverlap && (
+                                    <Text size="xs" c="dimmed" mt={4}>
+                                      Sessions overlap with selected ticket
+                                    </Text>
+                                  )}
+                                  {/* Row 3: quantity selector centered below session info */}
+                                  {isSelected && !isDisabledDueToOverlap && (
+                                    <Group justify="center" mt="xs" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                      <TicketQuantitySelector
+                                        quantity={ticketQuantities[tt.id || ''] || 1}
+                                        max={getEffectiveMaxQuantity(tt)}
+                                        onChange={(qty) => handleQuantityChange(tt.id || '', qty)}
+                                      />
+                                    </Group>
+                                  )}
+                                  {/* Info text when user has no contacts but quantity > 1 */}
+                                  {isSelected && !isDisabledDueToOverlap &&
+                                    (ticketQuantities[tt.id || ''] || 1) > 1 && principalContacts.length === 0 && (
+                                    <Text size="xs" c="dimmed" mt={4} ta="center">
+                                      Add authorized contacts in Profile Settings to assign tickets to others.
+                                    </Text>
+                                  )}
                                 </Box>
                               </Group>
                             </Paper>
