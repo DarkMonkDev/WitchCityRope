@@ -56,6 +56,14 @@ public class ProxyRsvpService : IProxyRsvpService
                 "Creating proxy RSVP: Delegate {DelegateUserId} for Principal {PrincipalUserId} at Event {EventId}",
                 delegateUserId, principalUserId, eventId);
 
+            // Begin a RepeatableRead transaction to prevent race conditions on the
+            // per-person limit check and principal duplicate check. PostgreSQL's
+            // RepeatableRead ensures a consistent snapshot from the first query,
+            // so concurrent requests that both pass the checks will have one fail
+            // at commit with a serialization error rather than both succeeding.
+            await using var transaction = await _context.Database.BeginTransactionAsync(
+                System.Data.IsolationLevel.RepeatableRead, ct);
+
             // 1. Load event and check it exists with RSVPs enabled
             var eventEntity = await _context.Events
                 .AsNoTracking()
@@ -188,18 +196,18 @@ public class ProxyRsvpService : IProxyRsvpService
                         && (ea.Status == AttendanceStatus.Active
                             || ea.Status == AttendanceStatus.PendingAcceptance), ct);
 
-                // Count proxy RSVPs created by this delegate for this event
-                var proxyRsvpCount = await _context.EventAttendances
+                // Count all attendances created by this delegate for others (proxy RSVPs + ticket assignments).
+                // Includes both RSVP and Ticket types to cover both proxy RSVP and "Buy For Others" flows.
+                var delegateAssignmentCount = await _context.EventAttendances
                     .AsNoTracking()
                     .CountAsync(ea =>
                         ea.EventId == eventId
                         && ea.AssignedByUserId == delegateUserId
-                        && ea.AttendanceType == AttendanceType.RSVP
                         && (ea.Status == AttendanceStatus.Active
                             || ea.Status == AttendanceStatus.PendingAcceptance), ct);
 
-                // Total = own participation (0 or 1) + existing proxies + 1 (new proxy)
-                var totalDelegateCount = (delegateHasOwnParticipation ? 1 : 0) + proxyRsvpCount + 1;
+                // Total = own participation (0 or 1) + existing assignments + 1 (new proxy)
+                var totalDelegateCount = (delegateHasOwnParticipation ? 1 : 0) + delegateAssignmentCount + 1;
 
                 if (totalDelegateCount > limit)
                 {
@@ -257,8 +265,9 @@ public class ProxyRsvpService : IProxyRsvpService
 
             _context.AttendanceHistory.Add(history);
 
-            // 10. Save changes
+            // 10. Save changes and commit transaction
             await _context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             _logger.LogInformation(
                 "Proxy RSVP created: AttendanceId {AttendanceId}, Event {EventId}, Principal {PrincipalUserId}, Delegate {DelegateUserId}",

@@ -166,11 +166,11 @@ export const EventPaymentPage: React.FC = () => {
         // and canPurchase from each TicketTypeDto (backend-driven timing/stock checks).
 
         // Get owned session IDs from participation API response
-        const ownedSessionIds: string[] = (participation as any)?.ownedSessionIds?.map(String) || [];
+        const ownedSessionIds: string[] = participation?.ownedSessionIds?.map(String) || [];
 
         // Build session code → GUID lookup (same as EventDetailPage lines 180-185)
         const sessionCodeToId: Record<string, string> = {};
-        eventSessions.forEach((s: any) => {
+        eventSessions.forEach((s: SessionDto) => {
           if (s.sessionIdentifier && s.id) {
             sessionCodeToId[s.sessionIdentifier] = s.id;
           }
@@ -192,16 +192,14 @@ export const EventPaymentPage: React.FC = () => {
         // 2. Must NOT cover any session the user already owns
         //    EXCEPTION: When buyForOthersOnly, skip the ownership check since the user
         //    is buying for someone else - their own sessions are irrelevant.
-        // Note: canPurchase is returned by the API but not yet in the auto-generated TicketTypeDto,
-        // so we cast to any (same approach as EventDetailPage)
-        const availableTicketTypes = eventTicketTypes.filter((tt: any) =>
+        const availableTicketTypes = eventTicketTypes.filter((tt: TicketTypeDto) =>
           tt.canPurchase && (buyForOthersOnly || !isTicketOwnedByUser(tt))
         );
 
         setTicketTypes(availableTicketTypes);
 
         debugLog('EventPaymentPage: Owned session IDs (from API):', ownedSessionIds);
-        debugLog('EventPaymentPage: All ticket types:', eventTicketTypes.map((t: any) => `${t.name} (canPurchase=${t.canPurchase})`));
+        debugLog('EventPaymentPage: All ticket types:', eventTicketTypes.map((t: TicketTypeDto) => `${t.name} (canPurchase=${t.canPurchase})`));
         debugLog('EventPaymentPage: Filtered available tickets:', availableTicketTypes.map(t => t.name));
 
         // Auto-select ticket(s): if only one ticket, select it automatically; otherwise use URL param or empty
@@ -328,7 +326,7 @@ export const EventPaymentPage: React.FC = () => {
         ...(hasMultiTicket || buyForOthersOnly ? { ticketSelections } : {}),
         // Signal backend to skip purchaser overlap check
         ...(buyForOthersOnly ? { buyForOthersOnly: true } : {}),
-      } as any);
+      });
 
       debugLog('Checkout completed:', result);
 
@@ -690,26 +688,29 @@ export const EventPaymentPage: React.FC = () => {
    * 1. Per-transaction limit (maxQuantityPerPurchase from ticket type)
    * 2. Per-person remaining limit (remainingPerPerson from participation data)
    * 3. Event capacity remaining (capacity.available from participation data)
+   *
+   * Returns 0 when user cannot purchase (at per-person limit or event at capacity).
+   * The TicketQuantitySelector should be disabled when this returns 0.
    */
   const getEffectiveMaxQuantity = (ticketType: TicketTypeDto): number => {
-    const perPurchaseMax = (ticketType as any).maxQuantityPerPurchase || 3;
+    const perPurchaseMax = ticketType.maxQuantityPerPurchase || 3;
 
-    const remainingPerPerson = (participation as any)?.remainingPerPerson;
-    const capacityAvailable = (participation as any)?.capacity?.available;
+    const remainingPerPerson = participation?.remainingPerPerson;
+    const capacityAvailable = participation?.capacity?.available;
 
     let effectiveMax = perPurchaseMax;
 
-    // Cap by per-person remaining (null means no limit)
+    // Cap by per-person remaining (null/undefined = no limit, 0 = at limit)
     if (remainingPerPerson != null) {
-      effectiveMax = Math.min(effectiveMax, Math.max(1, remainingPerPerson));
+      effectiveMax = Math.min(effectiveMax, remainingPerPerson);
     }
 
     // Cap by event capacity remaining
     if (capacityAvailable != null) {
-      effectiveMax = Math.min(effectiveMax, Math.max(1, capacityAvailable));
+      effectiveMax = Math.min(effectiveMax, capacityAvailable);
     }
 
-    return effectiveMax;
+    return Math.max(0, effectiveMax);
   };
 
   // Show loading state

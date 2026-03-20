@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace WitchCityRope.Api.Features.Events.Models;
 
 /// <summary>
@@ -134,5 +136,6 @@ public class UpdateEventRequest
     /// Default maximum tickets/RSVPs per person for this event (optional).
     /// NULL = no per-person limit.
     /// </summary>
+    [Range(1, 1000)]
     public int? DefaultMaxTicketOrRsvpPerPerson { get; set; }
 }

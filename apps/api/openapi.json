@@ -14517,6 +14517,8 @@
             "format": "double"
           },
           "defaultMaxTicketOrRsvpPerPerson": {
+            "maximum": 1000,
+            "minimum": 1,
             "type": [
               "null",
               "integer"
@@ -19627,6 +19629,8 @@
             "format": "double"
           },
           "defaultMaxTicketOrRsvpPerPerson": {
+            "maximum": 1000,
+            "minimum": 1,
             "type": [
               "null",
               "integer"

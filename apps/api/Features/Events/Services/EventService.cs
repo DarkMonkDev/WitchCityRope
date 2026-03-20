@@ -578,14 +578,15 @@ public class EventService : IEventService
                 request.TeacherIds == null &&
                 request.VolunteerPositions == null;
 
-            // RSVP/Registration timing fields (frontend sends all 4 together as a group)
-            bool hasRsvpTimingFields =
+            // RSVP/Registration settings fields (frontend sends all together as a group).
+            // Includes timing controls AND per-person limit since they share the same save button.
+            bool hasRsvpSettingsFields =
                 request.RegistrationOpenHours.HasValue ||
                 request.RegistrationCloseHours.HasValue ||
                 request.CancellationCloseHours.HasValue ||
                 request.DefaultMaxTicketOrRsvpPerPerson.HasValue;
 
-            if (hasRsvpTimingFields || isTimingOnlyUpdate)
+            if (hasRsvpSettingsFields || isTimingOnlyUpdate)
             {
                 // Update ALL RSVP timing fields (including null ones)
                 // This handles both cases:

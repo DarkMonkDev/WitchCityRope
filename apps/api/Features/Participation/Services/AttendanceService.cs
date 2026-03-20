@@ -1087,8 +1087,8 @@ public class AttendanceService : IAttendanceService
 
             // ============================================================================
             // VALIDATE: Cumulative per-person ticket limit
-            // Checks total tickets a user holds across ALL purchases for sessions
-            // covered by each ticket type, against Event.DefaultMaxTicketOrRsvpPerPerson.
+            // Counts ALL tickets a user holds for this event (not per-session),
+            // against Event.DefaultMaxTicketOrRsvpPerPerson.
             // This is separate from MaxQuantityPerPurchase which is a per-transaction cap.
             // ============================================================================
             if (eventEntity.DefaultMaxTicketOrRsvpPerPerson.HasValue)
@@ -1098,8 +1098,9 @@ public class AttendanceService : IAttendanceService
                 // For the purchaser (skip if BuyForOthersOnly — purchaser isn't getting tickets)
                 if (!request.BuyForOthersOnly)
                 {
-                    // Count purchaser's existing Active/PendingPayment/PendingAcceptance ticket
-                    // attendances for sessions covered by ANY of the selected ticket types
+                    // Count ALL of the purchaser's existing Active/PendingPayment/PendingAcceptance
+                    // ticket attendances for this event. Uses event-wide count (not per-session)
+                    // to prevent circumventing the limit via separate purchases for different sessions.
                     var purchaserExistingCount = await _context.EventAttendances
                         .AsNoTracking()
                         .CountAsync(ea =>
@@ -1108,9 +1109,7 @@ public class AttendanceService : IAttendanceService
                             && ea.AttendanceType == AttendanceType.Ticket
                             && (ea.Status == AttendanceStatus.Active
                                 || ea.Status == AttendanceStatus.PendingPayment
-                                || ea.Status == AttendanceStatus.PendingAcceptance)
-                            && ea.SessionId.HasValue
-                            && allRequestedSessionIds.Contains(ea.SessionId.Value),
+                                || ea.Status == AttendanceStatus.PendingAcceptance),
                             cancellationToken);
 
                     // Total new tickets for the purchaser = sum of all selections minus assignee-only tickets
@@ -1124,8 +1123,8 @@ public class AttendanceService : IAttendanceService
                             "existing={ExistingCount}, new={NewCount}, limit={Limit}",
                             userId, request.EventId, purchaserExistingCount, purchaserNewTickets, cumulativeLimit);
                         return Result<ParticipationStatusDto>.Failure(
-                            $"You already have {purchaserExistingCount} ticket(s) for overlapping sessions. " +
-                            $"Maximum {cumulativeLimit} allowed per person for this event.");
+                            $"You already have {purchaserExistingCount} ticket(s) for this event. " +
+                            $"Maximum {cumulativeLimit} allowed per person.");
                     }
                 }
             }

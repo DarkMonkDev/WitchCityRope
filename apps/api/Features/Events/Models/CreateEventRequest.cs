@@ -87,5 +87,6 @@ public class CreateEventRequest
     /// Default maximum tickets/RSVPs per person for this event (optional).
     /// NULL = no per-person limit.
     /// </summary>
+    [Range(1, 1000)]
     public int? DefaultMaxTicketOrRsvpPerPerson { get; set; }
 }
