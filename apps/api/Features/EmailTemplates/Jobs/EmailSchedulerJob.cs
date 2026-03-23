@@ -316,6 +316,12 @@ public class EmailSchedulerJob
                     ["venue_name"] = session.VenueName ?? "",
                     ["venue_address"] = session.VenueAddress ?? "",
                     ["session_name"] = session.SessionName ?? "",
+                    // session_name_link wraps the session name in an anchor tag linking to the
+                    // event details page. Use in HTML bodies where session_name should be clickable.
+                    // Plain text bodies and subjects should continue using {{session_name}}.
+                    ["session_name_link"] = !string.IsNullOrEmpty(session.SessionName)
+                        ? $"<a href=\"{eventDetailsUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(session.SessionName)}</a>"
+                        : "",
                     ["event_details_url"] = eventDetailsUrl,
                     ["event_details_button"] = eventDetailsButton
                 };

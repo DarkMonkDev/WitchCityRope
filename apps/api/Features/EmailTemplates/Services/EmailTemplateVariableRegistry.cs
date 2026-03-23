@@ -26,25 +26,27 @@ public static class EmailTemplateVariableRegistry
         },
 
         // Source: EmailSchedulerJob.ProcessSessionAsync() — attendee reminders
+        // session_name_link wraps session_name in an <a> tag linking to event details page.
+        // Use session_name_link in HTML bodies, session_name in subjects and plain text bodies.
         [(EmailCategory.Events, "Reminder1Week")] = new[]
         {
-            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_date}}",
-            "{{session_time}}", "{{event_date}}", "{{event_time}}", "{{venue_name}}",
-            "{{venue_address}}", "{{event_details_url}}", "{{event_details_button}}"
+            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_name_link}}",
+            "{{session_date}}", "{{session_time}}", "{{event_date}}", "{{event_time}}",
+            "{{venue_name}}", "{{venue_address}}", "{{event_details_url}}", "{{event_details_button}}"
         },
 
         [(EmailCategory.Events, "Reminder1Day")] = new[]
         {
-            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_date}}",
-            "{{session_time}}", "{{event_date}}", "{{event_time}}", "{{venue_name}}",
-            "{{venue_address}}", "{{event_details_url}}", "{{event_details_button}}"
+            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_name_link}}",
+            "{{session_date}}", "{{session_time}}", "{{event_date}}", "{{event_time}}",
+            "{{venue_name}}", "{{venue_address}}", "{{event_details_url}}", "{{event_details_button}}"
         },
 
         [(EmailCategory.Events, "Reminder2Hours")] = new[]
         {
-            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_date}}",
-            "{{session_time}}", "{{event_date}}", "{{event_time}}", "{{venue_name}}",
-            "{{venue_address}}", "{{event_details_url}}", "{{event_details_button}}"
+            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_name_link}}",
+            "{{session_date}}", "{{session_time}}", "{{event_date}}", "{{event_time}}",
+            "{{venue_name}}", "{{venue_address}}", "{{event_details_url}}", "{{event_details_button}}"
         },
 
         // Source: EventEmailService.SendCancellationAsync()
@@ -75,16 +77,16 @@ public static class EmailTemplateVariableRegistry
         // Source: Not yet wired to sending code
         [(EmailCategory.Events, "SessionChange")] = new[]
         {
-            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_date}}",
-            "{{session_time}}", "{{event_date}}", "{{event_time}}", "{{custom_message}}",
-            "{{event_details_url}}", "{{event_details_button}}"
+            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_name_link}}",
+            "{{session_date}}", "{{session_time}}", "{{event_date}}", "{{event_time}}",
+            "{{custom_message}}", "{{event_details_url}}", "{{event_details_button}}"
         },
 
         // Source: Not yet wired to sending code
         [(EmailCategory.Events, "ThankYou")] = new[]
         {
-            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_date}}",
-            "{{event_date}}", "{{event_details_url}}", "{{event_details_button}}"
+            "{{attendee_name}}", "{{event_title}}", "{{session_name}}", "{{session_name_link}}",
+            "{{session_date}}", "{{event_date}}", "{{event_details_url}}", "{{event_details_button}}"
         },
 
         // Source: EmailSchedulerJob.ProcessSessionAsync() — volunteer branch
@@ -93,8 +95,8 @@ public static class EmailTemplateVariableRegistry
         [(EmailCategory.Events, "VolunteerReminder")] = new[]
         {
             "{{volunteer_name}}", "{{attendee_name}}", "{{event_title}}", "{{session_name}}",
-            "{{session_date}}", "{{session_time}}", "{{event_date}}", "{{event_time}}",
-            "{{volunteer_tasks_list}}", "{{volunteer_tasks_list_text}}",
+            "{{session_name_link}}", "{{session_date}}", "{{session_time}}", "{{event_date}}",
+            "{{event_time}}", "{{volunteer_tasks_list}}", "{{volunteer_tasks_list_text}}",
             "{{venue_name}}", "{{venue_address}}", "{{event_details_url}}", "{{event_details_button}}"
         },
 
@@ -102,7 +104,8 @@ public static class EmailTemplateVariableRegistry
         [(EmailCategory.Events, "VolunteerThankYou")] = new[]
         {
             "{{volunteer_name}}", "{{attendee_name}}", "{{event_title}}", "{{session_name}}",
-            "{{session_date}}", "{{event_date}}", "{{volunteer_tasks_list}}", "{{volunteer_tasks_list_text}}",
+            "{{session_name_link}}", "{{session_date}}", "{{event_date}}",
+            "{{volunteer_tasks_list}}", "{{volunteer_tasks_list_text}}",
             "{{event_details_url}}", "{{event_details_button}}"
         },
 
