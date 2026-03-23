@@ -445,10 +445,11 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       {/* Application Details Section - with inline editing for contact fields */}
       <div>
         <form onSubmit={applicantForm.onSubmit(handleSaveApplicantInfo)}>
-          {/* Title with Edit button - matches MemberOverviewTab styling */}
+          {/* Title with Edit button inline after title text */}
           <Group
-            justify="space-between"
+            justify="flex-start"
             align="center"
+            gap="md"
             mb="md"
             style={{
               borderBottom: '2px solid var(--mantine-color-burgundy-3)',
