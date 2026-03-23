@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace WitchCityRope.Api.Features.Vetting.Models;
 
 /// <summary>
@@ -14,6 +16,8 @@ public class ApplicationDetailResponse
 
     // Applicant Information (Decrypted)
     public string SceneName { get; set; } = string.Empty;
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
     public string? Pronouns { get; set; }
     public string Email { get; set; } = string.Empty;
 
@@ -131,4 +135,36 @@ public class WorkflowHistoryDto
     public DateTime PerformedAt { get; set; }
     public string PerformedBy { get; set; } = string.Empty;
     public string? Notes { get; set; }
+}
+
+/// <summary>
+/// Request DTO for admin update of applicant information on a vetting application.
+/// Updates the VettingApplication entity fields only (not the User entity).
+/// Used by the inline edit feature on the admin vetting detail page.
+/// </summary>
+public class UpdateApplicationApplicantInfoRequest
+{
+    [Required]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Scene name must be between 3 and 100 characters")]
+    public string SceneName { get; set; } = string.Empty;
+
+    [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters")]
+    public string? FirstName { get; set; }
+
+    [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters")]
+    public string? LastName { get; set; }
+
+    [Required]
+    [EmailAddress(ErrorMessage = "Invalid email format")]
+    [StringLength(100, ErrorMessage = "Email cannot exceed 100 characters")]
+    public string Email { get; set; } = string.Empty;
+
+    [StringLength(50, ErrorMessage = "Pronouns cannot exceed 50 characters")]
+    public string? Pronouns { get; set; }
+
+    [StringLength(100, ErrorMessage = "FetLife handle cannot exceed 100 characters")]
+    public string? FetLifeHandle { get; set; }
+
+    [StringLength(500, ErrorMessage = "Other names cannot exceed 500 characters")]
+    public string? OtherNames { get; set; }
 }

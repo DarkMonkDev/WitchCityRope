@@ -1,14 +1,18 @@
 import React, { useState, useMemo } from 'react'
-import { Paper, Stack, Title, Text, Group, Button, Grid, Modal, Alert, Card, Anchor } from '@mantine/core'
+import { Paper, Stack, Title, Text, Group, Button, Grid, Modal, Alert, Card, Anchor, TextInput } from '@mantine/core'
+import { useForm } from '@mantine/form'
+import { notifications } from '@mantine/notifications'
 import { IconArrowLeft, IconCheck, IconX, IconClock, IconMail, IconAlertCircle, IconCalendarEvent } from '@tabler/icons-react'
 import { useVettingApplicationDetail } from '../hooks/useVettingApplicationDetail'
 import { useSubmitReviewDecision } from '../hooks/useSubmitReviewDecision'
 import { useApproveApplication } from '../hooks/useApproveApplication'
+import { useUpdateApplicantInfo } from '../hooks/useUpdateApplicantInfo'
 import { vettingAdminApi } from '../services/vettingAdminApi'
 import { VettingStatusBadge } from './VettingStatusBadge'
 import { OnHoldModal } from './OnHoldModal'
 import { SendReminderModal } from './SendReminderModal'
 import { DenyApplicationModal } from './DenyApplicationModal'
+import { WCRButton } from '@/components/ui/WCRButton'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { VettingNoteRenderer } from './VettingNoteRenderer'
 
@@ -25,6 +29,38 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
   const [reminderModalOpen, setReminderModalOpen] = useState(false)
   const [denyModalOpen, setDenyModalOpen] = useState(false)
   const [scheduleInterviewModalOpen, setScheduleInterviewModalOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const updateApplicantInfoMutation = useUpdateApplicantInfo()
+
+  const applicantForm = useForm({
+    initialValues: {
+      sceneName: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      pronouns: '',
+      fetLifeHandle: '',
+      otherNames: '',
+    },
+    validate: {
+      sceneName: (value) => {
+        if (!value || value.trim().length === 0) return 'Scene name is required'
+        if (value.trim().length < 3) return 'Scene name must be at least 3 characters'
+        if (value.length > 100) return 'Scene name cannot exceed 100 characters'
+        return null
+      },
+      email: (value) => {
+        if (!value || value.trim().length === 0) return 'Email is required'
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Invalid email format'
+        return null
+      },
+      firstName: (value) => value && value.length > 50 ? 'Cannot exceed 50 characters' : null,
+      lastName: (value) => value && value.length > 50 ? 'Cannot exceed 50 characters' : null,
+      pronouns: (value) => value && value.length > 50 ? 'Cannot exceed 50 characters' : null,
+      fetLifeHandle: (value) => value && value.length > 100 ? 'Cannot exceed 100 characters' : null,
+      otherNames: (value) => value && value.length > 500 ? 'Cannot exceed 500 characters' : null,
+    },
+  })
 
   const {
     data: application,
@@ -108,6 +144,58 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
   const formatDateOnly = (dateString: string) => {
     return new Date(dateString).toLocaleDateString()
+  }
+
+  /** Enter edit mode - populate form with current application data */
+  const handleEditClick = () => {
+    applicantForm.setValues({
+      sceneName: application?.sceneName || '',
+      firstName: (application as any)?.firstName || '',
+      lastName: (application as any)?.lastName || '',
+      email: application?.email || '',
+      pronouns: application?.pronouns || '',
+      fetLifeHandle: application?.fetLifeHandle || '',
+      otherNames: application?.otherNames || '',
+    })
+    applicantForm.resetDirty()
+    setIsEditing(true)
+  }
+
+  /** Cancel editing - reset form and return to view mode */
+  const handleCancelEdit = () => {
+    applicantForm.reset()
+    setIsEditing(false)
+  }
+
+  /** Save applicant info changes via admin endpoint */
+  const handleSaveApplicantInfo = async (values: typeof applicantForm.values) => {
+    try {
+      await updateApplicantInfoMutation.mutateAsync({
+        applicationId,
+        data: {
+          sceneName: values.sceneName,
+          firstName: values.firstName || null,
+          lastName: values.lastName || null,
+          email: values.email,
+          pronouns: values.pronouns || null,
+          fetLifeHandle: values.fetLifeHandle || null,
+          otherNames: values.otherNames || null,
+        },
+      })
+
+      notifications.show({
+        title: 'Success',
+        message: 'Applicant information updated successfully',
+        color: 'green',
+      })
+      setIsEditing(false)
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.detail || error.message || 'Failed to update applicant information',
+        color: 'red',
+      })
+    }
   }
 
   const handleAdvanceStage = () => {
@@ -354,121 +442,189 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         </Group>
       </Group>
 
-      {/* Single Column Layout - Removed right sidebar as per requirements */}
-      <Grid>
-        <Grid.Col span={12}>
-          <Stack gap="md">
-            {/* Application Details Section */}
-            {/* Application Information - Inline layout for short answers, long answers at bottom */}
-            <Card p="xl" data-testid="application-information-section">
-              <Title order={3} mb="md" style={{ color: '#880124' }}>
-                Application Details
-              </Title>
-              {/* Short answers - inline layout */}
-              <Grid mb="xl">
-                {/* Left Column */}
-                <Grid.Col span={6}>
-                  <Stack gap="md">
-                    <Group gap="md" wrap="nowrap" data-testid="scene-name-field">
-                      <Text fw={600} style={{ minWidth: '120px' }}>
-                        Scene Name:
-                      </Text>
-                      <Text>{application.sceneName}</Text>
-                    </Group>
-                    <Group gap="md" wrap="nowrap" data-testid="real-name-field">
-                      <Text fw={600} style={{ minWidth: '120px' }}>
-                        Real Name:
-                      </Text>
-                      <Text>{[(application as any).firstName, (application as any).lastName].filter(Boolean).join(' ') || 'N/A'}</Text>
-                    </Group>
-                    <Group gap="md" wrap="nowrap" data-testid="email-field">
-                      <Text fw={600} style={{ minWidth: '120px' }}>
-                        Email:
-                      </Text>
-                      <Text>{application.email}</Text>
-                    </Group>
-                    {application.pronouns && (
-                      <Group gap="md" wrap="nowrap">
-                        <Text fw={600} style={{ minWidth: '120px' }}>
-                          Pronouns:
-                        </Text>
-                        <Text>{application.pronouns}</Text>
-                      </Group>
+      {/* Application Details Section - with inline editing for contact fields */}
+      <div>
+        <form onSubmit={applicantForm.onSubmit(handleSaveApplicantInfo)}>
+          {/* Title with Edit button - matches MemberOverviewTab styling */}
+          <Group
+            justify="space-between"
+            align="center"
+            mb="md"
+            style={{
+              borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+              paddingBottom: '8px',
+            }}
+          >
+            <Title order={2} c="burgundy">
+              Application Details
+            </Title>
+            {!isEditing && (
+              <WCRButton variant="outline" size="compact-sm" onClick={handleEditClick}>
+                Edit
+              </WCRButton>
+            )}
+          </Group>
+          <Card withBorder p="md" radius="md" data-testid="application-information-section">
+            {/* Short fields - inline layout with edit/view toggle */}
+            <Grid mb="xl">
+              {/* Scene Name */}
+              <Grid.Col span={{ base: 6, md: 4 }}>
+                {isEditing ? (
+                  <TextInput label="Scene Name" required {...applicantForm.getInputProps('sceneName')} />
+                ) : (
+                  <Group gap="xs" wrap="nowrap" data-testid="scene-name-field">
+                    <Text size="sm" c="dimmed">Scene Name:</Text>
+                    <Text fw={500}>{application.sceneName}</Text>
+                  </Group>
+                )}
+              </Grid.Col>
+
+              {/* First Name */}
+              <Grid.Col span={{ base: 6, md: 4 }}>
+                {isEditing ? (
+                  <TextInput label="First Name" {...applicantForm.getInputProps('firstName')} />
+                ) : (
+                  <Group gap="xs" wrap="nowrap" data-testid="real-name-field">
+                    <Text size="sm" c="dimmed">Real Name:</Text>
+                    {/* TODO: Remove 'as any' casts after regenerating shared-types (FirstName/LastName added to ApplicationDetailResponse DTO) */}
+                    <Text fw={500}>{[(application as any).firstName, (application as any).lastName].filter(Boolean).join(' ') || '-'}</Text>
+                  </Group>
+                )}
+              </Grid.Col>
+
+              {/* Last Name - only shown in edit mode as separate field */}
+              {isEditing && (
+                <Grid.Col span={{ base: 6, md: 4 }}>
+                  <TextInput label="Last Name" {...applicantForm.getInputProps('lastName')} />
+                </Grid.Col>
+              )}
+
+              {/* Email */}
+              <Grid.Col span={{ base: 6, md: 4 }}>
+                {isEditing ? (
+                  <TextInput label="Email" required {...applicantForm.getInputProps('email')} />
+                ) : (
+                  <Group gap="xs" wrap="nowrap" data-testid="email-field">
+                    <Text size="sm" c="dimmed">Email:</Text>
+                    <Text fw={500}>{application.email}</Text>
+                  </Group>
+                )}
+              </Grid.Col>
+
+              {/* Pronouns */}
+              <Grid.Col span={{ base: 6, md: 4 }}>
+                {isEditing ? (
+                  <TextInput label="Pronouns" {...applicantForm.getInputProps('pronouns')} />
+                ) : (
+                  <Group gap="xs" wrap="nowrap">
+                    <Text size="sm" c="dimmed">Pronouns:</Text>
+                    <Text fw={500}>{application.pronouns || '-'}</Text>
+                  </Group>
+                )}
+              </Grid.Col>
+
+              {/* Application Date - always read-only */}
+              <Grid.Col span={{ base: 6, md: 4 }}>
+                <Group gap="xs" wrap="nowrap">
+                  <Text size="sm" c="dimmed">Application Date:</Text>
+                  <Text fw={500}>{formatDateOnly(application.submittedAt || '')}</Text>
+                </Group>
+              </Grid.Col>
+
+              {/* FetLife Handle */}
+              <Grid.Col span={{ base: 6, md: 4 }}>
+                {isEditing ? (
+                  <TextInput label="FetLife Handle" {...applicantForm.getInputProps('fetLifeHandle')} />
+                ) : (
+                  <Group gap="xs" wrap="nowrap">
+                    <Text size="sm" c="dimmed">FetLife Handle:</Text>
+                    {application.fetLifeHandle ? (
+                      <Anchor
+                        href={`https://fetlife.com/${application.fetLifeHandle.trim()}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        fw={500}
+                      >
+                        {application.fetLifeHandle.trim()}
+                      </Anchor>
+                    ) : (
+                      <Text fw={500}>-</Text>
                     )}
-                  </Stack>
-                </Grid.Col>
+                  </Group>
+                )}
+              </Grid.Col>
 
-                {/* Right Column */}
-                <Grid.Col span={6}>
-                  <Stack gap="md">
-                    <Group gap="md" wrap="nowrap">
-                      <Text fw={600} style={{ minWidth: '140px' }}>
-                        Application Date:
-                      </Text>
-                      <Text>{formatDateOnly(application.submittedAt || '')}</Text>
-                    </Group>
-                    <Group gap="md" wrap="nowrap">
-                      <Text fw={600} style={{ minWidth: '140px' }}>
-                        FetLife Handle:
-                      </Text>
-                      {application.fetLifeHandle ? (
-                        <Anchor
-                          href={`https://fetlife.com/${application.fetLifeHandle.trim()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: '#880124' }}
-                        >
-                          {application.fetLifeHandle}
-                        </Anchor>
-                      ) : (
-                        <Text c="dimmed">Not provided</Text>
-                      )}
-                    </Group>
-                    <Group gap="md" wrap="nowrap">
-                      <Text fw={600} style={{ minWidth: '140px' }}>
-                        Other Names/Handles:
-                      </Text>
-                      <Text>{application.otherNames || 'Not provided'}</Text>
-                    </Group>
-                    <Group gap="md" wrap="nowrap" data-testid="reminders-sent-field">
-                      <Text fw={600} style={{ minWidth: '140px' }}>
-                        Reminders Sent:
-                      </Text>
-                      <Text>{(application as any).remindersSentCount ?? 0}</Text>
-                    </Group>
-                  </Stack>
-                </Grid.Col>
-              </Grid>
+              {/* Other Names/Handles */}
+              <Grid.Col span={{ base: 6, md: 4 }}>
+                {isEditing ? (
+                  <TextInput label="Other Names/Handles" {...applicantForm.getInputProps('otherNames')} />
+                ) : (
+                  <Group gap="xs" wrap="nowrap">
+                    <Text size="sm" c="dimmed">Other Names/Handles:</Text>
+                    <Text fw={500}>{application.otherNames || '-'}</Text>
+                  </Group>
+                )}
+              </Grid.Col>
 
-              {/* Long answers - full width at bottom */}
-              <Stack gap="xl">
-                <div>
-                  <Text fw={600} mb="xs">
-                    Why do you want to join WitchCityRope?
-                  </Text>
-                  <Text style={{ whiteSpace: 'pre-wrap' }}>{application.whyJoinCommunity}</Text>
-                </div>
-                <div>
-                  <Text fw={600} mb="xs">
-                    What is your rope experience thus far?
-                  </Text>
-                  <Text style={{ whiteSpace: 'pre-wrap' }}>
-                    {application.experienceDescription}
-                  </Text>
-                </div>
-                <div>
-                  <Text fw={600} mb="xs">
-                    How did you learn about WitchCityRope?
-                  </Text>
-                  <Text style={{ whiteSpace: 'pre-wrap' }}>
-                    {application.howDidYouHearAboutUs}
-                  </Text>
-                </div>
-              </Stack>
-            </Card>
-          </Stack>
-        </Grid.Col>
-      </Grid>
+              {/* Reminders Sent - always read-only */}
+              <Grid.Col span={{ base: 6, md: 4 }}>
+                <Group gap="xs" wrap="nowrap" data-testid="reminders-sent-field">
+                  <Text size="sm" c="dimmed">Reminders Sent:</Text>
+                  <Text fw={500}>{application.remindersSentCount ?? 0}</Text>
+                </Group>
+              </Grid.Col>
+            </Grid>
+
+            {/* Long-form answers - ALWAYS read-only */}
+            <Stack gap="xl">
+              <div>
+                <Text fw={600} mb="xs">
+                  Why do you want to join WitchCityRope?
+                </Text>
+                <Text style={{ whiteSpace: 'pre-wrap' }}>{application.whyJoinCommunity}</Text>
+              </div>
+              <div>
+                <Text fw={600} mb="xs">
+                  What is your rope experience thus far?
+                </Text>
+                <Text style={{ whiteSpace: 'pre-wrap' }}>
+                  {application.experienceDescription}
+                </Text>
+              </div>
+              <div>
+                <Text fw={600} mb="xs">
+                  How did you learn about WitchCityRope?
+                </Text>
+                <Text style={{ whiteSpace: 'pre-wrap' }}>
+                  {application.howDidYouHearAboutUs}
+                </Text>
+              </div>
+            </Stack>
+
+            {/* Save/Cancel buttons - only visible in edit mode, matches MemberOverviewTab */}
+            {isEditing && (
+              <Group justify="flex-end" mt="md">
+                <WCRButton
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelEdit}
+                  disabled={updateApplicantInfoMutation.isPending}
+                >
+                  Cancel
+                </WCRButton>
+                <WCRButton
+                  variant="secondary"
+                  size="sm"
+                  type="submit"
+                  loading={updateApplicantInfoMutation.isPending}
+                >
+                  {updateApplicantInfoMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </WCRButton>
+              </Group>
+            )}
+          </Card>
+        </form>
+      </div>
 
       {/* Admin Notes Section */}
       <NotesSection

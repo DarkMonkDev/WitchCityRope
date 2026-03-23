@@ -182,5 +182,21 @@ public interface IVettingService
     Task<Result<ApplicationSubmissionResponse>> SubmitSimplifiedApplicationAsync(
         SimplifiedApplicationRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Update applicant information on a vetting application (admin only).
+    /// Updates the VettingApplication entity fields, not the User entity.
+    /// Creates an audit log entry for the change.
+    /// </summary>
+    /// <param name="applicationId">ID of the vetting application</param>
+    /// <param name="request">Updated applicant information</param>
+    /// <param name="adminUserId">ID of the administrator making the change</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result indicating success or failure</returns>
+    Task<Result<ApplicationDetailResponse>> UpdateApplicantInfoAsync(
+        Guid applicationId,
+        UpdateApplicationApplicantInfoRequest request,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default);
 }
 

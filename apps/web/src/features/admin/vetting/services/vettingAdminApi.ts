@@ -141,6 +141,30 @@ export class VettingAdminApiService {
   }
 
   /**
+   * Update applicant contact/identity information on a vetting application.
+   * Updates the VettingApplication entity only, not the User entity.
+   * Used by the inline edit feature on the admin vetting detail page.
+   */
+  async updateApplicantInfo(
+    applicationId: string,
+    data: {
+      sceneName: string;
+      firstName?: string | null;
+      lastName?: string | null;
+      email: string;
+      pronouns?: string | null;
+      fetLifeHandle?: string | null;
+      otherNames?: string | null;
+    }
+  ): Promise<ApplicationDetailResponse> {
+    const response = await apiClient.put<ApplicationDetailResponse>(
+      `/api/vetting/reviewer/applications/${applicationId}/applicant-info`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
    * Send interview reminder email to applicant using the InterviewReminder template.
    * The custom message replaces the {{custom_message}} variable in the template.
    */

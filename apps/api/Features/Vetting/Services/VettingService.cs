@@ -248,6 +248,8 @@ public class VettingService : IVettingService
                 SubmittedAt = application.SubmittedAt,
                 LastActivityAt = application.UpdatedAt,
                 SceneName = application.SceneName,
+                FirstName = application.FirstName,
+                LastName = application.LastName,
                 Pronouns = application.Pronouns,
                 Email = application.Email,
                 FetLifeHandle = application.FetLifeHandle,
@@ -706,6 +708,8 @@ public class VettingService : IVettingService
                 ApplicationNumber = application.Id.ToString("N")[..8],
                 Status = application.WorkflowStatus.ToString(),
                 SceneName = application.SceneName ?? "Not provided",
+                FirstName = application.FirstName,
+                LastName = application.LastName,
                 Email = application.Email,
                 FetLifeHandle = application.FetLifeHandle,
                 OtherNames = application.OtherNames,
@@ -1782,6 +1786,112 @@ public class VettingService : IVettingService
             _logger.LogError(ex, "Error sending reminder for application {ApplicationId}", applicationId);
             return Result<SendReminderResponse>.Failure(
                 "Failed to send reminder", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Update applicant information on a vetting application (admin only).
+    /// Updates only the VettingApplication entity fields, not the User entity.
+    /// Creates an audit log entry documenting the change.
+    /// </summary>
+    public async Task<Result<ApplicationDetailResponse>> UpdateApplicantInfoAsync(
+        Guid applicationId,
+        UpdateApplicationApplicantInfoRequest request,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation(
+                "Admin {AdminUserId} updating applicant info for application {ApplicationId}",
+                adminUserId, applicationId);
+
+            // Check user authorization - only administrators can update applicant info
+            var admin = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == adminUserId, cancellationToken);
+            // Case-insensitive role check prevents access denial from casing differences
+            if (admin == null || !string.Equals(admin.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Access denied", "Only administrators can update applicant information.");
+            }
+
+            var application = await _context.VettingApplications
+                .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Application not found",
+                    $"No vetting application found with ID {applicationId}");
+            }
+
+            // Track what changed for the audit log
+            var changes = new List<string>();
+            if (application.SceneName != request.SceneName)
+                changes.Add($"Scene Name: '{application.SceneName}' → '{request.SceneName}'");
+            if (application.FirstName != request.FirstName)
+                changes.Add($"First Name: '{application.FirstName ?? ""}' → '{request.FirstName ?? ""}'");
+            if (application.LastName != request.LastName)
+                changes.Add($"Last Name: '{application.LastName ?? ""}' → '{request.LastName ?? ""}'");
+            if (application.Email != request.Email)
+                changes.Add($"Email: '{application.Email}' → '{request.Email}'");
+            if (application.Pronouns != request.Pronouns)
+                changes.Add($"Pronouns: '{application.Pronouns ?? ""}' → '{request.Pronouns ?? ""}'");
+            if (application.FetLifeHandle != request.FetLifeHandle)
+                changes.Add($"FetLife Handle: '{application.FetLifeHandle ?? ""}' → '{request.FetLifeHandle ?? ""}'");
+            if (application.OtherNames != request.OtherNames)
+                changes.Add($"Other Names: '{application.OtherNames ?? ""}' → '{request.OtherNames ?? ""}'");
+
+            // If nothing changed, return current detail without creating audit log
+            if (changes.Count == 0)
+            {
+                _logger.LogInformation("No changes detected for application {ApplicationId}", applicationId);
+                return await GetApplicationDetailAsync(applicationId, adminUserId, cancellationToken);
+            }
+
+            // Apply changes to the vetting application entity
+            application.SceneName = request.SceneName;
+            application.FirstName = request.FirstName;
+            application.LastName = request.LastName;
+            application.Email = request.Email;
+            application.Pronouns = request.Pronouns;
+            application.FetLifeHandle = request.FetLifeHandle;
+            application.OtherNames = request.OtherNames;
+            application.UpdatedAt = DateTime.UtcNow;
+
+            var adminName = admin.SceneName ?? admin.Email ?? adminUserId.ToString();
+
+            // Create audit log entry documenting the changes
+            var auditLog = new VettingAuditLog
+            {
+                Id = Guid.NewGuid(),
+                ApplicationId = applicationId,
+                Action = "ApplicantInfoUpdated",
+                PerformedBy = adminUserId,
+                PerformedAt = DateTime.UtcNow,
+                Notes = $"Admin '{adminName}' updated applicant information: {string.Join("; ", changes)}"
+            };
+            _context.VettingAuditLogs.Add(auditLog);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Admin {AdminUserId} successfully updated applicant info for application {ApplicationId}. Changes: {Changes}",
+                adminUserId, applicationId, string.Join("; ", changes));
+
+            // Return the updated application detail
+            return await GetApplicationDetailAsync(applicationId, adminUserId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to update applicant info for application {ApplicationId}",
+                applicationId);
+            return Result<ApplicationDetailResponse>.Failure(
+                "Update failed",
+                $"Failed to update applicant information: {ex.Message}");
         }
     }
 
