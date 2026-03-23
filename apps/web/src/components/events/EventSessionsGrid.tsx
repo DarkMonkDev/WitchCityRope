@@ -21,12 +21,12 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
   onDeleteSession,
   onAddSession,
 }) => {
-  // Sort sessions by date (oldest first)
+  // Sort sessions by session number (S1, S2, S3...) extracted from sessionIdentifier
   const sortedSessions = useMemo(() => {
     return [...sessions].sort((a, b) => {
-      const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
-      const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
-      return dateA - dateB;
+      const numA = parseInt(a.sessionIdentifier?.replace(/\D/g, '') || '0', 10);
+      const numB = parseInt(b.sessionIdentifier?.replace(/\D/g, '') || '0', 10);
+      return numA - numB;
     });
   }, [sessions]);
 
