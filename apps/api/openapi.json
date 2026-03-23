@@ -481,7 +481,7 @@
           "Events"
         ],
         "summary": "Get all events",
-        "description": "Returns events from the database. Use ?includeUnpublished=true for admin access to draft events (requires Administrator role). Use ?includePastEvents=true to include past events from the last 90 days.",
+        "description": "Returns events from the database. Use ?includeUnpublished=true for admin access to draft events (requires Administrator or EventOrganizer role). Use ?includePastEvents=true to include past events from the last 90 days.",
         "operationId": "GetEvents",
         "parameters": [
           {
@@ -8339,6 +8339,69 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Vetting"
+        ],
+        "summary": "Soft-delete a vetting application",
+        "operationId": "SoftDeleteApplication",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/vetting/reviewer/applications/{id}/decisions": {
@@ -8868,6 +8931,88 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SendReminderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vetting/reviewer/applications/{id}/applicant-info": {
+      "put": {
+        "tags": [
+          "Vetting"
+        ],
+        "summary": "Update applicant contact/identity information on a vetting application",
+        "operationId": "UpdateApplicantInfo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateApplicationApplicantInfoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationDetailResponse"
                 }
               }
             }
@@ -12878,6 +13023,18 @@
           },
           "sceneName": {
             "type": "string"
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "pronouns": {
             "type": [
@@ -19444,6 +19601,65 @@
           }
         }
       },
+      "UpdateApplicationApplicantInfoRequest": {
+        "required": [
+          "sceneName",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "sceneName": {
+            "maxLength": 100,
+            "minLength": 3,
+            "type": "string"
+          },
+          "firstName": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "pronouns": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fetLifeHandle": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "otherNames": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "UpdateContentPageRequest": {
         "required": [
           "title",
@@ -20247,6 +20463,9 @@
             "items": {
               "$ref": "#/components/schemas/UserTicketDto"
             }
+          },
+          "isPurchaserOnly": {
+            "type": "boolean"
           }
         }
       },
@@ -20482,7 +20701,8 @@
           "SafetyTeam",
           "Administrator",
           "EventOrganizer",
-          "DungeonMonitor"
+          "DungeonMonitor",
+          "VettingTeam"
         ]
       },
       "UserRoleDto": {

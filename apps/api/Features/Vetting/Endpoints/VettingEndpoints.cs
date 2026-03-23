@@ -157,6 +157,19 @@ public static class VettingEndpoints
             .ProducesProblem(404)
             .ProducesProblem(500);
 
+        // DELETE: Soft-delete a vetting application (admin/vetting team only)
+        // SECURITY: Requires authentication. Only Administrator and VettingTeam roles can delete.
+        // This is a soft delete — the application data is preserved for audit purposes
+        // but excluded from all queries. The applicant's email becomes available for resubmission.
+        group.MapDelete("/reviewer/applications/{id}", SoftDeleteApplication)
+            .WithName("SoftDeleteApplication")
+            .WithSummary("Soft-delete a vetting application")
+            .Produces(200)
+            .ProducesProblem(400)
+            .ProducesProblem(403)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
+
         // GET: Current user's vetting status
         group.MapGet("/status", GetVettingStatus)
             .WithName("GetVettingStatus")
@@ -252,7 +265,7 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 : 500;
             return Results.Problem(
                 title: "Failed to Retrieve Applications",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -309,7 +322,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Retrieve Application Detail",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -382,7 +395,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Submit Review Decision",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -455,7 +468,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Add Note",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -529,7 +542,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Approve Application",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -627,7 +640,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Change Application Status",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -708,7 +721,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Add Note",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -791,7 +804,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Deny Application",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -865,7 +878,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Send Reminder",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -940,7 +953,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Update Applicant Info",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -950,6 +963,42 @@ public static class VettingEndpoints
                 detail: ex.Message,
                 statusCode: 500);
         }
+    }
+
+    /// <summary>
+    /// Soft-delete a vetting application. Preserves data for audit but hides from all views.
+    /// Resets the associated user's VettingStatus so they can reapply.
+    /// DELETE /api/vetting/reviewer/applications/{id}
+    /// </summary>
+    private static async Task<IResult> SoftDeleteApplication(
+        Guid id,
+        IVettingService vettingService,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Results.Problem(
+                title: "Authentication Error",
+                detail: "Unable to identify the current user.",
+                statusCode: 401);
+        }
+
+        var result = await vettingService.SoftDeleteApplicationAsync(id, userId, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            var statusCode = result.Error.Contains("Access denied") ? 403 :
+                           result.Error.Contains("not found") ? 404 : 400;
+
+            return Results.Problem(
+                title: "Failed to Delete Application",
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
+                statusCode: statusCode);
+        }
+
+        return Results.Ok(new { message = "Application deleted successfully" });
     }
 
     /// <summary>
@@ -982,7 +1031,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Retrieve Vetting Status",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: 500);
         }
         catch (Exception ex)
@@ -1025,7 +1074,7 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("not found") ? 404 : 500;
             return Results.Problem(
                 title: "Failed to Retrieve Application Details",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -1058,7 +1107,7 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("not found") ? 404 : 500;
             return Results.Problem(
                 title: "Failed to Retrieve Application Status",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: statusCode);
         }
         catch (Exception ex)
@@ -1102,7 +1151,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Submit Application",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: 400);
         }
         catch (Exception ex)
@@ -1174,7 +1223,7 @@ public static class VettingEndpoints
 
             return Results.Problem(
                 title: "Failed to Submit Application",
-                detail: result.Error,
+                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
                 statusCode: 400);
         }
         catch (Exception ex)

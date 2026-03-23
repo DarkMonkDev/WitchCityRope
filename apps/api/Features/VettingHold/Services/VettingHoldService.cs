@@ -90,7 +90,9 @@ public class VettingHoldService : IVettingHoldService
                 _context.Users.Update(user);
 
                 // 3. Update VettingApplication.WorkflowStatus if application exists
+                // Exclude soft-deleted applications — they should not be modified during hold
                 var application = await _context.VettingApplications
+                    .Where(va => !va.IsDeleted)
                     .FirstOrDefaultAsync(va => va.UserId == userId, cancellationToken);
 
                 if (application != null)
@@ -266,7 +268,9 @@ public class VettingHoldService : IVettingHoldService
                 _context.Users.Update(user);
 
                 // 3. Update VettingApplication.WorkflowStatus
+                // Exclude soft-deleted applications — they should not be modified during reinstatement
                 var application = await _context.VettingApplications
+                    .Where(va => !va.IsDeleted)
                     .FirstOrDefaultAsync(va => va.UserId == userId, cancellationToken);
 
                 if (application != null)

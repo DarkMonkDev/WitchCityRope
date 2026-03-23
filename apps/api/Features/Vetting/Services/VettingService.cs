@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Users.Constants;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Shared.Models;
@@ -38,8 +39,9 @@ public class VettingService : IVettingService
         {
             // Check user authorization - only administrators can access vetting applications
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-            // Case-insensitive role check prevents access denial from casing differences
-            if (user == null || !string.Equals(user.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            // Allow Administrator and VettingTeam roles to access vetting features
+            // Uses UserRoleConstants.HasRole to properly parse CSV role field (e.g., "Administrator,VettingTeam")
+            if (user == null || !(UserRoleConstants.HasRole(user.Role, "Administrator") || UserRoleConstants.HasRole(user.Role, "VettingTeam")))
             {
                 return Result<PagedResult<ApplicationSummaryDto>>.Failure(
                     "Access denied", "Only administrators can access vetting applications.");
@@ -47,7 +49,8 @@ public class VettingService : IVettingService
 
             // SERVER-SIDE PROJECTION: Project directly to DTO at database level
             // Benefits: Only loads needed fields, no Include() overhead
-            var query = _context.VettingApplications.AsNoTracking();
+            // Filter out soft-deleted applications — they should never appear in admin lists
+            var query = _context.VettingApplications.AsNoTracking().Where(v => !v.IsDeleted);
 
             // Apply status filters
             if (request.StatusFilters.Any())
@@ -163,8 +166,9 @@ public class VettingService : IVettingService
         {
             // Check user authorization
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-            // Case-insensitive role check prevents access denial from casing differences
-            if (user == null || !string.Equals(user.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            // Allow Administrator and VettingTeam roles to access vetting features
+            // Uses UserRoleConstants.HasRole to properly parse CSV role field (e.g., "Administrator,VettingTeam")
+            if (user == null || !(UserRoleConstants.HasRole(user.Role, "Administrator") || UserRoleConstants.HasRole(user.Role, "VettingTeam")))
             {
                 return Result<ApplicationDetailResponse>.Failure(
                     "Access denied", "Only administrators can access application details.");
@@ -174,11 +178,13 @@ public class VettingService : IVettingService
             // Before: 2 queries (application + audit logs separately)
             // After: 1 query with nested includes
             // Impact: 50% reduction in query count
+            // Exclude soft-deleted applications from detail views
             var application = await _context.VettingApplications
                 .Include(v => v.User)
                 .Include(v => v.AuditLogs)
                     .ThenInclude(log => log.PerformedByUser)
                 .AsNoTracking()
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
 
             if (application == null)
@@ -345,15 +351,17 @@ public class VettingService : IVettingService
         {
             // Check user authorization
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-            // Case-insensitive role check prevents access denial from casing differences
-            if (user == null || !string.Equals(user.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            // Allow Administrator and VettingTeam roles to access vetting features
+            // Uses UserRoleConstants.HasRole to properly parse CSV role field (e.g., "Administrator,VettingTeam")
+            if (user == null || !(UserRoleConstants.HasRole(user.Role, "Administrator") || UserRoleConstants.HasRole(user.Role, "VettingTeam")))
             {
                 return Result<ReviewDecisionResponse>.Failure(
                     "Access denied", "Only administrators can submit review decisions.");
             }
 
-            // Get application
+            // Get application — exclude soft-deleted applications from review decisions
             var application = await _context.VettingApplications
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
 
             if (application == null)
@@ -549,15 +557,17 @@ public class VettingService : IVettingService
         {
             // Check user authorization
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-            // Case-insensitive role check prevents access denial from casing differences
-            if (user == null || !string.Equals(user.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            // Allow Administrator and VettingTeam roles to access vetting features
+            // Uses UserRoleConstants.HasRole to properly parse CSV role field (e.g., "Administrator,VettingTeam")
+            if (user == null || !(UserRoleConstants.HasRole(user.Role, "Administrator") || UserRoleConstants.HasRole(user.Role, "VettingTeam")))
             {
                 return Result<NoteResponse>.Failure(
                     "Access denied", "Only administrators can add application notes.");
             }
 
-            // Get application
+            // Get application — exclude soft-deleted applications from note additions
             var application = await _context.VettingApplications
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
 
             if (application == null)
@@ -633,9 +643,11 @@ public class VettingService : IVettingService
     {
         try
         {
-            // Get user's vetting application
+            // Get user's vetting application — exclude soft-deleted so user sees "no application"
+            // and can reapply after deletion
             var application = await _context.VettingApplications
                 .AsNoTracking()
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.UserId == userId, cancellationToken);
 
             if (application == null)
@@ -689,9 +701,11 @@ public class VettingService : IVettingService
         try
         {
             // Get user's vetting application with related data
+            // Exclude soft-deleted so user sees "not found" and can resubmit
             var application = await _context.VettingApplications
                 .Include(v => v.User)
                 .Include(v => v.AuditLogs)
+                .Where(v => !v.IsDeleted)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(v => v.UserId == userId, cancellationToken);
 
@@ -804,8 +818,10 @@ public class VettingService : IVettingService
         {
             _logger.LogInformation("Retrieving application status for token {Token}", token);
 
+            // Exclude soft-deleted applications from public status lookup
             var application = await _context.VettingApplications
                 .AsNoTracking()
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.StatusToken == token, cancellationToken);
 
             if (application == null)
@@ -970,8 +986,10 @@ public class VettingService : IVettingService
                 request.SceneName, request.Email);
 
             // Check for duplicate application by email
+            // Only check non-deleted applications so a deleted app's email can be reused
             var existingApp = await _context.VettingApplications
                 .AsNoTracking()
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.Email == request.Email, cancellationToken);
 
             if (existingApp != null)
@@ -1126,8 +1144,10 @@ public class VettingService : IVettingService
                 request.PreferredSceneName, request.Email);
 
             // Check for duplicate application by email
+            // Only check non-deleted applications so a deleted app's email can be reused
             var existingApp = await _context.VettingApplications
                 .AsNoTracking()
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.Email == request.Email, cancellationToken);
 
             if (existingApp != null)
@@ -1296,8 +1316,10 @@ public class VettingService : IVettingService
     {
         try
         {
+            // Only return non-deleted applications — deleted emails can be reused
             var application = await _context.VettingApplications
                 .AsNoTracking()
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.Email == email, cancellationToken);
 
             return Result<VettingApplication?>.Success(application);
@@ -1330,15 +1352,17 @@ public class VettingService : IVettingService
         {
             // Check user authorization - only administrators can change status
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == adminUserId, cancellationToken);
-            // Case-insensitive role check prevents access denial from casing differences
-            if (user == null || !string.Equals(user.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            // Allow Administrator and VettingTeam roles to access vetting features
+            // Uses UserRoleConstants.HasRole to properly parse CSV role field (e.g., "Administrator,VettingTeam")
+            if (user == null || !(UserRoleConstants.HasRole(user.Role, "Administrator") || UserRoleConstants.HasRole(user.Role, "VettingTeam")))
             {
                 return Result<ApplicationDetailResponse>.Failure(
                     "Access denied", "Only administrators can change application status.");
             }
 
-            // Get application
+            // Get application — exclude soft-deleted applications from status changes
             var application = await _context.VettingApplications
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
 
             if (application == null)
@@ -1544,16 +1568,18 @@ public class VettingService : IVettingService
         {
             // Check user authorization
             var admin = await _context.Users.FirstOrDefaultAsync(u => u.Id == adminUserId, cancellationToken);
-            // Case-insensitive role check prevents access denial from casing differences
-            if (admin == null || !string.Equals(admin.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            // Allow Administrator and VettingTeam roles to access vetting features
+            // Uses UserRoleConstants.HasRole to properly parse CSV role field (e.g., "Administrator,VettingTeam")
+            if (admin == null || !(UserRoleConstants.HasRole(admin.Role, "Administrator") || UserRoleConstants.HasRole(admin.Role, "VettingTeam")))
             {
                 return Result<ApplicationDetailResponse>.Failure(
                     "Access denied", "Only administrators can approve applications.");
             }
 
-            // Get application
+            // Get application — exclude soft-deleted applications from approval
             var application = await _context.VettingApplications
                 .Include(v => v.User)
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
 
             if (application == null)
@@ -1708,16 +1734,18 @@ public class VettingService : IVettingService
     {
         try
         {
-            // Verify admin access
+            // Allow Administrator and VettingTeam roles to send vetting reminders
             var admin = await _context.Users.FindAsync(new object[] { adminUserId }, cancellationToken);
-            if (admin == null || !string.Equals(admin.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            if (admin == null || !(UserRoleConstants.HasRole(admin.Role, "Administrator") || UserRoleConstants.HasRole(admin.Role, "VettingTeam")))
             {
                 return Result<SendReminderResponse>.Failure(
-                    "Access denied", "Only administrators can send reminder emails.");
+                    "Access denied", "Only administrators or vetting team can send reminder emails.");
             }
 
             // Fetch application with tracking (need to update RemindersSentCount)
+            // Exclude soft-deleted applications from reminder sends
             var application = await _context.VettingApplications
+                .Where(a => !a.IsDeleted)
                 .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken);
 
             if (application == null)
@@ -1810,14 +1838,17 @@ public class VettingService : IVettingService
             var admin = await _context.Users
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == adminUserId, cancellationToken);
-            // Case-insensitive role check prevents access denial from casing differences
-            if (admin == null || !string.Equals(admin.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+            // Allow Administrator and VettingTeam roles to access vetting features
+            // Uses UserRoleConstants.HasRole to properly parse CSV role field (e.g., "Administrator,VettingTeam")
+            if (admin == null || !(UserRoleConstants.HasRole(admin.Role, "Administrator") || UserRoleConstants.HasRole(admin.Role, "VettingTeam")))
             {
                 return Result<ApplicationDetailResponse>.Failure(
                     "Access denied", "Only administrators can update applicant information.");
             }
 
+            // Exclude soft-deleted applications from applicant info updates
             var application = await _context.VettingApplications
+                .Where(a => !a.IsDeleted)
                 .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken);
 
             if (application == null)
@@ -2001,4 +2032,76 @@ public class VettingService : IVettingService
     }
 
     #endregion
+
+    /// <summary>
+    /// Soft-delete a vetting application.
+    /// Marks the application as deleted, resets the user's VettingStatus to allow reapplication,
+    /// and creates an audit log entry. Only Administrator or VettingTeam roles can delete.
+    /// </summary>
+    public async Task<Result<bool>> SoftDeleteApplicationAsync(
+        Guid applicationId,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Authorization: only Administrator or VettingTeam can soft-delete
+            var adminUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == adminUserId, cancellationToken);
+            if (adminUser == null || (!UserRoleConstants.HasRole(adminUser.Role, "Administrator")
+                && !UserRoleConstants.HasRole(adminUser.Role, "VettingTeam")))
+            {
+                return Result<bool>.Failure("Access denied", "Only administrators and vetting team members can delete applications.");
+            }
+
+            // Find the application (must not already be deleted)
+            var application = await _context.VettingApplications
+                .Include(v => v.User)
+                .Where(v => !v.IsDeleted)
+                .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
+
+            if (application == null)
+            {
+                return Result<bool>.Failure("Application not found", $"No active application found with ID {applicationId}");
+            }
+
+            // Perform soft delete via domain method
+            application.SoftDelete(adminUserId);
+
+            // Reset the associated user's VettingStatus so they can reapply
+            // User.VettingStatus is the source of truth for permissions and UI display
+            // Setting to 0 (NotStarted) allows the user to submit a new application
+            if (application.User != null)
+            {
+                application.User.VettingStatus = 0;
+                _context.Users.Update(application.User);
+            }
+
+            // Create audit log entry for the deletion
+            var auditLog = new VettingAuditLog
+            {
+                Id = Guid.NewGuid(),
+                ApplicationId = applicationId,
+                Action = "Application Deleted",
+                OldValue = application.WorkflowStatus.ToString(),
+                NewValue = "Deleted",
+                Notes = $"Application soft-deleted by {adminUser.SceneName ?? adminUser.Email}",
+                PerformedBy = adminUserId,
+                PerformedAt = DateTime.UtcNow
+            };
+            _context.Set<VettingAuditLog>().Add(auditLog);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Vetting application {ApplicationId} soft-deleted by admin {AdminUserId}. User {UserId} VettingStatus reset.",
+                applicationId, adminUserId, application.UserId);
+
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error soft-deleting vetting application {ApplicationId}", applicationId);
+            return Result<bool>.Failure("Failed to delete application", ex.Message);
+        }
+    }
 }

@@ -3,6 +3,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Safety.Entities;
 using WitchCityRope.Api.Features.Safety.Models;
 using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Features.Safety.Services;
 
@@ -436,7 +437,8 @@ public class SafetyService : ISafetyService
             .Select(u => new { u.Role })
             .FirstOrDefaultAsync(cancellationToken);
 
-        // Case-insensitive role check prevents access denial from casing differences
-        return string.Equals(user?.Role, "SafetyTeam", StringComparison.OrdinalIgnoreCase) || string.Equals(user?.Role, "Administrator", StringComparison.OrdinalIgnoreCase);
+        // Use UserRoleConstants.HasRole to properly parse CSV role field (e.g., "SafetyTeam,Administrator")
+        // Exact string.Equals would fail for users with multiple roles
+        return UserRoleConstants.HasRole(user?.Role, "SafetyTeam") || UserRoleConstants.HasRole(user?.Role, "Administrator");
     }
 }

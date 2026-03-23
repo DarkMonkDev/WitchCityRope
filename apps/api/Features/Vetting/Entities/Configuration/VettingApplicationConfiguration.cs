@@ -77,5 +77,25 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
 
         builder.HasIndex(x => x.Email)
             .HasDatabaseName("IX_VettingApplications_Email");
+
+        // Soft delete fields
+        builder.Property(x => x.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(x => x.DeletedAt)
+            .HasColumnType("timestamptz");
+
+        // Foreign key for DeletedBy - restrict delete to preserve audit trail
+        builder.HasOne(x => x.DeletedByUser)
+            .WithMany()
+            .HasForeignKey(x => x.DeletedBy)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Filtered index for efficient queries on non-deleted applications
+        // Most queries filter by IsDeleted=false, so this index optimizes the common case
+        builder.HasIndex(x => x.IsDeleted)
+            .HasDatabaseName("IX_VettingApplications_IsDeleted")
+            .HasFilter("\"IsDeleted\" = false");
     }
 }

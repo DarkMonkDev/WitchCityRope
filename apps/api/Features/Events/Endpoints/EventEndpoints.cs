@@ -34,7 +34,7 @@ public static class EventEndpoints
                 var shouldIncludeUnpublished = includeUnpublished.GetValueOrDefault(false);
                 var shouldIncludePastEvents = includePastEvents.GetValueOrDefault(false);
 
-                // If requesting unpublished events, verify admin role
+                // If requesting unpublished events, verify authorized role
                 if (shouldIncludeUnpublished)
                 {
                     var user = context.User;
@@ -46,12 +46,12 @@ public static class EventEndpoints
                             statusCode: 401);
                     }
 
-                    // Multi-role support: IsInRole checks all role claims in JWT
-                    if (!user.IsInRole("Administrator"))
+                    // Allow Administrator and EventOrganizer to view unpublished events
+                    if (!user.IsInRole("Administrator") && !user.IsInRole("EventOrganizer"))
                     {
                         return Results.Problem(
                             title: "Insufficient Permissions",
-                            detail: "Administrator role required to access unpublished events",
+                            detail: "Administrator or EventOrganizer role required to access unpublished events",
                             statusCode: 403);
                     }
                 }
@@ -71,7 +71,7 @@ public static class EventEndpoints
             })
             .WithName("GetEvents")
             .WithSummary("Get all events")
-            .WithDescription("Returns events from the database. Use ?includeUnpublished=true for admin access to draft events (requires Administrator role). Use ?includePastEvents=true to include past events from the last 90 days.")
+            .WithDescription("Returns events from the database. Use ?includeUnpublished=true for admin access to draft events (requires Administrator or EventOrganizer role). Use ?includePastEvents=true to include past events from the last 90 days.")
             .WithTags("Events")
             .Produces<List<EventDto>>(200)
             .ProducesProblem(401)
@@ -100,12 +100,12 @@ public static class EventEndpoints
                             statusCode: 401);
                     }
 
-                    // Multi-role support: IsInRole checks all role claims in JWT
-                    if (!user.IsInRole("Administrator"))
+                    // Allow Administrator and EventOrganizer to view unpublished events
+                    if (!user.IsInRole("Administrator") && !user.IsInRole("EventOrganizer"))
                     {
                         return Results.Problem(
                             title: "Insufficient Permissions",
-                            detail: "Administrator role required to access unpublished events",
+                            detail: "Administrator or EventOrganizer role required to access unpublished events",
                             statusCode: 403);
                     }
                 }

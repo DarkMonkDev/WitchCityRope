@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { Paper, Stack, Title, Text, Group, Button, Grid, Modal, Alert, Card, Anchor, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { IconArrowLeft, IconCheck, IconX, IconClock, IconMail, IconAlertCircle, IconCalendarEvent } from '@tabler/icons-react'
+import { IconArrowLeft, IconCheck, IconX, IconClock, IconMail, IconAlertCircle, IconCalendarEvent, IconTrash } from '@tabler/icons-react'
 import { useVettingApplicationDetail } from '../hooks/useVettingApplicationDetail'
 import { useSubmitReviewDecision } from '../hooks/useSubmitReviewDecision'
 import { useApproveApplication } from '../hooks/useApproveApplication'
@@ -12,6 +12,7 @@ import { VettingStatusBadge } from './VettingStatusBadge'
 import { OnHoldModal } from './OnHoldModal'
 import { SendReminderModal } from './SendReminderModal'
 import { DenyApplicationModal } from './DenyApplicationModal'
+import { DeleteApplicationModal } from './DeleteApplicationModal'
 import { WCRButton } from '@/components/ui/WCRButton'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { VettingNoteRenderer } from './VettingNoteRenderer'
@@ -28,6 +29,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
   const [onHoldModalOpen, setOnHoldModalOpen] = useState(false)
   const [reminderModalOpen, setReminderModalOpen] = useState(false)
   const [denyModalOpen, setDenyModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [scheduleInterviewModalOpen, setScheduleInterviewModalOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const updateApplicantInfoMutation = useUpdateApplicantInfo()
@@ -445,23 +447,39 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       {/* Application Details Section - with inline editing for contact fields */}
       <div>
         <form onSubmit={applicantForm.onSubmit(handleSaveApplicantInfo)}>
-          {/* Title with Edit button inline after title text */}
+          {/* Title with Edit button on left and Delete button on right */}
           <Group
-            justify="flex-start"
+            justify="space-between"
             align="center"
-            gap="md"
             mb="md"
             style={{
               borderBottom: '2px solid var(--mantine-color-burgundy-3)',
               paddingBottom: '8px',
             }}
           >
-            <Title order={2} c="burgundy">
-              Application Details
-            </Title>
+            {/* Left side: title and edit button */}
+            <Group gap="md" align="center">
+              <Title order={2} c="burgundy">
+                Application Details
+              </Title>
+              {!isEditing && (
+                <WCRButton variant="outline" size="compact-sm" onClick={handleEditClick}>
+                  Edit
+                </WCRButton>
+              )}
+            </Group>
+            {/* Right side: delete button - far right aligned, danger styling */}
             {!isEditing && (
-              <WCRButton variant="outline" size="compact-sm" onClick={handleEditClick}>
-                Edit
+              <WCRButton
+                variant="danger"
+                size="compact-sm"
+                onClick={() => setDeleteModalOpen(true)}
+                data-testid="delete-application-button"
+              >
+                <Group gap={4} wrap="nowrap">
+                  <IconTrash size={14} />
+                  <span>Delete</span>
+                </Group>
               </WCRButton>
             )}
           </Group>
@@ -661,6 +679,15 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         applicationId={applicationId}
         applicantName={[(application as any)?.firstName, (application as any)?.lastName].filter(Boolean).join(' ') || 'Unknown'}
         onSuccess={() => refetch()}
+      />
+
+      {/* Delete Application Modal - soft-deletes and navigates back to list */}
+      <DeleteApplicationModal
+        opened={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        applicationId={applicationId}
+        applicantName={[(application as any)?.firstName, (application as any)?.lastName].filter(Boolean).join(' ') || application.sceneName || 'Unknown'}
+        onSuccess={onBack}
       />
 
       {/* Schedule Interview Modal - Placeholder */}

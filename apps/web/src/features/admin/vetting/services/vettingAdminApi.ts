@@ -178,6 +178,16 @@ export class VettingAdminApiService {
     );
     return response.data;
   }
+
+  /**
+   * Soft-delete a vetting application.
+   * Preserves data for audit purposes but hides from all views.
+   * Resets the associated user's VettingStatus so they can reapply.
+   * Only Administrator and VettingTeam roles can delete.
+   */
+  async deleteApplication(applicationId: string): Promise<void> {
+    await apiClient.delete(`/api/vetting/reviewer/applications/${applicationId}`);
+  }
 }
 
 export const vettingAdminApi = new VettingAdminApiService();

@@ -31,6 +31,22 @@ public class VettingApplication
         RemindersSentCount = 0;
     }
 
+    /// <summary>
+    /// Soft-deletes this application. The application and its audit logs remain in the database
+    /// but are excluded from all queries. A deleted application's email can be reused for resubmission.
+    /// Also resets the associated user's VettingStatus so they can reapply.
+    /// </summary>
+    public void SoftDelete(Guid adminUserId)
+    {
+        if (IsDeleted)
+            throw new InvalidOperationException("Application is already deleted");
+
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = adminUserId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     // Legacy property for backwards compatibility
     public Guid ApplicantId => UserId ?? Guid.Empty;
 
@@ -88,8 +104,17 @@ public class VettingApplication
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
+    // Soft delete fields - applications are soft-deleted rather than hard-deleted
+    // to preserve audit trail and data integrity. Soft-deleted applications are
+    // excluded from all queries (admin list, detail views, public status checks).
+    // Admins can delete applications of any status. Deleted apps allow email reuse for resubmission.
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public Guid? DeletedBy { get; set; }
+
     // Navigation Properties
     public ApplicationUser? User { get; set; } // Nullable for anonymous applications
+    public ApplicationUser? DeletedByUser { get; set; }
     public ICollection<VettingAuditLog> AuditLogs { get; set; }
 }
 

@@ -198,5 +198,20 @@ public interface IVettingService
         UpdateApplicationApplicantInfoRequest request,
         Guid adminUserId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Soft-delete a vetting application (admin only).
+    /// Marks the application as deleted, resets the associated user's VettingStatus,
+    /// and creates an audit log entry. The application data is preserved for audit purposes
+    /// but excluded from all queries. The applicant's email becomes available for resubmission.
+    /// </summary>
+    /// <param name="applicationId">ID of the application to delete</param>
+    /// <param name="adminUserId">ID of the administrator performing the deletion</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result indicating success or failure</returns>
+    Task<Result<bool>> SoftDeleteApplicationAsync(
+        Guid applicationId,
+        Guid adminUserId,
+        CancellationToken cancellationToken = default);
 }
 

@@ -1287,8 +1287,8 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             return false;
         }
 
-        // Admin can access all incidents (case-insensitive to prevent access denial from casing differences)
-        if (string.Equals(user.Role, "Administrator", StringComparison.OrdinalIgnoreCase))
+        // Admin can access all incidents - uses HasRole to properly parse CSV role field
+        if (UserRoleConstants.HasRole(user.Role, "Administrator"))
         {
             return true;
         }
