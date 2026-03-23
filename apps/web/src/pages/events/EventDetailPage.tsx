@@ -724,7 +724,14 @@ export const EventDetailPage: React.FC = () => {
           {teachers.length > 0 && (
             <ContentSection title="Teachers" isMobile={isMobile}>
               <Stack gap="lg">
-                {teachers.map((teacher) => (
+                {/* Sort teachers alphabetically by display name (sceneName or full name) */}
+              {[...teachers]
+                .sort((a, b) => {
+                  const nameA = (a.sceneName || `${a.firstName} ${a.lastName}`).toLowerCase();
+                  const nameB = (b.sceneName || `${b.firstName} ${b.lastName}`).toLowerCase();
+                  return nameA.localeCompare(nameB);
+                })
+                .map((teacher) => (
                   <Box key={teacher.userId}>
                     <Text
                       style={{
