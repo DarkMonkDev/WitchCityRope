@@ -3,6 +3,7 @@ import { Box, Title, Text, Paper, Group, Badge, Button, Stack, Tabs, Table, Sele
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useEventTimeZone } from '../../hooks/useEventTimeZone';
+import { paymentUtils } from '../../features/payments/utils/paymentUtils';
 
 // Mock registration data - replace with real API integration later
 interface EventRegistration {
@@ -193,8 +194,9 @@ export const RegistrationsPage: React.FC = () => {
     });
   };
 
+  // Use shared currency formatter, preserving "Free" display for zero-cost registrations
   const formatCurrency = (amount: number) => {
-    return amount === 0 ? 'Free' : `$${amount.toFixed(2)}`;
+    return amount === 0 ? 'Free' : paymentUtils.formatCurrency(amount);
   };
 
   // Statistics

@@ -79,6 +79,22 @@ export const paymentUtils = {
    * @param status Payment status
    * @returns Display properties for status
    */
+  /**
+   * Format raw payment method database values into user-friendly display names.
+   * Single source of truth for payment method display formatting across the app.
+   * Raw DB values include 'authorize-net', 'authnet-pending', 'paypal-pending', etc.
+   * @param method Raw payment method string from the database (nullable)
+   * @returns User-friendly display name (e.g., 'Authorize.net', 'PayPal', 'Cash')
+   */
+  formatPaymentMethodDisplay(method: string | null | undefined): string {
+    if (!method) return '—';
+    // Map raw database values to user-friendly display names
+    if (method.toLowerCase() === 'authorize-net' || method.toLowerCase() === 'authnet-pending') return 'Authorize.net';
+    if (method.toLowerCase() === 'paypal-pending') return 'PayPal';
+    // Capitalize first letter for standard values (PayPal, Cash, Venmo, Free)
+    return method.charAt(0).toUpperCase() + method.slice(1);
+  },
+
   getStatusDisplay(status: string) {
     switch (status.toLowerCase()) {
       case 'pending':

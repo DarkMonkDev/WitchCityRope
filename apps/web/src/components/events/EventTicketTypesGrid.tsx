@@ -3,6 +3,7 @@ import { Table, Text, Group, Badge, ActionIcon } from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
 import { WCRButton } from '../ui';
 import type { components } from '@witchcityrope/shared-types';
+import { paymentUtils } from '../../features/payments/utils/paymentUtils';
 
 // Use auto-generated TicketTypeDto from backend instead of manual interface
 // This prevents field-dropping bugs where manual interfaces miss new backend fields
@@ -24,13 +25,8 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
   hasSessions = true, // Default to true for backward compatibility
 }) => {
   const formatPriceRange = (ticketType: EventTicketType) => {
-    const formatPrice = (price: number) =>
-      new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(price);
+    // Use shared currency formatter instead of local Intl.NumberFormat
+    const formatPrice = (price: number) => paymentUtils.formatCurrency(price);
 
     if (ticketType.pricingType === 'Fixed' && ticketType.price != null) {
       return formatPrice(ticketType.price);

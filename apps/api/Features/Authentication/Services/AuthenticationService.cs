@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
@@ -561,6 +563,23 @@ public class AuthenticationService : IAuthenticationService
             var frontendUrl = _configuration["Frontend:Url"] ?? "https://staging.witchcityrope.com";
             var resetUrl = $"{frontendUrl}/reset-password?userId={user.Id}&token={System.Web.HttpUtility.UrlEncode(token)}";
 
+            // Diagnostic logging: capture token fingerprint at generation time so we can
+            // compare against what arrives at the reset-password endpoint. Uses SHA256 hash
+            // prefix (not the actual token) to avoid exposing secrets in logs.
+            // Property names avoid "token"/"key"/"secret" to prevent Serilog sensitive data masking.
+            var urlEncodedToken = System.Web.HttpUtility.UrlEncode(token);
+            _logger.LogInformation(
+                "Password reset credential generated for user {UserId}. " +
+                "ResetCredentialLength={ResetCredentialLength}, " +
+                "ResetCredentialDigest={ResetCredentialDigest}, " +
+                "EncodedCredentialLength={EncodedCredentialLength}, " +
+                "StampDigest={StampDigest}",
+                user.Id,
+                token.Length,
+                ComputeDigestPrefix(token),
+                urlEncodedToken.Length,
+                ComputeDigestPrefix(user.SecurityStamp ?? ""));
+
             // Send password reset email using EmailService with Admin/PasswordReset template
             var emailVariables = new Dictionary<string, string>
             {
@@ -627,6 +646,22 @@ public class AuthenticationService : IAuthenticationService
                 return (false, "Invalid password reset link");
             }
 
+            // Diagnostic logging: capture incoming token fingerprint so we can compare against
+            // what was generated in ForgotPasswordAsync. Detects truncation (length mismatch),
+            // corruption (digest mismatch), or SecurityStamp rotation (stamp digest mismatch).
+            // "CfDJ8" is the standard ASP.NET Identity Data Protection token prefix.
+            _logger.LogInformation(
+                "Password reset attempt for user {UserId}. " +
+                "ResetCredentialLength={ResetCredentialLength}, " +
+                "ResetCredentialDigest={ResetCredentialDigest}, " +
+                "HasExpectedPrefix={HasExpectedPrefix}, " +
+                "StampDigest={StampDigest}",
+                userId,
+                token.Length,
+                ComputeDigestPrefix(token),
+                token.StartsWith("CfDJ8"),
+                ComputeDigestPrefix(user.SecurityStamp ?? ""));
+
             // Reset the password using ASP.NET Identity
             var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
             if (result.Succeeded)
@@ -645,7 +680,18 @@ public class AuthenticationService : IAuthenticationService
             }
 
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            _logger.LogWarning("Password reset failed for user {UserId}: {Errors}", userId, errors);
+            _logger.LogWarning(
+                "Password reset FAILED for user {UserId}: {Errors}. " +
+                "ResetCredentialLength={ResetCredentialLength}, " +
+                "ResetCredentialDigest={ResetCredentialDigest}, " +
+                "HasExpectedPrefix={HasExpectedPrefix}, " +
+                "StampDigest={StampDigest}",
+                userId,
+                errors,
+                token.Length,
+                ComputeDigestPrefix(token),
+                token.StartsWith("CfDJ8"),
+                ComputeDigestPrefix(user.SecurityStamp ?? ""));
 
             // Check if token is expired/invalid
             if (errors.Contains("Invalid token") || errors.Contains("invalid"))
@@ -660,5 +706,18 @@ public class AuthenticationService : IAuthenticationService
             _logger.LogError(ex, "Password reset failed for user {UserId}", userId);
             return (false, "Password reset could not be completed at this time");
         }
+    }
+
+    /// <summary>
+    /// Compute a truncated SHA256 hash prefix for diagnostic logging.
+    /// Returns only the first 12 hex characters (48 bits) — sufficient for correlating
+    /// generated vs. received tokens in logs, but not reversible to the original value.
+    /// Follows the same pattern as PayPalCheckoutController.ComputeSha256Hash.
+    /// </summary>
+    private static string ComputeDigestPrefix(string input)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        var fullHex = Convert.ToHexStringLower(hashBytes);
+        return fullHex[..12];
     }
 }

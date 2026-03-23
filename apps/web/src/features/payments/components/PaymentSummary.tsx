@@ -16,6 +16,7 @@ import type { PaymentEventInfo, SlidingScaleCalculation } from '../types/payment
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 import { formatUtcToLocalTime } from '../../../utils/eventUtils';
+import { paymentUtils } from '../utils/paymentUtils';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 type SessionDto = components["schemas"]["SessionDto"];
@@ -78,12 +79,8 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     return formatUtcToLocalTime(dateString, eventTimeZone);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: eventInfo.currency || 'USD'
-    }).format(amount);
-  };
+  // Use shared currency formatter with event-specific currency
+  const formatCurrency = (amount: number) => paymentUtils.formatCurrency(amount, eventInfo.currency || 'USD');
 
   /**
    * Get matching sessions for a ticket
@@ -247,12 +244,8 @@ export const CompactPaymentSummary: React.FC<PaymentSummaryProps> = ({
 }) => {
   const totalAmount = (calculation?.finalAmount ?? 0) + processingFee;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: eventInfo.currency || 'USD'
-    }).format(amount);
-  };
+  // Use shared currency formatter with event-specific currency
+  const formatCurrency = (amount: number) => paymentUtils.formatCurrency(amount, eventInfo.currency || 'USD');
 
   return (
     <Paper radius="md" p="md" withBorder>
