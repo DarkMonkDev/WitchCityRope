@@ -314,10 +314,12 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 return Result<UserProfileDto>.Failure("User not found");
             }
 
-            // Check if user has a vetting application by querying the database
+            // Check if user has a non-deleted vetting application by querying the database
             // This is the source of truth - more reliable than user.HasVettingApplication flag
+            // Exclude soft-deleted applications so users see "no application" and can reapply
             var application = await _context.VettingApplications
                 .AsNoTracking()
+                .Where(v => !v.IsDeleted)
                 .FirstOrDefaultAsync(v => v.UserId == userId, cancellationToken);
 
             var hasApplication = application != null;
@@ -469,9 +471,10 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                         _logger.LogInformation("No changes detected - skipping UserNote creation");
                     }
 
-                    // Success - check for vetting application and return updated profile
+                    // Success - check for non-deleted vetting application and return updated profile
                     var application = await _context.VettingApplications
                         .AsNoTracking()
+                        .Where(v => !v.IsDeleted)
                         .FirstOrDefaultAsync(v => v.UserId == userId, cancellationToken);
 
                     var hasApplication = application != null;

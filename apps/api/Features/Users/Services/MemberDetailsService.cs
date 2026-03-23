@@ -168,8 +168,10 @@ public class MemberDetailsService : IMemberDetailsService
     {
         try
         {
+            // Exclude soft-deleted applications — deleted apps should not appear on member vetting tab
             var application = await _context.VettingApplications
                 .AsNoTracking()
+                .Where(va => !va.IsDeleted)
                 .FirstOrDefaultAsync(va => va.UserId == userId, cancellationToken);
 
             // Load user to get current profile OtherNames
@@ -526,13 +528,13 @@ public class MemberDetailsService : IMemberDetailsService
                 })
                 .ToListAsync(cancellationToken);
 
-            // Fetch VettingAuditLogs for all user's vetting applications
+            // Fetch VettingAuditLogs for all user's non-deleted vetting applications
             // Load raw data first, then apply transformation in memory
             var vettingAuditLogsRaw = await _context.VettingAuditLogs
                 .AsNoTracking()
                 .Include(val => val.PerformedByUser)
                 .Where(val => _context.VettingApplications
-                    .Any(va => va.UserId == userId && va.Id == val.ApplicationId))
+                    .Any(va => va.UserId == userId && !va.IsDeleted && va.Id == val.ApplicationId))
                 .ToListAsync(cancellationToken);
 
             // Transform to response DTOs with simplified descriptions

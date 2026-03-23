@@ -2067,12 +2067,14 @@ public class VettingService : IVettingService
             // Perform soft delete via domain method
             application.SoftDelete(adminUserId);
 
-            // Reset the associated user's VettingStatus so they can reapply
+            // Reset the associated user's VettingStatus and HasVettingApplication so they can reapply
             // User.VettingStatus is the source of truth for permissions and UI display
-            // Setting to 0 (NotStarted) allows the user to submit a new application
+            // Setting VettingStatus to 0 (NotStarted) and HasVettingApplication to false
+            // ensures the member detail page shows "Not Applied" instead of "Under Review"
             if (application.User != null)
             {
                 application.User.VettingStatus = 0;
+                application.User.HasVettingApplication = false;
                 _context.Users.Update(application.User);
             }
 
