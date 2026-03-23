@@ -6,14 +6,14 @@ import { VettingApplicationsList } from '../../features/admin/vetting/components
 import { OnHoldModal } from '../../features/admin/vetting/components/OnHoldModal';
 // SendReminderModal is now per-application (on the detail page), not bulk
 import { useUser } from '../../stores/authStore';
-import { hasRole } from '../../utils/roleUtils';
+import { hasAnyRole } from '../../utils/roleUtils';
 
 /**
  * Admin Vetting Applications List Page
  *
- * SECURITY: This page requires Administrator role
- * - Route-level protection via adminLoader
- * - Component-level verification (defense-in-depth)
+ * SECURITY: This page requires Administrator or VettingTeam role
+ * - Route-level protection via adminLoader (allows admin-capable roles)
+ * - Component-level verification (defense-in-depth for Administrator + VettingTeam)
  *
  * This page shows the list of vetting applications following the wireframe.
  * Row clicks navigate to the detail page at /admin/vetting/applications/:id
@@ -25,15 +25,16 @@ export const AdminVettingPage: React.FC = () => {
   const user = useUser();
 
   // Component-level role verification (defense-in-depth)
+  // Allows Administrator and VettingTeam roles
   useEffect(() => {
-    if (user && !hasRole(user, 'Administrator')) {
-      console.error('AdminVettingPage: Unauthorized access attempt by non-admin user:', user.email);
+    if (user && !hasAnyRole(user, ['Administrator', 'VettingTeam'])) {
+      console.error('AdminVettingPage: Unauthorized access attempt by user without vetting access:', user.email);
       navigate('/unauthorized', { replace: true });
     }
   }, [user, navigate]);
 
   // Show error if somehow accessed without proper role
-  if (!user || !hasRole(user, 'Administrator')) {
+  if (!user || !hasAnyRole(user, ['Administrator', 'VettingTeam'])) {
     return (
       <Container size="xl" py="xl">
         <Alert icon={<IconLock size={16} />} color="red" title="Access Denied">

@@ -76,13 +76,21 @@ async function fetchMembers(filters: MemberFilterRequest): Promise<UserListRespo
  * Hook to fetch and manage members list
  *
  * @param filters - Member filter criteria
+ * @param options - Optional query options
+ * @param options.enabled - Whether to execute the query (default: true).
+ *   Set to false for non-Administrator users to prevent 403 errors from
+ *   the admin-only /api/admin/users endpoint. This is critical for the
+ *   AdminDashboardPage where hooks are always called (React rules of hooks)
+ *   but non-admin roles should not trigger the members API call.
  * @returns TanStack Query result with members data
  */
-export function useMembers(filters: MemberFilterRequest) {
+export function useMembers(filters: MemberFilterRequest, options?: { enabled?: boolean }) {
   return useQuery<UserListResponse>({
     queryKey: membersKeys.list(filters),
     queryFn: () => fetchMembers(filters),
     // Ensure errors are thrown instead of silently returning fallback data
     throwOnError: true,
+    // Allow callers to disable the query (e.g., non-admin users on dashboard)
+    enabled: options?.enabled ?? true,
   });
 }

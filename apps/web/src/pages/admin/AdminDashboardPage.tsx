@@ -6,6 +6,9 @@ import { useVettingStats } from '../../features/admin/vetting/hooks/useVettingSt
 import { useSafetyDashboard } from '../../features/safety/hooks/useSafetyIncidents';
 import { useEvents } from '../../lib/api/hooks/useEvents';
 import { useMembers } from '../../features/admin/members/hooks/useMembers';
+import { useUser } from '../../stores/authStore';
+import { hasRole, hasAnyRole } from '../../utils/roleUtils';
+import { DASHBOARD_CARD_ROLES } from '../../constants/adminRoles';
 
 interface DashboardCard {
   title: string;
@@ -19,12 +22,53 @@ interface DashboardCard {
   testId?: string;
 }
 
+/**
+ * Admin Dashboard Page
+ *
+ * Displays dashboard cards filtered by the current user's role.
+ * Administrator sees all 8 cards. Other admin-capable roles only see
+ * cards relevant to their permissions (defined in DASHBOARD_CARD_ROLES).
+ *
+ * Data hooks are always called (React rules of hooks) but the useMembers
+ * hook is disabled for non-Administrator users to prevent 403 errors
+ * from the admin-only /api/admin/users endpoint.
+ */
 export const AdminDashboardPage: React.FC = () => {
-  const { data: vettingStats } = useVettingStats();
-  const { data: safetyDashboard } = useSafetyDashboard();
-  const { data: events } = useEvents();
+  const user = useUser();
 
-  // Fetch all members (no filters)
+  // Determine which features this user can access
+  // Administrator sees everything; other roles see a subset of cards
+  const isAdmin = hasRole(user, 'Administrator');
+
+  /**
+   * Check if the current user can see a specific dashboard card.
+   * Looks up the card title in DASHBOARD_CARD_ROLES and checks if the
+   * user has any of the allowed roles for that card.
+   */
+  const canSeeCard = (cardTitle: string): boolean => {
+    if (isAdmin) return true; // Administrator sees all cards
+    const allowedRoles = DASHBOARD_CARD_ROLES[cardTitle];
+    if (!allowedRoles) return false;
+    return hasAnyRole(user, allowedRoles);
+  };
+
+  // --- Data hooks ---
+  // All hooks must be called unconditionally (React rules of hooks).
+  // Hooks for admin-only data use `enabled` to prevent API calls that
+  // would 403 for non-admin users.
+
+  const { data: vettingStats } = useVettingStats();
+  // useVettingStats already handles 403 gracefully (throwOnError: false, returns 0)
+
+  const { data: safetyDashboard } = useSafetyDashboard();
+  // useSafetyDashboard allows SafetyTeam + Administrator; handles 403 gracefully
+
+  const { data: events } = useEvents();
+  // useEvents hits a public endpoint — safe for all roles
+
+  // CRITICAL: useMembers calls /api/admin/users which requires Administrator role.
+  // Non-admin users would get 403 → throwOnError: true → page crash.
+  // Setting enabled: false prevents the API call entirely for non-admin users.
   const { data: membersData } = useMembers({
     page: 1,
     pageSize: 10000, // Large number to get all members
@@ -32,14 +76,16 @@ export const AdminDashboardPage: React.FC = () => {
     searchQuery: '',
     sortBy: 'CreatedAt',
     sortDirection: 'Desc',
-  });
+  }, { enabled: isAdmin });
+
+  // --- Computed counts ---
 
   // Calculate upcoming events (events with future start dates)
   const upcomingEventsCount = events
     ? (events as any).filter((event: any) => new Date(event.startDate) > new Date()).length
     : 0;
 
-  // Calculate active members count
+  // Calculate active members count (only meaningful for Administrator)
   // Criteria: isActive = true AND vettingStatus in (0=UnderReview, 1=InterviewApproved/AwaitingInterview, 3=Vetted)
   const activeMembersCount = membersData?.users
     ? membersData.users.filter(
@@ -59,6 +105,9 @@ export const AdminDashboardPage: React.FC = () => {
       (safetyDashboard as any).statistics.reviewingFinalReportCount
     : 0;
 
+  // --- Card definitions ---
+  // All cards are defined here; filtering happens via canSeeCard() below.
+  // Card titles must match keys in DASHBOARD_CARD_ROLES exactly.
   const dashboardCards: DashboardCard[] = [
     {
       title: 'Events Management',
@@ -127,6 +176,9 @@ export const AdminDashboardPage: React.FC = () => {
     }
   ];
 
+  // Filter cards based on the current user's role permissions
+  const visibleCards = dashboardCards.filter(card => canSeeCard(card.title));
+
   return (
     <Container size="xl" py="xl">
       {/* Header */}
@@ -146,9 +198,9 @@ export const AdminDashboardPage: React.FC = () => {
         </Title>
       </Box>
 
-      {/* Dashboard Cards Grid */}
+      {/* Dashboard Cards Grid — only shows cards the user's role permits */}
       <Grid gutter="xl" mb="xl">
-        {dashboardCards.map((card, index) => (
+        {visibleCards.map((card, index) => (
           <Grid.Col key={index} span={{ base: 12, sm: 6, lg: 3 }}>
             <Paper
               shadow="sm"

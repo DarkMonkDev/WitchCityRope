@@ -55,5 +55,12 @@ public enum UserRole
     /// Monitors play spaces, enforces rules, and ensures participant safety.
     /// No elevated system permissions beyond regular member access.
     /// </summary>
-    DungeonMonitor
+    DungeonMonitor,
+
+    /// <summary>
+    /// Part of the vetting review team.
+    /// Can review and manage vetting applications and community safety vetting.
+    /// Has access to the admin dashboard's vetting section.
+    /// </summary>
+    VettingTeam
 }

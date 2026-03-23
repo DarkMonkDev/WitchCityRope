@@ -425,6 +425,9 @@ agent-browser close                   # Close browser
 - **Guest/Attendee**: guest@witchcityrope.com / Test123!
 - **Safety Coordinator 1**: coordinator1@witchcityrope.com / Test123! (SafetyTeam role)
 - **Safety Coordinator 2**: coordinator2@witchcityrope.com / Test123! (SafetyTeam role)
+- **Dungeon Monitor**: dm@witchcityrope.com / Test123! (DungeonMonitor role)
+- **Vetting Team**: vetter@witchcityrope.com / Test123! (VettingTeam role)
+- **Event Organizer**: organizer@witchcityrope.com / Test123! (EventOrganizer role)
 
 ## 📚 Just-In-Time Standards (Main Agent Quick Reference)
 

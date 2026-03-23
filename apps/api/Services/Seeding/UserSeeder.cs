@@ -307,6 +307,38 @@ public class UserSeeder
                 VettingStatus = 3,  // Approved (pre-approved as founding DM - no formal application)
                 IsActive = true
             },
+            // Vetting team member for testing VettingTeam role and admin dashboard access
+            new {
+                Email = "vetter@witchcityrope.com",
+                SceneName = "VettingReviewer",
+                FirstName = "Casey",
+                LastName = "Brooks",
+                DiscordName = "vetting_reviewer",
+                FetLifeName = "VettingReviewerCasey",
+                PhoneNumber = "978-555-0109",
+                Bio = "Experienced community member serving on the vetting review team. Conducts applicant interviews and reviews vetting applications to ensure community safety standards are met.",
+                Role = UserRole.VettingTeam.ToRoleString(),
+                PronouncedName = "Vetting Reviewer",
+                Pronouns = "they/them",
+                VettingStatus = 3,  // Approved (pre-approved as founding vetting team member - no formal application)
+                IsActive = true
+            },
+            // Event organizer for testing EventOrganizer role and admin dashboard access
+            new {
+                Email = "organizer@witchcityrope.com",
+                SceneName = "EventPlanner",
+                FirstName = "Morgan",
+                LastName = "Davis",
+                DiscordName = "event_planner",
+                FetLifeName = "EventPlannerMorgan",
+                PhoneNumber = "978-555-0110",
+                Bio = "Dedicated event organizer responsible for planning and coordinating community workshops, socials, and special events. Ensures smooth event logistics and attendee experience.",
+                Role = UserRole.EventOrganizer.ToRoleString(),
+                PronouncedName = "Event Planner",
+                Pronouns = "she/her",
+                VettingStatus = 3,  // Approved (pre-approved as founding event organizer - no formal application)
+                IsActive = true
+            },
             // Additional users for vetting application testing (users 5-16)
             // IsActive: All users are currently active (set to true).
             // Future: This field will be used for soft-delete functionality (not yet implemented as of 2025-11-09)

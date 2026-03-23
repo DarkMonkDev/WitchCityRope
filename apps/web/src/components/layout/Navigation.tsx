@@ -6,7 +6,8 @@ import { useUser, useIsAuthenticated } from '../../stores/authStore'
 import { useLogout } from '../../features/auth/api/mutations'
 import { useMenuVisibility } from '../../features/vetting/hooks/useMenuVisibility'
 import { useEffect, useState, useCallback } from 'react'
-import { hasRole } from '../../utils/roleUtils'
+import { hasAnyRole } from '../../utils/roleUtils'
+import { ADMIN_CAPABLE_ROLES } from '../../constants/adminRoles'
 
 /**
  * Navigation Component - Main header navigation
@@ -91,10 +92,9 @@ export const Navigation: React.FC = () => {
         style={{ alignItems: 'center', marginRight: '30px' }}
         className="nav"
       >
-        {/* Admin link - only for administrators */}
-        {/* Backend now returns user.roles - proper role-based access control */}
-        {/* Type-safe role check using auto-generated UserRole */}
-        {hasRole(user, 'Administrator') && (
+        {/* Admin link - visible for any admin-capable role (Administrator, EventOrganizer, SafetyTeam, VettingTeam) */}
+        {/* Dashboard page filters cards based on specific role permissions */}
+        {hasAnyRole(user, ADMIN_CAPABLE_ROLES) && (
           <Box
             component={Link}
             to="/admin"
@@ -322,8 +322,8 @@ export const Navigation: React.FC = () => {
             </Button>
           )}
 
-          {/* Admin link - only for administrators */}
-          {hasRole(user, 'Administrator') && (
+          {/* Admin link - visible for any admin-capable role */}
+          {hasAnyRole(user, ADMIN_CAPABLE_ROLES) && (
             <Box
               component={Link}
               to="/admin"

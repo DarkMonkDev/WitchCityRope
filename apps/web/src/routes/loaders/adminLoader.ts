@@ -1,18 +1,22 @@
 import { LoaderFunctionArgs, redirect } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { apiClient } from '../../lib/api/client';
-import { hasRole } from '../../utils/roleUtils';
+import { hasAnyRole } from '../../utils/roleUtils';
+import { ADMIN_CAPABLE_ROLES } from '../../constants/adminRoles';
 
 /**
  * Admin-specific loader for protected admin routes
  *
- * SECURITY: Validates both authentication AND admin role
- * Only users with role "Administrator" can access admin routes
- * Uses apiClient with skipAutoRedirect to handle returnUrl properly
+ * SECURITY: Validates both authentication AND admin-capable role.
+ * Users with any role in ADMIN_CAPABLE_ROLES (Administrator, EventOrganizer,
+ * SafetyTeam, VettingTeam) can access admin routes. The AdminDashboardPage
+ * then filters which cards each role can see.
+ *
+ * Uses apiClient with skipAutoRedirect to handle returnUrl properly.
  *
  * Redirects:
  * - Not authenticated → /login with returnTo
- * - Authenticated but not admin → /unauthorized (403)
+ * - Authenticated but no admin-capable role → /unauthorized (403)
  */
 export async function adminLoader({ request }: LoaderFunctionArgs) {
   const requestUrl = new URL(request.url);
@@ -31,9 +35,9 @@ export async function adminLoader({ request }: LoaderFunctionArgs) {
   if (isAuthenticated && user) {
     console.log('User already authenticated, checking role...');
 
-    // Check if user has Administrator role
-    if (!hasRole(user, 'Administrator')) {
-      console.warn('Access denied - user lacks Administrator role:', {
+    // Check if user has any admin-capable role
+    if (!hasAnyRole(user, ADMIN_CAPABLE_ROLES)) {
+      console.warn('Access denied - user lacks admin-capable role:', {
         email: user.email,
         role: user.role,
         path: requestUrl.pathname
@@ -69,8 +73,8 @@ export async function adminLoader({ request }: LoaderFunctionArgs) {
     console.log('Server auth validation successful, user:', userData?.email, 'role:', userData?.role);
 
     // User is authenticated - check role before granting access
-    if (!hasRole(userData, 'Administrator')) {
-      console.warn('Access denied - authenticated user lacks Administrator role:', {
+    if (!hasAnyRole(userData, ADMIN_CAPABLE_ROLES)) {
+      console.warn('Access denied - authenticated user lacks admin-capable role:', {
         email: userData.email,
         role: userData.role,
         path: requestUrl.pathname
@@ -83,7 +87,7 @@ export async function adminLoader({ request }: LoaderFunctionArgs) {
       throw redirect('/unauthorized');
     }
 
-    // User is authenticated AND has admin role - update store and allow access
+    // User is authenticated AND has admin-capable role - update store and allow access
     actions.login(userData);
     console.log('Admin access granted for:', userData.email);
     return { user: userData };

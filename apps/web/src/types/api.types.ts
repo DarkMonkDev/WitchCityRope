@@ -268,7 +268,7 @@ export interface ApiResponse<T = unknown> {
  * User role type (Frontend convenience)
  * Note: Backend may have different role system
  */
-export type UserRole = 'Administrator' | 'Teacher' | 'SafetyTeam' | '';
+export type UserRole = 'Administrator' | 'Teacher' | 'SafetyTeam' | 'EventOrganizer' | 'DungeonMonitor' | 'VettingTeam' | '';
 
 /**
  * @deprecated Event type replaced with boolean flags (allowRsvps, requireTicketPurchase, vettedMembersOnly)

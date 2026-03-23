@@ -250,8 +250,10 @@ export const router = createBrowserRouter([
         loader: authLoader,
       },
 
-      // Admin routes - authentication and admin role required
-      // SECURITY: All admin routes use adminLoader which validates "Administrator" role
+      // Admin routes - authentication and admin-capable role required
+      // SECURITY: All admin routes use adminLoader which validates admin-capable roles
+      // (Administrator, EventOrganizer, SafetyTeam, VettingTeam).
+      // The AdminDashboardPage further filters which cards each role can see.
       {
         path: 'admin',
         element: <AdminDashboardPage />,
