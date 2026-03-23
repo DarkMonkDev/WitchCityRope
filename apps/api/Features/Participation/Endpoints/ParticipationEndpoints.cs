@@ -715,8 +715,9 @@ public static class ParticipationEndpoints
             .Produces(500);
 
         // Admin endpoint: Get all participations for an event
+        // Allows Administrator and EventOrganizer to view event participation data
         app.MapGet("/api/admin/events/{eventId:guid}/participations",
-            [Authorize(Roles = "Administrator")] async (
+            [Authorize(Roles = "Administrator,EventOrganizer")] async (
                 Guid eventId,
                 [FromServices] IAttendanceService attendanceService,
                 CancellationToken cancellationToken) =>

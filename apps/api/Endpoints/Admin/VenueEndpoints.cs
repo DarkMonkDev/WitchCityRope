@@ -94,13 +94,13 @@ public static class VenueEndpoints
                         statusCode: 401);
                 }
 
-                // Verify admin role
-                // Multi-role support: IsInRole checks all role claims in JWT
-                if (!context.User.IsInRole("Administrator"))
+                // Allow Administrator and EventOrganizer to view active venues
+                // EventOrganizer needs venue data when managing events
+                if (!context.User.IsInRole("Administrator") && !context.User.IsInRole("EventOrganizer"))
                 {
                     return Results.Problem(
                         title: "Insufficient Permissions",
-                        detail: "Administrator role required to manage venues",
+                        detail: "Administrator or EventOrganizer role required to access venues",
                         statusCode: 403);
                 }
 
