@@ -27,6 +27,7 @@ import { useUpdateEvent } from '../../lib/api/hooks/useEvents'
 import { eventKeys } from '../../lib/api/utils/cache'
 import { useEventTimeZone } from '../../hooks/useEventTimeZone'
 import { EventEmailTemplatePanel } from '../email-templates/EventEmailTemplatePanel'
+import { paymentUtils } from '../../features/payments/utils/paymentUtils'
 
 /**
  * Extract user-friendly error message from API errors
@@ -70,7 +71,7 @@ interface AttendeesTabPanelProps {
 }
 
 const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSection }) => {
-  const [sortColumn, setSortColumn] = useState<'name' | 'paid' | 'attended' | 'sessions'>('name')
+  const [sortColumn, setSortColumn] = useState<'name' | 'paid' | 'paymentMethod' | 'attended' | 'sessions'>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   // Fetch participations (RSVPs and tickets)
@@ -101,9 +102,13 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
           checkedInSessions: (p as any)?.checkedInSessions || [],
         })
       } else {
-        // User already exists - merge ticket amount if this is a ticket purchase
+        // User already exists - merge ticket amount and payment method if this is a ticket purchase
         if (p.participationType === 'Ticket') {
           existing.ticketAmount = p.amountPaid ?? 0
+          // Preserve payment method from ticket purchase (RSVPs don't have one)
+          if (p.paymentMethod) {
+            existing.paymentMethod = p.paymentMethod
+          }
         }
         // Prefer RSVP for main display, but keep ticket's check-in status if available
         if (p.participationType === 'RSVP') {
@@ -147,6 +152,8 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
         const aCheckedIn = a.hasCheckedIn ?? false
         const bCheckedIn = b.hasCheckedIn ?? false
         compareValue = Number(aCheckedIn) - Number(bCheckedIn)
+      } else if (sortColumn === 'paymentMethod') {
+        compareValue = (a.paymentMethod ?? '').toLowerCase().localeCompare((b.paymentMethod ?? '').toLowerCase())
       } else if (sortColumn === 'sessions') {
         // Sort by number of sessions attended
         const aSessionCount = a.checkedInSessions?.length ?? 0
@@ -160,7 +167,7 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
     return sorted
   }, [groupedParticipations, sortColumn, sortDirection])
 
-  const handleSort = (column: 'name' | 'paid' | 'attended' | 'sessions') => {
+  const handleSort = (column: 'name' | 'paid' | 'paymentMethod' | 'attended' | 'sessions') => {
     if (sortColumn === column) {
       // Toggle direction if clicking same column
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
@@ -171,10 +178,15 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
     }
   }
 
-  const getSortIcon = (column: 'name' | 'paid' | 'attended' | 'sessions') => {
+  const getSortIcon = (column: 'name' | 'paid' | 'paymentMethod' | 'attended' | 'sessions') => {
     if (sortColumn !== column) return null
     return sortDirection === 'asc' ? ' ↑' : ' ↓'
   }
+
+  // Sum ticket revenue across all active attendees for the heading display
+  const totalRevenue = React.useMemo(() => {
+    return groupedParticipations.reduce((sum, p) => sum + (p.ticketAmount ?? 0), 0)
+  }, [groupedParticipations])
 
   if (!eventId) {
     return (
@@ -189,7 +201,7 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
       <div data-testid="attendees-list">
         <Group justify="space-between" align="center" mb="md" style={{ borderBottom: '2px solid var(--mantine-color-burgundy-3)', paddingBottom: '8px' }}>
           <Title order={2} c="burgundy">
-            Event Attendees
+            Event Attendees{totalRevenue > 0 ? ` - ${paymentUtils.formatCurrency(totalRevenue)}` : ''}
           </Title>
           {rightSection}
         </Group>
@@ -257,6 +269,19 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
                   Paid{getSortIcon('paid')}
                 </Table.Th>
                 <Table.Th
+                  onClick={() => handleSort('paymentMethod')}
+                  style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  Payment Method{getSortIcon('paymentMethod')}
+                </Table.Th>
+                <Table.Th
                   onClick={() => handleSort('attended')}
                   style={{
                     color: 'white',
@@ -304,6 +329,11 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId, rightSec
                     <Table.Td>
                       <Text size="sm" fw={500}>
                         ${paidAmount.toFixed(2)}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">
+                        {paymentUtils.formatPaymentMethodDisplay(participation.paymentMethod)}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -1848,7 +1878,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <Stack gap="xs">
                           <Group gap="xs" align="center" wrap="nowrap">
                             <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
-                              Max Per Person:
+                              Max RSVPs/Tickets Per Person:
                             </Text>
                             <NumberInput
                               placeholder="No Limit"
@@ -2407,17 +2437,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 </Text>
                               </Table.Td>
                               <Table.Td>
-                                {/* Display payment method with friendly names for raw DB values */}
                                 <Text size="sm">
-                                  {(() => {
-                                    const method = participation.paymentMethod;
-                                    if (!method) return '—';
-                                    // Map raw database values to user-friendly display names
-                                    if (method.toLowerCase() === 'authorize-net' || method.toLowerCase() === 'authnet-pending') return 'Authorize.net';
-                                    if (method.toLowerCase() === 'paypal-pending') return 'PayPal';
-                                    // Capitalize first letter for standard values (PayPal, Cash, Venmo, Free)
-                                    return method.charAt(0).toUpperCase() + method.slice(1);
-                                  })()}
+                                  {paymentUtils.formatPaymentMethodDisplay(participation.paymentMethod)}
                                 </Text>
                               </Table.Td>
                               <Table.Td>
