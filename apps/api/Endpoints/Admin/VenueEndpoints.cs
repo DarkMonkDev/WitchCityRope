@@ -33,9 +33,8 @@ public static class VenueEndpoints
                         statusCode: 401);
                 }
 
-                // Verify admin role
-                // Multi-role support: IsInRole checks all role claims in JWT
-                if (!context.User.IsInRole("Administrator"))
+                // Allow Administrator and EventOrganizer to read venue data
+                if (!context.User.IsInRole("Administrator") && !context.User.IsInRole("EventOrganizer"))
                 {
                     return Results.Problem(
                         title: "Insufficient Permissions",
@@ -157,9 +156,8 @@ public static class VenueEndpoints
                         statusCode: 401);
                 }
 
-                // Verify admin role
-                // Multi-role support: IsInRole checks all role claims in JWT
-                if (!context.User.IsInRole("Administrator"))
+                // Allow Administrator and EventOrganizer to read venue data
+                if (!context.User.IsInRole("Administrator") && !context.User.IsInRole("EventOrganizer"))
                 {
                     return Results.Problem(
                         title: "Insufficient Permissions",

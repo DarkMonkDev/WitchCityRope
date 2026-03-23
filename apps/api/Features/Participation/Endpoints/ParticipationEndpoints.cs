@@ -744,8 +744,9 @@ public static class ParticipationEndpoints
             .ProducesProblem(500);
 
         // Admin endpoint: Remove user's attendance (RSVP or Ticket) - Simple removal without cascading
+        // Allows Administrator and EventOrganizer — removal is audited via UpdatedBy and CancellationReason fields
         app.MapDelete("/api/admin/events/{eventId:guid}/participations/{userId:guid}",
-            [Authorize(Roles = "Administrator")] async (
+            [Authorize(Roles = "Administrator,EventOrganizer")] async (
                 Guid eventId,
                 Guid userId,
                 [FromServices] ApplicationDbContext context,
@@ -837,8 +838,9 @@ public static class ParticipationEndpoints
             .Produces(500);
 
         // Admin endpoint: Remove RSVP with cascading effects
+        // Allows Administrator and EventOrganizer — removal is audited via logger and database fields
         app.MapDelete("/api/admin/events/{eventId:guid}/participations/{userId:guid}/remove",
-            [Authorize(Roles = "Administrator")] async (
+            [Authorize(Roles = "Administrator,EventOrganizer")] async (
                 Guid eventId,
                 Guid userId,
                 [FromServices] ApplicationDbContext context,
