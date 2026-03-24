@@ -274,6 +274,11 @@ public class EmailSchedulerJob
                         ["recipient_scene_name"] = recipient.DisplayName,
                         ["delegate_scene_name"] = recipient.Assignment.DelegateSceneName,
                         ["event_title"] = session.EventTitle,
+                        // event_title_link wraps the event title in an anchor tag linking to
+                        // the event details page for clickable event names in HTML bodies.
+                        ["event_title_link"] = !string.IsNullOrEmpty(session.EventTitle)
+                            ? $"<a href=\"{acceptUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(session.EventTitle)}</a>"
+                            : "",
                         ["event_date"] = formattedDate,
                         ["event_time"] = formattedTime,
                         ["event_start_time"] = formattedTime,
@@ -321,6 +326,12 @@ public class EmailSchedulerJob
                     // Plain text bodies and subjects should continue using {{session_name}}.
                     ["session_name_link"] = !string.IsNullOrEmpty(session.SessionName)
                         ? $"<a href=\"{eventDetailsUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(session.SessionName)}</a>"
+                        : "",
+                    // event_title_link wraps the event title in an anchor tag linking to the
+                    // event details page. Use in HTML bodies where event_title should be clickable.
+                    // Plain text bodies and subjects should continue using {{event_title}}.
+                    ["event_title_link"] = !string.IsNullOrEmpty(session.EventTitle)
+                        ? $"<a href=\"{eventDetailsUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(session.EventTitle)}</a>"
                         : "",
                     ["event_details_url"] = eventDetailsUrl,
                     ["event_details_button"] = eventDetailsButton

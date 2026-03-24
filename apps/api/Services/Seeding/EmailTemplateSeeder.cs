@@ -196,7 +196,7 @@ public class EmailTemplateSeeder
                 TemplateType = "Confirmation",
                 Title = "Your ticket for {{event_title}}",
                 Subject = "Your ticket for {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for registering for <strong>{{event_title}}</strong>!</p><p><strong>Event Details:</strong><br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><h3>Your Sessions</h3>{{ticket_sessions_list}}<p><strong>Total Paid:</strong> {{total_paid}}<br><strong>Confirmation Number:</strong> {{confirmation_number}}</p><p>We look forward to seeing you!</p><p>Questions? Email events@witchcityrope.com</p>",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for registering for <strong>{{event_title_link}}</strong>!</p><p><strong>Event Details:</strong><br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><h3>Your Sessions</h3>{{ticket_sessions_list}}<p><strong>Total Paid:</strong> {{total_paid}}<br><strong>Confirmation Number:</strong> {{confirmation_number}}</p><p>We look forward to seeing you!</p><p>Questions? Email events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nThank you for registering for {{event_title}}!\n\nEvent Details:\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nYour Sessions:\n{{ticket_sessions_list_text}}\n\nTotal Paid: {{total_paid}}\nConfirmation Number: {{confirmation_number}}\n\nWe look forward to seeing you!\n\nQuestions? Email events@witchcityrope.com",
                 TriggerType = TemplateTriggerType.FixedEvent,
                 RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
@@ -212,7 +212,7 @@ public class EmailTemplateSeeder
                 TemplateType = "Reminder1Week",
                 Title = "One week until {{event_title}}",
                 Subject = "One week until {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Just a friendly reminder that <strong>{{event_title}}</strong> is coming up in one week!</p><p><strong>Event Details:</strong><br>Date: {{session_date}}<br>Time: {{session_time}}<br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><p>We're looking forward to seeing you there!</p>",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Just a friendly reminder that <strong>{{event_title_link}}</strong> is coming up in one week!</p><p><strong>Event Details:</strong><br>Date: {{session_date}}<br>Time: {{session_time}}<br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><p>We're looking forward to seeing you there!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nJust a friendly reminder that {{event_title}} is coming up in one week!\n\nEvent Details:\nDate: {{session_date}}\nTime: {{session_time}}\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nWe're looking forward to seeing you there!",
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = 7,
@@ -229,7 +229,7 @@ public class EmailTemplateSeeder
                 TemplateType = "Reminder1Day",
                 Title = "Tomorrow: {{event_title}}",
                 Subject = "Tomorrow: {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p><strong>{{event_title}}</strong> is tomorrow!</p><p><strong>When:</strong> {{session_date}} at {{session_time}}<br><strong>Where:</strong> {{venue_name}}<br>{{venue_address}}</p><p>See you there!</p>",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p><strong>{{event_title_link}}</strong> is tomorrow!</p><p><strong>When:</strong> {{session_date}} at {{session_time}}<br><strong>Where:</strong> {{venue_name}}<br>{{venue_address}}</p><p>See you there!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\n{{event_title}} is tomorrow!\n\nWhen: {{session_date}} at {{session_time}}\nWhere: {{venue_name}}\n{{venue_address}}\n\nSee you there!",
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = 1,
@@ -246,7 +246,7 @@ public class EmailTemplateSeeder
                 TemplateType = "Reminder2Hours",
                 Title = "Starting soon: {{event_title}}",
                 Subject = "Starting soon: {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p><strong>{{event_title}}</strong> starts in 2 hours!</p><p><strong>Time:</strong> {{session_time}}<br><strong>Location:</strong> {{venue_name}}</p><p>See you soon!</p>",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p><strong>{{event_title_link}}</strong> starts in 2 hours!</p><p><strong>Time:</strong> {{session_time}}<br><strong>Location:</strong> {{venue_name}}</p><p>See you soon!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\n{{event_title}} starts in 2 hours!\n\nTime: {{session_time}}\nLocation: {{venue_name}}\n\nSee you soon!",
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = 0,
@@ -264,7 +264,7 @@ public class EmailTemplateSeeder
                 TemplateType = "Cancellation",
                 Title = "Cancellation Confirmation: {{event_title}}",
                 Subject = "Cancellation Confirmation: {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Your registration for <strong>{{event_title}}</strong> has been cancelled.</p><h3>Cancelled Sessions</h3>{{cancelled_sessions_list}}<p>{{custom_message}}</p><p>If you have any questions, please contact events@witchcityrope.com</p>",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Your registration for <strong>{{event_title_link}}</strong> has been cancelled.</p><h3>Cancelled Sessions</h3>{{cancelled_sessions_list}}<p>{{custom_message}}</p><p>If you have any questions, please contact events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nYour registration for {{event_title}} has been cancelled.\n\nCancelled Sessions:\n{{cancelled_sessions_list_text}}\n\n{{custom_message}}\n\nIf you have any questions, please contact events@witchcityrope.com",
                 TriggerType = TemplateTriggerType.FixedEvent,
                 RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
@@ -280,7 +280,7 @@ public class EmailTemplateSeeder
                 TemplateType = "RSVPConfirmation",
                 Title = "RSVP Confirmation",
                 Subject = "You're RSVPed! {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p>You're all set! Your RSVP for <strong>{{event_title}}</strong> has been confirmed.</p><p><strong>Event Details:</strong><br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><h3>Sessions</h3>{{rsvp_sessions_list}}<p><a href=\"{{event_details_url}}\">View event details</a></p><p>{{event_details_button}}</p><p>We look forward to seeing you there!</p><p>Questions? Email events@witchcityrope.com</p>",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>You're all set! Your RSVP for <strong>{{event_title_link}}</strong> has been confirmed.</p><p><strong>Event Details:</strong><br>Venue: {{venue_name}}<br>Address: {{venue_address}}</p><h3>Sessions</h3>{{rsvp_sessions_list}}<p><a href=\"{{event_details_url}}\">View event details</a></p><p>{{event_details_button}}</p><p>We look forward to seeing you there!</p><p>Questions? Email events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nYou're all set! Your RSVP for {{event_title}} has been confirmed.\n\nEvent Details:\nVenue: {{venue_name}}\nAddress: {{venue_address}}\n\nSessions:\n{{rsvp_sessions_list_text}}\n\nView event details: {{event_details_url}}\n\nWe look forward to seeing you there!\n\nQuestions? Email events@witchcityrope.com",
                 TriggerType = TemplateTriggerType.FixedEvent,
                 RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
@@ -296,7 +296,7 @@ public class EmailTemplateSeeder
                 TemplateType = "RSVPCancellation",
                 Title = "RSVP Cancelled: {{event_title}}",
                 Subject = "RSVP Cancelled: {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Your RSVP for <strong>{{event_title}}</strong> on {{session_date}} has been cancelled.</p><p>{{custom_message}}</p><p>If you'd like to attend, you can RSVP again from the event page.</p><p>Questions? Email events@witchcityrope.com</p>",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Your RSVP for <strong>{{event_title_link}}</strong> on {{session_date}} has been cancelled.</p><p>{{custom_message}}</p><p>If you'd like to attend, you can RSVP again from the event page.</p><p>Questions? Email events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nYour RSVP for {{event_title}} on {{session_date}} has been cancelled.\n\n{{custom_message}}\n\nIf you'd like to attend, you can RSVP again from the event page.\n\nQuestions? Email events@witchcityrope.com",
                 TriggerType = TemplateTriggerType.FixedEvent,
                 RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
@@ -312,7 +312,7 @@ public class EmailTemplateSeeder
                 TemplateType = "SessionChange",
                 Title = "Session Update: {{event_title}}",
                 Subject = "Session Update: {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p>There has been an update to the session <strong>{{session_name_link}}</strong> for <strong>{{event_title}}</strong>.</p><p><strong>New Date/Time:</strong> {{session_date}} at {{session_time}}</p><p>{{custom_message}}</p><p>Thank you for your understanding.</p>",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>There has been an update to the session <strong>{{session_name_link}}</strong> for <strong>{{event_title_link}}</strong>.</p><p><strong>New Date/Time:</strong> {{session_date}} at {{session_time}}</p><p>{{custom_message}}</p><p>Thank you for your understanding.</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nThere has been an update to the session {{session_name}} for {{event_title}}.\n\nNew Date/Time: {{session_date}} at {{session_time}}\n\n{{custom_message}}\n\nThank you for your understanding.",
                 TriggerType = TemplateTriggerType.FixedEvent,
                 RecipientGroup = EventRecipientGroup.RSVPTicketHolders,
@@ -328,7 +328,7 @@ public class EmailTemplateSeeder
                 TemplateType = "ThankYou",
                 Title = "Thank you for attending {{event_title}}",
                 Subject = "Thank you for attending {{event_title}}",
-                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for attending <strong>{{event_title}}</strong> on {{session_date}}!</p><p>We hope you had a wonderful experience and learned new skills. If you have any feedback or questions, please don't hesitate to reach out to events@witchcityrope.com</p><p>We look forward to seeing you at future events!</p>",
+                HtmlBody = "<p>Hi {{attendee_name}},</p><p>Thank you for attending <strong>{{event_title_link}}</strong> on {{session_date}}!</p><p>We hope you had a wonderful experience and learned new skills. If you have any feedback or questions, please don't hesitate to reach out to events@witchcityrope.com</p><p>We look forward to seeing you at future events!</p>",
                 PlainTextBody = "Hi {{attendee_name}},\n\nThank you for attending {{event_title}} on {{session_date}}!\n\nWe hope you had a wonderful experience and learned new skills. If you have any feedback or questions, please don't hesitate to reach out to events@witchcityrope.com\n\nWe look forward to seeing you at future events!",
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = -1,
@@ -353,7 +353,7 @@ public class EmailTemplateSeeder
                 TemplateType = "VolunteerReminder",
                 Title = "Volunteer Reminder: {{event_title}}",
                 Subject = "Volunteer Reminder: {{event_title}} - {{session_name}}",
-                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>This is a reminder that you are volunteering for <strong>{{event_title}}</strong>!</p><h3>Your Volunteer Assignments</h3><p><strong>Session:</strong> {{session_name_link}}<br><strong>Date:</strong> {{session_date}}<br><strong>Time:</strong> {{session_time}}</p>{{volunteer_tasks_list}}<p><strong>Location:</strong><br>{{venue_name}}<br>{{venue_address}}</p><p>Thank you for volunteering! If you can no longer make it, please update your status as soon as possible so we can find a replacement.</p><p>Questions? Email events@witchcityrope.com</p>",
+                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>This is a reminder that you are volunteering for <strong>{{event_title_link}}</strong>!</p><h3>Your Volunteer Assignments</h3><p><strong>Session:</strong> {{session_name_link}}<br><strong>Date:</strong> {{session_date}}<br><strong>Time:</strong> {{session_time}}</p>{{volunteer_tasks_list}}<p><strong>Location:</strong><br>{{venue_name}}<br>{{venue_address}}</p><p>Thank you for volunteering! If you can no longer make it, please update your status as soon as possible so we can find a replacement.</p><p>Questions? Email events@witchcityrope.com</p>",
                 PlainTextBody = "Hi {{volunteer_name}},\n\nThis is a reminder that you are volunteering for {{event_title}}!\n\nYour Volunteer Assignments:\nSession: {{session_name}}\nDate: {{session_date}}\nTime: {{session_time}}\n\n{{volunteer_tasks_list_text}}\n\nLocation:\n{{venue_name}}\n{{venue_address}}\n\nThank you for volunteering! If you can no longer make it, please update your status as soon as possible so we can find a replacement.\n\nQuestions? Email events@witchcityrope.com",
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = 2,
@@ -370,7 +370,7 @@ public class EmailTemplateSeeder
                 TemplateType = "VolunteerThankYou",
                 Title = "Thank you for volunteering: {{event_title}}",
                 Subject = "Thank you for volunteering at {{event_title}}!",
-                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>Thank you so much for volunteering at <strong>{{event_title}}</strong>!</p><p><strong>Session:</strong> {{session_name_link}}<br><strong>Date:</strong> {{session_date}}</p><h3>Your Volunteer Assignments</h3>{{volunteer_tasks_list}}<p>Our events wouldn't be possible without dedicated volunteers like you. We truly appreciate your time and effort!</p><p>We hope to see you at future events. If you have any feedback about your volunteer experience, please reach out to events@witchcityrope.com</p><p>With gratitude,<br>The Witch City Rope Team</p>",
+                HtmlBody = "<p>Hi {{volunteer_name}},</p><p>Thank you so much for volunteering at <strong>{{event_title_link}}</strong>!</p><p><strong>Session:</strong> {{session_name_link}}<br><strong>Date:</strong> {{session_date}}</p><h3>Your Volunteer Assignments</h3>{{volunteer_tasks_list}}<p>Our events wouldn't be possible without dedicated volunteers like you. We truly appreciate your time and effort!</p><p>We hope to see you at future events. If you have any feedback about your volunteer experience, please reach out to events@witchcityrope.com</p><p>With gratitude,<br>The Witch City Rope Team</p>",
                 PlainTextBody = "Hi {{volunteer_name}},\n\nThank you so much for volunteering at {{event_title}}!\n\nSession: {{session_name}}\nDate: {{session_date}}\n\nYour Volunteer Assignments:\n{{volunteer_tasks_list_text}}\n\nOur events wouldn't be possible without dedicated volunteers like you. We truly appreciate your time and effort!\n\nWe hope to see you at future events. If you have any feedback about your volunteer experience, please reach out to events@witchcityrope.com\n\nWith gratitude,\nThe Witch City Rope Team",
                 TriggerType = TemplateTriggerType.TimeBased,
                 TimingOffsetDays = -1,
@@ -400,7 +400,7 @@ public class EmailTemplateSeeder
                 Title = "Ticket Assigned: {{event_title}}",
                 Subject = "{{delegate_scene_name}} purchased a ticket for you to {{event_title}}",
                 HtmlBody = @"<p style=""margin-bottom: 16px;"">Hi {{recipient_scene_name}},</p>
-<p style=""margin-bottom: 16px;""><strong>{{delegate_scene_name}}</strong> has purchased a ticket for you to attend <strong>{{event_title}}</strong>!</p>
+<p style=""margin-bottom: 16px;""><strong>{{delegate_scene_name}}</strong> has purchased a ticket for you to attend <strong>{{event_title_link}}</strong>!</p>
 <h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Event Details</h2>
 <p style=""margin-bottom: 16px;"">
 <strong>Event:</strong> {{event_title}}<br>
@@ -452,7 +452,7 @@ WitchCityRope - Salem, MA - witchcityrope.com",
                 Title = "RSVP Created: {{event_title}}",
                 Subject = "{{delegate_scene_name}} RSVP'd for you to {{event_title}}",
                 HtmlBody = @"<p style=""margin-bottom: 16px;"">Hi {{recipient_scene_name}},</p>
-<p style=""margin-bottom: 16px;""><strong>{{delegate_scene_name}}</strong> has RSVP'd for you to attend <strong>{{event_title}}</strong>!</p>
+<p style=""margin-bottom: 16px;""><strong>{{delegate_scene_name}}</strong> has RSVP'd for you to attend <strong>{{event_title_link}}</strong>!</p>
 <h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Event Details</h2>
 <p style=""margin-bottom: 16px;"">
 <strong>Event:</strong> {{event_title}}<br>
@@ -502,7 +502,7 @@ WitchCityRope - Salem, MA - witchcityrope.com",
                 Title = "Reminder: Accept your ticket for {{event_title}}",
                 Subject = "Reminder: Accept your ticket for {{event_title}} - Event is tomorrow!",
                 HtmlBody = @"<p style=""margin-bottom: 16px;"">Hi {{recipient_scene_name}},</p>
-<p style=""margin-bottom: 16px;""><strong>Your ticket for {{event_title}} is still waiting for your acceptance!</strong></p>
+<p style=""margin-bottom: 16px;""><strong>Your ticket for {{event_title_link}} is still waiting for your acceptance!</strong></p>
 <p style=""margin-bottom: 16px;"">{{delegate_scene_name}} purchased a ticket for you, and the event is coming up soon.</p>
 <h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Event Details</h2>
 <p style=""margin-bottom: 16px;"">
@@ -564,7 +564,7 @@ WitchCityRope - Salem, MA - witchcityrope.com",
                 Title = "Reminder: Accept your RSVP for {{event_title}}",
                 Subject = "Reminder: Accept your RSVP for {{event_title}} - Event is tomorrow!",
                 HtmlBody = @"<p style=""margin-bottom: 16px;"">Hi {{recipient_scene_name}},</p>
-<p style=""margin-bottom: 16px;""><strong>Your RSVP for {{event_title}} is still waiting for your acceptance!</strong></p>
+<p style=""margin-bottom: 16px;""><strong>Your RSVP for {{event_title_link}} is still waiting for your acceptance!</strong></p>
 <p style=""margin-bottom: 16px;"">{{delegate_scene_name}} RSVP'd for you, and the event is coming up soon.</p>
 <h2 style=""color: #880124; margin-top: 24px; margin-bottom: 16px;"">Event Details</h2>
 <p style=""margin-bottom: 16px;"">

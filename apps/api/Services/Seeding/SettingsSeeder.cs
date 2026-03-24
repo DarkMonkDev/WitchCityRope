@@ -85,6 +85,7 @@ public class SettingsSeeder
             // ── Events Variables ──
             ["EmailTestData:attendee_name"] = "Jane Doe",
             ["EmailTestData:event_title"] = "Introduction to Shibari",
+            ["EmailTestData:event_title_link"] = "<a href=\"https://witchcityrope.com/events/test\" style=\"color: #880124; text-decoration: underline;\">Introduction to Shibari</a>",
             ["EmailTestData:session_date"] = "Saturday, March 15, 2026",
             ["EmailTestData:session_time"] = "7:00 PM EST",
             ["EmailTestData:venue_name"] = "The Witch City Studio",

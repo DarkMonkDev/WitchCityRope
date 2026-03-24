@@ -154,6 +154,9 @@ public class EventEmailService : IEventEmailService
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt?.Title ?? "Event",
+                ["event_title_link"] = !string.IsNullOrEmpty(evt?.Title)
+                    ? $"<a href=\"{eventDetailsUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(evt.Title)}</a>"
+                    : "",
                 ["session_date"] = dateStr,
                 ["event_date"] = dateStr,
                 ["venue_name"] = venue?.Name ?? "",
@@ -243,6 +246,7 @@ public class EventEmailService : IEventEmailService
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt.Title,
+                ["event_title_link"] = $"<a href=\"{eventDetailsUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(evt.Title)}</a>",
                 ["session_date"] = dateStr,
                 ["session_time"] = timeStr,
                 ["event_date"] = dateStr,
@@ -327,6 +331,7 @@ public class EventEmailService : IEventEmailService
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt.Title,
+                ["event_title_link"] = $"<a href=\"{eventDetailsUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(evt.Title)}</a>",
                 ["session_date"] = dateStr,
                 ["session_time"] = timeStr,
                 ["event_date"] = dateStr,
@@ -396,6 +401,11 @@ public class EventEmailService : IEventEmailService
             {
                 ["attendee_name"] = displayName,
                 ["event_title"] = evt?.Title ?? "Event",
+                // event_title_link wraps the event title in an anchor tag linking to the
+                // event details page. Use in HTML bodies where event_title should be clickable.
+                ["event_title_link"] = !string.IsNullOrEmpty(evt?.Title)
+                    ? $"<a href=\"{eventDetailsUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(evt.Title)}</a>"
+                    : "",
                 ["session_date"] = dateStr,
                 ["session_time"] = timeStr,
                 ["event_date"] = dateStr,
@@ -487,6 +497,9 @@ public class EventEmailService : IEventEmailService
                     {
                         ["attendee_name"] = displayName,
                         ["event_title"] = evt?.Title ?? "Event",
+                        ["event_title_link"] = !string.IsNullOrEmpty(evt?.Title)
+                            ? $"<a href=\"{eventDetailsUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(evt.Title)}</a>"
+                            : "",
                         ["session_date"] = dateStr,
                         ["session_time"] = timeStr,
                         ["event_date"] = dateStr,
@@ -750,6 +763,7 @@ public class EventEmailService : IEventEmailService
                 ["recipient_scene_name"] = assigneeDisplayName,
                 ["delegate_scene_name"] = assignerDisplayName,
                 ["event_title"] = evt.Title,
+                ["event_title_link"] = $"<a href=\"{acceptUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(evt.Title)}</a>",
                 ["event_date"] = dateStr,
                 ["event_time"] = timeStr,
                 ["event_venue"] = FormatVenue(evt.Venue?.Name, evt.Venue?.Location),
@@ -836,6 +850,7 @@ public class EventEmailService : IEventEmailService
                 ["recipient_scene_name"] = principalDisplayName,
                 ["delegate_scene_name"] = delegateDisplayName,
                 ["event_title"] = evt.Title,
+                ["event_title_link"] = $"<a href=\"{acceptUrl}\" style=\"color: #880124; text-decoration: underline;\">{System.Net.WebUtility.HtmlEncode(evt.Title)}</a>",
                 ["event_date"] = dateStr,
                 ["event_time"] = timeStr,
                 ["event_venue"] = FormatVenue(evt.Venue?.Name, evt.Venue?.Location),
