@@ -1,134 +1,13 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { apiClient } from '../client'
 import { eventKeys, cacheUtils } from '../utils/cache'
-// import { handleApiError } from '../utils/errors' // For future error handling
-import type { EventDto, CreateEventDto, UpdateEventDto, EventFilters, RegistrationDto, EventSessionDto, EventTicketTypeDto } from '../types/events.types'
+import type { EventDto, CreateEventDto, UpdateEventDto, EventFilters, RegistrationDto } from '../types/events.types'
 import type { PaginatedResponse } from '../types/api.types'
 
-// API event structure from backend (actual response structure)
-interface ApiEvent {
-  id: string
-  title: string
-  shortDescription?: string | null
-  description: string
-  policies?: string | null
-  startDate: string
-  venueId?: number | null // Venue reference (preferred)
-  venueLocation?: string | null // Public location (city, state) for privacy-aware display
-  location: string // DEPRECATED: Legacy location string
-  // Boolean flags replace eventType enum
-  allowRsvps?: boolean
-  requireTicketPurchase?: boolean
-  vettedMembersOnly?: boolean
-  capacity?: number
-  registrationCount?: number
-  // Optional fields that may be added later
-  endDate?: string
-  maxAttendees?: number
-  currentAttendees?: number
-  currentRSVPs?: number
-  volunteerPositions?: any[]
-  currentTickets?: number
-  availableSpotsDisplay?: number
-  availableSpots?: number
-  price?: number
-  organizerName?: string
-  requiresVetting?: boolean
-  isPublished?: boolean
-  // New fields added by backend
-  sessions?: ApiEventSession[]
-  ticketTypes?: EventTicketTypeDto[]
-  teacherIds?: string[]
-  // Timing control fields
-  registrationOpenHours?: number | null
-  registrationCloseHours?: number | null
-  cancellationCloseHours?: number | null
-  volunteerRegistrationCloseHours?: number | null
-  volunteerCancellationCloseHours?: number | null
-}
-
-// API session structure (matches actual API response)
-interface ApiEventSession {
-  id: string
-  sessionIdentifier: string
-  name: string
-  startDate: string  // Renamed from date to match backend SessionDto
-  endDate?: string   // End date for multi-day sessions (derived from EndTime on backend)
-  startTime: string
-  endTime: string
-  capacity: number
-  registrationCount: number // Fixed: API returns registrationCount, not registeredCount
-}
-
-// Ticket type uses auto-generated TicketTypeDto — no manual interface needed
-// API response fields flow through directly via spread operator
-
-// Transform API event to frontend EventDto
-function transformApiEvent(apiEvent: ApiEvent): EventDto {
-
-  // Transform sessions to match frontend structure
-  const transformedSessions: EventSessionDto[] = (apiEvent.sessions || []).map(session => ({
-    id: session.id,
-    sessionIdentifier: session.sessionIdentifier,
-    name: session.name,
-    startDate: session.startDate, // Renamed from date
-    endDate: session.endDate, // End date for multi-day sessions (derived from EndTime on backend)
-    startTime: session.startTime,
-    endTime: session.endTime,
-    capacity: session.capacity,
-    registrationCount: session.registrationCount, // Fixed: use registrationCount from API
-    description: '' // Add default description
-  }));
-
-  // Pass ticket types through directly — auto-generated TicketTypeDto already matches API response
-  // Using spread prevents field-dropping bugs when backend adds new fields
-  const transformedTicketTypes: EventTicketTypeDto[] = apiEvent.ticketTypes || [];
-
-  // Transform volunteer positions - now using consistent field names
-  const transformedVolunteerPositions = (apiEvent.volunteerPositions || []).map((vp: any) => ({
-    id: vp.id,
-    title: vp.title,
-    description: vp.description || '',
-    slotsNeeded: vp.slotsNeeded,
-    slotsFilled: vp.slotsFilled,
-    sessionId: vp.sessionId,
-    startTime: vp.startTime,
-    endTime: vp.endTime,
-    isPublicFacing: vp.isPublicFacing,
-  }));
-
-  return {
-    id: apiEvent.id,
-    title: apiEvent.title,
-    shortDescription: apiEvent.shortDescription || null,
-    description: apiEvent.description,
-    policies: apiEvent.policies || null,
-    startDate: apiEvent.startDate,
-    endDate: apiEvent.endDate || undefined,
-    venueId: apiEvent.venueId ?? undefined,
-    venueLocation: apiEvent.venueLocation || null,
-    // Map boolean flags from API
-    allowRsvps: apiEvent.allowRsvps ?? false,
-    requireTicketPurchase: apiEvent.requireTicketPurchase ?? true,
-    vettedMembersOnly: apiEvent.vettedMembersOnly ?? false,
-    capacity: apiEvent.capacity || apiEvent.maxAttendees || 20, // Use capacity first, then maxAttendees
-    registrationCount: apiEvent.registrationCount || apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
-    // Available spots computed by backend — single source of truth for public display
-    availableSpotsDisplay: apiEvent.availableSpotsDisplay ?? 0,
-    // Map new fields from API response with proper transformation
-    sessions: transformedSessions,
-    ticketTypes: transformedTicketTypes,
-    teacherIds: apiEvent.teacherIds || [],
-    volunteerPositions: transformedVolunteerPositions,
-    isPublished: apiEvent.isPublished !== undefined ? apiEvent.isPublished : true,
-    // Timing control fields
-    registrationOpenHours: apiEvent.registrationOpenHours ?? null,
-    registrationCloseHours: apiEvent.registrationCloseHours ?? null,
-    cancellationCloseHours: apiEvent.cancellationCloseHours ?? null,
-    volunteerRegistrationCloseHours: apiEvent.volunteerRegistrationCloseHours ?? null,
-    volunteerCancellationCloseHours: apiEvent.volunteerCancellationCloseHours ?? null
-  }
-}
+// Pattern B: Direct DTO response — no manual transform layer.
+// Auto-generated EventDto from @witchcityrope/shared-types is the source of truth.
+// API response fields flow through directly without field-by-field mapping.
+// See DTO-ALIGNMENT-STRATEGY.md for why this matters.
 
 // Context type for optimistic event update rollback
 interface OptimisticEventContext {
@@ -137,10 +16,10 @@ interface OptimisticEventContext {
 
 // Fetch events list with filters
 export function useEvents(filters: EventFilters = {}) {
-  return useQuery({
+  return useQuery<EventDto[]>({
     queryKey: eventKeys.list(filters),
     queryFn: async (): Promise<EventDto[]> => {
-      const { data } = await apiClient.get<ApiEvent[]>('/api/events', {
+      const { data } = await apiClient.get<EventDto[]>('/api/events', {
         params: filters,
       })
 
@@ -150,8 +29,7 @@ export function useEvents(filters: EventFilters = {}) {
         throw new Error('API returned no data - possible server connection issue')
       }
 
-      // Return transformed events array
-      return data.map(transformApiEvent)
+      return data
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: true,
@@ -177,12 +55,12 @@ export function useInfiniteEvents(filters: Omit<EventFilters, 'page'> = {}) {
 
 // Fetch single event
 export function useEvent(id: string, enabled: boolean = true) {
-  return useQuery({
+  return useQuery<EventDto>({
     queryKey: eventKeys.detail(id),
     queryFn: async (): Promise<EventDto> => {
-      const { data } = await apiClient.get<ApiEvent>(`/api/events/${id}`)
+      const { data } = await apiClient.get<EventDto>(`/api/events/${id}`)
       if (!data) throw new Error('Event not found')
-      return transformApiEvent(data)
+      return data
     },
     enabled: !!id && enabled,
     staleTime: 5 * 60 * 1000,
@@ -220,10 +98,9 @@ export function useUpdateEvent() {
 
   return useMutation({
     mutationFn: async (eventData: UpdateEventDto): Promise<EventDto> => {
-      const { data } = await apiClient.put<ApiEvent>(`/api/events/${eventData.id}`, eventData)
+      const { data } = await apiClient.put<EventDto>(`/api/events/${eventData.id}`, eventData)
       if (!data) throw new Error('Failed to update event')
-      // Transform the API response to match our EventDto structure
-      return transformApiEvent(data)
+      return data
     },
     onMutate: async (updatedEvent: UpdateEventDto) => {
       // Cancel outgoing refetches

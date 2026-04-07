@@ -36,14 +36,14 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
   )
 
   // Calculate price from ticket types
-  const displayPrice = calculateEventPriceRange((event as any).ticketTypes || [])
+  const displayPrice = calculateEventPriceRange(event.ticketTypes || [])
 
   // Determine participation status for badges (list variant only)
   const hasTicket = showParticipationStatus && (participation?.hasTicket || false)
   const hasRSVP = showParticipationStatus && (participation?.hasRSVP || false)
 
   // Check if event has paid tickets (maxPrice > 0)
-  const hasPaidTickets = (event as any).ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0)
+  const hasPaidTickets = event.ticketTypes?.some((tt) => (tt.maxPrice || 0) > 0)
 
   // Show Purchase Ticket button only if user has RSVPed but not purchased ticket and event has paid tickets
   const shouldShowPurchaseButton = showParticipationStatus && hasRSVP && !hasTicket && hasPaidTickets
@@ -52,17 +52,17 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
   // For multi-session events: max remaining across future sessions.
   // For single-session events: event capacity minus attendee count.
   const availableSpots = event.availableSpotsDisplay ?? 0
-  const isMultiSession = ((event as any)?.sessions?.length ?? 0) > 1
+  const isMultiSession = (event.sessions?.length ?? 0) > 1
 
   // Determine event type from boolean flags
-  const allowRsvps = (event as any)?.allowRsvps ?? false
-  const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true
+  const allowRsvps = event.allowRsvps ?? false
+  const requireTicketPurchase = event.requireTicketPurchase ?? true
   const isSocialEvent = allowRsvps && !requireTicketPurchase
 
   // Current count still needed for single-session "X sold/RSVPs" display
   const currentCount = isSocialEvent
-    ? (event as any).currentRSVPs || event.registrationCount || 0
-    : (event as any).currentTickets || event.registrationCount || 0
+    ? event.currentRSVPs || event.registrationCount || 0
+    : event.currentTickets || event.registrationCount || 0
 
   const getSpotColor = () => {
     if (availableSpots > 10) return 'var(--color-success)'
@@ -220,7 +220,7 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
       >
         {/* Date and Time - Multi-session support */}
         {(() => {
-          const sessions = ((event as any)?.sessions || []).slice().sort((a: any, b: any) =>
+          const sessions = (event.sessions || []).slice().sort((a, b) =>
             new Date(a.startTime || '').getTime() - new Date(b.startTime || '').getTime()
           )
 
@@ -278,7 +278,7 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                       letterSpacing: '0.5px',
                     }}
                   >
-                    {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                    {formatUtcToLocalDate(session.startTime || '', eventTimeZone, {
                       weekday: 'short',
                       month: 'short',
                       day: 'numeric',
@@ -296,7 +296,7 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                       letterSpacing: '0.5px',
                     }}
                   >
-                    {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)
+                    {formatUtcTimeRange(session.startTime || '', session.endTime || '', eventTimeZone)
                       .toLowerCase()}
                   </Text>
                 </Group>
@@ -311,7 +311,7 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
               style={{ marginBottom: variant === 'homepage' ? 'var(--space-xs)' : undefined }}
               mb={variant === 'list' ? 'sm' : undefined}
             >
-              {sessions.map((session: any, index: number) => {
+              {sessions.map((session, index) => {
                 const showSessionName = session.name && !session.name.includes('Main Session')
                 return (
                   <Stack key={session.id || index} gap={2}>
@@ -340,7 +340,7 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                           letterSpacing: '0.5px',
                         }}
                       >
-                        {formatUtcToLocalDate(session.startTime, eventTimeZone, {
+                        {formatUtcToLocalDate(session.startTime || '', eventTimeZone, {
                           weekday: 'short',
                           month: 'short',
                           day: 'numeric',
@@ -358,7 +358,7 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                           letterSpacing: '0.5px',
                         }}
                       >
-                        {formatUtcTimeRange(session.startTime, session.endTime, eventTimeZone)
+                        {formatUtcTimeRange(session.startTime || '', session.endTime || '', eventTimeZone)
                           .toLowerCase()}
                       </Text>
                     </Group>

@@ -97,7 +97,7 @@ export const EventsListPage: React.FC = () => {
 
     const hasTicket = participation?.hasTicket || false
     const hasRSVP = participation?.hasRSVP || false
-    const hasPaidTickets = (event as any)?.ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0)
+    const hasPaidTickets = event?.ticketTypes?.some((tt) => (tt.maxPrice || 0) > 0)
     const shouldShowPurchaseButton = hasRSVP && !hasTicket && hasPaidTickets
 
     return (
@@ -156,7 +156,7 @@ export const EventsListPage: React.FC = () => {
     return (
       <Group gap="xs" align="center" justify="center">
         <Text size="md" fw={600} className="table-cell-text" style={{ color: '#2B2B2B' }}>
-          {calculateEventPriceRange((event as any).ticketTypes || [])}
+          {calculateEventPriceRange(event.ticketTypes || [])}
         </Text>
         {hasRSVP && (
           <Badge
@@ -229,7 +229,7 @@ export const EventsListPage: React.FC = () => {
         render: (event) => {
           // Available spots from backend — single source of truth
           const availableSpots = event.availableSpotsDisplay ?? 0
-          const isMultiSession = ((event as any)?.sessions?.length ?? 0) > 1
+          const isMultiSession = (event.sessions?.length ?? 0) > 1
           const getSpotColor = () => {
             if (availableSpots > 10) return 'var(--color-success)'
             if (availableSpots > 3) return 'var(--color-warning)'

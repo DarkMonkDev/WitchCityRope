@@ -133,21 +133,13 @@ export const AdminEventDetailsPage: React.FC = () => {
 
   // Convert EventDto to EventFormData - defined as a callback to use in effects
   const convertEventToFormData = useCallback((event: EventDtoType): EventFormData => {
-    // Extract venueId from API response (now using VenueId field instead of Location)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const venueId = (event as any)?.venueId?.toString() || ''
-
-    // Extract boolean flags from API response
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allowRsvps = (event as any)?.allowRsvps ?? false
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const vettedMembersOnly = (event as any)?.vettedMembersOnly ?? false
+    const venueId = event.venueId?.toString() || ''
+    const allowRsvps = event.allowRsvps ?? false
+    const requireTicketPurchase = event.requireTicketPurchase ?? true
+    const vettedMembersOnly = event.vettedMembersOnly ?? false
 
     // Map volunteer positions from API response - store sessionId directly (matches API format)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const volunteerPositions = ((event as any)?.volunteerPositions || []).map((vp: any) => ({
+    const volunteerPositions = (event.volunteerPositions || []).map((vp) => ({
       id: vp.id || '',
       title: vp.title || '',
       description: vp.description || '',
@@ -160,8 +152,7 @@ export const AdminEventDetailsPage: React.FC = () => {
     }))
 
     // Map ticket types from API response, adding pricingType if missing
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ticketTypes = ((event as any)?.ticketTypes || []).map((tt: any) => {
+    const ticketTypes = (event.ticketTypes || []).map((tt) => {
       // Infer pricingType if not present in API data
       let pricingType: 'Fixed' | 'SlidingScale' = 'Fixed';
       let price: number | undefined;
@@ -171,14 +162,14 @@ export const AdminEventDetailsPage: React.FC = () => {
 
       if (tt.pricingType) {
         // New data structure - use as-is
-        pricingType = tt.pricingType;
-        price = tt.price;
-        minPrice = tt.minPrice;
-        maxPrice = tt.maxPrice;
-        defaultPrice = tt.defaultPrice;
+        pricingType = tt.pricingType as 'Fixed' | 'SlidingScale';
+        price = tt.price ?? undefined;
+        minPrice = tt.minPrice ?? undefined;
+        maxPrice = tt.maxPrice ?? undefined;
+        defaultPrice = tt.defaultPrice ?? undefined;
       } else {
         // Legacy data structure - infer from minPrice/maxPrice
-        if (tt.minPrice !== undefined && tt.maxPrice !== undefined) {
+        if (tt.minPrice != null && tt.maxPrice != null) {
           if (tt.minPrice === tt.maxPrice) {
             // Same min and max = fixed price
             pricingType = 'Fixed';
@@ -211,25 +202,20 @@ export const AdminEventDetailsPage: React.FC = () => {
       shortDescription: event.shortDescription || '',
       fullDescription: event.description || '',
       policies: event.policies || '',
-      venueId, // Now properly extracted from API location field
-      teacherIds: event.teacherIds || [], // Now maps from API response
+      venueId,
+      teacherIds: event.teacherIds || [],
+      // EventDto has no 'status' field — derive from isPublished
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       status:
-        ((event as any)?.status as 'Draft' | 'Published' | 'Cancelled' | 'Completed') || 'Draft', // Map API status to form status
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sessions: (event.sessions as any) || [], // Now maps from API response
-      ticketTypes, // Now properly mapped with pricingType
-      volunteerPositions, // Now properly mapped from API response
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      registrationOpenHours: (event as any)?.registrationOpenHours ?? null,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      registrationCloseHours: (event as any)?.registrationCloseHours ?? null,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      cancellationCloseHours: (event as any)?.cancellationCloseHours ?? null,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      volunteerRegistrationCloseHours: (event as any)?.volunteerRegistrationCloseHours ?? null,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      volunteerCancellationCloseHours: (event as any)?.volunteerCancellationCloseHours ?? null,
+        ((event as any)?.status as 'Draft' | 'Published' | 'Cancelled' | 'Completed') || 'Draft',
+      sessions: (event.sessions as any) || [],
+      ticketTypes,
+      volunteerPositions,
+      registrationOpenHours: event.registrationOpenHours ?? null,
+      registrationCloseHours: event.registrationCloseHours ?? null,
+      cancellationCloseHours: event.cancellationCloseHours ?? null,
+      volunteerRegistrationCloseHours: event.volunteerRegistrationCloseHours ?? null,
+      volunteerCancellationCloseHours: event.volunteerCancellationCloseHours ?? null,
     }
   }, [])
 
@@ -242,8 +228,7 @@ export const AdminEventDetailsPage: React.FC = () => {
   React.useEffect(() => {
     if (event) {
       // Use isPublished field from API response
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const status = (event as any)?.isPublished !== false ? 'published' : 'draft'
+      const status = event.isPublished !== false ? 'published' : 'draft'
       setPublishStatus(status)
 
       // Convert event to form data
@@ -452,11 +437,9 @@ export const AdminEventDetailsPage: React.FC = () => {
         style={{ fontSize: '2.5rem', fontWeight: 700 }}
       >
         {/* Show event title with the next upcoming session date (or last session if all past) */}
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {(() => {
-          const title = (event as any)?.title || 'New Event';
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const dateSuffix = getSessionDateSuffix((event as any)?.sessions || []);
+          const title = event?.title || 'New Event';
+          const dateSuffix = getSessionDateSuffix(event?.sessions || []);
           return dateSuffix ? `${title} - ${dateSuffix}` : title;
         })()}
       </Title>
@@ -554,7 +537,7 @@ export const AdminEventDetailsPage: React.FC = () => {
         opened={kioskModalOpen}
         onClose={() => setKioskModalOpen(false)}
         eventId={id || ''}
-        eventTitle={(event as any)?.title || 'Event'}
+        eventTitle={event?.title || 'Event'}
       />
     </Container>
   )
