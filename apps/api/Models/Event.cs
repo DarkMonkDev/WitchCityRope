@@ -312,12 +312,14 @@ public class Event
             .Where(s => s.EndTime > DateTime.UtcNow)
             .ToList();
 
-        // Per-session logic only for multi-session events (2+ future sessions).
+        // Per-session logic for multi-session events (event has 2+ sessions total).
+        // Uses only future sessions for the computation, but triggers whenever the
+        // event is structured as multi-session — even if some sessions are past.
         // Single-session events use event-level fallback because Session.CurrentAttendees
         // only counts tickets, which is wrong for social/RSVP events where RSVPs are
-        // the primary attendance metric. The event-level GetCurrentAttendeeCount()
-        // correctly handles both social (RSVPs) and ticket-required (tickets) events.
-        if (futureSessions != null && futureSessions.Count > 1)
+        // the primary attendance metric. Multi-session events are always ticket-required.
+        var totalSessionCount = Sessions?.Count ?? 0;
+        if (totalSessionCount > 1 && futureSessions != null && futureSessions.Count > 0)
         {
             var maxRemaining = futureSessions
                 .Select(s => Math.Max(0, s.Capacity - s.CurrentAttendees))
