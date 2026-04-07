@@ -15,7 +15,7 @@ import { ADMIN_CAPABLE_ROLES } from '../../constants/adminRoles';
  * Uses apiClient with skipAutoRedirect to handle returnUrl properly.
  *
  * Redirects:
- * - Not authenticated → /login with returnTo
+ * - Not authenticated → /login with returnUrl (must match LoginPage's searchParams.get('returnUrl'))
  * - Authenticated but no admin-capable role → /unauthorized (403)
  */
 export async function adminLoader({ request }: LoaderFunctionArgs) {
@@ -108,7 +108,8 @@ export async function adminLoader({ request }: LoaderFunctionArgs) {
   }
 
   // User is not authenticated - redirect to login with return URL
-  const returnTo = encodeURIComponent(requestUrl.pathname);
-  console.log('Redirecting to login with returnTo:', returnTo);
-  throw redirect(`/login?returnTo=${returnTo}`);
+  // Must use 'returnUrl' param (not 'returnTo') to match LoginPage.tsx which reads searchParams.get('returnUrl')
+  const returnUrl = encodeURIComponent(requestUrl.pathname + requestUrl.search);
+  console.log('Redirecting to login with returnUrl:', returnUrl);
+  throw redirect(`/login?returnUrl=${returnUrl}`);
 }

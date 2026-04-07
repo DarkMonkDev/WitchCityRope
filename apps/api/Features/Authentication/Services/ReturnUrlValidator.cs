@@ -260,8 +260,11 @@ public class ReturnUrlValidator : IReturnUrlValidator
         var pathWithoutQuery = path.Split('?')[0];
 
         // Define allowed prefixes for dynamic routes
+        // Admin routes included so post-login redirect works for admin-capable roles
+        // (role authorization is enforced by adminLoader, not by URL validation)
         var allowedPrefixes = new[]
         {
+            "/admin/",
             "/events/",
             "/demo/",
             "/vetting/",
