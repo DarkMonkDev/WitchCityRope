@@ -266,7 +266,7 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                     {session.name}
                   </Text>
                 )}
-                {isPast ? (
+                <Group justify="space-between">
                   <Text
                     data-testid="event-date"
                     size={variant === 'list' ? 'sm' : undefined}
@@ -274,51 +274,33 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                     style={{
                       fontFamily: 'var(--font-heading)',
                       fontSize: variant === 'homepage' ? '14px' : undefined,
-                      color: 'var(--color-stone)',
+                      color: 'var(--color-burgundy)',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
-                      fontStyle: 'italic',
                     }}
                   >
-                    Completed
+                    {formatUtcToLocalDate(session.startTime || '', eventTimeZone, {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
                   </Text>
-                ) : (
-                  <Group justify="space-between">
-                    <Text
-                      data-testid="event-date"
-                      size={variant === 'list' ? 'sm' : undefined}
-                      fw={variant === 'list' ? 700 : 600}
-                      style={{
-                        fontFamily: 'var(--font-heading)',
-                        fontSize: variant === 'homepage' ? '14px' : undefined,
-                        color: 'var(--color-burgundy)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      {formatUtcToLocalDate(session.startTime || '', eventTimeZone, {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </Text>
-                    <Text
-                      data-testid="event-time"
-                      size={variant === 'list' ? 'sm' : undefined}
-                      fw={variant === 'list' ? 700 : 600}
-                      style={{
-                        fontFamily: 'var(--font-heading)',
-                        fontSize: variant === 'homepage' ? '14px' : undefined,
-                        color: 'var(--color-burgundy)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      {formatUtcTimeRange(session.startTime || '', session.endTime || '', eventTimeZone)
-                        .toLowerCase()}
-                    </Text>
-                  </Group>
-                )}
+                  <Text
+                    data-testid="event-time"
+                    size={variant === 'list' ? 'sm' : undefined}
+                    fw={variant === 'list' ? 700 : 600}
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: variant === 'homepage' ? '14px' : undefined,
+                      color: 'var(--color-burgundy)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {isPast ? 'Completed' : formatUtcTimeRange(session.startTime || '', session.endTime || '', eventTimeZone)
+                      .toLowerCase()}
+                  </Text>
+                </Group>
               </Stack>
             )
           }
@@ -338,17 +320,16 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                     {showSessionName && (
                       <Text
                         fw={600}
-                        c={isPast ? 'dimmed' : 'dimmed'}
+                        c="dimmed"
                         size="sm"
                         style={{
                           fontFamily: 'var(--font-heading)',
-                          opacity: isPast ? 0.6 : 1,
                         }}
                       >
                         {session.name}
                       </Text>
                     )}
-                    {isPast ? (
+                    <Group justify="space-between">
                       <Text
                         data-testid={variant === 'list' && index === 0 ? 'event-date' : undefined}
                         size={variant === 'list' ? 'sm' : undefined}
@@ -356,52 +337,33 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
                         style={{
                           fontFamily: 'var(--font-heading)',
                           fontSize: variant === 'homepage' ? '14px' : undefined,
-                          color: 'var(--color-stone)',
+                          color: 'var(--color-burgundy)',
                           textTransform: 'uppercase',
                           letterSpacing: '0.5px',
-                          fontStyle: 'italic',
-                          opacity: 0.6,
                         }}
                       >
-                        Completed
+                        {formatUtcToLocalDate(session.startTime || '', eventTimeZone, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </Text>
-                    ) : (
-                      <Group justify="space-between">
-                        <Text
-                          data-testid={variant === 'list' && index === 0 ? 'event-date' : undefined}
-                          size={variant === 'list' ? 'sm' : undefined}
-                          fw={variant === 'list' ? 700 : 600}
-                          style={{
-                            fontFamily: 'var(--font-heading)',
-                            fontSize: variant === 'homepage' ? '14px' : undefined,
-                            color: 'var(--color-burgundy)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
-                          }}
-                        >
-                          {formatUtcToLocalDate(session.startTime || '', eventTimeZone, {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </Text>
-                        <Text
-                          data-testid={variant === 'list' && index === 0 ? 'event-time' : undefined}
-                          size={variant === 'list' ? 'sm' : undefined}
-                          fw={variant === 'list' ? 700 : 600}
-                          style={{
-                            fontFamily: 'var(--font-heading)',
-                            fontSize: variant === 'homepage' ? '14px' : undefined,
-                            color: 'var(--color-burgundy)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
-                          }}
-                        >
-                          {formatUtcTimeRange(session.startTime || '', session.endTime || '', eventTimeZone)
-                            .toLowerCase()}
-                        </Text>
-                      </Group>
-                    )}
+                      <Text
+                        data-testid={variant === 'list' && index === 0 ? 'event-time' : undefined}
+                        size={variant === 'list' ? 'sm' : undefined}
+                        fw={variant === 'list' ? 700 : 600}
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: variant === 'homepage' ? '14px' : undefined,
+                          color: 'var(--color-burgundy)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        {isPast ? 'Completed' : formatUtcTimeRange(session.startTime || '', session.endTime || '', eventTimeZone)
+                          .toLowerCase()}
+                      </Text>
+                    </Group>
                   </Stack>
                 )
               })}
