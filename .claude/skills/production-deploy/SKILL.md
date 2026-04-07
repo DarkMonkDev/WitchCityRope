@@ -237,7 +237,7 @@ After Phase 5 validation passes:
       "passed": 2,
       "failed": 0
     },
-    "url": "https://production.notfai.com, https://prod.witchcityrope.com",
+    "url": "https://www.witchcityrope.com",
     "rollbackAvailable": true,
     "previousSha": "def456g"
   }

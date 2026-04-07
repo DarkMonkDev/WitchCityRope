@@ -52,7 +52,7 @@ echo "   • Git has uncommitted changes"
 echo "   • Staging has not been validated"
 echo ""
 echo "⚠️  CRITICAL WARNING - PRODUCTION ENVIRONMENT:"
-echo "   • This deploys to LIVE production (prod.notfai.com)"
+echo "   • This deploys to LIVE production (www.witchcityrope.com)"
 echo "   • Real users will be affected"
 echo "   • Have rollback plan ready"
 echo ""
@@ -197,7 +197,7 @@ echo "   Registry: $REGISTRY"
 echo "   Server: $SERVER"
 echo "   Deploy Path: $DEPLOY_PATH"
 echo "   Git SHA: $GIT_SHA"
-echo "   URLs: https://prod.notfai.com, https://prod.witchcityrope.com"
+echo "   URL: https://www.witchcityrope.com"
 echo ""
 
 # Enable maintenance mode EARLY - before build starts.
@@ -458,7 +458,7 @@ SMOKE_PASS=0
 SMOKE_FAIL=0
 
 echo "   Testing homepage..."
-if curl -f -s https://prod.notfai.com/ | grep -q "Witch City Rope"; then
+if curl -f -s https://www.witchcityrope.com/ | grep -q "Witch City Rope"; then
     echo "   ✅ Homepage"
     SMOKE_PASS=$((SMOKE_PASS + 1))
 else
@@ -467,7 +467,7 @@ else
 fi
 
 echo "   Testing API events endpoint..."
-if curl -f -s https://prod.notfai.com/api/events > /dev/null; then
+if curl -f -s https://www.witchcityrope.com/api/events > /dev/null; then
     echo "   ✅ Events API"
     SMOKE_PASS=$((SMOKE_PASS + 1))
 else
@@ -488,7 +488,7 @@ echo "=================================="
 echo ""
 echo "📊 Deployment Summary:"
 echo "   • Server: $SERVER"
-echo "   • URLs: https://prod.notfai.com, https://prod.witchcityrope.com"
+echo "   • URL: https://www.witchcityrope.com"
 echo "   • Git SHA: $GIT_SHA"
 echo "   • Images: $REGISTRY/*-production:latest, :$GIT_SHA"
 echo "   • Smoke tests: $SMOKE_PASS/$((SMOKE_PASS + SMOKE_FAIL))"
@@ -496,7 +496,7 @@ echo ""
 echo "🎯 Next Steps:"
 echo "   1. Manually test critical user flows"
 echo "   2. Monitor logs: ssh $USER@$SERVER 'docker logs -f witchcity-api-prod'"
-echo "   3. Monitor production: https://prod.notfai.com"
+echo "   3. Monitor production: https://www.witchcityrope.com"
 echo "   4. If issues: Use production-rollback skill IMMEDIATELY"
 echo ""
 
