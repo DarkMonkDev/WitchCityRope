@@ -48,16 +48,21 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
   // Show Purchase Ticket button only if user has RSVPed but not purchased ticket and event has paid tickets
   const shouldShowPurchaseButton = showParticipationStatus && hasRSVP && !hasTicket && hasPaidTickets
 
-  // Calculate available spots and status
-  const capacity = event.capacity || 20
+  // Available spots from backend — single source of truth.
+  // For multi-session events: max remaining across future sessions.
+  // For single-session events: event capacity minus attendee count.
+  const availableSpots = event.availableSpotsDisplay ?? 0
+  const isMultiSession = ((event as any)?.sessions?.length ?? 0) > 1
+
   // Determine event type from boolean flags
   const allowRsvps = (event as any)?.allowRsvps ?? false
   const requireTicketPurchase = (event as any)?.requireTicketPurchase ?? true
   const isSocialEvent = allowRsvps && !requireTicketPurchase
+
+  // Current count still needed for single-session "X sold/RSVPs" display
   const currentCount = isSocialEvent
     ? (event as any).currentRSVPs || event.registrationCount || 0
     : (event as any).currentTickets || event.registrationCount || 0
-  const availableSpots = capacity - currentCount
 
   const getSpotColor = () => {
     if (availableSpots > 10) return 'var(--color-success)'
@@ -65,8 +70,14 @@ export const PublicEventCard: React.FC<PublicEventCardProps> = ({
     return 'var(--color-error)'
   }
 
-  // Calculate status text - thresholds match getSpotColor()
+  // Status text: multi-session shows just "X spots left", single-session shows "X sold, Y left"
   const getStatusText = () => {
+    if (isMultiSession) {
+      // Multi-session events: just show spots remaining (no sold count)
+      if (availableSpots <= 0) return isSocialEvent ? 'RSVPs Full' : 'Sold Out'
+      if (availableSpots <= 3) return `Only ${availableSpots} left!`
+      return `${availableSpots} spots left`
+    }
     if (isSocialEvent) {
       if (availableSpots <= 0) return 'RSVPs Full'
       if (availableSpots <= 3) return `Only ${availableSpots} left!`

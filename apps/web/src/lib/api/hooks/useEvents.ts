@@ -29,6 +29,7 @@ interface ApiEvent {
   currentRSVPs?: number
   volunteerPositions?: any[]
   currentTickets?: number
+  availableSpotsDisplay?: number
   availableSpots?: number
   price?: number
   organizerName?: string
@@ -112,6 +113,8 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     vettedMembersOnly: apiEvent.vettedMembersOnly ?? false,
     capacity: apiEvent.capacity || apiEvent.maxAttendees || 20, // Use capacity first, then maxAttendees
     registrationCount: apiEvent.registrationCount || apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
+    // Available spots computed by backend — single source of truth for public display
+    availableSpotsDisplay: apiEvent.availableSpotsDisplay ?? 0,
     // Map new fields from API response with proper transformation
     sessions: transformedSessions,
     ticketTypes: transformedTicketTypes,

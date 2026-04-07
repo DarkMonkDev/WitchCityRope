@@ -15814,6 +15814,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "availableSpotsDisplay": {
+            "type": "integer",
+            "format": "int32"
+          },
           "sessions": {
             "type": "array",
             "items": {

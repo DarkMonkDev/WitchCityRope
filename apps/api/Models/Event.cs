@@ -273,4 +273,61 @@ public class Event
         // Fallback: If navigation property not loaded, return 0 (service should handle proper loading)
         return 0;
     }
+
+    // ====================================================================
+    // DISPLAY-ORIENTED AVAILABILITY CALCULATION
+    // ====================================================================
+
+    /// <summary>
+    /// Computes the number of available spots to display on event cards and detail pages.
+    ///
+    /// BUSINESS LOGIC (multi-session events):
+    /// For events with multiple sessions, we find the remaining slots for each
+    /// individual future session and return the HIGHEST remaining value.
+    /// This represents the maximum number of spots a new attendee could fill
+    /// across any single session. Past sessions (EndTime &lt;= UtcNow) are excluded.
+    ///
+    /// Example: Session 1 has 10 remaining, Session 2 has 12 remaining → returns 12.
+    /// Example: Session 1 is sold out (0), Session 2 has 5 remaining → returns 5.
+    /// Example: Session 1 is in the past, Session 2 has 8 remaining → returns 8.
+    ///
+    /// SINGLE-SESSION / NO-SESSION EVENTS:
+    /// Falls back to event-level capacity minus type-appropriate attendee count
+    /// (RSVPs for social events, tickets for ticket-required events).
+    /// This preserves existing behavior and correctly handles social events
+    /// where Session.CurrentAttendees only counts tickets, not RSVPs.
+    ///
+    /// WHY MAX (not sum or min):
+    /// Tickets can cover multiple sessions. A person buying a multi-session ticket
+    /// occupies one slot per session, but they are one attendee. Showing the max
+    /// remaining across sessions reflects the true number of new people who could
+    /// still attend the event's most available session.
+    ///
+    /// Requires Sessions and EventAttendances navigation properties to be loaded.
+    /// </summary>
+    public int GetAvailableSpotsDisplay()
+    {
+        // Get future sessions (those that haven't ended yet)
+        var futureSessions = Sessions?
+            .Where(s => s.EndTime > DateTime.UtcNow)
+            .ToList();
+
+        // Per-session logic only for multi-session events (2+ future sessions).
+        // Single-session events use event-level fallback because Session.CurrentAttendees
+        // only counts tickets, which is wrong for social/RSVP events where RSVPs are
+        // the primary attendance metric. The event-level GetCurrentAttendeeCount()
+        // correctly handles both social (RSVPs) and ticket-required (tickets) events.
+        if (futureSessions != null && futureSessions.Count > 1)
+        {
+            var maxRemaining = futureSessions
+                .Select(s => Math.Max(0, s.Capacity - s.CurrentAttendees))
+                .Max();
+
+            return maxRemaining;
+        }
+
+        // Single-session, no-session, or all-sessions-past events:
+        // Use event-level capacity minus type-appropriate attendee count
+        return Math.Max(0, Capacity - GetCurrentAttendeeCount());
+    }
 }

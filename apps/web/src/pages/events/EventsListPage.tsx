@@ -227,7 +227,9 @@ export const EventsListPage: React.FC = () => {
         label: 'Spots',
         align: 'center',
         render: (event) => {
-          const availableSpots = (event.capacity || 20) - (event.registrationCount || 0)
+          // Available spots from backend — single source of truth
+          const availableSpots = event.availableSpotsDisplay ?? 0
+          const isMultiSession = ((event as any)?.sessions?.length ?? 0) > 1
           const getSpotColor = () => {
             if (availableSpots > 10) return 'var(--color-success)'
             if (availableSpots > 3) return 'var(--color-warning)'
@@ -236,7 +238,9 @@ export const EventsListPage: React.FC = () => {
 
           return (
             <Text size="md" fw={600} className="table-cell-text" style={{ color: getSpotColor() }}>
-              {event.registrationCount || 0}/{event.capacity || 20}
+              {isMultiSession
+                ? `${availableSpots} left`
+                : `${event.registrationCount || 0}/${event.capacity || 20}`}
             </Text>
           )
         },

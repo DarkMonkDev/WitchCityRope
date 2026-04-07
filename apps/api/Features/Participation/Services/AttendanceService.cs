@@ -101,12 +101,18 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogInformation("Getting enhanced attendance status for user {UserId} in event {EventId}", userId, eventId);
 
-            // Get event details with sessions for capacity calculation
+            // Get event details with sessions and attendances for capacity calculation.
+            // EventAttendances chain is needed for Session.CurrentAttendees (used by
+            // Event.GetAvailableSpotsDisplay()) — same chain as EventService queries.
             var eventEntity = await _context.Events
                 .AsNoTracking()
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
                     .ThenInclude(tt => tt.Sessions)
+                .Include(e => e.EventAttendances)
+                    .ThenInclude(ea => ea.TicketPurchase)
+                        .ThenInclude(tp => tp.TicketType)
+                            .ThenInclude(tt => tt.Sessions)
                 .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
 
             if (eventEntity == null)
@@ -591,12 +597,14 @@ public class AttendanceService : IAttendanceService
                 CanCancelTicket = canCancelTicket,
                 TicketPurchaseMessage = ticketPurchaseMessage,
                 // Current uses display count (Active only, type-appropriate) — consistent with events list page.
-                // Available uses display count too so Current + Available = Total for clean UI display.
+                // Available uses Event.GetAvailableSpotsDisplay() — single source of truth for
+                // per-session-aware availability. For multi-session events this returns max remaining
+                // across future sessions; for single-session events it returns Capacity - attendee count.
                 Capacity = new CapacityInfoDto
                 {
                     Current = displayCount,
                     Total = eventEntity.Capacity,
-                    Available = Math.Max(0, eventEntity.Capacity - displayCount)
+                    Available = eventEntity.GetAvailableSpotsDisplay()
                 },
                 MaxPerPerson = eventEntity.DefaultMaxTicketOrRsvpPerPerson,
                 RemainingPerPerson = remainingPerPerson,

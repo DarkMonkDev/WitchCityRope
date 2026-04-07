@@ -82,7 +82,9 @@ export const EventDetailPage: React.FC = () => {
     );
   }
 
-  const availableSpots = (event.capacity || 0) - (event.registrationCount || 0);
+  // Available spots from backend — single source of truth.
+  // For multi-session events: max remaining across future sessions.
+  const availableSpots = event.availableSpotsDisplay ?? 0;
   
 
   const handleRSVP = (notes?: string, eventWaiverAccepted?: boolean) => {

@@ -75,6 +75,21 @@ public class EventDto
     public int CurrentTickets { get; set; }
 
     /// <summary>
+    /// Number of available spots to display on event cards and public pages.
+    ///
+    /// For multi-session events: the highest remaining capacity across all
+    /// future sessions (past sessions excluded). This reflects how many new
+    /// attendees the event's most available session can still accept.
+    ///
+    /// For single-session or no-session events: event Capacity minus current
+    /// attendee count (same as the historical computation).
+    ///
+    /// Computed by Event.GetAvailableSpotsDisplay() — single source of truth.
+    /// Frontend should use this value instead of computing capacity - registrationCount.
+    /// </summary>
+    public int AvailableSpotsDisplay { get; set; }
+
+    /// <summary>
     /// List of sessions within this event
     /// Empty for single-session events, populated for multi-session events
     /// </summary>

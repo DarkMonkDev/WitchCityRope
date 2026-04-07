@@ -333,7 +333,7 @@ export interface paths {
         };
         /**
          * Get all events
-         * @description Returns events from the database. Use ?includeUnpublished=true for admin access to draft events (requires Administrator role). Use ?includePastEvents=true to include past events from the last 90 days.
+         * @description Returns events from the database. Use ?includeUnpublished=true for admin access to draft events (requires Administrator or EventOrganizer role). Use ?includePastEvents=true to include past events from the last 90 days.
          */
         get: operations["GetEvents"];
         put?: never;
@@ -2794,7 +2794,8 @@ export interface paths {
         get: operations["GetApplicationDetail"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Soft-delete a vetting application */
+        delete: operations["SoftDeleteApplication"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2913,6 +2914,23 @@ export interface paths {
         put?: never;
         /** Send interview reminder email to applicant */
         post: operations["SendReminder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vetting/reviewer/applications/{id}/applicant-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update applicant contact/identity information on a vetting application */
+        put: operations["UpdateApplicantInfo"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4501,6 +4519,8 @@ export interface components {
             /** Format: date-time */
             lastActivityAt?: null | string;
             sceneName?: string;
+            firstName?: null | string;
+            lastName?: null | string;
             pronouns?: null | string;
             email?: string;
             fetLifeHandle?: null | string;
@@ -5325,6 +5345,8 @@ export interface components {
             currentRSVPs?: number;
             /** Format: int32 */
             currentTickets?: number;
+            /** Format: int32 */
+            availableSpotsDisplay?: number;
             sessions?: components["schemas"]["SessionDto"][];
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
             volunteerPositions?: components["schemas"]["EventVolunteerPositionDto"][];
@@ -6504,6 +6526,15 @@ export interface components {
             email?: string;
             sceneName?: string;
         };
+        UpdateApplicationApplicantInfoRequest: {
+            sceneName: string;
+            firstName?: null | string;
+            lastName?: null | string;
+            email: string;
+            pronouns?: null | string;
+            fetLifeHandle?: null | string;
+            otherNames?: null | string;
+        };
         UpdateContentPageRequest: {
             title: string;
             content: string;
@@ -6704,6 +6735,7 @@ export interface components {
             additionalSessionsAvailable?: number;
             hasAvailableTickets?: boolean;
             tickets?: components["schemas"]["UserTicketDto"][];
+            isPurchaserOnly?: boolean;
         };
         UserListResponse: {
             users?: components["schemas"]["UserDto"][];
@@ -6781,7 +6813,7 @@ export interface components {
             hasVettingApplication?: boolean;
         };
         /** @enum {unknown} */
-        UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer" | "DungeonMonitor";
+        UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer" | "DungeonMonitor" | "VettingTeam";
         UserRoleDto: {
             role?: components["schemas"]["UserRole"];
             displayName?: string;
@@ -14335,6 +14367,62 @@ export interface operations {
             };
         };
     };
+    SoftDeleteApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     SubmitReviewDecision: {
         parameters: {
             query?: never;
@@ -14729,6 +14817,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SendReminderResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateApplicantInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateApplicationApplicantInfoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationDetailResponse"];
                 };
             };
             /** @description Bad Request */
