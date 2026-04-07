@@ -1,6 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Shared.Services;
+using WitchCityRope.Api.Features.Users.Extensions;
 using WitchCityRope.Api.Features.Vetting.Entities;
 
 namespace WitchCityRope.Api.Features.Vetting.Services;
@@ -14,15 +17,18 @@ public class VettingEmailService : IVettingEmailService
     private readonly IEmailService _emailService;
     private readonly ILogger<VettingEmailService> _logger;
     private readonly IConfiguration _configuration;
+    private readonly ApplicationDbContext _context;
 
     public VettingEmailService(
         IEmailService emailService,
         ILogger<VettingEmailService> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ApplicationDbContext context)
     {
         _emailService = emailService;
         _logger = logger;
         _configuration = configuration;
+        _context = context;
     }
 
     /// <summary>
@@ -210,6 +216,87 @@ public class VettingEmailService : IVettingEmailService
                 "Error sending reminder email: ApplicationNumber={ApplicationNumber}",
                 application.ApplicationNumber);
             return Result<bool>.Failure($"Error sending email: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Send notification to all VettingTeam members that a new application has been submitted.
+    /// No applicant PII is included — just a link to the vetting admin page for review.
+    /// Uses WhereHasRole to query specifically for VettingTeam (not Administrators).
+    /// </summary>
+    public async Task<Result<bool>> SendNewApplicationTeamNotificationAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Query all users with VettingTeam role (not Administrators — per business requirement)
+            var vettingTeamMembers = await _context.Users
+                .AsNoTracking()
+                .WhereHasRole("VettingTeam")
+                .Where(u => !string.IsNullOrEmpty(u.Email))
+                .ToListAsync(cancellationToken);
+
+            if (vettingTeamMembers.Count == 0)
+            {
+                _logger.LogWarning("No VettingTeam members found to notify about new application");
+                return Result<bool>.Success(true);
+            }
+
+            // Build environment-specific link to the vetting admin page
+            var frontendUrl = _configuration["Frontend:Url"]?.TrimEnd('/') ?? "https://witchcityrope.com";
+            var vettingAdminLink = $"{frontendUrl}/admin/vetting";
+
+            var variables = new Dictionary<string, string>
+            {
+                { "vetting_admin_link", vettingAdminLink }
+            };
+
+            var successCount = 0;
+            var failureCount = 0;
+
+            foreach (var member in vettingTeamMembers)
+            {
+                try
+                {
+                    var result = await _emailService.SendTemplatedEmailAsync(
+                        member.Email!,
+                        member.SceneName ?? member.FirstName ?? "Vetting Team Member",
+                        EmailCategory.Vetting,
+                        "VettingTeamNewApplication",
+                        variables,
+                        cancellationToken);
+
+                    if (result.IsSuccess)
+                    {
+                        successCount++;
+                    }
+                    else
+                    {
+                        failureCount++;
+                        _logger.LogWarning(
+                            "Failed to send new application notification to VettingTeam member {Email}: {Error}",
+                            member.Email, result.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    failureCount++;
+                    _logger.LogError(ex,
+                        "Exception sending new application notification to VettingTeam member {Email}",
+                        member.Email);
+                }
+            }
+
+            _logger.LogInformation(
+                "New application team notification sent: {SuccessCount} succeeded, {FailureCount} failed out of {TotalCount} VettingTeam members",
+                successCount, failureCount, vettingTeamMembers.Count);
+
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending new application team notification to VettingTeam members");
+            return Result<bool>.Failure($"Error sending team notification: {ex.Message}");
         }
     }
 

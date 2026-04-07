@@ -71,7 +71,7 @@ public class EmailTemplateSeeder
 
     private async Task SeedVettingTemplatesAsync(Guid adminUserId, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Seeding Vetting templates (6)...");
+        _logger.LogInformation("Seeding Vetting templates (7)...");
 
         var templates = new[]
         {
@@ -159,6 +159,21 @@ public class EmailTemplateSeeder
                 Subject = "Interview Reminder - {{scene_name}}",
                 HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">This is a friendly reminder about your upcoming vetting interview.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Interview Information</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Preparation Checklist</h2><ul style=\"margin-bottom: 16px; padding-left: 20px;\"><li>Review your application details</li><li>Prepare questions about WitchCityRope</li><li>Be ready to discuss your rope bondage experience</li><li>Ensure you have a quiet, private space for the interview</li></ul><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Need to Reschedule?</h2><p style=\"margin-bottom: 16px;\">If you need to reschedule, please contact us at least 24 hours in advance.</p><p style=\"margin-bottom: 16px;\">We look forward to meeting with you!</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:info@witchcityrope.com\" style=\"color: #880124;\">info@witchcityrope.com</a></p>",
                 PlainTextBody = "Dear {{scene_name}},\n\nThis is a friendly reminder about your upcoming vetting interview.\n\nApplication Number: {{application_number}}\n\nIf you need to reschedule, please contact us at least 24 hours in advance.\n\nWe look forward to meeting with you!\n\nBest regards,\nThe WitchCityRope Vetting Team",
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Id = Guid.Parse("80808080-8080-8080-8080-808080808086"),
+                Category = EmailCategory.Vetting,
+                TemplateType = "VettingTeamNewApplication",
+                Title = "New Vetting Application Submitted",
+                Subject = "New Vetting Application Submitted",
+                HtmlBody = "<p style=\"margin-bottom: 16px;\">Hello,</p><p style=\"margin-bottom: 16px;\">A new vetting application has been submitted and is ready for review.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Action Required</h2><p style=\"margin-bottom: 16px;\">Please log in to the admin dashboard to review the application at your earliest convenience.</p><p style=\"margin-bottom: 16px;\"><a href=\"{{vetting_admin_link}}\" style=\"display: inline-block; padding: 12px 24px; background-color: #880124; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;\">Review Vetting Applications</a></p><p style=\"margin-bottom: 16px;\">Best regards,<br>WitchCityRope System</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">This is an automated notification sent to members of the Vetting Team.</p>",
+                PlainTextBody = "Hello,\n\nA new vetting application has been submitted and is ready for review.\n\nPlease log in to the admin dashboard to review the application:\n{{vetting_admin_link}}\n\nBest regards,\nWitchCityRope System\n\nThis is an automated notification sent to members of the Vetting Team.",
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,

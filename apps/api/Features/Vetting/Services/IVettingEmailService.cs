@@ -61,4 +61,14 @@ public interface IVettingEmailService
         string applicantName,
         string? customMessage,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Send notification email to all VettingTeam role members when a new application is submitted.
+    /// Email contains no applicant PII — just a generic alert with a link to the vetting admin page.
+    /// Only triggered on new application submission (not status changes).
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for async operation</param>
+    /// <returns>Result indicating success or failure with error details</returns>
+    Task<Result<bool>> SendNewApplicationTeamNotificationAsync(
+        CancellationToken cancellationToken = default);
 }

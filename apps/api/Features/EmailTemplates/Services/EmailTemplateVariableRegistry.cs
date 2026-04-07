@@ -188,6 +188,13 @@ public static class EmailTemplateVariableRegistry
             "{{custom_message}}"
         },
 
+        // VettingTeamNewApplication: Sent to all VettingTeam members when a new application is submitted.
+        // Contains no applicant PII — just a link to the admin vetting page for review.
+        [(EmailCategory.Vetting, "VettingTeamNewApplication")] = new[]
+        {
+            "{{vetting_admin_link}}"
+        },
+
         // ========================================
         // Incident Category (4 templates)
         // ========================================

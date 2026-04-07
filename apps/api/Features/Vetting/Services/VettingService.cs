@@ -1106,6 +1106,19 @@ public class VettingService : IVettingService
                     applicationNumber);
             }
 
+            // Notify all VettingTeam members about the new application (no applicant PII included)
+            try
+            {
+                await _emailService.SendNewApplicationTeamNotificationAsync(cancellationToken);
+            }
+            catch (Exception teamEmailEx)
+            {
+                // Team notification failure should never block application submission
+                _logger.LogError(teamEmailEx,
+                    "Exception sending VettingTeam notification for application {ApplicationNumber}",
+                    applicationNumber);
+            }
+
             // Build response
             var response = new ApplicationSubmissionResponse
             {
@@ -1280,6 +1293,19 @@ public class VettingService : IVettingService
                 // Catch email errors separately so they don't fail the application
                 _logger.LogError(emailEx,
                     "Exception sending confirmation email for application {ApplicationNumber}",
+                    applicationNumber);
+            }
+
+            // Notify all VettingTeam members about the new application (no applicant PII included)
+            try
+            {
+                await _emailService.SendNewApplicationTeamNotificationAsync(cancellationToken);
+            }
+            catch (Exception teamEmailEx)
+            {
+                // Team notification failure should never block application submission
+                _logger.LogError(teamEmailEx,
+                    "Exception sending VettingTeam notification for application {ApplicationNumber}",
                     applicationNumber);
             }
 
