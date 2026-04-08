@@ -28,7 +28,7 @@ services:
     networks:
       - witchcity-staging
     ports:
-      - "5002:8080"  # Maps to Nginx proxy at localhost:5002
+      - "127.0.0.1:5002:8080"  # Localhost only — host nginx reverse-proxies to this port (PCI compliance: prevent direct public access)
     volumes:
       - api_uploads_staging:/app/uploads
     environment:
@@ -110,7 +110,7 @@ services:
     networks:
       - witchcity-staging
     ports:
-      - "3002:80"  # Maps to Nginx proxy at localhost:3002
+      - "127.0.0.1:3002:80"  # Localhost only — host nginx reverse-proxies to this port (PCI compliance: prevent direct public access)
     environment:
       - NODE_ENV=production
       - VITE_API_BASE_URL=/api
