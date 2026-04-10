@@ -36,13 +36,13 @@ SKIP_CONFIRMATION="${SKIP_CONFIRMATION:-false}"
 
 show_usage() {
     cat << EOF
-${CYAN}test-environment${NC} - Isolated Test Container Management
+${CYAN}test-environment${NC} - Isolated Playwright E2E Container Management
 
 ${YELLOW}USAGE:${NC}
     bash .claude/skills/test-environment/execute.sh [OPTIONS]
 
 ${YELLOW}OPTIONS:${NC}
-    --mode MODE         Test mode (default: e2e)
+    --mode MODE         Test mode (default: e2e, only e2e/failed-only supported)
     --filter PATTERN    Filter E2E tests by pattern (only works with e2e mode)
     --coverage          Generate coverage reports
     --keep-images       Keep built images after cleanup
@@ -58,26 +58,20 @@ ${YELLOW}TEST MODES:${NC}
                     - Supports --filter for pattern matching
                     - Use for: UI regression testing, feature verification
 
-    dotnet          All .NET tests (unit + integration, NO E2E)
-                    - Runs: dotnet test (all .NET test projects)
-                    - Includes: tests/integration/, tests/WitchCityRope.*.Tests/
-                    - Use for: Backend verification without slow E2E tests
-                    - RECOMMENDED for CI and quick backend verification
-
-    all             Everything (.NET tests + E2E tests)
-                    - Runs dotnet test, then Playwright tests
-                    - Use for: Full regression before deployment
-
-    unit            .NET tests with [Trait("Category", "Unit")] only
-                    - Uses: dotnet test --filter "Category=Unit"
-                    - NOTE: Few tests have this trait, prefer 'dotnet' mode
-
-    integration     .NET tests with [Trait("Category", "Integration")] only
-                    - Uses: dotnet test --filter "Category=Integration"
-                    - NOTE: Few tests have this trait, prefer 'dotnet' mode
-
-    failed-only     Re-run previously failed tests (NOT FULLY IMPLEMENTED)
+    failed-only     Re-run previously failed E2E tests (NOT FULLY IMPLEMENTED)
                     - Falls back to running all E2E tests
+
+${YELLOW}.NET TESTS:${NC}
+    For .NET unit/integration tests, use the run-test-suite skill instead:
+        bash .claude/skills/run-test-suite/execute.sh --mode unit
+
+    The old --mode unit/integration/dotnet/all paths in THIS skill were removed
+    on 2026-04-10 because they were architecturally broken (they tried to run
+    dotnet test inside a container whose test stage had no test projects
+    copied in). See .claude/skills/run-test-suite/SKILL.md for the full history.
+
+    For running everything (.NET + E2E), use:
+        bash .claude/skills/run-test-suite/execute.sh --mode all
 
 ${YELLOW}EXAMPLES:${NC}
     # Run all E2E tests (default)
@@ -89,15 +83,6 @@ ${YELLOW}EXAMPLES:${NC}
     # Run specific E2E tests
     bash .claude/skills/test-environment/execute.sh --mode e2e --filter "admin-events"
 
-    # Run all test types
-    bash .claude/skills/test-environment/execute.sh --mode all
-
-    # Run all .NET tests (unit + integration, no E2E) - RECOMMENDED for backend
-    bash .claude/skills/test-environment/execute.sh --mode dotnet
-
-    # Run all .NET tests with fast rebuild
-    bash .claude/skills/test-environment/execute.sh --mode dotnet --skip-rebuild
-
     # Keep containers for debugging
     bash .claude/skills/test-environment/execute.sh --mode e2e --keep-containers
 
@@ -107,9 +92,9 @@ ${YELLOW}FEATURES:${NC}
     ✓ Builds from current codebase (unless --skip-rebuild)
     ✓ Automatic cleanup (prevents orphaned images)
     ✓ Health checks before running tests
-    ✓ Supports all test types (unit, integration, E2E)
 
 ${YELLOW}RELATED SKILLS:${NC}
+    • run-test-suite - For .NET tests, and for running .NET + E2E together
     • restart-test-containers - Container setup only (called internally)
     • restart-dev-containers - For development containers
 
@@ -213,9 +198,24 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Validate mode
-if [[ ! "$MODE" =~ ^(all|unit|integration|e2e|dotnet|failed-only)$ ]]; then
+# Validate mode.
+# The dead .NET modes (all, unit, integration, dotnet) were removed on
+# 2026-04-10 — see SKILL.md and show_usage() above for details. Use the
+# run-test-suite skill for .NET tests.
+if [[ ! "$MODE" =~ ^(e2e|failed-only)$ ]]; then
     echo -e "${RED}❌ Invalid mode: $MODE${NC}"
+    if [[ "$MODE" =~ ^(all|unit|integration|dotnet)$ ]]; then
+        echo ""
+        echo -e "${YELLOW}⚠️  The '$MODE' mode was removed from this skill on 2026-04-10.${NC}"
+        echo -e "${YELLOW}    It tried to run 'dotnet test' inside the api container but the${NC}"
+        echo -e "${YELLOW}    test stage of apps/api/Dockerfile only copies apps/api/ — no test${NC}"
+        echo -e "${YELLOW}    projects ever existed inside it, so it silently produced zero${NC}"
+        echo -e "${YELLOW}    results on every invocation. Use run-test-suite instead:${NC}"
+        echo ""
+        echo -e "${CYAN}      bash .claude/skills/run-test-suite/execute.sh --mode unit${NC}"
+        echo -e "${CYAN}      bash .claude/skills/run-test-suite/execute.sh --mode all${NC}"
+        echo ""
+    fi
     show_usage
     exit 1
 fi

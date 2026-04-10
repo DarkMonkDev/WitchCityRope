@@ -1,19 +1,28 @@
 ---
 name: test-environment
-description: Run all tests (unit, integration, E2E) in isolated containers separate from dev environment. Handles build, container startup, health checks, test execution, and cleanup. SINGLE SOURCE OF TRUTH for running tests in isolated containers.
+description: Run Playwright E2E tests in isolated containers separate from dev environment. Handles build, container startup, health checks, test execution, and cleanup. For .NET tests, use run-test-suite skill instead.
 ---
 
 # test-environment Skill
 
-**Purpose**: Run all tests in isolated containers separate from dev environment
+**Purpose**: Run Playwright E2E tests in isolated containers separate from dev environment.
+
+**What this skill runs**:
+- ✅ Playwright E2E tests (`tests/e2e/*.spec.ts`) inside `witchcity-test-runner` container
+
+**What this skill does NOT run**:
+- ❌ .NET unit tests — use `run-test-suite` skill (`--mode unit`)
+- ❌ .NET integration tests — use `run-test-suite` skill (`--mode unit` — integration is in `tests/integration/` and runs with the other .NET tests)
+- ❌ Both .NET + E2E together — use `run-test-suite` skill (`--mode all`)
+
+**Why the split**: See `run-test-suite/SKILL.md` "Why This Skill Exists" — the dead `--mode dotnet|unit|integration|all` paths that used to live here tried to `docker-compose exec api dotnet test` into a container whose test stage only copied `apps/api/` (no test projects), so they silently produced zero results from 2025-11-27 until they were removed on 2026-04-10. The replacement runs .NET tests from the host, which is how WCR's test architecture was designed (TestContainers.PostgreSql spins up per-test postgres containers on demand).
 
 **When to Use**:
-- Before running any test suite (E2E, unit, integration)
-- When dev containers are busy with other agents
-- To prevent test interference with development work
-- For complete test isolation
+- Before running an E2E test suite
+- When dev containers are busy with other agents and you need isolation
+- For complete test isolation from development work
 
-**Single Source**: This skill is the ONLY way to run tests in isolated containers.
+**Single Source**: This skill is the ONLY way to run E2E tests in isolated containers.
 
 ## Features
 
@@ -26,12 +35,6 @@ description: Run all tests (unit, integration, E2E) in isolated containers separ
 - Builds from current codebase
 - Fresh database each run
 - Clean state for every test
-
-✅ **All Test Types**
-- Unit tests (.NET)
-- Integration tests (.NET)
-- E2E tests (Playwright)
-- Failed-only reruns
 
 ✅ **Automatic Cleanup**
 - Removes containers after tests
@@ -48,18 +51,21 @@ bash .claude/skills/test-environment/execute.sh
 # Run specific E2E test file
 bash .claude/skills/test-environment/execute.sh --mode e2e --filter "admin-events-dashboard"
 
-# Run all tests
-bash .claude/skills/test-environment/execute.sh --mode all
-
 # Keep containers for debugging
 bash .claude/skills/test-environment/execute.sh --mode e2e --keep-containers
+```
+
+For .NET tests or for running everything (.NET + E2E):
+```bash
+bash .claude/skills/run-test-suite/execute.sh --mode unit   # .NET only
+bash .claude/skills/run-test-suite/execute.sh --mode all    # .NET + E2E
 ```
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `--mode MODE` | Test mode: all, unit, integration, e2e, failed-only |
+| `--mode MODE` | Test mode: `e2e` (default) or `failed-only` |
 | `--filter PATTERN` | Filter E2E tests by filename pattern |
 | `--coverage` | Generate coverage reports (not yet implemented) |
 | `--keep-images` | Keep built images for faster reruns |
@@ -71,17 +77,8 @@ bash .claude/skills/test-environment/execute.sh --mode e2e --keep-containers
 ### `--mode e2e` (default)
 Runs Playwright E2E tests against test containers.
 
-### `--mode all`
-Runs all test types: unit + integration + e2e
-
-### `--mode unit`
-Runs .NET unit tests only
-
-### `--mode integration`
-Runs .NET integration tests only
-
 ### `--mode failed-only`
-Reruns previously failed tests (not yet implemented)
+Reruns previously failed E2E tests (not yet implemented).
 
 ## Integration with Agents
 

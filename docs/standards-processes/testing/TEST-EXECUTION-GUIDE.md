@@ -109,39 +109,51 @@ dotnet test
 
 ### Method 1: Using Skills (RECOMMENDED)
 
-**For Complete Test Isolation**:
+WCR has **two** test skills, split by what they run:
 
-Use the **test-environment** skill to run tests in isolated containers:
+| Skill | Runs | When to use |
+|---|---|---|
+| `run-test-suite` | .NET unit/integration tests (host `dotnet test`) and/or Playwright E2E via delegation | Default for most situations. Use `--mode unit` for .NET only, `--mode e2e` for browser only, `--mode all` for both. |
+| `test-environment` | Playwright E2E only, in isolated test containers | Use directly when you only need E2E, or when the `run-test-suite` e2e path is overkill. `run-test-suite --mode e2e` internally delegates here. |
+
+**.NET tests run from the host** via `dotnet test <csproj>`, not inside a container. Each test project uses `Testcontainers.PostgreSql`, which spins up its own per-test postgres container on demand. This is intentional — the previous "run `dotnet test` inside the api container" approach was architecturally broken (see `run-test-suite/SKILL.md` "Why This Skill Exists" for full history).
 
 ```bash
-# Run E2E tests in isolated test containers
-Use test-environment skill
+# Run .NET unit/integration tests (fast, no E2E)
+bash .claude/skills/run-test-suite/execute.sh --mode unit
 
-# Run all tests (unit + integration + E2E)
-Use test-environment skill with --mode all
+# Run filtered .NET tests
+bash .claude/skills/run-test-suite/execute.sh --mode unit --filter VettingService
 
-# Run specific E2E test file
-Use test-environment skill with --filter "admin-events-dashboard"
+# Run E2E tests in isolated containers
+bash .claude/skills/run-test-suite/execute.sh --mode e2e
+# OR directly:
+bash .claude/skills/test-environment/execute.sh --mode e2e
 
-# Keep containers for debugging
-Use test-environment skill with --keep-containers
+# Run everything (.NET + E2E)
+bash .claude/skills/run-test-suite/execute.sh --mode all
+
+# Run E2E for a specific feature, keep containers for debugging
+bash .claude/skills/test-environment/execute.sh --mode e2e --filter "admin-events-dashboard" --keep-containers
 ```
 
-**test-environment skill benefits**:
-- ✅ Complete isolation from dev environment
-- ✅ Fresh database state for each run
+**Skill benefits**:
+- ✅ Complete isolation from dev environment (E2E)
+- ✅ Fresh per-test postgres via TestContainers (.NET)
 - ✅ Prevents test interference with development
 - ✅ Automatic cleanup after tests
 - ✅ Works while other agents use dev containers
 
-**How it works**:
-1. Builds test containers (`test-web`, `test-api`, `test-db`)
+**How E2E works** (`test-environment` skill):
+1. Builds test containers (`witchcity-web-test`, `witchcity-api-test`, `witchcity-postgres-test`, `witchcity-test-runner`)
 2. Starts isolated environment with fresh database
-3. Runs specified tests
+3. Runs Playwright tests via `docker exec witchcity-test-runner`
 4. Captures results to `/test-results/`
 5. Cleans up containers (unless `--keep-containers`)
 
-See `/.claude/skills/test-environment/README.md` for complete documentation.
+**How .NET works** (`run-test-suite` skill): iterates over `tests/unit/api/`, `tests/WitchCityRope.Core.Tests/`, and `tests/integration/` csprojs, runs `dotnet test` on each from the host, aggregates results, and enforces safety nets against silent discovery failures and compile errors.
+
+See `.claude/skills/run-test-suite/SKILL.md` and `.claude/skills/test-environment/SKILL.md` for complete skill documentation.
 
 **For Dev Container Testing**:
 

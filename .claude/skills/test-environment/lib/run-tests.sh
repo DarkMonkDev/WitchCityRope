@@ -211,36 +211,17 @@ run_tests() {
     local exit_code=0
 
     case "$mode" in
-        "all")
-            echo "Running all tests (unit + integration + e2e)..."
-            # Run .NET tests
-            docker-compose -p $project -f docker-compose.yml -f docker-compose.test.yml \
-                exec -T api dotnet test || exit_code=$?
-
-            # Run E2E tests in test-runner container
-            docker exec witchcity-test-runner \
-                npx playwright test --config=playwright.config.ts \
-                --reporter=list,json,html || exit_code=$?
-            ;;
-
-        "unit")
-            echo "Running unit tests..."
-            docker-compose -p $project -f docker-compose.yml -f docker-compose.test.yml \
-                exec -T api dotnet test --filter "Category=Unit" || exit_code=$?
-            ;;
-
-        "integration")
-            echo "Running integration tests..."
-            docker-compose -p $project -f docker-compose.yml -f docker-compose.test.yml \
-                exec -T api dotnet test --filter "Category=Integration" || exit_code=$?
-            ;;
-
-        "dotnet")
-            echo "Running all .NET tests (unit + integration, no E2E)..."
-            docker-compose -p $project -f docker-compose.yml -f docker-compose.test.yml \
-                exec -T api dotnet test || exit_code=$?
-            ;;
-
+        # NOTE: the dead .NET modes ("all", "unit", "integration", "dotnet") were
+        # removed on 2026-04-10. They tried to `docker-compose exec api dotnet test`
+        # into a container whose test stage only copied apps/api/ (no test projects),
+        # so they silently produced zero results on every invocation since they were
+        # added (2025-11-27). See .claude/skills/run-test-suite/ for the replacement
+        # that runs .NET tests from the host, and its SKILL.md "Why This Skill Exists"
+        # section for the full history.
+        #
+        # This skill now handles ONLY E2E and failed-only. For .NET tests or for
+        # running everything (.NET + E2E), use:
+        #     bash .claude/skills/run-test-suite/execute.sh --mode all
         "e2e")
             echo "Running E2E tests in test-runner container..."
             echo "  Using web service: http://web:5173"
@@ -300,8 +281,11 @@ run_tests() {
             ;;
     esac
 
-    # CRITICAL: Extract test results BEFORE cleanup can happen
-    if [ "$mode" = "e2e" ] || [ "$mode" = "all" ]; then
+    # CRITICAL: Extract test results BEFORE cleanup can happen.
+    # Only e2e mode produces the Playwright test-results.json that these helpers
+    # parse; failed-only will eventually too once implemented. The dead .NET modes
+    # that used to be handled here were removed on 2026-04-10.
+    if [ "$mode" = "e2e" ]; then
         extract_test_results
         generate_test_summary
     fi
