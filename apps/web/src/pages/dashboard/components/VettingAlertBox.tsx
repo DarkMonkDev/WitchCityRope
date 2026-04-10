@@ -96,7 +96,15 @@ export const VettingAlertBox: React.FC<VettingAlertBoxProps> = ({ status }) => {
         </Box>
       }
       color={config.color}
-      title={alertDef.title}
+      // Title is wrapped in a Text element so we can control size/weight
+      // independent of Mantine Alert's default (~14-16px). Using `lg`
+      // (~18px) makes the headline read as the first thing on the page
+      // without dominating the alert body.
+      title={
+        <Text size="lg" fw={700}>
+          {alertDef.title}
+        </Text>
+      }
       radius="md"
       mb="lg"
       styles={{

@@ -194,7 +194,7 @@ export const VETTING_STATUS_CONFIG: Record<VettingStatus, VettingStatusDisplay> 
     longLabel: 'Application Under Review',
     color: 'blue',
     badgeColor: 'indigo',
-    emoji: '⏰',
+    emoji: '⏳',
     description: 'Application submitted and currently being reviewed by the vetting team.',
     dashboardAlert: {
       title: 'Application Under Review',
@@ -209,7 +209,7 @@ export const VETTING_STATUS_CONFIG: Record<VettingStatus, VettingStatusDisplay> 
     longLabel: 'Approved for Interview',
     color: 'green',
     badgeColor: 'teal',
-    emoji: '✅',
+    emoji: '📅',
     description: 'Approved to schedule a vetting interview.',
     dashboardAlert: {
       title: 'Great News! Your Application Has Been Approved',
@@ -225,7 +225,7 @@ export const VETTING_STATUS_CONFIG: Record<VettingStatus, VettingStatusDisplay> 
     longLabel: 'Final Review',
     color: 'blue',
     badgeColor: 'blue',
-    emoji: '📋',
+    emoji: '🔎',
     description: 'Interview completed, application in final review before decision.',
     dashboardAlert: {
       title: 'Application in Final Review',
