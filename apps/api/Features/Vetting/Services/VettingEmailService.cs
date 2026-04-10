@@ -184,6 +184,13 @@ public class VettingEmailService : IVettingEmailService
                 { "application_date", application.CreatedAt.ToString("MMMM dd, yyyy") },
                 { "status_change_date", DateTime.UtcNow.ToString("MMMM dd, yyyy") },
                 { "current_status", application.WorkflowStatus.ToString() },
+                // interview_link powers the {{interview_link}} token in the InterviewReminder
+                // template so reminder recipients can click through to the scheduling page.
+                // Must match the variable name used by the InterviewApproved template in
+                // SendStatusUpdateAsync above so admins can reuse the same token in both.
+                // Omitting this caused a staging bug where reminder emails rendered a broken
+                // (or empty) link — see conversation 2026-04-10.
+                { "interview_link", GetInterviewSchedulingLink(application) },
                 { "custom_message", customMessage ?? string.Empty }
             };
 
