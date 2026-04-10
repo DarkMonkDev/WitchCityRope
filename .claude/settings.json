@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/chad/repos/witchcityrope/.claude/hooks/block-git-stash.sh",
+            "command": "python3 /home/chad/repos/witchcityrope/.claude/hooks/block-git-stash.py",
             "timeout": 5,
             "statusMessage": "Checking command for blocked git operations..."
           }
