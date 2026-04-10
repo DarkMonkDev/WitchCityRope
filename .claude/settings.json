@@ -9,6 +9,12 @@
             "command": "python3 /home/chad/repos/witchcityrope/.claude/hooks/block-git-stash.py",
             "timeout": 5,
             "statusMessage": "Checking command for blocked git operations..."
+          },
+          {
+            "type": "command",
+            "command": "python3 /home/chad/repos/witchcityrope/.claude/hooks/block-manual-test-runs.py",
+            "timeout": 5,
+            "statusMessage": "Checking command for manual test invocations..."
           }
         ]
       }

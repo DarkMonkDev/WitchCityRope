@@ -42,29 +42,17 @@
 import React from 'react';
 import { Alert, Anchor, Box, Text } from '@mantine/core';
 import type { VettingStatusDto } from '../../../types/dashboard.types';
-import {
-  getConfigFromStatus,
-  type VettingStatus,
-} from '../../../features/vetting/constants/vettingStatusConfig';
+import { getConfigFromStatus } from '../../../features/vetting/constants/vettingStatusConfig';
 
 interface VettingAlertBoxProps {
   status: VettingStatusDto;
 }
 
 export const VettingAlertBox: React.FC<VettingAlertBoxProps> = ({ status }) => {
-  // Don't render for users without a real status yet
-  if (!status.status) {
-    return null;
-  }
-
-  // Look up display config from the single-source config file.
-  // The cast to VettingStatus is safe: the generated type for
-  // VettingStatusDto.status is nullable VettingStatus, and we already
-  // null-checked above. The cast exists only because the generated type
-  // marks status as optional for all DTO fields.
-  const config = getConfigFromStatus(status.status as VettingStatus);
-
-  // No config or no alert for this status (e.g. Approved returns null).
+  // Single lookup — `getConfigFromStatus` returns null for missing/null/
+  // undefined status, and each config's `dashboardAlert` is null for statuses
+  // that intentionally don't show an alert (e.g. Approved).
+  const config = getConfigFromStatus(status.status);
   if (!config || !config.dashboardAlert) {
     return null;
   }
