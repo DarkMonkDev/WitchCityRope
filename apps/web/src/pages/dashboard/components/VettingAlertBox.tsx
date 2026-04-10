@@ -1,56 +1,93 @@
+/**
+ * VettingAlertBox
+ * ═══════════════
+ *
+ * Conditional alert banner shown on the user's dashboard and on the /join
+ * page when the user has an in-progress vetting application. Displays a
+ * status-appropriate message (and link, where relevant) to tell the user
+ * what they need to do next, or what state their application is in.
+ *
+ * SINGLE SOURCE OF TRUTH
+ * ----------------------
+ * This component is a DUMB renderer. It does NOT own any copy, colors,
+ * titles, or status-key logic. All of that lives in:
+ *   apps/web/src/features/vetting/constants/vettingStatusConfig.ts
+ *
+ * To change an alert title, color, or emoji: edit the config file, not
+ * this component. To add a new status, add it to the config Record and
+ * TypeScript will force this component to keep compiling.
+ *
+ * PRIOR BUG (fixed here)
+ * ----------------------
+ * Before the centralization, this component had a local `alertConfigs`
+ * object keyed by stale status names ("Pending", "ApprovedForInterview")
+ * from a pre-Calendly version of the backend enum. The backend was
+ * refactored (Pending → UnderReview, ApprovedForInterview → InterviewApproved,
+ * etc.) but this component was not updated. A later "strict-mode cleanup"
+ * commit silenced the resulting TypeScript error with an
+ * `as keyof typeof alertConfigs` cast, letting the broken lookup ship
+ * silently — the alert never rendered for UnderReview or InterviewApproved
+ * users, which was the bug report that prompted this fix.
+ *
+ * CUSTOM LINKS
+ * ------------
+ * Two statuses (InterviewApproved, Denied) need a clickable link inline
+ * with the alert body. The config exposes a `hasCustomLink: boolean` flag
+ * per status. When true, this component reads the relevant DTO field
+ * (status.interviewScheduleUrl or status.reapplyInfoUrl) and renders an
+ * <Anchor>. If the DTO field is missing at runtime, the component falls
+ * back to the plain `message` from the config.
+ */
+
 import React from 'react';
 import { Alert, Anchor, Box, Text } from '@mantine/core';
 import type { VettingStatusDto } from '../../../types/dashboard.types';
+import {
+  getConfigFromStatus,
+  type VettingStatus,
+} from '../../../features/vetting/constants/vettingStatusConfig';
 
 interface VettingAlertBoxProps {
   status: VettingStatusDto;
 }
 
-/**
- * Conditional vetting status alert box for user dashboard
- * Shows different alerts based on vetting status
- * Only displays for non-Approved users (UnderReview, InterviewApproved, FinalReview, OnHold, Denied, Withdrawn)
- */
 export const VettingAlertBox: React.FC<VettingAlertBoxProps> = ({ status }) => {
-  // Don't render for Approved users
-  if (status.status === 'Approved') {
+  // Don't render for users without a real status yet
+  if (!status.status) {
     return null;
   }
 
-  const alertConfigs = {
-    Pending: {
-      icon: '⏰',
-      color: 'blue',
-      title: 'Application Under Review',
-      message:
-        "Your membership application is currently under review. We'll notify you via email once it's been reviewed.",
-    },
-    ApprovedForInterview: {
-      icon: '✅',
-      color: 'green',
-      title: 'Great News! Your Application Has Been Approved',
-      message: status.interviewScheduleUrl ? (
+  // Look up display config from the single-source config file.
+  // The cast to VettingStatus is safe: the generated type for
+  // VettingStatusDto.status is nullable VettingStatus, and we already
+  // null-checked above. The cast exists only because the generated type
+  // marks status as optional for all DTO fields.
+  const config = getConfigFromStatus(status.status as VettingStatus);
+
+  // No config or no alert for this status (e.g. Approved returns null).
+  if (!config || !config.dashboardAlert) {
+    return null;
+  }
+
+  const alertDef = config.dashboardAlert;
+
+  // Build the message body. For statuses with a custom link, we render the
+  // link inline when the corresponding DTO URL field is present. Otherwise
+  // we fall back to the plain message string from the config.
+  let messageBody: React.ReactNode = alertDef.message;
+
+  if (alertDef.hasCustomLink) {
+    if (status.status === 'InterviewApproved' && status.interviewScheduleUrl) {
+      messageBody = (
         <>
           <Anchor href={status.interviewScheduleUrl} c="burgundy" fw={600} td="underline">
             Schedule your vetting interview here
           </Anchor>{' '}
           to complete your membership.
         </>
-      ) : (
-        'Please schedule your vetting interview to complete your membership.'
-      ),
-    },
-    OnHold: {
-      icon: '⏸️',
-      color: 'yellow',
-      title: 'Membership On Hold',
-      message: "Your membership is currently on hold. Contact us if you'd like to resume your membership.",
-    },
-    Denied: {
-      icon: '❌',
-      color: 'red',
-      title: 'Application Not Approved',
-      message: status.reapplyInfoUrl ? (
+      );
+    } else if (status.status === 'Denied' && status.reapplyInfoUrl) {
+      messageBody = (
         <>
           Your membership application was not approved at this time.{' '}
           <Anchor href={status.reapplyInfoUrl} c="burgundy" fw={600} td="underline">
@@ -58,27 +95,20 @@ export const VettingAlertBox: React.FC<VettingAlertBoxProps> = ({ status }) => {
           </Anchor>
           .
         </>
-      ) : (
-        'Your membership application was not approved at this time.'
-      ),
-    },
-  };
-
-  const config = status.status ? alertConfigs[status.status as keyof typeof alertConfigs] : undefined;
-
-  if (!config) {
-    return null;
+      );
+    }
+    // else: fall through to the plain `alertDef.message` already assigned above
   }
 
   return (
     <Alert
       icon={
         <Box component="span" fz="24px">
-          {config.icon}
+          {config.emoji}
         </Box>
       }
       color={config.color}
-      title={config.title}
+      title={alertDef.title}
       radius="md"
       mb="lg"
       styles={{
@@ -88,7 +118,7 @@ export const VettingAlertBox: React.FC<VettingAlertBoxProps> = ({ status }) => {
       }}
     >
       <Text size="sm" style={{ lineHeight: 1.6 }}>
-        {config.message}
+        {messageBody}
       </Text>
     </Alert>
   );

@@ -265,7 +265,12 @@ public class UserDashboardProfileService : IUserDashboardProfileService
 
                 case VettingStatus.InterviewApproved:
                     dto.Message = "Great News! Your application has been approved for interview. Schedule your vetting interview to complete your membership.";
-                    dto.InterviewScheduleUrl = "/vetting/schedule-interview";
+                    // Points to the CMS-managed page with slug "vetting-interview-scheduling".
+                    // The page is rendered by CmsDynamicPage via the catch-all /:slug route
+                    // in apps/web/src/routes/router.tsx, and its content is editable by
+                    // admins via the CMS UI. The dashboard and /join page alerts both link
+                    // here via VettingStatusDto.InterviewScheduleUrl → VettingAlertBox.
+                    dto.InterviewScheduleUrl = "/vetting-interview-scheduling";
                     break;
 
                 case VettingStatus.FinalReview:

@@ -1,6 +1,6 @@
 # File Registry
-<!-- Last Updated: 2026-03-18 -->
-<!-- Version: 4.559 -->
+<!-- Last Updated: 2026-04-10 -->
+<!-- Version: 4.560 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,6 +11,13 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2026-04-10 | /apps/web/src/features/vetting/constants/vettingStatusConfig.ts | CREATED | Single source of truth for vetting status display config (labels, colors, emojis, alert titles). Record<VettingStatus,...> forces exhaustive coverage at compile time. Fixes silent-lookup bug that broke dashboard alert for UnderReview/InterviewApproved | Vetting Status Cleanup - Phase 1 | ACTIVE | Never |
+| 2026-04-10 | /apps/web/src/pages/dashboard/components/VettingAlertBox.tsx | MODIFIED | Removed broken local alertConfigs object with stale enum keys (Pending, ApprovedForInterview) and the `as keyof typeof` cast that silenced the resulting TS error. Now imports from vettingStatusConfig.ts single-source file | Vetting Status Cleanup - Phase 1 | ACTIVE | Never |
+| 2026-04-10 | /apps/web/src/features/vetting/pages/VettingApplicationPage.tsx | MODIFIED | Replaced VettingStatusBox with VettingAlertBox for UI consistency with dashboard. Uses dashboard-hooks useVettingStatus (VettingStatusDto with interviewScheduleUrl) | Vetting Status Cleanup - Phase 1 | ACTIVE | Never |
+| 2026-04-10 | /apps/api/Features/Dashboard/Services/UserDashboardProfileService.cs | MODIFIED | Changed VettingStatusDto.InterviewScheduleUrl from /vetting/schedule-interview to /vetting-interview-scheduling (CMS-managed page) | Vetting Status Cleanup - Phase 1 | ACTIVE | Never |
+| 2026-04-10 | /apps/api/Features/Cms/CmsSeedData.cs | MODIFIED | Added ContentPage seeder entry for slug vetting-interview-scheduling so the CMS target page exists in every fresh dev/staging/production database. Idempotent - will not overwrite existing manual edits | Vetting Status Cleanup - Phase 1 | ACTIVE | Never |
+| 2026-04-10 | /apps/web/src/components/dashboard/MembershipWidget.tsx | DELETED | Orphaned dead code (zero imports anywhere). Was a wireframe prototype with its own fake vetting status enum. Removed as part of vetting status centralization | Vetting Status Cleanup - Phase 1 | N/A | N/A |
+| 2026-04-10 | /docs/functional-areas/vetting/vetting-status-cleanup-tech-debt-2026-04-10.md | CREATED | Running list of pre-existing issues discovered during vetting cleanup that are out-of-scope for individual phases. Reviewed at project end | Vetting Status Cleanup - Phase 1 | ACTIVE | Review at project end |
 | 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/design/api-design.md | CREATED | 19 API endpoint specifications (5 new groups + 2 modified), DTO definitions, service interfaces, impact analysis, phased implementation order | Ticket Assignment & Proxy RSVP - Design Phase | ACTIVE | Never |
 | 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/design/database-design.md | CREATED | Complete database schema: AuthorizedContact entity, EventAttendance modifications, PendingAcceptance status, indexes, constraints, migration strategy | Ticket Assignment & Proxy RSVP - Design Phase | ACTIVE | Never |
 | 2026-03-18 | /docs/functional-areas/events/ticket-assignment-proxy-rsvp/design/ui-design.md | CREATED | Comprehensive UI wireframes and specifications for 6 screens: Authorized Contacts tab, Enhanced Checkout, Proxy RSVP, Pending Tickets, My Tickets enhancement, Acceptance Modal | Ticket Assignment & Proxy RSVP - Design Phase | ACTIVE | Never |

@@ -1,10 +1,26 @@
 // Main vetting application page
+//
+// Shows the vetting application form for users who haven't applied yet.
+// For users with an in-progress application, shows the same VettingAlertBox
+// that the dashboard uses (single-source display — see
+// apps/web/src/features/vetting/constants/vettingStatusConfig.ts).
+//
+// NOTE: This page previously rendered a richer `VettingStatusBox` component
+// that showed submission date + status description. That was replaced with
+// VettingAlertBox in Phase 1 of the vetting status centralization to keep
+// /join and /dashboard visually consistent. If the submission-date display
+// is needed again, it should be added to VettingAlertBox (or a sibling
+// component) rather than reintroducing a separate status panel.
 import React, { useState } from 'react';
 import { Container, Box, Paper, Text, Button, Group, Stack, Title, ThemeIcon, Alert } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { VettingApplicationForm } from '../components/VettingApplicationForm';
-import { VettingStatusBox } from '../components/VettingStatusBox';
-import { useVettingStatus } from '../hooks/useVettingStatus';
+import { VettingAlertBox } from '../../../pages/dashboard/components/VettingAlertBox';
+// VettingStatusDto hook (includes interviewScheduleUrl / reapplyInfoUrl).
+// VettingApplicationForm below has its own query for existing-application
+// state, so this page no longer needs the detailed MyApplicationStatusResponse.
+import { useVettingStatus as useDashboardVettingStatus } from '../../../hooks/useDashboard';
+import { useIsAuthenticated } from '../../../stores/authStore';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface VettingApplicationPageProps {
@@ -20,7 +36,11 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
     statusUrl: string;
   } | null>(null);
   const navigate = useNavigate();
-  const { data: statusData, isLoading: statusLoading } = useVettingStatus();
+  // Dashboard-shaped status DTO (includes interviewScheduleUrl for the
+  // InterviewApproved alert link). Hook is gated on authenticated user, so
+  // it returns undefined for public visitors — in which case no alert is shown.
+  const isAuthenticated = useIsAuthenticated();
+  const { data: dashboardVettingStatus } = useDashboardVettingStatus();
 
   const handleSubmissionComplete = (applicationNumber: string, statusUrl: string) => {
     setSubmissionResult({ applicationNumber, statusUrl });
@@ -126,25 +146,20 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
     );
   }
 
-  // Show status box if user has an existing application
-  const hasExistingApplication =
-    statusData?.hasApplication && statusData.application && !statusLoading;
-
   return (
     <Container size="lg" py="xl" className={className}>
       <Stack gap="xl">
-        {/* Show status box at top if application exists */}
-        {hasExistingApplication && statusData?.application?.status && (
-          <VettingStatusBox
-            status={statusData.application.status as import('../types/vettingStatus').VettingStatus}
-            applicationNumber={statusData.application?.applicationNumber || 'N/A'}
-            submittedAt={new Date(statusData.application?.submittedAt!)}
-            lastUpdated={new Date(statusData.application?.lastUpdated!)}
-            statusDescription={statusData.application?.statusDescription || ''}
-            nextSteps={statusData.application?.nextSteps || undefined}
-            estimatedDaysRemaining={statusData.application?.estimatedDaysRemaining || undefined}
-          />
-        )}
+        {/*
+          Vetting status alert — same component used on the dashboard.
+          Only renders for authenticated users whose status is not Approved.
+          See apps/web/src/features/vetting/constants/vettingStatusConfig.ts
+          for the single source of truth on alert copy and styling.
+        */}
+        {isAuthenticated &&
+          dashboardVettingStatus &&
+          dashboardVettingStatus.status !== 'Approved' && (
+            <VettingAlertBox status={dashboardVettingStatus} />
+          )}
 
         {/* Show form for new applications or Draft status */}
         <VettingApplicationForm

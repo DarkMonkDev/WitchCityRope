@@ -2053,6 +2053,60 @@ namespace WitchCityRope.Api.Features.Cms
                     CreatedBy = adminUser.Id,
                     LastModifiedBy = adminUser.Id,
                     IsPublished = true
+                },
+
+                // Vetting Interview Scheduling
+                //
+                // Linked to from the dashboard VettingAlertBox (and the /join page
+                // VettingAlertBox) for users whose vetting status is InterviewApproved.
+                // The backend sets VettingStatusDto.InterviewScheduleUrl to this slug
+                // in UserDashboardProfileService — see that file's InterviewApproved
+                // case for the link logic.
+                //
+                // This seeder entry exists so every environment (dev, staging, prod)
+                // has a landing page at /vetting-interview-scheduling on first seed.
+                // The content below is a reasonable default; admins can edit the real
+                // copy via the admin CMS UI without affecting this seeder.
+                //
+                // Idempotency: the seeder at the bottom of SeedInitialPagesAsync skips
+                // any slug that already exists, so rerunning will not overwrite manual
+                // CMS edits made in any environment.
+                new ContentPage
+                {
+                    Slug = "vetting-interview-scheduling",
+                    Title = "Schedule Your Vetting Interview",
+                    Content = @"<h1>Schedule Your Vetting Interview</h1>
+
+<p>Congratulations! Your membership application has been approved to move forward. The next step is scheduling your vetting interview with a member of our team.</p>
+
+<h2>What to Expect</h2>
+
+<p>The vetting interview is a friendly, informal conversation — typically 20 to 30 minutes — where you'll meet with a member of our vetting team to:</p>
+<ul>
+<li>Talk about your interest in the rope bondage community</li>
+<li>Review our community standards and expectations</li>
+<li>Answer any questions you have about the group, our events, and how things work</li>
+<li>Make sure you feel comfortable and informed before becoming a full member</li>
+</ul>
+
+<p>There are no trick questions, and there is nothing to prepare. Just come as yourself.</p>
+
+<h2>How to Book</h2>
+
+<p>To schedule your interview, please email <a href=""mailto:vetting@witchcityrope.com"">vetting@witchcityrope.com</a> with a few dates and times that work for you over the next two weeks. A vetting team member will respond to confirm a slot.</p>
+
+<p>If you have any questions before your interview, you can also reach out at the same address.</p>
+
+<h2>After the Interview</h2>
+
+<p>Once your interview is complete, our team will review the conversation and you will receive an email with the outcome within a few days. If approved, you'll gain full access to community events and resources.</p>
+
+<p><em>We look forward to meeting you!</em></p>",
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    CreatedBy = adminUser.Id,
+                    LastModifiedBy = adminUser.Id,
+                    IsPublished = true
                 }
             };
 
