@@ -55,14 +55,38 @@ If you create duplication, you will be corrected. This correction is expensive (
 
 ### 🚨 CRITICAL: DOCUMENTATION STRUCTURE ENFORCEMENT 🚨
 
-**NEVER CREATE FILES OR FOLDERS IN /docs/ ROOT**
+**NEVER CREATE FILES OR FOLDERS IN /docs/ ROOT — WITH ONE EXCEPTION**
 
-**ZERO FILES ALLOWED IN /docs/ ROOT**
+**The ONLY file allowed in /docs/ root is `technical-debt.md`.** Everything else must go in a subdirectory.
 
-All navigation now uses:
+All navigation uses:
+- **Technical debt (single source)**: `/docs/technical-debt.md` ← see next section
 - **Functional Areas**: `/docs/architecture/functional-area-master-index.md`
 - **Agent Guides**: `/.claude/agents/` and `/docs/lessons-learned/`
 - **Standards**: `/docs/standards-processes/`
+
+### 🚨 CRITICAL: TECHNICAL DEBT — SINGLE FILE 🚨
+
+**Location**: `/docs/technical-debt.md`
+
+**This is the ONLY place tech debt, known issues, deferred decisions, and "we should fix this someday" items are tracked.** Before this file existed (created 2026-04-10), tech debt was scattered across per-project files, `CURRENT_TEST_STATUS.md` "Known Issues" sections, lessons-learned prevention patterns, and commit messages. Finding the complete set of outstanding issues required knowing where to look. Not anymore.
+
+**ALL AGENTS MUST**:
+
+1. **READ `/docs/technical-debt.md` before starting new work.** Scan the "Active items" section for issues that overlap with your task or might affect the area you're working in. If you find an active item you can cheaply fix while you're in the area, mention it to the user and ask whether to include the fix in your work.
+
+2. **UPDATE `/docs/technical-debt.md` when you discover new tech debt.** Use the template at the bottom of the file. Do NOT fix the item inline unless the user explicitly asked — tech debt often represents in-flight decisions, and touching it unexpectedly creates conflicts. Add it to the file, commit the addition with your other work (or separately), and cross-reference it in your commit message.
+
+3. **UPDATE `/docs/technical-debt.md` when you resolve a tech debt item.** Do NOT delete the entry. Move it to the "Resolved items" section with a commit reference, date, and one-line summary of how it was fixed. This preserves the historical trail so future agents can see what was tried, what worked, and what was explicitly ruled out.
+
+4. **NEVER CREATE a new `<area>-tech-debt-<date>.md` file anywhere in the repo.** All tech debt goes in the single master file, organized by area code (T / TL / BE / FE / DOC / etc.). Per-project tech-debt files are exactly the fragmentation this consolidation solved.
+
+**EXCEPTIONS** to "add to tech-debt.md instead of fixing inline":
+- The user explicitly asked you to fix the item
+- The item is blocking your primary task (in which case document the blocker in both your commit message and as a resolved item in tech-debt.md)
+- The fix is trivial (one-line comment, typo) AND directly in the file you're already editing for your primary task
+
+**ENFORCEMENT**: If you see a new `tech-debt` file being created outside of `/docs/technical-debt.md`, stop the creating agent and redirect them to the master file. If you find an old per-project tech-debt file that pre-dates 2026-04-10, move its content into `/docs/technical-debt.md` and delete the original.
 
 ### 🚨 CRITICAL: DOCUMENTATION ORGANIZATION STANDARD 🚨
 
