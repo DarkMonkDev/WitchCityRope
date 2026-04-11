@@ -164,8 +164,23 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     #region Approval Tests (3 tests)
 
     [Fact]
-    public async Task Approval_GrantsVettedMemberRole()
+    public async Task Approval_SetsVettingStatusApproved()
     {
+        // This test was renamed from Approval_GrantsVettedMemberRole on 2026-04-10.
+        //
+        // The original test asserted that approval adds a "VettedMember" role to the
+        // user. That was valid behavior prior to the 2025-10-19 role/vetting refactor
+        // (see docs/functional-areas/user-management/new-work/2025-10-19-role-vetting-refactoring/).
+        //
+        // Post-refactor, vetting status is tracked separately from organizational roles.
+        // VettingService.ApproveApplicationAsync() explicitly preserves user.Role and
+        // instead sets user.VettingStatus = (int)VettingStatus.Approved. Organizational
+        // roles (Administrator, Teacher, SafetyTeam, etc.) are source-of-truth for
+        // access control; VettingStatus/IsVetted are source-of-truth for vetted-access.
+        //
+        // See VettingService.cs lines 1660-1689 for the current behavior and the
+        // explanatory code comment that contradicted the original test's assumption.
+
         // Arrange
         var (client, applicationId, userId) = await SetupApplicationWithUserAsync(VettingStatus.UnderReview);
 
@@ -181,20 +196,22 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         if (response.StatusCode != HttpStatusCode.OK)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"[DEBUG] Approval_GrantsVettedMemberRole failed with {response.StatusCode}. Response body: {errorBody}");
+            Console.WriteLine($"[DEBUG] Approval_SetsVettingStatusApproved failed with {response.StatusCode}. Response body: {errorBody}");
         }
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify user role was updated
+        // Verify user.VettingStatus was updated to Approved (new source of truth)
         await using var context = CreateDbContext();
-        var vettedMemberRole = await context.Roles
-            .FirstOrDefaultAsync(r => r.Name == "VettedMember");
-        vettedMemberRole.Should().NotBeNull();
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        user.Should().NotBeNull("User should still exist after approval");
+        user!.VettingStatus.Should().Be((int)VettingStatus.Approved,
+            "Approval should set VettingStatus=Approved per the post-2025-10-19 refactor");
 
-        var userHasRole = await context.UserRoles
-            .AnyAsync(ur => ur.UserId == userId && ur.RoleId == vettedMemberRole!.Id);
-
-        userHasRole.Should().BeTrue("User should have VettedMember role after approval");
+        // Verify the application's workflow status was also updated
+        var application = await context.VettingApplications.FirstOrDefaultAsync(a => a.Id == applicationId);
+        application.Should().NotBeNull();
+        application!.WorkflowStatus.Should().Be(VettingStatus.Approved,
+            "Application workflow status should reflect the approval");
     }
 
     [Fact]

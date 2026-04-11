@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Admin.Endpoints;
+using WitchCityRope.Api.Features.Users.Models;
 using WitchCityRope.Api.Models;
 using Xunit;
 using FluentAssertions;

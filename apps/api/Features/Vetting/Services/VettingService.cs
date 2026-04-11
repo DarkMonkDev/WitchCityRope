@@ -1580,8 +1580,12 @@ public class VettingService : IVettingService
     }
 
     /// <summary>
-    /// Approve vetting application
-    /// Sends approval email and updates user role to VettedMember
+    /// Approve vetting application.
+    /// Sets application.WorkflowStatus = Approved and user.VettingStatus = Approved.
+    /// Sends approval email. Does NOT modify user.Role — organizational roles
+    /// (Administrator, Teacher, SafetyTeam, etc.) are preserved. See the 2025-10-19
+    /// role-vetting refactoring: vetting status is tracked separately from roles,
+    /// via VettingStatus/IsVetted, which are source-of-truth for vetted-access control.
     /// </summary>
     public async Task<Result<ApplicationDetailResponse>> ApproveApplicationAsync(
         Guid applicationId,

@@ -10,7 +10,11 @@ using WitchCityRope.Api.Features.Authentication.Models;
 using WitchCityRope.Api.Features.Authentication.Services;
 using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Models;
-using WitchCityRope.Api.Models.Auth;
+// NOTE: `using WitchCityRope.Api.Models.Auth;` was removed on 2026-04-10.
+// JwtToken used to live under WitchCityRope.Api.Models.Auth but was moved to
+// WitchCityRope.Api.Features.Authentication.Models as part of vertical slice
+// reorganization. This file's 4 references to JwtToken were also shortened
+// from fully-qualified to unqualified names (the using on line 9 covers them).
 using WitchCityRope.Api.Services;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
@@ -37,6 +41,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
     private Mock<UserManager<ApplicationUser>> _mockUserManager = null!;
     private Mock<SignInManager<ApplicationUser>> _mockSignInManager = null!;
     private Mock<IJwtService> _mockJwtService = null!;
+    private Mock<IRefreshTokenService> _mockRefreshTokenService = null!;
     private Mock<ReturnUrlValidator> _mockReturnUrlValidator = null!;
     private Mock<IEmailService> _mockEmailService = null!;
     private Mock<IConfiguration> _mockConfiguration = null!;
@@ -64,6 +69,11 @@ public class AuthenticationServiceTests : IAsyncLifetime
             _mockUserManager.Object, contextAccessor.Object, userPrincipalFactory.Object, null!, null!, null!, null!);
 
         _mockJwtService = new Mock<IJwtService>();
+        // IRefreshTokenService mock added on 2026-04-10 when fixing the Core Tests
+        // compile cascade. The AuthenticationService constructor picked up a
+        // refresh-token dependency sometime after this test file was last touched,
+        // and this file was missed in commit 336f61c9 which only swept tests/unit/api/.
+        _mockRefreshTokenService = new Mock<IRefreshTokenService>();
         _mockReturnUrlValidator = new Mock<ReturnUrlValidator>();
         _mockEmailService = new Mock<IEmailService>();
         _mockConfiguration = new Mock<IConfiguration>();
@@ -74,6 +84,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
             _mockUserManager.Object,
             _mockSignInManager.Object,
             _mockJwtService.Object,
+            _mockRefreshTokenService.Object,
             _mockReturnUrlValidator.Object,
             _mockEmailService.Object,
             _mockConfiguration.Object,
@@ -256,7 +267,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(testUser, loginRequest.Password, true))
             .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
 
-        var jwtToken = new WitchCityRope.Api.Models.Auth.JwtToken { Token = "test-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
+        var jwtToken = new JwtToken { Token = "test-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
         _mockJwtService.Setup(x => x.GenerateToken(testUser))
             .Returns(jwtToken);
 
@@ -379,7 +390,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(testUser, loginRequest.Password, true))
             .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
 
-        var jwtToken = new WitchCityRope.Api.Models.Auth.JwtToken { Token = "test-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
+        var jwtToken = new JwtToken { Token = "test-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
         _mockJwtService.Setup(x => x.GenerateToken(testUser))
             .Returns(jwtToken);
 
@@ -434,7 +445,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(testUser, loginRequest.Password, true))
             .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
 
-        var jwtToken = new WitchCityRope.Api.Models.Auth.JwtToken { Token = "scene-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
+        var jwtToken = new JwtToken { Token = "scene-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
         _mockJwtService.Setup(x => x.GenerateToken(testUser))
             .Returns(jwtToken);
 
@@ -644,7 +655,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _context.Users.Add(testUser);
         await _context.SaveChangesAsync();
 
-        var jwtToken = new WitchCityRope.Api.Models.Auth.JwtToken { Token = "service-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
+        var jwtToken = new JwtToken { Token = "service-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
         _mockJwtService.Setup(x => x.GenerateToken(testUser))
             .Returns(jwtToken);
 

@@ -93,7 +93,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Event Confirmation",
             HtmlBody = "<p>Welcome to {{event_title}}</p>",
             PlainTextBody = "Welcome to {{event_title}}",
-            Variables = "[\"{{event_title}}\", \"{{attendee_name}}\"]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -109,7 +108,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Event Reminder - Tomorrow!",
             HtmlBody = "<p>Don't forget {{event_title}} tomorrow</p>",
             PlainTextBody = "Don't forget {{event_title}} tomorrow",
-            Variables = "[\"{{event_title}}\", \"{{start_date}}\"]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -125,7 +123,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Application Received",
             HtmlBody = "<p>Thank you for applying</p>",
             PlainTextBody = "Thank you for applying",
-            Variables = "[\"{{applicant_name}}\"]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -172,7 +169,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Active Template",
             HtmlBody = "<p>Active</p>",
             PlainTextBody = "Active",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -188,7 +184,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Inactive Template",
             HtmlBody = "<p>Inactive</p>",
             PlainTextBody = "Inactive",
-            Variables = "[]",
             IsActive = false, // Soft deleted
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -224,7 +219,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Test Template",
             HtmlBody = "<p>Test Body</p>",
             PlainTextBody = "Test Body",
-            Variables = "[\"{{var1}}\", \"{{var2}}\"]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -243,7 +237,10 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(template.Id);
         result.Value.Subject.Should().Be("Test Template");
-        result.Value.Variables.Should().HaveCount(2);
+        // NOTE: Variables property was removed from GlobalEmailTemplateDto on 2025-11-17
+        // (commit f9759eca "feat: unify TriggerEnabled into SendingEnabled..."). The
+        // assertion `result.Value.Variables.Should().HaveCount(2)` was removed on 2026-04-10
+        // along with all Variables property setters in this file's test data.
     }
 
     [Fact]
@@ -273,7 +270,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Original Subject",
             HtmlBody = "<p>Original Body</p>",
             PlainTextBody = "Original Body",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -314,7 +310,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Test",
             HtmlBody = "<p>Original</p>",
             PlainTextBody = "Original",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -360,7 +355,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Global Confirmation",
             HtmlBody = "<p>Global</p>",
             PlainTextBody = "Global",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -376,7 +370,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Global Reminder",
             HtmlBody = "<p>Reminder</p>",
             PlainTextBody = "Reminder",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -426,7 +419,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Global Confirmation",
             HtmlBody = "<p>Global</p>",
             PlainTextBody = "Global",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -442,7 +434,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Global Reminder",
             HtmlBody = "<p>Reminder</p>",
             PlainTextBody = "Reminder",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -522,7 +513,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Global Confirmation",
             HtmlBody = "<p>Global</p>",
             PlainTextBody = "Global",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -586,7 +576,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Global",
             HtmlBody = "<p>Global</p>",
             PlainTextBody = "Global",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -672,7 +661,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Global",
             HtmlBody = "<p>Global</p>",
             PlainTextBody = "Global",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
@@ -741,7 +729,6 @@ public class EmailTemplateServiceTests : IAsyncLifetime
             Subject = "Global Subject",
             HtmlBody = "<p>Global</p>",
             PlainTextBody = "Global",
-            Variables = "[]",
             IsActive = true,
             Version = 1,
             UpdatedBy = _testUser.Id,
