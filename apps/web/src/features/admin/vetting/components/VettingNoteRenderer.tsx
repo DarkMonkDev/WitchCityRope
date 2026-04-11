@@ -3,27 +3,9 @@ import { Group, Text, Badge } from '@mantine/core';
 import { IconNotes } from '@tabler/icons-react';
 import type { components } from '@witchcityrope/shared-types';
 import { VettingStatusBadge } from './VettingStatusBadge';
+import { detectSystemGeneratedNote } from '../../../vetting/utils/vettingAuditHelpers';
 
 type ApplicationNoteDto = components['schemas']['ApplicationNoteDto'];
-
-// Helper to detect system-generated notes and extract status
-const isSystemGeneratedNote = (noteText: string): { isSystem: boolean; status?: string } => {
-  // Map system-generated note text to corresponding status values
-  // These match the simplified descriptions from backend GetSimplifiedActionDescription()
-  const systemNotes: Record<string, string> = {
-    'Application submitted': 'UnderReview',
-    'Approved for interview': 'InterviewApproved',
-    'Interview completed': 'FinalReview',
-    'Application approved': 'Approved',
-    'Application denied': 'Denied',
-    'Application placed on hold': 'OnHold',
-    'Returned to review': 'UnderReview',
-    'Application withdrawn': 'Withdrawn',
-  };
-
-  const status = systemNotes[noteText];
-  return { isSystem: !!status, status };
-};
 
 // Format time helper function
 const formatTime = (dateString: string) => {
@@ -42,8 +24,12 @@ const formatTime = (dateString: string) => {
 };
 
 export const VettingNoteRenderer = (note: ApplicationNoteDto): React.ReactNode => {
-  // Check if this is a system-generated status change note
-  const { isSystem, status } = isSystemGeneratedNote(note.content || '');
+  // Check if this is a system-generated status change note.
+  // The detection helper uses prefix matching so notes with appended
+  // admin reasons (e.g. "Application approved\n\nReason: ...") are
+  // still recognized. Previously this component used exact-match
+  // lookup which missed notes with reasons.
+  const { isSystem, status } = detectSystemGeneratedNote(note.content);
 
   return (
     <>

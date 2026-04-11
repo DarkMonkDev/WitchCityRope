@@ -3,34 +3,9 @@ import { components } from '@witchcityrope/shared-types';
 import { Group, Text, Paper } from '@mantine/core';
 import { IconNotes } from '@tabler/icons-react';
 import { VettingStatusBadge } from '@/features/admin/vetting/components/VettingStatusBadge';
+import { detectSystemGeneratedNote } from '@/features/vetting/utils/vettingAuditHelpers';
 
 type MemberNoteHistoryResponse = components['schemas']['MemberNoteHistoryResponse'];
-
-// Helper to detect system-generated notes and extract status
-// Uses startsWith matching to support notes with appended admin reasons
-const isSystemGeneratedNote = (noteText: string): { isSystem: boolean; status?: string } => {
-  // Map system-generated note prefixes to corresponding status values
-  // These match the simplified descriptions from backend GetSimplifiedActionDescription()
-  // Notes may have admin reasons appended after "\n\nReason: ..."
-  const systemNotePrefixes: Array<{ prefix: string; status: string }> = [
-    { prefix: 'Approved for interview', status: 'InterviewApproved' },
-    { prefix: 'Interview completed', status: 'FinalReview' },
-    { prefix: 'Application approved', status: 'Approved' },
-    { prefix: 'Application denied', status: 'Denied' },
-    { prefix: 'Application placed on hold', status: 'OnHold' },
-    { prefix: 'Returned to review', status: 'UnderReview' },
-    { prefix: 'Application withdrawn', status: 'Withdrawn' },
-  ];
-
-  // Check if noteText starts with any known prefix
-  for (const { prefix, status } of systemNotePrefixes) {
-    if (noteText.startsWith(prefix)) {
-      return { isSystem: true, status };
-    }
-  }
-
-  return { isSystem: false };
-};
 
 // Format time helper function - EXACT same as VettingNoteRenderer
 const formatTime = (dateString: string) => {
@@ -49,8 +24,10 @@ const formatTime = (dateString: string) => {
 };
 
 export const MemberNoteRenderer = (note: MemberNoteHistoryResponse): React.ReactNode => {
-  // Check if this is a system-generated status change note
-  const { isSystem, status } = isSystemGeneratedNote(note.content || '');
+  // Check if this is a system-generated status change note. See
+  // features/vetting/utils/vettingAuditHelpers for the prefix → status
+  // mapping that's now shared with VettingNoteRenderer.
+  const { isSystem, status } = detectSystemGeneratedNote(note.content);
 
   return (
     <Paper key={note.id} p="md" style={{ background: '#F5F5F5' }}>
