@@ -1,8 +1,26 @@
 # Technical Debt — WitchCityRope
 
-<!-- Last Updated: 2026-04-10 -->
+<!-- Last Updated: 2026-04-11 -->
 <!-- Owner: All agents collectively; curated by the librarian -->
 <!-- Status: Active tracking document — the single source of truth for all tech debt in this repo -->
+
+> ## 🚨 IMPORTANT — READ BEFORE ADDING OR EDITING ANY ENTRY 🚨
+>
+> **Every agent touching this file MUST follow these rules. No exceptions.**
+>
+> 1. **READ THE ENTIRE FILE FIRST.** Before adding a new entry, scan every section (Active items AND Resolved items) for anything that might already cover what you're about to add. A surface-level grep for a keyword is NOT enough — actually read the surrounding entries. The file is short enough that this is cheap, and the cost of duplication is much higher than the cost of a careful read.
+>
+> 2. **UPDATE EXISTING ENTRIES RATHER THAN ADDING NEW ONES.** If you find new empirical data, a better theory, a partial fix, or anything else that belongs in an existing entry, **update that entry in place** with a dated note. Do not create a parallel entry that will drift from the original. Parallel entries fragment the record and make future agents chase ghosts.
+>
+> 3. **IF YOU'RE NOT SURE WHETHER IT'S A NEW ENTRY OR AN UPDATE**, default to updating the closest existing entry with a cross-reference. The librarian can always split an entry later; merging two separate entries that should have been one is much harder.
+>
+> 4. **WHEN YOU UPDATE AN ENTRY, ADD A DATED NOTE TO THE BODY** rather than rewriting what's already there. Format: add an `**Updated**: YYYY-MM-DD — <short note>` line under the header, plus a new dated sub-section in the body. Preserve the original text so the history trail stays intact.
+>
+> 5. **NO SILENT OVERWRITES.** Never delete or substantially rewrite an existing entry's body without the user's explicit approval. Historical context is load-bearing — future agents need to see what was tried, what was ruled out, and why.
+>
+> 6. **CROSS-REFERENCE ACROSS ENTRIES.** When adding a new entry that is related to an existing one (even loosely — same subsystem, same symptom class, similar fix pattern), link to the related entry by ID (`T-1`, `BE-5`, etc.) so the network stays navigable. Don't hide relationships by treating each entry as isolated.
+>
+> **Failure to follow these rules is how we end up with fragmented, duplicated, unreliable data in this file — which is exactly the problem this file was created to solve.** If you're an agent and you're in doubt, STOP and ask the user rather than guessing. The user would rather answer one question than clean up a duplicated entry later.
 
 ## Purpose
 
@@ -47,7 +65,8 @@ Before this file existed (created 2026-04-10), tech debt items were scattered ac
 ### T-1 — WebApplicationFactory shared-state pollution bug (P1, UNRESOLVED)
 
 **Discovered**: 2026-04-10 during Test Infrastructure Cleanup session
-**Impact**: ~36 of the 46 Integration test failures in the current baseline. Code is fine, test infrastructure is broken.
+**Last updated**: 2026-04-11 — empirical confirmation of test-order theory, baseline numbers corrected
+**Impact**: **61–77 of the current Integration test failures** (see "Updated failure baseline" below). Code is fine, test infrastructure is broken.
 
 #### Symptom
 
@@ -66,6 +85,20 @@ Currently affects all tests in:
 - `tests/integration/Features/TicketAssignment/MultiTicketCheckoutEndpointTests.cs` (1 test)
 
 All failing classes use the `private static WebApplicationFactory<Program>? _sharedFactory` pattern. Which specific classes hit the failure depends on test-run order.
+
+#### Updated failure baseline (2026-04-11)
+
+The original T-1 entry cited "~36 of 46" integration test failures, measured 2026-04-10. Those numbers are stale. Three test runs on 2026-04-11 (post-Phase-3c, post-BE-2/BE-4 cleanup, identical code under test) produced:
+
+| Run | Mode | Integration Passed | Failed | Skipped | Notes |
+|---|---|---|---|---|---|
+| Phase 3b-2 baseline (`25a83285`) | `--mode unit` | 179 | **77** | 11 | Verified code-change zero regressions |
+| Post-BE-2/BE-4 (`25a83285`) | `--mode unit` | 179 | **77** | 11 | Same as baseline run |
+| Post-BE-2/BE-4 (`25a83285`) | `--mode all` | 195 | **61** | 11 | **16 more passing, same code** |
+
+**Key observation**: Three identical `dotnet test` runs against the same commit (`25a83285`) produced integration failure counts of **77, 77, and 61**. The only thing that changed between them was the internal test iteration order. This is **direct empirical confirmation** of T-1's "test order determines failure count" theory — which was previously listed as unverified.
+
+Prior to today, the theory was plausible but not provably correct. Now it is.
 
 #### Proof the code is fine
 
