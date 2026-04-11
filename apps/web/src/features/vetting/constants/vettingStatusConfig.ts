@@ -39,10 +39,12 @@
  *    this file FAILS TO COMPILE until the config is updated. No silent
  *    fallthrough, no broken UI.
  *
- * 3. All callers go through `getConfigFromStatus()` or `getConfigFromInt()`
- *    helpers, never indexing into the Record directly with arbitrary input.
- *    This prevents the `as keyof typeof` anti-pattern that hid the
- *    original bug.
+ * 3. All callers go through `getConfigFromStatus()`, never indexing
+ *    into the Record directly with arbitrary input. This prevents the
+ *    `as keyof typeof` anti-pattern that hid the original bug.
+ *    (Previously there was also a `getConfigFromInt()` helper for the
+ *    temporary int bridge; it was deleted in Phase 3b-1 once all
+ *    backend DTOs shipped the enum string directly.)
  *
  * RULES FOR FUTURE AGENTS
  * -----------------------
