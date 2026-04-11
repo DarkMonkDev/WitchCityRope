@@ -11,9 +11,7 @@ import {
   Alert,
 } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
-
-// VettingStatus type from @witchcityrope/shared-types
-type VettingStatus = 'UnderReview' | 'InterviewApproved' | 'FinalReview' | 'Approved' | 'Denied' | 'OnHold' | 'Withdrawn'
+import { getStatusOptions } from '../../features/vetting/constants/vettingStatusConfig'
 
 interface ChangeVettingStatusModalProps {
   opened: boolean
@@ -24,16 +22,13 @@ interface ChangeVettingStatusModalProps {
   isLoading?: boolean
 }
 
-// VettingStatus display labels
-const VETTING_STATUS_OPTIONS: Array<{ value: VettingStatus; label: string }> = [
-  { value: 'UnderReview', label: 'Under Review' },
-  { value: 'InterviewApproved', label: 'Interview Approved' },
-  { value: 'FinalReview', label: 'Final Review' },
-  { value: 'Approved', label: 'Approved' },
-  { value: 'Denied', label: 'Denied' },
-  { value: 'OnHold', label: 'On Hold' },
-  { value: 'Withdrawn', label: 'Withdrawn' },
-]
+// Status options derived from the single-source vetting status config.
+// Phase 2c migration: replaces a local hand-maintained VETTING_STATUS_OPTIONS
+// array and a local `type VettingStatus = '...' | '...'` union that
+// duplicated the backend enum. Both are now sourced from
+// features/vetting/constants/vettingStatusConfig.ts so adding a new status
+// to the config automatically adds it to this dropdown.
+const VETTING_STATUS_OPTIONS = getStatusOptions()
 
 export const ChangeVettingStatusModal: React.FC<ChangeVettingStatusModalProps> = ({
   opened,

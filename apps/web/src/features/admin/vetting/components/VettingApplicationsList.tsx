@@ -5,6 +5,7 @@ import { IconSearch, IconFilter, IconRefresh, IconSortAscending, IconSortDescend
 import { useVettingApplications } from '../hooks/useVettingApplications';
 import { VettingStatusBadge } from './VettingStatusBadge';
 import type { ApplicationFilterRequest } from '../types/vetting.types';
+import { getStatusOptions } from '../../../../features/vetting/constants/vettingStatusConfig';
 
 interface VettingApplicationsListProps {
   onSelectionChange?: (selectedIds: Set<string>, applicationsData: any[]) => void;
@@ -90,14 +91,15 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
       <IconSortDescending size={16} />;
   }, [filters.sortBy, filters.sortDirection]);
 
-  const statusOptions = useMemo(() => [
-    { value: 'UnderReview', label: 'Under Review' },
-    { value: 'InterviewApproved', label: 'Approved for Interview' },
-    { value: 'FinalReview', label: 'Final Review' },
-    { value: 'Approved', label: 'Approved' },
-    { value: 'OnHold', label: 'On Hold' },
-    { value: 'Denied', label: 'Denied' }
-  ], []);
+  // Status filter options sourced from the single-source vetting status
+  // config (Phase 2c migration). Adding a new status in vettingStatusConfig
+  // automatically adds it to this MultiSelect dropdown. Note that
+  // getStatusOptions() returns all 7 statuses including Withdrawn — the
+  // previous hand-maintained list only had 6 and excluded Withdrawn. Keeping
+  // Withdrawn in the dropdown gives admins the ability to filter for
+  // historical withdrawn applications, which is a small UX improvement
+  // over the old list.
+  const statusOptions = useMemo(() => getStatusOptions(), []);
 
 
   if (error) {

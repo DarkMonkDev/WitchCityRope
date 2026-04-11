@@ -16,6 +16,7 @@ import {
 import { useVettingApplications } from '../hooks/useVettingApplications';
 import { VettingStatusBadge } from './VettingStatusBadge';
 import type { ApplicationFilterRequest } from '../types/vetting.types';
+import { getStatusOptions } from '../../../../features/vetting/constants/vettingStatusConfig';
 
 interface VettingReviewGridProps {
   onViewDetails?: (applicationId: string) => void;
@@ -56,17 +57,14 @@ export const VettingReviewGrid: React.FC<VettingReviewGridProps> = ({
   // Fetch data
   const { data, isLoading, error, refetch } = useVettingApplications(filters);
 
-  // Status filter options
-  const statusOptions = useMemo(() => [
-    { value: '', label: 'All Statuses' },
-    { value: 'UnderReview', label: 'Under Review' },
-    { value: 'InterviewApproved', label: 'Interview Approved' },
-    { value: 'FinalReview', label: 'Final Review' },
-    { value: 'Approved', label: 'Approved' },
-    { value: 'Denied', label: 'Denied' },
-    { value: 'OnHold', label: 'On Hold' },
-    { value: 'Withdrawn', label: 'Withdrawn' }
-  ], []);
+  // Status filter options for the "Status" Select dropdown. Sourced from
+  // the single-source vetting status config (Phase 2c migration) with a
+  // leading "All Statuses" entry prepended for the no-filter case. Adding
+  // a new status in vettingStatusConfig automatically adds it here.
+  const statusOptions = useMemo(
+    () => [{ value: '', label: 'All Statuses' }, ...getStatusOptions()],
+    []
+  );
 
   // Filter handlers
   const handleSearchChange = useCallback((value: string) => {
