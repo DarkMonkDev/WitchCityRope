@@ -116,7 +116,7 @@ public class VettingSeeder
                 AgreesToGuidelines = true,
                 AgreesToTerms = true,
                 ConsentToContact = true,
-                WorkflowStatus = VettingStatus.Approved, // Approved (4)
+                WorkflowStatus = VettingStatus.Approved,
                 SubmittedAt = DateTime.UtcNow.AddDays(-365), // Applied a year ago
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-364),
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(-362),
@@ -143,7 +143,7 @@ public class VettingSeeder
                 AgreesToGuidelines = true,
                 AgreesToTerms = true,
                 ConsentToContact = true,
-                WorkflowStatus = VettingStatus.Approved, // Approved (4)
+                WorkflowStatus = VettingStatus.Approved,
                 SubmittedAt = DateTime.UtcNow.AddDays(-180), // Applied 6 months ago
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-178),
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(-175),
@@ -171,7 +171,7 @@ public class VettingSeeder
                 AgreesToGuidelines = true,
                 AgreesToTerms = true,
                 ConsentToContact = true,
-                WorkflowStatus = VettingStatus.UnderReview, // UnderReview (0)
+                WorkflowStatus = VettingStatus.UnderReview,
                 SubmittedAt = DateTime.UtcNow.AddDays(-3)
             },
 
@@ -192,7 +192,7 @@ public class VettingSeeder
                 AgreesToGuidelines = true,
                 AgreesToTerms = true,
                 ConsentToContact = true,
-                WorkflowStatus = VettingStatus.OnHold, // OnHold (5) - CORRECTED from InterviewApproved
+                WorkflowStatus = VettingStatus.OnHold, // CORRECTED from InterviewApproved
                 SubmittedAt = DateTime.UtcNow.AddDays(-10),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-7)
             },
@@ -214,7 +214,7 @@ public class VettingSeeder
                 AgreesToGuidelines = true,
                 AgreesToTerms = true,
                 ConsentToContact = true,
-                WorkflowStatus = VettingStatus.Denied, // Denied (4) - CORRECTED from Approved
+                WorkflowStatus = VettingStatus.Denied, // CORRECTED from Approved
                 SubmittedAt = DateTime.UtcNow.AddDays(-14),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-10),
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(-8),
@@ -239,7 +239,7 @@ public class VettingSeeder
                 AgreesToGuidelines = true,
                 AgreesToTerms = true,
                 ConsentToContact = true,
-                WorkflowStatus = VettingStatus.Approved, // Approved (4)
+                WorkflowStatus = VettingStatus.Approved,
                 SubmittedAt = DateTime.UtcNow.AddDays(-21),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-18),
                 DecisionMadeAt = DateTime.UtcNow.AddDays(-2)
@@ -273,7 +273,7 @@ public class VettingSeeder
                 AgreesToGuidelines = true,
                 AgreesToTerms = true,
                 ConsentToContact = true,
-                WorkflowStatus = VettingStatus.InterviewApproved, // InterviewApproved (1) - CORRECTED from OnHold
+                WorkflowStatus = VettingStatus.InterviewApproved, // CORRECTED from OnHold
                 SubmittedAt = DateTime.UtcNow.AddDays(-12),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-8)
             });
@@ -298,7 +298,7 @@ public class VettingSeeder
                     AgreesToGuidelines = true,
                     AgreesToTerms = true,
                     ConsentToContact = true,
-                    WorkflowStatus = VettingStatus.UnderReview, // UnderReview (0) - CORRECTED from Denied
+                    WorkflowStatus = VettingStatus.UnderReview, // CORRECTED from Denied
                     SubmittedAt = DateTime.UtcNow.AddDays(-20),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-17),
                     DecisionMadeAt = null
@@ -325,7 +325,7 @@ public class VettingSeeder
                     AgreesToGuidelines = true,
                     AgreesToTerms = true,
                     ConsentToContact = true,
-                    WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
+                    WorkflowStatus = VettingStatus.Approved, // matches User.VettingStatus
                     SubmittedAt = DateTime.UtcNow.AddDays(-30),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-25),
                     InterviewScheduledFor = DateTime.UtcNow.AddDays(-20),
@@ -405,7 +405,7 @@ public class VettingSeeder
                     AgreesToGuidelines = true,
                     AgreesToTerms = true,
                     ConsentToContact = true,
-                    WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
+                    WorkflowStatus = VettingStatus.Approved, // matches User.VettingStatus
                     SubmittedAt = DateTime.UtcNow.AddDays(-40),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-35),
                     InterviewScheduledFor = DateTime.UtcNow.AddDays(-30),
@@ -433,7 +433,7 @@ public class VettingSeeder
                     AgreesToGuidelines = true,
                     AgreesToTerms = true,
                     ConsentToContact = true,
-                    WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
+                    WorkflowStatus = VettingStatus.Approved, // matches User.VettingStatus
                     SubmittedAt = DateTime.UtcNow.AddDays(-50),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-45),
                     InterviewScheduledFor = DateTime.UtcNow.AddDays(-40),

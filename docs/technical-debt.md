@@ -394,124 +394,7 @@ Estimated effort: Option A — 30 minutes including migration verification. Opti
 
 ---
 
-### BE-2 — Pre-existing client-side `VettingStatus` filter in `AttendanceSeeder` (P3)
-
-**Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.1)
-**Location**: `apps/api/Services/Seeding/AttendanceSeeder.cs:243-244` — `CreateHistoricalSocialEventParticipationsAsync`
-**Impact**: Minor — test/seed runtime only, not production.
-
-#### Symptom
-
-`CreateHistoricalSocialEventParticipationsAsync` loads ALL users from the DB and then filters in-memory:
-
-```csharp
-var users = await _userManager.Users.ToListAsync(cancellationToken);
-var availableUsers = users.Where(u => u.Email != canceledUserEmail && u.VettingStatus == VettingStatus.Approved).ToList();
-```
-
-This reads the entire `Users` table on every seed run even though only Approved users are needed. The sibling method `SeedEventParticipationsAsync` already uses the correct server-side pattern:
-
-```csharp
-var vettedUsers = await _userManager.Users
-    .Where(u => u.VettingStatus == VettingStatus.Approved)
-    .ToListAsync(cancellationToken);
-```
-
-#### Why it was deferred
-
-The client-side filter pre-dates Phase 3b-2 — it was not a regression introduced by the enum conversion. Fixing it in the same commit would have expanded scope and made the enum-only diff harder to review. Since the seeder runs only during dev/test DB bootstrap, there's no production impact.
-
-#### Suggested fix approach
-
-Move the `Where` clause into the LINQ query:
-
-```csharp
-var availableUsers = await _userManager.Users
-    .Where(u => u.Email != canceledUserEmail && u.VettingStatus == VettingStatus.Approved)
-    .ToListAsync(cancellationToken);
-```
-
-Estimated effort: 5 minutes + run seed + verify count unchanged.
-
-#### Authoritative records
-
-- Phase 3b-2 code review (2026-04-11, finding 4.1)
-- `apps/api/Services/Seeding/AttendanceSeeder.cs`
-
----
-
-### BE-3 — Misleading "Not Started" fallback text in `VettingHoldService.GetStatusName` (P3)
-
-**Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.2)
-**Location**: `apps/api/Features/VettingHold/Services/VettingHoldService.cs` — `GetStatusName(VettingStatus)` default branch
-**Impact**: Cosmetic — only affects the fallback text shown if an unknown enum value ever reaches this method.
-
-#### Symptom
-
-The default branch of the switch currently returns `"Not Started"`:
-
-```csharp
-default => "Not Started"
-```
-
-This is a holdover from the old int-based switch, where `0` meant "not-yet-started" in an earlier design. Under the current enum, `0` is `UnderReview` (not "not started"), and the default branch is reached only for corrupt/unknown values — where "Unknown" is the honest label.
-
-Given that the new DB CHECK constraint (Phase 3b-2) blocks invalid values at the DB layer, this default branch is effectively unreachable at runtime — but the text is still wrong if someone happens to read the code.
-
-#### Suggested fix approach
-
-Change the default to `"Unknown"`. Estimated effort: 2 minutes.
-
-```csharp
-default => "Unknown"
-```
-
-#### Authoritative records
-
-- Phase 3b-2 code review (2026-04-11, finding 4.2)
-- `apps/api/Features/VettingHold/Services/VettingHoldService.cs`
-
----
-
-### BE-4 — Stale numeric `(N)` comments in `VettingSeeder` (P3)
-
-**Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.5)
-**Location**: `apps/api/Services/Seeding/VettingSeeder.cs` — various inline comments
-**Impact**: Cosmetic. Comments were left over from the int-based enum era and still say things like `VettingStatus = VettingStatus.Approved, // (3)` even though the numeric value is no longer meaningful to anyone reading the code.
-
-#### Suggested fix approach
-
-Remove or rewrite the `(N)` numeric suffix comments. If the comment is useful for human readers, keep the descriptive part and drop the int. Opportunistic cleanup — fix next time someone touches this file.
-
-Estimated effort: 5 minutes.
-
-#### Authoritative records
-
-- Phase 3b-2 code review (2026-04-11, finding 4.5)
-- `apps/api/Services/Seeding/VettingSeeder.cs`
-
----
-
 ## Test suite (unit test coverage)
-
-### T-5 — No unit test for `VettingHoldService.GetStatusName` unreachable default branch (P3)
-
-**Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.4)
-**Impact**: None today. Noted for completeness only — this is "would be nicer to have 100% branch coverage" territory, not a real gap.
-
-#### Context
-
-The new `VettingHoldService.GetStatusName(VettingStatus)` switch has a `default` branch that is effectively unreachable due to the Phase 3b-2 DB CHECK constraint. Adding a unit test that casts an invalid value (`(VettingStatus)99`) and asserts the fallback text would exercise the branch for coverage tools, but the test is only meaningful if [BE-3](#be-3--misleading-not-started-fallback-text-in-vettingholdservicegetstatusname-p3) is addressed first (otherwise you're asserting the wrong string).
-
-#### Suggested fix approach
-
-After BE-3 is fixed, add a single test method in the `VettingHoldServiceTests` file asserting `GetStatusName((VettingStatus)99) == "Unknown"`. Estimated effort: 10 minutes (bundle with the BE-3 fix).
-
-#### Authoritative records
-
-- Phase 3b-2 code review (2026-04-11, finding 4.4)
-
----
 
 ### T-6 — Redundant local enum aliases in `VettingHoldServiceTests` (P3)
 
@@ -631,6 +514,15 @@ Both items below were flagged by the code-reviewer agent on commit `c1f3481b` as
 
 - **Phase 3 cleanup deployed to staging** — completed on 2026-04-11. `staging-deploy` skill deployed git SHA `8691f12c` to `https://staging.notfai.com`. Independent verification confirmed: (1) CHECK constraint exists on `public."Users"` with the correct predicate `(VettingStatus >= 0 AND VettingStatus <= 6)`; (2) existing 728 user rows distribute as `{0:6, 1:73, 3:647, 4:1, 5:1}` — all within the valid range, no constraint violations; (3) all 3 staging containers healthy; (4) smoke tests pass (homepage + events API); (5) browser verification on `/dashboard`, `/join`, `/admin/members` shows correct rendering of the new enum-typed status.
 
+### Post-deploy opportunistic cleanup (P3 items BE-2, BE-3, BE-4, T-5)
+
+Four items were raised against staging-deployed code as low-risk quick wins. Two were fixed, one was a false positive, and one was deferred as not-worth-it. See commit TBD for the fixes.
+
+- **BE-2 — `AttendanceSeeder` client-side `VettingStatus` filter moved server-side** — resolved. `CreateHistoricalSocialEventParticipationsAsync` previously loaded the entire `Users` table via `_userManager.Users.ToListAsync` and then filtered in memory with `.Where(u => u.VettingStatus == Approved)`. Moved the predicate into the LINQ query before `ToListAsync` so EF translates the filter to SQL. Matches the server-side pattern already in use by the sibling `SeedEventParticipationsAsync` method. Seeder-only code — no production impact, but a hygiene win and one less "why is this different from its sibling" question for future maintainers.
+- **BE-3 — "Not Started" fallback text in `GetStatusName`** — **FALSE POSITIVE** discovered during investigation. The Phase 3b-2 commit `c1f3481b` already rewrote `VettingHoldService.GetStatusName` with `_ => "Unknown"` as the default branch. The code reviewer's finding 4.2 misread the code. No source change needed. Future lesson: verify reviewer findings against the actual committed code before logging as tech debt. The rule applies even when the reviewer is specific and confident.
+- **BE-4 — Stale `(N)` numeric comments in `VettingSeeder.cs`** — resolved. Removed the numeric suffix comments throughout `VettingSeeder.cs` initializer sites. More importantly, five of the comments were **wrong**: several sites claimed `Approved (4)` when `Approved` is actually enum value `3`. These were holdovers from an earlier int-based design where the values were different. Cleanup removed the incorrect numeric suffixes entirely while preserving the `CORRECTED from X` history notes on the sites that had them. Followup win: the corrected comments now read cleaner (e.g. `// CORRECTED from Approved` instead of `// Denied (4) - CORRECTED from Approved`).
+- **T-5 — Unit test for `GetStatusName` default branch** — deferred / not-worth-it. `GetStatusName` is `private static` and the default branch is effectively unreachable at runtime thanks to the Phase 3b-2 DB `CK_Users_VettingStatus_Range` CHECK constraint. Writing a test would require either making the method `internal static` + `InternalsVisibleTo` (adds API surface for one test) or using reflection. Combined with the fact that the compiler + DB constraint already enforce the invariant we would be asserting, the test is low-value gymnastics. Explicitly not doing this. Recorded in resolved rather than deleted so a future agent can see it was evaluated and deemed not worth the effort.
+
 ## 2026-04-10 — Test infrastructure cleanup
 
 - **`WitchCityRope.SystemTests` inclusion** — decided: include in `run-test-suite` skill's `TEST_PROJECTS` list. The 6 pre-flight health check tests now run as part of the standard `--mode unit` pass. They target dev URLs (React :5173, API :5655, postgres :5434), so they'll fail if dev containers aren't running — intentional. Commit `fe756812`.
@@ -690,7 +582,8 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | Date | Change | By |
 |---|---|---|
 | 2026-04-10 | File created. Consolidated content from `docs/functional-areas/vetting/vetting-status-cleanup-tech-debt-2026-04-10.md` (7 items, 1 resolved) and `docs/standards-processes/testing/test-infra-tech-debt-2026-04-10.md` (4 unresolved + 7 resolved). Those source files were deleted after consolidation. | Test infra cleanup session (commit `726f32b3`) |
-| 2026-04-11 | Phase 3b-2 code review follow-up: added 6 new active items — `BE-1` (CHECK constraint not in model snapshot, P2), `BE-2` (AttendanceSeeder pre-existing client-side filter, P3), `BE-3` ("Not Started" fallback text, P3), `BE-4` (stale `(N)` comments, P3), `T-5` (missing unit test for default branch, P3), `T-6` (redundant enum aliases, P3). Added new resolved section "2026-04-11 — Vetting status cleanup project (Phase 3b-1, 3b-2, 3c)" documenting the primary refactoring work, the two hygiene fixes (migration schema qualification + `.cs.bak` cleanup), and the staging deploy completion. | Phase 3b-2 hygiene + Phase 3c session (commits `8691f12c` and this update) |
+| 2026-04-11 | Phase 3b-2 code review follow-up: added 6 new active items — `BE-1` (CHECK constraint not in model snapshot, P2), `BE-2` (AttendanceSeeder pre-existing client-side filter, P3), `BE-3` ("Not Started" fallback text, P3), `BE-4` (stale `(N)` comments, P3), `T-5` (missing unit test for default branch, P3), `T-6` (redundant enum aliases, P3). Added new resolved section "2026-04-11 — Vetting status cleanup project (Phase 3b-1, 3b-2, 3c)" documenting the primary refactoring work, the two hygiene fixes (migration schema qualification + `.cs.bak` cleanup), and the staging deploy completion. | Phase 3b-2 hygiene + Phase 3c session (commits `8691f12c` and `d7e90748`) |
+| 2026-04-11 | Opportunistic cleanup of 4 P3 items in areas touched by Phase 3: `BE-2` resolved (AttendanceSeeder filter moved server-side), `BE-3` resolved as FALSE POSITIVE (code already returned `"Unknown"`), `BE-4` resolved (stale `(N)` comments stripped — several were wrong), `T-5` resolved as deferred/not-worth-it (private method, unreachable branch). Active items remaining: `BE-1`, `T-1..4`, `T-6`, `TL-1`, `FE-1`, `FE-2`, `DOC-1`. | Post-deploy hygiene session (this commit) |
 
 ---
 

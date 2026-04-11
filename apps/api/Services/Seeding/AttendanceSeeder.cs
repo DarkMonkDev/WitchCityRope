@@ -240,8 +240,12 @@ public class AttendanceSeeder
         // 2. Get VETTED users from database (excluding canceled user for active RSVPs).
         // Business rule: Only vetted members (VettingStatus == Approved) can attend social events.
         // Phase 3b-2 bug fix: same `>= 3` latent bug as the earlier query in this file.
-        var users = await _userManager.Users.ToListAsync(cancellationToken);
-        var availableUsers = users.Where(u => u.Email != canceledUserEmail && u.VettingStatus == VettingStatus.Approved).ToList();
+        // Tech debt BE-2 fix: filter server-side instead of loading the entire Users
+        // table and filtering in memory. Matches the pattern already used in
+        // SeedEventParticipationsAsync above.
+        var availableUsers = await _userManager.Users
+            .Where(u => u.Email != canceledUserEmail && u.VettingStatus == VettingStatus.Approved)
+            .ToListAsync(cancellationToken);
 
         if (availableUsers.Count < totalRsvps)
         {
