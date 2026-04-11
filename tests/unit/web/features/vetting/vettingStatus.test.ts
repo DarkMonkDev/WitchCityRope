@@ -1,11 +1,17 @@
 /**
  * Tests for vetting status types and helpers
+ *
+ * NOTE: `shouldHideMenuForStatus` and the `VettingStatus` type moved from
+ * `@/features/vetting/types/vettingStatus` to
+ * `@/features/vetting/constants/vettingStatusConfig` in Phase 2a of the
+ * vetting status centralization (commit adecd044). The tests themselves
+ * were not touched — only the import path.
  */
 import { describe, it, expect } from 'vitest';
 import {
   type VettingStatus,
-  shouldHideMenuForStatus
-} from '@/features/vetting/types/vettingStatus';
+  shouldHideMenuForStatus,
+} from '@/features/vetting/constants/vettingStatusConfig';
 
 describe('VettingStatus Types', () => {
   describe('shouldHideMenuForStatus', () => {

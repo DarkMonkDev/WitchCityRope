@@ -86,6 +86,16 @@ const NOTE_PREFIX_TO_STATUS: ReadonlyArray<{
  * previously used exact matching but prefix matching is a strict
  * superset so callers can use this helper uniformly.
  *
+ * ⚠️ SECURITY / TRUST NOTE: The returned `status` is used purely as a
+ * visual cue — a VettingStatusBadge rendered next to the note. It is
+ * NOT authoritative. A malicious admin with write access to notes could
+ * craft a note beginning with "Application denied" to make a free-form
+ * note visually appear as a denial event. The applicant's ACTUAL vetting
+ * status lives on the application record itself (ApplicationDetailResponse.status)
+ * and that is the only source that should be consulted for real
+ * decision-making or access control. If you're using this helper for
+ * anything beyond visual badge rendering, you are using it wrong.
+ *
  * @param noteText The free-text content of the note
  * @returns `{ isSystem, status }` — isSystem true if the note starts
  *          with a known prefix, with `status` set to the corresponding

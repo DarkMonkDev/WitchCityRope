@@ -61,22 +61,15 @@ export interface MenuVisibilityResult {
   reason: string; // For debugging/logging
 }
 
-/**
- * Status box props for VettingStatusBox component
- */
-export interface StatusBoxProps {
-  status: VettingStatus;
-  applicationNumber: string;
-  submittedAt: Date;
-  lastUpdated: Date;
-  statusDescription: string;
-  nextSteps?: string;
-  estimatedDaysRemaining?: number;
-}
-
-// NOTE: `shouldHideMenuForStatus` was moved to
-// apps/web/src/features/vetting/constants/vettingStatusConfig.ts in Phase 2a
-// of the vetting status cleanup so all status-related business rules live
-// in the single-source config file. Import from there:
+// NOTE (Phase 2h): The `StatusBoxProps` interface was deleted along with
+// the VettingStatusBox component and its test file. VettingStatusBox had
+// no live consumers after Phase 1 — VettingApplicationPage replaced it
+// with VettingAlertBox. The Phase 1 tech-debt doc flagged it for Phase 2
+// cleanup and Phase 2h completed the deletion.
+//
+// NOTE (Phase 2a): `shouldHideMenuForStatus` was moved to
+// apps/web/src/features/vetting/constants/vettingStatusConfig.ts so all
+// status-related business rules live in the single-source config file.
+// Import from there:
 //
 //   import { shouldHideMenuForStatus } from '../constants/vettingStatusConfig';

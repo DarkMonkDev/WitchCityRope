@@ -5,7 +5,10 @@ import { IconSearch, IconFilter, IconRefresh, IconSortAscending, IconSortDescend
 import { useVettingApplications } from '../hooks/useVettingApplications';
 import { VettingStatusBadge } from './VettingStatusBadge';
 import type { ApplicationFilterRequest } from '../types/vetting.types';
-import { getStatusOptions } from '../../../../features/vetting/constants/vettingStatusConfig';
+import {
+  DEFAULT_VETTING_LIST_FILTERS,
+  getStatusOptions,
+} from '../../../../features/vetting/constants/vettingStatusConfig';
 
 interface VettingApplicationsListProps {
   onSelectionChange?: (selectedIds: Set<string>, applicationsData: any[]) => void;
@@ -16,7 +19,11 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   const [filters, setFilters] = useState<ApplicationFilterRequest>(() => ({
     page: 1,
     pageSize: 25,
-    statusFilters: ['UnderReview', 'InterviewApproved', 'FinalReview'], // Default checked statuses
+    // Default checked statuses — see DEFAULT_VETTING_LIST_FILTERS for
+    // the single-source definition of "statuses to show by default on
+    // this page". Spread because the constant is readonly but the
+    // filter shape wants a mutable array.
+    statusFilters: [...DEFAULT_VETTING_LIST_FILTERS],
     priorityFilters: [],
     skillsFilters: [],
     searchQuery: '',

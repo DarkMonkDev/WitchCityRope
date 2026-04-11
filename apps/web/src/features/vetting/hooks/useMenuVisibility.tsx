@@ -10,7 +10,10 @@
  */
 import { useVettingStatus } from './useVettingStatus';
 import { useIsAuthenticated } from '../../../stores/authStore';
-import { shouldHideMenuForStatus } from '../constants/vettingStatusConfig';
+import {
+  shouldHideMenuForStatus,
+  type VettingStatus,
+} from '../constants/vettingStatusConfig';
 import type { MenuVisibilityResult } from '../types/vettingStatus';
 
 /**
@@ -74,7 +77,11 @@ export const useMenuVisibility = (): MenuVisibilityResult => {
     };
   }
 
-  const shouldHide = shouldHideMenuForStatus(status as import('../types/vettingStatus').VettingStatus);
+  // The cast is still needed because `statusData.application.status` is
+  // typed as the raw string | null | undefined from the generated DTO,
+  // not the narrowed VettingStatus union. Phase 3 will tighten the DTO
+  // field type, at which point this cast can be removed entirely.
+  const shouldHide = shouldHideMenuForStatus(status as VettingStatus);
 
   if (shouldHide) {
     return {

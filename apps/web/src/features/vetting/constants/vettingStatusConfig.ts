@@ -411,6 +411,24 @@ export const STATUSES_REQUIRING_REVIEW: readonly VettingStatus[] = [
 ] as const;
 
 /**
+ * Default checked statuses for the admin vetting list page's
+ * MultiSelect filter on initial load. Broader than
+ * STATUSES_REQUIRING_REVIEW because the list view also wants to show
+ * applications in InterviewApproved state — those don't need reviewer
+ * action but are still "in progress" and worth showing by default so
+ * admins don't have to add them manually to see the active workflow.
+ *
+ * Used by VettingApplicationsList.tsx. If the product defines a new
+ * "in progress" status in the future, add it here rather than inlining
+ * the array in the component.
+ */
+export const DEFAULT_VETTING_LIST_FILTERS: readonly VettingStatus[] = [
+  'UnderReview',
+  'InterviewApproved',
+  'FinalReview',
+] as const;
+
+/**
  * Statuses that represent a "still in progress" member from the admin
  * dashboard's perspective, used to count "active members" on the admin
  * dashboard card. Includes anyone mid-workflow plus fully-approved members.
@@ -445,6 +463,31 @@ export function isActiveMemberStatus(
   if (value == null) return false;
   const key = STATUS_INT_TO_STRING[value];
   return key !== undefined && ACTIVE_MEMBER_STATUSES.includes(key);
+}
+
+/**
+ * Check whether a VettingStatus string represents an "active member"
+ * for admin dashboard stats purposes.
+ *
+ * This is the Phase 3 migration target for `isActiveMemberStatus`. When
+ * backend DTOs (UserDto, MemberDetailsDto) are normalized to ship
+ * vettingStatus as the enum string, admin code should be switched to
+ * use this function directly. At that point `isActiveMemberStatus` (the
+ * int bridge) and STATUS_INT_TO_STRING can be deleted.
+ *
+ * Exists now so the Phase 3 migration is a trivial call-site swap
+ * rather than a "what's the final function signature going to be?"
+ * discussion. Both functions return the same answer when given
+ * equivalent inputs.
+ *
+ * @param status The VettingStatus enum string
+ * @returns true if the status represents an active member
+ */
+export function isActiveMemberStatusString(
+  status: VettingStatus | null | undefined
+): boolean {
+  if (!status) return false;
+  return ACTIVE_MEMBER_STATUSES.includes(status);
 }
 
 /**

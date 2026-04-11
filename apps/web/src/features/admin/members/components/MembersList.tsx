@@ -126,30 +126,49 @@ export const MembersList: React.FC = () => {
 
   // Get status badge for the members list table.
   //
-  // NOTE: Labels and colors are INTENTIONALLY kept inline and NOT sourced
-  // from vettingStatusConfig.ts. The config's labels/colors are chosen for
-  // the applicant-facing alert banners (VettingAlertBox on /dashboard and
-  // /join) which have different UX needs than this admin table:
+  // ⚠️ INTENTIONAL DIVERGENCE from the single-source vetting status config
+  // ═════════════════════════════════════════════════════════════════════
+  // Labels and colors below are INTENTIONALLY kept inline and NOT sourced
+  // from vettingStatusConfig.ts. This is NOT a case of "we forgot to
+  // migrate" — it's a deliberate design decision because the admin
+  // members table has different UX needs than the applicant-facing
+  // alert banners.
   //
-  //   - The members list shows ALL statuses in one table, so colors need
-  //     maximum visual distinction (yellow/blue/cyan/green/red/orange).
-  //     The config uses fewer, more thematic colors because an alert only
-  //     ever displays ONE status at a time.
+  // SPECIFIC DIVERGENCES FROM THE REST OF THE ADMIN UI:
   //
-  //   - "Vetted" is the community-specific label for approved members
-  //     that carries meaning in the admin UX. The config uses the neutral
-  //     "Approved" for applicant-facing display.
+  //   1. "Vetted" for Approved status (this file) vs "Approved" (config)
+  //      — "Vetted" is the community-specific term for fully-approved
+  //      members. Used here because the admin members table is the
+  //      primary workflow where the community concept matters.
   //
-  // What Phase 2f DID migrate: the integer-to-status mapping. Previously
+  //   2. "Interview Approved" for InterviewApproved (this file) vs
+  //      "Awaiting Interview" (config, and therefore the admin vetting
+  //      filter dropdowns, the ChangeVettingStatusModal, the admin
+  //      vetting badge, and the applicant profile settings page).
+  //      RESULT: an admin navigating between /admin/members and
+  //      /admin/vetting WILL see two different labels for the same
+  //      applicant state. This is known and accepted. If you're fixing
+  //      the divergence, update BOTH surfaces together rather than
+  //      silently aligning one to the other — otherwise you risk
+  //      drifting to yet a third label.
+  //
+  //   3. Badge colors (yellow/blue/cyan/green/red/orange/gray) are
+  //      chosen for maximum visual distinction in a single table that
+  //      shows ALL statuses at once. The config's colors are chosen
+  //      for alert banners that display ONE status at a time, where
+  //      thematic over distinctive makes sense.
+  //
+  // WHAT PHASE 2F DID MIGRATE: the integer-to-status mapping. Previously
   // this switch compared raw ints (`case 0`, `case 1`, etc.) with magic
   // numbers and an enum-values comment. Now it compares string keys via
   // STATUS_INT_TO_STRING from the config, so if the backend ever reorders
   // the enum the mapping auto-updates instead of silently breaking.
   //
-  // Phase 3 note: STATUS_INT_TO_STRING is a temporary bridge for DTOs
-  // that still ship vettingStatus as int (UserDto is one of them). Phase 3
-  // will normalize backend DTOs to use the enum string, at which point
-  // this switch can consume the string directly.
+  // PHASE 3 NOTE: STATUS_INT_TO_STRING is a temporary bridge for DTOs
+  // that still ship vettingStatus as int (UserDto is one of them).
+  // Phase 3 will normalize backend DTOs to use the enum string, at
+  // which point this switch can consume the string directly without
+  // the STATUS_INT_TO_STRING lookup.
   const getVettingStatusBadge = (user: UserDto) => {
     const statusString = user.vettingStatus != null
       ? STATUS_INT_TO_STRING[user.vettingStatus]

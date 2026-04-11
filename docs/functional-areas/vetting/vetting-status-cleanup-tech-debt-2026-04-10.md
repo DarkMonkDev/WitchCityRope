@@ -81,28 +81,18 @@ Phases 2 and 3 will migrate remaining consumers and normalize the backend int/en
 
 ---
 
-### 3. `VettingStatusBox.tsx` is now orphaned dead code
+### 3. ~~`VettingStatusBox.tsx` is now orphaned dead code~~ — RESOLVED in Phase 2h
 
 **Discovered**: 2026-04-10 during Phase 1 code review (S8)
 
-**Location**:
-- `apps/web/src/features/vetting/components/VettingStatusBox.tsx` (137 lines, the component)
-- `apps/web/src/features/vetting/types/vettingStatus.ts:67-75` (unused `StatusBoxProps` interface)
-- `tests/unit/web/features/vetting/VettingStatusBox.test.tsx` (12 pre-existing broken tests)
+**Resolved**: 2026-04-10 Phase 2h (code review remediation commit)
 
-**Why it's not in scope for Phase 1**:
-- Deleting the component would also require deleting its 12-test file
-- Those 12 tests are already broken on main (see issue #2)
-- The clean-up pulls in a much larger scope around the broken test suite
-- Phase 1 was supposed to be minimum-scope per user's Option 1 choice
+**What was deleted**:
+- `apps/web/src/features/vetting/components/VettingStatusBox.tsx` — DELETED
+- `tests/unit/web/features/vetting/VettingStatusBox.test.tsx` — DELETED (was already broken, no loss of coverage)
+- `StatusBoxProps` interface from `apps/web/src/features/vetting/types/vettingStatus.ts` — REMOVED (replaced with a migration NOTE comment)
 
-**Inconsistency with Phase 1**:
-- Phase 1 did delete `MembershipWidget.tsx` for the same "orphaned dead code" reason
-- Leaving `VettingStatusBox.tsx` means the commit is inconsistent — one orphan deleted, one left behind
-
-**Suggested fix approach**: Phase 2 candidate. Delete all three files (component, test, unused interface) in a single commit after the test-suite-rehabilitation project restores baseline green.
-
-**Decision at project end**: __________________ (Phase 2 / defer)
+**Known minor residual issue**: `tests/unit/web/features/vetting/VettingApplicationPage.test.tsx` still has a `vi.mock('@/features/vetting/components/VettingStatusBox', ...)` call pointing to a now-deleted path. The test was already in the ~188 pre-existing broken test failures before Phase 2h — its failure mode hasn't changed in a way that matters. The testing agent's test-suite rehabilitation project will clean it up.
 
 ---
 
