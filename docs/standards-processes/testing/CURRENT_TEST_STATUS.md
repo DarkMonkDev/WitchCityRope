@@ -1,12 +1,40 @@
 # Current Test Suite Status
-<!-- Last Updated: 2026-04-10 -->
-<!-- Version: 5.0 -->
+<!-- Last Updated: 2026-04-11 -->
+<!-- Version: 5.1 -->
 <!-- Owner: Testing Team -->
 <!-- Status: Operational with known issues -->
 
 ## Overall Test Health
 
-### Latest Baseline: April 10, 2026
+### Latest Baseline: April 11, 2026
+
+Measured after the Phase 3 vetting status cleanup project (commits `25a83285` through `a3196ff1`). Three `dotnet test` runs against commit `25a83285` (`run-test-suite --mode unit` × 2 and `run-test-suite --mode all` × 1):
+
+| Suite | Passed | Failed | Skipped | Total | Pass Rate |
+|-------|--------|--------|---------|-------|-----------|
+| API Unit Tests (`tests/unit/api`) | 1,063 | 35 | 11 | 1,109 | 95.9% |
+| Core Tests (`tests/WitchCityRope.Core.Tests`) | 106 | 8 | 18 | 132 | 93.0% |
+| Integration Tests (`tests/integration`) — `--mode unit` run | 179 | 77 | 11 | 267 | 69.9% |
+| Integration Tests (`tests/integration`) — `--mode all` run | 195 | 61 | 11 | 267 | 74.9% |
+| System Tests (`tests/WitchCityRope.SystemTests`) | 6 | 0 | 0 | 6 | 100% |
+| **.NET TOTAL (`--mode unit`)** | **1,354** | **120** | **40** | **1,514** | **92.1%** |
+| **.NET TOTAL (`--mode all`)** | **1,370** | **104** | **40** | **1,514** | **93.1%** |
+| E2E (Playwright) | *not run — `run-test-suite --mode all` exits early, see [`TL-2`](../../../docs/technical-debt.md) in tech debt* | | | | |
+
+**Key finding**: the three runs against the same commit produced **77, 77, and 61** integration failures — varying only by test-run order. This is **direct empirical confirmation** of the WebApplicationFactory shared-state pollution theory (see [Known Issues](#-webapplicationfactory-shared-state-pollution-unresolved)). Previously the T-1 tech debt entry listed the theory as "unverified". As of 2026-04-11 it is verified.
+
+**Baseline commit**: `25a83285` (Phase 3 tech debt quick wins). Subsequent commits (`d7e90748`, `e7047954`, `0eb3e3ee`, `8dd8000e`, `a3196ff1`) are tech-debt documentation only — zero code change — so the test baseline remains valid through `a3196ff1`.
+
+**Run command**:
+```bash
+bash .claude/skills/run-test-suite/execute.sh --mode unit
+```
+
+**Note on the 1510 → 1514 total**: four new tests were added between the 2026-04-10 baseline and today, in the vetting cleanup work. No tests were removed. The 1-test Integration delta (268 → 267) is one test removed from the `TicketAssignment` integration suite during the 2026-04-10→2026-04-11 window; investigation of which specific test was removed is not in scope for this update.
+
+---
+
+### Previous Baseline: April 10, 2026
 
 | Suite | Passed | Failed | Skipped | Total | Pass Rate |
 |-------|--------|--------|---------|-------|-----------|
@@ -34,6 +62,10 @@ bash .claude/skills/run-test-suite/execute.sh --mode unit
 ## Known Issues
 
 ### 🚨 WebApplicationFactory shared-state pollution (UNRESOLVED)
+
+**2026-04-11 update**: The failure count is not ~36 of 46 as originally stated — it varies with test run order. Three runs against the same commit (`25a83285`) on 2026-04-11 produced **77, 77, and 61** integration failures. The number of tests hit by the pollution depends on which specific test earlier in the sequential collection runs first and leaks global state. The theory that "test order determines failure count" is now empirically confirmed. See [`T-1`](../../../docs/technical-debt.md) in tech debt for the authoritative entry with the full data table.
+
+**Original text preserved below (2026-04-10)**:
 
 ~36 of the 46 Integration test failures are caused by shared-state pollution between test classes in the sequential xUnit collection, NOT by bugs in the code being tested.
 
@@ -163,6 +195,7 @@ The direct reference is required because CPM silently ignores `PackageVersion` e
 
 | Date | Unit | Core | Integration | E2E | Total Pass | Notes |
 |------|------|------|-------------|-----|------------|-------|
+| 2026-04-11 | 1,063 | 106 | 179–195 | — | 1,354–1,370 | Post-Phase-3 (vetting cleanup) + opportunistic tech debt cleanup. Integration range reflects three runs against commit `25a83285` producing 77/77/61 failures — empirically confirming the WAF shared-state pollution theory that test order is the variable. E2E not captured: `run-test-suite --mode all` exits early before E2E phase, see [`TL-2`](../../../docs/technical-debt.md). |
 | 2026-04-10 | 1,064 | 106 | 210 | — | 1,380 | Compile fixes + Volunteer FK helper + Vetting drift. Net improvement but surfaced 27 more instances of pre-existing WAF shared-state bug. |
 | 2026-03-07 | 1,013 | 114 | 200 | 460 | 1,787 | Full suite repair, 0 failures (claimed). |
 | 2025-12-11 | ~1,000 | ~110 | ~150 | 617 | ~1,877 | E2E at 78.1%, 146 E2E failures |
@@ -193,10 +226,29 @@ The apparent regression from "100% pass" to "92.8% pass" is partly illusory: the
 
 ## Build Status
 
+**As of 2026-04-11** (commit `25a83285`, verified stable through `a3196ff1` since subsequent commits are docs-only):
+
 - **Solution Build**: Successful (warnings only, 0 errors)
 - **Docker Containers**: Operational (dev and test isolated)
-- **.NET Test Suites**: 92.8% pass rate (1,380 / 1,510, excluding skipped)
-- **Known issues**: ~36 WAF shared-state failures (code is fine, test infrastructure bug), 9 EmailTemplate behavioral drift failures, ~10 scattered real failures
+- **.NET Test Suites**: **92.1–93.1% pass rate** (1,354–1,370 / 1,514 excluding skipped). Range reflects test-order non-determinism in the WAF shared-state bug.
+- **Known issues**: 61–77 WAF shared-state failures (code is fine, test infrastructure bug — variable with run order), 9 EmailTemplate behavioral drift failures, additional scattered real failures not yet categorized
+- **E2E coverage**: **CURRENTLY UNMEASURED**. `run-test-suite --mode all` silently skips the E2E phase after the .NET phase fails, per [`TL-2`](../../../docs/technical-debt.md). Workaround: run `--mode e2e` as a separate invocation.
+
+**2026-04-10 (previous)**:
+- .NET Test Suites: 92.8% pass rate (1,380 / 1,510, excluding skipped)
+- Known issues: ~36 WAF shared-state failures, 9 EmailTemplate behavioral drift failures, ~10 scattered real failures
+
+## Related Tech Debt Entries
+
+All items in this file are tracked in the authoritative [`docs/technical-debt.md`](../../technical-debt.md) file. Cross-references:
+
+- [`T-1`](../../technical-debt.md#t-1--webapplicationfactory-shared-state-pollution-bug-p1-unresolved) — WebApplicationFactory shared-state pollution (matches "Known Issues" section above)
+- [`T-2`](../../technical-debt.md#t-2--emailtemplateservicetestssendhocemailasync_-9-behavioral-drift-failures-p2) — EmailTemplate `SendAdHocEmailAsync_*` drift (matches the 9 tests above)
+- [`T-3`](../../technical-debt.md#t-3--frontend-unit-test-suite-baseline-is-60-broken-p1-urgent-per-discoverer) — Frontend unit test suite ~60% broken (not covered in this file; see tech debt)
+- [`T-4`](../../technical-debt.md#t-4--test_catalogmd-full-refresh-pending-p2) — `TEST_CATALOG.md` full refresh pending
+- [`TL-2`](../../technical-debt.md) — `run-test-suite --mode all` skips E2E phase after .NET failures (explains why E2E is UNMEASURED above)
+
+When updating this file, also update the relevant tech debt entry (or vice versa). The tech debt file is the single source of truth for tracking; this file is the point-in-time snapshot of test health.
 
 ---
 
