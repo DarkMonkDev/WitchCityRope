@@ -205,7 +205,13 @@ export const VETTING_STATUS_CONFIG: Record<VettingStatus, VettingStatusDisplay> 
   },
 
   InterviewApproved: {
-    label: 'Interview Approved',
+    // Label is "Awaiting Interview" rather than "Interview Approved"
+    // because that was the label the production admin UI used before
+    // Phase 1 (via VettingStatusBadge.tsx and VettingStatusBox.tsx).
+    // "Awaiting Interview" is also semantically better for admin
+    // contexts — it describes the applicant's current state rather
+    // than the action that was taken to get them there.
+    label: 'Awaiting Interview',
     longLabel: 'Approved for Interview',
     color: 'green',
     badgeColor: 'teal',
