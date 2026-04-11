@@ -337,6 +337,102 @@ git config core.hooksPath
 
 ---
 
+### TL-2 — `run-test-suite --mode all` skips E2E phase after .NET failures (P2)
+
+**Discovered**: 2026-04-11 during opportunistic test run after BE-2/BE-4 tech debt cleanup
+**Location**: `.claude/skills/run-test-suite/execute.sh` — control flow between `run_unit_tests` and `run_e2e_tests`
+**Impact**: `--mode all` silently skips the entire E2E phase any time the .NET phase has non-zero failures. Given the current baseline has 104+ failing .NET tests (per `T-1`, `T-2`, etc.), this means **`--mode all` currently never runs E2E tests at all**. Anyone calling it expecting full-stack coverage is getting half the coverage and not realizing it.
+
+#### Symptom
+
+Ran `bash .claude/skills/run-test-suite/execute.sh --mode all` in background with output piped to a log file. Expected: `.NET tests complete → Playwright E2E tests run → Test Suite Summary → SKILL_RESULT JSON block`. Actual: `.NET tests complete → script exits with code 1, nothing else printed`.
+
+Log file (`/tmp/test-suite-full.log`, 70,726 lines) ends cleanly at:
+
+```
+  [FAIL] .NET tests FAILED
+```
+
+No `Running Playwright E2E Tests (via test-environment skill)` header (which `run_e2e_tests` prints as its first line). No `Test Suite Summary` section. No `SKILL_RESULT` JSON block at the end. These are all sequential outputs that happen *after* the .NET phase, meaning control never reached them.
+
+External exit code: `1` (matches what the skill *should* exit with on .NET failure, but also matches what a premature `set -e`-triggered exit would produce).
+
+#### Root cause (theory — not fully verified)
+
+The skill sets `set -e` at line 27 (top of file), then uses `set +e` / `set -e` scaffolding around each test-runner call to capture exit codes without tripping errexit. Specifically:
+
+```bash
+if [[ "$MODE" == "unit" || "$MODE" == "all" ]]; then
+    set +e
+    run_unit_tests        # returns 1 when any test fails
+    UNIT_RESULT=$?        # captures 1 into variable
+    set -e                # re-enables errexit
+    echo ""
+fi
+
+if [[ "$MODE" == "e2e" || "$MODE" == "all" ]]; then
+    set +e
+    run_e2e_tests         # never reached when UNIT_RESULT != 0
+    ...
+```
+
+Inside `run_unit_tests`, the per-project loop at line 373-376 also does `set +e` / `set -e` toggling around each `dotnet test` invocation. When the function returns, the `set -e` state is whatever the LAST iteration left it in (likely enabled).
+
+The theory is that when `run_unit_tests` returns with a non-zero exit code, **the combination of the function's internal `set -e` manipulation and the main script's `set -e` on line 455 causes the shell to exit early**, probably before or during the `echo ""` on line 456. The observed output pattern is consistent with this — we see 2 trailing newlines (one from the function's final `echo ""` at line 405, one from the `[FAIL]` echo), but we do NOT see a third newline from the main-script `echo ""` at line 456.
+
+**Reason this is only a theory**: I haven't instrumented the skill to prove the exact exit point. The `set -e` interaction inside functions vs. main script in bash is notoriously quirky and version-dependent. It might also be caused by something else entirely — e.g., the background task runner killing the process, or a subshell handling issue, or a redirect interaction with how I invoked the skill.
+
+#### Dead-end fixes — DO NOT RE-TRY
+
+None yet — this is first-discovery.
+
+#### Suggested fix approach
+
+**Option A — Stop using `set -e` in the skill (recommended)**
+Remove the `set -e` at line 27. Replace every command that "should fail fast on error" with explicit `|| { echo "error"; exit 1; }` handlers. This is the cleanest fix but requires auditing every command in the skill.
+
+**Option B — Wrap the entire main flow in a function**
+Put the top-level execution (both if blocks and the summary) inside a function that's called with `set +e` from a thin wrapper. Function-local errexit state is more predictable than main-script state.
+
+**Option C — Use explicit return-code checks instead of `set +e`/`set -e` pairs**
+Change the pattern:
+```bash
+set +e
+run_unit_tests
+UNIT_RESULT=$?
+set -e
+```
+to:
+```bash
+UNIT_RESULT=0
+run_unit_tests || UNIT_RESULT=$?
+```
+The `|| VAR=$?` form captures the exit code without ever letting errexit trigger, and it doesn't modify the shell's `set -e` state. This is the safest minimal-change fix.
+
+**Option D — Verify with `set -x` tracing**
+Before committing to a fix, add `set -x` to the skill, re-run `--mode all`, and look at the trace to identify exactly which command triggers the exit. Do this first to confirm or reject the theory above — 10 minutes of debug output beats 2 hours of guessing.
+
+**Recommended**: **D then C**. Run with tracing first to confirm the exit point, then apply the minimal Option C fix. Estimated effort: **1 hour** for investigation + fix, assuming the theory is correct.
+
+#### Workaround
+
+Until fixed, run unit and E2E phases separately:
+
+```bash
+bash .claude/skills/run-test-suite/execute.sh --mode unit
+bash .claude/skills/run-test-suite/execute.sh --mode e2e
+```
+
+This bypasses the problematic control flow because each invocation is a fresh shell state.
+
+#### Authoritative records
+
+- Staging post-deploy test run on 2026-04-11 — the run where this was discovered
+- Output file at `/tmp/test-suite-full.log` from that run (local-only, gitignored, may be cleaned up by tmpreaper)
+- `.claude/skills/run-test-suite/execute.sh` lines 27, 373-376, 451-465
+
+---
+
 ## Backend API
 
 ### BE-1 — `Users.CK_Users_VettingStatus_Range` CHECK constraint not tracked in EF model snapshot (P2)
@@ -695,7 +791,8 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-10 | File created. Consolidated content from `docs/functional-areas/vetting/vetting-status-cleanup-tech-debt-2026-04-10.md` (7 items, 1 resolved) and `docs/standards-processes/testing/test-infra-tech-debt-2026-04-10.md` (4 unresolved + 7 resolved). Those source files were deleted after consolidation. | Test infra cleanup session (commit `726f32b3`) |
 | 2026-04-11 | Phase 3b-2 code review follow-up: added 6 new active items — `BE-1` (CHECK constraint not in model snapshot, P2), `BE-2` (AttendanceSeeder pre-existing client-side filter, P3), `BE-3` ("Not Started" fallback text, P3), `BE-4` (stale `(N)` comments, P3), `T-5` (missing unit test for default branch, P3), `T-6` (redundant enum aliases, P3). Added new resolved section "2026-04-11 — Vetting status cleanup project (Phase 3b-1, 3b-2, 3c)" documenting the primary refactoring work, the two hygiene fixes (migration schema qualification + `.cs.bak` cleanup), and the staging deploy completion. | Phase 3b-2 hygiene + Phase 3c session (commits `8691f12c` and `d7e90748`) |
 | 2026-04-11 | Opportunistic cleanup of 4 P3 items in areas touched by Phase 3: `BE-2` resolved (AttendanceSeeder filter moved server-side), `BE-3` resolved as FALSE POSITIVE (code already returned `"Unknown"`), `BE-4` resolved (stale `(N)` comments stripped — several were wrong), `T-5` resolved as deferred/not-worth-it (private method, unreachable branch). Active items remaining: `BE-1`, `T-1..4`, `T-6`, `TL-1`, `FE-1`, `FE-2`, `DOC-1`. | Post-deploy hygiene session (commit `25a83285`) |
-| 2026-04-11 | Added `BE-5` (P2) — service layer swallows `OperationCanceledException` and returns 500. Discovered while investigating a user-reported staging console error. 12 false-positive 500s in 24h on low-traffic staging. Root cause: `catch (Exception ex)` blocks in `AttendanceService`, `RefreshTokenService`, and likely many more service files treat client-side cancellations as real errors. Fix: add `catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }` filter before the general catch. Deeper question (why so many cancellations on low-traffic staging?) logged as Phase B investigation. | Staging error investigation session (this commit) |
+| 2026-04-11 | Added `BE-5` (P2) — service layer swallows `OperationCanceledException` and returns 500. Discovered while investigating a user-reported staging console error. 12 false-positive 500s in 24h on low-traffic staging. Root cause: `catch (Exception ex)` blocks in `AttendanceService`, `RefreshTokenService`, and likely many more service files treat client-side cancellations as real errors. Fix: add `catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }` filter before the general catch. Deeper question (why so many cancellations on low-traffic staging?) logged as Phase B investigation. | Staging error investigation session (commit `e7047954`) |
+| 2026-04-11 | Added `TL-2` (P2) — `run-test-suite --mode all` skips E2E phase after .NET failures. Discovered during opportunistic test run after BE-2/BE-4 cleanup: the skill exits right after the .NET summary without ever entering the E2E block, likely due to a `set -e` interaction between the main script and internal function scaffolding. Impact: `--mode all` currently never runs E2E at all given the 104-failure .NET baseline. Workaround: run `--mode unit` and `--mode e2e` separately. | Post-cleanup test run session (this commit) |
 
 ---
 
