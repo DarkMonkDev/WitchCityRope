@@ -6,21 +6,27 @@
 
 > ## 🚨 IMPORTANT — READ BEFORE ADDING OR EDITING ANY ENTRY 🚨
 >
-> **Every agent touching this file MUST follow these rules. No exceptions.**
+> **The goal of these rules is to prevent duplication and data fragmentation — NOT to prevent new entries.** Genuinely new tech debt items absolutely belong here as new entries. What these rules prevent is logging the same issue twice under different IDs, or losing empirical data by creating a parallel entry when an existing one should have been updated.
 >
-> 1. **READ THE ENTIRE FILE FIRST.** Before adding a new entry, scan every section (Active items AND Resolved items) for anything that might already cover what you're about to add. A surface-level grep for a keyword is NOT enough — actually read the surrounding entries. The file is short enough that this is cheap, and the cost of duplication is much higher than the cost of a careful read.
+> 1. **READ THE ENTIRE FILE FIRST.** Before adding or editing an entry, scan every section (Active items AND Resolved items) for anything that might already cover what you're about to add. A surface-level grep for a keyword is NOT enough — actually read the surrounding entries. The file is short enough that this is cheap, and the cost of duplication is much higher than the cost of a careful read.
 >
-> 2. **UPDATE EXISTING ENTRIES RATHER THAN ADDING NEW ONES.** If you find new empirical data, a better theory, a partial fix, or anything else that belongs in an existing entry, **update that entry in place** with a dated note. Do not create a parallel entry that will drift from the original. Parallel entries fragment the record and make future agents chase ghosts.
+> 2. **DECIDE CAREFULLY: NEW ENTRY vs. UPDATE.**
+>    - **Add a new entry** when you've found a genuinely new issue — a distinct bug, drift, or architectural concern that no existing entry covers. This is fine and expected.
+>    - **Update an existing entry** when you have new empirical data, a better theory, a partial fix, a correction, or anything else that logically belongs inside an existing entry's scope. Updating in place keeps the full trail in one place.
+>    - **Signs it's probably a new entry**: different root cause, different subsystem, different symptom, different fix approach.
+>    - **Signs it's probably an update**: same root cause with new evidence, same symptom observed in a new location, refinement of an existing theory, new failure-count data for an already-tracked test suite bug.
 >
-> 3. **IF YOU'RE NOT SURE WHETHER IT'S A NEW ENTRY OR AN UPDATE**, default to updating the closest existing entry with a cross-reference. The librarian can always split an entry later; merging two separate entries that should have been one is much harder.
+> 3. **IF YOU'RE GENUINELY UNSURE, ASK THE USER.** Don't force-fit a new issue into an existing entry just to avoid adding one, and don't split an existing issue into two entries just to avoid the effort of updating. When the call is close, a one-sentence question to the user is always cheaper than cleaning up later.
 >
 > 4. **WHEN YOU UPDATE AN ENTRY, ADD A DATED NOTE TO THE BODY** rather than rewriting what's already there. Format: add an `**Updated**: YYYY-MM-DD — <short note>` line under the header, plus a new dated sub-section in the body. Preserve the original text so the history trail stays intact.
 >
 > 5. **NO SILENT OVERWRITES.** Never delete or substantially rewrite an existing entry's body without the user's explicit approval. Historical context is load-bearing — future agents need to see what was tried, what was ruled out, and why.
 >
-> 6. **CROSS-REFERENCE ACROSS ENTRIES.** When adding a new entry that is related to an existing one (even loosely — same subsystem, same symptom class, similar fix pattern), link to the related entry by ID (`T-1`, `BE-5`, etc.) so the network stays navigable. Don't hide relationships by treating each entry as isolated.
+> 6. **CROSS-REFERENCE RELATED ENTRIES.** When adding a new entry (or updating one) that is related to another — same subsystem, same symptom class, similar fix pattern — link to the related entry by ID (`T-1`, `BE-5`, etc.) so the network stays navigable. Cross-referencing is how we allow genuinely distinct entries to coexist without losing their relationships.
 >
-> **Failure to follow these rules is how we end up with fragmented, duplicated, unreliable data in this file — which is exactly the problem this file was created to solve.** If you're an agent and you're in doubt, STOP and ask the user rather than guessing. The user would rather answer one question than clean up a duplicated entry later.
+> 7. **ADD A HISTORY ROW.** Every commit that touches this file should add a row to the [History](#history) table at the bottom with the date, a short description of the change, and the commit reference. This is what makes the update trail auditable.
+>
+> **In short**: read first, duplicate never, relate always, ask when unsure. New entries are welcome; duplicates are not.
 
 ## Purpose
 
