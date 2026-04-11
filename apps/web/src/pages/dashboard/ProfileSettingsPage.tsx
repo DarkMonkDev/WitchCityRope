@@ -34,6 +34,7 @@ import { ReinstateMembershipModal } from '../../components/vetting/ReinstateMemb
 import { vettingHoldService } from '../../services/vettingHold.api'
 import { useCurrentUser } from '../../features/auth/api/queries'
 import { AuthorizedContactsTab } from '../../features/authorized-contacts/components/AuthorizedContactsTab'
+import { getConfigFromStatus } from '../../features/vetting/constants/vettingStatusConfig'
 
 /**
  * Profile Settings Page with 4 tabs
@@ -770,7 +771,17 @@ const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }
         <Stack gap="md">
           <TextInput
             label="Vetting Status"
-            value={profile.hasVettingApplication ? profile.vettingStatus : 'No Application Submitted'}
+            // Phase 2g migration: previously displayed `profile.vettingStatus`
+            // directly, which shows raw enum strings like "UnderReview" and
+            // "InterviewApproved" to users. Now uses the single-source config's
+            // human-readable label ("Under Review", "Awaiting Interview",
+            // etc.). Falls back to the raw string if the config lookup fails
+            // (which shouldn't happen for any valid status).
+            value={
+              profile.hasVettingApplication
+                ? (getConfigFromStatus(profile.vettingStatus)?.label ?? profile.vettingStatus)
+                : 'No Application Submitted'
+            }
             readOnly
             styles={{
               label: {
