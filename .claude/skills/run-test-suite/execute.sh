@@ -31,14 +31,25 @@ set -e  # Exit on error
 
 PROJECT_ROOT="/home/chad/repos/witchcityrope"
 
-# The three WCR .NET test projects that this skill runs.
-# WitchCityRope.SystemTests is intentionally excluded pending a decision about
-# whether those tests are still useful (see SKILL.md "What The Skill Is NOT").
-# WitchCityRope.Tests.Common is a shared test-library, not a runnable test project.
+# The four WCR .NET test projects that this skill runs.
+# WitchCityRope.Tests.Common is a shared test-library, not a runnable test project,
+# so it's not listed here.
+#
+# WitchCityRope.SystemTests was added on 2026-04-10 after an earlier decision
+# to exclude it was reversed. The project contains 6 pre-flight health check
+# tests ([Trait("Category", "HealthCheck")]) that verify the dev environment
+# (React dev server on :5173, API on :5655, postgres on :5434) is up. These
+# tests HIT DEV URLS, not test container URLs, so they'll fail if dev containers
+# aren't running at the time of the test run. That's intentional — they're
+# meant as a "is the dev environment actually up?" sanity check. If you don't
+# want them run during a .NET test pass, filter them out:
+#   bash .claude/skills/run-test-suite/execute.sh --mode unit \
+#     --filter "Category!=HealthCheck"
 TEST_PROJECTS=(
     "$PROJECT_ROOT/tests/unit/api/WitchCityRope.Api.Tests.csproj"
     "$PROJECT_ROOT/tests/WitchCityRope.Core.Tests/WitchCityRope.Core.Tests.csproj"
     "$PROJECT_ROOT/tests/integration/WitchCityRope.IntegrationTests.csproj"
+    "$PROJECT_ROOT/tests/WitchCityRope.SystemTests/WitchCityRope.SystemTests.csproj"
 )
 
 # Human-readable labels, same order as TEST_PROJECTS, used in summary output.
@@ -46,6 +57,7 @@ TEST_PROJECT_LABELS=(
     "API Unit Tests (tests/unit/api)"
     "Core Tests (tests/WitchCityRope.Core.Tests)"
     "Integration Tests (tests/integration)"
+    "System Tests (tests/WitchCityRope.SystemTests)"
 )
 
 TEST_ENVIRONMENT_SKILL="$PROJECT_ROOT/.claude/skills/test-environment/execute.sh"

@@ -19,6 +19,7 @@ This skill is ported from `inventory-purchasing-workflow/.claude/skills/run-test
 - `tests/unit/api/WitchCityRope.Api.Tests.csproj` — API endpoint/service unit tests (vertical slice)
 - `tests/WitchCityRope.Core.Tests/WitchCityRope.Core.Tests.csproj` — Core/domain tests
 - `tests/integration/WitchCityRope.IntegrationTests.csproj` — Integration tests (WebApplicationFactory)
+- `tests/WitchCityRope.SystemTests/WitchCityRope.SystemTests.csproj` — Pre-flight health checks for the dev environment ([Trait("Category", "HealthCheck")]). These hit dev URLs (React :5173, API :5655, postgres :5434), not test container URLs. They'll fail if dev containers aren't running — that's intentional, they're meant as a "is the dev environment actually up?" sanity check. If you're running the .NET suite without dev containers up and want to skip them, filter them out with `--filter "Category!=HealthCheck"`.
 
 All three use `Testcontainers.PostgreSql`, which spins up its own per-test postgres container on demand. They don't need the long-running witchcity-test-* containers to be up — each test run manages its own database lifecycle.
 
@@ -62,7 +63,6 @@ bash .claude/skills/run-test-suite/execute.sh --mode all
 - ❌ **Does not write tests.** It only runs them. For writing tests, see `docs/standards-processes/testing/TEST-CREATION-GUIDE.md`.
 - ❌ **Does not manage dev containers.** Use `restart-dev-containers` for that.
 - ❌ **Does not manage E2E test containers directly.** Delegates that to `test-environment`.
-- ❌ **Does not run `tests/WitchCityRope.SystemTests/`.** That project is currently excluded pending a decision about whether those tests are still useful.
 
 ## Safety Nets (Important)
 

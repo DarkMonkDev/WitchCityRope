@@ -134,66 +134,19 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
             "Past session volunteer positions should not be returned");
     }
 
-    [Fact(Skip = "Schema drift 2026-04-10: VolunteerPosition.SessionId is now non-nullable, " +
-        "so 'event-wide positions' (SessionId = null) cannot exist in the current schema. " +
-        "This test was written to verify a feature where a VolunteerPosition applies to ALL " +
-        "sessions of an event (using the earliest future session's timing window). The feature " +
-        "may or may not still be intended — the entity change made VolunteerPosition.SessionId " +
-        "required, which silently deleted the feature. Needs a product decision: " +
-        "(a) feature deprecated → delete this test, or " +
-        "(b) feature still needed → make VolunteerPosition.SessionId nullable in apps/api/Models/VolunteerPosition.cs " +
-        "and update the helper + caller.")]
-    public async Task VolunteerSignup_EventWide_UsesEarliestFutureSession()
-    {
-        // Arrange: Event-wide position (no SessionId), Session 1 past, Session 2 future
-        var (client, userId) = await CreateAuthenticatedUserAsync($"eventwide-volunteer-user-{Guid.NewGuid():N}@test.com");
-        var venueId = await CreateTestVenueAsync();
-
-        var eventEntity = new Event
-        {
-            Id = Guid.NewGuid(),
-            Title = $"Event-Wide Volunteer Event {Guid.NewGuid():N}",
-            Description = "Event with event-wide volunteer position",
-            StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(2),
-            VenueId = venueId,
-
-            Capacity = 20,
-            IsPublished = true,
-            VolunteerRegistrationCloseHours = 12, // Closes 12 hours before
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        await using (var context = CreateDbContext())
-        {
-            context.Events.Add(eventEntity);
-            await context.SaveChangesAsync();
-        }
-
-        // Create past session and future session
-        await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(-1), "Session 1"); // Past
-        var futureSession = await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(2), "Session 2"); // Future (2 days away)
-
-        // Create event-wide position — passes futureSession.Id to compile, but the test is
-        // skipped so this value is not meaningful. See Skip reason above.
-        var position = await CreateTestVolunteerPositionAsync(eventEntity.Id, futureSession.Id, "Event Coordinator");
-
-        // Act: Get volunteer positions
-        var response = await client.GetAsync($"/api/events/{eventEntity.Id}/volunteer-positions");
-
-        // Assert: Position should be available using Session 2's timing
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var positions = await response.Content.ReadFromJsonAsync<List<VolunteerPositionDto>>();
-        positions.Should().NotBeNull();
-        positions.Should().ContainSingle(p => p.Id == position.Id.ToString(),
-            "Event-wide position should be returned when earliest future session is beyond VolunteerRegistrationCloseHours");
-
-        var returnedPosition = positions!.First(p => p.Id == position.Id.ToString());
-        returnedPosition.CanSignUp.Should().BeTrue(
-            "CanSignUp should be true when earliest future session (Session 2, 2 days away) is beyond VolunteerRegistrationCloseHours");
-    }
+    // VolunteerSignup_EventWide_UsesEarliestFutureSession was DELETED on 2026-04-10.
+    //
+    // The "event-wide volunteer positions" feature (VolunteerPosition with null
+    // SessionId that applies across all sessions of an event) was intentionally
+    // removed in commit 1caaa4ca ("fix: volunteer emails now list all assignments
+    // + remove event-wide positions"). Per that commit: "Makes VolunteerPosition.SessionId
+    // non-nullable — all positions must belong to a specific session. Event-wide
+    // volunteer logic removed from recipient service, volunteer service, and
+    // assignment service."
+    //
+    // This test was asserting the old behavior and the skipped state I'd left
+    // during the 2026-04-10 test cleanup sweep was wrong — the feature is
+    // deprecated, not in limbo. Delete rather than skip.
 
     #endregion
 

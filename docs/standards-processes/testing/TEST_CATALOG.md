@@ -1,11 +1,32 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-12-13 -->
-<!-- Version: 12.12.0 - FULL E2E SUITE EXECUTION -->
+<!-- Last Updated: 2026-04-10 (header refresh only — body is 2025-12-13 snapshot pending full catalog update) -->
+<!-- Version: 12.12.0 - FULL E2E SUITE EXECUTION (December 2025 snapshot, see current numbers at top) -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
+## ⚠️ Current Numbers (2026-04-10)
 
-## FULL E2E TEST SUITE EXECUTION - December 13, 2025
+**The body of this file (below) is a December 2025 E2E snapshot and is out of date for .NET tests.** For current .NET test counts and known issues, see:
+
+- **`CURRENT_TEST_STATUS.md`** — full 2026-04-10 baseline with per-project numbers, known issues (WAF shared-state bug, EmailTemplate behavioral drift), and the investigation trail
+- **`.claude/skills/run-test-suite/SKILL.md`** — the skill that runs the .NET + E2E tests
+
+Quick current numbers (2026-04-10):
+- **.NET total**: 1,380 passed / 89 failed / 41 skipped / 1,510 total = 92.8% pass rate
+- **E2E**: not run in the 2026-04-10 baseline; last measured 86.9% on 2025-12-13
+
+Test execution (all tests go through the skill):
+```bash
+bash .claude/skills/run-test-suite/execute.sh --mode unit   # .NET only
+bash .claude/skills/run-test-suite/execute.sh --mode e2e    # Playwright only
+bash .claude/skills/run-test-suite/execute.sh --mode all    # both
+```
+
+A full catalog refresh (listing every test file with current pass/fail per class) is pending — this file's per-feature-area tables below are Dec 2025 snapshots.
+
+---
+
+## FULL E2E TEST SUITE EXECUTION - December 13, 2025 *(snapshot — not current)*
 
 **EXECUTION DATE**: 2025-12-13T21:09:42Z
 **STATUS**: 86.9% Pass Rate (Below 90% threshold)

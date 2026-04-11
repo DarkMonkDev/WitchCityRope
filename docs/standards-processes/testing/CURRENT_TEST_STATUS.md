@@ -1,85 +1,203 @@
 # Current Test Suite Status
-<!-- Last Updated: 2026-03-07 -->
-<!-- Version: 4.0 -->
+<!-- Last Updated: 2026-04-10 -->
+<!-- Version: 5.0 -->
 <!-- Owner: Testing Team -->
-<!-- Status: Operational -->
+<!-- Status: Operational with known issues -->
 
 ## Overall Test Health
 
-### Latest Baseline: March 7, 2026
+### Latest Baseline: April 10, 2026
 
 | Suite | Passed | Failed | Skipped | Total | Pass Rate |
 |-------|--------|--------|---------|-------|-----------|
-| Unit (.NET) | 1,013 | 0 | 11 | 1,024 | 100% |
-| Core (.NET) | 114 | 0 | 18 | 132 | 100% |
-| Integration (.NET) | 200 | 0 | 11 | 211 | 100% |
-| E2E (Playwright) | 460 | 0 | 20 | 480 | 100% |
-| **TOTAL** | **1,787** | **0** | **60** | **1,847** | **100%** |
+| API Unit Tests (`tests/unit/api`) | 1,064 | 35 | 11 | 1,110 | 95.4% |
+| Core Tests (`tests/WitchCityRope.Core.Tests`) | 106 | 8 | 18 | 132 | 93.0% |
+| Integration Tests (`tests/integration`) | 210 | 46 | 12 | 268 | 81.4% |
+| **.NET TOTAL** | **1,380** | **89** | **41** | **1,510** | **92.8%** |
+| E2E (Playwright) | *not run this baseline* | | | | |
+
+**Run command**:
+```bash
+bash .claude/skills/run-test-suite/execute.sh --mode unit
+```
+
+**Baseline commit**: `a7e9d13a` (on top of `e1c0dd8e`). See commits `fbf5ebb9`, `9a815064`, `e1c0dd8e`, `a7e9d13a` for the 2026-04-10 session's investigation trail.
 
 ### Test Infrastructure
 
-- **Unit tests**: xUnit + Moq/NSubstitute, TestContainers PostgreSQL (migrated from InMemoryDatabase)
-- **Core tests**: xUnit + TestContainers PostgreSQL with DatabaseTestFixture
-- **Integration tests**: xUnit + TestContainers PostgreSQL + WebApplicationFactory + Respawn
-- **E2E tests**: Playwright (Chromium) against Docker dev containers
+- **API Unit tests**: xUnit + Moq/NSubstitute + Testcontainers.PostgreSQL. Each test class spins up its own postgres container on demand via `TestContainers.PostgreSql`.
+- **Core tests**: xUnit + Testcontainers.PostgreSQL with `DatabaseTestFixture` (shared via `IClassFixture`/`ICollectionFixture`).
+- **Integration tests**: xUnit + Testcontainers.PostgreSQL + `WebApplicationFactory<Program>` + Respawn 6.2.1 (pinned — see [Respawn note](#respawn-pinned-at-621)).
+- **E2E tests**: Playwright (Chromium) running inside `witchcity-test-runner` container against isolated test containers.
+- **System tests** (`tests/WitchCityRope.SystemTests`): Pre-flight health checks for the dev environment, `[Trait("Category", "HealthCheck")]`. Runs against dev URLs (React :5173, API :5655, postgres :5434) — intended as a "is the dev environment actually up?" sanity check. Included in the skill's default `--mode unit` pass as of 2026-04-10.
+
+## Known Issues
+
+### 🚨 WebApplicationFactory shared-state pollution (UNRESOLVED)
+
+~36 of the 46 Integration test failures are caused by shared-state pollution between test classes in the sequential xUnit collection, NOT by bugs in the code being tested.
+
+**Affected test classes** (all in `tests/integration/Features/TicketAssignment/`):
+- `AdminAssignmentEndpointTests` (8 tests) — pre-existing, failed in 2026-03-07 baseline too
+- `AuthorizedContactEndpointTests` (16 tests) — started failing 2026-04-10 after unrelated test-runtime changes shifted the order
+- `ProxyRsvpEndpointTests` (11 tests) — same
+- `MultiTicketCheckoutEndpointTests` (1 test) — same
+
+**Error signature**:
+```
+System.InvalidOperationException : The entry point exited without ever building an IHost.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.StartServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+```
+
+**Verification that the code is fine**: these classes pass 100% when run in isolation:
+```bash
+bash .claude/skills/run-test-suite/execute.sh --mode unit --filter "FullyQualifiedName~AdminAssignmentEndpointTests"
+# → 8/8 pass
+bash .claude/skills/run-test-suite/execute.sh --mode unit --filter "FullyQualifiedName~AuthorizedContactEndpointTests"
+# → 16/16 pass
+```
+
+**Failed fix attempts** (don't re-try these):
+1. `HostAbortedException` exception filter in Program.cs — `WebApplicationFactory` in .NET 10 uses `DeferredHostBuilder` + `TaskCompletionSource`, not exception throwing. Filter is a no-op.
+2. `Serilog.CreateBootstrapLogger()` → `CreateLogger()` per serilog/serilog-aspnetcore#289 — that issue applies only to PARALLEL test execution. Our tests run sequentially (`[Collection("Sequential")]` with `DisableParallelization = true`).
+3. Respawn 7.0.0 upgrade — correlation was coincidental timing drift.
+
+**Root cause theory** (not yet proven): some test earlier in the sequential collection corrupts global process state (likely a singleton in the API DI container or a static field), and the `private static WebApplicationFactory<Program>? _sharedFactory` caching pattern used by these test classes locks the broken state in for the class's entire lifetime. Fix requires identifying which specific global state is leaking.
+
+**Effective pass rate if the WAF bug were fixed**: ~96% (1,416 passing / 1,470 runnable).
+
+Full investigation notes in commit `e1c0dd8e` message and in `docs/lessons-learned/test-executor-lessons-learned.md` prevention pattern **"Entry point exited without ever building an IHost"**.
+
+### `EmailTemplateServiceTests.SendAdHocEmailAsync_*` — 9 failures (behavioral drift)
+
+9 tests in `tests/unit/api/Features/EmailTemplates/EmailTemplateServiceTests.cs` fail with NSubstitute mock assertion errors. Example:
+
+```
+NSubstitute.Exceptions.ReceivedCallsException : Expected to receive exactly 1 call matching:
+    SendEmailAsync("test-2a995e50cc704ed6b27a84e61f33723a@example.com", "Welcome",
+                   html => html.Contains("Hello TestSceneName!"),
+                   text => ((text != null) AndAlso text.Contains("Hello TestSceneName!")),
+                   any CancellationToken)
+Actually received no matching calls.
+```
+
+Affected test methods (all in the `SendAdHocEmailAsync_*` family):
+- `SendAdHocEmailAsync_WithMultiplePerUserVariables_ReplacesAllVariables`
+- `SendAdHocEmailAsync_WithoutPerUserVariables_SendsBulkEmails`
+- `SendAdHocEmailAsync_WithPerUserVariables_SendsIndividualEmails`
+- `SendAdHocEmailAsync_WithResetUrlVariable_GeneratesUniqueToken`
+- `SendAdHocEmailAsync_WithResetUrlVariable_GeneratesUniqueTokensPerUser`
+- `SendAdHocEmailAsync_WithSystemUrlVariable_ReplacesWithFrontendUrl`
+- `SendAdHocEmailAsync_WithUserNameVariable_FallsBackToEmailWhenSceneNameEmpty`
+- `SendAdHocEmailAsync_WithUserNameVariable_ReplacesWithSceneName`
+- `SendAdHocEmailAsync_WithVerificationUrlVariable_GeneratesEmailConfirmationToken`
+
+**Diagnosis**: real behavioral drift. `SendAdHocEmailAsync` either no longer calls `SendEmailAsync` with per-user content, uses a different template variable resolver, or routes through a different service method. The tests' mock expectations no longer match actual service behavior.
+
+**NOT bit-rot**: these are NOT the same as the `Variables` property removal that was fixed in commit `9a815064` on the Core.Tests side. These tests mock a different service interaction.
+
+**Status**: deferred. Not fixed in the 2026-04-10 session. Needs:
+1. Read `apps/api/Features/EmailTemplates/Services/EmailTemplateService.SendAdHocEmailAsync`
+2. Compare actual call pattern to mock expectations
+3. Either update the service to match the tests' contract, or update the tests to match the service's current behavior (whichever reflects the intended design)
+
+### Integration test failures NOT covered by the two categories above
+
+- `VettingEndpointsIntegrationTests.StatusUpdate_ToSameStatus_Fails` — assertion text drift (expected error message text no longer matches API output)
+- `EventCreationIntegrationTests.POST_Events_WithAllRelations_CreatesDeepStructure` — 500 response (API-side exception, needs log inspection)
+- `EventCopyIntegrationTests.CopyEvent_EndToEnd_CreatesNewEvent` — `DbUpdateException`
+- `AllDtosMappingTests.AllDtos_PropertiesMatchEntities` — contract test, DTOs drifted from entities
+- `AdminParticipationRemovalIntegrationTests.AdminRemoveRsvp_CancelsVolunteerShiftsInDatabase` — possibly related to Volunteer FK cleanup
+
+Plus a handful of individual failures in other `TicketAssignment` tests. Total net of the WAF shared-state bug: ~10 real code-level integration failures.
+
+## Deferred Decisions
+
+- **`EmailTemplateServiceTests.SendAdHocEmailAsync_*`** — see above. Needs behavioral investigation.
+- **Pre-commit hook regex false positive** — `.git/hooks/pre-commit`'s single-source-of-truth check had an over-broad regex pattern under `test-catalog-updater` that matched any prose mentioning `"npx playwright test"` or `"npm ... test ... playwright"`. Removed locally on 2026-04-10, but the hook is NOT tracked in the repo (it lives in `.git/hooks/` which git doesn't version), so the fix applies only to the developer who installed it. Should be propagated to a tracked location in a follow-up. See `session-work/2026-04-10/pre-commit-hook-tech-debt.md`.
+- **WebApplicationFactory shared-state bug** (see above) — unresolved, needs fresh investigation in a future session.
 
 ## Test Execution
 
 ### Quick Commands
 
-Use the `test-environment` skill for running tests in isolated containers, or run directly:
+All test commands go through the skills. Direct test-runner invocations (.NET, Node, or Playwright CLIs) are blocked by the `.claude/hooks/block-manual-test-runs.py` PreToolUse hook.
 
-- **Unit tests**: `dotnet test tests/unit/api/WitchCityRope.Api.Tests.csproj --verbosity minimal`
-- **Core tests**: `dotnet test tests/WitchCityRope.Core.Tests/ --verbosity minimal`
-- **Integration tests**: `dotnet test tests/integration/ --verbosity minimal`
-- **E2E tests**: Use `test-environment` skill (handles Docker containers and execution)
+- **All .NET tests**: `bash .claude/skills/run-test-suite/execute.sh --mode unit`
+- **Filtered .NET tests**: `bash .claude/skills/run-test-suite/execute.sh --mode unit --filter "FullyQualifiedName~Name"`
+- **E2E tests**: `bash .claude/skills/run-test-suite/execute.sh --mode e2e` (delegates to `test-environment`)
+- **Everything (.NET + E2E)**: `bash .claude/skills/run-test-suite/execute.sh --mode all`
 
 ### Test Result Files
 
 All test artifacts in `/test-results/`:
-- `test-results.json` - Full Playwright JSON report
-- `html-report/` - Interactive HTML report (`npx playwright show-report test-results/html-report`)
-- `artifacts/` - Screenshots, traces, videos from Playwright
+- `test-results.json` — Full Playwright JSON report (E2E only)
+- `html-report/` — Interactive HTML report (E2E only)
+- `artifacts/` — Screenshots, traces, videos from Playwright
 
-## Skipped Tests (60 total)
+.NET test output is currently only captured to the skill's stdout log. Adding `.trx` / JUnit XML output to the skill is a future enhancement.
 
-Skipped tests are intentionally skipped with documented reasons, not broken tests.
+## Respawn Pinned at 6.2.1
 
-Common skip reasons:
-- `NoOpAntiforgery` makes CSRF rejection untestable in test factory
-- Database transaction rollback test requires specific error injection
-- Cancellation token handling tests with timing sensitivity
-- Tests requiring external service configuration
+The integration test suite uses `Respawn 6.2.1` for fast database cleanup between tests. Respawn 7.0.0 exists (released 2024-11) and drops the `Microsoft.Data.SqlClient` transitive dependency entirely, but an attempted upgrade on 2026-04-10 surfaced timing drift that correlated with test failures (later proven coincidental, but the correlation was sticky enough to cause confusion).
+
+To eliminate the `Azure.Identity 1.3.0` transitive vulnerability that `Respawn 6.2.1 → SqlClient 4.0.5` pulls in, we use a Central Package Management pin:
+
+```xml
+<!-- Directory.Packages.props -->
+<PackageVersion Include="Azure.Identity" Version="1.14.0" />
+```
+
+Plus a direct reference in the test project that uses Respawn:
+
+```xml
+<!-- tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj -->
+<PackageReference Include="Azure.Identity" />
+```
+
+The direct reference is required because CPM silently ignores `PackageVersion` entries for purely transitive deps. With both in place, `Azure.Identity` resolves to `1.14.0` (non-vulnerable), no `NU1902/NU1903` warnings, and Respawn stays at 6.2.1 (no timing shift).
 
 ## Historical Progress
 
 | Date | Unit | Core | Integration | E2E | Total Pass | Notes |
 |------|------|------|-------------|-----|------------|-------|
-| 2026-03-07 | 1,013 | 114 | 200 | 460 | 1,787 | Full suite repair, 0 failures |
+| 2026-04-10 | 1,064 | 106 | 210 | — | 1,380 | Compile fixes + Volunteer FK helper + Vetting drift. Net improvement but surfaced 27 more instances of pre-existing WAF shared-state bug. |
+| 2026-03-07 | 1,013 | 114 | 200 | 460 | 1,787 | Full suite repair, 0 failures (claimed). |
 | 2025-12-11 | ~1,000 | ~110 | ~150 | 617 | ~1,877 | E2E at 78.1%, 146 E2E failures |
 | 2025-11-29 | - | - | - | 621 | - | E2E baseline |
 | 2025-10-09 | - | - | - | 18 | - | Missing data-testid attributes |
 
-## Major Fixes Applied (March 2026)
+### Relationship to the 2026-03-07 "100% passing" baseline
 
-### Code Bugs Found by Tests
-- VettedMembersOnly not enforced for ticket purchases (AttendanceService)
-- Admin removal endpoint not updating TicketPurchase.PaymentStatus after refund
+The 2026-03-07 baseline claimed 1,787 passing / 0 failing across Unit, Core, Integration, and E2E. Today's 2026-04-10 baseline shows 89 failures across .NET. Between those two baselines:
 
-### Test Infrastructure Fixes
-- MockEncryptionService registered in test factory
-- Shared WebApplicationFactory for high-test-count classes (prevents resource exhaustion)
-- InMemoryDatabase tests converted to TestContainers PostgreSQL
-- Venue FK added to all test Event entities
-- USE_MOCK_PAYMENT_SERVICE enabled in test factory
-- JsonStringEnumConverter added for DTO deserialization
+- **+143 new tests** were added to the suite (most notably +137 tests for ticket assignment + proxy RSVP via commit `cb8adcdb`)
+- **Compile errors accumulated** in API Unit Tests (`UserOptionDto` missing import), Core Tests (`EmailTemplate.Variables` removal, `EventService`/`AuthenticationService` constructor changes). These blocked those projects entirely until fixed on 2026-04-10 in commits `9a815064` and `e1c0dd8e`. The March 7 baseline was measuring with these compile errors hidden by a broken `test-environment --mode dotnet` skill path that silently produced zero results.
+- **~30 real test bugs** crept in (Volunteer Session FK, Vetting role grant drift, EmailTemplate `Variables` removal in test data, etc.). Most were fixed on 2026-04-10.
+- **The WAF shared-state bug** existed in both baselines but hit different tests depending on run timing. In 2026-03-07 it's unclear how many failures it caused because the baseline was generated when the dotnet mode was silently broken; in 2026-04-10 it accounts for ~36 of the 46 integration failures.
+
+The apparent regression from "100% pass" to "92.8% pass" is partly illusory: the 2026-03-07 100% figure was generated before the test infrastructure exposed its own bugs. Today's numbers are a more honest picture of the actual state. Real code health hasn't significantly changed; visibility into real failures improved.
+
+## Test Infrastructure Changes (2026-04-10 Session)
+
+1. **New skill**: `.claude/skills/run-test-suite/` — unified entry point for .NET + E2E tests. Ported from `inventory-purchasing-workflow` with adaptations for WCR's four .NET test projects. Includes safety nets against silent discovery failures and compile-errors-exiting-0.
+2. **Removed dead modes** from `.claude/skills/test-environment/`: `--mode unit|integration|dotnet|all` were all broken (tried to `dotnet test` inside the api container which had no test projects). Removed with deprecation messages pointing to `run-test-suite`.
+3. **Pre-commit block-manual-test-runs hook** — blocks direct `dotnet test`, `npm test`, `npx vitest`, `playwright test`, etc. at the Bash tool level.
+4. **Compile cascade fixes** — API Unit Tests (`UserOptionDto` using), Core Tests (AuthenticationService, EmailTemplate, 3×EventService), net unblocking ~1,242 previously-invisible tests.
+5. **Volunteer Session FK helper fixes** — 3 test helpers updated to create/attach real sessions. Net +28 passing.
+6. **2 stale Vetting role-grant tests rewritten** to assert `VettingStatus = Approved` (post-2025-10-19 refactor behavior) instead of the deprecated role-grant assertion.
+7. **`Azure.Identity 1.14.0` pin** via CPM — eliminates the high-severity transitive vulnerability without upgrading Respawn.
+8. **Agent docs updated** — `test-executor.md`, `test-developer.md`, and both lessons-learned files updated to reference `run-test-suite` and document the WAF shared-state pattern as a known issue.
 
 ## Build Status
 
 - **Solution Build**: Successful (warnings only, 0 errors)
 - **Docker Containers**: Operational (dev and test isolated)
-- **All Test Suites**: 100% pass rate
+- **.NET Test Suites**: 92.8% pass rate (1,380 / 1,510, excluding skipped)
+- **Known issues**: ~36 WAF shared-state failures (code is fine, test infrastructure bug), 9 EmailTemplate behavioral drift failures, ~10 scattered real failures
 
 ---
 
-*This status is updated with each baseline test run. For integration test patterns, see `integration-test-patterns.md`.*
+*Next update: when the WAF shared-state bug is resolved OR when a new baseline is run. For integration test patterns, see `integration-test-patterns.md`. For the skill that runs the tests, see `.claude/skills/run-test-suite/SKILL.md`.*
