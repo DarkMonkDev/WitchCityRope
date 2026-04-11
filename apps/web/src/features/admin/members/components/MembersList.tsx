@@ -39,6 +39,7 @@ import { apiClient } from '../../../../lib/api/client';
 import type { UserDto, MemberFilterRequest } from '../types/members.types';
 import type { components } from '@witchcityrope/shared-types';
 import { getUserRoles } from '../../../../utils/roleUtils';
+import { STATUS_INT_TO_STRING } from '../../../vetting/constants/vettingStatusConfig';
 
 export const MembersList: React.FC = () => {
   const navigate = useNavigate();
@@ -123,29 +124,58 @@ export const MembersList: React.FC = () => {
     return roleDto?.displayName || role;
   }, [rolesData]);
 
-  // Get status badge color based on vetting status
-  // VettingStatus enum: 0=UnderReview, 1=InterviewApproved, 2=FinalReview, 3=Approved, 4=Denied, 5=OnHold, 6=Withdrawn
+  // Get status badge for the members list table.
+  //
+  // NOTE: Labels and colors are INTENTIONALLY kept inline and NOT sourced
+  // from vettingStatusConfig.ts. The config's labels/colors are chosen for
+  // the applicant-facing alert banners (VettingAlertBox on /dashboard and
+  // /join) which have different UX needs than this admin table:
+  //
+  //   - The members list shows ALL statuses in one table, so colors need
+  //     maximum visual distinction (yellow/blue/cyan/green/red/orange).
+  //     The config uses fewer, more thematic colors because an alert only
+  //     ever displays ONE status at a time.
+  //
+  //   - "Vetted" is the community-specific label for approved members
+  //     that carries meaning in the admin UX. The config uses the neutral
+  //     "Approved" for applicant-facing display.
+  //
+  // What Phase 2f DID migrate: the integer-to-status mapping. Previously
+  // this switch compared raw ints (`case 0`, `case 1`, etc.) with magic
+  // numbers and an enum-values comment. Now it compares string keys via
+  // STATUS_INT_TO_STRING from the config, so if the backend ever reorders
+  // the enum the mapping auto-updates instead of silently breaking.
+  //
+  // Phase 3 note: STATUS_INT_TO_STRING is a temporary bridge for DTOs
+  // that still ship vettingStatus as int (UserDto is one of them). Phase 3
+  // will normalize backend DTOs to use the enum string, at which point
+  // this switch can consume the string directly.
   const getVettingStatusBadge = (user: UserDto) => {
-    switch (user.vettingStatus) {
-      case 3: // Approved
+    const statusString = user.vettingStatus != null
+      ? STATUS_INT_TO_STRING[user.vettingStatus]
+      : undefined;
+
+    switch (statusString) {
+      case 'Approved':
         return <Badge color="green">Vetted</Badge>;
-      case 0: // UnderReview
-        // Only show "Under Review" if they actually have an application
-        // Otherwise they haven't applied yet
+      case 'UnderReview':
+        // Only show "Under Review" if they actually have an application.
+        // Otherwise they haven't applied yet (default VettingStatus is 0
+        // = UnderReview for all users, even those without an application).
         return user.hasVettingApplication ? (
           <Badge color="yellow">Under Review</Badge>
         ) : (
           <Badge color="gray">Not Applied</Badge>
         );
-      case 1: // InterviewApproved
+      case 'InterviewApproved':
         return <Badge color="blue">Interview Approved</Badge>;
-      case 2: // FinalReview
+      case 'FinalReview':
         return <Badge color="cyan">Final Review</Badge>;
-      case 4: // Denied
+      case 'Denied':
         return <Badge color="red">Denied</Badge>;
-      case 5: // OnHold
+      case 'OnHold':
         return <Badge color="orange">On Hold</Badge>;
-      case 6: // Withdrawn
+      case 'Withdrawn':
         return <Badge color="gray">Withdrawn</Badge>;
       default:
         return <Badge color="gray">Unknown</Badge>;

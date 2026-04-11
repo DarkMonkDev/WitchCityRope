@@ -9,6 +9,7 @@ import { useMembers } from '../../features/admin/members/hooks/useMembers';
 import { useUser } from '../../stores/authStore';
 import { hasRole, hasAnyRole } from '../../utils/roleUtils';
 import { DASHBOARD_CARD_ROLES } from '../../constants/adminRoles';
+import { isActiveMemberStatus } from '../../features/vetting/constants/vettingStatusConfig';
 
 interface DashboardCard {
   title: string;
@@ -85,15 +86,21 @@ export const AdminDashboardPage: React.FC = () => {
     ? (events as any).filter((event: any) => new Date(event.startDate) > new Date()).length
     : 0;
 
-  // Calculate active members count (only meaningful for Administrator)
-  // Criteria: isActive = true AND vettingStatus in (0=UnderReview, 1=InterviewApproved/AwaitingInterview, 3=Vetted)
+  // Calculate active members count (only meaningful for Administrator).
+  //
+  // Previously used magic integer comparisons (`=== 0 || === 1 || === 3`)
+  // which required a comment to explain what each integer meant. The
+  // `isActiveMemberStatus()` helper from vettingStatusConfig.ts replaces
+  // the comparison with a named predicate that encapsulates the same
+  // logic, sourced from the single-source status config.
+  //
+  // UserDto ships vettingStatus as a raw int (not the enum string) as of
+  // Phase 2, so the helper uses its int bridge internally. Phase 3 will
+  // normalize backend DTOs and this call site can switch to the plain
+  // string version at that point.
   const activeMembersCount = membersData?.users
     ? membersData.users.filter(
-        (member) =>
-          member.isActive &&
-          (member.vettingStatus === 0 || // Under Review
-            member.vettingStatus === 1 || // Interview Approved / Awaiting Interview
-            member.vettingStatus === 3) // Vetted
+        (member) => member.isActive && isActiveMemberStatus(member.vettingStatus)
       ).length
     : 0;
 
