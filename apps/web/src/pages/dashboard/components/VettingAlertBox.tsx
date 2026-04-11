@@ -40,7 +40,8 @@
  */
 
 import React from 'react';
-import { Alert, Anchor, Box, Text } from '@mantine/core';
+import { Alert, Anchor, Box, Flex, Group, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import type { VettingStatusDto } from '../../../types/dashboard.types';
 import { getConfigFromStatus } from '../../../features/vetting/constants/vettingStatusConfig';
 
@@ -49,6 +50,12 @@ interface VettingAlertBoxProps {
 }
 
 export const VettingAlertBox: React.FC<VettingAlertBoxProps> = ({ status }) => {
+  // Responsive layout switch. On mobile (≤991px matching the dashboard
+  // convention) the title and body stack vertically; on desktop they sit
+  // side-by-side so the alert uses the available horizontal space
+  // instead of wasting it with a mostly-empty row.
+  const isMobile = useMediaQuery('(max-width: 991px)');
+
   // Single lookup — `getConfigFromStatus` returns null for missing/null/
   // undefined status, and each config's `dashboardAlert` is null for statuses
   // that intentionally don't show an alert (e.g. Approved).
@@ -90,32 +97,61 @@ export const VettingAlertBox: React.FC<VettingAlertBoxProps> = ({ status }) => {
 
   return (
     <Alert
-      icon={
-        <Box component="span" fz="24px">
-          {config.emoji}
-        </Box>
-      }
+      // NOTE: No `icon` or `title` props on the Mantine Alert — both are
+      // rendered manually inside a responsive Flex below. The built-in
+      // `title` prop forces a stacked title-over-body layout, which
+      // prevents the desktop side-by-side layout we want. Rendering
+      // everything in the Alert's children gives us full control over
+      // the internal arrangement.
+      //
+      // Title color inheritance: we use `c="var(--alert-color)"` on the
+      // title Text so it picks up the Alert's theme color variable the
+      // same way Mantine's built-in title element would.
       color={config.color}
-      // Title is wrapped in a Text element so we can control size/weight
-      // independent of Mantine Alert's default (~14-16px). Using `lg`
-      // (~18px) makes the headline read as the first thing on the page
-      // without dominating the alert body.
-      title={
-        <Text size="lg" fw={700}>
-          {alertDef.title}
-        </Text>
-      }
       radius="md"
-      mb="lg"
       styles={{
         root: {
           borderWidth: '2px',
+          // Halve the alert's default bottom padding (~14px → 7px) for a
+          // tighter feel. Also applied to desktop for consistency.
+          paddingBottom: '7px',
         },
       }}
     >
-      <Text size="sm" style={{ lineHeight: 1.6 }}>
-        {messageBody}
-      </Text>
+      <Flex
+        direction={isMobile ? 'column' : 'row'}
+        gap={isMobile ? 'xs' : 'md'}
+        align={isMobile ? 'stretch' : 'center'}
+        wrap="nowrap"
+      >
+        {/*
+          Emoji + title group: always stays together horizontally. On
+          desktop this is the left "column" of the Flex; on mobile it's
+          the top row. flexShrink: 0 prevents the title block from being
+          squeezed when there's a long message next to it on desktop.
+        */}
+        <Group gap="sm" wrap="nowrap" align="center" style={{ flexShrink: 0 }}>
+          <Box
+            component="span"
+            fz="24px"
+            style={{ lineHeight: 1, flexShrink: 0 }}
+          >
+            {config.emoji}
+          </Box>
+          <Text size="lg" fw={700} c="var(--alert-color)">
+            {alertDef.title}
+          </Text>
+        </Group>
+
+        {/*
+          Body text with inline link. On desktop this sits to the right
+          of the title and takes the remaining space; on mobile it drops
+          below the title.
+        */}
+        <Text size="sm" style={{ lineHeight: 1.6 }}>
+          {messageBody}
+        </Text>
+      </Flex>
     </Alert>
   );
 };

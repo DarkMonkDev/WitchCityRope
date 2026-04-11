@@ -14,6 +14,7 @@
 import React, { useState } from 'react';
 import { Container, Box, Paper, Text, Button, Group, Stack, Title, ThemeIcon, Alert } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
+import { useMediaQuery } from '@mantine/hooks';
 import { VettingApplicationForm } from '../components/VettingApplicationForm';
 import { VettingAlertBox } from '../../../pages/dashboard/components/VettingAlertBox';
 // VettingStatusDto hook (includes interviewScheduleUrl / reapplyInfoUrl).
@@ -41,6 +42,10 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
   // it returns undefined for public visitors — in which case no alert is shown.
   const isAuthenticated = useIsAuthenticated();
   const { data: dashboardVettingStatus } = useDashboardVettingStatus();
+  // Responsive breakpoint matches the existing dashboard convention at
+  // apps/web/src/pages/dashboard/MyEventsPage.tsx (991px). Used below to
+  // collapse the alert→form gap on mobile while keeping it on desktop.
+  const isMobile = useMediaQuery('(max-width: 991px)');
 
   const handleSubmissionComplete = (applicationNumber: string, statusUrl: string) => {
     setSubmissionResult({ applicationNumber, statusUrl });
@@ -148,7 +153,18 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
 
   return (
     <Container size="lg" py="xl" className={className}>
-      <Stack gap="xl">
+      {/*
+        Responsive gap between the alert and the form: 16px on desktop for
+        visual breathing room, 0 on mobile so the alert sits flush with the
+        form (vertical space is scarce on small screens). VettingAlertBox
+        no longer owns its own bottom margin — this Stack is the single
+        source of spacing below the alert on /join.
+
+        Matches the dashboard's responsive breakpoint convention (991px).
+        If the alert isn't rendered, the Stack has only the form as a
+        child and the gap value doesn't affect layout.
+      */}
+      <Stack gap={isMobile ? 0 : 16}>
         {/*
           Vetting status alert — same component used on the dashboard.
           Only renders for authenticated users whose status is not Approved.

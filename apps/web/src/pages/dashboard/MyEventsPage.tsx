@@ -247,6 +247,19 @@ export const MyEventsPage: React.FC = () => {
   return (
     <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
       <Container size="xl" py="xl">
+        {/*
+          Vetting alert sits ABOVE the page title — same visual pattern as
+          the /join page where the alert is the first thing the user sees.
+          Responsive bottom margin matches /join's Stack gap convention
+          (16px desktop, 0 mobile) so the space between the alert and the
+          "{SceneName}'s Events" title bar is consistent across both pages.
+        */}
+        {vettingStatus && vettingStatus.status !== 'Approved' && (
+          <Box mb={isMobile ? 0 : 16}>
+            <VettingAlertBox status={vettingStatus} />
+          </Box>
+        )}
+
         {/* Page Title Bar */}
         {isMobile ? (
           <Stack gap="xs" mb="lg">
@@ -326,11 +339,6 @@ export const MyEventsPage: React.FC = () => {
               Edit Profile
             </Button>
           </Group>
-        )}
-
-        {/* Conditional Vetting Alert */}
-        {vettingStatus && vettingStatus.status !== 'Approved' && (
-          <VettingAlertBox status={vettingStatus} />
         )}
 
         {/* Pending Tickets & RSVPs - shown at top when user has items awaiting acceptance */}
