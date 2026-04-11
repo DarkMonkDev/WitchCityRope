@@ -291,6 +291,15 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                     dto.Message = "Your application has been approved! Your vetted member access is being finalized.";
                     break;
 
+                case VettingStatus.Withdrawn:
+                    // Phase 3a (tech debt #4): previously fell through to the default
+                    // empty-string message, which gave consumers of VettingStatusDto.Message
+                    // a blank string for withdrawn applications. This case provides a
+                    // sensible status-specific message so frontend and downstream
+                    // consumers can display something meaningful.
+                    dto.Message = "Your application has been withdrawn. Contact us if you'd like to reapply.";
+                    break;
+
                 default:
                     dto.Message = "";
                     break;

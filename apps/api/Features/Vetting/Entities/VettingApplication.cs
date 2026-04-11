@@ -4,20 +4,48 @@ using WitchCityRope.Api.Models;
 namespace WitchCityRope.Api.Features.Vetting.Entities;
 
 /// <summary>
-/// Simplified vetting application entity aligned with design specifications
-/// Represents a member application for vetting with basic audit trail support
+/// Simplified vetting application entity aligned with design specifications.
+/// Represents a member application for vetting with basic audit trail support.
 ///
-/// VETTING WORKFLOW (Updated for Calendly External Scheduling):
-/// 1. Application submitted → UnderReview (0) - Initial submission under review
-/// 2. Team reviews application → InterviewApproved (1) - Approved for interview (Calendly link sent)
-/// 3. Interview completed → InterviewCompleted (2) - Interview has been completed (marked manually)
-/// 4. Interview completed automatically triggers → FinalReview (3) - Post-interview review before decision
-/// 5. Final decision → Approved (4), Denied (5), or OnHold (6)
-/// 6. User can withdraw anytime → Withdrawn (7)
+/// VETTING WORKFLOW (external interview scheduling via CMS-managed page):
 ///
-/// NOTE: Interviews are scheduled externally via Calendly. The system tracks completion, not scheduling.
-/// Terminal states: Approved, Denied, Withdrawn (no further transitions allowed)
-/// Hold state: OnHold can return to UnderReview or InterviewApproved
+///   1. Application submitted       → UnderReview       (0)
+///      Initial submission; the vetting team will review it.
+///
+///   2. Team approves for interview → InterviewApproved (1)
+///      Applicant is invited to schedule a vetting interview via the
+///      CMS-managed "vetting-interview-scheduling" page.
+///
+///   3. Admin marks interview done  → FinalReview       (2)
+///      Post-interview review before the final decision. Moved manually
+///      by an admin after the interview has occurred (there is no
+///      intermediate "InterviewCompleted" state — FinalReview is the
+///      post-interview state).
+///
+///   4. Admin makes final decision  → Approved (3), Denied (4), or OnHold (5)
+///      Terminal outcomes. An OnHold application may later return to
+///      FinalReview through the reinstatement flow; Approved and Denied
+///      are terminal.
+///
+///   5. Applicant withdraws anytime → Withdrawn         (6)
+///      Terminal state the applicant can reach themselves before a
+///      final decision is made.
+///
+/// Enum value order (MUST match VettingStatus enum at the bottom of this
+/// file — these numbers are persisted in the database for the
+/// ApplicationUser.VettingStatus column and the VettingApplication
+/// .WorkflowStatus column):
+///
+///   UnderReview       = 0
+///   InterviewApproved = 1
+///   FinalReview       = 2
+///   Approved          = 3
+///   Denied            = 4
+///   OnHold            = 5
+///   Withdrawn         = 6
+///
+/// Terminal states: Approved, Denied, Withdrawn (no further transitions)
+/// Hold state:      OnHold can return to FinalReview via reinstatement
 /// </summary>
 public class VettingApplication
 {
