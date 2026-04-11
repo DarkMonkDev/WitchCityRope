@@ -116,79 +116,79 @@ You are responsible for EVERYTHING needed to make tests run successfully:
 
 ## Test Execution Workflow
 
+### 🚨 Two-skill split (updated 2026-04-10) 🚨
+
+WCR has TWO test skills and you MUST pick the right one:
+
+| Skill | Runs | Use when |
+|---|---|---|
+| **`run-test-suite`** | .NET unit/integration tests (host `dotnet test`) AND/OR Playwright E2E via delegation | Default for ALL test runs. `--mode unit` for .NET only, `--mode e2e` for browser only, `--mode all` for both. |
+| **`test-environment`** | Playwright E2E only, in isolated test containers | When you specifically want to manage the E2E container lifecycle. `run-test-suite --mode e2e` internally delegates here, so calling `run-test-suite` is almost always fine. |
+
+**HARD RULE**: Do NOT run test-runner commands (the .NET, Node, or Playwright CLIs) directly via Bash. A pre-commit hook (`.claude/hooks/block-manual-test-runs.py`) blocks these invocations at the Bash tool level. They skip container isolation, database seeding, and health checks — producing unreliable results. Use the skills.
+
+**Why `run-test-suite` is the default**: the old `test-environment --mode unit|integration|dotnet|all` paths were architecturally broken — they tried to `docker-compose exec api dotnet test` into a container whose test stage only copied `apps/api/` (no test projects), silently producing zero results on every invocation from 2025-11-27 until they were removed on 2026-04-10. The replacement runs .NET tests from the host via `dotnet test`, which is how WCR's test architecture was designed (each test project uses `Testcontainers.PostgreSql` which spins up its own per-run postgres container). See `.claude/skills/run-test-suite/SKILL.md` "Why This Skill Exists" for the full history.
+
 ### Phase 1: Environment Pre-Flight Checks
 **🚨 MANDATORY E2E TEST CHECKLIST - THIS IS SUPER COMMON AND MUST BE DONE EVERY TIME 🚨**
 
 **Before running ANY E2E tests, the test-executor MUST complete this checklist:**
 
-1. ✅ **Check Docker environment health**: Use the `test-environment` skill to run tests in isolated containers
+1. ✅ **Check Docker environment health**: Use the `run-test-suite` skill (which delegates to `test-environment` for E2E) to run tests in isolated containers
 2. ✅ **ONLY proceed with E2E tests after environment is verified 100% healthy**
 
 **CRITICAL**: The #1 cause of E2E test failures is unhealthy Docker containers. Environment validation is MANDATORY.
 
-**ALWAYS use the `test-environment` skill for test execution:**
-- Builds fresh test containers isolated from dev environment
-- Creates test database with predictable seed data
-- Runs tests inside `witchcity-test-runner` container
-- Automatic cleanup after tests complete
+**ALWAYS use the skills for test execution:**
+- `run-test-suite --mode unit` runs .NET tests from the host (fastest, ~5 min total)
+- `run-test-suite --mode e2e` delegates to `test-environment` which builds fresh test containers isolated from dev, creates test database with predictable seed data, runs Playwright tests inside `witchcity-test-runner`, and cleans up
+- `run-test-suite --mode all` runs both .NET and E2E in sequence
 
-**⚠️ CRITICAL WARNING**: If you find compilation errors, the `test-environment` skill will detect them during build. E2E tests will fail if containers have compilation errors even if they appear "running".
+**⚠️ CRITICAL WARNING**: If you find compilation errors, the skills will detect them during build. .NET tests have compile-error detection safety nets; E2E tests will fail if containers have compilation errors even if they appear "running".
 
 **Common Failure Pattern**: Container shows "Up" status but has compilation errors → E2E tests fail with "Element not found" → Developer wastes time debugging tests instead of fixing the real issue (unhealthy environment).
 
 ### Phase 2: Test Execution
 **Run tests in this order:**
 
-1. **Compilation Check**
+1. **Compilation Check** (optional — the skills run `dotnet build` as part of test execution)
 ```bash
 dotnet build
 # If fails, report compilation errors to orchestrator
 ```
 
-2. **Backend Unit Tests**
+2. **All .NET tests (unit + core + integration in one run)**
 ```bash
-# API Unit Tests
-dotnet test tests/unit/api/ \
-  --logger "console;verbosity=detailed" \
-  --logger "trx;LogFileName=/test-results/unit-results.trx"
+bash .claude/skills/run-test-suite/execute.sh --mode unit
+```
+This iterates through all three .NET test projects (`tests/unit/api`, `tests/WitchCityRope.Core.Tests`, `tests/integration`) and produces a per-project + aggregate summary. Results include safety-net checks for silent discovery failures and compile errors that `dotnet test` sometimes reports as success.
+
+3. **Filtered .NET tests** (e.g., just one class or feature area)
+```bash
+bash .claude/skills/run-test-suite/execute.sh --mode unit --filter "FullyQualifiedName~VolunteerServiceTests"
+```
+Filters apply to ALL three .NET projects. Test classes that don't exist in a given project produce a "force FAIL on zero counters" warning for that project — this is expected and not a real failure.
+
+4. **Frontend Unit Tests** (React/Vite)
+```bash
+# Frontend test skill not yet available — direct invocation still blocked by the hook.
+# Currently the only way to run React unit tests is via an agent delegation. Report
+# to orchestrator if React unit tests need running and no skill exists yet.
 ```
 
-3. **Core Tests** (Domain/Entity tests - ~140 tests)
+5. **E2E Tests (Playwright)**
 ```bash
-dotnet test tests/WitchCityRope.Core.Tests/WitchCityRope.Core.Tests.csproj \
-  --logger "console;verbosity=detailed" \
-  --logger "trx;LogFileName=/test-results/core-results.trx"
+bash .claude/skills/run-test-suite/execute.sh --mode e2e
+# OR if you specifically want to manage test containers directly:
+bash .claude/skills/test-environment/execute.sh --mode e2e
 ```
+Both spin up the test container stack, run Playwright in `witchcity-test-runner`, and save artifacts to `/test-results/`. The former delegates to the latter — they're equivalent for E2E.
 
-4. **System Tests** (Health checks - ~6 tests)
+6. **Everything (.NET + E2E)**
 ```bash
-dotnet test tests/WitchCityRope.SystemTests/WitchCityRope.SystemTests.csproj \
-  --logger "console;verbosity=detailed" \
-  --logger "trx;LogFileName=/test-results/system-results.trx"
+bash .claude/skills/run-test-suite/execute.sh --mode all
 ```
-
-5. **Integration Tests (with mandatory health check)**
-```bash
-# MANDATORY: Health check first
-dotnet test tests/WitchCityRope.IntegrationTests/ \
-  --filter "Category=HealthCheck"
-
-# Only if health passes
-if [ $? -eq 0 ]; then
-  dotnet test tests/WitchCityRope.IntegrationTests/ \
-    --logger "trx;LogFileName=/test-results/integration-results.trx"
-fi
-```
-
-6. **Frontend Unit Tests** (React component tests - ~40 tests)
-```bash
-cd apps/web && npm run test
-```
-
-7. **E2E Tests (Playwright)**
-   - Install dependencies: `cd tests/playwright && npm ci`
-   - Run tests with Playwright test runner
-   - Save artifacts to `/test-results/playwright/`
+Runs .NET first, then E2E. Exits non-zero if any suite fails.
 
 ### Phase 3: Result Analysis & Reporting
 **Analyze failures and report to orchestrator:**
@@ -363,31 +363,47 @@ EOF
 
 ## Test Suites & Commands
 
-### Unit Tests
+All test commands go through the skills. Direct test-runner invocations (.NET, Node, or Playwright CLIs) are blocked by a pre-commit hook and will fail.
+
+### .NET Tests (Unit + Core + Integration)
 ```bash
-# Core tests
-dotnet test tests/WitchCityRope.Core.Tests/
+# All three .NET projects in one run
+bash .claude/skills/run-test-suite/execute.sh --mode unit
 
-# API tests
-dotnet test tests/WitchCityRope.Api.Tests/
+# Filter to a specific class/namespace (applies to all three projects)
+bash .claude/skills/run-test-suite/execute.sh --mode unit --filter "FullyQualifiedName~Admin"
 
-# Web tests
-dotnet test tests/WitchCityRope.Web.Tests/
+# With verbose dotnet test output (for debugging)
+bash .claude/skills/run-test-suite/execute.sh --mode unit --verbose
 ```
 
-### Integration Tests
-```bash
-# All integration tests
-dotnet test tests/WitchCityRope.IntegrationTests/
+The skill iterates through these .NET test projects:
+- `tests/unit/api/WitchCityRope.Api.Tests.csproj` — API endpoint/service unit tests (vertical slice)
+- `tests/WitchCityRope.Core.Tests/WitchCityRope.Core.Tests.csproj` — Core/domain tests
+- `tests/integration/WitchCityRope.IntegrationTests.csproj` — Integration tests (TestContainers + WebApplicationFactory)
 
-# Specific category
-dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=Admin"
-```
+`tests/WitchCityRope.SystemTests/` is **not** included by default — flagged as pending a decision on whether those tests are still useful.
 
 ### E2E Tests
-**Location**: `/apps/web/tests/playwright/`
-**Tool**: Playwright test runner
-**Execution**: Navigate to test directory and run Playwright commands
+```bash
+# Via run-test-suite (delegates to test-environment)
+bash .claude/skills/run-test-suite/execute.sh --mode e2e
+
+# Directly (equivalent)
+bash .claude/skills/test-environment/execute.sh --mode e2e
+
+# Filtered E2E (only the test-environment form supports --filter for E2E)
+bash .claude/skills/test-environment/execute.sh --mode e2e --filter "admin-events-dashboard"
+```
+
+**Location**: `tests/e2e/*.spec.ts`
+**Runner**: Playwright, executed inside `witchcity-test-runner` container
+**Artifacts**: `/test-results/` on host
+
+### Everything (.NET + E2E)
+```bash
+bash .claude/skills/run-test-suite/execute.sh --mode all
+```
 
 ## Result Storage & Tracking
 
@@ -517,28 +533,34 @@ TEST_CATALOG updated with metrics."
 
 **NEVER allow local dev servers - ONLY Docker on port 5173**
 
-### 🚨🚨🚨 E2E TEST EXECUTION - MANDATORY PROCEDURE 🚨🚨🚨
+### 🚨🚨🚨 TEST EXECUTION - MANDATORY PROCEDURE 🚨🚨🚨
 
-**FOR ALL E2E/PLAYWRIGHT TESTS:**
-Use the `test-environment` skill which handles:
-- Building fresh test containers separate from dev environment
-- Creating `witchcity-test-runner` container for test execution
+**FOR ALL TESTS:** Use `run-test-suite` (the unified entry point) or `test-environment` (E2E container management only).
+
+- **`run-test-suite`** handles .NET tests (host `dotnet test`) and delegates E2E to `test-environment`. Default choice for any test run.
+- **`test-environment`** handles Playwright E2E only, in isolated containers (`witchcity-web-test`, `witchcity-api-test`, `witchcity-test-runner`). Use directly only when you specifically want to manage the E2E container lifecycle.
+
+Both skills:
+- Build fresh test containers separate from dev environment (for E2E)
+- Create isolated database with predictable seed data (for E2E)
+- Use `Testcontainers.PostgreSql` per-test-project (for .NET — each .NET test run spins up its own postgres container)
 - Automatic cleanup after tests complete
 
 **❌ ABSOLUTELY FORBIDDEN:**
-- NEVER run tests directly from host
-- NEVER use `container-restart` then expect test-runner to exist
-- Direct host commands run against DEV containers, not TEST containers
+- NEVER run test-runner commands (.NET, Node, or Playwright CLIs) directly via Bash. A pre-commit hook blocks these and they skip container isolation, database seeding, and health checks.
+- NEVER use `restart-dev-containers` then expect test-runner to exist
+- NEVER run tests against the dev containers (`witchcity-web`, `witchcity-api`) — always use the `-test` variants
 
 **WHY THIS MATTERS:**
-- `container-restart` skill = DEV containers (witchcity-web, witchcity-api)
-- `test-environment` skill = TEST containers (witchcity-web-test, witchcity-api-test, witchcity-test-runner)
+- `restart-dev-containers` skill = DEV containers (witchcity-web, witchcity-api) — for development work only
+- `restart-test-containers` skill = TEST containers (witchcity-web-test, witchcity-api-test, witchcity-test-runner) — called internally by `test-environment`
+- `run-test-suite` = the unified test entry point (calls the above)
 - Test containers have isolated database, predictable seed data, and won't interfere with dev work
 - Running tests directly gives WRONG results and wastes everyone's time
 
 ### BEFORE ANY TEST EXECUTION:
-1. Use the `test-environment` skill (RECOMMENDED for test isolation)
-2. The skill creates and manages all test containers automatically
+1. Use `run-test-suite` (unified) or `test-environment` (E2E-only) — never direct test-runner commands
+2. The skills create and manage all test containers automatically
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
@@ -592,8 +614,11 @@ Use the `test-environment` skill which handles:
 **Startup**: Read NOTHING (except lessons learned + skills guide + Docker standard + TEST_CATALOG)
 
 **Task Assignment Examples**:
-- "Run all E2E tests" → Use test-environment skill (handles everything) + update TEST_CATALOG
-- "Execute integration tests" → Read Docker Workflows + check health endpoints + update TEST_CATALOG
+- "Run all E2E tests" → `run-test-suite --mode e2e` (or `test-environment --mode e2e`) + update TEST_CATALOG
+- "Run all .NET tests" → `run-test-suite --mode unit` + update TEST_CATALOG
+- "Run everything" → `run-test-suite --mode all` + update TEST_CATALOG
+- "Execute integration tests" → `run-test-suite --mode unit` (integration tests are in the .NET suite, runs with unit/core in one command) + update TEST_CATALOG
+- "Run just the Volunteer tests" → `run-test-suite --mode unit --filter "FullyQualifiedName~Volunteer"` + update TEST_CATALOG
 - "Fix failing Docker environment" → Read Docker Workflows + Docker Operations guide
 - "Run database migrations for testing" → Read Database Migrations guide + Docker Operations
 - "Set up test database with seed data" → Read Database Migrations + Seed Data scripts
@@ -615,19 +640,23 @@ Use the `test-environment` skill which handles:
 **Your role-specific skills are documented in SKILLS-REGISTRY.md**
 
 **Your Skills**:
-- **test-environment** (MANDATORY for E2E tests - builds and runs isolated test containers)
-- **restart-test-containers** (restart test containers only, use if test containers are unhealthy)
-- **restart-dev-containers** (restart dev containers - use ONLY if working in dev environment)
+- **run-test-suite** (MANDATORY for .NET tests and for combined .NET+E2E runs — the unified entry point)
+- **test-environment** (MANDATORY for standalone E2E tests — builds and runs isolated test containers; `run-test-suite --mode e2e` delegates here internally)
+- **restart-test-containers** (restart test containers only, use if test containers are unhealthy; called by `test-environment`)
+- **restart-dev-containers** (restart dev containers — use ONLY if working in dev environment, NOT for testing)
 - **test-catalog-updater** (MANDATORY after every test run)
 - **phase-4-validator**
 - **lessons-learned-validator**
 
-**When to Use Which Container Skill**:
-| Skill | When to Use | Creates Containers |
-|-------|-------------|-------------------|
-| `test-environment` | Running tests (E2E, unit, integration) - PREFERRED | Yes - isolated test containers |
-| `restart-test-containers` | Test containers unhealthy, need rebuild without running tests | No - restarts existing |
-| `restart-dev-containers` | Dev containers unhealthy, NOT for testing | No - restarts existing |
+**When to Use Which Skill**:
+| Skill | When to Use | Scope |
+|-------|-------------|-------|
+| `run-test-suite --mode unit` | Running .NET unit/integration tests (all three .NET projects) | Host `dotnet test` |
+| `run-test-suite --mode e2e` | Running Playwright E2E tests | Delegates to `test-environment` |
+| `run-test-suite --mode all` | Running everything (.NET + E2E) | Host + containers |
+| `test-environment --mode e2e` | Standalone E2E with direct container control | Test containers |
+| `restart-test-containers` | Test containers unhealthy, need rebuild without running tests | Test containers only |
+| `restart-dev-containers` | Dev containers unhealthy, NOT for testing | Dev containers only |
 
 **Full details** (when to use, what they do, how they work):
 → **`/.claude/skills/SKILLS-REGISTRY.md`**

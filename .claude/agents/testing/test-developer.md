@@ -154,34 +154,43 @@ This exclusive ownership ensures:
 
 ### 🚨🚨🚨 CRITICAL: TEST EXECUTION ENVIRONMENT 🚨🚨🚨
 
-**YOU CAN run tests to verify your fixes** - but you MUST use the correct environment.
+**YOU CAN run tests to verify your fixes** - but you MUST use the correct skills.
 
-**FOR VERIFYING YOUR FIXES:**
-Use the `test-environment` skill to run tests in isolated test containers.
+**TWO-SKILL SPLIT (updated 2026-04-10)**:
+
+| Skill | What it runs | Use when |
+|---|---|---|
+| **`run-test-suite`** | .NET unit/integration (host `dotnet test`) AND/OR E2E via delegation | Default. `--mode unit` for .NET only, `--mode e2e` for browser only, `--mode all` for both. |
+| **`test-environment`** | Playwright E2E only, in isolated containers | When you specifically want direct E2E container control. `run-test-suite --mode e2e` delegates here. |
+
+**FOR VERIFYING YOUR FIXES** (the typical test-developer workflow):
+- Writing a new .NET test? Verify it with: `bash .claude/skills/run-test-suite/execute.sh --mode unit --filter "FullyQualifiedName~YourTestClass"`
+- Writing a new E2E test? Verify it with: `bash .claude/skills/test-environment/execute.sh --mode e2e --filter "your-spec-name"`
 
 **FOR FULL TEST SUITE RUNS:**
-- Delegate to test-executor agent (they handle full suite runs)
+- Delegate to test-executor agent (they handle full suite runs + TEST_CATALOG updates)
 
-**❌ ABSOLUTELY FORBIDDEN:**
-- NEVER run tests directly from host
-- Direct commands use DEV containers, not TEST containers
-
-**WHY THIS MATTERS:**
-- Direct host commands use DEV containers, not TEST containers
-- Test containers have isolated database, predictable seed data
+**❌ ABSOLUTELY FORBIDDEN — a pre-commit hook blocks these:**
+- NEVER run test-runner commands (.NET, Node, or Playwright CLIs) directly via Bash
+- Direct commands skip container isolation, database seeding, and health checks
 - Results from wrong environment are INVALID and misleading
 - You will waste time debugging phantom issues
 
+**CONTEXT**: The old `test-environment --mode unit|integration|dotnet|all` paths were removed on 2026-04-10 because they were architecturally broken (tried to `dotnet test` inside the api container that had no test projects). The `run-test-suite` skill replaces them. For the full history, see `.claude/skills/run-test-suite/SKILL.md` "Why This Skill Exists".
+
 ### BEFORE ANY WORK:
-**Choose the right container skill based on your environment:**
+**Choose the right skill based on what you're doing:**
 
 | Skill | When to Use | Environment |
 |-------|-------------|-------------|
-| `test-environment` | Running tests (PREFERRED) - builds isolated test containers | Test |
+| `run-test-suite --mode unit` | Running .NET tests (filter by class with `--filter`) | Host + per-test TestContainers |
+| `run-test-suite --mode e2e` | Running Playwright E2E tests | Test containers |
+| `run-test-suite --mode all` | Running everything | Both |
+| `test-environment --mode e2e` | Standalone E2E with direct container control | Test containers |
 | `restart-test-containers` | Test containers unhealthy, need restart without running tests | Test |
 | `restart-dev-containers` | Dev containers unhealthy, NOT for testing | Dev |
 
-**Rule**: If you're running tests, use `test-environment`. If you're developing tests (not running them), use `restart-dev-containers` for dev environment health.
+**Rule**: If you're running tests, use `run-test-suite`. If the test containers are unhealthy and you just need to reset them, use `restart-test-containers` directly. Only use `restart-dev-containers` for dev work, never for testing.
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
@@ -397,7 +406,7 @@ Location: `/tests/WitchCityRope.IntegrationTests/`
 
 **CRITICAL Requirements**:
 - ALWAYS use real PostgreSQL with TestContainers (NO in-memory database)
-- ALWAYS run health checks first: `dotnet test --filter "Category=HealthCheck"`
+- ALWAYS run health checks first via the skill: `bash .claude/skills/run-test-suite/execute.sh --mode unit --filter "Category=HealthCheck"`
 - Use unique test data with GUIDs to avoid conflicts
 - All DateTime values must be UTC
 

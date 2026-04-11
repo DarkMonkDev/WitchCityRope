@@ -38,12 +38,14 @@
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Test Execution Guide FIRST** - How to run tests
 - [ ] Verify Docker containers running:
-  - For running tests: use `test-environment` skill (PREFERRED - isolated containers)
-  - For test container issues only: use `restart-test-containers` skill
+  - **For running ANY tests**: use `run-test-suite` skill (unified entry point — .NET via host `dotnet test`, E2E delegated to `test-environment`)
+  - For standalone E2E runs: use `test-environment` skill directly (same underlying flow as `run-test-suite --mode e2e`)
+  - For test container issues only (no test run): use `restart-test-containers` skill
   - For dev container issues only: use `restart-dev-containers` skill
 - [ ] Check correct ports: API=5655, Web=5173, DB=5433
 - [ ] Review Current Test Status for known failures
 - [ ] Check Test Catalog for test locations
+- [ ] **NEVER** run test-runner commands (.NET, Node, or Playwright CLIs) directly — a pre-commit hook blocks them and they produce unreliable results
 
 ## 🚨 IMPORTANT: This File Documents PROBLEMS ONLY
 
@@ -67,9 +69,9 @@ This lessons learned file contains ONLY:
 
 **Symptoms**: Tests report "All passing" but 99% silently skipped
 
-**Solution**: Use `test-environment` skill which handles correct working directory automatically. For manual execution details, see Test Execution Guide, section "E2E Tests (Playwright)" → "Working directory (CRITICAL)"
+**Solution**: Use `run-test-suite` or `test-environment` skill which handle correct working directory automatically. For manual execution details, see Test Execution Guide, section "E2E Tests (Playwright)" → "Working directory (CRITICAL)"
 
-**Prevention**: Always use the `test-environment` skill instead of running test commands directly.
+**Prevention**: Always use `run-test-suite` (default) or `test-environment` (E2E-only) skill instead of running test commands directly. A pre-commit hook now enforces this — direct test-runner invocations are blocked at the Bash tool level.
 
 ---
 
@@ -85,9 +87,9 @@ This lessons learned file contains ONLY:
 
 **Critical Knowledge**:
 - **Dev containers**: `witchcityrope-dev` project, used during development
-- **Test containers**: `witchcityrope-test` project, isolated for test execution
+- **Test containers**: `witchcityrope-test` project, isolated for test execution (used for E2E only — .NET tests use per-test TestContainers via the `run-test-suite` skill)
 - Both can run simultaneously (different projects)
-- Use `test-environment` skill for complete isolation
+- Use `run-test-suite` skill for unified test execution; `test-environment` for direct E2E container management
 
 ---
 
@@ -104,8 +106,10 @@ This lessons learned file contains ONLY:
 **Solution**: See Test Execution Guide, section "Pre-Flight Checks (MANDATORY)"
 
 **Mandatory Procedure**:
-1. FIRST: Run health checks `dotnet test --filter "Category=HealthCheck"`
-2. ONLY if pass: Run integration tests
+1. FIRST: Run health checks via the skill: `bash .claude/skills/run-test-suite/execute.sh --mode unit --filter "Category=HealthCheck"`
+2. ONLY if pass: Run integration tests via `bash .claude/skills/run-test-suite/execute.sh --mode unit`
+
+**Note**: The old direct-command form `dotnet test --filter "Category=HealthCheck"` is now blocked by a pre-commit hook and will fail. Always go through the skill.
 
 **Why Critical**: Health checks take 10 seconds, save hours of debugging
 
@@ -141,7 +145,8 @@ This lessons learned file contains ONLY:
 **Solution**: See Test Execution Guide, section "Docker Container Management" → "Database Reset"
 
 **Options**:
-- **Isolated tests**: Use `test-environment` skill (fresh database each run)
+- **Isolated .NET tests**: Use `run-test-suite --mode unit` — each test project spins up its own per-run postgres via TestContainers
+- **Isolated E2E tests**: Use `run-test-suite --mode e2e` or `test-environment --mode e2e` (fresh container-based test database each run)
 - **Dev environment**: Use `database-reset-dev` skill (deletes all data, reseeds)
 
 ---
@@ -217,7 +222,8 @@ This lessons learned file contains ONLY:
 - Fixed timeouts (use condition-based waits)
 - Resource constraints (reduce parallel workers)
 - Environment variables not set (check GitHub Actions config)
-- Container networking issues (verify test-environment skill usage)
+- Container networking issues (verify `run-test-suite` / `test-environment` skill usage)
+- Shared-state pollution between test classes (see "WAF entry point exited" pattern — some classes only fail when run after other classes in the full suite; check with `run-test-suite --mode unit --filter "FullyQualifiedName~YourClass"` in isolation)
 
 ---
 
@@ -229,7 +235,7 @@ This lessons learned file contains ONLY:
 
 **Symptoms**: `test-results/` directory empty or missing HTML files
 
-**Solution**: Use `test-environment` skill which includes report generation. For viewing reports manually, see Test Execution Guide, section "Viewing Playwright Reports"
+**Solution**: Use `run-test-suite --mode e2e` or `test-environment` skill directly — both include report generation. For viewing reports manually, see Test Execution Guide, section "Viewing Playwright Reports"
 
 **Auto-opens**: Browser with detailed test results, screenshots, traces
 
@@ -249,21 +255,64 @@ This lessons learned file contains ONLY:
 
 ---
 
-## Prevention Pattern: Test Environment Skill Not Used
+## Prevention Pattern: Test Skills Not Used
 
-**Problem Discovered**: Tests run in dev environment causing interference, no isolation.
+**Problem Discovered**: Tests run in dev environment causing interference, no isolation. Agents running test-runner commands directly and getting bogus results.
 
 **When**: Manual test execution
 
-**Symptoms**: Dev work disrupted during testing, port conflicts, shared database state
+**Symptoms**: Dev work disrupted during testing, port conflicts, shared database state, tests passing/failing inconsistently with dev environment state
 
 **Solution**: See Test Execution Guide, section "Test Execution Methods" → "Method 1: Using Skills (RECOMMENDED)"
 
-**Benefits of test-environment skill**:
+**Benefits of the test skills**:
+- `run-test-suite` handles .NET + E2E unified; `test-environment` handles E2E standalone
 - Complete isolation from dev
-- Fresh database state
+- Fresh database state (per-test-project TestContainers for .NET, fresh container stack for E2E)
 - No interference with development
 - Automatic cleanup
+- Safety nets for silent failures (detects `dotnet test` exiting 0 with zero counters, detects compile errors in output)
+
+**Enforcement**: A pre-commit hook (`.claude/hooks/block-manual-test-runs.py`) blocks direct test-runner invocations at the Bash tool level — this covers the .NET CLI's test command, Node package scripts, Playwright's CLI, and the standard JS test runners (Vitest, Jest, Mocha, Karma). The hook tokenizes via shlex to detect runners at command position, so substring matches in quoted strings and heredocs are not false-positived. If you try to run them, the hook returns a block response with a message pointing at the skills. Use the skills.
+
+---
+
+## Prevention Pattern: "Entry point exited without ever building an IHost" (shared-state pollution)
+
+**Problem Discovered**: Integration tests in `[Collection("Sequential")]` fail with:
+```
+System.InvalidOperationException : The entry point exited without ever building an IHost.
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory.CreateClient()
+```
+...but only when run as part of the full suite. The same test classes pass cleanly when run in isolation via `run-test-suite --mode unit --filter "FullyQualifiedName~YourClass"`.
+
+**When**: 2026-04-10 investigation in WCR — affected `AdminAssignmentEndpointTests` (8 tests), `AuthorizedContactEndpointTests` (16), `ProxyRsvpEndpointTests` (11), `MultiTicketCheckoutEndpointTests` (1) at various points. Full suite run showed 24–36 failures; isolation showed 0 failures.
+
+**Symptoms**: `"The entry point exited without ever building an IHost"` at `WebApplicationFactory.CreateClient()` in the shared-`_sharedFactory` pattern used by `TicketAssignment/*EndpointTests.cs`.
+
+**Root cause**: Shared-state pollution between test classes. Some earlier test in the sequential collection corrupts global process state (likely a singleton or static field somewhere in the API DI container) in a way that prevents a subsequent `WebApplicationFactory` from booting a fresh IHost. The `private static WebApplicationFactory<Program>? _sharedFactory` pattern caches the corrupted state for the class's entire lifetime.
+
+**Status**: UNRESOLVED. During the 2026-04-10 investigation, three root-cause theories were tried and ALL wrong:
+1. `HostAbortedException` exception filter — `WebApplicationFactory` in .NET 10 uses `DeferredHostBuilder` + `TaskCompletionSource`, not exception throwing
+2. `Serilog.CreateBootstrapLogger()` → `CreateLogger()` — per issue serilog/serilog-aspnetcore#289, which applies only to parallel test runs (our tests run sequentially)
+3. Respawn 7.0.0 upgrade — correlation was coincidental timing drift
+
+**Diagnostic procedure** when you see this error:
+1. Confirm it's the shared-state pattern by running the failing class in isolation:
+   ```bash
+   bash .claude/skills/run-test-suite/execute.sh --mode unit --filter "FullyQualifiedName~FailingClassName"
+   ```
+2. If it passes in isolation but fails in the full suite, it's this bug. Do NOT try to "fix" the test class — the code is fine.
+3. Report the symptom and move on. The real fix requires identifying which earlier test corrupts which global state, and that investigation hasn't been done yet.
+
+**What does NOT work** (don't bother trying again):
+- Adding exception filters to the try/catch around `app.Run()` in `Program.cs`
+- Switching Serilog to `CreateLogger()` (unless tests are actually running in parallel)
+- Upgrading or downgrading Respawn
+- Restarting test containers
+- Rebuilding
+
+See commit `e1c0dd8e` in WCR for the full investigation notes. Future attempts at this bug should start with: "which earlier test is corrupting which global state?" rather than assuming it's a framework/library issue.
 
 ---
 

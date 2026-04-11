@@ -43,10 +43,12 @@ Use `DataFactory` class for all test data creation - see README for usage.
 - [ ] Check Playwright Guide for E2E patterns
 - [ ] **Read DataFactory README for E2E tests** - How to create test data programmatically
 - [ ] Verify Docker containers running:
-  - For running tests: use `test-environment` skill (PREFERRED - isolated containers)
-  - For test container issues only: use `restart-test-containers` skill
+  - **For running ANY tests** (to verify your new/changed tests): use `run-test-suite` skill — `--mode unit` for .NET, `--mode e2e` for Playwright, `--mode all` for both
+  - For standalone E2E runs with direct container control: use `test-environment` skill
+  - For test container issues only (no test run): use `restart-test-containers` skill
   - For dev container issues (when developing tests): use `restart-dev-containers` skill
 - [ ] Review Docker-Only Testing Standard for environment
+- [ ] **NEVER** run test-runner commands (.NET, Node, or Playwright CLIs) directly — a pre-commit hook blocks them and they produce unreliable results
 
 ## 🚨 IMPORTANT: This File Documents PROBLEMS ONLY
 
@@ -136,7 +138,7 @@ If you cannot read ANY part of these lessons learned:
 
 **When**: 2025-10-07 (E2E stabilization)
 
-**Symptoms**: Tests work in dev, fail in test-environment skill containers
+**Symptoms**: Tests work in dev, fail in isolated test containers (via `run-test-suite --mode e2e` or `test-environment` skill)
 
 **Solution**: See Test Creation Guide, section "E2E Test Creation" → "Container-Compatible URL Patterns"
 
@@ -211,9 +213,9 @@ If you cannot read ANY part of these lessons learned:
 
 **Symptoms**: "All tests pass" but 99% of tests silently skipped
 
-**Solution**: Use `test-environment` skill which handles correct working directory automatically. For manual execution details, see Test Execution Guide, section "E2E Tests (Playwright)" → "Working directory (CRITICAL)"
+**Solution**: Use `run-test-suite` or `test-environment` skill which handle correct working directory automatically. For manual execution details, see Test Execution Guide, section "E2E Tests (Playwright)" → "Working directory (CRITICAL)"
 
-**Prevention**: Always use the `test-environment` skill instead of running test commands directly.
+**Prevention**: Always use `run-test-suite` (default) or `test-environment` (E2E-only) skill instead of running test commands directly. A pre-commit hook now enforces this — direct test-runner invocations are blocked at the Bash tool level.
 
 ---
 
