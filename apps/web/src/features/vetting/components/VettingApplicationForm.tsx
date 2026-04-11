@@ -20,7 +20,32 @@ import type {
   SimplifiedCreateApplicationRequest,
   SimplifiedApplicationStatus
 } from '../types/simplified-vetting.types';
-import { TOUCH_TARGETS } from '../types/vetting.types';
+
+/**
+ * Touch target sizes for mobile-friendly form controls.
+ *
+ * Moved from the deleted apps/web/src/features/vetting/types/vetting.types.ts
+ * in Phase 2b of the vetting status cleanup. That file was a legacy prototype
+ * with ~550 lines of orphaned interfaces + a broken kebab-case status enum;
+ * TOUCH_TARGETS was the only export still in use and only from this single
+ * file, so it was moved here as a local constant rather than left stranded
+ * in a near-empty types file.
+ *
+ * Pixel values are based on accessibility guidance:
+ *   - MINIMUM 44px matches the WCAG 2.5.5 target size minimum
+ *   - PREFERRED 48px aligns with Material Design's recommended touch target
+ *   - BUTTON_HEIGHT / INPUT_HEIGHT 56px provides comfortable vertical padding
+ *     for thumb-sized touch on form controls
+ *   - CARD_MIN_HEIGHT 80px reserves space for card content + tap-friendly
+ *     padding in application status cards
+ */
+const TOUCH_TARGETS = {
+  MINIMUM: 44, // px - WCAG 2.5.5 minimum for accessibility
+  PREFERRED: 48, // px - preferred size for comfortable interaction
+  BUTTON_HEIGHT: 56, // px - standard button height for forms
+  INPUT_HEIGHT: 56, // px - form input height for comfortable typing
+  CARD_MIN_HEIGHT: 80, // px - minimum card height for application cards
+} as const;
 
 interface VettingApplicationFormProps {
   onSubmitSuccess?: (applicationId: string, statusUrl: string) => void;
