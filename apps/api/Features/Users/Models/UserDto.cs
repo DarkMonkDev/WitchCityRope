@@ -1,4 +1,5 @@
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Users.Models;
@@ -21,9 +22,25 @@ public class UserDto
     public bool EmailConfirmed { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
-    public int VettingStatus { get; set; }
+
+    /// <summary>
+    /// Vetting status for the user.
+    ///
+    /// Phase 3b-1: Type changed from int to the VettingStatus enum. Because
+    /// JsonStringEnumConverter is registered globally (Program.cs), this
+    /// field now ships as a JSON string ("UnderReview", "Approved", etc.)
+    /// instead of a raw integer. Frontend admin code (AdminDashboardPage,
+    /// MembersList) has been migrated to consume the string directly.
+    ///
+    /// The ApplicationUser entity still stores this as an int; the cast
+    /// happens in this DTO's constructor. Phase 3b-2 will normalize the
+    /// entity too, at which point the cast in the constructor can be
+    /// removed.
+    /// </summary>
+    public VettingStatus VettingStatus { get; set; }
+
     public bool HasVettingApplication { get; set; } // True if user has submitted a vetting application
-    public bool IsVetted { get; set; } // Computed from VettingStatus == 3 (Approved)
+    public bool IsVetted { get; set; } // Computed from VettingStatus == Approved
 
     /// <summary>
     /// Default constructor
@@ -47,8 +64,10 @@ public class UserDto
         EmailConfirmed = user.EmailConfirmed;
         CreatedAt = user.CreatedAt;
         LastLoginAt = user.LastLoginAt;
-        VettingStatus = user.VettingStatus;
+        // Phase 3b-1 cast: the entity still stores VettingStatus as int.
+        // Phase 3b-2 will change the entity to the enum type, removing this cast.
+        VettingStatus = (VettingStatus)user.VettingStatus;
         HasVettingApplication = user.HasVettingApplication;
-        IsVetted = user.IsVetted; // Computed property from ApplicationUser (VettingStatus == 3)
+        IsVetted = user.IsVetted; // Computed property from ApplicationUser (VettingStatus == Approved)
     }
 }

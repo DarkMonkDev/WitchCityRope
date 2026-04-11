@@ -5,6 +5,7 @@ using WitchCityRope.Api.Features.Safety.Entities;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Users.Constants;
 using WitchCityRope.Api.Features.Users.Models.MemberDetails;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Users.Services;
@@ -104,20 +105,25 @@ public class MemberDetailsService : IMemberDetailsService
             // NoShows: Calculated as TotalPastEventsRegistered - TotalEventsAttended
             var noShows = totalPastEventsRegistered - totalAttended;
 
-            // Map vetting status to display string
-            // Map vetting status int to display string
+            // Map vetting status to a human-readable display string.
+            //
             // VettingStatus defaults to 0 (UnderReview) for all users, so we must check
-            // HasVettingApplication to distinguish "hasn't applied" from "actually under review"
-            // This matches the same logic used in MembersList.tsx getVettingStatusBadge()
+            // HasVettingApplication to distinguish "hasn't applied" from "actually under review".
+            // This matches the same logic used in MembersList.tsx getVettingStatusBadge().
+            //
+            // Phase 3b-1: The switch is still on the raw integer from the entity
+            // (user.VettingStatus is still int in the ApplicationUser entity —
+            // Phase 3b-2 will normalize it to the enum). The DTO field receives
+            // a cast conversion below.
             var vettingStatusDisplay = user.VettingStatus switch
             {
-                0 => user.HasVettingApplication ? "Under Review" : "Not Applied",
-                1 => "Interview Approved",
-                2 => "Final Review",
-                3 => "Approved",
-                4 => "Denied",
-                5 => "On Hold",
-                6 => "Withdrawn",
+                (int)VettingStatus.UnderReview => user.HasVettingApplication ? "Under Review" : "Not Applied",
+                (int)VettingStatus.InterviewApproved => "Interview Approved",
+                (int)VettingStatus.FinalReview => "Final Review",
+                (int)VettingStatus.Approved => "Approved",
+                (int)VettingStatus.Denied => "Denied",
+                (int)VettingStatus.OnHold => "On Hold",
+                (int)VettingStatus.Withdrawn => "Withdrawn",
                 _ => "Not Started"
             };
 
@@ -143,7 +149,9 @@ public class MemberDetailsService : IMemberDetailsService
                 TotalPastEventsRegistered = totalPastEventsRegistered,
                 CancelledRegistrations = cancelledRegistrations,
                 NoShows = noShows,
-                VettingStatus = user.VettingStatus,
+                // Phase 3b-1 cast: DTO is the enum; entity is still int.
+                // Phase 3b-2 will align both and remove this cast.
+                VettingStatus = (VettingStatus)user.VettingStatus,
                 VettingStatusDisplay = vettingStatusDisplay,
                 HasVettingApplication = user.HasVettingApplication
             };
@@ -208,7 +216,11 @@ public class MemberDetailsService : IMemberDetailsService
                 ApplicationId = application.Id,
                 ApplicationNumber = application.ApplicationNumber,
                 SubmittedAt = application.SubmittedAt,
-                WorkflowStatus = (int)application.WorkflowStatus,
+                // Phase 3b-1: WorkflowStatus on the DTO is now the VettingStatus
+                // enum (was int?). VettingApplication.WorkflowStatus has always
+                // been the enum type, so no cast is needed — a direct assignment
+                // now works where previously there was an (int) cast.
+                WorkflowStatus = application.WorkflowStatus,
                 WorkflowStatusDisplay = workflowStatusDisplay,
                 LastReviewedAt = application.LastReviewedAt,
                 DecisionMadeAt = application.DecisionMadeAt,

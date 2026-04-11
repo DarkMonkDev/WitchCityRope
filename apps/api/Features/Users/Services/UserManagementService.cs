@@ -336,7 +336,11 @@ public class UserManagementService : IUserManagementService
 
             if (request.VettingStatus.HasValue)
             {
-                user.VettingStatus = request.VettingStatus.Value;
+                // Phase 3b-1: request.VettingStatus is now the VettingStatus
+                // enum (it was int?). The entity still stores int, so cast
+                // to int here. Phase 3b-2 will align the entity type and
+                // remove this cast.
+                user.VettingStatus = (int)request.VettingStatus.Value;
             }
 
             // Save changes using Entity Framework

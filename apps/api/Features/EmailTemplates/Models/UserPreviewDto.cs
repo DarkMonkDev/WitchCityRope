@@ -1,3 +1,5 @@
+using WitchCityRope.Api.Features.Vetting.Entities;
+
 namespace WitchCityRope.Api.Features.EmailTemplates.Models;
 
 /// <summary>
@@ -17,9 +19,12 @@ public class UserPreviewDto
     public string Email { get; set; } = string.Empty;
 
     /// <summary>
-    /// User's vetting status (numeric value from VettingStatus enum)
+    /// User's vetting status.
+    ///
+    /// Phase 3b-1: Type changed from int to VettingStatus enum. Ships as
+    /// a JSON string via JsonStringEnumConverter.
     /// </summary>
-    public int VettingStatus { get; set; }
+    public VettingStatus VettingStatus { get; set; }
 
     /// <summary>
     /// User's vetting status as human-readable string

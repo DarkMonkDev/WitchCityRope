@@ -4,6 +4,7 @@ using System.Security.Claims;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.VettingHold.Models;
 using WitchCityRope.Api.Features.VettingHold.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using Xunit;
 using FluentAssertions;
 using NSubstitute;
@@ -39,7 +40,7 @@ public class VettingHoldEndpointsTests
         var claimsPrincipal = CreateClaimsPrincipal(authenticatedUserId);
 
         var expectedResponse = new MembershipHoldResponse(
-            NewStatus: 5, // OnHold
+            NewStatus: VettingStatus.OnHold,
             StatusName: "OnHold",
             ChangedAt: DateTime.UtcNow
         );
@@ -58,7 +59,7 @@ public class VettingHoldEndpointsTests
         okResult.Should().NotBeNull();
         okResult!.StatusCode.Should().Be(200);
         okResult.Value.Should().BeEquivalentTo(expectedResponse);
-        okResult.Value.NewStatus.Should().Be(5); // OnHold
+        okResult.Value.NewStatus.Should().Be(VettingStatus.OnHold);
         okResult.Value.StatusName.Should().Be("OnHold");
     }
 
@@ -220,7 +221,7 @@ public class VettingHoldEndpointsTests
         var claimsPrincipal = CreateClaimsPrincipal(authenticatedUserId);
 
         var expectedResponse = new MembershipHoldResponse(
-            NewStatus: 2, // FinalReview
+            NewStatus: VettingStatus.FinalReview,
             StatusName: "FinalReview",
             ChangedAt: DateTime.UtcNow
         );
@@ -239,7 +240,7 @@ public class VettingHoldEndpointsTests
         okResult.Should().NotBeNull();
         okResult!.StatusCode.Should().Be(200);
         okResult.Value.Should().BeEquivalentTo(expectedResponse);
-        okResult.Value.NewStatus.Should().Be(2); // FinalReview
+        okResult.Value.NewStatus.Should().Be(VettingStatus.FinalReview);
         okResult.Value.StatusName.Should().Be("FinalReview");
     }
 
@@ -400,7 +401,7 @@ public class VettingHoldEndpointsTests
         var claimsPrincipal = CreateClaimsPrincipal(authenticatedUserId);
 
         var expectedResponse = new VettingHoldStatusResponse(
-            VettingStatus: 3, // Approved
+            VettingStatus: VettingStatus.Approved,
             StatusName: "Approved",
             CanPlaceOnHold: true,
             CanRequestReinstatement: false,
@@ -421,7 +422,7 @@ public class VettingHoldEndpointsTests
         okResult.Should().NotBeNull();
         okResult!.StatusCode.Should().Be(200);
         okResult.Value.Should().BeEquivalentTo(expectedResponse);
-        okResult.Value.VettingStatus.Should().Be(3); // Approved
+        okResult.Value.VettingStatus.Should().Be(VettingStatus.Approved);
         okResult.Value.CanPlaceOnHold.Should().BeTrue();
         okResult.Value.CanRequestReinstatement.Should().BeFalse();
     }
@@ -438,7 +439,7 @@ public class VettingHoldEndpointsTests
         var claimsPrincipal = CreateClaimsPrincipal(authenticatedUserId);
 
         var expectedResponse = new VettingHoldStatusResponse(
-            VettingStatus: 5, // OnHold
+            VettingStatus: VettingStatus.OnHold,
             StatusName: "OnHold",
             CanPlaceOnHold: false,
             CanRequestReinstatement: true,
@@ -458,7 +459,7 @@ public class VettingHoldEndpointsTests
         var okResult = result as Ok<VettingHoldStatusResponse>;
         okResult.Should().NotBeNull();
         okResult!.StatusCode.Should().Be(200);
-        okResult.Value.VettingStatus.Should().Be(5); // OnHold
+        okResult.Value.VettingStatus.Should().Be(VettingStatus.OnHold);
         okResult.Value.CanPlaceOnHold.Should().BeFalse();
         okResult.Value.CanRequestReinstatement.Should().BeTrue();
     }

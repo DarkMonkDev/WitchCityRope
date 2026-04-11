@@ -955,7 +955,10 @@ public class EmailTemplateService : IEmailTemplateService
                 {
                     SceneName = u.SceneName,
                     Email = u.Email ?? string.Empty,
-                    VettingStatus = u.VettingStatus,
+                    // Phase 3b-1 cast: DTO is the enum; entity is still int.
+                    // This projection runs on materialized objects (not LINQ-to-SQL)
+                    // so the cast executes in .NET, not SQL.
+                    VettingStatus = (VettingStatus)u.VettingStatus,
                     VettingStatusDisplay = GetVettingStatusDisplay(u.VettingStatus),
                     Role = u.Role,
                     EmailConfirmed = u.EmailConfirmed

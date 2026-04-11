@@ -83,7 +83,7 @@ public class VettingHoldServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.NewStatus.Should().Be(VettingStatus_OnHold);
+        result.Value!.NewStatus.Should().Be(VettingStatus.OnHold);
         result.Value.StatusName.Should().Be("OnHold");
         result.Value.ChangedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
 
@@ -338,7 +338,7 @@ public class VettingHoldServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.NewStatus.Should().Be(VettingStatus_FinalReview);
+        result.Value!.NewStatus.Should().Be(VettingStatus.FinalReview);
         result.Value.StatusName.Should().Be("FinalReview");
         result.Value.ChangedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
 
@@ -521,7 +521,7 @@ public class VettingHoldServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.VettingStatus.Should().Be(VettingStatus_Approved);
+        result.Value!.VettingStatus.Should().Be(VettingStatus.Approved);
         result.Value.StatusName.Should().Be("Approved");
         result.Value.CanPlaceOnHold.Should().BeTrue();
         result.Value.CanRequestReinstatement.Should().BeFalse();
@@ -541,7 +541,7 @@ public class VettingHoldServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.VettingStatus.Should().Be(VettingStatus_OnHold);
+        result.Value!.VettingStatus.Should().Be(VettingStatus.OnHold);
         result.Value.StatusName.Should().Be("OnHold");
         result.Value.CanPlaceOnHold.Should().BeFalse();
         result.Value.CanRequestReinstatement.Should().BeTrue();

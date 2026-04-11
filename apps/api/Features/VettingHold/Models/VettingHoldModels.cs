@@ -1,3 +1,5 @@
+using WitchCityRope.Api.Features.Vetting.Entities;
+
 namespace WitchCityRope.Api.Features.VettingHold.Models;
 
 /// <summary>
@@ -11,19 +13,25 @@ public record PlaceMembershipOnHoldRequest(string Reason);
 public record RequestReinstatementRequest(string Reason);
 
 /// <summary>
-/// Response for membership hold/reinstatement operations
+/// Response for membership hold/reinstatement operations.
+///
+/// Phase 3b-1: NewStatus type changed from int to the VettingStatus enum.
+/// Ships as a JSON string via JsonStringEnumConverter.
 /// </summary>
 public record MembershipHoldResponse(
-    int NewStatus,
+    VettingStatus NewStatus,
     string StatusName,
     DateTime ChangedAt
 );
 
 /// <summary>
-/// Response with current hold/reinstatement status
+/// Response with current hold/reinstatement status.
+///
+/// Phase 3b-1: VettingStatus type changed from int to the VettingStatus
+/// enum. Ships as a JSON string via JsonStringEnumConverter.
 /// </summary>
 public record VettingHoldStatusResponse(
-    int VettingStatus,
+    VettingStatus VettingStatus,
     string StatusName,
     bool CanPlaceOnHold,
     bool CanRequestReinstatement,

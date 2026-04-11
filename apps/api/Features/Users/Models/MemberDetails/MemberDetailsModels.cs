@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using WitchCityRope.Api.Features.Vetting.Entities;
 
 namespace WitchCityRope.Api.Features.Users.Models.MemberDetails;
 
@@ -31,7 +32,13 @@ public class MemberDetailsResponse
     public int NoShows { get; set; }
 
     // Vetting status
-    public int VettingStatus { get; set; }
+    //
+    // Phase 3b-1: Type changed from int to VettingStatus enum. Ships as a
+    // JSON string via the globally-registered JsonStringEnumConverter.
+    // VettingStatusDisplay is kept as a separate human-readable string
+    // (e.g. "Vetted", "Under Review") for admin display — it's computed
+    // by MemberDetailsService from the enum value.
+    public VettingStatus VettingStatus { get; set; }
     public string VettingStatusDisplay { get; set; } = "Not Started";
     public bool HasVettingApplication { get; set; }
 }
@@ -45,7 +52,13 @@ public class VettingDetailsResponse
     public Guid? ApplicationId { get; set; }
     public string? ApplicationNumber { get; set; }
     public DateTime? SubmittedAt { get; set; }
-    public int? WorkflowStatus { get; set; }
+
+    /// <summary>
+    /// Phase 3b-1: Type changed from int? to VettingStatus? enum.
+    /// Ships as a JSON string via JsonStringEnumConverter.
+    /// </summary>
+    public VettingStatus? WorkflowStatus { get; set; }
+
     public string? WorkflowStatusDisplay { get; set; }
     public DateTime? LastReviewedAt { get; set; }
     public DateTime? DecisionMadeAt { get; set; }

@@ -7,6 +7,7 @@ using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Users.Models.MemberDetails;
 using WitchCityRope.Api.Features.Users.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
 using Xunit;
@@ -306,7 +307,7 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         // Assert
         success.Should().BeTrue();
         response.Should().NotBeNull();
-        response!.VettingStatus.Should().Be(1, "raw vetting status value");
+        response!.VettingStatus.Should().Be(VettingStatus.InterviewApproved, "raw vetting status value");
         response.VettingStatusDisplay.Should().Be("Interview Approved", "status mapped to display string");
     }
 
@@ -330,7 +331,7 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         // Assert
         success.Should().BeTrue();
         response.Should().NotBeNull();
-        response!.VettingStatus.Should().Be(vettingStatus, "raw status preserved");
+        response!.VettingStatus.Should().Be((VettingStatus)vettingStatus, "raw status preserved");
         response.VettingStatusDisplay.Should().Be(expectedDisplay, $"status {vettingStatus} mapped correctly");
     }
 
@@ -559,7 +560,7 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         success.Should().BeTrue();
         response.Should().NotBeNull();
         response!.HasVettingApplication.Should().BeFalse("user has no vetting application");
-        response.VettingStatus.Should().BeGreaterThanOrEqualTo(0, "vetting status still exists");
+        response.VettingStatus.Should().Be(VettingStatus.UnderReview, "vetting status defaults to UnderReview when no application exists");
         response.VettingStatusDisplay.Should().NotBeNullOrEmpty("status display still provided");
     }
 

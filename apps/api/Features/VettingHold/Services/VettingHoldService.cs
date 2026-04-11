@@ -192,7 +192,11 @@ public class VettingHoldService : IVettingHoldService
                     userId, "Approved", "OnHold");
 
                 return Result<MembershipHoldResponse>.Success(new MembershipHoldResponse(
-                    NewStatus: VettingStatus_OnHold,
+                    // Phase 3b-1: MembershipHoldResponse.NewStatus is now
+                    // the VettingStatus enum (was int). Using the enum
+                    // literal directly instead of the old VettingStatus_OnHold
+                    // integer constant.
+                    NewStatus: VettingStatus.OnHold,
                     StatusName: "OnHold",
                     ChangedAt: changedAt
                 ));
@@ -341,7 +345,7 @@ public class VettingHoldService : IVettingHoldService
                     userId, "OnHold", "FinalReview");
 
                 return Result<MembershipHoldResponse>.Success(new MembershipHoldResponse(
-                    NewStatus: VettingStatus_FinalReview,
+                    NewStatus: VettingStatus.FinalReview,
                     StatusName: "FinalReview",
                     ChangedAt: changedAt
                 ));
@@ -392,7 +396,9 @@ public class VettingHoldService : IVettingHoldService
             var canRequestReinstatement = user.VettingStatus == VettingStatus_OnHold;
 
             return Result<VettingHoldStatusResponse>.Success(new VettingHoldStatusResponse(
-                VettingStatus: user.VettingStatus,
+                // Phase 3b-1 cast: response field is the enum; entity is still int.
+                // Phase 3b-2 will align the entity type and remove this cast.
+                VettingStatus: (VettingStatus)user.VettingStatus,
                 StatusName: statusName,
                 CanPlaceOnHold: canPlaceOnHold,
                 CanRequestReinstatement: canRequestReinstatement,

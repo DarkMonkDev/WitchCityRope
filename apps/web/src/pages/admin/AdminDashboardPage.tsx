@@ -9,7 +9,7 @@ import { useMembers } from '../../features/admin/members/hooks/useMembers';
 import { useUser } from '../../stores/authStore';
 import { hasRole, hasAnyRole } from '../../utils/roleUtils';
 import { DASHBOARD_CARD_ROLES } from '../../constants/adminRoles';
-import { isActiveMemberStatus } from '../../features/vetting/constants/vettingStatusConfig';
+import { isActiveMemberStatusString } from '../../features/vetting/constants/vettingStatusConfig';
 
 interface DashboardCard {
   title: string;
@@ -88,19 +88,14 @@ export const AdminDashboardPage: React.FC = () => {
 
   // Calculate active members count (only meaningful for Administrator).
   //
-  // Previously used magic integer comparisons (`=== 0 || === 1 || === 3`)
-  // which required a comment to explain what each integer meant. The
-  // `isActiveMemberStatus()` helper from vettingStatusConfig.ts replaces
-  // the comparison with a named predicate that encapsulates the same
-  // logic, sourced from the single-source status config.
-  //
-  // UserDto ships vettingStatus as a raw int (not the enum string) as of
-  // Phase 2, so the helper uses its int bridge internally. Phase 3 will
-  // normalize backend DTOs and this call site can switch to the plain
-  // string version at that point.
+  // Phase 3b-1: UserDto now ships vettingStatus as the VettingStatus enum
+  // string (e.g. "UnderReview", "Approved"). Switched from the int-bridge
+  // helper `isActiveMemberStatus` to the string-typed `isActiveMemberStatusString`,
+  // which accepts the enum string directly. Phase 3b-2 will make the same
+  // switch for any remaining int consumers and then delete the int bridge.
   const activeMembersCount = membersData?.users
     ? membersData.users.filter(
-        (member) => member.isActive && isActiveMemberStatus(member.vettingStatus)
+        (member) => member.isActive && isActiveMemberStatusString(member.vettingStatus)
       ).length
     : 0;
 

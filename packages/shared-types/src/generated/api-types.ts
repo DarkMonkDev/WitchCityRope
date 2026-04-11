@@ -5138,8 +5138,7 @@ export interface components {
             role?: null | string;
             /** Format: date-time */
             dateOfBirth?: null | string;
-            /** Format: int32 */
-            vettingStatus?: number;
+            vettingStatus?: components["schemas"]["VettingStatus"];
             bio?: null | string;
             pronouns?: null | string;
         };
@@ -5753,8 +5752,7 @@ export interface components {
             cancelledRegistrations?: number;
             /** Format: int32 */
             noShows?: number;
-            /** Format: int32 */
-            vettingStatus?: number;
+            vettingStatus?: components["schemas"]["VettingStatus"];
             vettingStatusDisplay?: string;
             hasVettingApplication?: boolean;
         };
@@ -5792,8 +5790,7 @@ export interface components {
             newValue?: null | string;
         };
         MembershipHoldResponse: {
-            /** Format: int32 */
-            newStatus: number;
+            newStatus: components["schemas"]["VettingStatus"];
             statusName: string;
             /** Format: date-time */
             changedAt: string;
@@ -6672,8 +6669,7 @@ export interface components {
             pronouns?: null | string;
             isActive?: null | boolean;
             emailConfirmed?: null | boolean;
-            /** Format: int32 */
-            vettingStatus?: null | number;
+            vettingStatus?: null | components["schemas"]["VettingStatus"];
         };
         UpdateUserRolesRequest: {
             roles: string[];
@@ -6710,8 +6706,7 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             lastLoginAt?: null | string;
-            /** Format: int32 */
-            vettingStatus?: number;
+            vettingStatus?: components["schemas"]["VettingStatus"];
             hasVettingApplication?: boolean;
             isVetted?: boolean;
         };
@@ -6790,8 +6785,7 @@ export interface components {
         UserPreviewDto: {
             sceneName?: string;
             email?: string;
-            /** Format: int32 */
-            vettingStatus?: number;
+            vettingStatus?: components["schemas"]["VettingStatus"];
             vettingStatusDisplay?: string;
             role?: string;
             emailConfirmed?: boolean;
@@ -6934,8 +6928,7 @@ export interface components {
             applicationNumber?: null | string;
             /** Format: date-time */
             submittedAt?: null | string;
-            /** Format: int32 */
-            workflowStatus?: null | number;
+            workflowStatus?: null | components["schemas"]["VettingStatus"];
             workflowStatusDisplay?: null | string;
             /** Format: date-time */
             lastReviewedAt?: null | string;
@@ -6961,8 +6954,7 @@ export interface components {
             agreesToTerms?: null | boolean;
         };
         VettingHoldStatusResponse: {
-            /** Format: int32 */
-            vettingStatus: number;
+            vettingStatus: components["schemas"]["VettingStatus"];
             statusName: string;
             canPlaceOnHold: boolean;
             canRequestReinstatement: boolean;

@@ -72,7 +72,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
 
         var holdResponse = await response.Content.ReadFromJsonAsync<MembershipHoldResponse>();
         holdResponse.Should().NotBeNull();
-        holdResponse!.NewStatus.Should().Be(5); // OnHold
+        holdResponse!.NewStatus.Should().Be(VettingStatus.OnHold);
         holdResponse.StatusName.Should().Be("OnHold");
         holdResponse.ChangedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
 
@@ -322,7 +322,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
 
         var holdResponse = await response.Content.ReadFromJsonAsync<MembershipHoldResponse>();
         holdResponse.Should().NotBeNull();
-        holdResponse!.NewStatus.Should().Be(2); // FinalReview
+        holdResponse!.NewStatus.Should().Be(VettingStatus.FinalReview);
         holdResponse.StatusName.Should().Be("FinalReview");
 
         // Verify database state
@@ -465,7 +465,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
 
         var statusResponse = await response.Content.ReadFromJsonAsync<VettingHoldStatusResponse>();
         statusResponse.Should().NotBeNull();
-        statusResponse!.VettingStatus.Should().Be(3); // Approved
+        statusResponse!.VettingStatus.Should().Be(VettingStatus.Approved);
         statusResponse.StatusName.Should().Be("Approved");
         statusResponse.CanPlaceOnHold.Should().BeTrue();
         statusResponse.CanRequestReinstatement.Should().BeFalse();
@@ -485,7 +485,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
 
         var statusResponse = await response.Content.ReadFromJsonAsync<VettingHoldStatusResponse>();
         statusResponse.Should().NotBeNull();
-        statusResponse!.VettingStatus.Should().Be(5); // OnHold
+        statusResponse!.VettingStatus.Should().Be(VettingStatus.OnHold);
         statusResponse.CanPlaceOnHold.Should().BeFalse();
         statusResponse.CanRequestReinstatement.Should().BeTrue();
     }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Users.Models.MemberDetails;
 using WitchCityRope.Api.Features.Users.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using Xunit;
 using FluentAssertions;
 using NSubstitute;
@@ -55,7 +56,7 @@ public class MemberDetailsEndpointsTests
             CreatedAt = DateTime.UtcNow.AddMonths(-6),
             TotalEventsAttended = 5,
             FutureEvents = 2,
-            VettingStatus = 3,
+            VettingStatus = VettingStatus.Approved,
             VettingStatusDisplay = "Approved",
             HasVettingApplication = true
         };
@@ -137,7 +138,7 @@ public class MemberDetailsEndpointsTests
             ApplicationId = Guid.NewGuid(),
             ApplicationNumber = "VET-2025-001",
             SubmittedAt = DateTime.UtcNow.AddDays(-30),
-            WorkflowStatus = 3,
+            WorkflowStatus = VettingStatus.Approved,
             WorkflowStatusDisplay = "Approved",
             SceneName = "Test Member",
             Email = "test@witchcityrope.com",

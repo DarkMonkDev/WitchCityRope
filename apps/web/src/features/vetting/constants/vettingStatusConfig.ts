@@ -55,19 +55,22 @@
  * - When the backend enum changes: regenerate shared-types, then update
  *   this file's Record entries. TypeScript will force you to.
  *
- * PHASE 3 TEMPORARY BRIDGE (STATUS_INT_TO_STRING)
- * ------------------------------------------------
- * Some backend DTOs (UserDto, MemberDetails*) currently serialize
- * vettingStatus as a raw int instead of the enum string. This is
- * architecturally inconsistent and will be normalized in Phase 3 of the
- * vetting status cleanup. Until then, admin code that consumes those
- * DTOs uses `getConfigFromInt()` which goes through `STATUS_INT_TO_STRING`.
+ * PHASE 3 INT BRIDGE — REMOVED in Phase 3b-1
+ * -------------------------------------------
+ * This file previously exported STATUS_INT_TO_STRING, getConfigFromInt(),
+ * and isActiveMemberStatus() as a temporary bridge for admin code that
+ * consumed DTOs shipping vettingStatus as a raw integer (UserDto,
+ * UserPreviewDto, MemberDetails*, etc.). Phase 3b-1 normalized all those
+ * DTOs to ship the enum string, removing every frontend consumer of the
+ * int bridge, and this file's int helpers were deleted alongside.
  *
- * When Phase 3 lands:
- *   - All backend DTOs will ship vettingStatus as the enum string
- *   - STATUS_INT_TO_STRING can be deleted
- *   - getConfigFromInt() can be deleted
- *   - All call sites will use getConfigFromStatus() only
+ * If you need the "is this user an active member" predicate, use
+ * `isActiveMemberStatusString()`. If you need the config for a given
+ * status, use `getConfigFromStatus()`.
+ *
+ * (The ApplicationUser entity still stores VettingStatus as int for now;
+ * Phase 3b-2 will normalize that too. Backend service code that reads
+ * user.VettingStatus still uses int comparisons until then.)
  *
  * @see apps/api/Features/Vetting/Entities/VettingApplication.cs — backend enum
  * @see packages/shared-types/src/generated/api-types.ts — generated type
@@ -88,33 +91,6 @@ import type { components } from '@witchcityrope/shared-types';
  * functions below handle the null/undefined cases explicitly.
  */
 export type VettingStatus = NonNullable<components['schemas']['VettingStatus']>;
-
-// ============================================================================
-// Temporary int-to-string bridge (Phase 3 will delete this)
-// ============================================================================
-
-/**
- * Integer → enum string mapping.
- *
- * TEMPORARY — exists only because some backend DTOs still serialize
- * vettingStatus as a raw int (UserDto, MemberDetailsDto, etc.) rather than
- * the enum string. Admin frontend code that consumes those DTOs uses
- * `getConfigFromInt()` which delegates through this map.
- *
- * The integer values come from apps/api/Features/Vetting/Entities/VettingApplication.cs.
- * If those values ever change on the backend, this map must be updated in lockstep.
- *
- * DELETE THIS MAP in Phase 3 once all backend DTOs use the enum type.
- */
-export const STATUS_INT_TO_STRING: Record<number, VettingStatus> = {
-  0: 'UnderReview',
-  1: 'InterviewApproved',
-  2: 'FinalReview',
-  3: 'Approved',
-  4: 'Denied',
-  5: 'OnHold',
-  6: 'Withdrawn',
-};
 
 // ============================================================================
 // Display configuration types
@@ -323,27 +299,8 @@ export function getConfigFromStatus(
   return VETTING_STATUS_CONFIG[status];
 }
 
-/**
- * Get display config from a raw integer vetting status.
- *
- * TEMPORARY — exists only for admin code consuming UserDto / MemberDetailsDto
- * which still ship vettingStatus as int. Will be removed in Phase 3 of the
- * vetting status cleanup once all backend DTOs use the enum type.
- *
- * Returns null for null/undefined/out-of-range input. Valid integers map to
- * their corresponding VettingStatus string via STATUS_INT_TO_STRING, then
- * look up the config.
- *
- * @param value The raw integer vetting status (or null/undefined)
- * @returns The display config, or null if value is missing or invalid
- */
-export function getConfigFromInt(
-  value: number | null | undefined
-): VettingStatusDisplay | null {
-  if (value == null) return null;
-  const key = STATUS_INT_TO_STRING[value];
-  return key ? VETTING_STATUS_CONFIG[key] : null;
-}
+// getConfigFromInt was removed in Phase 3b-1 along with STATUS_INT_TO_STRING.
+// If you need the display config, use getConfigFromStatus(enumString) instead.
 
 // ============================================================================
 // Derived helpers for dropdowns, filters, and UI widgets
@@ -436,10 +393,6 @@ export const DEFAULT_VETTING_LIST_FILTERS: readonly VettingStatus[] = [
  * This replaces the magic-int comparison pattern in AdminDashboardPage
  * (`member.vettingStatus === 0 || === 1 || === 3`) with a named helper
  * that's readable without consulting the enum definition.
- *
- * Phase 3 will normalize backend DTOs so the int bridge is no longer
- * needed; at that point, callers should use `isActiveMemberStatusString`
- * directly instead of the int variant.
  */
 const ACTIVE_MEMBER_STATUSES: readonly VettingStatus[] = [
   'UnderReview',
@@ -448,37 +401,13 @@ const ACTIVE_MEMBER_STATUSES: readonly VettingStatus[] = [
 ] as const;
 
 /**
- * Check whether an integer vetting status represents an "active member"
- * for admin dashboard stats purposes.
- *
- * TEMPORARY — delete in Phase 3 when UserDto serializes vettingStatus as
- * the enum string and admin code can use isActiveMemberStatusString directly.
- *
- * @param value The raw integer vetting status from UserDto
- * @returns true if the status represents an active member
- */
-export function isActiveMemberStatus(
-  value: number | null | undefined
-): boolean {
-  if (value == null) return false;
-  const key = STATUS_INT_TO_STRING[value];
-  return key !== undefined && ACTIVE_MEMBER_STATUSES.includes(key);
-}
-
-/**
  * Check whether a VettingStatus string represents an "active member"
  * for admin dashboard stats purposes.
  *
- * This is the Phase 3 migration target for `isActiveMemberStatus`. When
- * backend DTOs (UserDto, MemberDetailsDto) are normalized to ship
- * vettingStatus as the enum string, admin code should be switched to
- * use this function directly. At that point `isActiveMemberStatus` (the
- * int bridge) and STATUS_INT_TO_STRING can be deleted.
- *
- * Exists now so the Phase 3 migration is a trivial call-site swap
- * rather than a "what's the final function signature going to be?"
- * discussion. Both functions return the same answer when given
- * equivalent inputs.
+ * The old `isActiveMemberStatus` (int variant) was deleted in Phase 3b-1
+ * alongside the STATUS_INT_TO_STRING bridge. All frontend consumers of
+ * admin user DTOs now receive vettingStatus as the enum string, so this
+ * string-typed function is the only variant that's needed.
  *
  * @param status The VettingStatus enum string
  * @returns true if the status represents an active member

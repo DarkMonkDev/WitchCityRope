@@ -15126,8 +15126,7 @@
             "format": "date-time"
           },
           "vettingStatus": {
-            "type": "integer",
-            "format": "int32"
+            "$ref": "#/components/schemas/VettingStatus"
           },
           "bio": {
             "type": [
@@ -17134,8 +17133,7 @@
             "format": "int32"
           },
           "vettingStatus": {
-            "type": "integer",
-            "format": "int32"
+            "$ref": "#/components/schemas/VettingStatus"
           },
           "vettingStatusDisplay": {
             "type": "string"
@@ -17256,8 +17254,7 @@
         "type": "object",
         "properties": {
           "newStatus": {
-            "type": "integer",
-            "format": "int32"
+            "$ref": "#/components/schemas/VettingStatus"
           },
           "statusName": {
             "type": "string"
@@ -20265,11 +20262,14 @@
             ]
           },
           "vettingStatus": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "format": "int32"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VettingStatus"
+              }
+            ]
           }
         }
       },
@@ -20393,8 +20393,7 @@
             "format": "date-time"
           },
           "vettingStatus": {
-            "type": "integer",
-            "format": "int32"
+            "$ref": "#/components/schemas/VettingStatus"
           },
           "hasVettingApplication": {
             "type": "boolean"
@@ -20615,8 +20614,7 @@
             "type": "string"
           },
           "vettingStatus": {
-            "type": "integer",
-            "format": "int32"
+            "$ref": "#/components/schemas/VettingStatus"
           },
           "vettingStatusDisplay": {
             "type": "string"
@@ -21074,11 +21072,14 @@
             "format": "date-time"
           },
           "workflowStatus": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "format": "int32"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VettingStatus"
+              }
+            ]
           },
           "workflowStatusDisplay": {
             "type": [
@@ -21221,8 +21222,7 @@
         "type": "object",
         "properties": {
           "vettingStatus": {
-            "type": "integer",
-            "format": "int32"
+            "$ref": "#/components/schemas/VettingStatus"
           },
           "statusName": {
             "type": "string"

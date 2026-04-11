@@ -1,3 +1,5 @@
+using WitchCityRope.Api.Features.Vetting.Entities;
+
 namespace WitchCityRope.Api.Features.TestHelpers.Models;
 
 /// <summary>
@@ -44,11 +46,14 @@ public class CreateTestUserRequest
     public DateTime? DateOfBirth { get; set; }
 
     /// <summary>
-    /// User's vetting status (0-6 enum value)
-    /// 0 = UnderReview, 3 = Approved (vetted)
-    /// Default: 0 (UnderReview)
+    /// User's vetting status.
+    ///
+    /// Phase 3b-1: Type changed from int to the VettingStatus enum. Test
+    /// helper clients can now send "UnderReview", "Approved", etc. as
+    /// strings via JsonStringEnumConverter, or omit the field entirely
+    /// to get the default of UnderReview.
     /// </summary>
-    public int VettingStatus { get; set; } = 0;
+    public VettingStatus VettingStatus { get; set; } = VettingStatus.UnderReview;
 
     /// <summary>
     /// User's bio (optional)

@@ -39,7 +39,6 @@ import { apiClient } from '../../../../lib/api/client';
 import type { UserDto, MemberFilterRequest } from '../types/members.types';
 import type { components } from '@witchcityrope/shared-types';
 import { getUserRoles } from '../../../../utils/roleUtils';
-import { STATUS_INT_TO_STRING } from '../../../vetting/constants/vettingStatusConfig';
 
 export const MembersList: React.FC = () => {
   const navigate = useNavigate();
@@ -158,23 +157,15 @@ export const MembersList: React.FC = () => {
   //      for alert banners that display ONE status at a time, where
   //      thematic over distinctive makes sense.
   //
-  // WHAT PHASE 2F DID MIGRATE: the integer-to-status mapping. Previously
+  // WHAT PHASE 2F MIGRATED: the integer-to-status mapping. Previously
   // this switch compared raw ints (`case 0`, `case 1`, etc.) with magic
-  // numbers and an enum-values comment. Now it compares string keys via
-  // STATUS_INT_TO_STRING from the config, so if the backend ever reorders
-  // the enum the mapping auto-updates instead of silently breaking.
+  // numbers and an enum-values comment.
   //
-  // PHASE 3 NOTE: STATUS_INT_TO_STRING is a temporary bridge for DTOs
-  // that still ship vettingStatus as int (UserDto is one of them).
-  // Phase 3 will normalize backend DTOs to use the enum string, at
-  // which point this switch can consume the string directly without
-  // the STATUS_INT_TO_STRING lookup.
+  // WHAT PHASE 3B-1 DID: UserDto now ships vettingStatus as the
+  // VettingStatus enum string directly. Removed the STATUS_INT_TO_STRING
+  // bridge lookup — the switch now consumes user.vettingStatus directly.
   const getVettingStatusBadge = (user: UserDto) => {
-    const statusString = user.vettingStatus != null
-      ? STATUS_INT_TO_STRING[user.vettingStatus]
-      : undefined;
-
-    switch (statusString) {
+    switch (user.vettingStatus) {
       case 'Approved':
         return <Badge color="green">Vetted</Badge>;
       case 'UnderReview':
