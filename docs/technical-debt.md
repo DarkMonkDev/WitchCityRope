@@ -394,6 +394,117 @@ Estimated effort: Option A — 30 minutes including migration verification. Opti
 
 ---
 
+### BE-5 — Service layer swallows `OperationCanceledException` and returns 500 (P2)
+
+**Discovered**: 2026-04-11 while investigating staging console errors reported by user
+**Location**: Systemic — confirmed in at least:
+- `apps/api/Features/Participation/Services/AttendanceService.cs:731-735` (`GetParticipationStatusAsync`)
+- `apps/api/Features/Authentication/Services/RefreshTokenService.cs:126` (`RotateRefreshTokenAsync`)
+- Likely many more `catch (Exception ex)` blocks throughout the service layer
+
+**Impact**: Client cancellations (in-flight requests aborted before the response completes) are being caught as generic errors, logged at `ERR` severity, and returned to the client as HTTP 500. **12 occurrences in the last 24 hours on staging**, which has known low user traffic (~1 purchase per day). The user impact is minimal (the client is gone by the time the response is written), but the observability impact is real: monitoring dashboards see false-positive 500s, error rates look inflated, and real exceptions get lost in the noise.
+
+#### Symptom
+
+Representative log from staging at 07:33:07 UTC — five simultaneous 500s for the same authenticated user on five different event participation queries, all with identical `OperationCanceledException` stack traces:
+
+```
+[07:33:07 ERR] WitchCityRope.Api.Features.Participation.Services.AttendanceService
+  Error getting attendance status for user b3f7a090-9284-45f7-93f2-32f0522f3eb3 in event 7cb32f89-...
+System.OperationCanceledException: The operation was canceled.
+   at System.Threading.CancellationToken.ThrowOperationCanceledException()
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, ..., CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.QueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at WitchCityRope.Api.Features.Participation.Services.AttendanceService.GetParticipationStatusAsync(...) at line 168
+[07:33:07 ERR] Serilog.AspNetCore.RequestLoggingMiddleware
+  HTTP GET /api/events/7cb32f89-.../participation responded 500 in 257.1811 ms
+```
+
+And an earlier one in the refresh token path at 07:11:18:
+
+```
+[07:11:18 ERR] Microsoft.EntityFrameworkCore.Database.Transaction
+  An error occurred using a transaction.
+[07:11:18 ERR] WitchCityRope.Api.Features.Authentication.Services.IAuthenticationService
+  Token refresh failed
+System.OperationCanceledException: The operation was canceled.
+   at Npgsql.NpgsqlTransaction.Commit(Boolean async, CancellationToken cancellationToken)
+   at WitchCityRope.Api.Data.ApplicationDbContext.SaveChangesAsync(...) at line 1300
+   at RefreshTokenService.RotateRefreshTokenAsync(...) at line 126
+[07:11:18 ERR] Serilog.AspNetCore.RequestLoggingMiddleware
+  HTTP POST /api/auth/refresh responded 500 in 58.2782 ms
+```
+
+#### Root cause (primary)
+
+The service layer uses `catch (Exception ex)` without filtering for `OperationCanceledException` first. Example from `AttendanceService.cs:731-735`:
+
+```csharp
+catch (Exception ex)
+{
+    _logger.LogError(ex, "Error getting attendance status for user {UserId} in event {EventId}", userId, eventId);
+    return Result<EnhancedParticipationStatusDto?>.Failure("Failed to get attendance status", ex.Message);
+}
+```
+
+When the `cancellationToken` fires (for any reason — see secondary root cause below), `OperationCanceledException` is thrown from somewhere inside the EF query. The generic catch treats it as a real failure, logs at ERR severity, and returns a `Result.Failure` which the minimal-API endpoint converts to HTTP 500.
+
+The correct ASP.NET Core pattern is to let `OperationCanceledException` propagate when the request has actually been aborted:
+
+```csharp
+catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+{
+    throw; // Client is gone — let ASP.NET pipeline close the connection
+}
+catch (Exception ex)
+{
+    _logger.LogError(ex, "Error getting attendance status...");
+    return Result<EnhancedParticipationStatusDto?>.Failure(...);
+}
+```
+
+ASP.NET Core's request pipeline handles the propagated OCE gracefully: it doesn't log to ERR, it doesn't send a response body (the client is already disconnected), and the request logging middleware records it at a reduced severity.
+
+#### Root cause (secondary — WHY so many cancellations?)
+
+The primary fix hides the symptom. The deeper question is **why are there 12 OCEs in 24h on a staging environment with near-zero real user traffic?** The user explicitly flagged that their usage is "users purchasing things once a day" — which is inconsistent with my initial assumption that these were all browser-navigation-driven cancellations. Theories worth investigating when someone has time:
+
+1. **Kestrel request timeout** — default request timeout, or an idle connection timeout, firing on requests that are simply slow (e.g., a 500ms+ DB query gets cancelled by a short timeout). Unverified.
+2. **Network blips to DigitalOcean managed Postgres** — the staging DB is at `witchcityrope-prod-db-do-user-27362036-0.m.db.ondigitalocean.com:25060`. Transient network issues between the droplet and the managed DB would cancel in-flight Npgsql operations.
+3. **Polling/refresh loops from monitoring** — some automated health checker might be calling `/api/events/{id}/participation` then giving up after a few hundred ms. Would need to correlate source IPs with cancellation times.
+4. **TanStack Query background refetch cancellations** — if the React app is calling these endpoints on visibility change / window focus / staleTime expiration, and the new query supersedes an in-flight one, TanStack Query aborts the old one. Possible on low traffic if one user has several tabs or re-focuses often.
+
+The user's session during 07:33:07 (same userId across 5 simultaneous cancellations) suggests **hypothesis #4 is most likely for that specific burst** — a single React component unmounted with 5 queries in flight. But hypothesis #1 or #2 might explain the isolated 07:11:18 refresh cancellation 20 minutes earlier, since that one is on the background refresh hook, not tied to any navigation.
+
+#### Suggested fix approach
+
+**Phase A — Surface-level fix (recommended first, high ROI):**
+
+1. Audit every `catch (Exception ex)` block in `apps/api/Features/**/*Service.cs` and related files.
+2. Add a preceding `catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }` clause, OR change the general catch to `catch (Exception ex) when (ex is not OperationCanceledException)`.
+3. Run the test suite — no existing tests should break because the new filter path is tested against a non-cancelled token.
+4. Redeploy and watch staging logs for the next 24–48h. The false-positive 500s should drop to near zero.
+
+Estimated effort: **1–2 hours** depending on how many files need the change. Safe to automate with a search-and-replace for the pattern, but each instance should be reviewed — some catches may be legitimate "convert any DB error to a known result" paths where the new behavior changes contract.
+
+**Phase B — Root cause investigation (recommended second, lower priority):**
+
+1. Add structured logging for the cancellation source: when catching OCE, check `cancellationToken.IsCancellationRequested` vs. `HttpContext.RequestAborted.IsCancellationRequested` to distinguish request-abort from an internal linked token.
+2. Instrument Kestrel or Npgsql with detailed timing logs to see where cancellation originates.
+3. Check DigitalOcean DB metrics for packet loss or connection reset patterns correlating with the timestamps.
+4. Check the frontend for any code that cancels queries aggressively (TanStack Query `signal`, AbortController patterns).
+
+Estimated effort: **~1 day** of focused investigation, likely requiring staging traffic recording.
+
+#### Authoritative records
+
+- Staging API logs from 2026-04-11 (07:11:18, 07:33:07)
+- `apps/api/Features/Participation/Services/AttendanceService.cs:731`
+- `apps/api/Features/Authentication/Services/RefreshTokenService.cs:126`
+- User report: "I'm seeing these errors in the console window... we only have users purchasing things once a day, so I don't think your analysis is correct about the root cause"
+
+---
+
 ## Test suite (unit test coverage)
 
 ### T-6 — Redundant local enum aliases in `VettingHoldServiceTests` (P3)
@@ -583,7 +694,8 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 |---|---|---|
 | 2026-04-10 | File created. Consolidated content from `docs/functional-areas/vetting/vetting-status-cleanup-tech-debt-2026-04-10.md` (7 items, 1 resolved) and `docs/standards-processes/testing/test-infra-tech-debt-2026-04-10.md` (4 unresolved + 7 resolved). Those source files were deleted after consolidation. | Test infra cleanup session (commit `726f32b3`) |
 | 2026-04-11 | Phase 3b-2 code review follow-up: added 6 new active items — `BE-1` (CHECK constraint not in model snapshot, P2), `BE-2` (AttendanceSeeder pre-existing client-side filter, P3), `BE-3` ("Not Started" fallback text, P3), `BE-4` (stale `(N)` comments, P3), `T-5` (missing unit test for default branch, P3), `T-6` (redundant enum aliases, P3). Added new resolved section "2026-04-11 — Vetting status cleanup project (Phase 3b-1, 3b-2, 3c)" documenting the primary refactoring work, the two hygiene fixes (migration schema qualification + `.cs.bak` cleanup), and the staging deploy completion. | Phase 3b-2 hygiene + Phase 3c session (commits `8691f12c` and `d7e90748`) |
-| 2026-04-11 | Opportunistic cleanup of 4 P3 items in areas touched by Phase 3: `BE-2` resolved (AttendanceSeeder filter moved server-side), `BE-3` resolved as FALSE POSITIVE (code already returned `"Unknown"`), `BE-4` resolved (stale `(N)` comments stripped — several were wrong), `T-5` resolved as deferred/not-worth-it (private method, unreachable branch). Active items remaining: `BE-1`, `T-1..4`, `T-6`, `TL-1`, `FE-1`, `FE-2`, `DOC-1`. | Post-deploy hygiene session (this commit) |
+| 2026-04-11 | Opportunistic cleanup of 4 P3 items in areas touched by Phase 3: `BE-2` resolved (AttendanceSeeder filter moved server-side), `BE-3` resolved as FALSE POSITIVE (code already returned `"Unknown"`), `BE-4` resolved (stale `(N)` comments stripped — several were wrong), `T-5` resolved as deferred/not-worth-it (private method, unreachable branch). Active items remaining: `BE-1`, `T-1..4`, `T-6`, `TL-1`, `FE-1`, `FE-2`, `DOC-1`. | Post-deploy hygiene session (commit `25a83285`) |
+| 2026-04-11 | Added `BE-5` (P2) — service layer swallows `OperationCanceledException` and returns 500. Discovered while investigating a user-reported staging console error. 12 false-positive 500s in 24h on low-traffic staging. Root cause: `catch (Exception ex)` blocks in `AttendanceService`, `RefreshTokenService`, and likely many more service files treat client-side cancellations as real errors. Fix: add `catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }` filter before the general catch. Deeper question (why so many cancellations on low-traffic staging?) logged as Phase B investigation. | Staging error investigation session (this commit) |
 
 ---
 
