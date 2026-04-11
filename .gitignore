@@ -78,3 +78,8 @@ session-work/
 
 # Temporary test files in root
 /test-*.spec.ts
+
+# Editor/tooling backup files (e.g. from sed or bulk rewrites)
+*.cs.bak
+*.ts.bak
+*.tsx.bak

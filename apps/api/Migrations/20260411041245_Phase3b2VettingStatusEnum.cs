@@ -31,8 +31,13 @@ namespace WitchCityRope.Api.Migrations
             // (rather than the default "AspNetUsers") via the entity's
             // ToTable("Users") mapping in ApplicationDbContext. See the
             // existing Data/Migrations/*.Designer.cs files for confirmation.
+            //
+            // Table is schema-qualified as public."Users" to match the
+            // convention used throughout the rest of the project's
+            // auto-generated migrations and to protect against search_path
+            // surprises on staging/production.
             migrationBuilder.Sql(@"
-                ALTER TABLE ""Users""
+                ALTER TABLE public.""Users""
                 ADD CONSTRAINT ""CK_Users_VettingStatus_Range""
                 CHECK (""VettingStatus"" BETWEEN 0 AND 6);
             ");
@@ -42,7 +47,7 @@ namespace WitchCityRope.Api.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
-                ALTER TABLE ""Users""
+                ALTER TABLE public.""Users""
                 DROP CONSTRAINT IF EXISTS ""CK_Users_VettingStatus_Range"";
             ");
         }

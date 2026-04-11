@@ -339,7 +339,197 @@ git config core.hooksPath
 
 ## Backend API
 
-*No active backend tech debt items. Two entries (`UserDashboardProfileService.cs` Withdrawn case, `VettingApplication.cs` docblock drift) were resolved in vetting cleanup Phase 3a (commit `91d51770`) — see [Resolved items](#2026-04-10--vetting-status-cleanup-project).*
+### BE-1 — `Users.CK_Users_VettingStatus_Range` CHECK constraint not tracked in EF model snapshot (P2)
+
+**Discovered**: 2026-04-11 during Phase 3b-2 code review of the vetting status cleanup project
+**Location**: `apps/api/Migrations/20260411041245_Phase3b2VettingStatusEnum.cs` + `apps/api/Migrations/ApplicationDbContextModelSnapshot.cs`
+**Impact**: Model snapshot drift. The database has a CHECK constraint that the EF model does not know about, which means future auto-generated migrations have no visibility into it. Low risk today, but a correctness trap waiting to go off.
+
+#### Symptom
+
+Phase 3b-2 introduced a DB-layer CHECK constraint defending `Users.VettingStatus` against out-of-range enum values:
+
+```sql
+ALTER TABLE public."Users"
+ADD CONSTRAINT "CK_Users_VettingStatus_Range"
+CHECK ("VettingStatus" BETWEEN 0 AND 6);
+```
+
+Because the constraint was added via raw `migrationBuilder.Sql()` rather than EF's fluent `HasCheckConstraint` API, it does not appear in `ApplicationDbContextModelSnapshot.cs`. Future `dotnet ef migrations add` runs will not see it.
+
+#### Why it happened
+
+During Phase 3b-2 the author chose raw SQL to keep the migration focused and reversible without touching `OnModelCreating`. The trade-off was made knowingly — it was fast and safe for the immediate need — but the drift is now a real item to clean up.
+
+#### Failure modes this could cause
+
+1. **Silent re-adds**: if a future agent calls `HasCheckConstraint` with a different name or predicate in `OnModelCreating`, EF will generate a migration to add "the missing" constraint, creating a duplicate in production.
+2. **Silent drops**: if a future migration runs `migrationBuilder.Sql("DROP ...")` or an `ALTER TABLE` that implicitly removes constraints, the model snapshot won't warn about the removal.
+3. **Cross-env skew**: a dev who resets a local DB from the model snapshot (rare but possible) will end up with a DB that lacks the constraint.
+
+#### Suggested fix approach
+
+**Option A — Move into `OnModelCreating` (recommended)**
+1. In `apps/api/Data/ApplicationDbContext.cs` inside `OnModelCreating`, add:
+   ```csharp
+   modelBuilder.Entity<ApplicationUser>()
+       .ToTable(t => t.HasCheckConstraint(
+           "CK_Users_VettingStatus_Range",
+           "\"VettingStatus\" BETWEEN 0 AND 6"));
+   ```
+2. Run `dotnet ef migrations add Phase3b2VettingStatusConstraintTracked`. This should produce a migration that *drops and re-adds* the constraint under EF's control — inspect before applying.
+3. Verify the snapshot now contains the constraint.
+4. Apply the migration in dev, re-verify distribution unchanged.
+
+**Option B — Document the drift and leave it**
+If the churn of a new migration is undesirable, add a comment in `ApplicationDbContextModelSnapshot.cs` near the `Users` entity definition noting the out-of-band constraint, and add a code comment in `OnModelCreating` warning future authors not to `HasCheckConstraint` on `VettingStatus` without coordinating with the existing raw-SQL migration.
+
+Estimated effort: Option A — 30 minutes including migration verification. Option B — 10 minutes.
+
+#### Authoritative records
+
+- Commit `c1f3481b` — the Phase 3b-2 commit that introduced the constraint
+- `apps/api/Migrations/20260411041245_Phase3b2VettingStatusEnum.cs` — the migration itself
+- Code review of Phase 3b-2 (2026-04-11, finding 3.2)
+
+---
+
+### BE-2 — Pre-existing client-side `VettingStatus` filter in `AttendanceSeeder` (P3)
+
+**Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.1)
+**Location**: `apps/api/Services/Seeding/AttendanceSeeder.cs:243-244` — `CreateHistoricalSocialEventParticipationsAsync`
+**Impact**: Minor — test/seed runtime only, not production.
+
+#### Symptom
+
+`CreateHistoricalSocialEventParticipationsAsync` loads ALL users from the DB and then filters in-memory:
+
+```csharp
+var users = await _userManager.Users.ToListAsync(cancellationToken);
+var availableUsers = users.Where(u => u.Email != canceledUserEmail && u.VettingStatus == VettingStatus.Approved).ToList();
+```
+
+This reads the entire `Users` table on every seed run even though only Approved users are needed. The sibling method `SeedEventParticipationsAsync` already uses the correct server-side pattern:
+
+```csharp
+var vettedUsers = await _userManager.Users
+    .Where(u => u.VettingStatus == VettingStatus.Approved)
+    .ToListAsync(cancellationToken);
+```
+
+#### Why it was deferred
+
+The client-side filter pre-dates Phase 3b-2 — it was not a regression introduced by the enum conversion. Fixing it in the same commit would have expanded scope and made the enum-only diff harder to review. Since the seeder runs only during dev/test DB bootstrap, there's no production impact.
+
+#### Suggested fix approach
+
+Move the `Where` clause into the LINQ query:
+
+```csharp
+var availableUsers = await _userManager.Users
+    .Where(u => u.Email != canceledUserEmail && u.VettingStatus == VettingStatus.Approved)
+    .ToListAsync(cancellationToken);
+```
+
+Estimated effort: 5 minutes + run seed + verify count unchanged.
+
+#### Authoritative records
+
+- Phase 3b-2 code review (2026-04-11, finding 4.1)
+- `apps/api/Services/Seeding/AttendanceSeeder.cs`
+
+---
+
+### BE-3 — Misleading "Not Started" fallback text in `VettingHoldService.GetStatusName` (P3)
+
+**Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.2)
+**Location**: `apps/api/Features/VettingHold/Services/VettingHoldService.cs` — `GetStatusName(VettingStatus)` default branch
+**Impact**: Cosmetic — only affects the fallback text shown if an unknown enum value ever reaches this method.
+
+#### Symptom
+
+The default branch of the switch currently returns `"Not Started"`:
+
+```csharp
+default => "Not Started"
+```
+
+This is a holdover from the old int-based switch, where `0` meant "not-yet-started" in an earlier design. Under the current enum, `0` is `UnderReview` (not "not started"), and the default branch is reached only for corrupt/unknown values — where "Unknown" is the honest label.
+
+Given that the new DB CHECK constraint (Phase 3b-2) blocks invalid values at the DB layer, this default branch is effectively unreachable at runtime — but the text is still wrong if someone happens to read the code.
+
+#### Suggested fix approach
+
+Change the default to `"Unknown"`. Estimated effort: 2 minutes.
+
+```csharp
+default => "Unknown"
+```
+
+#### Authoritative records
+
+- Phase 3b-2 code review (2026-04-11, finding 4.2)
+- `apps/api/Features/VettingHold/Services/VettingHoldService.cs`
+
+---
+
+### BE-4 — Stale numeric `(N)` comments in `VettingSeeder` (P3)
+
+**Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.5)
+**Location**: `apps/api/Services/Seeding/VettingSeeder.cs` — various inline comments
+**Impact**: Cosmetic. Comments were left over from the int-based enum era and still say things like `VettingStatus = VettingStatus.Approved, // (3)` even though the numeric value is no longer meaningful to anyone reading the code.
+
+#### Suggested fix approach
+
+Remove or rewrite the `(N)` numeric suffix comments. If the comment is useful for human readers, keep the descriptive part and drop the int. Opportunistic cleanup — fix next time someone touches this file.
+
+Estimated effort: 5 minutes.
+
+#### Authoritative records
+
+- Phase 3b-2 code review (2026-04-11, finding 4.5)
+- `apps/api/Services/Seeding/VettingSeeder.cs`
+
+---
+
+## Test suite (unit test coverage)
+
+### T-5 — No unit test for `VettingHoldService.GetStatusName` unreachable default branch (P3)
+
+**Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.4)
+**Impact**: None today. Noted for completeness only — this is "would be nicer to have 100% branch coverage" territory, not a real gap.
+
+#### Context
+
+The new `VettingHoldService.GetStatusName(VettingStatus)` switch has a `default` branch that is effectively unreachable due to the Phase 3b-2 DB CHECK constraint. Adding a unit test that casts an invalid value (`(VettingStatus)99`) and asserts the fallback text would exercise the branch for coverage tools, but the test is only meaningful if [BE-3](#be-3--misleading-not-started-fallback-text-in-vettingholdservicegetstatusname-p3) is addressed first (otherwise you're asserting the wrong string).
+
+#### Suggested fix approach
+
+After BE-3 is fixed, add a single test method in the `VettingHoldServiceTests` file asserting `GetStatusName((VettingStatus)99) == "Unknown"`. Estimated effort: 10 minutes (bundle with the BE-3 fix).
+
+#### Authoritative records
+
+- Phase 3b-2 code review (2026-04-11, finding 4.4)
+
+---
+
+### T-6 — Redundant local enum aliases in `VettingHoldServiceTests` (P3)
+
+**Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.3)
+**Location**: `tests/unit/api/Features/VettingHold/VettingHoldServiceTests.cs` — top-of-file
+**Impact**: Cosmetic.
+
+#### Symptom
+
+The test file declares local `const int` or `using` aliases for vetting status values even though `VettingStatus` enum members are now directly usable. Leftover from the int-based transitional phase.
+
+#### Suggested fix approach
+
+Delete the aliases and use `VettingStatus.Approved` etc. directly in `InlineData` and assertion calls. Estimated effort: 10 minutes. Opportunistic cleanup.
+
+#### Authoritative records
+
+- Phase 3b-2 code review (2026-04-11, finding 4.3)
 
 ---
 
