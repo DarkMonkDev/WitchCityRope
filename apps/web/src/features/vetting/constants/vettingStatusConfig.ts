@@ -338,3 +338,126 @@ export function getConfigFromInt(
   const key = STATUS_INT_TO_STRING[value];
   return key ? VETTING_STATUS_CONFIG[key] : null;
 }
+
+// ============================================================================
+// Derived helpers for dropdowns, filters, and UI widgets
+// ============================================================================
+
+/**
+ * Shape of a dropdown / filter option, matching what Mantine's Select and
+ * MultiSelect components expect. Components that need to render a list of
+ * vetting statuses as selectable values should use this shape so we can
+ * switch the underlying UI library later without touching every callsite.
+ */
+export interface VettingStatusOption {
+  value: VettingStatus;
+  label: string;
+}
+
+/**
+ * Get a list of all vetting statuses as {value, label} options.
+ *
+ * Used by dropdowns, multi-select filters, and any other UI widget that
+ * needs to render every status as a selectable option. The list is built
+ * from VETTING_STATUS_CONFIG so adding a new status to the config
+ * automatically adds it to every dropdown.
+ *
+ * The order matches the logical progression of an application through
+ * the vetting workflow (Under Review → Interview → Final Review →
+ * Approved → terminal states).
+ *
+ * @returns An array of {value, label} objects suitable for Mantine Select
+ */
+export function getStatusOptions(): VettingStatusOption[] {
+  // Explicit order rather than Object.entries to guarantee logical workflow
+  // sequence. The Record<> above doesn't guarantee iteration order and we
+  // want the dropdown to read as a progression the user can follow.
+  const order: VettingStatus[] = [
+    'UnderReview',
+    'InterviewApproved',
+    'FinalReview',
+    'Approved',
+    'Denied',
+    'OnHold',
+    'Withdrawn',
+  ];
+  return order.map((status) => ({
+    value: status,
+    label: VETTING_STATUS_CONFIG[status].label,
+  }));
+}
+
+/**
+ * Statuses that indicate an application still needs reviewer attention.
+ *
+ * Used by the admin dashboard stats and the reviewer filter defaults —
+ * anywhere code needs to answer "which applications should a reviewer
+ * look at right now?" Exported as a constant so the answer has a single
+ * source of truth instead of being inlined in each caller.
+ *
+ * NOTE: InterviewApproved is intentionally NOT included — once a candidate
+ * has been approved for interview, the next action belongs to the
+ * applicant (scheduling), not the reviewer.
+ */
+export const STATUSES_REQUIRING_REVIEW: readonly VettingStatus[] = [
+  'UnderReview',
+  'FinalReview',
+] as const;
+
+/**
+ * Statuses that represent a "still in progress" member from the admin
+ * dashboard's perspective, used to count "active members" on the admin
+ * dashboard card. Includes anyone mid-workflow plus fully-approved members.
+ *
+ * This replaces the magic-int comparison pattern in AdminDashboardPage
+ * (`member.vettingStatus === 0 || === 1 || === 3`) with a named helper
+ * that's readable without consulting the enum definition.
+ *
+ * Phase 3 will normalize backend DTOs so the int bridge is no longer
+ * needed; at that point, callers should use `isActiveMemberStatusString`
+ * directly instead of the int variant.
+ */
+const ACTIVE_MEMBER_STATUSES: readonly VettingStatus[] = [
+  'UnderReview',
+  'InterviewApproved',
+  'Approved',
+] as const;
+
+/**
+ * Check whether an integer vetting status represents an "active member"
+ * for admin dashboard stats purposes.
+ *
+ * TEMPORARY — delete in Phase 3 when UserDto serializes vettingStatus as
+ * the enum string and admin code can use isActiveMemberStatusString directly.
+ *
+ * @param value The raw integer vetting status from UserDto
+ * @returns true if the status represents an active member
+ */
+export function isActiveMemberStatus(
+  value: number | null | undefined
+): boolean {
+  if (value == null) return false;
+  const key = STATUS_INT_TO_STRING[value];
+  return key !== undefined && ACTIVE_MEMBER_STATUSES.includes(key);
+}
+
+/**
+ * Check whether a vetting status should cause the "How to Join" menu
+ * item to be hidden from the user's main navigation.
+ *
+ * Business rule: hide the "How to Join" link for users whose application
+ * is in a terminal state (Approved, Denied) or paused (OnHold). These
+ * users either don't need to apply (Approved) or can't currently act on
+ * an application (Denied/OnHold).
+ *
+ * Moved to this config file in Phase 2a so all status-related business
+ * rules live in one place. Previously lived in features/vetting/types/
+ * vettingStatus.ts which was the wrong layer (types file, not helpers).
+ *
+ * @param status The user's current vetting status
+ * @returns true if the menu item should be hidden
+ */
+export function shouldHideMenuForStatus(status: VettingStatus): boolean {
+  const hideStatuses: VettingStatus[] = ['OnHold', 'Approved', 'Denied'];
+  return hideStatuses.includes(status);
+}

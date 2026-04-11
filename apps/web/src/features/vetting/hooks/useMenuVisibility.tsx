@@ -10,7 +10,7 @@
  */
 import { useVettingStatus } from './useVettingStatus';
 import { useIsAuthenticated } from '../../../stores/authStore';
-import { shouldHideMenuForStatus } from '../types/vettingStatus';
+import { shouldHideMenuForStatus } from '../constants/vettingStatusConfig';
 import type { MenuVisibilityResult } from '../types/vettingStatus';
 
 /**

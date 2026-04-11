@@ -74,11 +74,9 @@ export interface StatusBoxProps {
   estimatedDaysRemaining?: number;
 }
 
-/**
- * Helper: Check if status should hide "How to Join" menu item
- * Business rule: Hide for OnHold, Approved, Denied
- */
-export const shouldHideMenuForStatus = (status: VettingStatus): boolean => {
-  const hideStatuses: VettingStatus[] = ['OnHold', 'Approved', 'Denied'];
-  return hideStatuses.includes(status);
-};
+// NOTE: `shouldHideMenuForStatus` was moved to
+// apps/web/src/features/vetting/constants/vettingStatusConfig.ts in Phase 2a
+// of the vetting status cleanup so all status-related business rules live
+// in the single-source config file. Import from there:
+//
+//   import { shouldHideMenuForStatus } from '../constants/vettingStatusConfig';
