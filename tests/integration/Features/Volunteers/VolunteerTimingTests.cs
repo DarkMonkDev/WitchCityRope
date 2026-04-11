@@ -381,6 +381,14 @@ public class VolunteerTimingTests : IntegrationTestBase, IDisposable
         {
             Id = Guid.NewGuid(),
             EventId = eventEntity.Id,
+            // FK VolunteerPositions.SessionId → Sessions.Id was tightened/made non-null
+            // sometime between 2026-03-07 and 2026-04-10. Previously this helper could
+            // omit SessionId and get away with Guid.Empty (which the schema then happily
+            // accepted). Now the FK constraint rejects Guid.Empty because it doesn't
+            // reference a real Session row, producing 15+ test failures all with the
+            // same "violates foreign key constraint FK_VolunteerPositions_Sessions_SessionId"
+            // error. Attaching the Session we just created above fixes them all.
+            SessionId = session.Id,
             Title = $"Test Position {Guid.NewGuid():N}",
             Description = "Test volunteer position",
             SlotsNeeded = slotsNeeded,

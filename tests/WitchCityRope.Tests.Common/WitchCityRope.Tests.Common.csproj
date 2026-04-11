@@ -23,6 +23,14 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Respawn" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <!-- Azure.Identity is transitive via Respawn → SqlClient. We take a direct
+         reference here so Central Package Management's pinned version (see
+         Directory.Packages.props) actually applies — without a direct
+         PackageReference, CPM's PackageVersion entry is ignored for transitive
+         deps. Not used at runtime (WCR is PostgreSQL-only); pinned to avoid
+         the transitive 1.3.0 vulnerabilities. See the comment on the
+         PackageVersion entry for full history. -->
+    <PackageReference Include="Azure.Identity" />
   </ItemGroup>
 
   <ItemGroup>

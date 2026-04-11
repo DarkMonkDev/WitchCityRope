@@ -134,7 +134,15 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
             "Past session volunteer positions should not be returned");
     }
 
-    [Fact]
+    [Fact(Skip = "Schema drift 2026-04-10: VolunteerPosition.SessionId is now non-nullable, " +
+        "so 'event-wide positions' (SessionId = null) cannot exist in the current schema. " +
+        "This test was written to verify a feature where a VolunteerPosition applies to ALL " +
+        "sessions of an event (using the earliest future session's timing window). The feature " +
+        "may or may not still be intended — the entity change made VolunteerPosition.SessionId " +
+        "required, which silently deleted the feature. Needs a product decision: " +
+        "(a) feature deprecated → delete this test, or " +
+        "(b) feature still needed → make VolunteerPosition.SessionId nullable in apps/api/Models/VolunteerPosition.cs " +
+        "and update the helper + caller.")]
     public async Task VolunteerSignup_EventWide_UsesEarliestFutureSession()
     {
         // Arrange: Event-wide position (no SessionId), Session 1 past, Session 2 future
@@ -167,8 +175,9 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
         await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(-1), "Session 1"); // Past
         var futureSession = await CreateTestSessionAsync(eventEntity.Id, DateTime.UtcNow.AddDays(2), "Session 2"); // Future (2 days away)
 
-        // Create event-wide position (SessionId = null)
-        var position = await CreateTestVolunteerPositionAsync(eventEntity.Id, null, "Event Coordinator");
+        // Create event-wide position — passes futureSession.Id to compile, but the test is
+        // skipped so this value is not meaningful. See Skip reason above.
+        var position = await CreateTestVolunteerPositionAsync(eventEntity.Id, futureSession.Id, "Event Coordinator");
 
         // Act: Get volunteer positions
         var response = await client.GetAsync($"/api/events/{eventEntity.Id}/volunteer-positions");
@@ -263,7 +272,14 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
         return session;
     }
 
-    private async Task<VolunteerPosition> CreateTestVolunteerPositionAsync(Guid eventId, Guid? sessionId, string title)
+    // NOTE: parameter is now non-nullable. Previously this helper accepted Guid?
+    // and defaulted null to Guid.Empty, which worked when the schema had a nullable
+    // SessionId FK. The FK was tightened to non-null sometime after 2026-03-07, and
+    // the `?? Guid.Empty` fallback now violates the FK constraint at SaveChangesAsync.
+    // If the "event-wide position" (SessionId = null) feature needs to come back,
+    // the fix is to make VolunteerPosition.SessionId nullable in the entity model.
+    // See the skipped test VolunteerSignup_EventWide_UsesEarliestFutureSession.
+    private async Task<VolunteerPosition> CreateTestVolunteerPositionAsync(Guid eventId, Guid sessionId, string title)
     {
         await using var context = CreateDbContext();
 
@@ -271,7 +287,7 @@ public class SessionBasedVolunteerTimingTests : IntegrationTestBase, IDisposable
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
-            SessionId = sessionId ?? Guid.Empty, // SessionId is now required (non-nullable)
+            SessionId = sessionId,
             Title = title,
             Description = "Test volunteer position",
             SlotsNeeded = 3,

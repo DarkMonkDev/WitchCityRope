@@ -160,10 +160,20 @@ public class VolunteerServiceTests : IAsyncLifetime
         int slotsNeeded = 2,
         bool isPublicFacing = true)
     {
+        // FK VolunteerPositions.SessionId → Sessions.Id is non-nullable and must
+        // reference a real Session row. CreateTestEvent() creates exactly one Session
+        // per event, so we look it up here by eventId to attach the position. Without
+        // this, the test fails with 23503: violates foreign key constraint
+        // FK_VolunteerPositions_Sessions_SessionId. Fixed 2026-04-10 during the
+        // volunteer test cleanup sweep — this was causing all 16 VolunteerServiceTests
+        // failures with the same Guid.Empty SessionId error.
+        var session = await _context.Sessions.FirstAsync(s => s.EventId == eventId);
+
         var position = new VolunteerPosition
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
+            SessionId = session.Id,
             Title = title,
             Description = $"Description for {title}",
             SlotsNeeded = slotsNeeded,

@@ -136,8 +136,22 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_FromFinalReviewToApproved_GrantsVettedMemberRole()
+    public async Task UpdateApplicationStatusAsync_FromFinalReviewToApproved_SetsVettingStatusApproved()
     {
+        // Renamed from UpdateApplicationStatusAsync_FromFinalReviewToApproved_GrantsVettedMemberRole
+        // on 2026-04-10 during the test cleanup sweep. Same drift story as
+        // VettingEndpointsIntegrationTests.Approval_SetsVettingStatusApproved:
+        //
+        // The 2025-10-19 role/vetting refactor decoupled organizational roles from
+        // vetting status (see docs/functional-areas/user-management/new-work/2025-10-19-role-vetting-refactoring/).
+        // VettingService.ApproveApplicationAsync now preserves user.Role verbatim and
+        // instead sets user.VettingStatus = (int)VettingStatus.Approved. The old
+        // assertion `updatedUser.Role.Should().Be("VettedMember")` asserted the
+        // pre-refactor behavior and has been broken for ~6 months.
+        //
+        // The new assertions match the current behavior documented inline at
+        // VettingService.cs lines 1660-1689.
+
         // Arrange
         var admin = await CreateTestAdminUser();
         var user = await CreateTestUser("applicant@example.com", "Member");
@@ -151,14 +165,18 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
         result.Value.Status.Should().Be("Approved");
 
-        // Verify database updated
+        // Verify application workflow status updated
         var updatedApp = await _context.VettingApplications.FindAsync(application.Id);
         updatedApp!.WorkflowStatus.Should().Be(VettingStatus.Approved);
         updatedApp.DecisionMadeAt.Should().NotBeNull();
 
-        // CRITICAL: Verify user role updated to VettedMember
+        // Verify user.VettingStatus was updated to Approved (new source of truth for
+        // vetted-access control) and that user.Role was PRESERVED (not overwritten).
         var updatedUser = await _context.Users.FindAsync(user.Id);
-        updatedUser!.Role.Should().Be("VettedMember");
+        updatedUser!.VettingStatus.Should().Be((int)VettingStatus.Approved,
+            "Approval should set VettingStatus=Approved per the post-2025-10-19 refactor");
+        updatedUser.Role.Should().Be("Member",
+            "User's organizational Role should be preserved during vetting approval");
     }
 
     [Fact]

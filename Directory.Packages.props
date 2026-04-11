@@ -76,7 +76,31 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
-    <PackageVersion Include="Respawn" Version="7.0.0" />
+    <PackageVersion Include="Respawn" Version="6.2.1" />
+    <!-- Azure.Identity is a TRANSITIVE dependency pulled in via:
+             Respawn 6.2.1 → Microsoft.Data.SqlClient 4.0.5 → Azure.Identity
+         Respawn 6.2.1's SqlClient dep pulls in Azure.Identity 1.3.0, which has
+         a known high-severity vulnerability (GHSA-5mfx-4wcx-rv27) plus two
+         moderate advisories. WCR is PostgreSQL-only so SqlClient is never
+         actually used at runtime, but the package still ships with our test
+         dependencies, which trips build warnings and is a real security concern
+         if any of that code were ever accidentally invoked.
+
+         We pin Azure.Identity to a non-vulnerable version here AND add a direct
+         <PackageReference Include="Azure.Identity" /> in
+         WitchCityRope.Tests.Common.csproj. Central Package Management requires
+         a direct package reference for the pinned version to apply to
+         transitive resolution — a <PackageVersion> entry alone is ignored for
+         deps that are only pulled in transitively.
+
+         HISTORY: We tried upgrading Respawn to 7.0.0 on 2026-04-10 (which drops
+         the SqlClient/Azure.Identity chain entirely), but 7.0.0 also shifted
+         test harness timing enough to cause 16+ WebApplicationFactory integration
+         tests to regress with "entry point exited without ever building an IHost"
+         errors. Root cause of the regression is not yet understood. The pin is
+         the pragmatic interim fix: keeps Respawn 6.2.1's known-good test
+         behavior and eliminates the Azure.Identity vulnerability. -->
+    <PackageVersion Include="Azure.Identity" Version="1.14.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.10.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
