@@ -274,7 +274,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
             Email = email,
             UserName = email,
             SceneName = $"TestUser{userId:N}",
-            VettingStatus = vettingStatus.HasValue ? (int)vettingStatus.Value : 0,
+            VettingStatus = vettingStatus ?? VettingStatus.UnderReview,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

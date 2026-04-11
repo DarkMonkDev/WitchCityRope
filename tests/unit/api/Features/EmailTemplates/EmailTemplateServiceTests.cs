@@ -8,6 +8,7 @@ using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.Shared.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
@@ -122,7 +123,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     private async Task<ApplicationUser> CreateTestUserAsync(
         string? email = null,
         string? sceneName = "DEFAULT_GENERATE",
-        int vettingStatus = 0,
+        VettingStatus vettingStatus = VettingStatus.UnderReview,
         bool emailConfirmed = false,
         bool isActive = true)
     {
@@ -161,22 +162,22 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Arrange
         // Create users with different combinations of VettingStatus, EmailConfirmed, IsActive
         var approvedUnconfirmed = await CreateTestUserAsync(
-            vettingStatus: 3, // Approved
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
         var approvedConfirmed = await CreateTestUserAsync(
-            vettingStatus: 3, // Approved
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: true, // Should NOT be included
             isActive: true);
 
         var underReviewUnconfirmed = await CreateTestUserAsync(
-            vettingStatus: 0, // UnderReview - Should NOT be included
+            vettingStatus: VettingStatus.UnderReview, // Should NOT be included
             emailConfirmed: false,
             isActive: true);
 
         var approvedUnconfirmedInactive = await CreateTestUserAsync(
-            vettingStatus: 3, // Approved
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: false); // Should NOT be included
 
@@ -197,12 +198,12 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     {
         // Arrange
         var user1 = await CreateTestUserAsync(
-            vettingStatus: 3, // Approved
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: true, // Confirmed - should be excluded
             isActive: true);
 
         var user2 = await CreateTestUserAsync(
-            vettingStatus: 3, // Approved
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false, // Not confirmed - should be included
             isActive: true);
 
@@ -223,22 +224,22 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     {
         // Arrange - Create users with different vetting statuses
         var underReview = await CreateTestUserAsync(
-            vettingStatus: 0, // UnderReview
+            vettingStatus: VettingStatus.UnderReview,
             emailConfirmed: false,
             isActive: true);
 
         var interviewApproved = await CreateTestUserAsync(
-            vettingStatus: 1, // InterviewApproved
+            vettingStatus: VettingStatus.InterviewApproved,
             emailConfirmed: false,
             isActive: true);
 
         var finalReview = await CreateTestUserAsync(
-            vettingStatus: 2, // FinalReview
+            vettingStatus: VettingStatus.FinalReview,
             emailConfirmed: false,
             isActive: true);
 
         var approved = await CreateTestUserAsync(
-            vettingStatus: 3, // Approved - ONLY this should be included
+            vettingStatus: VettingStatus.Approved, // ONLY this should be included
             emailConfirmed: false,
             isActive: true);
 
@@ -259,12 +260,12 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     {
         // Arrange
         var activeUser = await CreateTestUserAsync(
-            vettingStatus: 3, // Approved
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true); // Active
 
         var inactiveUser = await CreateTestUserAsync(
-            vettingStatus: 3, // Approved
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: false); // Inactive - should be excluded
 
@@ -290,7 +291,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         // Arrange
         var user = await CreateTestUserAsync(
             sceneName: "TestSceneName",
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
@@ -329,7 +330,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         var user = await CreateTestUserAsync(
             email: uniqueEmail,
             sceneName: "", // Empty scene name - should fall back to email
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
@@ -365,7 +366,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     {
         // Arrange
         var user = await CreateTestUserAsync(
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
@@ -413,12 +414,12 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     {
         // Arrange
         var user1 = await CreateTestUserAsync(
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
         var user2 = await CreateTestUserAsync(
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
@@ -464,7 +465,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     {
         // Arrange
         var user = await CreateTestUserAsync(
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
@@ -512,7 +513,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     {
         // Arrange
         var user = await CreateTestUserAsync(
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
@@ -551,12 +552,12 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     {
         // Arrange
         var user1 = await CreateTestUserAsync(
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
         var user2 = await CreateTestUserAsync(
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
@@ -613,12 +614,12 @@ public class EmailTemplateServiceTests : IAsyncLifetime
     {
         // Arrange
         var user1 = await CreateTestUserAsync(
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
         var user2 = await CreateTestUserAsync(
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 
@@ -662,7 +663,7 @@ public class EmailTemplateServiceTests : IAsyncLifetime
         var user = await CreateTestUserAsync(
             email: uniqueEmail,
             sceneName: "TestUser",
-            vettingStatus: 3,
+            vettingStatus: VettingStatus.Approved,
             emailConfirmed: false,
             isActive: true);
 

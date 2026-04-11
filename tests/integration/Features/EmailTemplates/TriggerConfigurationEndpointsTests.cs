@@ -344,7 +344,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
             Id = Guid.NewGuid(),
             Email = $"vetted1-{Guid.NewGuid():N}@example.com",
             SceneName = "VettedUser1",
-            VettingStatus = (int)VettingStatus.Approved,
+            VettingStatus = VettingStatus.Approved,
             IsActive = true
         };
 
@@ -353,7 +353,7 @@ public class TriggerConfigurationEndpointsTests : IntegrationTestBase, IDisposab
             Id = Guid.NewGuid(),
             Email = $"vetted2-{Guid.NewGuid():N}@example.com",
             SceneName = "VettedUser2",
-            VettingStatus = (int)VettingStatus.Approved,
+            VettingStatus = VettingStatus.Approved,
             IsActive = true
         };
 

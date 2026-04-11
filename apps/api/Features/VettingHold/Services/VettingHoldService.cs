@@ -18,10 +18,10 @@ public class VettingHoldService : IVettingHoldService
     private readonly ILogger<VettingHoldService> _logger;
     private readonly IConfiguration _configuration;
 
-    // VettingStatus enum values (from database schema)
-    private const int VettingStatus_FinalReview = 2;
-    private const int VettingStatus_Approved = 3;
-    private const int VettingStatus_OnHold = 5;
+    // Phase 3b-2: private integer constants removed. The VettingStatus enum
+    // (apps/api/Features/Vetting/Entities/VettingApplication.cs) is now the
+    // source of truth — this service compares user.VettingStatus directly
+    // against VettingStatus.Approved / .OnHold / .FinalReview enum values.
 
     public VettingHoldService(
         ApplicationDbContext context,
@@ -76,7 +76,7 @@ public class VettingHoldService : IVettingHoldService
                 }
 
                 // Verify user is currently Approved
-                if (user.VettingStatus != VettingStatus_Approved)
+                if (user.VettingStatus != VettingStatus.Approved)
                 {
                     var currentStatusName = GetStatusName(user.VettingStatus);
                     return Result<MembershipHoldResponse>.Failure(
@@ -85,7 +85,7 @@ public class VettingHoldService : IVettingHoldService
                 }
 
                 // 2. Update User.VettingStatus to OnHold
-                user.VettingStatus = VettingStatus_OnHold;
+                user.VettingStatus = VettingStatus.OnHold;
                 user.UpdatedAt = DateTime.UtcNow;
                 _context.Users.Update(user);
 
@@ -194,7 +194,7 @@ public class VettingHoldService : IVettingHoldService
                 return Result<MembershipHoldResponse>.Success(new MembershipHoldResponse(
                     // Phase 3b-1: MembershipHoldResponse.NewStatus is now
                     // the VettingStatus enum (was int). Using the enum
-                    // literal directly instead of the old VettingStatus_OnHold
+                    // literal directly instead of the old VettingStatus.OnHold
                     // integer constant.
                     NewStatus: VettingStatus.OnHold,
                     StatusName: "OnHold",
@@ -258,7 +258,7 @@ public class VettingHoldService : IVettingHoldService
                 }
 
                 // Verify user is currently OnHold
-                if (user.VettingStatus != VettingStatus_OnHold)
+                if (user.VettingStatus != VettingStatus.OnHold)
                 {
                     var currentStatusName = GetStatusName(user.VettingStatus);
                     return Result<MembershipHoldResponse>.Failure(
@@ -267,7 +267,7 @@ public class VettingHoldService : IVettingHoldService
                 }
 
                 // 2. Update User.VettingStatus to FinalReview
-                user.VettingStatus = VettingStatus_FinalReview;
+                user.VettingStatus = VettingStatus.FinalReview;
                 user.UpdatedAt = DateTime.UtcNow;
                 _context.Users.Update(user);
 
@@ -392,13 +392,11 @@ public class VettingHoldService : IVettingHoldService
                 .FirstOrDefaultAsync(cancellationToken);
 
             var statusName = GetStatusName(user.VettingStatus);
-            var canPlaceOnHold = user.VettingStatus == VettingStatus_Approved;
-            var canRequestReinstatement = user.VettingStatus == VettingStatus_OnHold;
+            var canPlaceOnHold = user.VettingStatus == VettingStatus.Approved;
+            var canRequestReinstatement = user.VettingStatus == VettingStatus.OnHold;
 
             return Result<VettingHoldStatusResponse>.Success(new VettingHoldStatusResponse(
-                // Phase 3b-1 cast: response field is the enum; entity is still int.
-                // Phase 3b-2 will align the entity type and remove this cast.
-                VettingStatus: (VettingStatus)user.VettingStatus,
+                VettingStatus: user.VettingStatus,
                 StatusName: statusName,
                 CanPlaceOnHold: canPlaceOnHold,
                 CanRequestReinstatement: canRequestReinstatement,
@@ -439,21 +437,26 @@ public class VettingHoldService : IVettingHoldService
     }
 
     /// <summary>
-    /// Get human-readable status name from vetting status integer
+    /// Get human-readable status name from a VettingStatus enum value.
+    ///
+    /// Phase 3b-2: signature changed from `(int vettingStatus)` to
+    /// `(VettingStatus vettingStatus)`. The old int-based switch had
+    /// drifted badly from the real enum values (claimed "NotStarted"
+    /// for 0 which is actually UnderReview, referenced values 7 and 8
+    /// which don't exist). Rewrote using enum literals so the compiler
+    /// enforces correctness going forward.
     /// </summary>
-    private static string GetStatusName(int vettingStatus)
+    private static string GetStatusName(VettingStatus vettingStatus)
     {
         return vettingStatus switch
         {
-            0 => "NotStarted",
-            1 => "Submitted",
-            2 => "FinalReview",
-            3 => "Approved",
-            4 => "Denied",
-            5 => "OnHold",
-            6 => "Withdrawn",
-            7 => "InterviewScheduled",
-            8 => "InterviewCompleted",
+            VettingStatus.UnderReview => "UnderReview",
+            VettingStatus.InterviewApproved => "InterviewApproved",
+            VettingStatus.FinalReview => "FinalReview",
+            VettingStatus.Approved => "Approved",
+            VettingStatus.Denied => "Denied",
+            VettingStatus.OnHold => "OnHold",
+            VettingStatus.Withdrawn => "Withdrawn",
             _ => "Unknown"
         };
     }

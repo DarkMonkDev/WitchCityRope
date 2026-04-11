@@ -434,7 +434,7 @@ public class VettingService : IVettingService
 
                 if (applicantUser != null)
                 {
-                    applicantUser.VettingStatus = (int)newStatus;
+                    applicantUser.VettingStatus = newStatus;
                     applicantUser.UpdatedAt = DateTime.UtcNow;
                     _context.Users.Update(applicantUser);
                 }
@@ -1213,7 +1213,7 @@ public class VettingService : IVettingService
             if (user != null)
             {
                 // Update vetting status
-                user.VettingStatus = (int)VettingStatus.UnderReview;
+                user.VettingStatus = VettingStatus.UnderReview;
                 user.HasVettingApplication = true;
 
                 // Update profile information from application
@@ -1478,7 +1478,7 @@ public class VettingService : IVettingService
 
                 if (applicantUser != null)
                 {
-                    applicantUser.VettingStatus = (int)newStatus;
+                    applicantUser.VettingStatus = newStatus;
                     applicantUser.UpdatedAt = DateTime.UtcNow;
                     _context.Users.Update(applicantUser);
 
@@ -1675,7 +1675,7 @@ public class VettingService : IVettingService
                 if (user != null)
                 {
                     // Sync User.VettingStatus (source of truth for permissions/access control)
-                    user.VettingStatus = (int)VettingStatus.Approved;
+                    user.VettingStatus = VettingStatus.Approved;
 
                     // Explicitly mark user as modified to ensure EF tracks the change
                     _context.Users.Update(user);
@@ -2097,13 +2097,14 @@ public class VettingService : IVettingService
             // Perform soft delete via domain method
             application.SoftDelete(adminUserId);
 
-            // Reset the associated user's VettingStatus and HasVettingApplication so they can reapply
-            // User.VettingStatus is the source of truth for permissions and UI display
-            // Setting VettingStatus to 0 (NotStarted) and HasVettingApplication to false
-            // ensures the member detail page shows "Not Applied" instead of "Under Review"
+            // Reset the associated user's VettingStatus and HasVettingApplication so they can reapply.
+            // User.VettingStatus is the source of truth for permissions and UI display.
+            // Setting VettingStatus back to UnderReview (the default) + HasVettingApplication = false
+            // makes the member detail page show "Not Applied" instead of "Under Review" (the
+            // getVettingStatusBadge helper distinguishes the two via HasVettingApplication).
             if (application.User != null)
             {
-                application.User.VettingStatus = 0;
+                application.User.VettingStatus = VettingStatus.UnderReview;
                 application.User.HasVettingApplication = false;
                 _context.Users.Update(application.User);
             }

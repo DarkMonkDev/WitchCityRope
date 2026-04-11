@@ -204,7 +204,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         user.Should().NotBeNull("User should still exist after approval");
-        user!.VettingStatus.Should().Be((int)VettingStatus.Approved,
+        user!.VettingStatus.Should().Be(VettingStatus.Approved,
             "Approval should set VettingStatus=Approved per the post-2025-10-19 refactor");
 
         // Verify the application's workflow status was also updated

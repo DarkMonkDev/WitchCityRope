@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using Xunit;
 using FluentAssertions;
@@ -80,7 +81,7 @@ public class AuthorizationIntegrationTests : IAsyncLifetime
             EmailConfirmed = true,
             IsActive = true,
             Role = role,
-            VettingStatus = isVetted ? 3 : 0, // 3 = Approved, 0 = Not Started
+            VettingStatus = isVetted ? VettingStatus.Approved : VettingStatus.UnderReview,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -113,7 +114,7 @@ public class AuthorizationIntegrationTests : IAsyncLifetime
     private bool IsUserVetted(Guid userId)
     {
         var user = _context.Users.Find(userId);
-        return user?.VettingStatus == 3; // 3 = Approved
+        return user?.VettingStatus == VettingStatus.Approved;
     }
 
     #endregion
@@ -227,7 +228,7 @@ public class AuthorizationIntegrationTests : IAsyncLifetime
         // Assert
         isVetted.Should().BeTrue();
         vettedUser.Should().NotBeNull();
-        vettedUser!.VettingStatus.Should().Be(3); // Approved
+        vettedUser!.VettingStatus.Should().Be(VettingStatus.Approved);
     }
 
     #endregion

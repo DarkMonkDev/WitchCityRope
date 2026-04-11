@@ -3,6 +3,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.AuthorizedContacts.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 
 namespace WitchCityRope.Api.Features.AuthorizedContacts.Services;
 
@@ -362,15 +363,15 @@ public class AuthorizedContactService : IAuthorizedContactService
                 return Result<List<PrincipalContactDto>>.Success(filteredResults);
             }
 
-            // No eventId: return all active principals without event-specific filtering
-            // NOTE: IsVetted is [NotMapped] (computed from VettingStatus == 3),
-            // so we project VettingStatus and compute IsVetted in the Select expression
+            // No eventId: return all active principals without event-specific filtering.
+            // NOTE: IsVetted is [NotMapped] (computed from VettingStatus == Approved),
+            // so we project VettingStatus and compute IsVetted in the Select expression.
             var allPrincipals = await principalsQuery
                 .Select(ac => new PrincipalContactDto
                 {
                     UserId = ac.PrincipalId,
                     SceneName = ac.Principal.SceneName ?? string.Empty,
-                    IsVetted = ac.Principal.VettingStatus == 3
+                    IsVetted = ac.Principal.VettingStatus == VettingStatus.Approved
                 })
                 .OrderBy(p => p.SceneName)
                 .ToListAsync(ct);

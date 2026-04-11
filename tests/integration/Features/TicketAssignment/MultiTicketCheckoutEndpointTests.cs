@@ -10,6 +10,7 @@ using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Payments.Endpoints;
 using WitchCityRope.Api.Features.Payments.Models.AuthorizeNet;
 using WitchCityRope.Api.Features.Payments.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Models;
 using WitchCityRope.Tests.Common.Fixtures;
@@ -265,7 +266,7 @@ public class MultiTicketCheckoutEndpointTests : IntegrationTestBase, IDisposable
             SceneName = $"Checkout_{Guid.NewGuid():N}"[..15],
             FirstName = "Test",
             LastName = "Checkout",
-            VettingStatus = 3, // Approved
+            VettingStatus = VettingStatus.Approved,
             TermsOfServiceAccepted = true,
             TermsOfServiceAcceptedAt = DateTime.UtcNow.AddDays(-30),
             CreatedAt = DateTime.UtcNow,

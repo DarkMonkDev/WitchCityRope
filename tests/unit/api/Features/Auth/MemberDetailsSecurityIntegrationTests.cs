@@ -6,6 +6,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Users.Models.MemberDetails;
 using WitchCityRope.Api.Features.Users.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using Xunit;
 using FluentAssertions;
@@ -104,7 +105,7 @@ public class MemberDetailsSecurityIntegrationTests : IAsyncLifetime
             EmailConfirmed = true,
             IsActive = true,
             Role = role,
-            VettingStatus = isVetted ? 3 : 0, // 3 = Approved, 0 = Not Started
+            VettingStatus = isVetted ? VettingStatus.Approved : VettingStatus.UnderReview,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)

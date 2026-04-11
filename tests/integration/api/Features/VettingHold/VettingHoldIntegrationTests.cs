@@ -80,7 +80,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         await using var context = CreateDbContext();
         var user = await context.Users.FindAsync(userId);
         user.Should().NotBeNull();
-        user!.VettingStatus.Should().Be(5); // OnHold
+        user!.VettingStatus.Should().Be(VettingStatus.OnHold);
         user.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
@@ -245,7 +245,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     public async Task PlaceMembershipOnHold_WithNonApprovedUser_Returns400()
     {
         // Arrange - use unique email to avoid collisions
-        var (client, userId) = await CreateAuthenticatedUserAsync($"nonapproved-{Guid.NewGuid():N}@example.com", 2); // FinalReview
+        var (client, userId) = await CreateAuthenticatedUserAsync($"nonapproved-{Guid.NewGuid():N}@example.com", VettingStatus.FinalReview); // FinalReview
         var request = new PlaceMembershipOnHoldRequest("Test");
 
         // Act
@@ -309,7 +309,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     public async Task RequestReinstatement_WithOnHoldUser_Returns200AndUpdatesDatabase()
     {
         // Arrange - use unique email to avoid collisions
-        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-reinstate-{Guid.NewGuid():N}@example.com", 5); // OnHold
+        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-reinstate-{Guid.NewGuid():N}@example.com", VettingStatus.OnHold); // OnHold
         var reason = "Ready to rejoin the community";
 
         var request = new RequestReinstatementRequest(reason);
@@ -328,7 +328,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Verify database state
         await using var context = CreateDbContext();
         var user = await context.Users.FindAsync(userId);
-        user!.VettingStatus.Should().Be(2); // FinalReview
+        user!.VettingStatus.Should().Be(VettingStatus.FinalReview);
     }
 
     [Fact]
@@ -401,7 +401,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     public async Task RequestReinstatement_WithDifferentUser_Returns403()
     {
         // Arrange - use unique email to avoid collisions
-        var (client, _) = await CreateAuthenticatedUserAsync($"onhold-diff-{Guid.NewGuid():N}@example.com", 5); // OnHold
+        var (client, _) = await CreateAuthenticatedUserAsync($"onhold-diff-{Guid.NewGuid():N}@example.com", VettingStatus.OnHold); // OnHold
         var differentUserId = Guid.NewGuid();
         var request = new RequestReinstatementRequest("Test");
 
@@ -437,7 +437,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     public async Task RequestReinstatement_WithEmptyReason_Returns400()
     {
         // Arrange - use unique email to avoid collisions
-        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-empty-{Guid.NewGuid():N}@example.com", 5); // OnHold
+        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-empty-{Guid.NewGuid():N}@example.com", VettingStatus.OnHold); // OnHold
         var request = new RequestReinstatementRequest("");
 
         // Act
@@ -475,7 +475,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
     public async Task GetHoldStatus_WithOnHoldUser_ShowsCanRequestReinstatement()
     {
         // Arrange - use unique email to avoid collisions
-        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-status-{Guid.NewGuid():N}@example.com", 5); // OnHold
+        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-status-{Guid.NewGuid():N}@example.com", VettingStatus.OnHold); // OnHold
 
         // Act
         var response = await client.GetAsync($"/api/users/{userId}/vetting/hold-status");
@@ -523,7 +523,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
 
     #region Helper Methods
 
-    private async Task<(HttpClient client, Guid userId)> CreateAuthenticatedUserAsync(string email, int vettingStatus)
+    private async Task<(HttpClient client, Guid userId)> CreateAuthenticatedUserAsync(string email, VettingStatus vettingStatus)
     {
         var client = _factory.CreateClient();
         var userId = Guid.NewGuid();
@@ -551,7 +551,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
 
     private async Task<(HttpClient client, Guid userId)> CreateAuthenticatedApprovedUserAsync()
     {
-        return await CreateAuthenticatedUserAsync($"approved-{Guid.NewGuid():N}@example.com", 3);
+        return await CreateAuthenticatedUserAsync($"approved-{Guid.NewGuid():N}@example.com", VettingStatus.Approved);
     }
 
     private async Task<(HttpClient client, Guid userId)> CreateAuthenticatedApprovedUserWithApplicationAsync()
@@ -579,7 +579,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
 
     private async Task<(HttpClient client, Guid userId)> CreateAuthenticatedOnHoldUserWithApplicationAsync()
     {
-        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-{Guid.NewGuid():N}@example.com", 5);
+        var (client, userId) = await CreateAuthenticatedUserAsync($"onhold-{Guid.NewGuid():N}@example.com", VettingStatus.OnHold);
 
         await using var context = CreateDbContext();
         var application = new VettingApplication

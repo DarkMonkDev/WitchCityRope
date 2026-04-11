@@ -11,6 +11,7 @@ using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
@@ -85,8 +86,8 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
         _assigneeId = Guid.NewGuid();
 
         _context.Users.AddRange(
-            CreateTestUser(_purchaserId, "Purchaser", 3),
-            CreateTestUser(_assigneeId, "Assignee", 3)
+            CreateTestUser(_purchaserId, "Purchaser", VettingStatus.Approved),
+            CreateTestUser(_assigneeId, "Assignee", VettingStatus.Approved)
         );
 
         // Create venue and event
@@ -796,7 +797,7 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
     {
         // Arrange: Quantity = 2 but 2 assignees (max should be 1 since first ticket is for purchaser)
         var thirdUserId = Guid.NewGuid();
-        _context.Users.Add(CreateTestUser(thirdUserId, "ThirdUser", 3));
+        _context.Users.Add(CreateTestUser(thirdUserId, "ThirdUser", VettingStatus.Approved));
         await _context.SaveChangesAsync();
 
         var request = new CreateTicketPurchaseRequest
@@ -831,7 +832,7 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
     // Helper Methods
     // =========================================================================
 
-    private static ApplicationUser CreateTestUser(Guid id, string sceneName, int vettingStatus = 0)
+    private static ApplicationUser CreateTestUser(Guid id, string sceneName, VettingStatus vettingStatus = VettingStatus.UnderReview)
     {
         return new ApplicationUser
         {

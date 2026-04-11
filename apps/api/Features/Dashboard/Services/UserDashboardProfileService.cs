@@ -247,7 +247,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
             }
 
             // Get the user's vetting status from ApplicationUser
-            var vettingStatus = (VettingStatus)user.VettingStatus;
+            var vettingStatus = user.VettingStatus;
 
             // Map to DTO with appropriate message
             var dto = new VettingStatusDto

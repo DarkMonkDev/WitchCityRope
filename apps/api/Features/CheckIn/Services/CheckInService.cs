@@ -6,6 +6,7 @@ using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.CheckIn.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.CheckIn.Services;
@@ -653,7 +654,7 @@ public class CheckInService : ICheckInService
                     SceneName = request.Name,
                     PhoneNumber = request.Phone,
                     Role = "", // No special role for walk-in attendees
-                    VettingStatus = 0, // Unvetted
+                    VettingStatus = VettingStatus.UnderReview, // Walk-in attendees haven't been vetted
                     IsActive = true,
                     EmailConfirmed = false,
                     CreatedAt = DateTime.UtcNow,

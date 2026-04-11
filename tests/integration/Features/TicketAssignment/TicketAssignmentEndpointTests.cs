@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Features.AuthorizedContacts.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.TicketAssignment.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Models;
 using WitchCityRope.Tests.Common.Fixtures;
@@ -421,7 +422,7 @@ public class TicketAssignmentEndpointTests : IntegrationTestBase, IDisposable
             SceneName = $"{prefix}_{Guid.NewGuid():N}"[..15],
             FirstName = "Test",
             LastName = prefix,
-            VettingStatus = 3, // Approved
+            VettingStatus = VettingStatus.Approved,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

@@ -4,6 +4,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Services.Seeding;
@@ -62,9 +63,13 @@ public class AttendanceSeeder
                        e.Title != "New Member Welcome Mixer")
             .ToListAsync(cancellationToken);
 
-        // Get all vetted users (only vetted members can attend social events)
+        // Get all vetted users (only vetted members can attend social events).
+        //
+        // Phase 3b-2 bug fix: previously used `>= 3` which accidentally
+        // included Denied (4), OnHold (5), and Withdrawn (6) as "vetted".
+        // Changed to strict `== Approved` to match the business rule.
         var vettedUsers = await _userManager.Users
-            .Where(u => u.VettingStatus >= 3)
+            .Where(u => u.VettingStatus == VettingStatus.Approved)
             .ToListAsync(cancellationToken);
 
         if (vettedUsers.Count == 0)
@@ -232,10 +237,11 @@ public class AttendanceSeeder
             return;
         }
 
-        // 2. Get VETTED users from database (excluding canceled user for active RSVPs)
-        // Business rule: Only vetted members (VettingStatus >= 3/Approved) can attend social events
+        // 2. Get VETTED users from database (excluding canceled user for active RSVPs).
+        // Business rule: Only vetted members (VettingStatus == Approved) can attend social events.
+        // Phase 3b-2 bug fix: same `>= 3` latent bug as the earlier query in this file.
         var users = await _userManager.Users.ToListAsync(cancellationToken);
-        var availableUsers = users.Where(u => u.Email != canceledUserEmail && u.VettingStatus >= 3).ToList();
+        var availableUsers = users.Where(u => u.Email != canceledUserEmail && u.VettingStatus == VettingStatus.Approved).ToList();
 
         if (availableUsers.Count < totalRsvps)
         {

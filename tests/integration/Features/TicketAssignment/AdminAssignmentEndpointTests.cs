@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.TicketAssignment.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Models;
 using WitchCityRope.Tests.Common.Fixtures;
@@ -304,7 +305,7 @@ public class AdminAssignmentEndpointTests : IntegrationTestBase, IDisposable
             SceneName = $"Admin_{Guid.NewGuid():N}"[..15],
             FirstName = "Admin",
             LastName = "User",
-            VettingStatus = 3, // Approved
+            VettingStatus = VettingStatus.Approved,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -333,7 +334,7 @@ public class AdminAssignmentEndpointTests : IntegrationTestBase, IDisposable
             SceneName = $"Member_{Guid.NewGuid():N}"[..15],
             FirstName = "Member",
             LastName = "User",
-            VettingStatus = 3,
+            VettingStatus = VettingStatus.Approved,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -361,7 +362,7 @@ public class AdminAssignmentEndpointTests : IntegrationTestBase, IDisposable
             SceneName = $"Vetted_{Guid.NewGuid():N}"[..15],
             FirstName = "Vetted",
             LastName = "User",
-            VettingStatus = 3, // Approved
+            VettingStatus = VettingStatus.Approved,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

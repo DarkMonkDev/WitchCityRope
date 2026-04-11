@@ -4,6 +4,7 @@ using NSubstitute;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.AuthorizedContacts.Services;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
@@ -50,9 +51,9 @@ public class AuthorizedContactServiceTests : IAsyncLifetime
         _delegateId = Guid.NewGuid();
         _thirdUserId = Guid.NewGuid();
 
-        var principalUser = CreateTestUser(_principalId, "PrincipalUser", 3); // vetted
-        var delegateUser = CreateTestUser(_delegateId, "DelegateUser", 3); // vetted
-        var thirdUser = CreateTestUser(_thirdUserId, "ThirdUser", 0); // not vetted
+        var principalUser = CreateTestUser(_principalId, "PrincipalUser", VettingStatus.Approved); // vetted
+        var delegateUser = CreateTestUser(_delegateId, "DelegateUser", VettingStatus.Approved); // vetted
+        var thirdUser = CreateTestUser(_thirdUserId, "ThirdUser", VettingStatus.UnderReview); // not vetted
 
         _context.Users.AddRange(principalUser, delegateUser, thirdUser);
         await _context.SaveChangesAsync();
@@ -273,7 +274,7 @@ public class AuthorizedContactServiceTests : IAsyncLifetime
         // Arrange: both users are vetted and authorized
         // Make third user vetted for this test
         var thirdUser = await _context.Users.FirstAsync(u => u.Id == _thirdUserId);
-        thirdUser.VettingStatus = 3;
+        thirdUser.VettingStatus = VettingStatus.Approved;
         await _context.SaveChangesAsync();
 
         var contact1 = new AuthorizedContact(_principalId, _delegateId);
@@ -559,7 +560,7 @@ public class AuthorizedContactServiceTests : IAsyncLifetime
     // Helper Methods
     // =========================================================================
 
-    private static ApplicationUser CreateTestUser(Guid id, string sceneName, int vettingStatus = 0)
+    private static ApplicationUser CreateTestUser(Guid id, string sceneName, VettingStatus vettingStatus = VettingStatus.UnderReview)
     {
         return new ApplicationUser
         {

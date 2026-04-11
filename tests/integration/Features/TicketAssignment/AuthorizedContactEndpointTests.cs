@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Features.AuthorizedContacts.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
@@ -195,9 +196,9 @@ public class AuthorizedContactEndpointTests : IntegrationTestBase, IDisposable
         var (delegateClient, delegateId) = await CreateAuthenticatedVettedUserAsync();
 
         var vettedPrincipalId = await CreateUserAsync(
-            $"vetted-principal-{Guid.NewGuid():N}@example.com", 3);
+            $"vetted-principal-{Guid.NewGuid():N}@example.com", VettingStatus.Approved);
         var nonVettedPrincipalId = await CreateUserAsync(
-            $"nonvetted-principal-{Guid.NewGuid():N}@example.com", 0);
+            $"nonvetted-principal-{Guid.NewGuid():N}@example.com", VettingStatus.UnderReview);
 
         // Create authorized contact relationships (each principal authorizes the delegate)
         await CreateAuthorizedContactAsync(vettedPrincipalId, delegateId);
@@ -232,7 +233,7 @@ public class AuthorizedContactEndpointTests : IntegrationTestBase, IDisposable
         var (delegateClient, delegateId) = await CreateAuthenticatedVettedUserAsync();
 
         var principalId = await CreateUserAsync(
-            $"principal-nofilter-{Guid.NewGuid():N}@example.com", 3);
+            $"principal-nofilter-{Guid.NewGuid():N}@example.com", VettingStatus.Approved);
         await CreateAuthorizedContactAsync(principalId, delegateId);
 
         // Act - Get principals without event filtering
@@ -414,7 +415,7 @@ public class AuthorizedContactEndpointTests : IntegrationTestBase, IDisposable
             SceneName = $"Vetted_{Guid.NewGuid():N}"[..15],
             FirstName = "Test",
             LastName = "Vetted",
-            VettingStatus = 3, // Approved
+            VettingStatus = VettingStatus.Approved,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -427,7 +428,7 @@ public class AuthorizedContactEndpointTests : IntegrationTestBase, IDisposable
         return (client, userId);
     }
 
-    private async Task<Guid> CreateUserAsync(string email, int vettingStatus)
+    private async Task<Guid> CreateUserAsync(string email, VettingStatus vettingStatus)
     {
         var userId = Guid.NewGuid();
 
@@ -464,7 +465,7 @@ public class AuthorizedContactEndpointTests : IntegrationTestBase, IDisposable
             SceneName = sceneName,
             FirstName = "Search",
             LastName = "Test",
-            VettingStatus = 3,
+            VettingStatus = VettingStatus.Approved,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

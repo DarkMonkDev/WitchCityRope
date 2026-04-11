@@ -631,11 +631,12 @@ public class VettingHoldServiceTests : IAsyncLifetime
 
     #region Test Helper Methods
 
-    private const int VettingStatus_FinalReview = 2;
-    private const int VettingStatus_Approved = 3;
-    private const int VettingStatus_OnHold = 5;
+    // Phase 3b-2: constants aliased to enum values for readability; helper takes the enum directly
+    private const VettingStatus VettingStatus_FinalReview = VettingStatus.FinalReview;
+    private const VettingStatus VettingStatus_Approved = VettingStatus.Approved;
+    private const VettingStatus VettingStatus_OnHold = VettingStatus.OnHold;
 
-    private ApplicationUser CreateTestUser(int vettingStatus)
+    private ApplicationUser CreateTestUser(VettingStatus vettingStatus)
     {
         return new ApplicationUser
         {

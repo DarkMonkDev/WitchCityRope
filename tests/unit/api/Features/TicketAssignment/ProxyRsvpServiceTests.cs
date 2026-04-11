@@ -8,6 +8,7 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.ProxyRsvp.Models;
 using WitchCityRope.Api.Features.ProxyRsvp.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
@@ -58,8 +59,8 @@ public class ProxyRsvpServiceTests : IAsyncLifetime
         _principalId = Guid.NewGuid();
 
         _context.Users.AddRange(
-            CreateTestUser(_delegateId, "DelegateUser", 3),
-            CreateTestUser(_principalId, "PrincipalUser", 3)
+            CreateTestUser(_delegateId, "DelegateUser", VettingStatus.Approved),
+            CreateTestUser(_principalId, "PrincipalUser", VettingStatus.Approved)
         );
 
         // Create venue and event
@@ -309,7 +310,7 @@ public class ProxyRsvpServiceTests : IAsyncLifetime
 
         // Create existing attendance to fill capacity
         var fillerUserId = Guid.NewGuid();
-        _context.Users.Add(CreateTestUser(fillerUserId, "FillerUser", 3));
+        _context.Users.Add(CreateTestUser(fillerUserId, "FillerUser", VettingStatus.Approved));
         var fillerAttendance = new EventAttendance(_eventId, fillerUserId, AttendanceType.RSVP)
         {
             Status = AttendanceStatus.Active
@@ -426,7 +427,7 @@ public class ProxyRsvpServiceTests : IAsyncLifetime
     // Helper Methods
     // =========================================================================
 
-    private static ApplicationUser CreateTestUser(Guid id, string sceneName, int vettingStatus = 0)
+    private static ApplicationUser CreateTestUser(Guid id, string sceneName, VettingStatus vettingStatus = VettingStatus.UnderReview)
     {
         return new ApplicationUser
         {

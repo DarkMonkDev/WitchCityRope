@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.ProxyRsvp.Models;
 using WitchCityRope.Api.Features.TicketAssignment.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
@@ -175,7 +176,7 @@ public class ProxyRsvpEndpointTests : IntegrationTestBase, IDisposable
         var eventId = await CreateTestEventAsync(allowRsvps: true, capacity: 1);
 
         // Fill the event to capacity with an existing RSVP
-        var fillerUserId = await CreateUserAsync($"filler-{Guid.NewGuid():N}@example.com", 3);
+        var fillerUserId = await CreateUserAsync($"filler-{Guid.NewGuid():N}@example.com", VettingStatus.Approved);
         await CreateRsvpAttendanceAsync(eventId, fillerUserId);
 
         // Act - Try to create proxy RSVP when event is at capacity
@@ -202,7 +203,7 @@ public class ProxyRsvpEndpointTests : IntegrationTestBase, IDisposable
         // Arrange - Non-vetted principal, VettedMembersOnly event
         var (delegateClient, delegateId) = await CreateAuthenticatedVettedUserAsync("delegate");
         var nonVettedPrincipalId = await CreateUserAsync(
-            $"nonvetted-{Guid.NewGuid():N}@example.com", 0); // VettingStatus=0 (NotStarted)
+            $"nonvetted-{Guid.NewGuid():N}@example.com", VettingStatus.UnderReview); // VettingStatus=0 (NotStarted)
 
         await CreateAuthorizedContactAsync(nonVettedPrincipalId, delegateId);
 
@@ -420,7 +421,7 @@ public class ProxyRsvpEndpointTests : IntegrationTestBase, IDisposable
             SceneName = $"{prefix}_{Guid.NewGuid():N}"[..15],
             FirstName = "Test",
             LastName = prefix,
-            VettingStatus = 3, // Approved
+            VettingStatus = VettingStatus.Approved,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -433,7 +434,7 @@ public class ProxyRsvpEndpointTests : IntegrationTestBase, IDisposable
         return (client, userId);
     }
 
-    private async Task<Guid> CreateUserAsync(string email, int vettingStatus)
+    private async Task<Guid> CreateUserAsync(string email, VettingStatus vettingStatus)
     {
         var userId = Guid.NewGuid();
 

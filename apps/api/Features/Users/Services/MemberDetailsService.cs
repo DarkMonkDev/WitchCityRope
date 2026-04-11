@@ -107,23 +107,18 @@ public class MemberDetailsService : IMemberDetailsService
 
             // Map vetting status to a human-readable display string.
             //
-            // VettingStatus defaults to 0 (UnderReview) for all users, so we must check
+            // VettingStatus defaults to UnderReview for all users, so we must check
             // HasVettingApplication to distinguish "hasn't applied" from "actually under review".
             // This matches the same logic used in MembersList.tsx getVettingStatusBadge().
-            //
-            // Phase 3b-1: The switch is still on the raw integer from the entity
-            // (user.VettingStatus is still int in the ApplicationUser entity —
-            // Phase 3b-2 will normalize it to the enum). The DTO field receives
-            // a cast conversion below.
             var vettingStatusDisplay = user.VettingStatus switch
             {
-                (int)VettingStatus.UnderReview => user.HasVettingApplication ? "Under Review" : "Not Applied",
-                (int)VettingStatus.InterviewApproved => "Interview Approved",
-                (int)VettingStatus.FinalReview => "Final Review",
-                (int)VettingStatus.Approved => "Approved",
-                (int)VettingStatus.Denied => "Denied",
-                (int)VettingStatus.OnHold => "On Hold",
-                (int)VettingStatus.Withdrawn => "Withdrawn",
+                VettingStatus.UnderReview => user.HasVettingApplication ? "Under Review" : "Not Applied",
+                VettingStatus.InterviewApproved => "Interview Approved",
+                VettingStatus.FinalReview => "Final Review",
+                VettingStatus.Approved => "Approved",
+                VettingStatus.Denied => "Denied",
+                VettingStatus.OnHold => "On Hold",
+                VettingStatus.Withdrawn => "Withdrawn",
                 _ => "Not Started"
             };
 
@@ -149,9 +144,7 @@ public class MemberDetailsService : IMemberDetailsService
                 TotalPastEventsRegistered = totalPastEventsRegistered,
                 CancelledRegistrations = cancelledRegistrations,
                 NoShows = noShows,
-                // Phase 3b-1 cast: DTO is the enum; entity is still int.
-                // Phase 3b-2 will align both and remove this cast.
-                VettingStatus = (VettingStatus)user.VettingStatus,
+                VettingStatus = user.VettingStatus,
                 VettingStatusDisplay = vettingStatusDisplay,
                 HasVettingApplication = user.HasVettingApplication
             };

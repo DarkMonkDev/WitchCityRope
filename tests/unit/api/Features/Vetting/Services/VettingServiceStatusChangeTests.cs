@@ -173,7 +173,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         // Verify user.VettingStatus was updated to Approved (new source of truth for
         // vetted-access control) and that user.Role was PRESERVED (not overwritten).
         var updatedUser = await _context.Users.FindAsync(user.Id);
-        updatedUser!.VettingStatus.Should().Be((int)VettingStatus.Approved,
+        updatedUser!.VettingStatus.Should().Be(VettingStatus.Approved,
             "Approval should set VettingStatus=Approved per the post-2025-10-19 refactor");
         updatedUser.Role.Should().Be("Member",
             "User's organizational Role should be preserved during vetting approval");

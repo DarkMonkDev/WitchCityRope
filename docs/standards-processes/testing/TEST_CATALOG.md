@@ -1,19 +1,27 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2026-04-10 (header refresh only — body is 2025-12-13 snapshot pending full catalog update) -->
-<!-- Version: 12.12.0 - FULL E2E SUITE EXECUTION (December 2025 snapshot, see current numbers at top) -->
+<!-- Last Updated: 2026-04-11 (Phase 3b-2 test run) -->
+<!-- Version: 12.13.0 - Phase 3b-2 entity enum verification (December 2025 E2E snapshot body unchanged) -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
-## ⚠️ Current Numbers (2026-04-10)
+## ⚠️ Current Numbers (2026-04-11, Phase 3b-2)
 
 **The body of this file (below) is a December 2025 E2E snapshot and is out of date for .NET tests.** For current .NET test counts and known issues, see:
 
 - **`CURRENT_TEST_STATUS.md`** — full 2026-04-10 baseline with per-project numbers, known issues (WAF shared-state bug, EmailTemplate behavioral drift), and the investigation trail
 - **`.claude/skills/run-test-suite/SKILL.md`** — the skill that runs the .NET + E2E tests
 
-Quick current numbers (2026-04-10):
-- **.NET total**: 1,380 passed / 89 failed / 41 skipped / 1,510 total = 92.8% pass rate
-- **E2E**: not run in the 2026-04-10 baseline; last measured 86.9% on 2025-12-13
+Quick current numbers (2026-04-11, Phase 3b-2 entity enum run):
+- **.NET total**: 1,354 passed / 120 failed / 40 skipped / 1,514 total = 91.8% pass rate (with SystemTests included)
+- Per-project:
+  - API Unit Tests: 1,063 / 35 / 11 / 1,109
+  - Core Tests: 106 / 8 / 18 / 132
+  - Integration Tests: 179 / 77 / 11 / 267
+  - System Tests: 6 / 0 / 0 / 6 (new inclusion as of 2026-04-10 skill update)
+- **Phase 3b-2 regression count: 0** — all failures match pre-existing categories tracked in `docs/technical-debt.md` (T-1 WAF shared-state pollution, T-2 EmailTemplate behavioral drift, misc. pre-existing drift)
+- **Test files updated in Phase 3b-2**: 20 test files across API Unit / Core / Integration (entity `VettingStatus` int literal assertions & initializers → enum values). All test projects compile clean.
+- **Net delta vs Phase 3b-1 baseline (1,342 pass / 127 fail)**: +12 passed / -7 failed (the -1 API test delta is the intentionally-removed `[InlineData(99, "Not Started")]` theory case that the new CK_Users_VettingStatus_Range CHECK constraint would otherwise block at DB level)
+- **E2E**: not run in this Phase 3b-2 pass (out of scope per user); last measured 86.9% on 2025-12-13
 
 Test execution (all tests go through the skill):
 ```bash

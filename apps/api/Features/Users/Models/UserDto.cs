@@ -26,16 +26,11 @@ public class UserDto
     /// <summary>
     /// Vetting status for the user.
     ///
-    /// Phase 3b-1: Type changed from int to the VettingStatus enum. Because
-    /// JsonStringEnumConverter is registered globally (Program.cs), this
-    /// field now ships as a JSON string ("UnderReview", "Approved", etc.)
-    /// instead of a raw integer. Frontend admin code (AdminDashboardPage,
-    /// MembersList) has been migrated to consume the string directly.
-    ///
-    /// The ApplicationUser entity still stores this as an int; the cast
-    /// happens in this DTO's constructor. Phase 3b-2 will normalize the
-    /// entity too, at which point the cast in the constructor can be
-    /// removed.
+    /// Ships as a JSON string ("UnderReview", "Approved", etc.) via
+    /// JsonStringEnumConverter. Both the DTO field and the entity
+    /// column use the VettingStatus enum type (Phase 3b-2 normalized
+    /// the entity to match this DTO, eliminating the int-bridge cast
+    /// that used to live in this DTO's constructor).
     /// </summary>
     public VettingStatus VettingStatus { get; set; }
 
@@ -64,9 +59,7 @@ public class UserDto
         EmailConfirmed = user.EmailConfirmed;
         CreatedAt = user.CreatedAt;
         LastLoginAt = user.LastLoginAt;
-        // Phase 3b-1 cast: the entity still stores VettingStatus as int.
-        // Phase 3b-2 will change the entity to the enum type, removing this cast.
-        VettingStatus = (VettingStatus)user.VettingStatus;
+        VettingStatus = user.VettingStatus;
         HasVettingApplication = user.HasVettingApplication;
         IsVetted = user.IsVetted; // Computed property from ApplicationUser (VettingStatus == Approved)
     }

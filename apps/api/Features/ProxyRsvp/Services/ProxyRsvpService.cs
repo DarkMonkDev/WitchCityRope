@@ -7,6 +7,7 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.ProxyRsvp.Models;
 using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 
 namespace WitchCityRope.Api.Features.ProxyRsvp.Services;
 
@@ -131,8 +132,8 @@ public class ProxyRsvpService : IProxyRsvpService
                         "The specified principal user does not exist");
                 }
 
-                // IsVetted is computed as VettingStatus == 3
-                if (principalUser.VettingStatus != 3)
+                // IsVetted is computed as VettingStatus == Approved
+                if (principalUser.VettingStatus != VettingStatus.Approved)
                 {
                     _logger.LogWarning(
                         "Proxy RSVP blocked: Principal {PrincipalUserId} not vetted for VettedMembersOnly event {EventId} (BR-035)",
@@ -383,7 +384,7 @@ public class ProxyRsvpService : IProxyRsvpService
                     .Select(u => new { u.Id, u.VettingStatus })
                     .FirstOrDefaultAsync(ct);
 
-                if (principalUser == null || principalUser.VettingStatus != 3)
+                if (principalUser == null || principalUser.VettingStatus != VettingStatus.Approved)
                 {
                     _logger.LogWarning(
                         "Accept proxy RSVP blocked: Principal {PrincipalUserId} vetting status changed for VettedMembersOnly event {EventId} (BR-036)",

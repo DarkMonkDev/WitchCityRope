@@ -69,9 +69,7 @@ public class TestHelperService : ITestHelperService
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Role = request.Role ?? "", // Empty string = no special role; "Member" is not a valid role
-                // Phase 3b-1: request.VettingStatus is now the VettingStatus
-                // enum; the entity still stores int (Phase 3b-2 will align it).
-                VettingStatus = (int)request.VettingStatus,
+                VettingStatus = request.VettingStatus,
                 Bio = request.Bio,
                 Pronouns = request.Pronouns ?? string.Empty, // CRITICAL: Database has NOT NULL constraint
                 DateOfBirth = dateOfBirth,

@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Vetting.Entities;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Services.Seeding;
 
@@ -127,7 +128,7 @@ public class UserSeeder
             PronouncedName = "Rope Master",
             Pronouns = "they/them",
             IsActive = true,
-            VettingStatus = 3,  // Approved
+            VettingStatus = VettingStatus.Approved,
 
             // Set required fields with production data
             EncryptedLegalName = "RopeMaster_Production",
@@ -197,7 +198,7 @@ public class UserSeeder
                 Role = UserRole.Administrator.ToRoleString(),
                 PronouncedName = "Rope Master",
                 Pronouns = "they/them",
-                VettingStatus = 3,  // Approved
+                VettingStatus = VettingStatus.Approved,
                 IsActive = true
             },
             new {
@@ -212,7 +213,7 @@ public class UserSeeder
                 Role = UserRole.Teacher.ToRoleString(),
                 PronouncedName = "Safety First",
                 Pronouns = "she/her",
-                VettingStatus = 3,  // Approved (pre-approved as founding member/teacher - no formal application)
+                VettingStatus = VettingStatus.Approved, // pre-approved as founding member/teacher - no formal application
                 IsActive = true
             },
             new {
@@ -227,7 +228,7 @@ public class UserSeeder
                 Role = "",  // No special permissions
                 PronouncedName = "Rope Enthusiast",
                 Pronouns = "he/him",
-                VettingStatus = 3,  // Approved (vetted)
+                VettingStatus = VettingStatus.Approved, // vetted
                 IsActive = true
             },
             new {
@@ -242,7 +243,7 @@ public class UserSeeder
                 Role = "",  // No special permissions
                 PronouncedName = "Learning",
                 Pronouns = "they/them",
-                VettingStatus = 0,  // Default status (no vetting application submitted)
+                VettingStatus = VettingStatus.UnderReview, // Default status (no vetting application submitted)
                 IsActive = true
             },
             new {
@@ -257,7 +258,7 @@ public class UserSeeder
                 Role = "",  // No special permissions
                 PronouncedName = "Newcomer",
                 Pronouns = "she/they",
-                VettingStatus = 0,  // Default status (no vetting application submitted)
+                VettingStatus = VettingStatus.UnderReview, // Default status (no vetting application submitted)
                 IsActive = true
             },
             // Safety/Incident coordinators for testing incident assignment
@@ -273,7 +274,7 @@ public class UserSeeder
                 Role = UserRole.SafetyTeam.ToRoleString(),
                 PronouncedName = "Safety Coordinator",
                 Pronouns = "they/them",
-                VettingStatus = 3,  // Approved (pre-approved as founding safety team member - no formal application)
+                VettingStatus = VettingStatus.Approved, // pre-approved as founding safety team member - no formal application
                 IsActive = true
             },
             new {
@@ -288,7 +289,7 @@ public class UserSeeder
                 Role = UserRole.SafetyTeam.ToRoleString(),
                 PronouncedName = "Incident Handler",
                 Pronouns = "she/her",
-                VettingStatus = 3,  // Approved (pre-approved as founding safety team member - no formal application)
+                VettingStatus = VettingStatus.Approved, // pre-approved as founding safety team member - no formal application
                 IsActive = true
             },
             // Dungeon monitor for testing DM role assignment and event safety monitoring
@@ -304,7 +305,7 @@ public class UserSeeder
                 Role = UserRole.DungeonMonitor.ToRoleString(),
                 PronouncedName = "Watchful Eye",
                 Pronouns = "they/them",
-                VettingStatus = 3,  // Approved (pre-approved as founding DM - no formal application)
+                VettingStatus = VettingStatus.Approved, // pre-approved as founding DM - no formal application
                 IsActive = true
             },
             // Vetting team member for testing VettingTeam role and admin dashboard access
@@ -320,7 +321,7 @@ public class UserSeeder
                 Role = UserRole.VettingTeam.ToRoleString(),
                 PronouncedName = "Vetting Reviewer",
                 Pronouns = "they/them",
-                VettingStatus = 3,  // Approved (pre-approved as founding vetting team member - no formal application)
+                VettingStatus = VettingStatus.Approved, // pre-approved as founding vetting team member - no formal application
                 IsActive = true
             },
             // Event organizer for testing EventOrganizer role and admin dashboard access
@@ -336,24 +337,24 @@ public class UserSeeder
                 Role = UserRole.EventOrganizer.ToRoleString(),
                 PronouncedName = "Event Planner",
                 Pronouns = "she/her",
-                VettingStatus = 3,  // Approved (pre-approved as founding event organizer - no formal application)
+                VettingStatus = VettingStatus.Approved, // pre-approved as founding event organizer - no formal application
                 IsActive = true
             },
             // Additional users for vetting application testing (users 5-16)
             // IsActive: All users are currently active (set to true).
             // Future: This field will be used for soft-delete functionality (not yet implemented as of 2025-11-09)
-            new { Email = "applicant1@example.com", SceneName = "RopeNovice", FirstName = "Emma", LastName = "Wilson", DiscordName = "rope_novice", FetLifeName = "NoviceRoper", PhoneNumber = "978-555-0201", Bio = "Complete beginner interested in learning rope bondage. Seeking mentorship and classes to build foundational skills safely.", Role = "", PronouncedName = "Rope Novice", Pronouns = "she/her", VettingStatus = 0, IsActive = true }, // Note: Gets vetting application created by VettingSeeder (users[0]) - UnderReview
-            new { Email = "applicant2@example.com", SceneName = "KnotLearner", FirstName = "Casey", LastName = "Park", DiscordName = "knot_learner", FetLifeName = "KnotEnthusiast", PhoneNumber = "978-555-0202", Bio = "Fascinated by the technical aspects of knot work. Practicing basic ties at home and eager to learn more complex patterns from experienced riggers.", Role = "", PronouncedName = "Knot Learner", Pronouns = "they/them", VettingStatus = 5, IsActive = true }, // VettingApplication status: OnHold (5) - needs more experience
-            new { Email = "applicant3@example.com", SceneName = "TrustBuilder", FirstName = "Michael", LastName = "Lee", DiscordName = "trust_builder", FetLifeName = "TrustAndRope", PhoneNumber = "978-555-0203", Bio = "Been practicing rope bondage for 2 years and know most basic ties. Focus on speed and efficiency in tying. Looking to take skills to the next level and find new practice partners.", Role = "", PronouncedName = "Trust Builder", Pronouns = "he/him", VettingStatus = 4, IsActive = true }, // VettingApplication status: Denied (4) - interview revealed concerning attitudes toward consent and pushing boundaries without proper communication
-            new { Email = "applicant4@example.com", SceneName = "SilkAndSteel", FirstName = "Olivia", LastName = "Hayes", DiscordName = "silk_and_steel", FetLifeName = "SilkSteelRope", PhoneNumber = "978-555-0204", Bio = "Rope model and photographer exploring the artistic side of rope bondage. Love the contrast between soft materials and strong techniques. Active in the community for 4 years.", Role = "", PronouncedName = "Silk And Steel", Pronouns = "she/her", VettingStatus = 3, IsActive = true },
-            new { Email = "applicant5@example.com", SceneName = "EagerLearner", FirstName = "Sam", LastName = "Rodriguez", DiscordName = "eager_learner", FetLifeName = "EagerToLearn", PhoneNumber = "978-555-0205", Bio = "Enthusiastic newcomer attending every workshop and rope jam I can find! Want to absorb as much knowledge as possible and practice regularly. Open to feedback and mentorship.", Role = "", PronouncedName = "Eager Learner", Pronouns = "she/they", VettingStatus = 0, IsActive = true },
-            new { Email = "applicant6@example.com", SceneName = "QuickLearner", FirstName = "David", LastName = "Kim", DiscordName = "quick_learner", FetLifeName = "QuickRopeLearner", PhoneNumber = "978-555-0206", Bio = "Pick up new techniques quickly but know I still have a lot to learn about safety and communication. Grateful for this welcoming community and patient teachers.", Role = "", PronouncedName = "Quick Learner", Pronouns = "he/him", VettingStatus = 0, IsActive = true },
-            new { Email = "applicant7@example.com", SceneName = "ThoughtfulRigger", FirstName = "Morgan", LastName = "Foster", DiscordName = "thoughtful_rigger", FetLifeName = "ThoughtfulRopes", PhoneNumber = "978-555-0207", Bio = "Teacher specializing in mindful rope work and body awareness. Every tie is an opportunity for connection and presence. Teaching workshops on floor work and transitional ties for 6 years.", Role = "Teacher", PronouncedName = "Thoughtful Rigger", Pronouns = "they/them", VettingStatus = 3, IsActive = true },
-            new { Email = "applicant8@example.com", SceneName = "CommunityBuilder", FirstName = "Rachel", LastName = "Cooper", DiscordName = "community_builder", FetLifeName = "BuildingCommunity", PhoneNumber = "978-555-0208", Bio = "Passionate about growing our community and making it inclusive. Help organize social events and welcome newcomers. Believe rope bondage can bring people together in meaningful ways.", Role = "", PronouncedName = "Community Builder", Pronouns = "she/her", VettingStatus = 0, IsActive = true },
-            new { Email = "applicant9@example.com", SceneName = "NervousNewbie", FirstName = "Chris", LastName = "Bennett", DiscordName = "nervous_newbie", FetLifeName = "NewbieChris", PhoneNumber = "978-555-0209", Bio = "A bit nervous but excited to explore rope bondage. Appreciate the emphasis on safety and consent in this community. Taking it slow and building confidence step by step.", Role = "", PronouncedName = "Nervous Newbie", Pronouns = "he/him", VettingStatus = 0, IsActive = true },
-            new { Email = "applicant10@example.com", SceneName = "RopeBunny", FirstName = "Mia", LastName = "Sullivan", DiscordName = "rope_bunny", FetLifeName = "BunnyInRopes", PhoneNumber = "978-555-0210", Bio = "Love the feeling of rope and enjoy being tied by skilled riggers. Interested in suspension work and learning more about the bottom/model perspective. Safety-conscious and communicative.", Role = "", PronouncedName = "Rope Bunny", Pronouns = "she/her", VettingStatus = 0, IsActive = true },
-            new { Email = "applicant11@example.com", SceneName = "SafetyConscious", FirstName = "Alex", LastName = "Turner", DiscordName = "safety_conscious", FetLifeName = "SafetyAlways", PhoneNumber = "978-555-0211", Bio = "Teacher with unwavering focus on safety protocols and emergency preparedness. Every class includes thorough safety briefings and risk discussions. Teaching since 2018 with zero incidents.", Role = "Teacher", PronouncedName = "Safety Conscious", Pronouns = "they/them", VettingStatus = 3, IsActive = true },
-            new { Email = "applicant12@example.com", SceneName = "PatientPractitioner", FirstName = "Daniel", LastName = "Wright", DiscordName = "patient_practitioner", FetLifeName = "PatientRigger", PhoneNumber = "978-555-0212", Bio = "Teacher known for patient, detailed instruction and creating supportive learning environments. Specialize in working with complete beginners and building solid fundamentals. Teaching for 7 years.", Role = "Teacher", PronouncedName = "Patient Practitioner", Pronouns = "he/him", VettingStatus = 3, IsActive = true }
+            new { Email = "applicant1@example.com", SceneName = "RopeNovice", FirstName = "Emma", LastName = "Wilson", DiscordName = "rope_novice", FetLifeName = "NoviceRoper", PhoneNumber = "978-555-0201", Bio = "Complete beginner interested in learning rope bondage. Seeking mentorship and classes to build foundational skills safely.", Role = "", PronouncedName = "Rope Novice", Pronouns = "she/her", VettingStatus = VettingStatus.UnderReview, IsActive = true }, // Note: Gets vetting application created by VettingSeeder (users[0]) - UnderReview
+            new { Email = "applicant2@example.com", SceneName = "KnotLearner", FirstName = "Casey", LastName = "Park", DiscordName = "knot_learner", FetLifeName = "KnotEnthusiast", PhoneNumber = "978-555-0202", Bio = "Fascinated by the technical aspects of knot work. Practicing basic ties at home and eager to learn more complex patterns from experienced riggers.", Role = "", PronouncedName = "Knot Learner", Pronouns = "they/them", VettingStatus = VettingStatus.OnHold, IsActive = true }, // VettingApplication status: OnHold (5) - needs more experience
+            new { Email = "applicant3@example.com", SceneName = "TrustBuilder", FirstName = "Michael", LastName = "Lee", DiscordName = "trust_builder", FetLifeName = "TrustAndRope", PhoneNumber = "978-555-0203", Bio = "Been practicing rope bondage for 2 years and know most basic ties. Focus on speed and efficiency in tying. Looking to take skills to the next level and find new practice partners.", Role = "", PronouncedName = "Trust Builder", Pronouns = "he/him", VettingStatus = VettingStatus.Denied, IsActive = true }, // VettingApplication status: Denied (4) - interview revealed concerning attitudes toward consent and pushing boundaries without proper communication
+            new { Email = "applicant4@example.com", SceneName = "SilkAndSteel", FirstName = "Olivia", LastName = "Hayes", DiscordName = "silk_and_steel", FetLifeName = "SilkSteelRope", PhoneNumber = "978-555-0204", Bio = "Rope model and photographer exploring the artistic side of rope bondage. Love the contrast between soft materials and strong techniques. Active in the community for 4 years.", Role = "", PronouncedName = "Silk And Steel", Pronouns = "she/her", VettingStatus = VettingStatus.Approved, IsActive = true },
+            new { Email = "applicant5@example.com", SceneName = "EagerLearner", FirstName = "Sam", LastName = "Rodriguez", DiscordName = "eager_learner", FetLifeName = "EagerToLearn", PhoneNumber = "978-555-0205", Bio = "Enthusiastic newcomer attending every workshop and rope jam I can find! Want to absorb as much knowledge as possible and practice regularly. Open to feedback and mentorship.", Role = "", PronouncedName = "Eager Learner", Pronouns = "she/they", VettingStatus = VettingStatus.UnderReview, IsActive = true },
+            new { Email = "applicant6@example.com", SceneName = "QuickLearner", FirstName = "David", LastName = "Kim", DiscordName = "quick_learner", FetLifeName = "QuickRopeLearner", PhoneNumber = "978-555-0206", Bio = "Pick up new techniques quickly but know I still have a lot to learn about safety and communication. Grateful for this welcoming community and patient teachers.", Role = "", PronouncedName = "Quick Learner", Pronouns = "he/him", VettingStatus = VettingStatus.UnderReview, IsActive = true },
+            new { Email = "applicant7@example.com", SceneName = "ThoughtfulRigger", FirstName = "Morgan", LastName = "Foster", DiscordName = "thoughtful_rigger", FetLifeName = "ThoughtfulRopes", PhoneNumber = "978-555-0207", Bio = "Teacher specializing in mindful rope work and body awareness. Every tie is an opportunity for connection and presence. Teaching workshops on floor work and transitional ties for 6 years.", Role = "Teacher", PronouncedName = "Thoughtful Rigger", Pronouns = "they/them", VettingStatus = VettingStatus.Approved, IsActive = true },
+            new { Email = "applicant8@example.com", SceneName = "CommunityBuilder", FirstName = "Rachel", LastName = "Cooper", DiscordName = "community_builder", FetLifeName = "BuildingCommunity", PhoneNumber = "978-555-0208", Bio = "Passionate about growing our community and making it inclusive. Help organize social events and welcome newcomers. Believe rope bondage can bring people together in meaningful ways.", Role = "", PronouncedName = "Community Builder", Pronouns = "she/her", VettingStatus = VettingStatus.UnderReview, IsActive = true },
+            new { Email = "applicant9@example.com", SceneName = "NervousNewbie", FirstName = "Chris", LastName = "Bennett", DiscordName = "nervous_newbie", FetLifeName = "NewbieChris", PhoneNumber = "978-555-0209", Bio = "A bit nervous but excited to explore rope bondage. Appreciate the emphasis on safety and consent in this community. Taking it slow and building confidence step by step.", Role = "", PronouncedName = "Nervous Newbie", Pronouns = "he/him", VettingStatus = VettingStatus.UnderReview, IsActive = true },
+            new { Email = "applicant10@example.com", SceneName = "RopeBunny", FirstName = "Mia", LastName = "Sullivan", DiscordName = "rope_bunny", FetLifeName = "BunnyInRopes", PhoneNumber = "978-555-0210", Bio = "Love the feeling of rope and enjoy being tied by skilled riggers. Interested in suspension work and learning more about the bottom/model perspective. Safety-conscious and communicative.", Role = "", PronouncedName = "Rope Bunny", Pronouns = "she/her", VettingStatus = VettingStatus.UnderReview, IsActive = true },
+            new { Email = "applicant11@example.com", SceneName = "SafetyConscious", FirstName = "Alex", LastName = "Turner", DiscordName = "safety_conscious", FetLifeName = "SafetyAlways", PhoneNumber = "978-555-0211", Bio = "Teacher with unwavering focus on safety protocols and emergency preparedness. Every class includes thorough safety briefings and risk discussions. Teaching since 2018 with zero incidents.", Role = "Teacher", PronouncedName = "Safety Conscious", Pronouns = "they/them", VettingStatus = VettingStatus.Approved, IsActive = true },
+            new { Email = "applicant12@example.com", SceneName = "PatientPractitioner", FirstName = "Daniel", LastName = "Wright", DiscordName = "patient_practitioner", FetLifeName = "PatientRigger", PhoneNumber = "978-555-0212", Bio = "Teacher known for patient, detailed instruction and creating supportive learning environments. Specialize in working with complete beginners and building solid fundamentals. Teaching for 7 years.", Role = "Teacher", PronouncedName = "Patient Practitioner", Pronouns = "he/him", VettingStatus = VettingStatus.Approved, IsActive = true }
         };
 
         var createdCount = 0;
@@ -408,7 +409,7 @@ public class UserSeeder
                 PronouncedName = account.PronouncedName,
                 Pronouns = account.Pronouns,
                 IsActive = isActive,
-                VettingStatus = account.VettingStatus, // 3 = Approved (vetted), 0 = Default (no application submitted or UnderReview if HasVettingApplication = true)
+                VettingStatus = account.VettingStatus, // VettingStatus enum (Approved for vetted, UnderReview for default/no-application)
 
                 // Set required fields with placeholder data for development
                 EncryptedLegalName = $"TestUser_{account.SceneName}",

@@ -114,7 +114,7 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
             EmailConfirmed = true,
             IsActive = true,
             Role = role,
-            VettingStatus = vettingStatus,
+            VettingStatus = (VettingStatus)vettingStatus,
             HasVettingApplication = hasVettingApplication,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -319,7 +319,10 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
     [InlineData(4, "Denied")]
     [InlineData(5, "On Hold")]
     [InlineData(6, "Withdrawn")]
-    [InlineData(99, "Not Started")] // Unknown value defaults to Not Started
+    // NOTE: The previous [InlineData(99, "Not Started")] case was removed during Phase 3b-2.
+    // The new CK_Users_VettingStatus_Range CHECK constraint (BETWEEN 0 AND 6) blocks
+    // out-of-range values at the database level, so the "unknown value defaults to
+    // Not Started" fallback path in the service is now unreachable through persistence.
     public async Task GetMemberDetails_HandlesAllVettingStatusEnums(int vettingStatus, string expectedDisplay)
     {
         // Arrange - Create user with each vetting status value
@@ -597,7 +600,7 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
             EmailConfirmed = true,
             IsActive = true,
             Role = "Member",
-            VettingStatus = 0,
+            VettingStatus = VettingStatus.UnderReview,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),

@@ -955,10 +955,9 @@ public class EmailTemplateService : IEmailTemplateService
                 {
                     SceneName = u.SceneName,
                     Email = u.Email ?? string.Empty,
-                    // Phase 3b-1 cast: DTO is the enum; entity is still int.
-                    // This projection runs on materialized objects (not LINQ-to-SQL)
-                    // so the cast executes in .NET, not SQL.
-                    VettingStatus = (VettingStatus)u.VettingStatus,
+                    // Phase 3b-2: entity and DTO types now match (both are
+                    // VettingStatus enum), so the cast was removed.
+                    VettingStatus = u.VettingStatus,
                     VettingStatusDisplay = GetVettingStatusDisplay(u.VettingStatus),
                     Role = u.Role,
                     EmailConfirmed = u.EmailConfirmed
@@ -1291,11 +1290,11 @@ public class EmailTemplateService : IEmailTemplateService
         return segment switch
         {
             UserSegment.AllVettedMembers =>
-                query.Where(u => u.VettingStatus == (int)VettingStatus.Approved && u.IsActive),
+                query.Where(u => u.VettingStatus == VettingStatus.Approved && u.IsActive),
 
             UserSegment.AllPreVettedMembers =>
-                query.Where(u => u.VettingStatus != (int)VettingStatus.Denied
-                    && u.VettingStatus != (int)VettingStatus.OnHold
+                query.Where(u => u.VettingStatus != VettingStatus.Denied
+                    && u.VettingStatus != VettingStatus.OnHold
                     && u.IsActive),
 
             // Case-insensitive role matching for EF queries (ToLower translates to SQL LOWER())
@@ -1315,10 +1314,10 @@ public class EmailTemplateService : IEmailTemplateService
                 query.Where(u => !u.EmailConfirmed && u.IsActive),
 
             UserSegment.VettingPending =>
-                query.Where(u => u.VettingStatus == (int)VettingStatus.UnderReview && u.IsActive),
+                query.Where(u => u.VettingStatus == VettingStatus.UnderReview && u.IsActive),
 
             UserSegment.NewImportedUsers =>
-                query.Where(u => u.VettingStatus == (int)VettingStatus.Approved
+                query.Where(u => u.VettingStatus == VettingStatus.Approved
                     && !u.EmailConfirmed
                     && u.IsActive),
 
@@ -1343,17 +1342,17 @@ public class EmailTemplateService : IEmailTemplateService
         };
     }
 
-    private static string GetVettingStatusDisplay(int vettingStatus)
+    private static string GetVettingStatusDisplay(VettingStatus vettingStatus)
     {
         return vettingStatus switch
         {
-            0 => "Under Review",
-            1 => "Interview Approved",
-            2 => "Final Review",
-            3 => "Approved",
-            4 => "Denied",
-            5 => "On Hold",
-            6 => "Withdrawn",
+            VettingStatus.UnderReview => "Under Review",
+            VettingStatus.InterviewApproved => "Interview Approved",
+            VettingStatus.FinalReview => "Final Review",
+            VettingStatus.Approved => "Approved",
+            VettingStatus.Denied => "Denied",
+            VettingStatus.OnHold => "On Hold",
+            VettingStatus.Withdrawn => "Withdrawn",
             _ => "Unknown"
         };
     }

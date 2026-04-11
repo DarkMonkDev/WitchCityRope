@@ -286,11 +286,11 @@ public class AdHocEmailSendJob
         var filtered = segment switch
         {
             UserSegment.AllVettedMembers =>
-                query.Where(u => u.VettingStatus == (int)VettingStatus.Approved && u.IsActive),
+                query.Where(u => u.VettingStatus == VettingStatus.Approved && u.IsActive),
 
             UserSegment.AllPreVettedMembers =>
-                query.Where(u => u.VettingStatus != (int)VettingStatus.Denied
-                    && u.VettingStatus != (int)VettingStatus.OnHold
+                query.Where(u => u.VettingStatus != VettingStatus.Denied
+                    && u.VettingStatus != VettingStatus.OnHold
                     && u.IsActive),
 
             UserSegment.AllTeachers =>
@@ -309,10 +309,10 @@ public class AdHocEmailSendJob
                 query.Where(u => !u.EmailConfirmed && u.IsActive),
 
             UserSegment.VettingPending =>
-                query.Where(u => u.VettingStatus == (int)VettingStatus.UnderReview && u.IsActive),
+                query.Where(u => u.VettingStatus == VettingStatus.UnderReview && u.IsActive),
 
             UserSegment.NewImportedUsers =>
-                query.Where(u => u.VettingStatus == (int)VettingStatus.Approved
+                query.Where(u => u.VettingStatus == VettingStatus.Approved
                     && !u.EmailConfirmed
                     && u.IsActive),
 

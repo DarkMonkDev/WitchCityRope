@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WitchCityRope.Api.Features.Vetting.Entities;
 
 namespace WitchCityRope.Api.Models;
 
@@ -118,11 +119,17 @@ public class ApplicationUser : IdentityUser<Guid>
     public DateTime? EmailVerificationTokenCreatedAt { get; set; }
 
     /// <summary>
-    /// Current vetting status for permission/access control (SOURCE OF TRUTH)
+    /// Current vetting status for permission/access control (SOURCE OF TRUTH).
     /// This is the authoritative status used for checking user permissions.
     /// Updated when VettingApplication reaches terminal states (Approved, Denied, etc.)
+    ///
+    /// Phase 3b-2: Type changed from int to the VettingStatus enum. EF Core
+    /// stores enums as their underlying int type by default, so the database
+    /// column remains `integer` — no data migration is needed. The generated
+    /// migration adds a CHECK constraint (VettingStatus BETWEEN 0 AND 6) to
+    /// defend against invalid enum values being written at the DB layer.
     /// </summary>
-    public int VettingStatus { get; set; } = 0;
+    public VettingStatus VettingStatus { get; set; } = VettingStatus.UnderReview;
 
     /// <summary>
     /// Tracks whether the user has submitted a vetting application
@@ -132,14 +139,15 @@ public class ApplicationUser : IdentityUser<Guid>
     public bool HasVettingApplication { get; set; } = false;
 
     /// <summary>
-    /// Computed property - User is vetted when VettingStatus is Approved (3)
-    /// This property is not stored in the database and is computed from VettingStatus
-    /// During migration period, still allows setting for backward compatibility, but value is ignored
+    /// Computed property — user is vetted when VettingStatus is Approved.
+    /// This property is not stored in the database and is computed from VettingStatus.
+    /// During migration period, still allows setting for backward compatibility,
+    /// but the set value is ignored (the property is derived, not stored).
     /// </summary>
     [NotMapped]
     public bool IsVetted
     {
-        get => VettingStatus == 3;
+        get => VettingStatus == VettingStatus.Approved;
         set { /* Ignore setter - kept for backward compatibility during migration */ }
     }
 

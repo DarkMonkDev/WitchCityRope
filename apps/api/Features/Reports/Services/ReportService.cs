@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Reports.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Reports.Services;
@@ -35,10 +36,9 @@ public class ReportService : IReportService
             .AsNoTracking()
             .CountAsync(u => u.EmailConfirmed, cancellationToken);
 
-        // VettingStatus == 3 means Approved (see ApplicationUser.IsVetted computed property)
         var vettedMembers = await _db.Users
             .AsNoTracking()
-            .CountAsync(u => u.VettingStatus == 3, cancellationToken);
+            .CountAsync(u => u.VettingStatus == VettingStatus.Approved, cancellationToken);
 
         // HasVettingApplication is a denormalized flag set when a vetting application is created.
         // Avoids an expensive JOIN to the VettingApplications table.

@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.TicketAssignment.Models;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.TicketAssignment.Services;
 using WitchCityRope.Api.Features.Vetting.Services;
+using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using Xunit;
@@ -66,9 +67,9 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
         _adminUserId = Guid.NewGuid();
 
         _context.Users.AddRange(
-            CreateTestUser(_purchaserId, "Purchaser", 3),
-            CreateTestUser(_assigneeId, "Assignee", 3),
-            CreateTestUser(_adminUserId, "Admin", 3)
+            CreateTestUser(_purchaserId, "Purchaser", VettingStatus.Approved),
+            CreateTestUser(_assigneeId, "Assignee", VettingStatus.Approved),
+            CreateTestUser(_adminUserId, "Admin", VettingStatus.Approved)
         );
 
         // Create venue and event
@@ -322,7 +323,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
     {
         // Arrange: create a declined ticket (Active + DeclinedAt set)
         var thirdUserId = Guid.NewGuid();
-        _context.Users.Add(CreateTestUser(thirdUserId, "NewAssignee", 3));
+        _context.Users.Add(CreateTestUser(thirdUserId, "NewAssignee", VettingStatus.Approved));
         await _context.SaveChangesAsync();
 
         var attendance = await CreateDeclinedTicketAttendanceAsync(_purchaserId);
@@ -482,7 +483,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
 
         // Create non-vetted user
         var nonVettedId = Guid.NewGuid();
-        _context.Users.Add(CreateTestUser(nonVettedId, "NonVetted", 0));
+        _context.Users.Add(CreateTestUser(nonVettedId, "NonVetted", VettingStatus.UnderReview));
         await _context.SaveChangesAsync();
 
         var attendance = await CreateActiveTicketAttendanceAsync(_purchaserId);
@@ -507,7 +508,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
     {
         // Arrange: attendance owned by purchaser, but someoneElse tries to assign
         var someoneElseId = Guid.NewGuid();
-        _context.Users.Add(CreateTestUser(someoneElseId, "SomeoneElse", 3));
+        _context.Users.Add(CreateTestUser(someoneElseId, "SomeoneElse", VettingStatus.Approved));
         await _context.SaveChangesAsync();
 
         var attendance = await CreateActiveTicketAttendanceAsync(_purchaserId);
@@ -809,7 +810,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
         await _context.SaveChangesAsync();
 
         var nonVettedId = Guid.NewGuid();
-        _context.Users.Add(CreateTestUser(nonVettedId, "NonVettedAdmin", 0));
+        _context.Users.Add(CreateTestUser(nonVettedId, "NonVettedAdmin", VettingStatus.UnderReview));
         await _context.SaveChangesAsync();
 
         var request = new AdminAssignTicketRequest
@@ -883,7 +884,7 @@ public class TicketAssignmentServiceTests : IAsyncLifetime
     // Helper Methods
     // =========================================================================
 
-    private static ApplicationUser CreateTestUser(Guid id, string sceneName, int vettingStatus = 0)
+    private static ApplicationUser CreateTestUser(Guid id, string sceneName, VettingStatus vettingStatus = VettingStatus.UnderReview)
     {
         return new ApplicationUser
         {

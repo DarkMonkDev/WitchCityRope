@@ -533,7 +533,7 @@ public class VettingSeeder
             var user = await _context.Users.FindAsync(new object[] { application.UserId!.Value }, cancellationToken);
             if (user != null)
             {
-                user.VettingStatus = (int)application.WorkflowStatus;
+                user.VettingStatus = application.WorkflowStatus;
                 _logger.LogInformation(
                     "Synced User.VettingStatus to {VettingStatus} for user {UserId} (application {ApplicationId})",
                     application.WorkflowStatus, user.Id, application.Id);
