@@ -680,41 +680,56 @@ section "9. DATA INTEGRITY AUDITS"
 
 if [ "$SKIP_DB_LOGS" = false ] && [ -n "$DB_HOST" ]; then
 
-    subsection "9.1 Event Capacity vs Active Attendees"
-    # Active attendance status = 1. Events where live count exceeds declared Capacity indicate:
-    #   - a race in registration logic that skipped the capacity check, OR
-    #   - manual DB edits that bypassed the app, OR
-    #   - capacity lowered after registrations already existed.
-    # Both RSVPs (AttendanceType=1) and Tickets (AttendanceType=2) consume capacity.
+    subsection "9.1 Event Capacity vs Distinct Active Users"
+    # Business rule (IAttendanceCountService.GetReservedCountAsync): capacity is consumed by
+    # DISTINCT USERS, not total attendance rows. A user who has BOTH an active RSVP AND an
+    # active Ticket for the same event counts as ONE seat, not two. Same for multi-session
+    # tickets where one user has many session rows.
+    #
+    # History (2026-04-12): this audit previously used COUNT(*) which double-counted users
+    # with RSVP+Ticket. The bug produced a false-positive overbook on "Rope Jam - March"
+    # (reported 50/40; true count was 31/40, 9 UNDER capacity). See incident
+    # 01-health-check-2026-04-12.md M1 section + the FALSE POSITIVE correction appended
+    # to that file. Corrected query follows the IAttendanceCountService contract at
+    # apps/api/Features/Participation/Services/IAttendanceCountService.cs:40-45.
+    #
+    # Note: uses Status = 1 (Active) only. GetReservedCountAsync also includes
+    # PendingPayment (5) and PendingAcceptance (6) for the purpose of blocking NEW
+    # registrations, but here we want the steady-state overbook check — those transient
+    # statuses would clear before the event and shouldn't flag.
     psql_query "
         SELECT e.\"Id\" as event_id, LEFT(e.\"Title\", 60) as title, e.\"StartDate\"::date as start_date, e.\"Capacity\",
-               COUNT(*) FILTER (WHERE ea.\"Status\" = 1) as active_total,
-               COUNT(*) FILTER (WHERE ea.\"Status\" = 1 AND ea.\"AttendanceType\" = 1) as active_rsvps,
-               COUNT(*) FILTER (WHERE ea.\"Status\" = 1 AND ea.\"AttendanceType\" = 2) as active_tickets,
-               COUNT(*) FILTER (WHERE ea.\"Status\" = 4) as waitlisted
+               COUNT(DISTINCT ea.\"UserId\") FILTER (WHERE ea.\"Status\" = 1) as distinct_active_users,
+               COUNT(DISTINCT ea.\"UserId\") FILTER (WHERE ea.\"Status\" = 1 AND ea.\"AttendanceType\" = 1) as users_with_rsvp,
+               COUNT(DISTINCT ea.\"UserId\") FILTER (WHERE ea.\"Status\" = 1 AND ea.\"AttendanceType\" = 2) as users_with_ticket,
+               COUNT(DISTINCT ea.\"UserId\") FILTER (WHERE ea.\"Status\" = 4) as waitlisted
         FROM public.\"Events\" e
         LEFT JOIN public.\"EventAttendances\" ea ON e.\"Id\" = ea.\"EventId\"
         WHERE e.\"StartDate\" >= NOW() - INTERVAL '180 days'
         GROUP BY e.\"Id\", e.\"Title\", e.\"StartDate\", e.\"Capacity\"
-        HAVING COUNT(*) FILTER (WHERE ea.\"Status\" = 1) > e.\"Capacity\"
-        ORDER BY (COUNT(*) FILTER (WHERE ea.\"Status\" = 1) - e.\"Capacity\") DESC
+        HAVING COUNT(DISTINCT ea.\"UserId\") FILTER (WHERE ea.\"Status\" = 1) > e.\"Capacity\"
+        ORDER BY (COUNT(DISTINCT ea.\"UserId\") FILTER (WHERE ea.\"Status\" = 1) - e.\"Capacity\") DESC
         LIMIT 20;
     " >> "$OUTPUT_FILE"
 
-    subsection "9.2 Session Capacity vs Ticketed Registrations (multi-session events)"
-    # For multi-session events, each Session has its own Capacity.
-    # A ticket covers multiple sessions, so count DISTINCT TicketPurchaseIds per session.
+    subsection "9.2 Session Capacity vs Distinct Active Users per session"
+    # Corrected 2026-04-12 to count DISTINCT USERS per session rather than
+    # DISTINCT TicketPurchaseIds. One person = one seat per session, regardless of
+    # how many purchases they had or whether they also RSVP'd.
+    # NOTE: Session.Capacity is defined but not enforced in code as of BE-10 in
+    # /docs/technical-debt.md. An overbook here would mean application code allowed
+    # a session to fill past its cap; as of 2026-04-12 no such row has been observed.
     psql_query "
         SELECT s.\"Id\" as session_id, LEFT(s.\"Name\", 50) as session_name, e.\"Id\" as event_id,
                LEFT(e.\"Title\", 50) as event_title, s.\"StartTime\"::date as start_date, s.\"Capacity\",
-               COUNT(DISTINCT ea.\"TicketPurchaseId\") FILTER (WHERE ea.\"Status\" = 1 AND ea.\"AttendanceType\" = 2) as active_tickets
+               COUNT(DISTINCT ea.\"UserId\") FILTER (WHERE ea.\"Status\" = 1) as distinct_active_users
         FROM public.\"Sessions\" s
         JOIN public.\"Events\" e ON s.\"EventId\" = e.\"Id\"
         LEFT JOIN public.\"EventAttendances\" ea ON s.\"Id\" = ea.\"SessionId\"
         WHERE s.\"StartTime\" >= NOW() - INTERVAL '180 days'
         GROUP BY s.\"Id\", s.\"Name\", e.\"Id\", e.\"Title\", s.\"StartTime\", s.\"Capacity\"
-        HAVING COUNT(DISTINCT ea.\"TicketPurchaseId\") FILTER (WHERE ea.\"Status\" = 1 AND ea.\"AttendanceType\" = 2) > s.\"Capacity\"
-        ORDER BY (COUNT(DISTINCT ea.\"TicketPurchaseId\") FILTER (WHERE ea.\"Status\" = 1 AND ea.\"AttendanceType\" = 2) - s.\"Capacity\") DESC
+        HAVING COUNT(DISTINCT ea.\"UserId\") FILTER (WHERE ea.\"Status\" = 1) > s.\"Capacity\"
+        ORDER BY (COUNT(DISTINCT ea.\"UserId\") FILTER (WHERE ea.\"Status\" = 1) - s.\"Capacity\") DESC
         LIMIT 20;
     " >> "$OUTPUT_FILE"
 

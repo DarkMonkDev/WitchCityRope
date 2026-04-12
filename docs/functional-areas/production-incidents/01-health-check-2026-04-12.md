@@ -9,6 +9,8 @@
 
 Core site is healthy: 37h container uptime, 0 restarts, all health endpoints 200, DB connected, certs valid, certbot renewal clean. **Zero CRITICAL findings.** Two **HIGH** priority items: (1) the proxy-RSVP endpoint is returning 500 to real users when the target principal already has participation (should be 409); (2) `DailyLogSummaryJob` is permanently stuck in Failed state since at least 04/11 due to a `DBNull` type-mapping bug. Four MEDIUM items around payment/attendance drift and missing observability.
 
+> **Update 2026-04-12**: M1 (Rope Jam March overbook) has been **RETRACTED as a false positive** — the audit query was double-counting users who had both an RSVP and a Ticket for the same event. Corrected query confirms zero actual overbooks across the last 365 days. See the retraction note in the M1 section for details.
+
 ## CRITICAL Issues (0)
 
 _None._
@@ -44,11 +46,31 @@ _None._
 
 ## MEDIUM Priority Issues (4)
 
-### M1: "Rope Jam - March" event overbooked historically (50 active vs 40 capacity)
+### M1: "Rope Jam - March" event overbooked historically (50 active vs 40 capacity) — **FALSE POSITIVE (retracted 2026-04-12)**
 
 - **What**: Event on 2026-03-21 (already occurred) has 50 active attendances (31 RSVPs + 19 tickets) vs capacity 40.
 - **Evidence**: Section 9.1.
 - **Recommendation**: Historical; not actionable today. Investigate whether capacity enforcement gap exists: capacity lowered after registration, RSVPs not counted against capacity, admin override flow?
+
+> #### **RETRACTION — 2026-04-12**
+>
+> **This finding was wrong.** User correction: "You are double counting the same person. If the same person RSVP's and Purchases a ticket for themselves, that should only count as one attendee. Not two."
+>
+> Re-queried production with the correct business rule (`GetReservedCountAsync` at `apps/api/Features/Participation/Services/IAttendanceCountService.cs:40-45` — counts DISTINCT USERS, not records). Results:
+>
+> | Metric | Reported | Actual |
+> |---|---|---|
+> | Capacity | 40 | 40 |
+> | Active count | 50 | **31** |
+> | Over/under | +10 over | **9 UNDER** |
+>
+> All 19 ticket holders ALSO have an RSVP for the same event — that's the normal workflow (user RSVPs first, then pays; the RSVP record isn't deleted when the ticket is created). `COUNT(*)` double-counted those 19 users.
+>
+> **Full-fleet check**: ran the corrected query against ALL events in the last 365 days (`distinct_active_users > Capacity`). **Zero rows returned.** Production capacity enforcement has worked correctly. No actual overbook has occurred in the observable window.
+>
+> Audit query 9.1 in the skill has been corrected (commit TBD — switches to `COUNT(DISTINCT UserId)`). Audit 9.2 (session capacity) was corrected the same way; also returned zero rows against production.
+>
+> See the similarly-revised BE-11 entry in `/docs/technical-debt.md` for implications on the "race condition / why 10 over" concern (short version: the concern was based on the false-positive; the race is still theoretically real but no evidence of harm).
 
 ### M2: Payment/attendance reconciliation drift (2 items)
 
@@ -124,14 +146,14 @@ Reviewed section 4.5. No template exceeded escalation thresholds.
 
 ## Data Integrity Audit Summary
 
-| Audit | Issues |
-|-------|--------|
-| 9.1 Event Capacity vs Attendees | 1 (M1 — historical) |
-| 9.2 Session Capacity vs Tickets | 0 |
-| 9.3 Vetting Status Drift | 0 |
-| 9.4 Orphaned Ticket Purchases | 2 (M2) |
-| 9.5 Active Attendance w/o Payment | 0 |
-| 9.6 Stale Refund Reconciliation | 1 (M2) |
+| Audit | Issues | Note |
+|-------|--------|------|
+| 9.1 Event Capacity vs Attendees | **0** (after retraction) | Originally reported 1 (Rope Jam March); retracted — audit query was double-counting. Corrected query returns zero rows across all events in last 365 days. |
+| 9.2 Session Capacity vs Tickets | 0 | Re-verified with corrected DISTINCT-users query — still zero. |
+| 9.3 Vetting Status Drift | 0 | |
+| 9.4 Orphaned Ticket Purchases | 2 (M2) | |
+| 9.5 Active Attendance w/o Payment | 0 | |
+| 9.6 Stale Refund Reconciliation | 1 (M2) | |
 
 ## Scope and Effort Assessment
 
@@ -139,7 +161,7 @@ Reviewed section 4.5. No template exceeded escalation thresholds.
 |-------|--------|------|----------------|
 | H1: proxy-RSVP 500 | Small | Low | Fix now — one service + endpoint touch |
 | H2: DailyLogSummaryJob DBNull | Small | Low | Fix before 01:00 UTC tomorrow |
-| M1: Rope Jam overbook | Medium | Low | Investigate capacity logic; past event, no rush |
+| ~~M1: Rope Jam overbook~~ | — | — | **RETRACTED — false positive; see correction above** |
 | M2: Payment/refund sync | Medium | Medium | Fix cancel/refund paths; backfill two rows |
 | M3: Nginx access log | Small | Medium | Toggle on; verify scanner detection |
 | M4: /api/payments/health 404 | Small | Low | Remove from docs or add endpoint |

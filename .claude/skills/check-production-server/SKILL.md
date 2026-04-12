@@ -98,8 +98,8 @@ After `execute.sh` completes, read the output file it created. This file contain
 7. **Health Endpoints** — public and internal, response times, key pages
 8. **Environment & Configuration** — container images, .env keys, Vault token status
 9. **Data Integrity Audits** — WCR-specific business-logic correctness checks:
-   - **9.1 Event Capacity vs Active Attendees** — overbooked events (active count > Capacity)
-   - **9.2 Session Capacity vs Ticketed Registrations** — oversold sessions in multi-session events
+   - **9.1 Event Capacity vs Distinct Active Users** — overbooked events. Counts DISTINCT users (not rows) per `GetReservedCountAsync` contract. A user with both an RSVP and a Ticket for the same event is ONE seat, not two.
+   - **9.2 Session Capacity vs Distinct Active Users per session** — oversold sessions in multi-session events. Same distinct-user rule.
    - **9.3 Vetting Status Drift** — `VettingApplications.WorkflowStatus` ≠ `Users.VettingStatus`
    - **9.4 Orphaned Completed Ticket Purchases** — payment completed but no active attendance created
    - **9.5 Active Attendance Without Completed Payment** — inverse of 9.4
