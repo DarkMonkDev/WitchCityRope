@@ -71,6 +71,7 @@ Automate development environment and deployment tasks.
 | **staging-deploy** | After Phase 5 validation passes, when deploying features for testing | git-manager, orchestrator | Deploy to DigitalOcean staging environment |
 | **production-deploy** | After staging validation passes, when deploying to production | git-manager, orchestrator | Deploy to DigitalOcean production environment |
 | **registry-cleanup** | Weekly maintenance, high storage usage, after major deployment cycles | git-manager, orchestrator | Clean up old container images from DigitalOcean registries (staging: 10 tags, production: 30 tags) |
+| **check-production-server** | Periodic health checks, after reports of errors, before/after deployments, investigating user-reported issues | main agent, orchestrator | SSH into production/staging server, collect logs + metrics + data-integrity audits, generate prioritized issue report |
 
 **Container Skill Decision Guide**:
 | Situation | Use This Skill |

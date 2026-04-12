@@ -640,6 +640,224 @@ Estimated effort: **~1 day** of focused investigation, likely requiring staging 
 
 ---
 
+### BE-8 — Inconsistent error-string → HTTP-status mapping across endpoint files (P2, UNRESOLVED)
+
+**Discovered**: 2026-04-12 during H1 proxy-RSVP fix (production incident 01-health-check-2026-04-12)
+**Impact**: Brittle. A service-layer string edit can silently regress an endpoint to HTTP 500 with no compile error or test failure. Confirmed real-world: ProxyRsvpEndpoints had `"Already has RSVP"` in its switch while the service returned `"Already participating"` — real users saw 500s (see resolved BE-6).
+
+#### Symptom
+
+Two coexisting patterns across feature-slice endpoint files:
+
+**Pattern A — exact-match switch (brittle, caused BE-6):**
+```csharp
+// apps/api/Features/TicketAssignment/Endpoints/TicketAssignmentEndpoints.cs:68-79
+var statusCode = result.Error switch
+{
+    "Attendance not found" => 404,
+    "Assignee already has ticket" => 409,
+    _ => 500
+};
+```
+
+**Pattern B — substring match (more tolerant, used by Participation):**
+```csharp
+// apps/api/Features/Participation/Endpoints/ParticipationEndpoints.cs:156-179
+if (result.Error.Contains("not found")) return Results.Problem(..., statusCode: 404);
+if (result.Error.Contains("already"))   return Results.Problem(..., statusCode: 409);
+```
+
+ProxyRsvp was converted to Pattern B during H1 remediation (apps/api/Features/ProxyRsvp/Endpoints/ProxyRsvpEndpoints.cs:220-272). TicketAssignment is still on Pattern A and almost certainly has similar stale-label drift lurking.
+
+#### Root cause (confirmed)
+
+C# `switch` on string literals is compile-time opaque — the compiler never verifies that the labels match what any particular callee returns. The service layer evolves (renames, additions), and there is no typed contract linking a `Result<T>.Error` message to an endpoint's label list. Two other ProxyRsvp strings ("Per-person limit reached", "Acceptance window expired") were never in the switch AT ALL and also fell through to 500 in the old implementation.
+
+#### Suggested fix approach
+
+Three escalating options:
+
+1. **Tactical (low effort)**: audit every `result.Error switch { ... _ => 500 }` in `apps/api/Features/**/Endpoints/*.cs`, cross-reference against the corresponding service's `Result.Failure(...)` call sites, and either convert to substring matching (Pattern B) or keep exact matching but make the list exhaustive and add a unit test per endpoint asserting every known service error maps to the intended code.
+
+2. **Structural (medium effort)**: introduce a typed discriminator on `Result<T>` — e.g. an `ErrorKind` enum (`NotFound | Unauthorized | Conflict | BadRequest | Internal`) that the service sets alongside the human-readable message. Endpoints map the enum value, and the string becomes user-facing detail text only. Eliminates the string-contract-drift class of bugs entirely.
+
+3. **Process (ongoing)**: add a small test helper that reflects over each Service's `Result.Failure(...)` string-literal call sites and asserts the corresponding endpoint handler produces a non-500 response for each. Catches this class of regression in CI even without the structural change.
+
+Estimated effort: (1) ~2h, (2) ~1 day + follow-up refactor across feature slices, (3) ~half a day.
+
+#### Authoritative records
+
+- Resolved BE-6 (ProxyRsvp) — the concrete instance that made this pattern visible
+- `apps/api/Features/TicketAssignment/Endpoints/TicketAssignmentEndpoints.cs:68-79` — suspected next-victim
+- `apps/api/Features/ProxyRsvp/Endpoints/ProxyRsvpEndpoints.cs:220-272` — remediated example (case-insensitive substring match with documented ordering dependency)
+
+---
+
+### BE-9 — No alerting on permanently-Failed Hangfire jobs (P2, UNRESOLVED)
+
+**Discovered**: 2026-04-12 during production health check (incident 01-health-check-2026-04-12)
+**Impact**: Observability gap. `DailyLogSummaryJob` (now resolved as BE-7) failed every nightly run for at least 24h before a manual health-check surfaced it. The job retried 10 times as designed, then parked in `Failed` state in `hangfire.job`. Nothing raised an alert, sent an email, or logged at a severity that would trip monitoring. In principle any recurring job can silently die this way.
+
+#### Symptom
+
+`hangfire.job` table on 2026-04-12: 38 rows in state `Failed`, 27 in `Succeeded`. Job id 1232 (`DailyLogSummaryJob`) had exhausted 10 retries by 05:34 UTC on 2026-04-12 and remained permanently Failed. No log entry at WARN or higher mentions "job permanently failed" or similar; the only ERR logs are Hangfire's per-retry failure messages which are scoped to the retry event, not the final dead state.
+
+#### Root cause (confirmed)
+
+Hangfire's default AutomaticRetry attribute writes ERR logs per retry and moves the job to `Failed` state after exhausting retries, but it does NOT emit a distinct "permanent failure" event. The application's Serilog → PostgreSQL sink captures the ERR logs, but nothing reads `logging.application_logs` looking for repeated job failures. The Hangfire dashboard (`/hangfire`, admin-only) shows the Failed bucket but requires human visits.
+
+#### Suggested fix approach
+
+Two main options, possibly both:
+
+1. **Global Hangfire filter** — implement `IElectStateFilter` or `IApplyStateFilter` that fires when a job transitions into `FailedState` after retries are exhausted. The filter logs at FATAL severity with a dedicated template (e.g. `"Recurring job {JobType} permanently failed after {Retries} retries"`) and optionally sends an email/Slack/etc. Hangfire filter pattern is well-documented and minimally invasive.
+
+2. **Periodic sweep** — add a new recurring job (`hangfire-health-sweep`, run every 15 minutes) that queries `hangfire.job` for rows in `Failed` state `createdat >= NOW() - INTERVAL '1 hour'` and writes a FATAL log entry summarizing any findings. Catches failures the filter missed (e.g., database crashes that prevented the filter from firing).
+
+Either approach also needs a destination: email to admins, a page to oncall, or at minimum a known Serilog message-template that the `check-production-server` skill's MANDATORY warning-anomaly-detection section (SKILL.md step 3) flags at HIGH.
+
+Estimated effort: filter approach ~3h, sweep approach ~2h, notification wiring ~2h on top.
+
+#### Authoritative records
+
+- Resolved BE-7 (DailyLogSummaryJob DBNull) — the concrete failure that made this gap visible
+- `docs/functional-areas/production-incidents/01-health-check-2026-04-12.md` H2 section
+- `apps/api/Program.cs:646-684` — Hangfire registration (where a global filter would go)
+
+---
+
+### BE-10 — `Session.Capacity` declared but never enforced at ticket purchase (P2, UNRESOLVED)
+
+**Discovered**: 2026-04-12 during M1 capacity investigation (incident 01-health-check-2026-04-12)
+**Impact**: Silent. For multi-session events, per-session capacity is modeled in the schema but the application never checks it during ticket purchase. A ticket type that spans multiple sessions could sell past a session's individual cap without any user-visible error. The Rope Jam March event in the 2026-04-12 health check was only flagged at the EVENT level (50/40); whether it ALSO breached session-level caps was not checked because the query couldn't meaningfully aggregate against an unenforced limit. Will bite when a high-demand multi-session event launches.
+
+#### Symptom
+
+- `apps/api/Models/Session.cs:96-97` defines `public int Capacity { get; set; }` on Session.
+- `apps/api/Features/Participation/Services/AttendanceService.cs:1277-1285` is the only capacity check on the ticket-purchase path, and it reads only `eventEntity.Capacity` + `GetReservedCountAsync(request.EventId, ...)` — no per-session cross-check.
+- `apps/api/Features/Participation/Services/IAttendanceCountService.cs:43` — `GetReservedCountAsync` takes an `eventId`, not a `sessionId`, and counts distinct users across all attendance types for that event.
+- Ticket type → sessions join table `TicketTypeSessions` exists, so the data for a per-session check is available; the application just doesn't use it.
+
+#### Root cause (confirmed)
+
+This is a feature that was schema-designed but not wired through to the ticket-purchase business logic. Not a regression — the Session.Capacity column simply never graduated from "modeled" to "enforced".
+
+#### Suggested fix approach
+
+Three things would need to change:
+
+1. Add a per-session count method to `IAttendanceCountService` — something like `GetReservedCountPerSessionAsync(Guid sessionId, CancellationToken ct)` that counts DISTINCT `TicketPurchaseId` for `Status = Active` + `AttendanceType = Ticket` rows where `SessionId = @sessionId`.
+2. In `AttendanceService.PurchaseTicketAsync` (line ~1277), after the event-level capacity check, loop over each session the ticket type covers (via `TicketTypeSessions`) and verify each session's `Capacity` vs `GetReservedCountPerSessionAsync`.
+3. Add an integration test that seeds a multi-session ticket type, fills one session to capacity, and asserts a new purchase that would include that session is rejected with a per-session-capacity error.
+
+Estimated effort: ~4h including tests. Care needed around UI error messaging — the rejection needs to identify WHICH session is full so users can pick an alternative if the ticket type supports it.
+
+#### Authoritative records
+
+- Production health report 01-health-check-2026-04-12 M1 section (event-level overbook — does not address session level)
+- `apps/api/Models/Session.cs:96-97`
+- `apps/api/Features/Participation/Services/AttendanceService.cs:1277-1285`
+
+---
+
+### BE-11 — Ticket-purchase capacity check is not atomic with the insert (P2, UNRESOLVED)
+
+**Discovered**: 2026-04-12 during M1 capacity investigation (incident 01-health-check-2026-04-12)
+**Impact**: Under concurrent load, two simultaneous ticket-purchase requests can both observe `currentCount < Capacity`, both pass the check, and both insert — producing an overbook. User reports being comfortable with at-most 1-ticket overbook, but the Rope Jam March event in the 2026-04-12 health check showed 50 active against capacity 40 — **10 over**, which a simple race cannot produce with ~1 purchase/day. The "10-over" case needs independent investigation; the race condition is a separate concern that we should fix regardless.
+
+#### Symptom
+
+- `apps/api/Features/Participation/Services/AttendanceService.cs:1277-1285` — capacity check (reads `GetReservedCountAsync`)
+- `apps/api/Features/Participation/Services/AttendanceService.cs:~1354` — ticket purchase + attendance insert
+- No `BeginTransactionAsync`, `ExecuteInTransactionAsync`, or row-lock wraps the check+insert pair. EF Core's default save-changes transaction covers the inserts but not the preceding read.
+
+Event "Rope Jam - March" (Id `c6058a34-...`, 2026-03-21): 50 Active attendances (31 RSVP + 19 Ticket) against Capacity = 40. Event is past; no backfill needed, but the question of HOW it got there is open.
+
+#### Root cause (partial — confirmed for 1-over drift, unconfirmed for 10-over)
+
+**For 1–2 over**: classic check-then-act race. Two requests read `count = 39`, both pass `39 + 1 ≤ 40`, both insert.
+
+**For 10 over (Rope Jam March)**: A race at ~1 purchase/day cannot explain 10 concurrent overbookings. Hypotheses worth investigating:
+1. Admin action lowered `Event.Capacity` AFTER registrations were already recorded — no entity audit log on the Event table to confirm, so we'd have to look at git/deploy history of the event record or UI flows that allow editing capacity post-publish.
+2. RSVPs were bulk-imported or seeded for the event without running through the capacity-enforcing service path (e.g., admin proxy-RSVPs via a different code path that skips the check).
+3. Capacity check was silently broken for a period (e.g., `GetReservedCountAsync` returning 0 due to a status enum mismatch during an earlier refactor). Would need git-log on `AttendanceCountService` around the affected date range.
+4. Manual DB edits.
+
+**User deferred this diagnosis as Phase 4 work.** Entry recorded here so it isn't lost.
+
+#### Suggested fix approach (for the race)
+
+Two patterns worth considering:
+
+1. **Serializable transaction + re-read** — wrap the check+insert in `IDbContextTransaction` with `IsolationLevel.Serializable`. Postgres will then detect concurrent writes via predicate locks and retry one request. Simple but `Serializable` has measurable perf cost at high write rates.
+2. **Advisory lock keyed by event-id** — `pg_advisory_xact_lock(hashtext(event_id::text))` at the top of the transaction serializes all purchase attempts for a given event without blocking unrelated events. More surgical.
+3. **Row-level `SELECT ... FOR UPDATE` on the Events row** — blocks anyone else from purchasing for the same event until this transaction commits. Simplest to reason about.
+
+Estimated effort: ~4h for option 3 including a concurrency test.
+
+For the 10-over question: ~half a day of forensic investigation, likely requiring a git-log archaeology dive on the relevant files + reading the event's audit trail if any.
+
+#### Authoritative records
+
+- Production health report 01-health-check-2026-04-12 M1 section
+- `apps/api/Features/Participation/Services/AttendanceService.cs:1277-1285` (check) and ~1354 (insert)
+- User direction 2026-04-12: "I am ok if we go over by one ticket or one RSVP because of a race condition. However, this should be EXTREMELY rare. We have only a few people purchase tickets a day, so I want to understand why it looks like we went way over."
+
+---
+
+### BE-12 — Refund completion doesn't sync `TicketPurchase.PaymentStatus` from non-admin callers (P2, UNRESOLVED)
+
+**Discovered**: 2026-04-12 during M2 investigation (incident 01-health-check-2026-04-12)
+**Impact**: 3 real production rows exhibit the drift as of the 2026-04-12 audit. Left unaddressed, every authorize-net user-initiated cancellation will add another drift row, and any non-admin-triggered refund that marks `PaymentRefunds.RefundStatus = Completed` will leave `TicketPurchases.PaymentStatus` stale. Customer-visible consequence: a purchase that has been fully refunded still reads "Completed" in admin views, which can lead to a second refund attempt or confused support interactions. No risk of additional money moving.
+
+#### Symptom
+
+Concrete drift rows in production as of 2026-04-12:
+
+| Row | TicketPurchase.Id | PaymentStatus | Active EventAttendances | PaymentRefund.RefundStatus | Note |
+|---|---|---|---|---|---|
+| A | `c0c34074-1fa2-4bc4-9fe1-0ba1807d11ef` | Completed | 0 | (none) | Authorize-net cancellation path — user cancelled, attendance cancelled, no refund record created. Log at 2026-04-12 07:38:55: `"Ticket purchase c0c34074-... is not PayPal (method: authorize-net) - skipping automatic refund"` |
+| B | `e4e24d70-92a4-4550-a439-e497915d18e1` | Completed | 0 | Completed (1) | Refund record exists and is Completed, but purchase still reads Completed instead of Refunded |
+| C | same as B | — | — | — | (C is the refund row `2f53d2f1-...` pointing at purchase B) |
+
+**User recollection (2026-04-12)**: "I believe I processed that refund from the admin - event edit - tickets/rsvp tab. Not sure though, but that's the only place I can I believe. It is possible the customer did it from the public facing event page area, but I think it was done on the admin page."
+
+This matters for identifying the code path — ONLY `ProcessVariableRefund.Execute` (at `apps/api/Features/Payments/Commands/ProcessVariableRefund.cs:234-244`) was found by research to update `TicketPurchase.PaymentStatus` after a refund. If Row B's refund went through a DIFFERENT path that doesn't do that update, we need to find that path.
+
+#### Root cause (theory — unverified)
+
+Three candidates, in order of likelihood:
+
+1. **Authorize-net user-cancellation early-return** (Row A, confirmed): `apps/api/Features/Participation/Services/AttendanceService.cs:2663-2670` returns without updating `PaymentStatus` when the payment method isn't PayPal. The attendance cancellation still completes, but the purchase stays "Completed" forever.
+2. **Non-admin refund path** (Row B, unconfirmed): A second refund code path exists somewhere that marks `PaymentRefunds.RefundStatus = Completed` without calling `ProcessVariableRefund`. Research could not locate it. Possibilities: a PayPal webhook handler, a direct `RefundService` call from another feature, or Row B's refund was produced by an earlier buggy version of `ProcessVariableRefund`.
+3. **`RefundService` defers status updates to caller**: `apps/api/Features/Payments/Services/RefundService.cs:164` comment explicitly says "DO NOT update ticket purchase status here - let the CALLER (ProcessVariableRefund) handle it". If any future caller forgets, drift happens.
+
+#### Suggested fix approach
+
+**Phase 1 — understand before touching**:
+1. Audit every reference to `RefundService` (search across the API) to find all callers. Verify each one updates `TicketPurchase.PaymentStatus` appropriately.
+2. Audit every site that sets `PaymentRefund.RefundStatus = Completed` to see whether the change propagates to `TicketPurchase.PaymentStatus`.
+3. Determine how Row B's refund was actually created (git log on `ProcessVariableRefund.cs` around 2026-03-20; check any admin audit table if one exists).
+
+**Phase 2 — fix**:
+1. For Row A class (authorize-net cancellation): decide whether to add a new `TicketPurchasePaymentStatus.AwaitingManualRefund` enum value OR keep "Completed" and flag via a separate `RequiresManualRefund` bool. Implement in `AttendanceService.cs:2663-2670`.
+2. For the RefundService "let caller handle it" pattern: move the status-sync INTO `RefundService` on the transition to `RefundStatus.Completed`, removing the implicit caller contract. If partial-refund summation matters, `RefundService` can compute it inline by summing `PaymentRefunds` for the same purchase.
+3. Backfill the 2 existing drift rows: Row A → set to `AwaitingManualRefund` (or however the new state is modeled); Row B → set to `Refunded`. Prefer an admin-UI action over raw SQL against prod.
+
+**DO NOT PROCEED without user approval** — this affects payment reconciliation data. User deferred M2 to Phase 4.
+
+Estimated effort: investigation ~half a day; fix + tests ~1 day; backfill ~half a day.
+
+#### Authoritative records
+
+- Production health report 01-health-check-2026-04-12 M2 section (3 rows enumerated)
+- `apps/api/Features/Participation/Services/AttendanceService.cs:2663-2670` (the "skipping refund" early-return)
+- `apps/api/Features/Payments/Services/RefundService.cs:164` (comment documenting the caller-handles-it contract)
+- `apps/api/Features/Payments/Commands/ProcessVariableRefund.cs:234-244` (only known caller that closes the loop)
+- User recollection of admin-UI usage for Row B
+
+---
+
 ## Test suite (unit test coverage)
 
 ### T-6 — Redundant local enum aliases in `VettingHoldServiceTests` (P3)
@@ -659,6 +877,47 @@ Delete the aliases and use `VettingStatus.Approved` etc. directly in `InlineData
 #### Authoritative records
 
 - Phase 3b-2 code review (2026-04-11, finding 4.3)
+
+---
+
+### T-7 — Recurring Hangfire jobs lack test coverage (P2, UNRESOLVED)
+
+**Discovered**: 2026-04-12 during H2 regression-test work on `DailyLogSummaryJob`
+**Impact**: Silent failures of business-critical nightly jobs are undetectable until someone runs the production health-check skill. `DailyLogSummaryJob` shipped broken and stayed broken for ≥1 day before detection (see resolved BE-7). Four OTHER recurring jobs run nightly with no tests at all; any of them could fail the same way.
+
+#### Symptom
+
+As of this entry (2026-04-12) the `apps/api/Features/**/Jobs/` layer has the following test coverage:
+
+| Job | Cron | Test file | Coverage |
+|---|---|---|---|
+| `DailyLogSummaryJob` | `0 1 * * *` | `tests/unit/api/Features/Logging/DailyLogSummaryJobTests.cs` | Added 2026-04-12 — null subcategory, populated subcategory, twice-run idempotence |
+| `LogRetentionCleanupJob` | `0 3 * * *` | none | — |
+| `RefreshTokenCleanupJob` | `0 4 * * *` | none | — |
+| `EmailSchedulerJob` | `0 * * * *` | none | — |
+| `DatabaseBackupService` | `0 2 * * *` | none | — |
+
+Only the job that just broke in production has tests. The other four are flying blind.
+
+#### Root cause
+
+Historical — Hangfire jobs were added incrementally and the team's testing norm has centered on service/endpoint layers rather than recurring infrastructure. No pattern existed for "how do I test a Hangfire job" until the one added 2026-04-12.
+
+#### Suggested fix approach
+
+The `DailyLogSummaryJobTests` class is the reference pattern going forward:
+- Extends `DatabaseTestBase` (real Postgres via Testcontainers, no WebApplicationFactory — avoids T-1 pollution)
+- Truncates job-specific schema tables in `InitializeAsync` since the shared Respawn only touches `public`
+- Instantiates the job class directly and calls `ExecuteAsync(CancellationToken.None)`
+- Asserts end-state by re-reading via a fresh `DbContext`
+
+Writing equivalent tests for the other four jobs: estimate 2-4h each depending on complexity, ~1-2 days total. Prioritize `EmailSchedulerJob` first (hourly, customer-facing reminders/thank-yous) and `LogRetentionCleanupJob` second (90-day retention matters for disk usage and PII compliance).
+
+#### Authoritative records
+
+- Resolved BE-7 (DailyLogSummaryJob DBNull) — the incident that made this gap visible
+- `tests/unit/api/Features/Logging/DailyLogSummaryJobTests.cs` — reference pattern
+- `apps/api/Program.cs:646-684` — Hangfire registration listing all recurring jobs
 
 ---
 
@@ -728,6 +987,56 @@ Librarian sweep. Either update the guide or delete it if obsolete. Low priority.
 
 ---
 
+## Deployment / infrastructure
+
+### DEP-1 — Nginx "protocol options redefined" warnings at reload time (P3, DEFERRED)
+
+**Discovered**: 2026-04-12 during nginx config inspection for M3 (incident 01-health-check-2026-04-12)
+**Impact**: Cosmetic only. Nginx still accepts traffic and serves all sites correctly. The warnings appear at every `nginx -s reload` and clutter `systemctl status nginx` output. Will ALSO potentially cause confusion for future ops work ("is this warning real?").
+
+#### Symptom
+
+Each `systemctl reload nginx` emits:
+```
+nginx: [warn] 3333340#3333340: protocol options redefined for [::]:443 in /etc/nginx/sites-enabled/inventory-auth:22
+nginx: [warn] 3333340#3333340: protocol options redefined for 0.0.0.0:443 in /etc/nginx/sites-enabled/notfai-production:21
+nginx: [warn] 3333340#3333340: protocol options redefined for [::]:443 in /etc/nginx/sites-enabled/notfai-production:22
+nginx: [warn] 3333340#3333340: protocol options redefined for [::]:443 in /etc/nginx/sites-enabled/vault:32
+nginx: [warn] 3333340#3333340: protocol options redefined for 0.0.0.0:443 in /etc/nginx/sites-enabled/vault:33
+nginx: [warn] 3333340#3333340: protocol options redefined for 0.0.0.0:443 in /etc/nginx/sites-enabled/witchcityrope-production:36
+```
+
+Full list of affected configs (verified 2026-04-12 on the production droplet):
+- `/etc/nginx/sites-enabled/inventory-auth`
+- `/etc/nginx/sites-enabled/notfai-production`
+- `/etc/nginx/sites-enabled/notfai-staging`
+- `/etc/nginx/sites-enabled/shipengine-production`
+- `/etc/nginx/sites-enabled/shipengine-staging`
+- `/etc/nginx/sites-enabled/witchcityrope-production`
+- `/etc/nginx/sites-enabled/witchcityrope-production-www` (TWO server blocks, both `listen 443 ssl http2`)
+
+#### Root cause (confirmed)
+
+Nginx rule: the `http2` parameter on `listen` is a PER-LISTEN-ADDRESS setting, not per-server-block. When multiple server blocks share the same `listen <addr>:443` and specify `http2` repeatedly, nginx warns on each redeclaration after the first. Some configs on the droplet have `listen 443 ssl http2;` in the site-specific file AND implicitly inherit the protocol from an earlier site.
+
+#### Suggested fix approach
+
+Two options, both server-side (no repo-side change needed):
+
+1. **Move `http2` to exactly one site's first `listen 443 ssl http2;` directive, strip from all others.** Low-risk, no traffic behavior change. Requires coordinated edits across 7+ site files on the shared droplet, touching sites OWNED by multiple apps (darkmonk, inventory, notfai, shipengine, WCR).
+2. **Migrate to nginx 1.25+ `http2 on;` directive** inside the `server { ... }` block instead of on `listen`. Cleaner, avoids the cross-block coupling entirely. Requires nginx 1.25+ on the droplet (verify first).
+
+**Recommendation: defer.** Cross-app server-config work is risky for low value. Touching it in a single-app session is the wrong shape — this should be a dedicated infra-maintenance session with approval from the owners of the other sites (ShipEngine, notfai, inventory, etc.) that share the droplet.
+
+Estimated effort: ~2h once someone with cross-app authority schedules it.
+
+#### Authoritative records
+
+- Production health report 01-health-check-2026-04-12 L1 section
+- Live nginx config on `104.131.165.14:/etc/nginx/sites-enabled/` (2026-04-12 listing)
+
+---
+
 # Resolved items
 
 These items came up during a previous session and were resolved. Listed here for traceability so future agents don't re-investigate them. Format: `(date resolved) (original item number/ID) — short summary with commit ref`.
@@ -778,6 +1087,13 @@ Four items were raised against staging-deployed code as low-risk quick wins. Two
 - **Stale Vetting role-grant tests** — two tests rewritten in commits `9a815064` (`Approval_GrantsVettedMemberRole`) and `e1c0dd8e` (`UpdateApplicationStatusAsync_FromFinalReviewToApproved_GrantsVettedMemberRole`) to assert the current `VettingStatus = Approved` behavior instead of the pre-2025-10-19-refactor `Role = "VettedMember"` behavior.
 - **Compile cascade in Core Tests** — five files fixed in commit `9a815064`: `EmailTemplateServiceTests` (removed `Variables` property setters), `AuthenticationServiceTests` (removed stale `Models.Auth` namespace + added `IRefreshTokenService` mock), and three `EventService*Tests` files (added `IAttendanceCountService` mock).
 - **Broken `test-environment --mode unit|integration|dotnet|all` paths** — removed entirely in commit `fbf5ebb9`. Those paths tried to `docker-compose exec api dotnet test` into a container whose test stage only copied `apps/api/` (no test projects), silently producing zero results since 2025-11-27. Replaced with the new `run-test-suite` skill that runs `dotnet test` from the host.
+
+## 2026-04-12 — Production health-check findings (incident 01-health-check-2026-04-12)
+
+Resolved during the "Phase 1–3" cleanup session that followed the first run of the new `check-production-server` skill. Two HIGH-priority items from the incident report are resolved here; four MEDIUM/LOW items were logged as new active entries (BE-8 through BE-12, T-7, DEP-1) rather than fixed inline.
+
+- **BE-6 — ProxyRsvp endpoint returned 500 instead of 409 on duplicate participation** — resolved 2026-04-12. `apps/api/Features/ProxyRsvp/Endpoints/ProxyRsvpEndpoints.cs` had a stale exact-string switch (`"Already has RSVP" => 409`) that didn't match the service's actual error string (`"Already participating"`), so duplicate-RSVP attempts fell through to the catch-all 500. Research also surfaced two OTHER strings ("Per-person limit reached", "Acceptance window expired") that were never in the switch at all and also produced 500s. Fix: replaced the exact-string switch across all three ProxyRsvp endpoints with a single private static `MapErrorToStatusCode` helper using case-insensitive `.Contains` matching, following the pattern already used by `ParticipationEndpoints.cs:156-179`. Comment block documents ordering dependency (403 matchers run before the 400 "required" matcher because "Vetting required" contains "required"). Regression covered by existing `CreateProxyRsvp_DuplicateRsvp_Returns409` integration test, which now passes in isolation (was previously wedged by T-1 shared-state pollution — that's why the bug reached prod). The broader "inconsistent error-mapping across endpoint files" pattern is captured as active item BE-8.
+- **BE-7 — DailyLogSummaryJob permanently Failed with "DBNull type mapping" exception** — resolved 2026-04-12. `apps/api/Features/Logging/Jobs/DailyLogSummaryJob.cs:208-211` passed `(object?)summary.Subcategory ?? DBNull.Value` as an untyped parameter to `ExecuteSqlRawAsync`. EF Core 9 / Npgsql can't infer a column type for bare `DBNull.Value`, so categories with no subcategoryExpression (cc_success, login_success, registration, email_scheduler) failed upsert every night. Fix: replaced the untyped-object-array parameters with explicit `NpgsqlParameter` instances and `NpgsqlDbType` enum values for each column. Preserves NULL semantics in the table (does NOT collapse null → empty string, which would have changed ON CONFLICT grouping). Regression covered by three new tests in `tests/unit/api/Features/Logging/DailyLogSummaryJobTests.cs`: null subcategory upsert, populated subcategory upsert, and twice-run idempotence. The broader "recurring Hangfire jobs have no test coverage" gap is captured as active item T-7; the "no alerting when jobs permanently fail" gap is captured as active item BE-9.
 
 ---
 
@@ -834,6 +1150,7 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-11 | Added `TL-2` (P2) — `run-test-suite --mode all` skips E2E phase after .NET failures. Discovered during opportunistic test run after BE-2/BE-4 cleanup: the skill exits right after the .NET summary without ever entering the E2E block, likely due to a `set -e` interaction between the main script and internal function scaffolding. Impact: `--mode all` currently never runs E2E at all given the 104-failure .NET baseline. Workaround: run `--mode unit` and `--mode e2e` separately. | Post-cleanup test run session (commit `0eb3e3ee`) |
 | 2026-04-11 | Added **IMPORTANT agent rules block** at the top of this file (six numbered rules requiring agents to fully read the file before editing, update existing entries rather than adding new ones, cross-reference related entries, etc.). Written after user flagged that the agent had been adding new entries without thoroughly checking for existing ones to update. Also updated `T-1` in place with an "Updated failure baseline (2026-04-11)" sub-section containing empirical data from three test runs against commit `25a83285` — which produced integration failure counts of 77/77/61, directly confirming T-1's previously-unverified "test order determines failure count" theory. Prior T-1 text preserved; new data appended per the new rules. | Agent rules + T-1 empirical update session (commit `8dd8000e`) |
 | 2026-04-11 | **Softened the IMPORTANT agent rules block** after user feedback that it was too restrictive. The original version pushed agents toward "update the closest existing entry" as the default, which would have led to force-fitting genuinely new issues into unrelated entries. Rebalanced framing: explicit that the goal is to prevent duplication, not to prevent new entries. Rule 2 now lists "signs it's a new entry" vs "signs it's an update" side by side. Rule 3 replaces "default to updating" with "ask the user when genuinely unsure". Added new Rule 7: every commit that touches this file must add a History row (catching a pattern where I violated this in `8dd8000e` and had to backfill in `a3196ff1`). | Agent rules rebalancing session (commit `67ee06f3`) |
+| 2026-04-12 | Added 7 active items (BE-8 through BE-12, T-7, DEP-1) and 2 resolved items (BE-6 ProxyRsvp 500→409 fix, BE-7 DailyLogSummaryJob DBNull fix) from production health-check incident `01-health-check-2026-04-12`. Active items cover: inconsistent error-mapping across endpoints (BE-8), no alerting on permanently-Failed Hangfire jobs (BE-9), Session.Capacity unenforced (BE-10), capacity check+insert race + "way-over" investigation needed (BE-11), refund→TicketPurchase.PaymentStatus sync gap with 3 drift rows in prod (BE-12), no test coverage for 4 of 5 recurring Hangfire jobs (T-7), nginx cross-app "protocol options redefined" warnings (DEP-1). Added new `## Deployment / infrastructure` area section + `DEP` area code. BE-11 explicitly documents user concern that "10-over" capacity on Rope Jam March is inconsistent with the simple race-condition theory and deferred to Phase 4. BE-12 explicitly does NOT proceed without user approval because it affects payment reconciliation data. | Phase 1-3 cleanup session following first `check-production-server` skill run |
 
 ---
 

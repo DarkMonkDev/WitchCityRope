@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using NpgsqlTypes;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Logging.Entities;
 
@@ -197,7 +199,25 @@ public class DailyLogSummaryJob
 
     private async Task UpsertSummaryAsync(DailyLogSummary summary, CancellationToken cancellationToken)
     {
-        // Use raw SQL upsert leveraging the unique constraint on (date, category, subcategory)
+        // Use raw SQL upsert leveraging the unique constraint on (date, category, subcategory).
+        //
+        // History: 2026-04-12 production incident 01-health-check-2026-04-12.md — this job
+        // was failing every nightly run with:
+        //   System.InvalidOperationException: The current provider doesn't have a store type
+        //   mapping for properties of type 'DBNull'.
+        // The earlier implementation passed parameters as a params-array of plain `object`:
+        //   [summary.Date, summary.Category, (object?)summary.Subcategory ?? DBNull.Value, summary.Count]
+        // When `Subcategory` is null, that slot becomes `DBNull.Value` — and EF Core 9 /
+        // Npgsql refuses to infer a store type for the bare `DBNull` reference. We must
+        // supply an NpgsqlParameter with an explicit NpgsqlDbType so the binder knows the
+        // column type to use. See tech-debt BE-6 (resolved) for the full trail.
+        //
+        // Why typed parameters over a SQL-side COALESCE:
+        //   - Preserves NULL semantics in the table. `Subcategory IS NULL` rows stay NULL;
+        //     upsert matches on the UNIQUE constraint which treats NULL as a distinct group.
+        //   - Avoids silently converting null into an empty string, which would change how
+        //     ON CONFLICT groups rows for "no-subcategory" categories.
+        //   - Easy to extend if more nullable columns are added later.
         var sql = """
             INSERT INTO logging.daily_log_summaries ("Date", "Category", "Subcategory", "Count", "CreatedAt")
             VALUES (@p0, @p1, @p2, @p3, NOW())
@@ -207,7 +227,21 @@ public class DailyLogSummaryJob
 
         await _dbContext.Database.ExecuteSqlRawAsync(
             sql,
-            [summary.Date, summary.Category, (object?)summary.Subcategory ?? DBNull.Value, summary.Count],
+            new object[]
+            {
+                // @p0: Date (non-null timestamp)
+                new NpgsqlParameter("p0", NpgsqlDbType.Date) { Value = summary.Date },
+                // @p1: Category (non-null short text per entity config)
+                new NpgsqlParameter("p1", NpgsqlDbType.Text) { Value = summary.Category },
+                // @p2: Subcategory (nullable varchar; pass DBNull.Value with a type when null
+                // so Npgsql can bind correctly)
+                new NpgsqlParameter("p2", NpgsqlDbType.Varchar)
+                {
+                    Value = (object?)summary.Subcategory ?? DBNull.Value
+                },
+                // @p3: Count (non-null int)
+                new NpgsqlParameter("p3", NpgsqlDbType.Integer) { Value = summary.Count }
+            },
             cancellationToken);
     }
 }

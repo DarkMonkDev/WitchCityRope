@@ -74,23 +74,10 @@ public static class ProxyRsvpEndpoints
                         result.Value);
                 }
 
-                // Map service error messages to appropriate HTTP status codes
-                var statusCode = result.Error switch
-                {
-                    "Event not found" => 404,
-                    "RSVPs not allowed" => 400,
-                    "Not authorized" => 403,
-                    "Vetting required" => 403,
-                    "Event at capacity" => 400,
-                    "Already has RSVP" => 409,
-                    "User not found" => 404,
-                    _ => 500
-                };
-
                 return Results.Problem(
                     title: result.Error,
                     detail: result.Details,
-                    statusCode: statusCode);
+                    statusCode: MapErrorToStatusCode(result.Error));
             })
             .RequireAuthorization()
             .WithName("CreateProxyRsvp")
@@ -151,20 +138,10 @@ public static class ProxyRsvpEndpoints
                     return Results.Ok(result.Value);
                 }
 
-                // Map service error messages to appropriate HTTP status codes
-                var statusCode = result.Error switch
-                {
-                    "RSVP not found" => 404,
-                    "Not authorized" => 403,
-                    "Waiver required" => 400,
-                    "Vetting required" => 403,
-                    _ => 500
-                };
-
                 return Results.Problem(
                     title: result.Error,
                     detail: result.Details,
-                    statusCode: statusCode);
+                    statusCode: MapErrorToStatusCode(result.Error));
             })
             .RequireAuthorization()
             .WithName("AcceptProxyRsvp")
@@ -222,18 +199,10 @@ public static class ProxyRsvpEndpoints
                     return Results.Ok();
                 }
 
-                // Map service error messages to appropriate HTTP status codes
-                var statusCode = result.Error switch
-                {
-                    "RSVP not found" => 404,
-                    "Not authorized" => 403,
-                    _ => 500
-                };
-
                 return Results.Problem(
                     title: result.Error,
                     detail: result.Details,
-                    statusCode: statusCode);
+                    statusCode: MapErrorToStatusCode(result.Error));
             })
             .RequireAuthorization()
             .WithName("DeclineProxyRsvp")
@@ -246,5 +215,59 @@ public static class ProxyRsvpEndpoints
             .Produces(403)
             .Produces(404)
             .Produces(500);
+    }
+
+    // Single source for error-string → HTTP-status mapping across all three ProxyRsvp
+    // endpoints. Uses case-insensitive substring matching rather than an exact switch for
+    // two reasons, both learned from a 2026-04-12 production incident (see
+    // docs/functional-areas/production-incidents/01-health-check-2026-04-12.md):
+    //   1. The previous exact-switch had "Already has RSVP" => 409, but the service actually
+    //      returns "Already participating". Mismatch fell through to 500. Real users saw it.
+    //   2. Two other service error strings ("Per-person limit reached", "Acceptance window
+    //      expired") were never listed in the switch at all and also fell through to 500.
+    // Substring matching is brittle against silent string edits for a DIFFERENT reason — a
+    // refactor that renames "Event not found" to something without "not found" would now
+    // map to 500 without warning. Accepted tradeoff: most service strings will stay stable,
+    // and the coverage here is explicit enough that a grep for each keyword will surface
+    // a change during review.
+    //
+    // Order matters. The 403 matchers for "Not authorized" and "Vetting required" must run
+    // BEFORE the 400 matcher that contains "required" — otherwise "Vetting required" would
+    // be misclassified as 400 because it contains the substring "required".
+    private static int MapErrorToStatusCode(string? error)
+    {
+        if (string.IsNullOrEmpty(error)) return 500;
+
+        // 404: "Event not found", "User not found", "RSVP not found"
+        if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            return 404;
+
+        // 403: authorization / vetting failures. Must precede the 400 "required" matcher
+        // because "Vetting required" contains that substring.
+        if (error.Contains("not authorized", StringComparison.OrdinalIgnoreCase))
+            return 403;
+        if (error.Contains("vetting required", StringComparison.OrdinalIgnoreCase))
+            return 403;
+
+        // 409: duplicate participation / already in a terminal state
+        if (error.Contains("already", StringComparison.OrdinalIgnoreCase))
+            return 409;
+
+        // 400: business-rule violations on otherwise well-formed requests.
+        //   "capacity"       — Event at capacity
+        //   "not allowed"    — RSVPs not allowed (event isn't a social, etc.)
+        //   "limit reached"  — Per-person limit reached
+        //   "window expired" — Acceptance window expired
+        //   "required"       — Waiver required (Vetting required already handled above)
+        if (error.Contains("capacity", StringComparison.OrdinalIgnoreCase)
+            || error.Contains("not allowed", StringComparison.OrdinalIgnoreCase)
+            || error.Contains("limit reached", StringComparison.OrdinalIgnoreCase)
+            || error.Contains("window expired", StringComparison.OrdinalIgnoreCase)
+            || error.Contains("required", StringComparison.OrdinalIgnoreCase))
+            return 400;
+
+        // 500 fallback: unexpected internal errors (e.g., "Failed to create proxy RSVP"
+        // from the service's catch-all exception handler).
+        return 500;
     }
 }
