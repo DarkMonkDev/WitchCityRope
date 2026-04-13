@@ -410,6 +410,13 @@ export const EventPaymentPage: React.FC = () => {
       color: 'green',
       autoClose: 8000
     });
+
+    // Advance to confirmation step so the user sees their receipt.
+    // (Accidentally deleted in an earlier BE-15 edit; restored 2026-04-12
+    // after SafetyFirst reported a stuck page in staging despite a
+    // successful PayPal capture — payment was recorded, purchase was
+    // Completed, but the UI stayed on step 2 until this line was added back.)
+    setCurrentStep(2);
   };
 
   /**
