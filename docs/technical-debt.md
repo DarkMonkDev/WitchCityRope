@@ -997,6 +997,57 @@ The forward-looking fix is deployed (or in-flight to deployment) and comprehensi
 
 ## Test suite (unit test coverage)
 
+### T-8 — No PayPal checkout component tests + no skill wrapper for vitest (P2, UNRESOLVED)
+
+**Discovered**: 2026-04-12 while responding to the BE-15 PayPal undercharge incident and my own `setCurrentStep(2)` regression from the same day's edits.
+**Impact**: Every one of today's four PayPal-related production/staging bugs (BE-14 credit-card path, BE-15 Fix 1 stale-closure, BE-15 Fix 2 cancel-key-reuse, and my BE-15 regression that dropped `setCurrentStep(2)`) shipped past automated tests because:
+- **No e2e test clicks a PayPal button or hits `/api/checkout/paypal/create-order`.** Verified 2026-04-12 — only `phase4-registration-rsvp.spec.ts:158-166` even mentions PayPal, and that just checks if the button is visible. `tests/e2e/test-utils/helpers/payment.helper.ts:7-13` explicitly states that PayPal flow is skipped for e2e: *"Creating payments via UI/API is complex (requires PayPal flow, events, tickets, etc.). Direct database insertion is faster and more reliable for E2E tests."*
+- **No component or vitest test covers the PayPal checkout flow.** Before this entry, the only regression coverage for `EventPaymentPage.handlePayPalSuccess` and `PayPalButton` behavior was... a real user clicking through on staging.
+- **The existing `run-test-suite` skill has no vitest mode.** It only supports `--mode unit` (.NET xUnit via `dotnet test`) and `--mode e2e` (Playwright). The pre-commit hook at `/.claude/hooks/block-manual-test-runs.py` blocks `npx vitest`, `npm test`, `vitest`, etc. as direct invocations. The test-executor agent (who's supposed to be the fallback) does not have the Task tool and also can't invoke vitest — confirmed empirically 2026-04-12.
+
+#### Partial fix applied 2026-04-12 (commits TBD)
+
+Refactored `handlePayPalSuccess` out of `EventPaymentPage.tsx` into a pure function at `apps/web/src/features/payments/utils/paypalSuccessHandler.ts` with injected dependencies. Added `tests/unit/web/features/payments/paypalSuccessHandler.test.ts` with 7 test cases covering:
+- completed-payment state population
+- idempotency-key regeneration
+- success notification content
+- generic notification when confirmation number is absent
+- **the `setCurrentStep(2)` advance** (the specific regression guard)
+- side-effect ordering (setCompletedPayment before setCurrentStep)
+- "exactly one call per dependency" contract
+
+The test file was **written but NOT executed** in the session that authored it because vitest can't be run through any available skill. The test code was type-checked via `tsc --noEmit` (clean) and reads cleanly. Verification that the tests actually pass is deferred until one of:
+1. Someone runs `npx vitest run tests/unit/web/features/payments/paypalSuccessHandler.test.ts` locally from a non-hook-bound shell
+2. CI runs the frontend test suite (currently no CI runs vitest against this repo as far as I can tell)
+3. `run-test-suite` gains a `--mode frontend-unit` or similar
+
+#### Gaps that remain
+
+1. **Component test for PayPalButton** — verifies `forceReRender` deps actually cause the SDK's `createOrder` closure to update when props change. Would directly catch BE-15 Fix 1 regressions.
+2. **Component test for EventPaymentPage PayPal cancel path** — verifies idempotency key is regenerated when `onPaymentCancel` fires. Would directly catch BE-15 Fix 2 regressions.
+3. **E2E test with a mocked PayPal SDK** — Playwright with `page.route()` intercepting the PayPal CDN and replacing with a local stub that immediately calls `onApprove({orderID: "FAKE"})`. Would catch all four bug classes end-to-end at the UI layer.
+4. **Skill + hook support for vitest** — either add `--mode frontend-unit` to `run-test-suite` OR whitelist vitest in the hook's allow-list for paths matching `tests/unit/web/**`. Without this, every agent in this project will hit the same dead end when trying to run a frontend unit test.
+
+#### Suggested fix approach
+
+Priority order:
+1. **Unblock vitest execution** (half a day at most). Extend `run-test-suite/execute.sh` with a `--mode frontend-unit` or `--mode web-vitest` branch that runs `npx vitest run` from `apps/web/`. Update the hook to allow that one path. Without this step, every subsequent frontend test is a manual chore.
+2. **Write PayPalButton component test** (~2 hours). Mock `@paypal/react-paypal-js`'s `PayPalButtons`, render `<PayPalButton>` with initial amount=20, change amount prop to 40, verify the mocked SDK was re-rendered and the `createOrder` closure captures the new amount.
+3. **Write EventPaymentPage integration test for cancel path** (~3 hours, higher setup overhead). Renders the page with all hooks mocked, finds the PaymentForm, fires `onPaymentCancel`, verifies `idempotencyKey` state changed.
+4. **Mocked-PayPal e2e** (~1-2 days). Playwright test that intercepts PayPal SDK, fakes approval, asserts the full flow writes correct TicketPurchase + EventAttendance rows.
+
+Items 1 and 2 are highest-leverage. Item 4 is nice-to-have but brittle.
+
+#### Authoritative records
+
+- `apps/web/src/features/payments/utils/paypalSuccessHandler.ts` (extracted pure function, commit TBD)
+- `tests/unit/web/features/payments/paypalSuccessHandler.test.ts` (new, untested)
+- `/.claude/hooks/block-manual-test-runs.py` (the hook blocking vitest)
+- `/.claude/skills/run-test-suite/execute.sh` (missing vitest mode)
+- Related: BE-14, BE-15 (production bugs this coverage would have caught)
+
+---
+
 ### T-6 — Redundant local enum aliases in `VettingHoldServiceTests` (P3)
 
 **Discovered**: 2026-04-11 during Phase 3b-2 code review (finding 4.3)
@@ -1293,6 +1344,7 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-12 | Added BE-14 documenting the Authorize.NET E00114 "Invalid OTS Token" rapid-retry cascade that hit user Mr J (and Dean three weeks earlier). Frontend fix applied in `EventPaymentPage.tsx` — idempotency key now generated in a local variable on each call instead of read from useState, eliminating the state-timing window. Entry notes that the key-reuse symptom is resolved but the deeper question of why Authorize.NET returns E00114 for a fresh nonce on rapid retry remains unresolved, pending either local repro with the Auth.net sandbox or direct Auth.net support contact. Investigation approach documented in the entry. | Mr J ticket-purchase failure investigation |
 | 2026-04-12 | BE-12 M2a/M2c/M2b fixes landed. M2c: centralized `TicketPurchase.PaymentStatus` sync inside `RefundService.ProcessRefundAsync` via new `SyncPaymentStatusFromRefundsAsync` helper — every caller now gets the status transition automatically (commit `0d0cf6f7`). M2a resolved by consequence. M2b: added new `TicketPurchasePaymentStatus.AwaitingManualRefund` enum value + admin UI badge (pink) + filter option + new skill audit 9.7 to surface the queue of pending manual refunds. `TicketPurchase.IsPaymentCompleted` and `PaymentListService.IsRefundable` extended to include the new status. Remaining: Row B one-off SQL to flip stale status on `e4e24d70-...` (Row A already resolved via admin action). Three pre-existing test failures (unrelated: RefundServiceEmailTests variable-name mismatch + RefundServiceTests failed-refund assertion) surfaced but are not caused by these changes — git diff confirms the affected code paths are untouched. | M2 Strategy B — batch completion before staging deploy |
 | 2026-04-12 | Added BE-15 (PayPal multi-ticket undercharge) — RESOLVED. Mr J reported that credit card correctly charged $40 for 2 tickets but PayPal defaulted to $20. Root cause: (1) `@paypal/react-paypal-js`'s `<PayPalButtons>` caches the `createOrder` closure on mount, so parent prop changes (quantity, slider, ticket type) didn't propagate to the SDK; (2) idempotency key wasn't regenerated on PayPal cancel, so a retry with different cart values received the previously-cached $20 order from the backend. Fix: `forceReRender` on both `<PayPalButtons>` instances + new `handlePayPalCancel` in `EventPaymentPage` that regenerates the idempotency key (mirroring the BE-14 credit-card fix). Forensic audit of all 8 historical PayPal purchases showed no OBVIOUS undercharges but the bug is undetectable in DB data alone — the missing ticket leaves no trace. Entry marked resolved because the forward fix is comprehensive; past harm is a human-comms issue. | BE-15 forensic + forward fix (bundled into M2 deploy) |
+| 2026-04-12 | Added T-8 (no PayPal checkout component tests + no skill wrapper for vitest). Captures the test-coverage gap that let today's four PayPal-adjacent bugs ship past all automated testing (BE-14 credit-card idempotency, BE-15 Fix 1 stale closure, BE-15 Fix 2 cancel-key reuse, and my BE-15 regression that dropped `setCurrentStep(2)`). Also documents the skill/hook gap: `run-test-suite` has no vitest mode, the pre-commit hook blocks direct `npx vitest` invocation, and the test-executor agent (the hook's suggested fallback) doesn't have the Task tool so it can't invoke anything either. Partial fix applied: extracted `handlePayPalSuccess` into a pure function + added 7 regression-guard tests in `tests/unit/web/features/payments/paypalSuccessHandler.test.ts` — type-checked clean but not runtime-verified in-session due to the skill gap. | BE-15 regression + T-8 entry |
 
 ---
 

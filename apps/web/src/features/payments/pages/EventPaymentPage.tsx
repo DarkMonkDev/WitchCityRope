@@ -35,6 +35,7 @@ import { eventsManagementService } from '../../../api/services/eventsManagement.
 import { getTicketSessionInfo, getTicketSessionDetails } from '../../../utils/eventUtils';
 import type { NonceData } from '../components/checkout/CreditCardForm';
 import type { PayPalCheckoutResult } from '../components/PayPalButton';
+import { handlePayPalSuccess as runPayPalSuccess } from '../utils/paypalSuccessHandler';
 import { useParticipation } from '../../../hooks/useParticipation';
 import { useCurrentUser } from '../../../lib/api/hooks/useAuth';
 
@@ -382,41 +383,20 @@ export const EventPaymentPage: React.FC = () => {
    * Handle successful PayPal checkout (ticket created + payment captured).
    * The unified PayPal checkout endpoint handles ticket creation, payment capture,
    * attendance activation, and email sending — mirroring the credit card flow.
+   *
+   * Delegates to the extracted `handlePayPalSuccess` in utils/paypalSuccessHandler.ts
+   * so the side-effect set (setCompletedPayment / setIdempotencyKey / notification /
+   * setCurrentStep(2)) can be unit-tested without spinning up the whole page. See
+   * tests/unit/web/features/payments/paypalSuccessHandler.test.ts.
    */
   const handlePayPalSuccess = async (result: PayPalCheckoutResult) => {
     debugLog('PayPal checkout success:', result);
-
-    setCompletedPayment({
-      id: result.captureId,
-      transactionId: result.captureId,
-      amount: parseFloat(result.amount),
-      currency: result.currency,
-      status: 'completed',
-      paymentMethod: 'paypal',
-      paymentMethodType: 2, // PayPal
-      confirmationNumber: result.confirmationNumber,
-      slidingScalePercentage: 0,
-      createdAt: new Date().toISOString()
+    runPayPalSuccess(result, {
+      setCompletedPayment,
+      setIdempotencyKey,
+      showNotification: (n) => notifications.show(n),
+      setCurrentStep,
     });
-
-    // Generate new idempotency key since this one was used
-    setIdempotencyKey(`WCR-${crypto.randomUUID().replace(/-/g, '').substring(0, 32)}`);
-
-    notifications.show({
-      title: 'Ticket Purchased Successfully!',
-      message: result.confirmationNumber
-        ? `Confirmation: ${result.confirmationNumber}`
-        : 'Your PayPal payment has been processed.',
-      color: 'green',
-      autoClose: 8000
-    });
-
-    // Advance to confirmation step so the user sees their receipt.
-    // (Accidentally deleted in an earlier BE-15 edit; restored 2026-04-12
-    // after SafetyFirst reported a stuck page in staging despite a
-    // successful PayPal capture — payment was recorded, purchase was
-    // Completed, but the UI stayed on step 2 until this line was added back.)
-    setCurrentStep(2);
   };
 
   /**
