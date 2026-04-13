@@ -10,6 +10,8 @@
 Core site is healthy: 37h container uptime, 0 restarts, all health endpoints 200, DB connected, certs valid, certbot renewal clean. **Zero CRITICAL findings.** Two **HIGH** priority items: (1) the proxy-RSVP endpoint is returning 500 to real users when the target principal already has participation (should be 409); (2) `DailyLogSummaryJob` is permanently stuck in Failed state since at least 04/11 due to a `DBNull` type-mapping bug. Four MEDIUM items around payment/attendance drift and missing observability.
 
 > **Update 2026-04-12**: M1 (Rope Jam March overbook) has been **RETRACTED as a false positive** — the audit query was double-counting users who had both an RSVP and a Ticket for the same event. Corrected query confirms zero actual overbooks across the last 365 days. See the retraction note in the M1 section for details.
+>
+> **Update 2026-04-13**: H1, H2, M2 are all **RESOLVED and deployed to production** in the Strategy B bundle shipped at git SHA `94d132f2` via the `production-deploy` skill. M1 remains retracted. Also shipped in the same bundle: BE-14 credit-card idempotency fix (Mr J report), BE-15 PayPal multi-ticket undercharge fix (Mr J report). Row B backfill (`TicketPurchases.Id = e4e24d70-…` → `PaymentStatus = Refunded`) executed against prod same-day; zero stale refund rows remain. M3 (nginx access logging) and M4 (/api/payments/health 404) are still open — not addressed in this bundle. See `/docs/technical-debt.md` entries BE-6, BE-7, BE-12, BE-14, BE-15 for implementation details.
 
 ## CRITICAL Issues (0)
 
@@ -17,7 +19,9 @@ _None._
 
 ## HIGH Priority Issues (2)
 
-### H1: Proxy-RSVP endpoint returns 500 on "principal already participating"
+### H1: Proxy-RSVP endpoint returns 500 on "principal already participating" — **RESOLVED 2026-04-13**
+
+**Resolution**: Commit `c5498ad8` replaced the exact-string switch with case-insensitive `.Contains` matching across all three ProxyRsvp endpoints. Prod deployed 2026-04-13 in bundle `94d132f2`. See BE-6 (resolved) in `/docs/technical-debt.md`.
 
 - **What**: `POST /api/events/{id}/proxy-rsvp` returns HTTP 500 when the target principal already has Active/PendingAcceptance participation for the event, instead of returning a 4xx validation response.
 - **Evidence**:
@@ -30,7 +34,9 @@ _None._
 - **Source**: `apps/api/Features/ProxyRsvp/Services/ProxyRsvpService.cs`
 - **Recommended Next Step**: Grep `ProxyRsvpService.cs` for the log line; check what happens after logging. Return a typed conflict result the endpoint maps to 409.
 
-### H2: DailyLogSummaryJob permanently Failed — `DBNull` type-mapping error
+### H2: DailyLogSummaryJob permanently Failed — `DBNull` type-mapping error — **RESOLVED 2026-04-13**
+
+**Resolution**: Commit `c5498ad8` replaced the untyped object-array parameters with explicit `NpgsqlParameter` instances and `NpgsqlDbType` enum values. Preserves NULL semantics (doesn't collapse null → empty string). Regression guards in `tests/unit/api/Features/Logging/DailyLogSummaryJobTests.cs`. Prod deployed 2026-04-13 in bundle `94d132f2`. See BE-7 (resolved) in `/docs/technical-debt.md`.
 
 - **What**: Hangfire recurring job `daily-log-summary` has been retrying and failing for 04/11/2026's summary. All 10 retries exhausted; job 1232 is in permanent `Failed` state.
 - **Evidence**:
@@ -72,7 +78,12 @@ _None._
 >
 > See the similarly-revised BE-11 entry in `/docs/technical-debt.md` for implications on the "race condition / why 10 over" concern (short version: the concern was based on the false-positive; the race is still theoretically real but no evidence of harm).
 
-### M2: Payment/attendance reconciliation drift (2 items)
+### M2: Payment/attendance reconciliation drift (2 items) — **RESOLVED 2026-04-13**
+
+**Resolution**:
+- **Code**: M2a/M2c fixed by centralizing `PaymentStatus` sync inside `RefundService.ProcessRefundAsync` (commit `0d0cf6f7`). M2b fixed by adding `TicketPurchasePaymentStatus.AwaitingManualRefund` + admin UI surface + audit 9.7 (commit `78376f04`). Prod deployed 2026-04-13 in bundle `94d132f2`.
+- **Backfill**: Row A (`c0c34074-…`) resolved via admin UI action 2026-04-12. Row B (`e4e24d70-…`) resolved via one-off SQL UPDATE on prod 2026-04-13 (`PaymentStatus: Completed → Refunded`). Post-backfill scan shows zero stale refund rows.
+- See BE-12 (resolved) in `/docs/technical-debt.md`.
 
 - **What**: Two completed `TicketPurchases` have zero active attendances; one completed `PaymentRefund` has stale `PaymentStatus = Completed`.
 - **Evidence**:

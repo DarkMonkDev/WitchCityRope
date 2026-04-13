@@ -1,5 +1,5 @@
 # File Registry
-<!-- Last Updated: 2026-04-10 -->
+<!-- Last Updated: 2026-04-13 -->
 <!-- Version: 4.560 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
@@ -11,6 +11,9 @@ This registry tracks all files created, modified, and deleted in the WitchCityRo
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
 |------|-----------|--------|---------|--------------|--------|--------------|
+| 2026-04-13 | /docs/technical-debt.md | MODIFIED | Post-prod-deploy updates: (1) BE-12 title flipped to RESOLVED with new top Updated block documenting the prod deploy + Row B backfill; (2) commit SHAs filled in for BE-12 M2b, BE-14, BE-15 (forward fix + regression repair), and T-8 where entries previously read "commit TBD"; (3) new History row covering the Strategy B bundle deploy at SHA `94d132f2`, Row B backfill, and the 29-user prevalence check on prod (expected pattern — audits already correct). | Prod deploy doc sync | ACTIVE | Never |
+| 2026-04-13 | /docs/functional-areas/production-incidents/01-health-check-2026-04-12.md | MODIFIED | Added 2026-04-13 update note to the exec summary covering H1/H2/M2 resolution + bundle SHA. Tagged H1, H2, M2 headers as RESOLVED with commit-level resolution blocks. M3/M4 still open. | Prod deploy doc sync | ACTIVE | Never |
+| 2026-04-13 | /docs/functional-areas/production-incidents/00-index.md | MODIFIED | Updated incident 01 row: still "Partially resolved" (M3/M4 outstanding) but title now reflects the H1/H2/M2 resolution via bundle `94d132f2`. | Prod deploy doc sync | ACTIVE | Never |
 | 2026-04-12 | /.claude/skills/check-production-server/execute.sh | CREATED | New skill: data-collection script for production/staging health check. Adapted from sibling DarkMonk-DO-Migration repo. Vault-based SSH key, 3-container aware (api/web/redis), queries logging.application_logs (flat JSONB properties), WCR-specific nginx paths, WCR-specific data-integrity audits (event capacity, session capacity, vetting drift, ticket/payment reconciliation) | Port check-production-server skill from DarkMonk | ACTIVE | Never |
 | 2026-04-12 | /.claude/skills/check-production-server/SKILL.md | CREATED | New skill: analysis framework + priority definitions + MANDATORY warning-anomaly and certbot-renewal rules + reporting format. Documents WCR infrastructure reference (containers, vault paths, DB schema, audit table/column names) | Port check-production-server skill from DarkMonk | ACTIVE | Never |
 | 2026-04-12 | /.claude/skills/SKILLS-REGISTRY.md | MODIFIED | Added check-production-server row in Infrastructure & Deployment Automation section | Port check-production-server skill from DarkMonk | ACTIVE | Never |

@@ -813,11 +813,13 @@ For the 10-over question: ~half a day of forensic investigation, likely requirin
 
 ---
 
-### BE-12 — Refund completion doesn't sync `TicketPurchase.PaymentStatus` from non-admin callers (P2, UNRESOLVED)
+### BE-12 — Refund completion doesn't sync `TicketPurchase.PaymentStatus` from non-admin callers (P2, RESOLVED)
+
+**Updated**: 2026-04-13 — **Production deployed and Row B backfill applied.** Commits `0d0cf6f7` (M2a/M2c) and `78376f04` (M2b) deployed to production in the bundle shipped at git SHA `94d132f2` (2026-04-13 04:32 UTC). Row B one-off SQL completed: `e4e24d70-92a4-4550-a439-e497915d18e1` `PaymentStatus` flipped `Completed` → `Refunded` inside a transaction, verified zero stale refund rows remain via the same query the skill's audit 9.7 runs. Row A had already been resolved via admin UI action on 2026-04-12. All three drift rows enumerated in the original symptom table are now reconciled.
 
 **Updated**: 2026-04-12 — **M2a / M2c fixed by centralizing `TicketPurchase.PaymentStatus` sync inside `RefundService.ProcessRefundAsync`.** New private helper `SyncPaymentStatusFromRefundsAsync` recomputes status from the sum of Completed `PaymentRefunds` and persists the change. Every caller (admin `ProcessVariableRefund`, user-initiated `AttendanceService.ProcessAutomaticRefundAsync`, any future caller) now benefits automatically. `ProcessVariableRefund`'s inline update was kept as idempotent defense-in-depth and to keep existing unit tests (which mock `IRefundService`) working. Regression guards added in `tests/unit/api/Services/RefundServiceTests.cs` — `ProcessRefundAsync_WithValidFullRefund_SyncsPaymentStatusToRefunded` and `ProcessRefundAsync_WithValidPartialRefund_SyncsPaymentStatusToPartiallyRefunded`. Commit `0d0cf6f7`.
 
-**Updated**: 2026-04-12 — **M2b fixed by adding `TicketPurchasePaymentStatus.AwaitingManualRefund`.** The authorize-net user-cancel path (`AttendanceService.cs:2663-2670`) used to silently return, leaving the purchase reading `Completed` forever. Now sets `PaymentStatus = AwaitingManualRefund`, emits a WARN log with the amount, and updates `UpdatedAt`. Admin UI (`/admin/reports/payments`) displays a pink "Awaiting Manual Refund" badge + filter option. `TicketPurchase.IsPaymentCompleted` and `PaymentListService.IsRefundable` were extended to include the new status so admins can Process Refund through the normal flow. New audit 9.7 added to `check-production-server` skill to surface the queue of pending manual refunds. Active items remaining in this entry: the pre-M2b drift rows (Row A resolved via admin action 2026-04-12; Row B still needs one-off SQL to flip PaymentStatus to Refunded). Commit TBD.
+**Updated**: 2026-04-12 — **M2b fixed by adding `TicketPurchasePaymentStatus.AwaitingManualRefund`.** The authorize-net user-cancel path (`AttendanceService.cs:2663-2670`) used to silently return, leaving the purchase reading `Completed` forever. Now sets `PaymentStatus = AwaitingManualRefund`, emits a WARN log with the amount, and updates `UpdatedAt`. Admin UI (`/admin/reports/payments`) displays a pink "Awaiting Manual Refund" badge + filter option. `TicketPurchase.IsPaymentCompleted` and `PaymentListService.IsRefundable` were extended to include the new status so admins can Process Refund through the normal flow. New audit 9.7 added to `check-production-server` skill to surface the queue of pending manual refunds. Commit `78376f04`.
 
 **Discovered**: 2026-04-12 during M2 investigation (incident 01-health-check-2026-04-12)
 **Impact**: 3 real production rows exhibit the drift as of the 2026-04-12 audit. Left unaddressed, every authorize-net user-initiated cancellation will add another drift row, and any non-admin-triggered refund that marks `PaymentRefunds.RefundStatus = Completed` will leave `TicketPurchases.PaymentStatus` stale. Customer-visible consequence: a purchase that has been fully refunded still reads "Completed" in admin views, which can lead to a second refund attempt or confused support interactions. No risk of additional money moving.
@@ -891,7 +893,7 @@ User flow that reproduces the cascade:
 9. Backend sends `A2` to Authorize.NET
 10. Authorize.NET returns `E00114 "Invalid OTS Token"` — not because the token was reused (it was fresh), but because of something else inside Authorize.NET that remains unexplained
 
-#### Fix applied (partial — frontend only, commit TBD 2026-04-12)
+#### Fix applied (partial — frontend only, commit `a92b7044`, prod deployed 2026-04-13 via bundle `94d132f2`)
 
 `apps/web/src/features/payments/pages/EventPaymentPage.tsx:292-379` — `handleNonceReady` now generates the idempotency key into a LOCAL variable at the top of the function instead of reading from `useState`. State is still synced via `setIdempotencyKey` for PayPal's sake, but the credit-card request uses the local variable so it's always fresh regardless of React state batching. The catch block's redundant regeneration was removed.
 
@@ -921,7 +923,7 @@ User flow that reproduces the cascade:
 #### Authoritative records
 
 - Production health report 01-health-check-2026-04-12 Mr J section
-- Commit TBD for the frontend fix
+- Frontend fix: commit `a92b7044` (prod deployed 2026-04-13 in bundle `94d132f2`)
 - `apps/web/src/features/payments/pages/EventPaymentPage.tsx:292-379` (fix location — has history comment pointing here)
 - `apps/api/Features/Payments/Endpoints/CheckoutEndpoints.cs:128-159` (backend idempotency handling — unchanged)
 - `apps/api/Features/Payments/Services/AuthorizeNetService.cs:176-191` (E00114 handling — backend does not distinguish E00114 from card decline, both return HTTP 400; minor UX improvement opportunity)
@@ -955,7 +957,7 @@ Production trace for Mr J (2026-04-12 01:25–01:29 UTC):
 
 Same class of bug as BE-14 (idempotency-key state-management) but for the PayPal path specifically.
 
-#### Fix applied (commit TBD)
+#### Fix applied (commits `689136ca` forward fix + `897a27ac` regression repair, prod deployed 2026-04-13 via bundle `94d132f2`)
 
 1. **`apps/web/src/features/payments/components/PayPalButton.tsx`** — added `forceReRender={[amount, ticketTypeIds, ticketSelections, slidingScalePercentage, idempotencyKey, eventId]}` to both `<PayPalButtons>` instances (mobile + desktop). Every time a dependency changes, `@paypal/react-paypal-js` re-registers the `createOrder` closure.
 2. **`apps/web/src/features/payments/components/PaymentForm.tsx`** — added an `onPaymentCancel` prop and wired it into the existing `handlePaymentCancel` so the parent is notified of PayPal cancellations.
@@ -986,11 +988,14 @@ The forward-looking fix is deployed (or in-flight to deployment) and comprehensi
 
 #### Authoritative records
 
-- Commit TBD
+- Forward fix: commit `689136ca` (forceReRender + cancel key regen)
+- Regression repair: commit `897a27ac` (restored `setCurrentStep(2)` dropped during the forward-fix edit)
+- Prod deploy: bundle `94d132f2` shipped 2026-04-13 via `production-deploy` skill
 - Mr J message on 2026-04-12 reporting the credit-card-vs-PayPal discrepancy
 - Production logs 2026-04-12 01:25–01:29 UTC correlation IDs `e0340ef51445` and `24b8b9ae7b80`
 - `apps/web/src/features/payments/components/PayPalButton.tsx:271-312` (fix location, `forceReRender`)
 - `apps/web/src/features/payments/pages/EventPaymentPage.tsx:415-434` (fix location, `handlePayPalCancel`)
+- `apps/web/src/features/payments/utils/paypalSuccessHandler.ts` (handler extracted for testability — see T-8)
 - Related: BE-14 (credit-card idempotency, fixed 2026-04-12)
 
 ---
@@ -1005,7 +1010,7 @@ The forward-looking fix is deployed (or in-flight to deployment) and comprehensi
 - **No component or vitest test covers the PayPal checkout flow.** Before this entry, the only regression coverage for `EventPaymentPage.handlePayPalSuccess` and `PayPalButton` behavior was... a real user clicking through on staging.
 - **The existing `run-test-suite` skill has no vitest mode.** It only supports `--mode unit` (.NET xUnit via `dotnet test`) and `--mode e2e` (Playwright). The pre-commit hook at `/.claude/hooks/block-manual-test-runs.py` blocks `npx vitest`, `npm test`, `vitest`, etc. as direct invocations. The test-executor agent (who's supposed to be the fallback) does not have the Task tool and also can't invoke vitest — confirmed empirically 2026-04-12.
 
-#### Partial fix applied 2026-04-12 (commits TBD)
+#### Partial fix applied 2026-04-12 (commit `94d132f2`, prod deployed 2026-04-13 via bundle `94d132f2`)
 
 Refactored `handlePayPalSuccess` out of `EventPaymentPage.tsx` into a pure function at `apps/web/src/features/payments/utils/paypalSuccessHandler.ts` with injected dependencies. Added `tests/unit/web/features/payments/paypalSuccessHandler.test.ts` with 7 test cases covering:
 - completed-payment state population
@@ -1040,8 +1045,8 @@ Items 1 and 2 are highest-leverage. Item 4 is nice-to-have but brittle.
 
 #### Authoritative records
 
-- `apps/web/src/features/payments/utils/paypalSuccessHandler.ts` (extracted pure function, commit TBD)
-- `tests/unit/web/features/payments/paypalSuccessHandler.test.ts` (new, untested)
+- `apps/web/src/features/payments/utils/paypalSuccessHandler.ts` (extracted pure function, commit `94d132f2`)
+- `tests/unit/web/features/payments/paypalSuccessHandler.test.ts` (new, type-checked clean but not runtime-verified)
 - `/.claude/hooks/block-manual-test-runs.py` (the hook blocking vitest)
 - `/.claude/skills/run-test-suite/execute.sh` (missing vitest mode)
 - Related: BE-14, BE-15 (production bugs this coverage would have caught)
@@ -1345,6 +1350,7 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-12 | BE-12 M2a/M2c/M2b fixes landed. M2c: centralized `TicketPurchase.PaymentStatus` sync inside `RefundService.ProcessRefundAsync` via new `SyncPaymentStatusFromRefundsAsync` helper — every caller now gets the status transition automatically (commit `0d0cf6f7`). M2a resolved by consequence. M2b: added new `TicketPurchasePaymentStatus.AwaitingManualRefund` enum value + admin UI badge (pink) + filter option + new skill audit 9.7 to surface the queue of pending manual refunds. `TicketPurchase.IsPaymentCompleted` and `PaymentListService.IsRefundable` extended to include the new status. Remaining: Row B one-off SQL to flip stale status on `e4e24d70-...` (Row A already resolved via admin action). Three pre-existing test failures (unrelated: RefundServiceEmailTests variable-name mismatch + RefundServiceTests failed-refund assertion) surfaced but are not caused by these changes — git diff confirms the affected code paths are untouched. | M2 Strategy B — batch completion before staging deploy |
 | 2026-04-12 | Added BE-15 (PayPal multi-ticket undercharge) — RESOLVED. Mr J reported that credit card correctly charged $40 for 2 tickets but PayPal defaulted to $20. Root cause: (1) `@paypal/react-paypal-js`'s `<PayPalButtons>` caches the `createOrder` closure on mount, so parent prop changes (quantity, slider, ticket type) didn't propagate to the SDK; (2) idempotency key wasn't regenerated on PayPal cancel, so a retry with different cart values received the previously-cached $20 order from the backend. Fix: `forceReRender` on both `<PayPalButtons>` instances + new `handlePayPalCancel` in `EventPaymentPage` that regenerates the idempotency key (mirroring the BE-14 credit-card fix). Forensic audit of all 8 historical PayPal purchases showed no OBVIOUS undercharges but the bug is undetectable in DB data alone — the missing ticket leaves no trace. Entry marked resolved because the forward fix is comprehensive; past harm is a human-comms issue. | BE-15 forensic + forward fix (bundled into M2 deploy) |
 | 2026-04-12 | Added T-8 (no PayPal checkout component tests + no skill wrapper for vitest). Captures the test-coverage gap that let today's four PayPal-adjacent bugs ship past all automated testing (BE-14 credit-card idempotency, BE-15 Fix 1 stale closure, BE-15 Fix 2 cancel-key reuse, and my BE-15 regression that dropped `setCurrentStep(2)`). Also documents the skill/hook gap: `run-test-suite` has no vitest mode, the pre-commit hook blocks direct `npx vitest` invocation, and the test-executor agent (the hook's suggested fallback) doesn't have the Task tool so it can't invoke anything either. Partial fix applied: extracted `handlePayPalSuccess` into a pure function + added 7 regression-guard tests in `tests/unit/web/features/payments/paypalSuccessHandler.test.ts` — type-checked clean but not runtime-verified in-session due to the skill gap. | BE-15 regression + T-8 entry |
+| 2026-04-13 | **Production deploy + Row B backfill.** Bundled fixes shipped to production via `production-deploy` skill at git SHA `94d132f2`: BE-14 (commit `a92b7044`), BE-12 M2a/M2c (commit `0d0cf6f7`), BE-12 M2b (commit `78376f04`), BE-15 forward fix (commit `689136ca`), BE-15 regression repair (commit `897a27ac`), BE-15/T-8 testable handler extraction (commit `94d132f2`), audit 9.1/9.2 DISTINCT-users fix (commit `f52bc8fc`), proxy-RSVP + DailyLogSummaryJob fixes (commit `c5498ad8`). All three prod containers healthy after deploy. Row B one-off SQL executed: `TicketPurchases.Id = e4e24d70-92a4-4550-a439-e497915d18e1` `PaymentStatus` flipped `Completed` → `Refunded`; post-update scan shows zero stale refund rows remaining. BE-12 marked RESOLVED (all three drift rows reconciled — Row A via admin UI on 2026-04-12, Row B via SQL on 2026-04-13, and the underlying classes of drift are closed by the M2a/M2b/M2c code changes). BE-14 stays UNRESOLVED because the Authorize.NET E00114 root cause is still unknown even though the frontend symptom-fix shipped. BE-15 stays RESOLVED. Also: prevalence check on prod confirmed 29 users have both Active RSVP + Active Ticket for same event — expected behavior (AttendanceService auto-creates RSVP on ticket purchase when no RSVP exists, and users who RSVPed before upgrading to a ticket keep both records). Audits use `COUNT(DISTINCT UserId)` so no double-counting. UI correctly prioritizes Ticket > RSVP on both event page and dashboard. No action needed. | Prod deploy session (Strategy B bundle) |
 
 ---
 
