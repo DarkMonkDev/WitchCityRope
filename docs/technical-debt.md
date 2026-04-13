@@ -866,6 +866,64 @@ Estimated effort: investigation ~half a day; fix + tests ~1 day; backfill ~half 
 
 ---
 
+### BE-14 — Authorize.NET E00114 "Invalid OTS Token" on rapid retry — root cause unresolved (P2, UNRESOLVED)
+
+**Discovered**: 2026-04-12 when production user "Mr J" reported a payment issue with the live site. Full investigation captured in incident `01-health-check-2026-04-12` (Mr J section) — summary below.
+
+**Impact**: **Confirmed lost sales.** Two users in the last 30 days (Mr J on 2026-04-12, Dean on 2026-03-20) have hit this error cascade. One user (Mr J) gave up entirely and never purchased. The other (Dean) came back the next day and completed the purchase — but only because they retried later with a fresh session. Any customer less patient than Dean is a lost sale. Frequency is low (~1/2 weeks) but every hit is a 50/50 shot at losing the customer.
+
+#### Symptom
+
+User flow that reproduces the cascade:
+
+1. User enters card data and clicks Pay
+2. `POST /api/checkout/credit-card` with idempotency key `K1` + Accept.js nonce `A1`
+3. Authorize.NET **legitimately declines** the card (e.g., bank decline, ErrorCode=2). Backend logs `"[Checkout:...] STAGE 3 FAILED: Payment declined. ResponseCode=2, ErrorCode=2, ..."` and rolls back pending tickets
+4. Frontend shows "Dismiss and Try Again" button. User clicks it → dismisses the error alert
+5. User clicks Pay again, 1–2 seconds after first error
+6. CreditCardForm generates a **fresh** nonce `A2` via `Accept.dispatchData()`
+7. `POST /api/checkout/credit-card` **with the same idempotency key `K1`** (the bug — see Root Cause) + fresh nonce `A2`
+8. Backend logs `"[Checkout:...] Previous attempt with same key failed. Allowing retry."` and falls through to create new pending tickets
+9. Backend sends `A2` to Authorize.NET
+10. Authorize.NET returns `E00114 "Invalid OTS Token"` — not because the token was reused (it was fresh), but because of something else inside Authorize.NET that remains unexplained
+
+#### Fix applied (partial — frontend only, commit TBD 2026-04-12)
+
+`apps/web/src/features/payments/pages/EventPaymentPage.tsx:292-379` — `handleNonceReady` now generates the idempotency key into a LOCAL variable at the top of the function instead of reading from `useState`. State is still synced via `setIdempotencyKey` for PayPal's sake, but the credit-card request uses the local variable so it's always fresh regardless of React state batching. The catch block's redundant regeneration was removed.
+
+**Why this only partially resolves**: it fixes the "same key reused" observable, so the backend will no longer log "Previous attempt with same key failed." on a rapid retry. But **we still don't know why Authorize.NET returned E00114 for a fresh nonce in step 10**. The fix eliminates the symptom of duplicate keys; it doesn't address whatever Auth.net-side behavior produced the E00114 on the second attempt.
+
+#### Root cause (partially confirmed, partially unknown)
+
+**Confirmed**: the frontend was sending the same `idempotencyKey` on both attempts. Backend log wording "Previous attempt with same key failed. Allowing retry." only fires when a prior `TicketPurchases` row with the same `(UserId, IdempotencyKey)` exists. The `useState` + catch-block-regeneration pattern had a state-timing window where the rapid retry captured a stale closure value before React committed the new key.
+
+**UNKNOWN** (the reason this ticket is P2 instead of resolved): why Authorize.NET rejected the second FRESH Accept.js nonce with E00114. Theories that remain unverified:
+1. **Auth.net-side request dedup**: some internal Authorize.NET logic flagged the second request as suspicious (same customer, same amount, within 2s) and invalidated the token
+2. **Accept.js rate limit**: Accept.js (the Auth.net JavaScript library) may have an internal rate limit on `dispatchData()` calls, producing a "valid-looking" nonce that's actually marked as invalid on submission
+3. **Something in our backend** that we didn't find: a residual reference to the first attempt's nonce or payment state on retry (research agent didn't find any caching, but something may be subtle)
+
+#### Suggested investigation approach (if someone picks this up)
+
+1. **Local reproduction**: dev environment has Authorize.NET sandbox configured (`appsettings.Development.json:42-48`, `TestMode: true`). Use the decline-triggering test card to reproduce the scenario end-to-end, watching what actually arrives at Authorize.NET on the second request. (Auth.net publishes test card numbers for various decline codes in their developer docs.)
+2. **Wire a feature flag / config** to add a small delay between decline and retry (2 sec → 10 sec) to see if the E00114 disappears. If yes, that confirms theory #1.
+3. **Contact Authorize.NET support** with the correlation IDs from Mr J's and Dean's incidents; they may be able to tell us what their servers saw.
+4. **Defensive UX**: even without root cause, add a client-side rate limit on the Pay button (e.g., disabled for 3s after any failure) to reduce the rapid-retry window.
+
+#### Data points
+
+- Mr J incident: 2026-04-12 05:22 UTC, user `7e3b914f-5b62-4b8e-ac8c-47d22d1fcc5f`, Rope Jam May, correlation IDs `c2ddbe689b97` (decline) and `47af276b1092` (E00114), 2-second gap between attempts
+- Dean incident: 2026-03-20 01:25 UTC, user `687b79f7-f98a-415a-92ee-05aae4a997db`, Rope Jam March, 4 rapid attempts (01:25:11/17/37/42), correlation IDs `18e7f440379c` and `49a5a2cb32da` among others. Came back 2026-03-21 11:56 UTC and succeeded
+
+#### Authoritative records
+
+- Production health report 01-health-check-2026-04-12 Mr J section
+- Commit TBD for the frontend fix
+- `apps/web/src/features/payments/pages/EventPaymentPage.tsx:292-379` (fix location — has history comment pointing here)
+- `apps/api/Features/Payments/Endpoints/CheckoutEndpoints.cs:128-159` (backend idempotency handling — unchanged)
+- `apps/api/Features/Payments/Services/AuthorizeNetService.cs:176-191` (E00114 handling — backend does not distinguish E00114 from card decline, both return HTTP 400; minor UX improvement opportunity)
+
+---
+
 ## Test suite (unit test coverage)
 
 ### T-6 — Redundant local enum aliases in `VettingHoldServiceTests` (P3)
@@ -1161,6 +1219,7 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-11 | **Softened the IMPORTANT agent rules block** after user feedback that it was too restrictive. The original version pushed agents toward "update the closest existing entry" as the default, which would have led to force-fitting genuinely new issues into unrelated entries. Rebalanced framing: explicit that the goal is to prevent duplication, not to prevent new entries. Rule 2 now lists "signs it's a new entry" vs "signs it's an update" side by side. Rule 3 replaces "default to updating" with "ask the user when genuinely unsure". Added new Rule 7: every commit that touches this file must add a History row (catching a pattern where I violated this in `8dd8000e` and had to backfill in `a3196ff1`). | Agent rules rebalancing session (commit `67ee06f3`) |
 | 2026-04-12 | Added 7 active items (BE-8 through BE-12, T-7, DEP-1) and 2 resolved items (BE-6 ProxyRsvp 500→409 fix, BE-7 DailyLogSummaryJob DBNull fix) from production health-check incident `01-health-check-2026-04-12`. Active items cover: inconsistent error-mapping across endpoints (BE-8), no alerting on permanently-Failed Hangfire jobs (BE-9), Session.Capacity unenforced (BE-10), capacity check+insert race + "way-over" investigation needed (BE-11), refund→TicketPurchase.PaymentStatus sync gap with 3 drift rows in prod (BE-12), no test coverage for 4 of 5 recurring Hangfire jobs (T-7), nginx cross-app "protocol options redefined" warnings (DEP-1). Added new `## Deployment / infrastructure` area section + `DEP` area code. BE-11 explicitly documents user concern that "10-over" capacity on Rope Jam March is inconsistent with the simple race-condition theory and deferred to Phase 4. BE-12 explicitly does NOT proceed without user approval because it affects payment reconciliation data. | Phase 1-3 cleanup session following first `check-production-server` skill run |
 | 2026-04-12 | **Correction session.** User flagged that the Rope Jam March "10-over" finding was based on a faulty audit query that double-counted users with both an RSVP and a Ticket. Per `IAttendanceCountService.GetReservedCountAsync` business rule, one person = one seat regardless of how many EventAttendance rows they have. Re-queried production with corrected `COUNT(DISTINCT UserId)` — Rope Jam March actually 31/40 (9 under), and **zero events or sessions have been overbooked in the last 365 days**. Actions: (1) fixed the skill's audit 9.1 and 9.2 queries; (2) retracted M1 in the incident report; (3) lowered BE-10 and BE-11 priority from P2 to P3 (added "Updated" subsections per rule 4, original text preserved); (4) added resolved entry BE-13 documenting the audit-query bug. The race-condition theory in BE-11 is still valid in principle but no longer load-bearing. | Post-Phase-1-3 correction session |
+| 2026-04-12 | Added BE-14 documenting the Authorize.NET E00114 "Invalid OTS Token" rapid-retry cascade that hit user Mr J (and Dean three weeks earlier). Frontend fix applied in `EventPaymentPage.tsx` — idempotency key now generated in a local variable on each call instead of read from useState, eliminating the state-timing window. Entry notes that the key-reuse symptom is resolved but the deeper question of why Authorize.NET returns E00114 for a fresh nonce on rapid retry remains unresolved, pending either local repro with the Auth.net sandbox or direct Auth.net support contact. Investigation approach documented in the entry. | Mr J ticket-purchase failure investigation |
 
 ---
 

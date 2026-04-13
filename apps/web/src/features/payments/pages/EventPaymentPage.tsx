@@ -308,7 +308,25 @@ export const EventPaymentPage: React.FC = () => {
     const ticketSelections = buildTicketSelections();
     const hasMultiTicket = ticketSelections.some(ts => ts.quantity > 1);
 
-    debugLog('Starting unified checkout:', { eventId, ticketIds, totalAmount, idempotencyKey, ticketSelections, buyForOthersOnly });
+    // Generate a fresh idempotency key for THIS attempt.
+    // We build it into a LOCAL variable (not read from useState) so that a rapid
+    // retry cannot inadvertently reuse the previous attempt's key while React
+    // is still batching a pending setIdempotencyKey update. The state value is
+    // still kept in sync (setIdempotencyKey below) so the PayPal flow — which
+    // reads idempotencyKey via props into PayPalButton — sees an up-to-date key.
+    //
+    // History: 2026-04-12 incident 01-health-check-2026-04-12 section on Mr J.
+    // A real user hit Authorize.NET "Invalid OTS Token" (E00114) on a 2-second
+    // retry. Backend logs showed the SAME idempotency key on both attempts
+    // ("Previous attempt with same key failed. Allowing retry."), even though
+    // the prior version of this function DID call setIdempotencyKey in the
+    // catch block. Root cause for the state staleness remains uncertain (see
+    // tech-debt BE-14); this local-variable approach eliminates the bug class
+    // regardless of the underlying cause.
+    const requestIdempotencyKey = `WCR-${crypto.randomUUID().replace(/-/g, '').substring(0, 32)}`;
+    setIdempotencyKey(requestIdempotencyKey);
+
+    debugLog('Starting unified checkout:', { eventId, ticketIds, totalAmount, idempotencyKey: requestIdempotencyKey, ticketSelections, buyForOthersOnly });
     setCheckoutErrorDismissed(false);
 
     try {
@@ -321,7 +339,7 @@ export const EventPaymentPage: React.FC = () => {
         amount: totalAmount,
         lastFourDigits: nonceData.lastFourDigits,
         cardType: nonceData.cardType,
-        idempotencyKey,
+        idempotencyKey: requestIdempotencyKey,
         // Multi-ticket support: include ticket selections when purchasing multiple
         ...(hasMultiTicket || buyForOthersOnly ? { ticketSelections } : {}),
         // Signal backend to skip purchaser overlap check
@@ -354,9 +372,9 @@ export const EventPaymentPage: React.FC = () => {
 
       setCurrentStep(2);
     } catch {
-      // Error display is handled inline on the page (see Step 2 render)
-      // Generate new idempotency key for retry
-      setIdempotencyKey(`WCR-${crypto.randomUUID().replace(/-/g, '').substring(0, 32)}`);
+      // Error display is handled inline on the page (see Step 2 render).
+      // No need to regenerate idempotencyKey here — the next call to
+      // handleNonceReady will generate a fresh one at the top of the function.
     }
   };
 
