@@ -410,8 +410,27 @@ export const EventPaymentPage: React.FC = () => {
       color: 'green',
       autoClose: 8000
     });
+  };
 
-    setCurrentStep(2);
+  /**
+   * Handle user-cancelled PayPal popup.
+   *
+   * Why this matters: when the PayPal popup is cancelled, the backend rolls back
+   * the pending ticket purchases we created in STAGE 2 and cancels the PayPal
+   * order (`/api/checkout/paypal/cancel-order`). BUT the idempotency key stays
+   * in React state here. If the user then bumps quantity / drags the slider and
+   * clicks PayPal again, the backend's idempotency check sees the same key and
+   * returns the PREVIOUSLY cached order (with the old amount) instead of
+   * creating a fresh one.
+   *
+   * Regenerating the key here guarantees the next PayPal click creates a NEW
+   * server-side order with current cart values. Mirrors the successful-payment
+   * regeneration at handlePayPalSuccess and the credit-card regeneration pattern
+   * from BE-14. See BE-15 in /docs/technical-debt.md for the incident trail.
+   */
+  const handlePayPalCancel = () => {
+    debugLog('PayPal checkout cancelled by user; regenerating idempotency key so the next attempt is fresh');
+    setIdempotencyKey(`WCR-${crypto.randomUUID().replace(/-/g, '').substring(0, 32)}`);
   };
 
   /**
@@ -1174,6 +1193,7 @@ export const EventPaymentPage: React.FC = () => {
                   onNonceReady={handleNonceReady}
                   onPaymentSuccess={handlePayPalSuccess}
                   onPaymentError={handlePaymentError}
+                  onPaymentCancel={handlePayPalCancel}
                   isCheckoutInProgress={checkout.isPending}
                 />
               </Box>

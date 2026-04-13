@@ -40,6 +40,14 @@ interface PaymentFormProps {
   onPaymentSuccess?: (result: PayPalCheckoutResult) => void;
   /** Callback when payment/tokenization fails */
   onPaymentError?: (error: string) => void;
+  /**
+   * Callback when PayPal popup is cancelled by the user.
+   * Lets the parent reset state that must not persist across attempts — in
+   * particular, regenerate `idempotencyKey` so a subsequent PayPal click with
+   * different cart values creates a NEW order server-side instead of receiving
+   * the previous cached order. See BE-15 in /docs/technical-debt.md.
+   */
+  onPaymentCancel?: () => void;
   /** Whether form is disabled */
   disabled?: boolean;
   /** Whether checkout API call is in progress (from parent) */
@@ -61,6 +69,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   onNonceReady,
   onPaymentSuccess,
   onPaymentError,
+  onPaymentCancel,
   disabled = false,
   isCheckoutInProgress = false
 }) => {
@@ -86,11 +95,16 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   };
 
   /**
-   * Handle PayPal payment cancellation
+   * Handle PayPal payment cancellation.
+   * Clears any local error state AND propagates upward so the parent page can
+   * regenerate its idempotency key before a retry — otherwise the PayPal
+   * backend would return the previously-cached order on the next click even
+   * if cart values changed in between. See BE-15.
    */
   const handlePaymentCancel = () => {
     console.log('PayPal payment cancelled by user');
     setPaymentError(null);
+    onPaymentCancel?.();
   };
 
   return (

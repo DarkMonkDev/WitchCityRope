@@ -266,7 +266,17 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
           </Box>
         )}
 
-        {/* Mobile Layout - Vertical Buttons */}
+        {/*
+          CRITICAL: forceReRender must list every prop that `createOrder` and `onApprove`
+          close over. `@paypal/react-paypal-js`'s <PayPalButtons> caches those callbacks
+          on first mount; when parent props change (user drags slider, bumps quantity,
+          picks a different ticket type, etc.) PayPal keeps using the OLD closure and
+          sends stale values to the backend.
+
+          This caused a real production undercharge — see tech-debt BE-15 and the
+          Mr J incident from 2026-04-12. A user could select 2 tickets at $20 each,
+          click PayPal, and PayPal would charge $20 instead of $40.
+         */}
         <Box hiddenFrom="md">
           <PayPalButtons
             style={{
@@ -278,6 +288,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
               tagline: false
             }}
             disabled={disabled || isProcessing}
+            forceReRender={[amount, ticketTypeIds, ticketSelections, slidingScalePercentage, idempotencyKey, eventId]}
             createOrder={createOrder}
             onApprove={onApprove}
             onError={onError}
@@ -285,7 +296,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
           />
         </Box>
 
-        {/* Desktop/Tablet Layout - Horizontal Buttons */}
+        {/* Desktop/Tablet Layout - Horizontal Buttons. See forceReRender note above. */}
         <Box visibleFrom="md">
           <PayPalButtons
             style={{
@@ -297,6 +308,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
               tagline: false
             }}
             disabled={disabled || isProcessing}
+            forceReRender={[amount, ticketTypeIds, ticketSelections, slidingScalePercentage, idempotencyKey, eventId]}
             createOrder={createOrder}
             onApprove={onApprove}
             onError={onError}

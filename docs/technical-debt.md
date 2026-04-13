@@ -928,6 +928,73 @@ User flow that reproduces the cascade:
 
 ---
 
+### BE-15 — PayPal multi-ticket undercharge via stale `createOrder` closure + idempotency-key reuse on cancel (P2, RESOLVED — forensic audit inconclusive for past harm)
+
+**Discovered**: 2026-04-12 during follow-up on a user message from Mr J. He wrote: *"If I buy two tickets at the suggested price and I use the [credit card] purchase process it charges $40 which is correct. If I choose to use PayPal it defaults back to $20 for a single ticket. This means that people may be inadvertently paying you less than they [intended]."*
+**Impact**: Revenue leak. Any PayPal purchase where the user adjusted cart state (quantity, sliding-scale slider, ticket-type toggle) AFTER the payment form rendered could be charged an amount based on the PRE-adjustment state. Credit-card flow is unaffected.
+
+#### Symptom
+
+Production trace for Mr J (2026-04-12 01:25–01:29 UTC):
+
+1. Mr J opened the payment form for Rope Jam May
+2. Clicked PayPal — backend got `Amount=20`, created 1 `TicketPurchase` + 1 `EventAttendance`, PayPal order `5W9139777D9362143` for $20
+3. Mr J cancelled the PayPal popup — backend rolled back the pending tickets
+4. Mr J adjusted the cart (presumably to 2 tickets, based on his report) and clicked PayPal again
+5. Frontend sent `Amount=40` — but **the same idempotency key** `WCR-6d3064f1fc9d454e8a12c84a4acfd6f0`
+6. Backend logged *"Returning existing PayPal order for idempotent retry"* and returned the cached $20 order
+7. Mr J gave up on PayPal and used credit card, which correctly charged $40 (2 × $20 rows)
+
+#### Root cause (two-part, both in frontend)
+
+**Cause 1 — stale `createOrder` closure in `<PayPalButtons>`**:
+`apps/web/src/features/payments/components/PayPalButton.tsx` rendered `<PayPalButtons createOrder={createOrder} ... />` from `@paypal/react-paypal-js` WITHOUT a `forceReRender` prop. That library caches the `createOrder` callback from first mount. When parent props change (amount, quantity, sliding-scale, ticketSelections) the PayPal SDK keeps calling the original cached closure.
+
+**Cause 2 — idempotency-key reuse on PayPal cancel**:
+`EventPaymentPage.handlePayPalSuccess` regenerated `idempotencyKey` on success (line 403). But there was no corresponding handler on CANCEL — the key persisted across a user cancelling and retrying with different cart values. The backend's idempotency check at `CheckoutEndpoints.cs:128-159` (for the PayPal endpoint's equivalent) treats same-key+completed as "return cached" and same-key+failed as "retry but reuse the order ID", so a cancelled-then-retry flow got the stale $20 order.
+
+Same class of bug as BE-14 (idempotency-key state-management) but for the PayPal path specifically.
+
+#### Fix applied (commit TBD)
+
+1. **`apps/web/src/features/payments/components/PayPalButton.tsx`** — added `forceReRender={[amount, ticketTypeIds, ticketSelections, slidingScalePercentage, idempotencyKey, eventId]}` to both `<PayPalButtons>` instances (mobile + desktop). Every time a dependency changes, `@paypal/react-paypal-js` re-registers the `createOrder` closure.
+2. **`apps/web/src/features/payments/components/PaymentForm.tsx`** — added an `onPaymentCancel` prop and wired it into the existing `handlePaymentCancel` so the parent is notified of PayPal cancellations.
+3. **`apps/web/src/features/payments/pages/EventPaymentPage.tsx`** — new `handlePayPalCancel` regenerates `idempotencyKey` when the user cancels the PayPal popup. Wired into the `PaymentForm.onPaymentCancel` chain.
+
+Both credit-card and PayPal paths now regenerate the idempotency key on every meaningful state transition (success, error, cancel, per-attempt). Mirrors the BE-14 fix for the credit-card side.
+
+#### Forensic audit on past data (inconclusive)
+
+Ran a query on 2026-04-12 against all 8 completed PayPal purchases in production history (the site is young):
+
+| Date | User | Ticket Type | Sliding % | Charged |
+|---|---|---|---|---|
+| 2026-04-07 | Stableboy | Rope Jam March | 33% | $30 |
+| 2026-03-21 | Forest | Rope Jam March | 67% | $15 |
+| 2026-03-21 | Sandra | Rope Jam March | 67% | $20 |
+| 2026-03-20 | Lauren | Rope Jam March | 50% | $25 |
+| 2026-03-20 | Derek | Rope Jam March | 67% | $20 |
+| 2026-03-19 | Jonathan | Rope Jam March | 50% | $25 |
+| 2026-03-19 | Shana | Rope Jam March | 67% | $20 |
+| 2026-03-16 | Riley | Rope Jam March | 67% | $20 |
+
+All quantity=1, all within the $10-$40 sliding-scale range for that ticket type. No OBVIOUS undercharge pattern. However, the bug's manifestation is "user clicked 2 tickets, only 1 got recorded" — which leaves zero trace in the DB. An older multi-ticket undercharge is indistinguishable from a real single-ticket purchase without user testimony.
+
+#### Why "RESOLVED" even though forensic is inconclusive
+
+The forward-looking fix is deployed (or in-flight to deployment) and comprehensively addresses both root causes. Past harm is undetectable from data alone; if any affected user surfaces, we can resolve case-by-case.
+
+#### Authoritative records
+
+- Commit TBD
+- Mr J message on 2026-04-12 reporting the credit-card-vs-PayPal discrepancy
+- Production logs 2026-04-12 01:25–01:29 UTC correlation IDs `e0340ef51445` and `24b8b9ae7b80`
+- `apps/web/src/features/payments/components/PayPalButton.tsx:271-312` (fix location, `forceReRender`)
+- `apps/web/src/features/payments/pages/EventPaymentPage.tsx:415-434` (fix location, `handlePayPalCancel`)
+- Related: BE-14 (credit-card idempotency, fixed 2026-04-12)
+
+---
+
 ## Test suite (unit test coverage)
 
 ### T-6 — Redundant local enum aliases in `VettingHoldServiceTests` (P3)
@@ -1225,6 +1292,7 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-12 | **Correction session.** User flagged that the Rope Jam March "10-over" finding was based on a faulty audit query that double-counted users with both an RSVP and a Ticket. Per `IAttendanceCountService.GetReservedCountAsync` business rule, one person = one seat regardless of how many EventAttendance rows they have. Re-queried production with corrected `COUNT(DISTINCT UserId)` — Rope Jam March actually 31/40 (9 under), and **zero events or sessions have been overbooked in the last 365 days**. Actions: (1) fixed the skill's audit 9.1 and 9.2 queries; (2) retracted M1 in the incident report; (3) lowered BE-10 and BE-11 priority from P2 to P3 (added "Updated" subsections per rule 4, original text preserved); (4) added resolved entry BE-13 documenting the audit-query bug. The race-condition theory in BE-11 is still valid in principle but no longer load-bearing. | Post-Phase-1-3 correction session |
 | 2026-04-12 | Added BE-14 documenting the Authorize.NET E00114 "Invalid OTS Token" rapid-retry cascade that hit user Mr J (and Dean three weeks earlier). Frontend fix applied in `EventPaymentPage.tsx` — idempotency key now generated in a local variable on each call instead of read from useState, eliminating the state-timing window. Entry notes that the key-reuse symptom is resolved but the deeper question of why Authorize.NET returns E00114 for a fresh nonce on rapid retry remains unresolved, pending either local repro with the Auth.net sandbox or direct Auth.net support contact. Investigation approach documented in the entry. | Mr J ticket-purchase failure investigation |
 | 2026-04-12 | BE-12 M2a/M2c/M2b fixes landed. M2c: centralized `TicketPurchase.PaymentStatus` sync inside `RefundService.ProcessRefundAsync` via new `SyncPaymentStatusFromRefundsAsync` helper — every caller now gets the status transition automatically (commit `0d0cf6f7`). M2a resolved by consequence. M2b: added new `TicketPurchasePaymentStatus.AwaitingManualRefund` enum value + admin UI badge (pink) + filter option + new skill audit 9.7 to surface the queue of pending manual refunds. `TicketPurchase.IsPaymentCompleted` and `PaymentListService.IsRefundable` extended to include the new status. Remaining: Row B one-off SQL to flip stale status on `e4e24d70-...` (Row A already resolved via admin action). Three pre-existing test failures (unrelated: RefundServiceEmailTests variable-name mismatch + RefundServiceTests failed-refund assertion) surfaced but are not caused by these changes — git diff confirms the affected code paths are untouched. | M2 Strategy B — batch completion before staging deploy |
+| 2026-04-12 | Added BE-15 (PayPal multi-ticket undercharge) — RESOLVED. Mr J reported that credit card correctly charged $40 for 2 tickets but PayPal defaulted to $20. Root cause: (1) `@paypal/react-paypal-js`'s `<PayPalButtons>` caches the `createOrder` closure on mount, so parent prop changes (quantity, slider, ticket type) didn't propagate to the SDK; (2) idempotency key wasn't regenerated on PayPal cancel, so a retry with different cart values received the previously-cached $20 order from the backend. Fix: `forceReRender` on both `<PayPalButtons>` instances + new `handlePayPalCancel` in `EventPaymentPage` that regenerates the idempotency key (mirroring the BE-14 credit-card fix). Forensic audit of all 8 historical PayPal purchases showed no OBVIOUS undercharges but the bug is undetectable in DB data alone — the missing ticket leaves no trace. Entry marked resolved because the forward fix is comprehensive; past harm is a human-comms issue. | BE-15 forensic + forward fix (bundled into M2 deploy) |
 
 ---
 
