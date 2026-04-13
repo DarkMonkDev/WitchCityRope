@@ -140,6 +140,86 @@ public class RefundServiceTests : IAsyncLifetime
     }
 
     /// <summary>
+    /// M2c regression guard (2026-04-12): a successful refund via ProcessRefundAsync
+    /// MUST centrally sync TicketPurchase.PaymentStatus to Refunded when the refund
+    /// covers the full ticket price, without the caller having to do it.
+    /// This is the behavior that makes the user-cancel path (ProcessAutomaticRefundAsync
+    /// in AttendanceService) correct for free. Before the M2c fix, PaymentStatus
+    /// would stay "Completed" for user-initiated cancellations because only
+    /// ProcessVariableRefund knew to update it. See BE-12/BE-14 in /docs/technical-debt.md.
+    /// </summary>
+    [Fact]
+    public async Task ProcessRefundAsync_WithValidFullRefund_SyncsPaymentStatusToRefunded()
+    {
+        // Arrange
+        var ticketPurchase = await CreateCompletedTicketPurchaseWithEntities(100.00m);
+
+        var request = new ProcessRefundRequest
+        {
+            TicketPurchaseId = ticketPurchase.Id,
+            RefundAmount = Money.Create(100.00m, "USD"),
+            RefundReason = "User-initiated cancellation (regression test for M2c sync)",
+            ProcessedByUserId = _testAdminId,
+            IpAddress = "192.168.1.1"
+        };
+
+        SetupSuccessfulPayPalRefund();
+
+        // Act
+        var result = await _sut.ProcessRefundAsync(request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.RefundStatus.Should().Be(RefundStatus.Completed);
+
+        // Critical assertion: PaymentStatus must be synced to Refunded automatically
+        // by RefundService — no explicit action by the caller.
+        await using var verifyContext = _fixture.CreateDbContext();
+        var updated = await verifyContext.TicketPurchases
+            .FirstOrDefaultAsync(tp => tp.Id == ticketPurchase.Id);
+        updated.Should().NotBeNull();
+        updated!.PaymentStatus.Should().Be(TicketPurchasePaymentStatus.Refunded,
+            "a full refund through ProcessRefundAsync must auto-sync PaymentStatus to Refunded " +
+            "via SyncPaymentStatusFromRefundsAsync (M2c)");
+    }
+
+    /// <summary>
+    /// M2c regression guard (2026-04-12): partial refund variant. TicketPurchase.PaymentStatus
+    /// must transition to PartiallyRefunded when the refund is less than the full price.
+    /// </summary>
+    [Fact]
+    public async Task ProcessRefundAsync_WithValidPartialRefund_SyncsPaymentStatusToPartiallyRefunded()
+    {
+        // Arrange
+        var ticketPurchase = await CreateCompletedTicketPurchaseWithEntities(100.00m);
+
+        var request = new ProcessRefundRequest
+        {
+            TicketPurchaseId = ticketPurchase.Id,
+            RefundAmount = Money.Create(40.00m, "USD"), // partial: 40 of 100
+            RefundReason = "Partial user-initiated cancellation (regression test for M2c sync)",
+            ProcessedByUserId = _testAdminId,
+            IpAddress = "192.168.1.1"
+        };
+
+        SetupSuccessfulPayPalRefund();
+
+        // Act
+        var result = await _sut.ProcessRefundAsync(request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.RefundStatus.Should().Be(RefundStatus.Completed);
+
+        await using var verifyContext = _fixture.CreateDbContext();
+        var updated = await verifyContext.TicketPurchases
+            .FirstOrDefaultAsync(tp => tp.Id == ticketPurchase.Id);
+        updated.Should().NotBeNull();
+        updated!.PaymentStatus.Should().Be(TicketPurchasePaymentStatus.PartiallyRefunded,
+            "a partial refund must sync PaymentStatus to PartiallyRefunded via M2c");
+    }
+
+    /// <summary>
     /// Test 2: Verify successful partial refund processing
     /// Tests that partial refunds are created correctly
     /// </summary>

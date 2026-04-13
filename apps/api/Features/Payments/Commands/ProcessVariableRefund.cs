@@ -231,7 +231,20 @@ public class ProcessVariableRefund
                 "Refund successful: RefundId {RefundId}, TransactionId {TransactionId}, Amount {Amount}, Status {Status}",
                 paymentRefund.Id, transactionId, request.RefundAmount, paymentRefund.RefundStatus);
 
-            // Update ticket purchase payment status
+            // Defense-in-depth PaymentStatus sync:
+            //   In production, RefundService.ProcessRefundAsync calls its private
+            //   SyncPaymentStatusFromRefundsAsync whenever a refund completes, so
+            //   PaymentStatus here has ALREADY been set to the correct value. The
+            //   block below is a redundant second write that (a) serves as insurance
+            //   against any future code path that sends a refund through a different
+            //   service, and (b) keeps the ProcessVariableRefund unit tests working
+            //   — those tests mock IRefundService, so the RefundService-side sync
+            //   never runs in that test environment and the assertion on
+            //   PaymentStatus depends on this block.
+            //
+            //   Math is idempotent — same inputs as SyncPaymentStatusFromRefundsAsync,
+            //   so running both produces the same result. See M2c in BE-12 history for
+            //   the reasoning trail.
             var newTotalRefunded = totalRefunded + request.RefundAmount;
             ticketPurchase.PaymentStatus = newTotalRefunded >= ticketPurchase.TotalPrice
                 ? TicketPurchasePaymentStatus.Refunded

@@ -322,6 +322,17 @@ public class RefundService : IRefundService
                 // Auto-cancel volunteer signups if refund was completed
                 if (refund.RefundStatus == RefundStatus.Completed)
                 {
+                    // M2c (2026-04-12): centralize TicketPurchase.PaymentStatus sync so every
+                    // refund path (admin ProcessVariableRefund + user-initiated cancel via
+                    // AttendanceService.ProcessAutomaticRefundAsync + future callers) correctly
+                    // transitions Completed → Refunded or PartiallyRefunded.
+                    // Previously this was the caller's responsibility, which led to silent
+                    // drift — the user-cancel path in AttendanceService never closed the loop.
+                    // Production drift row `e4e24d70-92a4-4550-a439-e497915d18e1` was produced
+                    // by exactly that gap. See BE-12/BE-14 in /docs/technical-debt.md and
+                    // incident 01-health-check-2026-04-12 for the full trail.
+                    await SyncPaymentStatusFromRefundsAsync(ticketPurchase, cancellationToken);
+
                     await AutoCancelVolunteerSignupsAsync(ticketPurchase, cancellationToken);
 
                     // Send refund confirmation email
@@ -935,6 +946,60 @@ public class RefundService : IRefundService
     /// Auto-cancels volunteer signups when ticket is refunded
     /// Single Responsibility: Side effect of refund completion
     /// </summary>
+    /// <summary>
+    /// Recomputes TicketPurchase.PaymentStatus from the sum of all Completed PaymentRefunds
+    /// linked to the given ticket purchase and persists the change if any.
+    ///
+    /// Invariant: Completed refund sum &lt; TotalPrice → PaymentStatus = PartiallyRefunded.
+    /// Completed refund sum &gt;= TotalPrice → PaymentStatus = Refunded.
+    /// Sum of zero → no change (defensive; shouldn't be called in that state).
+    ///
+    /// Callers MUST have already saved the new PaymentRefund via SaveChangesAsync
+    /// so that the row is visible to the SUM query within the current transaction.
+    ///
+    /// This method is the single source of truth for "a refund completed, update the
+    /// parent TicketPurchase accordingly." Previously this responsibility was spread
+    /// across each caller (ProcessVariableRefund did it; ProcessAutomaticRefundAsync
+    /// in AttendanceService didn't), which produced silent drift. Centralized here as
+    /// part of M2c (2026-04-12). See BE-12/BE-14 in /docs/technical-debt.md.
+    /// </summary>
+    private async Task SyncPaymentStatusFromRefundsAsync(
+        TicketPurchase ticketPurchase,
+        CancellationToken cancellationToken)
+    {
+        var totalRefunded = await _context.PaymentRefunds
+            .Where(pr => pr.TicketPurchaseId == ticketPurchase.Id
+                         && pr.RefundStatus == RefundStatus.Completed)
+            .SumAsync(pr => pr.RefundAmountValue, cancellationToken);
+
+        if (totalRefunded <= 0m)
+        {
+            // Defensive: no completed refunds means there's nothing to sync. We don't
+            // clear the status back to Completed here because that could mask admin
+            // manual overrides; callers only invoke this from the refund-success path.
+            return;
+        }
+
+        var newStatus = totalRefunded >= ticketPurchase.TotalPrice
+            ? TicketPurchasePaymentStatus.Refunded
+            : TicketPurchasePaymentStatus.PartiallyRefunded;
+
+        if (ticketPurchase.PaymentStatus == newStatus)
+        {
+            return;
+        }
+
+        var previousStatus = ticketPurchase.PaymentStatus;
+        ticketPurchase.PaymentStatus = newStatus;
+        ticketPurchase.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Synced TicketPurchase {TicketPurchaseId} PaymentStatus {PreviousStatus} → {NewStatus} " +
+            "(total refunded ${TotalRefunded:F2} of original ${TotalPrice:F2})",
+            ticketPurchase.Id, previousStatus, newStatus, totalRefunded, ticketPurchase.TotalPrice);
+    }
+
     private async Task AutoCancelVolunteerSignupsAsync(
         TicketPurchase ticketPurchase,
         CancellationToken cancellationToken)
