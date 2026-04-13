@@ -2660,12 +2660,42 @@ public class AttendanceService : IAttendanceService
                 return;
             }
 
-            // Only process refunds for PayPal payments
+            // Only the PayPal refund path is automated. Authorize-net and other payment
+            // methods cannot be refunded via the self-service cancellation flow (the admin
+            // payments UI handles those) — so we flag the purchase as AwaitingManualRefund,
+            // which surfaces in the admin dashboard's "Awaiting Manual Refund" filter.
+            //
+            // History: before 2026-04-12 (M2b, BE-12) this path silently returned and left
+            // the purchase reading PaymentStatus = Completed forever. Production row
+            // c0c34074-... ($30 owed to Cepheus) was produced exactly this way and sat
+            // unaddressed for 5 days until the first health-check caught it.
             if (!ticketPurchase.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation(
-                    "Ticket purchase {TicketId} is not PayPal (method: {PaymentMethod}) - skipping automatic refund",
-                    ticketPurchase.Id, ticketPurchase.PaymentMethod);
+                // Only flip the status if it's still in a "completed" family — we don't
+                // overwrite an already-Refunded or already-AwaitingManualRefund purchase
+                // (idempotent for re-entrant cancellation attempts).
+                if (ticketPurchase.PaymentStatus == TicketPurchasePaymentStatus.Completed
+                    || ticketPurchase.PaymentStatus == TicketPurchasePaymentStatus.Confirmed)
+                {
+                    ticketPurchase.PaymentStatus = TicketPurchasePaymentStatus.AwaitingManualRefund;
+                    ticketPurchase.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync(cancellationToken);
+
+                    _logger.LogWarning(
+                        "Ticket purchase {TicketId} flagged as AwaitingManualRefund: user cancelled but " +
+                        "PaymentMethod={PaymentMethod} is not eligible for automatic refund. " +
+                        "Admin must process refund manually via the Admin Payments UI. " +
+                        "Amount owed: {Amount:F2} {Currency}",
+                        ticketPurchase.Id, ticketPurchase.PaymentMethod,
+                        ticketPurchase.TotalPrice, "USD");
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Ticket purchase {TicketId} not eligible for automatic refund (method: {PaymentMethod}, " +
+                        "status: {PaymentStatus}) - no status change",
+                        ticketPurchase.Id, ticketPurchase.PaymentMethod, ticketPurchase.PaymentStatus);
+                }
                 return;
             }
 

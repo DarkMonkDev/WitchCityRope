@@ -104,6 +104,7 @@ After `execute.sh` completes, read the output file it created. This file contain
    - **9.4 Orphaned Completed Ticket Purchases** — payment completed but no active attendance created
    - **9.5 Active Attendance Without Completed Payment** — inverse of 9.4
    - **9.6 Completed Refunds With Stale Ticket Status** — refund done but `PaymentStatus` not updated
+   - **9.7 Ticket Purchases Awaiting Manual Refund** — rows flagged `AwaitingManualRefund` (authnet user-cancel queue). Rows older than ~3 days deserve urgent admin attention.
 
 ### Step 3: Analyze and Categorize
 

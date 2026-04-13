@@ -184,8 +184,13 @@ public class PaymentListService : IPaymentListService
                         Amount = tp.TotalPrice,
                         Currency = PaymentConstants.Currency,
                         Status = tp.PaymentStatus.ToString(),
+                        // AwaitingManualRefund is explicitly refundable because that is the
+                        // whole point of the state — it's waiting for an admin to click Process
+                        // Refund (which either issues the real refund via authorize-net API, or
+                        // records that the admin refunded externally). M2b — 2026-04-12.
                         IsRefundable = (tp.PaymentStatus == TicketPurchasePaymentStatus.Completed
-                                        || tp.PaymentStatus == TicketPurchasePaymentStatus.PartiallyRefunded)
+                                        || tp.PaymentStatus == TicketPurchasePaymentStatus.PartiallyRefunded
+                                        || tp.PaymentStatus == TicketPurchasePaymentStatus.AwaitingManualRefund)
                                        && tp.TotalPrice > 0
                                        && remainingRefundable > 0,
                         RefundId = hasRefundData ? refund!.LatestRefundId : null,

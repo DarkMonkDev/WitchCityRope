@@ -19,8 +19,10 @@ const initialFilterState: PaymentFiltersState = {
   endDate: null,
   paymentMethods: [],
   // Default to meaningful payment statuses, excluding Failed (declined cards)
-  // and Pending (incomplete transactions) to reduce clutter
-  statuses: ['Completed', 'Refunded', 'PartiallyRefunded'],
+  // and Pending (incomplete transactions) to reduce clutter.
+  // AwaitingManualRefund is included by default so admins immediately see any
+  // cancellations awaiting manual refund processing (M2b — 2026-04-12, BE-12).
+  statuses: ['Completed', 'Refunded', 'PartiallyRefunded', 'AwaitingManualRefund'],
   sortBy: 'paymentDate',
   sortDirection: 'Desc',
   page: 1,

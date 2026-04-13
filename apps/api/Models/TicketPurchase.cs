@@ -229,14 +229,21 @@ public class TicketPurchase
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// Gets whether the payment has been completed
-    /// Includes "PartiallyRefunded" because partially refunded payments are still valid completed payments
-    /// that can receive additional refunds (there's still money to refund!)
+    /// Gets whether the payment has been completed and still represents money the
+    /// merchant is holding (even if a refund is in flight or partially issued).
+    ///
+    /// Includes:
+    /// - Completed / Confirmed: normal happy-path
+    /// - PartiallyRefunded: some money was refunded but the remainder is still held
+    /// - AwaitingManualRefund: money is fully held, but the self-service refund path
+    ///   isn't available (e.g., authorize-net user-cancel); admin can still issue
+    ///   the refund via the admin payments UI
     /// </summary>
     public bool IsPaymentCompleted =>
         PaymentStatus is TicketPurchasePaymentStatus.Completed
                       or TicketPurchasePaymentStatus.Confirmed
-                      or TicketPurchasePaymentStatus.PartiallyRefunded;
+                      or TicketPurchasePaymentStatus.PartiallyRefunded
+                      or TicketPurchasePaymentStatus.AwaitingManualRefund;
 
     /// <summary>
     /// Gets whether this purchase represents an RSVP (free ticket)

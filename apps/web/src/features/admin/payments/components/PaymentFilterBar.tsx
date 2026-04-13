@@ -35,6 +35,9 @@ const STATUS_OPTIONS = [
   { value: 'Completed', label: 'Paid' },
   { value: 'Refunded', label: 'Refunded' },
   { value: 'PartiallyRefunded', label: 'Partially Refunded' },
+  // AwaitingManualRefund — customer cancelled a non-PayPal ticket and is waiting on
+  // the admin to click "Process Refund" (M2b — 2026-04-12, BE-12).
+  { value: 'AwaitingManualRefund', label: 'Awaiting Manual Refund' },
   { value: 'Pending', label: 'Pending' },
   { value: 'Failed', label: 'Failed' }
 ];

@@ -797,6 +797,29 @@ if [ "$SKIP_DB_LOGS" = false ] && [ -n "$DB_HOST" ]; then
         LIMIT 20;
     " >> "$OUTPUT_FILE"
 
+    subsection "9.7 Ticket Purchases Awaiting Manual Refund"
+    # Introduced 2026-04-12 alongside M2b. Rows in this audit are EXPECTED state —
+    # a customer cancelled a ticket whose payment method (typically authorize-net)
+    # isn't handled by the self-service refund flow, so the purchase was flagged
+    # AwaitingManualRefund to surface in the admin UI. These rows are NOT drift;
+    # they're a worklist item.
+    #
+    # This audit should report:
+    #   - 0 rows = clear queue (good)
+    #   - N rows = N customers waiting for admin to click Process Refund
+    #
+    # Rows older than ~3 days deserve an urgent look — the customer has been
+    # waiting that long for their money back.
+    psql_query "
+        SELECT tp.\"Id\" as purchase_id, tp.\"UserId\", tp.\"PaymentMethod\",
+               tp.\"TotalPrice\", tp.\"UpdatedAt\"::timestamp(0) as flagged_at_utc,
+               EXTRACT(EPOCH FROM (NOW() - tp.\"UpdatedAt\"))::int / 3600 as hours_since_flagged
+        FROM public.\"TicketPurchases\" tp
+        WHERE tp.\"PaymentStatus\" = 'AwaitingManualRefund'
+        ORDER BY tp.\"UpdatedAt\" ASC
+        LIMIT 20;
+    " >> "$OUTPUT_FILE"
+
     echo "  [9/9] Data integrity audits collected"
 else
     log "Skipping data integrity audits (DB unavailable or --skip-db-logs)"

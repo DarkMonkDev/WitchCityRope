@@ -58,9 +58,22 @@ const getStatusColor = (status: string): string => {
       return 'blue';
     case 'Failed':
       return 'red';
+    case 'AwaitingManualRefund':
+      // Red-ish color to grab attention: the customer cancelled and is waiting on the
+      // admin to click Process Refund. See M2b — 2026-04-12 (BE-12 in tech-debt).
+      return 'pink';
     default:
       return 'gray';
   }
+};
+
+/**
+ * Human-readable label for the PaymentStatus string. Most statuses display as-is,
+ * but AwaitingManualRefund benefits from a space-separated label.
+ */
+const getStatusLabel = (status: string): string => {
+  if (status === 'AwaitingManualRefund') return 'Awaiting Manual Refund';
+  return status;
 };
 
 const formatDate = (dateString: string, timeZone: string): string => {
@@ -225,7 +238,7 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
                     {formatDate(payment.paymentDate || '', eventTimeZone)}
                   </Text>
                   <Badge color={getStatusColor(payment.status || '')}>
-                    {payment.status}
+                    {getStatusLabel(payment.status || '')}
                   </Badge>
                 </Group>
 
@@ -409,7 +422,7 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
               </Table.Td>
               <Table.Td style={{ textAlign: 'center' }}>
                 <Badge color={getStatusColor(payment.status || '')}>
-                  {payment.status}
+                  {getStatusLabel(payment.status || '')}
                 </Badge>
               </Table.Td>
               <Table.Td
