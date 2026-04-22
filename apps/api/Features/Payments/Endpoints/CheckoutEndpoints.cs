@@ -454,7 +454,7 @@ public class CheckoutEndpoints : ControllerBase
         string correlationId, string failureStage, string detail,
         bool paymentCharged, bool refundInitiated = false)
     {
-        return Problem(
+        return Problem( // ARCH-ALLOW: custom CheckoutProblem helper — adds correlationId / paymentCharged extensions that ToProblem cannot express
             title: failureStage switch
             {
                 "validation" => "Checkout Validation Failed",

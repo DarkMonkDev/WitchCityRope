@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
+using WitchCityRope.Api.Features.Shared.Extensions;
 using WitchCityRope.Api.Features.VettingHold.Models;
 using WitchCityRope.Api.Features.VettingHold.Services;
 using WitchCityRope.Api.Models;
@@ -69,17 +70,9 @@ public static class VettingHoldEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -87,7 +80,7 @@ public static class VettingHoldEndpoints
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var authenticatedUserId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "User not authenticated",
                     statusCode: 401);
@@ -96,7 +89,7 @@ public static class VettingHoldEndpoints
             // Verify user is operating on their own profile
             if (authenticatedUserId != userId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: ownership guard — forbidden, not a service Result
                     title: "Forbidden",
                     detail: "You can only place your own membership on hold",
                     statusCode: 403);
@@ -110,17 +103,14 @@ public static class VettingHoldEndpoints
 
             if (!result.IsSuccess)
             {
-                return Results.Problem(
-                    title: "Failed to place membership on hold",
-                    detail: result.Error ?? result.Details ?? "Failed to place membership on hold",
-                    statusCode: 400);
+                return result.ToProblem("Failed to place membership on hold");
             }
 
             return Results.Ok(result.Value); // Direct DTO
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Internal server error",
                 detail: ex.Message,
                 statusCode: 500);
@@ -142,17 +132,9 @@ public static class VettingHoldEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -160,7 +142,7 @@ public static class VettingHoldEndpoints
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var authenticatedUserId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "User not authenticated",
                     statusCode: 401);
@@ -169,7 +151,7 @@ public static class VettingHoldEndpoints
             // Verify user is operating on their own profile
             if (authenticatedUserId != userId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: ownership guard — forbidden, not a service Result
                     title: "Forbidden",
                     detail: "You can only request reinstatement for your own membership",
                     statusCode: 403);
@@ -183,17 +165,14 @@ public static class VettingHoldEndpoints
 
             if (!result.IsSuccess)
             {
-                return Results.Problem(
-                    title: "Failed to request reinstatement",
-                    detail: result.Error ?? result.Details ?? "Failed to request reinstatement",
-                    statusCode: 400);
+                return result.ToProblem("Failed to request reinstatement");
             }
 
             return Results.Ok(result.Value); // Direct DTO
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Internal server error",
                 detail: ex.Message,
                 statusCode: 500);
@@ -216,7 +195,7 @@ public static class VettingHoldEndpoints
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var authenticatedUserId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "User not authenticated",
                     statusCode: 401);
@@ -225,7 +204,7 @@ public static class VettingHoldEndpoints
             // Verify user is operating on their own profile
             if (authenticatedUserId != userId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: ownership guard — forbidden, not a service Result
                     title: "Forbidden",
                     detail: "You can only view your own hold status",
                     statusCode: 403);
@@ -236,17 +215,14 @@ public static class VettingHoldEndpoints
 
             if (!result.IsSuccess)
             {
-                return Results.Problem(
-                    title: "Hold status not found",
-                    detail: result.Error ?? result.Details ?? "Hold status not found",
-                    statusCode: 404);
+                return result.ToProblem("Hold status not found");
             }
 
             return Results.Ok(result.Value); // Direct DTO
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Internal server error",
                 detail: ex.Message,
                 statusCode: 500);

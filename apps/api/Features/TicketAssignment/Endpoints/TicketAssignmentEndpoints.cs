@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using WitchCityRope.Api.Features.Shared.Extensions;
 using WitchCityRope.Api.Features.TicketAssignment.Models;
 using WitchCityRope.Api.Features.TicketAssignment.Services;
 using WitchCityRope.Api.Features.Users.Constants;
@@ -37,21 +38,13 @@ public static class TicketAssignmentEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first for state-changing operations
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -65,23 +58,7 @@ public static class TicketAssignmentEndpoints
                     return Results.Ok(result.Value);
                 }
 
-                var statusCode = result.Error switch
-                {
-                    "Attendance not found" => 404,
-                    "Assignee not found" => 404,
-                    "Invalid attendance type" => 400,
-                    "Ticket not assignable" => 400,
-                    "Not authorized to assign" => 403,
-                    "Not authorized by assignee" => 403,
-                    "Assignee not vetted" => 403,
-                    "Assignee already has ticket" => 409,
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: statusCode);
+                return result.ToProblem("Failed to Assign Ticket");
             })
             .RequireAuthorization()
             .WithName("AssignTicket")
@@ -112,21 +89,13 @@ public static class TicketAssignmentEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -140,19 +109,7 @@ public static class TicketAssignmentEndpoints
                     return Results.Ok(result.Value);
                 }
 
-                var statusCode = result.Error switch
-                {
-                    "Assignment not found" => 404,
-                    "Not the assigned user" => 403,
-                    "Waiver not accepted" => 400,
-                    "Vetting required" => 403,
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: statusCode);
+                return result.ToProblem("Failed to Accept Assignment");
             })
             .RequireAuthorization()
             .WithName("AcceptAssignment")
@@ -182,21 +139,13 @@ public static class TicketAssignmentEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -210,17 +159,7 @@ public static class TicketAssignmentEndpoints
                     return Results.Ok(result.Value);
                 }
 
-                var statusCode = result.Error switch
-                {
-                    "Assignment not found" => 404,
-                    "Not the assigned user" => 403,
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: statusCode);
+                return result.ToProblem("Failed to Decline Assignment");
             })
             .RequireAuthorization()
             .WithName("DeclineAssignment")
@@ -250,21 +189,13 @@ public static class TicketAssignmentEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -278,21 +209,7 @@ public static class TicketAssignmentEndpoints
                     return Results.Ok(result.Value);
                 }
 
-                var statusCode = result.Error switch
-                {
-                    "Ticket not eligible for reassignment" => 400,
-                    "Not the original purchaser" => 403,
-                    "Not authorized by assignee" => 403,
-                    "Assignee not found" => 404,
-                    "Assignee not vetted" => 403,
-                    "Assignee already has ticket" => 409,
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: statusCode);
+                return result.ToProblem("Failed to Reassign Ticket");
             })
             .RequireAuthorization()
             .WithName("ReassignTicket")
@@ -319,7 +236,7 @@ public static class TicketAssignmentEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -329,10 +246,7 @@ public static class TicketAssignmentEndpoints
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
-                    : Results.Problem(
-                        title: result.Error,
-                        detail: result.Details,
-                        statusCode: 500);
+                    : result.ToProblem("Failed to Retrieve Pending Assignments");
             })
             .RequireAuthorization()
             .WithName("GetPendingAssignments")
@@ -355,7 +269,7 @@ public static class TicketAssignmentEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -365,10 +279,7 @@ public static class TicketAssignmentEndpoints
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
-                    : Results.Problem(
-                        title: result.Error,
-                        detail: result.Details,
-                        statusCode: 500);
+                    : result.ToProblem("Failed to Retrieve Assigned Tickets");
             })
             .RequireAuthorization()
             .WithName("GetAssignedTickets")
@@ -396,21 +307,13 @@ public static class TicketAssignmentEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -422,23 +325,7 @@ public static class TicketAssignmentEndpoints
                 if (result.IsSuccess)
                     return Results.Ok(result.Value);
 
-                var statusCode = result.Error switch
-                {
-                    "Ticket not found" => 404,
-                    "Assignee not found" => 404,
-                    "Not authorized" => 403,
-                    "Not authorized by contact" => 403,
-                    "Ticket already assigned" => 409,
-                    "Vetting required" => 403,
-                    "Duplicate ticket" => 400,
-                    "Ticket configuration error" => 400,
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: "Assignment Failed",
-                    detail: result.Details ?? result.Error ?? "Assignment failed",
-                    statusCode: statusCode);
+                return result.ToProblem("Assignment Failed");
             })
             .RequireAuthorization()
             .WithName("AssignUnassignedTicket")
@@ -467,21 +354,13 @@ public static class TicketAssignmentEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first for state-changing operations
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -497,20 +376,7 @@ public static class TicketAssignmentEndpoints
                         result.Value);
                 }
 
-                var statusCode = result.Error switch
-                {
-                    "Event not found" => 404,
-                    "Ticket type not found" => 404,
-                    "User not found" => 404,
-                    "User not vetted" => 400,
-                    "User already has ticket" => 409,
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: statusCode);
+                return result.ToProblem("Failed to Assign Ticket");
             })
             .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
             .WithName("AdminAssignTicket")
@@ -542,16 +408,7 @@ public static class TicketAssignmentEndpoints
                     return Results.Ok(result.Value);
                 }
 
-                var statusCode = result.Error switch
-                {
-                    "Event not found" => 404,
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: statusCode);
+                return result.ToProblem("Failed to Retrieve Event Assignments");
             })
             .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
             .WithName("AdminGetEventAssignments")

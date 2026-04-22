@@ -13,6 +13,7 @@ using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Participation.Endpoints;
 
@@ -37,7 +38,7 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -47,10 +48,7 @@ public static class ParticipationEndpoints
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
-                    : Results.Problem(
-                        title: "Failed to get participation status",
-                        detail: result.Error,
-                        statusCode: 500);
+                    : result.ToProblem("Failed to get participation status");
             })
             .WithName("GetParticipationStatus")
             .WithSummary("Get user's participation status for an event")
@@ -89,21 +87,13 @@ public static class ParticipationEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -118,10 +108,7 @@ public static class ParticipationEndpoints
                         "Vetting access check failed for user {UserId} on event {EventId}: {Error}",
                         userId, eventId, accessCheckResult.Error);
 
-                    return Results.Problem(
-                        title: "Access check failed",
-                        detail: "Unable to verify RSVP eligibility at this time",
-                        statusCode: 500);
+                    return accessCheckResult.ToProblem("Access check failed");
                 }
 
                 var accessControl = accessCheckResult.Value!;
@@ -158,30 +145,18 @@ public static class ParticipationEndpoints
                     // Check for specific business rule violations
                     if (result.Error.Contains("not found"))
                     {
-                            return Results.Problem(
-                            title: "Resource Not Found",
-                            detail: result.Error,
-                            statusCode: 404);
+                            return result.ToProblem("Resource Not Found");
                     }
                     if (result.Error.Contains("already"))
                     {
-                        return Results.Problem(
-                            title: "Conflict",
-                            detail: result.Error,
-                            statusCode: 409);
+                        return result.ToProblem("Conflict");
                     }
                     if (result.Error.Contains("vetted") || result.Error.Contains("capacity") || result.Error.Contains("window"))
                     {
-                        return Results.Problem(
-                            title: "Bad Request",
-                            detail: result.Error,
-                            statusCode: 400);
+                        return result.ToProblem("Bad Request");
                     }
 
-                    return Results.Problem(
-                        title: "Failed to create RSVP",
-                        detail: result.Error,
-                        statusCode: 500);
+                    return result.ToProblem("Failed to create RSVP");
                 }
 
                 logger.LogInformation(
@@ -238,21 +213,13 @@ public static class ParticipationEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first (financial transaction)
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -267,10 +234,7 @@ public static class ParticipationEndpoints
                         "Vetting access check failed for user {UserId} on event {EventId}: {Error}",
                         userId, eventId, accessCheckResult.Error);
 
-                    return Results.Problem(
-                        title: "Access check failed",
-                        detail: "Unable to verify ticket purchase eligibility at this time",
-                        statusCode: 500);
+                    return accessCheckResult.ToProblem("Access check failed");
                 }
 
                 var accessControl = accessCheckResult.Value!;
@@ -299,30 +263,18 @@ public static class ParticipationEndpoints
                     // Check for specific business rule violations
                     if (result.Error.Contains("not found"))
                     {
-                            return Results.Problem(
-                            title: "Resource Not Found",
-                            detail: result.Error,
-                            statusCode: 404);
+                            return result.ToProblem("Resource Not Found");
                     }
                     if (result.Error.Contains("already"))
                     {
-                        return Results.Problem(
-                            title: "Conflict",
-                            detail: result.Error,
-                            statusCode: 409);
+                        return result.ToProblem("Conflict");
                     }
                     if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window") || result.Error.Contains("sessions") || result.Error.Contains("vetted"))
                     {
-                        return Results.Problem(
-                            title: "Bad Request",
-                            detail: result.Error,
-                            statusCode: 400);
+                        return result.ToProblem("Bad Request");
                     }
 
-                    return Results.Problem(
-                        title: "Failed to purchase ticket",
-                        detail: result.Error,
-                        statusCode: 500);
+                    return result.ToProblem("Failed to purchase ticket");
                 }
 
                 return Results.Created($"/api/events/{eventId}/participation", result.Value);
@@ -371,21 +323,13 @@ public static class ParticipationEndpoints
                 CancellationToken cancellationToken = default) =>
             {
                 // CSRF validation - MUST be first
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -405,23 +349,14 @@ public static class ParticipationEndpoints
                     {
                         if (result.Error.Contains("not found") || result.Error.Contains("No active"))
                         {
-                            return Results.Problem(
-                                title: "Not Found",
-                                detail: result.Error,
-                                statusCode: 404);
+                            return result.ToProblem("Not Found");
                         }
                         if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("Cancellation window"))
                         {
-                            return Results.Problem(
-                                title: "Cancellation Not Allowed",
-                                detail: result.Error,
-                                statusCode: 400);
+                            return result.ToProblem("Cancellation Not Allowed");
                         }
 
-                        return Results.Problem(
-                            title: "Cancellation Failed",
-                            detail: result.Error,
-                            statusCode: 500);
+                        return result.ToProblem("Cancellation Failed");
                     }
 
                     return Results.NoContent();
@@ -443,7 +378,7 @@ public static class ParticipationEndpoints
 
                     if (activeTicketPurchaseIds.Count == 0)
                     {
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: inline query guard — no service Result to route through
                             title: "Not Found",
                             detail: "No active ticket purchases found for this event",
                             statusCode: 404);
@@ -460,23 +395,14 @@ public static class ParticipationEndpoints
                     {
                         if (ticketResult.Error.Contains("not found") || ticketResult.Error.Contains("No active"))
                         {
-                            return Results.Problem(
-                                title: "Not Found",
-                                detail: ticketResult.Error,
-                                statusCode: 404);
+                            return ticketResult.ToProblem("Not Found");
                         }
                         if (ticketResult.Error.Contains("cannot be cancelled") || ticketResult.Error.Contains("Cancellation window"))
                         {
-                            return Results.Problem(
-                                title: "Cancellation Not Allowed",
-                                detail: ticketResult.Error,
-                                statusCode: 400);
+                            return ticketResult.ToProblem("Cancellation Not Allowed");
                         }
 
-                        return Results.Problem(
-                            title: "Cancellation Failed",
-                            detail: ticketResult.Error,
-                            statusCode: 500);
+                        return ticketResult.ToProblem("Cancellation Failed");
                     }
 
                     return Results.NoContent();
@@ -489,23 +415,14 @@ public static class ParticipationEndpoints
                 {
                     if (rsvpResult.Error.Contains("not found") || rsvpResult.Error.Contains("No active"))
                     {
-                        return Results.Problem(
-                            title: "Not Found",
-                            detail: rsvpResult.Error,
-                            statusCode: 404);
+                        return rsvpResult.ToProblem("Not Found");
                     }
                     if (rsvpResult.Error.Contains("cannot be cancelled") || rsvpResult.Error.Contains("Cancellation window") || rsvpResult.Error.Contains("not currently open"))
                     {
-                        return Results.Problem(
-                            title: "Cancellation Not Allowed",
-                            detail: rsvpResult.Error,
-                            statusCode: 400);
+                        return rsvpResult.ToProblem("Cancellation Not Allowed");
                     }
 
-                    return Results.Problem(
-                        title: "Cancellation Failed",
-                        detail: rsvpResult.Error,
-                        statusCode: 500);
+                    return rsvpResult.ToProblem("Cancellation Failed");
                 }
 
                 return Results.NoContent();
@@ -533,7 +450,7 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -546,7 +463,7 @@ public static class ParticipationEndpoints
 
                 if (attendance == null)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: inline query guard — no service Result to route through
                         title: "Not Found",
                         detail: "Attendance record not found",
                         statusCode: 404);
@@ -555,7 +472,7 @@ public static class ParticipationEndpoints
                 // Verify user owns this attendance
                 if (attendance.UserId != userId)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: ownership guard — forbidden, not a service Result
                         title: "Forbidden",
                         detail: "You can only cancel your own attendance",
                         statusCode: 403);
@@ -569,7 +486,7 @@ public static class ParticipationEndpoints
                     // For tickets, get the TicketPurchaseId and delegate to CancelTicketPurchasesAsync
                     if (!attendance.TicketPurchaseId.HasValue)
                     {
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: data integrity guard — no service Result to route through
                             title: "Bad Request",
                             detail: "Ticket attendance has no associated ticket purchase",
                             statusCode: 400);
@@ -596,23 +513,14 @@ public static class ParticipationEndpoints
                 {
                     if (result.Error.Contains("not found") || result.Error.Contains("No active"))
                     {
-                        return Results.Problem(
-                            title: "Not Found",
-                            detail: result.Error,
-                            statusCode: 404);
+                        return result.ToProblem("Not Found");
                     }
                     if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open") || result.Error.Contains("Cancellation window"))
                     {
-                        return Results.Problem(
-                            title: "Cancellation Not Allowed",
-                            detail: result.Error,
-                            statusCode: 400);
+                        return result.ToProblem("Cancellation Not Allowed");
                     }
 
-                    return Results.Problem(
-                        title: "Cancellation Failed",
-                        detail: result.Error,
-                        statusCode: 500);
+                    return result.ToProblem("Cancellation Failed");
                 }
 
                 return Results.NoContent();
@@ -637,7 +545,7 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -647,10 +555,7 @@ public static class ParticipationEndpoints
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
-                    : Results.Problem(
-                        title: "Failed to get user participations",
-                        detail: result.Error,
-                        statusCode: 500);
+                    : result.ToProblem("Failed to get user participations");
             })
             .WithName("GetUserParticipations")
             .WithSummary("Get user's event participations")
@@ -671,7 +576,7 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -683,23 +588,14 @@ public static class ParticipationEndpoints
                 {
                     if (result.Error.Contains("not found") || result.Error.Contains("No active"))
                     {
-                        return Results.Problem(
-                            title: "Not Found",
-                            detail: result.Error,
-                            statusCode: 404);
+                        return result.ToProblem("Not Found");
                     }
                     if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open"))
                     {
-                        return Results.Problem(
-                            title: "Cancellation Not Allowed",
-                            detail: result.Error,
-                            statusCode: 400);
+                        return result.ToProblem("Cancellation Not Allowed");
                     }
 
-                    return Results.Problem(
-                        title: "Cancellation Failed",
-                        detail: result.Error,
-                        statusCode: 500);
+                    return result.ToProblem("Cancellation Failed");
                 }
 
                 return Results.NoContent();
@@ -729,10 +625,7 @@ public static class ParticipationEndpoints
                     return Results.Ok(result.Value); // Direct DTO list
                 }
 
-                return Results.Problem(
-                    title: "Failed to get event participations",
-                    detail: result.Error ?? "Failed to get event participations",
-                    statusCode: 500);
+                return result.ToProblem("Failed to get event participations");
             })
             .WithName("GetEventParticipations")
             .WithSummary("Get all participations for an event (admin only)")
@@ -756,7 +649,7 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "Admin authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -776,7 +669,7 @@ public static class ParticipationEndpoints
 
                 if (attendance == null)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: inline query guard — no service Result to route through
                         title: "Attendance Not Found",
                         detail: "No active attendance found for this user and event",
                         statusCode: 404);
@@ -852,7 +745,7 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "Admin authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -873,7 +766,7 @@ public static class ParticipationEndpoints
 
                 if (rsvpParticipation == null)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: inline query guard — no service Result to route through
                         title: "RSVP Not Found",
                         detail: "No active RSVP found for this user and event",
                         statusCode: 404);
@@ -938,10 +831,7 @@ public static class ParticipationEndpoints
                                     "Failed to process refund for ticketPurchase {TicketPurchaseId}: {Error}",
                                     ticketPurchase.Id, refundResult.ErrorMessage);
 
-                                return Results.Problem(
-                                    title: "Refund Failed",
-                                    detail: $"Failed to process ticket refund: {refundResult.ErrorMessage}",
-                                    statusCode: 500);
+                                return refundResult.ToProblem("Refund Failed");
                             }
 
                             // Update TicketPurchase.PaymentStatus (RefundService delegates this to callers)

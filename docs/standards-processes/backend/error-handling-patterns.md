@@ -1,103 +1,18 @@
-# Error Handling and Logging Patterns
+# Error Handling — pointer to the standard
 
-**Purpose**: Standardized error handling and logging practices for backend services.
-**When to Read**: When implementing error handling, exception management, or logging.
-**Related**: [Service Layer Patterns](./service-layer-patterns.md), [Performance Standards](./performance-standards.md)
+> **This file has been superseded by `error-handling-standard.md` in the same folder.**
+> It is preserved as a breadcrumb so links from older docs / session-work / commit messages still resolve.
 
-## Result Pattern Usage
+**For the current, authoritative rules** on how errors flow from service → endpoint → HTTP client, see:
 
-Use the Result pattern for operations that can fail in expected ways:
+- **[/docs/standards-processes/backend/error-handling-standard.md](./error-handling-standard.md)** — the full RFC 7807 ProblemDetails standard: `Result<T>`, `ResultErrorKind`, `ToProblem(title)`, `GlobalExceptionHandler`, `EndpointErrorShapeTests`.
+- **[CLAUDE.md → "Error Responses"](../../../CLAUDE.md)** — quick-reference table mapping `ResultErrorKind` to HTTP status codes.
 
-```csharp
-/// <summary>
-/// Processes a vetting application, performing all necessary validation steps
-/// and business rule checks. Returns detailed result indicating success or
-/// specific failure reasons for proper user feedback.
-/// </summary>
-public async Task<Result<VettingDecision>> ProcessVettingApplicationAsync(int applicationId)
-{
-    try
-    {
-        var application = await _repository.GetVettingApplicationAsync(applicationId);
-        if (application == null)
-        {
-            return Result<VettingDecision>.Failure("Vetting application not found");
-        }
+## Why this file exists as a pointer (not content)
 
-        // Validate application completeness
-        var validationResult = ValidateApplicationCompleteness(application);
-        if (!validationResult.IsValid)
-        {
-            return Result<VettingDecision>.Failure(
-                $"Application incomplete: {string.Join(", ", validationResult.Errors)}");
-        }
+Per the repo's single-source-of-truth rule (CLAUDE.md), every piece of information lives in exactly one place. The prior version of this file predated the standardized cross-repo error handling pattern and contained earlier Result-pattern usage examples that have since been subsumed by the full standard. Keeping the old body here alongside the new standard would create drift (two sources for the same topic). Keeping the filename with a forward-pointer preserves backward compatibility for existing links while the standard file becomes the single source.
 
-        // Apply business rules for approval
-        var decision = await ApplyVettingBusinessRulesAsync(application);
+## See also
 
-        // Log the decision for audit trail
-        _logger.LogInformation(
-            "Vetting decision made for application {ApplicationId}: {Decision} by {ReviewerId}",
-            applicationId, decision.Decision, decision.ReviewerId);
-
-        return Result<VettingDecision>.Success(decision);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex,
-            "Unexpected error processing vetting application {ApplicationId}",
-            applicationId);
-        return Result<VettingDecision>.Failure("An unexpected error occurred processing the application");
-    }
-}
-```
-
-## Structured Logging
-
-See the **[Serilog Logging Guide](./serilog-logging-guide.md)** for all logging patterns and standards.
-
-**Quick rules for endpoint handlers:**
-- Use message templates, not string interpolation: `"User {UserId} registered"` not `$"User {userId} registered"`
-- `CorrelationId`, `UserId`, and `RequestPath` are injected by middleware — do not add them manually
-- `_logger.BeginScope()` still works but `LogContext.PushProperty` is preferred for middleware-level enrichment
-
-## Exception Handling Guidelines
-
-### When to Use Try-Catch
-- **Service layer operations**: Wrap public service methods
-- **External API calls**: Catch and handle third-party service failures
-- **Database operations**: Handle connection and transaction failures
-- **File I/O**: Handle file system errors gracefully
-
-### When NOT to Use Try-Catch
-- **Validation logic**: Use Result pattern instead
-- **Expected failures**: Return Result<T> with error message
-- **Flow control**: Don't use exceptions for normal program flow
-
-### Custom Exceptions
-```csharp
-/// <summary>
-/// Thrown when payment processing fails for a specific business reason
-/// </summary>
-public class PaymentException : Exception
-{
-    public string PaymentProvider { get; }
-    public string TransactionId { get; }
-
-    public PaymentException(string message, string provider, string transactionId)
-        : base(message)
-    {
-        PaymentProvider = provider;
-        TransactionId = transactionId;
-    }
-}
-```
-
-## Logging Levels
-
-- **Critical**: System is unusable, immediate action required
-- **Error**: Operation failed, but system continues
-- **Warning**: Unexpected situation, but operation succeeded
-- **Information**: Important business events (registration, payment)
-- **Debug**: Detailed diagnostic information for troubleshooting
-- **Trace**: Very detailed diagnostic information
+- **[/docs/standards-processes/backend/serilog-logging-guide.md](./serilog-logging-guide.md)** — still the source for Serilog-specific patterns (message templates, enrichers, PostgreSQL sink).
+- **[/docs/standards-processes/backend/service-layer-patterns.md](./service-layer-patterns.md)** — service-layer conventions (interface design, dependency injection) that are orthogonal to the error-handling wire format.

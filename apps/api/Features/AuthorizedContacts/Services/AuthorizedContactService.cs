@@ -79,9 +79,8 @@ public class AuthorizedContactService : IAuthorizedContactService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving authorized contacts for user {UserId}", userId);
-            return Result<AuthorizedContactsListDto>.Failure(
-                "Failed to retrieve authorized contacts",
-                ex.Message);
+            return Result<AuthorizedContactsListDto>.Infrastructure(
+                "Failed to retrieve authorized contacts. See server logs for details.");
         }
     }
 
@@ -112,7 +111,7 @@ public class AuthorizedContactService : IAuthorizedContactService
                 _logger.LogWarning(
                     "User {PrincipalId} attempted to authorize non-existent user {DelegateUserId}",
                     principalId, delegateUserId);
-                return Result<AuthorizedContactDto>.Failure(
+                return Result<AuthorizedContactDto>.NotFound(
                     "User not found",
                     "The specified user does not exist");
             }
@@ -130,7 +129,7 @@ public class AuthorizedContactService : IAuthorizedContactService
                 _logger.LogWarning(
                     "User {PrincipalId} attempted duplicate authorization for delegate {DelegateUserId}",
                     principalId, delegateUserId);
-                return Result<AuthorizedContactDto>.Failure(
+                return Result<AuthorizedContactDto>.Conflict(
                     "Authorization already exists",
                     "This user is already authorized as your contact");
             }
@@ -160,9 +159,8 @@ public class AuthorizedContactService : IAuthorizedContactService
             _logger.LogError(ex,
                 "Error creating authorized contact: Principal {PrincipalId}, Delegate {DelegateUserId}",
                 principalId, delegateUserId);
-            return Result<AuthorizedContactDto>.Failure(
-                "Failed to create authorized contact",
-                ex.Message);
+            return Result<AuthorizedContactDto>.Infrastructure(
+                "Failed to create authorized contact. See server logs for details.");
         }
     }
 
@@ -181,7 +179,7 @@ public class AuthorizedContactService : IAuthorizedContactService
                 _logger.LogWarning(
                     "Revoke attempt for non-existent or already revoked contact {ContactId} by user {UserId}",
                     contactId, principalId);
-                return Result.Failure(
+                return Result.NotFound(
                     "Authorization not found",
                     "The specified authorization does not exist or has already been revoked");
             }
@@ -192,7 +190,7 @@ public class AuthorizedContactService : IAuthorizedContactService
                 _logger.LogWarning(
                     "User {UserId} attempted to revoke contact {ContactId} owned by Principal {PrincipalId}",
                     principalId, contactId, contact.PrincipalId);
-                return Result.Failure(
+                return Result.Forbidden(
                     "Not authorized to revoke",
                     "Only the principal who created this authorization can revoke it");
             }
@@ -212,9 +210,8 @@ public class AuthorizedContactService : IAuthorizedContactService
             _logger.LogError(ex,
                 "Error revoking authorized contact {ContactId} by user {UserId}",
                 contactId, principalId);
-            return Result.Failure(
-                "Failed to revoke authorization",
-                ex.Message);
+            return Result.Infrastructure(
+                "Failed to revoke authorization. See server logs for details.");
         }
     }
 
@@ -281,9 +278,8 @@ public class AuthorizedContactService : IAuthorizedContactService
             _logger.LogError(ex,
                 "Error searching users with query '{Query}' for user {UserId}",
                 query, currentUserId);
-            return Result<List<ContactSearchResultDto>>.Failure(
-                "Search failed",
-                ex.Message);
+            return Result<List<ContactSearchResultDto>>.Infrastructure(
+                "Search failed. See server logs for details.");
         }
     }
 
@@ -312,7 +308,7 @@ public class AuthorizedContactService : IAuthorizedContactService
                     _logger.LogWarning(
                         "GetPrincipals called with non-existent eventId {EventId} by delegate {DelegateId}",
                         eventId.Value, delegateId);
-                    return Result<List<PrincipalContactDto>>.Failure(
+                    return Result<List<PrincipalContactDto>>.NotFound(
                         "Event not found",
                         "The specified event does not exist");
                 }
@@ -387,9 +383,8 @@ public class AuthorizedContactService : IAuthorizedContactService
             _logger.LogError(ex,
                 "Error getting principals for delegate {DelegateId}, eventId {EventId}",
                 delegateId, eventId);
-            return Result<List<PrincipalContactDto>>.Failure(
-                "Failed to retrieve principals",
-                ex.Message);
+            return Result<List<PrincipalContactDto>>.Infrastructure(
+                "Failed to retrieve principals. See server logs for details.");
         }
     }
 

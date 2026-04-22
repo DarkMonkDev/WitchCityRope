@@ -87,7 +87,7 @@ public class ProxyRsvpService : IProxyRsvpService
             if (eventEntity == null)
             {
                 _logger.LogWarning("Proxy RSVP attempt for non-existent event {EventId}", eventId);
-                return Result<ProxyRsvpDto>.Failure(
+                return Result<ProxyRsvpDto>.NotFound(
                     "Event not found",
                     "The specified event does not exist");
             }
@@ -97,7 +97,7 @@ public class ProxyRsvpService : IProxyRsvpService
                 _logger.LogWarning(
                     "Proxy RSVP attempt for event {EventId} that does not allow RSVPs",
                     eventId);
-                return Result<ProxyRsvpDto>.Failure(
+                return Result<ProxyRsvpDto>.Forbidden(
                     "RSVPs not allowed",
                     "This event does not allow RSVPs");
             }
@@ -111,7 +111,7 @@ public class ProxyRsvpService : IProxyRsvpService
                 _logger.LogWarning(
                     "Unauthorized proxy RSVP attempt: Delegate {DelegateUserId} not authorized by Principal {PrincipalUserId} (BR-050)",
                     delegateUserId, principalUserId);
-                return Result<ProxyRsvpDto>.Failure(
+                return Result<ProxyRsvpDto>.Forbidden(
                     "Not authorized",
                     "You are not authorized to RSVP on behalf of this user (BR-050)");
             }
@@ -127,7 +127,7 @@ public class ProxyRsvpService : IProxyRsvpService
 
                 if (principalUser == null)
                 {
-                    return Result<ProxyRsvpDto>.Failure(
+                    return Result<ProxyRsvpDto>.NotFound(
                         "User not found",
                         "The specified principal user does not exist");
                 }
@@ -138,7 +138,7 @@ public class ProxyRsvpService : IProxyRsvpService
                     _logger.LogWarning(
                         "Proxy RSVP blocked: Principal {PrincipalUserId} not vetted for VettedMembersOnly event {EventId} (BR-035)",
                         principalUserId, eventId);
-                    return Result<ProxyRsvpDto>.Failure(
+                    return Result<ProxyRsvpDto>.Forbidden(
                         "Vetting required",
                         "This event requires vetted membership. The person you are RSVPing for is not vetted (BR-035)");
                 }
@@ -154,7 +154,7 @@ public class ProxyRsvpService : IProxyRsvpService
                 _logger.LogWarning(
                     "Proxy RSVP blocked: Event {EventId} at capacity ({ReservedCount}/{Capacity}) (BR-054)",
                     eventId, reservedCount, eventEntity.Capacity);
-                return Result<ProxyRsvpDto>.Failure(
+                return Result<ProxyRsvpDto>.Conflict(
                     "Event at capacity",
                     "This event is at full capacity (BR-054)");
             }
@@ -178,7 +178,7 @@ public class ProxyRsvpService : IProxyRsvpService
                 _logger.LogWarning(
                     "Principal {PrincipalUserId} already has Active/PendingAcceptance participation for event {EventId}",
                     principalUserId, eventId);
-                return Result<ProxyRsvpDto>.Failure(
+                return Result<ProxyRsvpDto>.Conflict(
                     "Already participating",
                     "This person already has an active or pending RSVP or ticket for this event");
             }
@@ -220,7 +220,7 @@ public class ProxyRsvpService : IProxyRsvpService
                         "Proxy RSVP blocked: Delegate {DelegateUserId} would exceed per-person limit " +
                         "({TotalCount}/{Limit}) for event {EventId}",
                         delegateUserId, totalDelegateCount, limit, eventId);
-                    return Result<ProxyRsvpDto>.Failure(
+                    return Result<ProxyRsvpDto>.Conflict(
                         "Per-person limit reached",
                         $"You have reached the maximum of {limit} RSVPs/tickets allowed per person for this event");
                 }
@@ -301,7 +301,7 @@ public class ProxyRsvpService : IProxyRsvpService
             _logger.LogError(ex,
                 "Error creating proxy RSVP: Delegate {DelegateUserId}, Principal {PrincipalUserId}, Event {EventId}",
                 delegateUserId, principalUserId, eventId);
-            return Result<ProxyRsvpDto>.Failure(
+            return Result<ProxyRsvpDto>.Infrastructure(
                 "Failed to create proxy RSVP",
                 ex.Message);
         }
@@ -336,7 +336,7 @@ public class ProxyRsvpService : IProxyRsvpService
                 _logger.LogWarning(
                     "Accept proxy RSVP failed: Attendance {AttendanceId} not found or not in PendingAcceptance RSVP state",
                     attendanceId);
-                return Result<ProxyRsvpDto>.Failure(
+                return Result<ProxyRsvpDto>.NotFound(
                     "RSVP not found",
                     "The specified RSVP does not exist or is not pending acceptance");
             }
@@ -347,7 +347,7 @@ public class ProxyRsvpService : IProxyRsvpService
                 _logger.LogWarning(
                     "Accept proxy RSVP denied: Caller {CallerUserId} is not the principal {PrincipalUserId} for attendance {AttendanceId}",
                     callerUserId, attendance.UserId, attendanceId);
-                return Result<ProxyRsvpDto>.Failure(
+                return Result<ProxyRsvpDto>.Forbidden(
                     "Not authorized",
                     "Only the person this RSVP was created for can accept it");
             }
@@ -389,7 +389,7 @@ public class ProxyRsvpService : IProxyRsvpService
                     _logger.LogWarning(
                         "Accept proxy RSVP blocked: Principal {PrincipalUserId} vetting status changed for VettedMembersOnly event {EventId} (BR-036)",
                         callerUserId, attendance.EventId);
-                    return Result<ProxyRsvpDto>.Failure(
+                    return Result<ProxyRsvpDto>.Forbidden(
                         "Vetting required",
                         "This event requires vetted membership. Your vetting status has changed since this RSVP was created (BR-036)");
                 }
@@ -498,7 +498,7 @@ public class ProxyRsvpService : IProxyRsvpService
             _logger.LogError(ex,
                 "Error accepting proxy RSVP: AttendanceId {AttendanceId}, User {CallerUserId}",
                 attendanceId, callerUserId);
-            return Result<ProxyRsvpDto>.Failure(
+            return Result<ProxyRsvpDto>.Infrastructure(
                 "Failed to accept proxy RSVP",
                 ex.Message);
         }
@@ -529,7 +529,7 @@ public class ProxyRsvpService : IProxyRsvpService
                 _logger.LogWarning(
                     "Decline proxy RSVP failed: Attendance {AttendanceId} not found or not in PendingAcceptance RSVP state",
                     attendanceId);
-                return Result.Failure(
+                return Result.NotFound(
                     "RSVP not found",
                     "The specified RSVP does not exist or is not pending acceptance");
             }
@@ -540,7 +540,7 @@ public class ProxyRsvpService : IProxyRsvpService
                 _logger.LogWarning(
                     "Decline proxy RSVP denied: Caller {CallerUserId} is not the principal {PrincipalUserId} for attendance {AttendanceId}",
                     callerUserId, attendance.UserId, attendanceId);
-                return Result.Failure(
+                return Result.Forbidden(
                     "Not authorized",
                     "Only the person this RSVP was created for can decline it");
             }
@@ -587,7 +587,7 @@ public class ProxyRsvpService : IProxyRsvpService
             _logger.LogError(ex,
                 "Error declining proxy RSVP: AttendanceId {AttendanceId}, User {CallerUserId}",
                 attendanceId, callerUserId);
-            return Result.Failure(
+            return Result.Infrastructure(
                 "Failed to decline proxy RSVP",
                 ex.Message);
         }

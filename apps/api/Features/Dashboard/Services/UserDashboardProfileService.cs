@@ -228,7 +228,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching events for user {UserId}", userId);
-            return Result<List<UserEventDto>>.Failure("Failed to fetch user events", ex.Message);
+            return Result<List<UserEventDto>>.Infrastructure("Failed to fetch user events. See server logs for details.");
         }
     }
 
@@ -243,7 +243,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
-                return Result<VettingStatusDto>.Failure("User not found");
+                return Result<VettingStatusDto>.NotFound("User not found");
             }
 
             // Get the user's vetting status from ApplicationUser
@@ -310,7 +310,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching vetting status for user {UserId}", userId);
-            return Result<VettingStatusDto>.Failure("Failed to fetch vetting status", ex.Message);
+            return Result<VettingStatusDto>.Infrastructure("Failed to fetch vetting status. See server logs for details.");
         }
     }
 
@@ -325,7 +325,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
-                return Result<UserProfileDto>.Failure("User not found");
+                return Result<UserProfileDto>.NotFound("User not found");
             }
 
             // Check if user has a non-deleted vetting application by querying the database
@@ -384,7 +384,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 var user = await _userManager.FindByIdAsync(userId.ToString());
                 if (user == null)
                 {
-                    return Result<UserProfileDto>.Failure("User not found");
+                    return Result<UserProfileDto>.NotFound("User not found");
                 }
 
                 // Store the original concurrency stamp for logging

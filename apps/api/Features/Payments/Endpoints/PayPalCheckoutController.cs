@@ -323,7 +323,7 @@ public class PayPalCheckoutController : ControllerBase
 
         if (string.IsNullOrEmpty(request.OrderId))
         {
-            return Problem(title: "Bad Request", detail: "OrderId is required", statusCode: 400);
+            return Problem(title: "Bad Request", detail: "OrderId is required", statusCode: 400); // ARCH-ALLOW: MVC controller — inline validation, no service Result
         }
 
         _logger.LogInformation(
@@ -339,7 +339,7 @@ public class PayPalCheckoutController : ControllerBase
         {
             _logger.LogWarning(
                 "No pending ticket purchases found for PayPal order {OrderId}", request.OrderId);
-            return Problem(title: "Not Found",
+            return Problem(title: "Not Found", // ARCH-ALLOW: MVC controller — inline query guard, no service Result
                 detail: "No ticket purchase found for this PayPal order.", statusCode: 404);
         }
 
@@ -356,7 +356,7 @@ public class PayPalCheckoutController : ControllerBase
 
             await RollbackPendingPurchasesAsync(ticketPurchaseIds, "capture-fail", cancellationToken);
 
-            return Problem(title: "Payment Error",
+            return Problem(title: "Payment Error", // ARCH-ALLOW: MVC controller returns IActionResult — ToProblem yields IResult (mismatched types)
                 detail: "PayPal payment capture failed. Your tickets have been released. Please try again.",
                 statusCode: 500);
         }
@@ -445,7 +445,7 @@ public class PayPalCheckoutController : ControllerBase
                 "but failed to finalize ticket purchases [{TicketPurchaseIds}]. MANUAL INTERVENTION REQUIRED.",
                 capture.CaptureId, request.OrderId, string.Join(", ", ticketPurchaseIds));
 
-            return Problem(
+            return Problem( // ARCH-ALLOW: MVC controller catch-all — payment captured but finalization failed, manual intervention path
                 title: "Payment Processing Error",
                 detail: "Your PayPal payment was processed but we encountered an error completing your registration. " +
                         "Please contact info@witchcityrope.com for assistance.",
@@ -569,7 +569,7 @@ public class PayPalCheckoutController : ControllerBase
     private IActionResult PayPalCheckoutProblem(
         string correlationId, string failureStage, string detail, bool paymentCharged)
     {
-        return Problem(
+        return Problem( // ARCH-ALLOW: custom PayPalCheckoutProblem helper — adds correlationId / paymentCharged extensions that ToProblem cannot express
             title: failureStage switch
             {
                 "validation" => "Checkout Validation Failed",

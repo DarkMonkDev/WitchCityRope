@@ -70,7 +70,7 @@ public class VettingHoldService : IVettingHoldService
 
                 if (user == null)
                 {
-                    return Result<MembershipHoldResponse>.Failure(
+                    return Result<MembershipHoldResponse>.NotFound(
                         "User not found",
                         $"User {userId} does not exist");
                 }
@@ -210,7 +210,7 @@ public class VettingHoldService : IVettingHoldService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error placing membership on hold for user {UserId}", userId);
-            return Result<MembershipHoldResponse>.Failure(
+            return Result<MembershipHoldResponse>.Infrastructure(
                 "Failed to place membership on hold",
                 ex.Message);
         }
@@ -252,7 +252,7 @@ public class VettingHoldService : IVettingHoldService
 
                 if (user == null)
                 {
-                    return Result<MembershipHoldResponse>.Failure(
+                    return Result<MembershipHoldResponse>.NotFound(
                         "User not found",
                         $"User {userId} does not exist");
                 }
@@ -359,7 +359,7 @@ public class VettingHoldService : IVettingHoldService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error requesting reinstatement for user {UserId}", userId);
-            return Result<MembershipHoldResponse>.Failure(
+            return Result<MembershipHoldResponse>.Infrastructure(
                 "Failed to request reinstatement",
                 ex.Message);
         }
@@ -406,7 +406,7 @@ public class VettingHoldService : IVettingHoldService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting hold status for user {UserId}", userId);
-            return Result<VettingHoldStatusResponse>.Failure(
+            return Result<VettingHoldStatusResponse>.Infrastructure(
                 "Failed to get hold status",
                 ex.Message);
         }

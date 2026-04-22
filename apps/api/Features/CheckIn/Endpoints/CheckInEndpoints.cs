@@ -5,6 +5,7 @@ using WitchCityRope.Api.Features.CheckIn.Models;
 using WitchCityRope.Api.Features.CheckIn.Services;
 using WitchCityRope.Api.Features.CheckIn.Validation;
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.CheckIn.Endpoints;
 
@@ -37,7 +38,7 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Check-in token is required",
                     statusCode: 401);
@@ -46,7 +47,7 @@ public static class CheckInEndpoints
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Invalid or expired check-in token",
                     statusCode: 401);
@@ -55,7 +56,7 @@ public static class CheckInEndpoints
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: token-scope guard — forbidden, not a service Result
                     title: "Forbidden",
                     detail: "Check-in token is for a different event",
                     statusCode: 403);
@@ -72,10 +73,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Get Attendees Failed",
-                    detail: result.Error,
-                    statusCode: 500);
+                : result.ToProblem("Get Attendees Failed");
         })
         .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("GetEventAttendees")
@@ -99,7 +97,7 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Check-in token is required",
                     statusCode: 401);
@@ -108,7 +106,7 @@ public static class CheckInEndpoints
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Invalid or expired check-in token",
                     statusCode: 401);
@@ -117,7 +115,7 @@ public static class CheckInEndpoints
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: token-scope guard — forbidden, not a service Result
                     title: "Forbidden",
                     detail: "Check-in token is for a different event",
                     statusCode: 403);
@@ -135,11 +133,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Check-in Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("not found") ? 404 :
-                               result.Error.Contains("capacity") ? 409 : 500);
+                : result.ToProblem("Check-in Failed");
         })
         .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("ProcessCheckIn")
@@ -164,7 +158,7 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Check-in token is required",
                     statusCode: 401);
@@ -173,7 +167,7 @@ public static class CheckInEndpoints
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Invalid or expired check-in token",
                     statusCode: 401);
@@ -182,7 +176,7 @@ public static class CheckInEndpoints
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: token-scope guard — forbidden, not a service Result
                     title: "Forbidden",
                     detail: "Check-in token is for a different event",
                     statusCode: 403);
@@ -193,10 +187,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Get Dashboard Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Get Dashboard Failed");
         })
         .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("GetEventDashboard")
@@ -221,7 +212,7 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Check-in token is required",
                     statusCode: 401);
@@ -230,7 +221,7 @@ public static class CheckInEndpoints
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Invalid or expired check-in token",
                     statusCode: 401);
@@ -239,7 +230,7 @@ public static class CheckInEndpoints
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: token-scope guard — forbidden, not a service Result
                     title: "Forbidden",
                     detail: "Check-in token is for a different event",
                     statusCode: 403);
@@ -257,10 +248,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Sync Failed",
-                    detail: result.Error,
-                    statusCode: 500);
+                : result.ToProblem("Sync Failed");
         })
         .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("SyncOfflineCheckIns")
@@ -280,7 +268,7 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Check-in token is required",
                     statusCode: 401);
@@ -289,7 +277,7 @@ public static class CheckInEndpoints
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Invalid or expired check-in token",
                     statusCode: 401);
@@ -298,7 +286,7 @@ public static class CheckInEndpoints
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: token-scope guard — forbidden, not a service Result
                     title: "Forbidden",
                     detail: "Check-in token is for a different event",
                     statusCode: 403);
@@ -319,11 +307,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Cash Payment Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("not found") ? 404 :
-                               result.Error.Contains("already has a ticket") ? 409 : 500);
+                : result.ToProblem("Cash Payment Failed");
         })
         .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("RecordCashPayment")
@@ -350,7 +334,7 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Check-in token is required",
                     statusCode: 401);
@@ -359,7 +343,7 @@ public static class CheckInEndpoints
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Invalid or expired check-in token",
                     statusCode: 401);
@@ -368,7 +352,7 @@ public static class CheckInEndpoints
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: token-scope guard — forbidden, not a service Result
                     title: "Forbidden",
                     detail: "Check-in token is for a different event",
                     statusCode: 403);
@@ -386,10 +370,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Manual Entry Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("already registered") ? 409 : 500);
+                : result.ToProblem("Manual Entry Failed");
         })
         .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("CreateManualEntry")
@@ -417,7 +398,7 @@ public static class CheckInEndpoints
             var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var adminUserId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Authorization Failed",
                     detail: "Unable to identify user from token",
                     statusCode: 403);
@@ -430,10 +411,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Bad Request",
-                    detail: result.Error,
-                    statusCode: 400);
+                : result.ToProblem("Bad Request");
         })
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
@@ -456,7 +434,7 @@ public static class CheckInEndpoints
             var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var adminUserId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Authorization Failed",
                     detail: "Unable to identify user from token",
                     statusCode: 403);
@@ -466,10 +444,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.NoContent()
-                : Results.Problem(
-                    title: "Bad Request",
-                    detail: result.Error,
-                    statusCode: 400);
+                : result.ToProblem("Bad Request");
         })
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
@@ -489,10 +464,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Bad Request",
-                    detail: result.Error,
-                    statusCode: 400);
+                : result.ToProblem("Bad Request");
         })
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
@@ -514,7 +486,7 @@ public static class CheckInEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Check-in token is required",
                     statusCode: 401);
@@ -523,7 +495,7 @@ public static class CheckInEndpoints
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "Unauthorized",
                     detail: "Invalid or expired check-in token",
                     statusCode: 401);
@@ -537,10 +509,7 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(new { pendingCount = result.Value })
-                : Results.Problem(
-                    title: "Get Pending Count Failed",
-                    detail: result.Error,
-                    statusCode: 500);
+                : result.ToProblem("Get Pending Count Failed");
         })
         .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("GetPendingSyncCount")

@@ -1,5 +1,6 @@
 using WitchCityRope.Api.Features.Health.Models;
 using WitchCityRope.Api.Features.Health.Services;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Health.Endpoints;
 
@@ -24,7 +25,7 @@ public static class HealthEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Health Check Failed",
                         detail: error,
                         statusCode: 503);
@@ -45,7 +46,7 @@ public static class HealthEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Detailed Health Check Failed",
                         detail: error,
                         statusCode: 503);
@@ -67,7 +68,7 @@ public static class HealthEndpoints
                 // Return simple status for legacy health checks
                 return success
                     ? Results.Ok(new { status = "Healthy" })
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Health Check Failed",
                         detail: error,
                         statusCode: 503);

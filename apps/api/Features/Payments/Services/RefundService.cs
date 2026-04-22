@@ -20,6 +20,16 @@ namespace WitchCityRope.Api.Features.Payments.Services;
 /// Consolidated refund processing service with integrated retry logic and audit trails
 /// ARCHITECTURE FIX (2025-11-18): Now uses TicketPurchase (single source of truth)
 /// CONSOLIDATED: Merged RefundAuditService and RefundRetryService into this class
+///
+/// Error handling: follows the Error Handling Standard —
+/// <c>docs/standards-processes/backend/error-handling-standard.md</c>. Exceptions are logged
+/// server-side via <c>_logger.LogError(ex, ...)</c>; <c>ex.Message</c> is never passed into
+/// <see cref="Result{T}"/> Error strings, nor into <see cref="PaymentRefund.MarkFailed"/>
+/// arguments (those persist to <c>Metadata["failure_reason"]</c> and are later returned via
+/// <c>Result.Failure</c> at line 319 — so ANY leak there reaches the wire indirectly).
+/// External-processor failures (PayPal, Authorize.net) use <see cref="Result{T}.Upstream"/>
+/// (→ HTTP 502); unexpected internal errors use <see cref="Result{T}.Infrastructure"/>
+/// (→ HTTP 500).
 /// </summary>
 public class RefundService : IRefundService
 {
@@ -188,7 +198,9 @@ public class RefundService : IRefundService
                     }
                     catch (MaxRetriesExceededException ex)
                     {
-                        var errorMessage = $"Max retries exceeded: {ex.Message}";
+                        // errorMessage persists via MarkFailed → Metadata["failure_reason"] → Result.Failure at ~line 319 (wire).
+                        // ex.Message is excluded for that reason; full exception is in the _logger.LogError call below.
+                        var errorMessage = "Max retries exceeded calling PayPal. See server logs for details.";
                         await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
 
                         refund.MarkFailed(errorMessage);
@@ -196,7 +208,7 @@ public class RefundService : IRefundService
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"PayPal processing error: {ex.Message}";
+                        var errorMessage = "PayPal processing error. See server logs for details.";
                         await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
 
                         refund.MarkFailed(errorMessage);
@@ -256,7 +268,9 @@ public class RefundService : IRefundService
                         }
                         catch (Exception ex)
                         {
-                            var errorMessage = $"Authorize.net processing error: {ex.Message}";
+                            // Same sanitization rationale as the PayPal catch above —
+                            // errorMessage is persisted and later returned to the wire.
+                            var errorMessage = "Authorize.net processing error. See server logs for details.";
                             await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
                             refund.MarkFailed(errorMessage);
                             _logger.LogError(ex, "Error processing Authorize.net refund for ticket {TicketId}", request.TicketPurchaseId);
@@ -391,7 +405,7 @@ public class RefundService : IRefundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing refund for ticket {TicketId}", request.TicketPurchaseId);
-            return Result<PaymentRefund>.Failure($"An error occurred while processing the refund: {ex.Message}");
+            return Result<PaymentRefund>.Infrastructure("An error occurred while processing the refund. See server logs for details.");
         }
     }
 
@@ -412,7 +426,7 @@ public class RefundService : IRefundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving refund {RefundId}", refundId);
-            return Result<PaymentRefund?>.Failure($"Error retrieving refund: {ex.Message}");
+            return Result<PaymentRefund?>.Infrastructure("Error retrieving refund. See server logs for details.");
         }
     }
 
@@ -434,7 +448,7 @@ public class RefundService : IRefundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving refunds for payment {PaymentId}", paymentId);
-            return Result<List<PaymentRefund>>.Failure($"Error retrieving refunds: {ex.Message}");
+            return Result<List<PaymentRefund>>.Infrastructure("Error retrieving refunds. See server logs for details.");
         }
     }
 
@@ -456,7 +470,7 @@ public class RefundService : IRefundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving refunds processed by user {UserId}", userId);
-            return Result<List<PaymentRefund>>.Failure($"Error retrieving refunds: {ex.Message}");
+            return Result<List<PaymentRefund>>.Infrastructure("Error retrieving refunds. See server logs for details.");
         }
     }
 
@@ -478,7 +492,7 @@ public class RefundService : IRefundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking refund eligibility for ticket {TicketId}", paymentId);
-            return Result<bool>.Failure($"Error checking refund eligibility: {ex.Message}");
+            return Result<bool>.Infrastructure("Error checking refund eligibility. See server logs for details.");
         }
     }
 
@@ -516,7 +530,7 @@ public class RefundService : IRefundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating maximum refund amount for ticket {TicketId}", paymentId);
-            return Result<Money?>.Failure($"Error calculating maximum refund amount: {ex.Message}");
+            return Result<Money?>.Infrastructure("Error calculating maximum refund amount. See server logs for details.");
         }
     }
 
@@ -558,7 +572,7 @@ public class RefundService : IRefundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating refund {RefundId} status", refundId);
-            return Result<PaymentRefund>.Failure($"Error updating refund status: {ex.Message}");
+            return Result<PaymentRefund>.Infrastructure("Error updating refund status. See server logs for details.");
         }
     }
 
@@ -808,8 +822,11 @@ public class RefundService : IRefundService
                             "Refund failed after {MaxRetries} retries for capture {CaptureId}",
                             MaxRetries, captureId);
 
+                        // Outer catch at ~line 189 persists this Exception's .Message via MarkFailed →
+                        // Metadata["failure_reason"] → Result.Failure at ~line 319 (wire). Keep the
+                        // message static; full HttpRequestException is preserved as InnerException.
                         throw new MaxRetriesExceededException(
-                            $"Refund failed after {MaxRetries} retries: {ex.Message}",
+                            $"Refund failed after {MaxRetries} retries. See server logs for details.",
                             ex);
                     }
 
@@ -841,8 +858,8 @@ public class RefundService : IRefundService
                     "Non-retryable HTTP error for capture {CaptureId}: {StatusCode} {ErrorMessage}",
                     captureId, ex.StatusCode, ex.Message);
 
-                return Result<PayPalRefundResponse>.Failure(
-                    $"Refund failed with client error: {ex.Message}");
+                return Result<PayPalRefundResponse>.Upstream(
+                    "Refund failed with client error from PayPal. See server logs for details.");
             }
             catch (TaskCanceledException ex)
             {
@@ -885,8 +902,8 @@ public class RefundService : IRefundService
                     "Unexpected error during refund for capture {CaptureId}: {ErrorType} {ErrorMessage}",
                     captureId, ex.GetType().Name, ex.Message);
 
-                return Result<PayPalRefundResponse>.Failure(
-                    $"Unexpected error during refund: {ex.Message}");
+                return Result<PayPalRefundResponse>.Infrastructure(
+                    "Unexpected error during refund. See server logs for details.");
             }
         }
 

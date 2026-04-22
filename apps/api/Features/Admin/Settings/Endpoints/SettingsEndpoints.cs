@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using WitchCityRope.Api.Features.Admin.Settings.Models;
 using WitchCityRope.Api.Features.Admin.Settings.Interfaces;
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Admin.Settings.Endpoints;
 
@@ -67,7 +68,7 @@ public static class SettingsEndpoints
                 }
                 catch (TimeZoneNotFoundException)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Invalid Timezone",
                         detail: $"Timezone '{timeZoneId}' is not valid",
                         statusCode: 400);
@@ -80,7 +81,7 @@ public static class SettingsEndpoints
 
             if (!success)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Update Failed",
                     detail: error,
                     statusCode: 500);

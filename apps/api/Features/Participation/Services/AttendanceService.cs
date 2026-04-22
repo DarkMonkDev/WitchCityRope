@@ -118,7 +118,7 @@ public class AttendanceService : IAttendanceService
             if (eventEntity == null)
             {
                 _logger.LogWarning("Event {EventId} not found when fetching attendance status", eventId);
-                return Result<EnhancedParticipationStatusDto?>.Failure("Event not found");
+                return Result<EnhancedParticipationStatusDto?>.NotFound("Event not found");
             }
 
             // Display count: Active only, type-appropriate — matches events list page logic.
@@ -731,7 +731,7 @@ public class AttendanceService : IAttendanceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting attendance status for user {UserId} in event {EventId}", userId, eventId);
-            return Result<EnhancedParticipationStatusDto?>.Failure("Failed to get attendance status", ex.Message);
+            return Result<EnhancedParticipationStatusDto?>.Infrastructure("Failed to get attendance status. See server logs for details.");
         }
     }
 
@@ -755,7 +755,7 @@ public class AttendanceService : IAttendanceService
 
             if (eventEntity == null)
             {
-                return Result<ParticipationStatusDto>.Failure("Event not found");
+                return Result<ParticipationStatusDto>.NotFound("Event not found");
             }
 
             if (!eventEntity.AllowRsvps)
@@ -772,7 +772,7 @@ public class AttendanceService : IAttendanceService
 
                 if (userForVetting != null && !userForVetting.IsVetted)
                 {
-                    return Result<ParticipationStatusDto>.Failure("This event is limited to vetted members only");
+                    return Result<ParticipationStatusDto>.Forbidden("This event is limited to vetted members only");
                 }
             }
 
@@ -798,7 +798,7 @@ public class AttendanceService : IAttendanceService
 
             if (user == null)
             {
-                return Result<ParticipationStatusDto>.Failure("User not found");
+                return Result<ParticipationStatusDto>.NotFound("User not found");
             }
 
             // REMOVED: Vetting requirement - Social events are open to all authenticated users
@@ -823,7 +823,7 @@ public class AttendanceService : IAttendanceService
 
             if (existingRsvp != null)
             {
-                return Result<ParticipationStatusDto>.Failure("User already has an active RSVP for this event");
+                return Result<ParticipationStatusDto>.Conflict("User already has an active RSVP for this event");
             }
 
             // Use reserved count (Active + PendingPayment) to prevent overselling during checkout windows
@@ -831,7 +831,7 @@ public class AttendanceService : IAttendanceService
 
             if (currentAttendanceCount >= eventEntity.Capacity)
             {
-                return Result<ParticipationStatusDto>.Failure("Event is at full capacity");
+                return Result<ParticipationStatusDto>.Conflict("Event is at full capacity");
             }
 
             // Create the RSVP with Event Waiver acceptance
@@ -938,7 +938,7 @@ public class AttendanceService : IAttendanceService
                     "Total records for this user/event: {RecordCount}. Records: {@Records}",
                     attendance.Id, userId, request.EventId, allRecords.Count, allRecords);
 
-                return Result<ParticipationStatusDto>.Failure("Failed to save RSVP to database");
+                return Result<ParticipationStatusDto>.Infrastructure("Failed to save RSVP to database. See server logs for details.");
             }
 
             _logger.LogInformation(
@@ -977,7 +977,7 @@ public class AttendanceService : IAttendanceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating RSVP for user {UserId} in event {EventId}", userId, request.EventId);
-            return Result<ParticipationStatusDto>.Failure("Failed to create RSVP", ex.Message);
+            return Result<ParticipationStatusDto>.Infrastructure("Failed to create RSVP. See server logs for details.");
         }
     }
 
@@ -1021,7 +1021,7 @@ public class AttendanceService : IAttendanceService
 
             if (eventEntity == null)
             {
-                return Result<ParticipationStatusDto>.Failure("Event not found");
+                return Result<ParticipationStatusDto>.NotFound("Event not found");
             }
 
             // Check if user exists
@@ -1031,14 +1031,14 @@ public class AttendanceService : IAttendanceService
 
             if (user == null)
             {
-                return Result<ParticipationStatusDto>.Failure("User not found");
+                return Result<ParticipationStatusDto>.NotFound("User not found");
             }
 
             // VETTING ENFORCEMENT: Check if event requires vetted members (purchaser)
             // Must run before waiver/timing checks so non-vetted users get clear denial message
             if (eventEntity.VettedMembersOnly && !user.IsVetted)
             {
-                return Result<ParticipationStatusDto>.Failure("This event is limited to vetted members only");
+                return Result<ParticipationStatusDto>.Forbidden("This event is limited to vetted members only");
             }
 
             // CRITICAL: Validate Event Waiver acceptance (for purchaser's own ticket)
@@ -1546,7 +1546,7 @@ public class AttendanceService : IAttendanceService
                 {
                     _logger.LogError("CRITICAL: Ticket purchase {AttendanceId} for user {UserId} in event {EventId} failed to persist to database",
                         primaryAttendance.Id, userId, request.EventId);
-                    return Result<ParticipationStatusDto>.Failure("Failed to save ticket purchase to database");
+                    return Result<ParticipationStatusDto>.Infrastructure("Failed to save ticket purchase to database. See server logs for details.");
                 }
             }
 
@@ -1583,7 +1583,7 @@ public class AttendanceService : IAttendanceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating ticket purchase for user {UserId} in event {EventId}", userId, request.EventId);
-            return Result<ParticipationStatusDto>.Failure("Failed to create ticket purchase", ex.Message);
+            return Result<ParticipationStatusDto>.Infrastructure("Failed to create ticket purchase. See server logs for details.");
         }
     }
 
@@ -1627,7 +1627,7 @@ public class AttendanceService : IAttendanceService
 
             if (eventEntity == null)
             {
-                return Result.Failure("Event not found");
+                return Result.NotFound("Event not found");
             }
 
             var isAllowed = await _timeZoneService.IsActionAllowedAsync(
@@ -1741,7 +1741,7 @@ public class AttendanceService : IAttendanceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cancelling RSVP for user {UserId} in event {EventId}", userId, eventId);
-            return Result.Failure("Failed to cancel RSVP", ex.Message);
+            return Result.Infrastructure("Failed to cancel RSVP. See server logs for details.");
         }
     }
 
@@ -1785,7 +1785,7 @@ public class AttendanceService : IAttendanceService
 
             if (eventEntity == null)
             {
-                return Result.Failure("Event not found");
+                return Result.NotFound("Event not found");
             }
 
             // Find ALL cancellable attendances for these ticket purchases.
@@ -1972,7 +1972,7 @@ public class AttendanceService : IAttendanceService
                 _logger.LogWarning(
                     "User {UserId} attempted to cancel ticket purchases belonging to other users: {Ids}",
                     userId, string.Join(", ", unauthorizedPurchases.Select(p => p.Id)));
-                return Result.Failure("Unauthorized: Cannot cancel tickets that don't belong to you");
+                return Result.Forbidden("Unauthorized: Cannot cancel tickets that don't belong to you");
             }
 
             // TIMING VALIDATION: Check if cancellation is still allowed for each ticket type

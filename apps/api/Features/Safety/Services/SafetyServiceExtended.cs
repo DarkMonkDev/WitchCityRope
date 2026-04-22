@@ -211,7 +211,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get incidents list for user {UserId}", userId);
-            return Result<PaginatedIncidentListResponse>.Failure("Failed to retrieve incidents");
+            return Result<PaginatedIncidentListResponse>.Infrastructure("Failed to retrieve incidents. See server logs for details.");
         }
     }
 
@@ -296,7 +296,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get dashboard statistics for user {UserId}", userId);
-            return Result<DashboardStatisticsResponse>.Failure("Failed to retrieve dashboard statistics");
+            return Result<DashboardStatisticsResponse>.Infrastructure("Failed to retrieve dashboard statistics. See server logs for details.");
         }
     }
 
@@ -335,7 +335,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get users for assignment");
-            return Result<IEnumerable<UserCoordinatorDto>>.Failure("Failed to retrieve user list");
+            return Result<IEnumerable<UserCoordinatorDto>>.Infrastructure("Failed to retrieve user list. See server logs for details.");
         }
     }
 
@@ -362,7 +362,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
 
             if (incident == null)
             {
-                return Result<IncidentSummaryDto>.Failure("Incident not found");
+                return Result<IncidentSummaryDto>.NotFound("Incident not found");
             }
 
             var oldCoordinatorId = incident.CoordinatorId;
@@ -450,7 +450,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to assign coordinator to incident {IncidentId}", incidentId);
-            return Result<IncidentSummaryDto>.Failure("Failed to assign coordinator");
+            return Result<IncidentSummaryDto>.Infrastructure("Failed to assign coordinator. See server logs for details.");
         }
     }
 
@@ -471,14 +471,14 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
 
             if (incident == null)
             {
-                return Result<StatusUpdateResponse>.Failure("Incident not found");
+                return Result<StatusUpdateResponse>.NotFound("Incident not found");
             }
 
             // Check authorization
             var canAccess = await CanUserAccessIncidentAsync(userId, incident, cancellationToken);
             if (!canAccess)
             {
-                return Result<StatusUpdateResponse>.Failure("Access denied - you can only update incidents assigned to you");
+                return Result<StatusUpdateResponse>.Forbidden("Access denied - you can only update incidents assigned to you");
             }
 
             var oldStatus = incident.Status;
@@ -545,7 +545,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update status for incident {IncidentId}", incidentId);
-            return Result<StatusUpdateResponse>.Failure("Failed to update incident status");
+            return Result<StatusUpdateResponse>.Infrastructure("Failed to update incident status. See server logs for details.");
         }
     }
 
@@ -567,14 +567,14 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
 
             if (incident == null)
             {
-                return Result<GoogleDriveUpdateResponse>.Failure("Incident not found");
+                return Result<GoogleDriveUpdateResponse>.NotFound("Incident not found");
             }
 
             // Check authorization
             var canAccess = await CanUserAccessIncidentAsync(userId, incident, cancellationToken);
             if (!canAccess)
             {
-                return Result<GoogleDriveUpdateResponse>.Failure("Access denied - you can only update incidents assigned to you");
+                return Result<GoogleDriveUpdateResponse>.Forbidden("Access denied - you can only update incidents assigned to you");
             }
 
             // Update Drive links
@@ -614,7 +614,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update Google Drive links for incident {IncidentId}", incidentId);
-            return Result<GoogleDriveUpdateResponse>.Failure("Failed to update Google Drive links");
+            return Result<GoogleDriveUpdateResponse>.Infrastructure("Failed to update Google Drive links. See server logs for details.");
         }
     }
 
@@ -636,14 +636,14 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
 
             if (incident == null)
             {
-                return Result<UpdatePeopleResponse>.Failure("Incident not found");
+                return Result<UpdatePeopleResponse>.NotFound("Incident not found");
             }
 
             // Check authorization
             var canAccess = await CanUserAccessIncidentAsync(userId, incident, cancellationToken);
             if (!canAccess)
             {
-                return Result<UpdatePeopleResponse>.Failure("Access denied - you can only update incidents assigned to you");
+                return Result<UpdatePeopleResponse>.Forbidden("Access denied - you can only update incidents assigned to you");
             }
 
             // Track what changed for system note
@@ -714,7 +714,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update people for incident {IncidentId}", incidentId);
-            return Result<UpdatePeopleResponse>.Failure("Failed to update people information");
+            return Result<UpdatePeopleResponse>.Infrastructure("Failed to update people information. See server logs for details.");
         }
     }
 
@@ -737,14 +737,14 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
 
             if (incident == null)
             {
-                return Result<UpdateTitleResponse>.Failure("Incident not found");
+                return Result<UpdateTitleResponse>.NotFound("Incident not found");
             }
 
             // Check authorization - admin or assigned coordinator
             var canAccess = await CanUserAccessIncidentAsync(userId, incident, cancellationToken);
             if (!canAccess)
             {
-                return Result<UpdateTitleResponse>.Failure("Access denied - you can only update incidents assigned to you");
+                return Result<UpdateTitleResponse>.Forbidden("Access denied - you can only update incidents assigned to you");
             }
 
             var oldTitle = incident.Title;
@@ -779,7 +779,8 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update title for incident {IncidentId}", incidentId);
-            return Result<UpdateTitleResponse>.Failure($"Failed to update title: {ex.Message}");
+            // ex.Message excluded per Error Handling Standard — full exception in the LogError call above.
+            return Result<UpdateTitleResponse>.Infrastructure("Failed to update incident title. See server logs for details.");
         }
     }
 

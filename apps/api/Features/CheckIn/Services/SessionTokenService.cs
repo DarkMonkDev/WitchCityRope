@@ -53,7 +53,7 @@ public class SessionTokenService : ISessionTokenService
 
             if (eventEntity == null)
             {
-                return Result<SessionTokenResponse>.Failure("Event not found");
+                return Result<SessionTokenResponse>.NotFound("Event not found");
             }
 
             // Determine which sessions to include
@@ -155,7 +155,7 @@ public class SessionTokenService : ISessionTokenService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating session token for event {EventId}", request.EventId);
-            return Result<SessionTokenResponse>.Failure("Failed to generate session token");
+            return Result<SessionTokenResponse>.Infrastructure("Failed to generate session token. See server logs for details.");
         }
     }
 
@@ -406,7 +406,8 @@ public class SessionTokenService : ISessionTokenService
         {
             _logger.LogError(ex, "Unexpected error revoking session token {TokenId}",
                 sessionToken?.Id.ToString() ?? "unknown");
-            return Result.Failure($"Failed to revoke token: {ex.Message}");
+            // ex.Message excluded per Error Handling Standard — full exception in the LogError call above.
+            return Result.Infrastructure("Failed to revoke token. See server logs for details.");
         }
     }
 
@@ -468,7 +469,7 @@ public class SessionTokenService : ISessionTokenService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving active tokens for event {EventId}", eventId);
-            return Result<List<SessionTokenResponse>>.Failure("Failed to retrieve active tokens");
+            return Result<List<SessionTokenResponse>>.Infrastructure("Failed to retrieve active tokens. See server logs for details.");
         }
     }
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.ProxyRsvp.Models;
 using WitchCityRope.Api.Features.ProxyRsvp.Services;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.ProxyRsvp.Endpoints;
 
@@ -44,21 +45,13 @@ public static class ProxyRsvpEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first for state-changing operations
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -74,10 +67,7 @@ public static class ProxyRsvpEndpoints
                         result.Value);
                 }
 
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: MapErrorToStatusCode(result.Error));
+                return result.ToProblem("Failed to Create Proxy RSVP");
             })
             .RequireAuthorization()
             .WithName("CreateProxyRsvp")
@@ -110,21 +100,13 @@ public static class ProxyRsvpEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first for state-changing operations
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -138,10 +120,7 @@ public static class ProxyRsvpEndpoints
                     return Results.Ok(result.Value);
                 }
 
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: MapErrorToStatusCode(result.Error));
+                return result.ToProblem("Failed to Accept Proxy RSVP");
             })
             .RequireAuthorization()
             .WithName("AcceptProxyRsvp")
@@ -171,21 +150,13 @@ public static class ProxyRsvpEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first for state-changing operations
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -199,10 +170,7 @@ public static class ProxyRsvpEndpoints
                     return Results.Ok();
                 }
 
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: MapErrorToStatusCode(result.Error));
+                return result.ToProblem("Failed to Decline Proxy RSVP");
             })
             .RequireAuthorization()
             .WithName("DeclineProxyRsvp")

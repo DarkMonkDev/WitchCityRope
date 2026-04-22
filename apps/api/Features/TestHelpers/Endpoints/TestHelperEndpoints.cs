@@ -1,5 +1,6 @@
 using WitchCityRope.Api.Features.TestHelpers.Models;
 using WitchCityRope.Api.Features.TestHelpers.Services;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.TestHelpers.Endpoints;
 
@@ -39,7 +40,7 @@ public static class TestHelperEndpoints
                     return Results.Created($"/api/test-helpers/users/{data.Id}", data);
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to create test user",
                     detail: error,
                     statusCode: 400);
@@ -65,7 +66,7 @@ public static class TestHelperEndpoints
                     return Results.NoContent();
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to delete test user",
                     detail: error,
                     statusCode: 400);
@@ -91,7 +92,7 @@ public static class TestHelperEndpoints
                     return Results.Ok(data);
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to get or create test user",
                     detail: error,
                     statusCode: 400);
@@ -117,7 +118,7 @@ public static class TestHelperEndpoints
                     return Results.Created($"/api/test-helpers/ticket-purchases/{data.Id}", data);
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to create test ticket purchase",
                     detail: error,
                     statusCode: 400);
@@ -143,7 +144,7 @@ public static class TestHelperEndpoints
                     return Results.NoContent();
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to delete test ticket purchase",
                     detail: error,
                     statusCode: 400);
@@ -173,7 +174,7 @@ public static class TestHelperEndpoints
                     });
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to verify email",
                     detail: error,
                     statusCode: 400);
@@ -219,7 +220,7 @@ public static class TestHelperEndpoints
                     return Results.Created($"/api/test-helpers/events/{data.Id}", data);
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to create test event",
                     detail: error,
                     statusCode: 400);
@@ -245,7 +246,7 @@ public static class TestHelperEndpoints
                     return Results.NoContent();
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to delete test event",
                     detail: error,
                     statusCode: 400);
@@ -275,7 +276,7 @@ public static class TestHelperEndpoints
                     return Results.Created($"/api/test-helpers/sessions/{data.Id}", data);
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to create test session",
                     detail: error,
                     statusCode: 400);
@@ -301,7 +302,7 @@ public static class TestHelperEndpoints
                     return Results.NoContent();
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to delete test session",
                     detail: error,
                     statusCode: 400);
@@ -331,7 +332,7 @@ public static class TestHelperEndpoints
                     return Results.Created($"/api/test-helpers/ticket-types/{data.Id}", data);
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to create test ticket type",
                     detail: error,
                     statusCode: 400);
@@ -357,7 +358,7 @@ public static class TestHelperEndpoints
                     return Results.NoContent();
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to delete test ticket type",
                     detail: error,
                     statusCode: 400);
@@ -387,7 +388,7 @@ public static class TestHelperEndpoints
                     return Results.Created($"/api/test-helpers/volunteer-positions/{data.Id}", data);
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to create test volunteer position",
                     detail: error,
                     statusCode: 400);
@@ -413,7 +414,7 @@ public static class TestHelperEndpoints
                     return Results.NoContent();
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to delete test volunteer position",
                     detail: error,
                     statusCode: 400);
@@ -443,7 +444,7 @@ public static class TestHelperEndpoints
                     return Results.Created($"/api/test-helpers/vetting-applications/{data.Id}", data);
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to create test vetting application",
                     detail: error,
                     statusCode: 400);
@@ -469,7 +470,7 @@ public static class TestHelperEndpoints
                     return Results.NoContent();
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to delete test vetting application",
                     detail: error,
                     statusCode: 400);

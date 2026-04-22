@@ -4,6 +4,7 @@ using System.Security.Claims;
 using WitchCityRope.Api.Features.Users.Models.MemberDetails;
 using WitchCityRope.Api.Features.Users.Services;
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Users.Endpoints;
 
@@ -155,11 +156,11 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.Problem(
+                ? Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404)
-                : Results.Problem(
+                : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Server Error",
                     detail: error,
                     statusCode: 500);
@@ -182,11 +183,11 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.Problem(
+                ? Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404)
-                : Results.Problem(
+                : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Server Error",
                     detail: error,
                     statusCode: 500);
@@ -209,7 +210,7 @@ public static class MemberDetailsEndpoints
         // Validate pagination parameters
         if (page < 1)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Validation Failed",
                 detail: "Page must be >= 1",
                 statusCode: 400);
@@ -217,7 +218,7 @@ public static class MemberDetailsEndpoints
 
         if (pageSize < 1 || pageSize > 100)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Validation Failed",
                 detail: "Page size must be between 1 and 100",
                 statusCode: 400);
@@ -228,11 +229,11 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.Problem(
+                ? Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404)
-                : Results.Problem(
+                : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Server Error",
                     detail: error,
                     statusCode: 500);
@@ -255,11 +256,11 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.Problem(
+                ? Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404)
-                : Results.Problem(
+                : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Server Error",
                     detail: error,
                     statusCode: 500);
@@ -282,11 +283,11 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.Problem(
+                ? Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404)
-                : Results.Problem(
+                : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Server Error",
                     detail: error,
                     statusCode: 500);
@@ -309,17 +310,9 @@ public static class MemberDetailsEndpoints
         CancellationToken cancellationToken)
     {
         // CRITICAL: Validate anti-forgery token FIRST
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Get current user ID (admin performing the action)
         var authorIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -327,7 +320,7 @@ public static class MemberDetailsEndpoints
 
         if (string.IsNullOrEmpty(authorIdClaim) || !Guid.TryParse(authorIdClaim, out var authorId))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -339,7 +332,7 @@ public static class MemberDetailsEndpoints
         {
             if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404);
@@ -347,12 +340,12 @@ public static class MemberDetailsEndpoints
             if (error.Contains("Invalid", StringComparison.OrdinalIgnoreCase) ||
                 error.Contains("empty", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Bad Request",
                     detail: error,
                     statusCode: 400);
             }
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Server Error",
                 detail: error,
                 statusCode: 500);
@@ -375,17 +368,9 @@ public static class MemberDetailsEndpoints
         CancellationToken cancellationToken)
     {
         // CRITICAL: Validate anti-forgery token FIRST
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Get current user ID (admin performing the action)
         var performedByIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -393,7 +378,7 @@ public static class MemberDetailsEndpoints
 
         if (string.IsNullOrEmpty(performedByIdClaim) || !Guid.TryParse(performedByIdClaim, out var performedById))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -404,11 +389,11 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.Problem(
+                ? Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404)
-                : Results.Problem(
+                : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Server Error",
                     detail: error,
                     statusCode: 500);
@@ -431,17 +416,9 @@ public static class MemberDetailsEndpoints
         CancellationToken cancellationToken)
     {
         // CRITICAL: Validate anti-forgery token FIRST
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Get current user ID (admin performing the action)
         var performedByIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -449,7 +426,7 @@ public static class MemberDetailsEndpoints
 
         if (string.IsNullOrEmpty(performedByIdClaim) || !Guid.TryParse(performedByIdClaim, out var performedById))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -461,19 +438,19 @@ public static class MemberDetailsEndpoints
         {
             if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404);
             }
             if (error.Contains("Invalid", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Bad Request",
                     detail: error,
                     statusCode: 400);
             }
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Server Error",
                 detail: error,
                 statusCode: 500);
@@ -496,11 +473,11 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.Problem(
+                ? Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404)
-                : Results.Problem(
+                : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Server Error",
                     detail: error,
                     statusCode: 500);
@@ -524,17 +501,9 @@ public static class MemberDetailsEndpoints
         CancellationToken cancellationToken)
     {
         // CRITICAL: Validate anti-forgery token FIRST
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Get current user ID (admin performing the action)
         var performedByIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -542,7 +511,7 @@ public static class MemberDetailsEndpoints
 
         if (string.IsNullOrEmpty(performedByIdClaim) || !Guid.TryParse(performedByIdClaim, out var performedById))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -554,19 +523,19 @@ public static class MemberDetailsEndpoints
         {
             if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404);
             }
             if (error.Contains("Invalid", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Bad Request",
                     detail: error,
                     statusCode: 400);
             }
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Server Error",
                 detail: error,
                 statusCode: 500);
@@ -591,17 +560,9 @@ public static class MemberDetailsEndpoints
         CancellationToken cancellationToken)
     {
         // CRITICAL: Validate anti-forgery token FIRST
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Get current user ID (admin performing the action)
         var performedByIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -609,7 +570,7 @@ public static class MemberDetailsEndpoints
 
         if (string.IsNullOrEmpty(performedByIdClaim) || !Guid.TryParse(performedByIdClaim, out var performedById))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -621,13 +582,13 @@ public static class MemberDetailsEndpoints
         {
             if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Resource Not Found",
                     detail: error,
                     statusCode: 404);
             }
             // Password validation errors from Identity
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Bad Request",
                 detail: error,
                 statusCode: 400);

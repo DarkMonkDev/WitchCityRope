@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Vetting.Endpoints;
 
@@ -220,17 +221,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -248,7 +241,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -263,14 +256,11 @@ public static class VettingEndpoints
             }
 
             var statusCode = result.Error.Contains("Access denied") ? 403 : 500;
-            return Results.Problem(
-                title: "Failed to Retrieve Applications",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Retrieve Applications");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Retrieve Applications",
                 detail: ex.Message,
                 statusCode: 500);
@@ -303,7 +293,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -320,14 +310,11 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 500;
 
-            return Results.Problem(
-                title: "Failed to Retrieve Application Detail",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Retrieve Application Detail");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Retrieve Application Detail",
                 detail: ex.Message,
                 statusCode: 500);
@@ -348,17 +335,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -376,7 +355,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -393,14 +372,11 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 400;
 
-            return Results.Problem(
-                title: "Failed to Submit Review Decision",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Submit Review Decision");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Submit Review Decision",
                 detail: ex.Message,
                 statusCode: 500);
@@ -421,17 +397,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -449,7 +417,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -466,14 +434,11 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 400;
 
-            return Results.Problem(
-                title: "Failed to Add Note",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Add Note");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Add Note",
                 detail: ex.Message,
                 statusCode: 500);
@@ -494,17 +459,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -522,7 +479,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -540,14 +497,11 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 400;
 
-            return Results.Problem(
-                title: "Failed to Approve Application",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Approve Application");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Approve Application",
                 detail: ex.Message,
                 statusCode: 500);
@@ -568,17 +522,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -586,7 +532,7 @@ public static class VettingEndpoints
             // Multi-role support: IsInRole checks all role claims in JWT
             if (!user.IsInRole(UserRole.Administrator.ToRoleString()))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: role/ownership guard — forbidden, not a service Result
                     title: "Access Denied",
                     detail: "Only administrators can change application status",
                     statusCode: 403);
@@ -606,7 +552,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -616,7 +562,7 @@ public static class VettingEndpoints
             // Parse status enum from string
             if (!Enum.TryParse<VettingStatus>(request.Status, out var targetStatus))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                     title: "Invalid Status",
                     detail: $"'{request.Status}' is not a valid vetting status",
                     statusCode: 400);
@@ -638,14 +584,11 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 400;
 
-            return Results.Problem(
-                title: "Failed to Change Application Status",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Change Application Status");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Change Application Status",
                 detail: ex.Message,
                 statusCode: 500);
@@ -666,17 +609,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -694,7 +629,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -719,14 +654,11 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 400;
 
-            return Results.Problem(
-                title: "Failed to Add Note",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Add Note");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Add Note",
                 detail: ex.Message,
                 statusCode: 500);
@@ -747,17 +679,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -775,7 +699,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -784,12 +708,10 @@ public static class VettingEndpoints
 
             // Validate reasoning is provided
             if (string.IsNullOrWhiteSpace(request.Reasoning))
-            {
-                return Results.Problem(
-                    title: "Reasoning Required",
-                    detail: "A reason must be provided when denying an application",
-                    statusCode: 400);
-            }
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["reasoning"] = ["A reason must be provided when denying an application"]
+                });
 
             // Call dedicated DenyApplicationAsync method
             var result = await vettingService.DenyApplicationAsync(id, request.Reasoning, reviewerId, cancellationToken);
@@ -802,14 +724,11 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 400;
 
-            return Results.Problem(
-                title: "Failed to Deny Application",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Deny Application");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Deny Application",
                 detail: ex.Message,
                 statusCode: 500);
@@ -831,17 +750,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -859,7 +770,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -876,14 +787,11 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 400;
 
-            return Results.Problem(
-                title: "Failed to Send Reminder",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Send Reminder");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Send Reminder",
                 detail: ex.Message,
                 statusCode: 500);
@@ -905,17 +813,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -933,7 +833,7 @@ public static class VettingEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out reviewerId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: request-level inline validation — rejecting malformed input before service call
                         title: "User Information Not Found",
                         detail: "User information not found",
                         statusCode: 400);
@@ -951,14 +851,11 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 400;
 
-            return Results.Problem(
-                title: "Failed to Update Applicant Info",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Update Applicant Info");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Update Applicant Info",
                 detail: ex.Message,
                 statusCode: 500);
@@ -979,7 +876,7 @@ public static class VettingEndpoints
         var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                 title: "Authentication Error",
                 detail: "Unable to identify the current user.",
                 statusCode: 401);
@@ -992,10 +889,7 @@ public static class VettingEndpoints
             var statusCode = result.Error.Contains("Access denied") ? 403 :
                            result.Error.Contains("not found") ? 404 : 400;
 
-            return Results.Problem(
-                title: "Failed to Delete Application",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Delete Application");
         }
 
         return Results.Ok(new { message = "Application deleted successfully" });
@@ -1016,7 +910,7 @@ public static class VettingEndpoints
             var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "User Information Not Found",
                     detail: "User information not found",
                     statusCode: 401);
@@ -1029,14 +923,11 @@ public static class VettingEndpoints
                 return Results.Ok(result.Value);
             }
 
-            return Results.Problem(
-                title: "Failed to Retrieve Vetting Status",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: 500);
+            return result.ToProblem("Failed to Retrieve Vetting Status");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Retrieve Vetting Status",
                 detail: ex.Message,
                 statusCode: 500);
@@ -1058,7 +949,7 @@ public static class VettingEndpoints
             var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "User Information Not Found",
                     detail: "User information not found",
                     statusCode: 401);
@@ -1072,14 +963,11 @@ public static class VettingEndpoints
             }
 
             var statusCode = result.Error.Contains("not found") ? 404 : 500;
-            return Results.Problem(
-                title: "Failed to Retrieve Application Details",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Retrieve Application Details");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Retrieve Application Details",
                 detail: ex.Message,
                 statusCode: 500);
@@ -1105,14 +993,11 @@ public static class VettingEndpoints
             }
 
             var statusCode = result.Error.Contains("not found") ? 404 : 500;
-            return Results.Problem(
-                title: "Failed to Retrieve Application Status",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: statusCode);
+            return result.ToProblem("Failed to Retrieve Application Status");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Retrieve Application Status",
                 detail: ex.Message,
                 statusCode: 500);
@@ -1135,7 +1020,7 @@ public static class VettingEndpoints
 
             if (existingAppResult.IsSuccess && existingAppResult.Value != null)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: pre-check Conflict derived from lookup Result — not the primary service Result
                     title: "Duplicate Application",
                     detail: "An application already exists for this email",
                     statusCode: 409);
@@ -1149,14 +1034,11 @@ public static class VettingEndpoints
                 return Results.Created($"/api/vetting/public/applications/status/{result.Value.StatusToken}", result.Value);
             }
 
-            return Results.Problem(
-                title: "Failed to Submit Application",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: 400);
+            return result.ToProblem("Failed to Submit Application");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Submit Application",
                 detail: ex.Message,
                 statusCode: 500);
@@ -1176,17 +1058,9 @@ public static class VettingEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         try
         {
@@ -1196,7 +1070,7 @@ public static class VettingEndpoints
 
             if (string.IsNullOrEmpty(userEmail))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "User Email Not Found",
                     detail: "Unable to determine user email from authentication token",
                     statusCode: 401);
@@ -1207,7 +1081,7 @@ public static class VettingEndpoints
 
             if (existingAppResult.IsSuccess && existingAppResult.Value != null)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: pre-check Conflict derived from lookup Result — not the primary service Result
                     title: "Duplicate Application",
                     detail: "You already have a submitted application. Only one application is allowed per person.",
                     statusCode: 409);
@@ -1221,14 +1095,11 @@ public static class VettingEndpoints
                 return Results.Created($"/api/vetting/my-application", result.Value);
             }
 
-            return Results.Problem(
-                title: "Failed to Submit Application",
-                detail: string.IsNullOrEmpty(result.Details) ? result.Error : result.Details,
-                statusCode: 400);
+            return result.ToProblem("Failed to Submit Application");
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Submit Application",
                 detail: ex.Message,
                 statusCode: 500);
@@ -1252,7 +1123,7 @@ public static class VettingEndpoints
 
             if (string.IsNullOrEmpty(userEmail))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                     title: "User Email Not Found",
                     detail: "Unable to determine user email from authentication token",
                     statusCode: 401);
@@ -1289,14 +1160,14 @@ public static class VettingEndpoints
                 return Results.Ok(response);
             }
 
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: service returned Success with null — synthetic 404 outside failure path
                 title: "Application Not Found",
                 detail: "No application found for the current user",
                 statusCode: 404);
         }
         catch (Exception ex)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: handler catch-all — TD-BE-EXMESSAGE-LEAK
                 title: "Failed to Retrieve Application",
                 detail: ex.Message,
                 statusCode: 500);

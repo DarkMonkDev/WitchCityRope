@@ -15,6 +15,13 @@ namespace WitchCityRope.Api.Features.Payments.Services;
 /// PayPal payment processing service using PayPalServerSDK 2.x.
 /// Handles order creation, capture, refunds, and webhook processing.
 /// Includes automatic Venmo support through PayPal SDK.
+///
+/// Error handling: follows the Error Handling Standard —
+/// <c>docs/standards-processes/backend/error-handling-standard.md</c>. Exceptions are logged
+/// server-side via <c>_logger.LogError(ex, ...)</c>; <c>ex.Message</c> is never passed into
+/// <see cref="Result{T}"/> Error strings. External PayPal API failures use
+/// <see cref="Result{T}.Upstream"/> (→ HTTP 502); unexpected internal errors use
+/// <see cref="Result{T}.Infrastructure"/> (→ HTTP 500).
 /// </summary>
 public class PayPalService : IPayPalService
 {
@@ -149,12 +156,12 @@ public class PayPalService : IPayPalService
         {
             _logger.LogError(ex, "PayPal API error creating order for customer {CustomerId}: {StatusCode}",
                 customerId, ex.ResponseCode);
-            return Result<PayPalOrderResponse>.Failure($"PayPal error: {ex.Message}");
+            return Result<PayPalOrderResponse>.Upstream("PayPal API error. See server logs for details.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating PayPal order for customer {CustomerId}", customerId);
-            return Result<PayPalOrderResponse>.Failure($"Unexpected error: {ex.Message}");
+            return Result<PayPalOrderResponse>.Infrastructure("Unexpected error processing PayPal request. See server logs for details.");
         }
     }
 
@@ -214,12 +221,12 @@ public class PayPalService : IPayPalService
         {
             _logger.LogError(ex, "PayPal API error capturing order {OrderId}: {StatusCode}",
                 orderId, ex.ResponseCode);
-            return Result<PayPalCaptureResponse>.Failure($"PayPal error: {ex.Message}");
+            return Result<PayPalCaptureResponse>.Upstream("PayPal API error. See server logs for details.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error capturing PayPal order {OrderId}", orderId);
-            return Result<PayPalCaptureResponse>.Failure($"Unexpected error: {ex.Message}");
+            return Result<PayPalCaptureResponse>.Infrastructure("Unexpected error processing PayPal request. See server logs for details.");
         }
     }
 
@@ -256,12 +263,12 @@ public class PayPalService : IPayPalService
         {
             _logger.LogError(ex, "PayPal API error retrieving order {OrderId}: {StatusCode}",
                 orderId, ex.ResponseCode);
-            return Result<PayPalOrderResponse>.Failure($"PayPal error: {ex.Message}");
+            return Result<PayPalOrderResponse>.Upstream("PayPal API error. See server logs for details.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving PayPal order {OrderId}", orderId);
-            return Result<PayPalOrderResponse>.Failure($"Unexpected error: {ex.Message}");
+            return Result<PayPalOrderResponse>.Infrastructure("Unexpected error processing PayPal request. See server logs for details.");
         }
     }
 
@@ -328,12 +335,12 @@ public class PayPalService : IPayPalService
         {
             _logger.LogError(ex, "PayPal API error creating refund for capture {CaptureId}: {StatusCode}",
                 captureId, ex.ResponseCode);
-            return Result<PayPalRefundResponse>.Failure($"PayPal error: {ex.Message}");
+            return Result<PayPalRefundResponse>.Upstream("PayPal API error. See server logs for details.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating refund for PayPal capture {CaptureId}", captureId);
-            return Result<PayPalRefundResponse>.Failure($"Unexpected error: {ex.Message}");
+            return Result<PayPalRefundResponse>.Infrastructure("Unexpected error processing PayPal request. See server logs for details.");
         }
     }
 
@@ -372,12 +379,12 @@ public class PayPalService : IPayPalService
         {
             _logger.LogError(ex, "PayPal API error retrieving refund {RefundId}: {StatusCode}",
                 refundId, ex.ResponseCode);
-            return Result<PayPalRefundResponse>.Failure($"PayPal error: {ex.Message}");
+            return Result<PayPalRefundResponse>.Upstream("PayPal API error. See server logs for details.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving PayPal refund {RefundId}", refundId);
-            return Result<PayPalRefundResponse>.Failure($"Unexpected error: {ex.Message}");
+            return Result<PayPalRefundResponse>.Infrastructure("Unexpected error processing PayPal request. See server logs for details.");
         }
     }
 
@@ -398,12 +405,12 @@ public class PayPalService : IPayPalService
         catch (JsonException ex)
         {
             _logger.LogError(ex, "Invalid PayPal webhook JSON payload");
-            return Result<Dictionary<string, object>>.Failure($"Webhook JSON parsing failed: {ex.Message}");
+            return Result<Dictionary<string, object>>.Upstream("Invalid PayPal webhook JSON payload. See server logs for details.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error parsing PayPal webhook payload");
-            return Result<Dictionary<string, object>>.Failure($"Webhook validation error: {ex.Message}");
+            return Result<Dictionary<string, object>>.Upstream("PayPal webhook processing failed. See server logs for details.");
         }
     }
 
@@ -435,12 +442,12 @@ public class PayPalService : IPayPalService
         catch (JsonException ex)
         {
             _logger.LogError(ex, "Invalid PayPal webhook JSON payload");
-            return Result<PayPalWebhookEvent>.Failure($"Webhook JSON parsing failed: {ex.Message}");
+            return Result<PayPalWebhookEvent>.Upstream("Invalid PayPal webhook JSON payload. See server logs for details.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error parsing PayPal webhook payload");
-            return Result<PayPalWebhookEvent>.Failure($"Webhook validation error: {ex.Message}");
+            return Result<PayPalWebhookEvent>.Upstream("PayPal webhook processing failed. See server logs for details.");
         }
     }
 

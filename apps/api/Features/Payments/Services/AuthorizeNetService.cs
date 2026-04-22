@@ -194,10 +194,12 @@ public class AuthorizeNetService : IAuthorizeNetService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception processing Authorize.NET payment for amount {Amount}", amount);
+            // ex.Message excluded from user-facing ErrorMessage per the Error Handling Standard —
+            // full exception is in the log line above.
             return Task.FromResult(new AuthorizeNetPaymentResponse
             {
                 Success = false,
-                ErrorMessage = $"Payment processing error: {ex.Message}"
+                ErrorMessage = "Payment processing error. See server logs for details."
             });
         }
     }
@@ -253,10 +255,11 @@ public class AuthorizeNetService : IAuthorizeNetService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception processing Authorize.NET refund for {TransactionId}", transactionId);
+            // Same rationale as the Payment catch — static wire message, full exception logged.
             return new AuthorizeNetRefundResponse
             {
                 Success = false,
-                ErrorMessage = $"Refund processing error: {ex.Message}"
+                ErrorMessage = "Refund processing error. See server logs for details."
             };
         }
     }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Users.Models;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Admin.Endpoints;
 
@@ -30,29 +31,22 @@ public static class UsersEndpoints
         UserManager<ApplicationUser> userManager,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            // Get all users with the specified role
-            var usersInRole = await userManager.GetUsersInRoleAsync(role);
+        // No try/catch needed: any unhandled exception here is caught by GlobalExceptionHandler
+        // which logs it and returns a uniform RFC 7807 ProblemDetails 500. This avoids leaking
+        // ex.Message on the wire (see docs/standards-processes/backend/error-handling-standard.md).
 
-            // Convert to simple DTOs for dropdowns
-            var userOptions = usersInRole.Select(user => new UserOptionDto
-            {
-                Id = user.Id.ToString(),
-                Name = user.SceneName ?? user.Email ?? "Unknown",
-                Email = user.Email ?? ""
-            }).ToList();
+        // Get all users with the specified role
+        var usersInRole = await userManager.GetUsersInRoleAsync(role);
 
-            return Results.Ok(userOptions);
-        }
-        catch (Exception ex)
+        // Convert to simple DTOs for dropdowns
+        var userOptions = usersInRole.Select(user => new UserOptionDto
         {
-            return Results.Problem(
-                detail: $"Failed to get users by role: {ex.Message}",
-                statusCode: 500,
-                title: "Internal Server Error"
-            );
-        }
+            Id = user.Id.ToString(),
+            Name = user.SceneName ?? user.Email ?? "Unknown",
+            Email = user.Email ?? ""
+        }).ToList();
+
+        return Results.Ok(userOptions);
     }
 }
 

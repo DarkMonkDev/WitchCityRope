@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Dashboard.Models;
 using WitchCityRope.Api.Features.Dashboard.Services;
+using WitchCityRope.Api.Features.Shared.Extensions;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Dashboard.Endpoints;
@@ -30,7 +31,7 @@ public static class UserDashboardEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out var authenticatedUserId) || authenticatedUserId != userId)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: ownership guard — forbidden, not a service Result
                         title: "Unauthorized",
                         detail: "You can only access your own events",
                         statusCode: 403);
@@ -40,10 +41,7 @@ public static class UserDashboardEndpoints
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value) // Direct DTO list
-                    : Results.Problem(
-                        title: "Failed to retrieve events",
-                        detail: result.Error ?? result.Details ?? "Failed to retrieve events",
-                        statusCode: 500);
+                    : result.ToProblem("Failed to retrieve events");
             })
             .RequireAuthorization()
             .WithName("GetUserRegisteredEvents")
@@ -65,7 +63,7 @@ public static class UserDashboardEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out var authenticatedUserId) || authenticatedUserId != userId)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: ownership guard — forbidden, not a service Result
                         title: "Unauthorized",
                         detail: "You can only access your own vetting status",
                         statusCode: 403);
@@ -75,10 +73,7 @@ public static class UserDashboardEndpoints
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value) // Direct DTO
-                    : Results.Problem(
-                        title: "Failed to retrieve vetting status",
-                        detail: result.Error ?? result.Details ?? "Failed to retrieve vetting status",
-                        statusCode: result.Error?.Contains("not found") == true ? 404 : 500);
+                    : result.ToProblem("Failed to retrieve vetting status");
             })
             .RequireAuthorization()
             .WithName("GetUserDashboardVettingStatus")
@@ -101,7 +96,7 @@ public static class UserDashboardEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out var authenticatedUserId) || authenticatedUserId != userId)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: ownership guard — forbidden, not a service Result
                         title: "Unauthorized",
                         detail: "You can only access your own profile",
                         statusCode: 403);
@@ -111,10 +106,7 @@ public static class UserDashboardEndpoints
 
                 if (!result.IsSuccess)
                 {
-                    return Results.Problem(
-                        title: "Profile not found",
-                        detail: result.Error ?? result.Details ?? "Profile not found",
-                        statusCode: 404);
+                    return result.ToProblem("Profile not found");
                 }
 
                 return Results.Ok(result.Value); // Direct DTO
@@ -143,7 +135,7 @@ public static class UserDashboardEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out var authenticatedUserId) || authenticatedUserId != userId)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: ownership guard — forbidden, not a service Result
                         title: "Unauthorized",
                         detail: "You can only update your own profile",
                         statusCode: 403);
@@ -153,10 +145,7 @@ public static class UserDashboardEndpoints
 
                 if (!result.IsSuccess)
                 {
-                    return Results.Problem(
-                        title: "Failed to update profile",
-                        detail: result.Error ?? result.Details ?? "Failed to update profile",
-                        statusCode: 400);
+                    return result.ToProblem("Failed to update profile");
                 }
 
                 return Results.Ok(result.Value); // Direct DTO
@@ -186,7 +175,7 @@ public static class UserDashboardEndpoints
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!Guid.TryParse(userIdClaim, out var authenticatedUserId) || authenticatedUserId != userId)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: ownership guard — forbidden, not a service Result
                         title: "Unauthorized",
                         detail: "You can only change your own password",
                         statusCode: 403);
@@ -196,10 +185,7 @@ public static class UserDashboardEndpoints
 
                 if (!result.IsSuccess)
                 {
-                    return Results.Problem(
-                        title: "Failed to change password",
-                        detail: result.Error ?? result.Details ?? "Failed to change password",
-                        statusCode: 400);
+                    return result.ToProblem("Failed to change password");
                 }
 
                 return Results.Ok(true); // Direct boolean success response

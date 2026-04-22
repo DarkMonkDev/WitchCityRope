@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using WitchCityRope.Api.Features.Volunteers.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Volunteers.Endpoints;
 
@@ -38,7 +39,7 @@ public static class VolunteerEndpoints
                 return Results.Ok(positions);
             }
 
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Failed to Retrieve Volunteer Positions",
                 detail: error ?? "Failed to retrieve volunteer positions",
                 statusCode: error == "Event not found" ? 404 : 500);
@@ -62,7 +63,7 @@ public static class VolunteerEndpoints
             // Require authentication
             if (context.User.Identity?.IsAuthenticated != true)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Authentication Required",
                     detail: "You must be logged in to sign up for volunteer positions",
                     statusCode: 401);
@@ -71,7 +72,7 @@ public static class VolunteerEndpoints
             var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Invalid User",
                     detail: "User ID not found in authentication token",
                     statusCode: 401);
@@ -100,7 +101,7 @@ public static class VolunteerEndpoints
                 _ => 500
             };
 
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Failed to Sign Up",
                 detail: error ?? "Failed to sign up for volunteer position",
                 statusCode: statusCode);
@@ -126,7 +127,7 @@ public static class VolunteerEndpoints
             // Require authentication
             if (context.User.Identity?.IsAuthenticated != true)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Authentication Required",
                     detail: "You must be logged in to view your volunteer shifts",
                     statusCode: 401);
@@ -135,7 +136,7 @@ public static class VolunteerEndpoints
             var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Invalid User",
                     detail: "User ID not found in authentication token",
                     statusCode: 401);
@@ -150,7 +151,7 @@ public static class VolunteerEndpoints
                 return Results.Ok(shifts);
             }
 
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Failed to Retrieve Volunteer Shifts",
                 detail: error ?? "Failed to retrieve volunteer shifts",
                 statusCode: 500);
@@ -173,7 +174,7 @@ public static class VolunteerEndpoints
             // Require authentication
             if (context.User.Identity?.IsAuthenticated != true)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Authentication Required",
                     detail: "You must be logged in to cancel volunteer signups",
                     statusCode: 401);
@@ -182,7 +183,7 @@ public static class VolunteerEndpoints
             var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Invalid User",
                     detail: "User ID not found in authentication token",
                     statusCode: 401);
@@ -209,7 +210,7 @@ public static class VolunteerEndpoints
                 _ => 500
             };
 
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Failed to Cancel Signup",
                 detail: error ?? "Failed to cancel volunteer signup",
                 statusCode: statusCode);

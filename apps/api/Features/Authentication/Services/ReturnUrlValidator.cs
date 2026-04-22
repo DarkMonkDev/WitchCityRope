@@ -203,10 +203,11 @@ public class ReturnUrlValidator : IReturnUrlValidator
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception during return URL validation for {Url}", returnUrl);
+            // ex.Message excluded per Error Handling Standard — full exception in the LogError call above.
             return CreateFailureResult(
                 validationContext with { OriginalUrl = returnUrl },
                 "Validation exception",
-                $"Error validating URL: {ex.Message}");
+                "Error validating URL. See server logs for details.");
         }
     }
 

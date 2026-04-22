@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Features.Shared.Services;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.EmailTemplates.Endpoints;
 
@@ -386,21 +387,19 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<EmailCategory>(category, ignoreCase: true, out var emailCategory))
-        {
-            return Results.Problem(
-                title: "Invalid Category",
-                detail: $"Invalid category. Valid values: {string.Join(", ", Enum.GetNames<EmailCategory>())}",
-                statusCode: 400);
-        }
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["category"] = [$"Invalid category. Valid values: {string.Join(", ", Enum.GetNames<EmailCategory>())}"]
+            });
 
         var result = await service.GetGlobalTemplatesByCategoryAsync(emailCategory, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Retrieve Templates",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -415,10 +414,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Template Not Found",
                 detail: result.Error,
-                statusCode: 404);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -434,23 +433,15 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Extract user ID from claims
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -460,10 +451,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Update Template",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -478,10 +469,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Retrieve Event Templates",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -497,10 +488,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Template Not Found",
                 detail: result.Error,
-                statusCode: 404);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -517,23 +508,15 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Extract user ID from claims
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -546,10 +529,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Update Event Template",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -564,17 +547,9 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // TODO: Check if user is event organizer or admin
         // For now, authorization attribute handles admin check
@@ -583,10 +558,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Delete Event Template",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.NoContent();
@@ -601,23 +576,15 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Extract user ID from claims
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -627,10 +594,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Send Ad-Hoc Email",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -645,10 +612,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Retrieve Ad-Hoc Email History",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -663,10 +630,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Ad-Hoc Email Not Found",
                 detail: result.Error,
-                statusCode: 404);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -680,10 +647,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Retrieve User Segments",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -695,21 +662,19 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<Entities.UserSegment>(segmentName, ignoreCase: true, out var segment))
-        {
-            return Results.Problem(
-                title: "Invalid Segment",
-                detail: $"Invalid segment name. Valid values: {string.Join(", ", Enum.GetNames<Entities.UserSegment>())}",
-                statusCode: 400);
-        }
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["segmentName"] = [$"Invalid segment name. Valid values: {string.Join(", ", Enum.GetNames<Entities.UserSegment>())}"]
+            });
 
         var result = await service.GetSegmentPreviewAsync(segment, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Retrieve Segment Preview",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -724,26 +689,18 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         var result = await service.UpdateTriggerConfigAsync(id, request, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Update Trigger Configuration",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -758,26 +715,18 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         var result = await service.ToggleSendingEnabledAsync(id, request.Enabled, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Toggle Sending Enabled",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -791,10 +740,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Retrieve Time-Based Templates",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -808,10 +757,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Retrieve Ad-Hoc Templates",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -826,23 +775,15 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Extract user ID from claims
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -852,10 +793,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Save Template",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -869,26 +810,18 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         var result = await service.DeleteAdHocTemplateAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Delete Template",
                 detail: result.Error,
-                statusCode: 404);
+                statusCode: 500);
         }
 
         return Results.NoContent();
@@ -909,10 +842,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Retrieve Trigger Logs",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -927,23 +860,15 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // Validate CSRF token
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Extract user ID from claims
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                 title: "Unauthorized",
                 detail: "User authentication failed - missing or invalid user identifier",
                 statusCode: 401);
@@ -953,10 +878,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
                 title: "Failed to Schedule Email",
                 detail: result.Error,
-                statusCode: 400);
+                statusCode: 500);
         }
 
         return Results.Ok(result.Value);
@@ -969,12 +894,10 @@ public static class EmailTemplateEndpoints
     private static Task<IResult> GetTemplateVariables(string category, string templateType)
     {
         if (!Enum.TryParse<EmailCategory>(category, ignoreCase: true, out var emailCategory))
-        {
-            return Task.FromResult(Results.Problem(
-                title: "Invalid Category",
-                detail: $"Invalid category. Valid values: {string.Join(", ", Enum.GetNames<EmailCategory>())}",
-                statusCode: 400));
-        }
+            return Task.FromResult(Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["category"] = [$"Invalid category. Valid values: {string.Join(", ", Enum.GetNames<EmailCategory>())}"]
+            }));
 
         var variables = EmailTemplateVariableRegistry.GetVariables(emailCategory, templateType);
         return Task.FromResult(Results.Ok(variables));
@@ -1014,17 +937,9 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // CSRF validation
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Prefix all keys with "EmailTestData:" for storage
         var prefixedData = testData.ToDictionary(
@@ -1036,7 +951,7 @@ public static class EmailTemplateEndpoints
 
         if (!success)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Save Failed",
                 detail: error,
                 statusCode: 500);
@@ -1057,23 +972,16 @@ public static class EmailTemplateEndpoints
         CancellationToken cancellationToken)
     {
         // CSRF validation
-        try
-        {
-            await antiforgery.ValidateRequestAsync(context);
-        }
-        catch (AntiforgeryValidationException)
-        {
-            return Results.Problem(
-                title: "CSRF Validation Failed",
-                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                statusCode: 400);
-        }
+        var csrfResult = await antiforgery.ValidateAsync(context);
+        if (!csrfResult.IsSuccess)
+            return csrfResult.ToProblem("CSRF Validation Failed");
 
         // Validate email address
         if (string.IsNullOrWhiteSpace(request.Email))
-        {
-            return Results.BadRequest(new { error = "Email address is required" });
-        }
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["email"] = ["Email address is required"]
+            });
 
         // Fetch the template from the database
         var template = await dbContext.GlobalEmailTemplates
@@ -1082,7 +990,7 @@ public static class EmailTemplateEndpoints
 
         if (template == null)
         {
-            return Results.NotFound(new { error = "Template not found" });
+            return Results.NotFound(new { error = "Template not found" }); // ARCH-ALLOW: inline query guard — no service Result to route through
         }
 
         // Load saved test data defaults from Settings
@@ -1136,7 +1044,7 @@ public static class EmailTemplateEndpoints
             });
         }
 
-        return Results.Problem(
+        return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
             title: "Send Failed",
             detail: result.Error,
             statusCode: 500);

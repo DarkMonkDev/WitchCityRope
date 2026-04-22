@@ -46,6 +46,10 @@ public static class WebApplicationExtensions
         // Authentication feature endpoints
         app.MapAuthenticationEndpoints();
 
+        // Protected endpoints (test/welcome/profile — used by frontend's API connection test)
+        // Migrated from Controllers/ProtectedController.cs as part of TD-029 error-handling work.
+        app.MapProtectedEndpoints();
+
         // Events feature endpoints
         app.MapEventEndpoints();
 

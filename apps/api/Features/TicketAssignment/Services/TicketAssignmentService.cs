@@ -65,7 +65,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (attendance == null)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.NotFound(
                     "Attendance not found",
                     "The specified attendance record does not exist");
             }
@@ -94,7 +94,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 _logger.LogWarning(
                     "User {CallerUserId} attempted to assign ticket {AttendanceId} they don't own",
                     callerUserId, attendanceId);
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Forbidden(
                     "Not authorized to assign",
                     "You can only assign tickets you own");
             }
@@ -109,7 +109,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 _logger.LogWarning(
                     "Assignment denied: User {AssignToUserId} has not authorized {CallerUserId} as delegate (BR-020)",
                     assignToUserId, callerUserId);
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Forbidden(
                     "Not authorized by assignee",
                     "The assignee has not authorized you as a contact. They must add you as an authorized contact first (BR-020).");
             }
@@ -123,7 +123,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
                 if (assigneeUser == null)
                 {
-                    return Result<TicketAssignmentDto>.Failure(
+                    return Result<TicketAssignmentDto>.NotFound(
                         "Assignee not found",
                         "The specified user does not exist");
                 }
@@ -133,7 +133,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                     _logger.LogWarning(
                         "Assignment denied: Assignee {AssignToUserId} is not vetted for vetted-only event {EventId} (BR-035)",
                         assignToUserId, attendance.EventId);
-                    return Result<TicketAssignmentDto>.Failure(
+                    return Result<TicketAssignmentDto>.Forbidden(
                         "Assignee not vetted",
                         "This event is limited to vetted members only. The assignee is not currently vetted (BR-035).");
                 }
@@ -155,7 +155,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 _logger.LogWarning(
                     "Assignment denied: Assignee {AssignToUserId} already has active/pending ticket for event {EventId} (BR-012)",
                     assignToUserId, attendance.EventId);
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Conflict(
                     "Assignee already has ticket",
                     "The assignee already has an active or pending ticket for this event/session (BR-012).");
             }
@@ -232,7 +232,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (attendance == null)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.NotFound(
                     "Assignment not found",
                     "The specified attendance record does not exist or is not pending acceptance");
             }
@@ -243,7 +243,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 _logger.LogWarning(
                     "Accept denied: User {CallerUserId} is not the assignee of attendance {AttendanceId}",
                     callerUserId, attendanceId);
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Forbidden(
                     "Not the assigned user",
                     "Only the assigned user can accept this ticket");
             }
@@ -284,7 +284,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                     _logger.LogWarning(
                         "Accept denied: User {CallerUserId} vetting revoked for vetted-only event {EventId} (BR-036)",
                         callerUserId, attendance.EventId);
-                    return Result<TicketAssignmentDto>.Failure(
+                    return Result<TicketAssignmentDto>.Forbidden(
                         "Vetting required",
                         "This event requires vetted membership. Your vetting status has changed since the ticket was assigned (BR-036).");
                 }
@@ -490,7 +490,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (attendance == null)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.NotFound(
                     "Assignment not found",
                     "The specified attendance record does not exist or is not pending acceptance");
             }
@@ -501,7 +501,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 _logger.LogWarning(
                     "Decline denied: User {CallerUserId} is not the assignee of attendance {AttendanceId}",
                     callerUserId, attendanceId);
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Forbidden(
                     "Not the assigned user",
                     "Only the assigned user can decline this ticket");
             }
@@ -677,7 +677,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 _logger.LogWarning(
                     "Reassign denied: User {CallerUserId} is not the original purchaser of ticket {AttendanceId}",
                     callerUserId, attendanceId);
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Forbidden(
                     "Not the original purchaser",
                     "Only the original ticket purchaser can reassign a declined ticket");
             }
@@ -691,7 +691,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 _logger.LogWarning(
                     "Reassignment denied: User {NewAssigneeUserId} has not authorized {CallerUserId} as delegate (BR-020)",
                     newAssigneeUserId, callerUserId);
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Forbidden(
                     "Not authorized by assignee",
                     "The new assignee has not authorized you as a contact (BR-020).");
             }
@@ -705,7 +705,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
                 if (assigneeUser == null)
                 {
-                    return Result<TicketAssignmentDto>.Failure(
+                    return Result<TicketAssignmentDto>.NotFound(
                         "Assignee not found",
                         "The specified user does not exist");
                 }
@@ -715,7 +715,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                     _logger.LogWarning(
                         "Reassignment denied: Assignee {NewAssigneeUserId} is not vetted for vetted-only event {EventId} (BR-035)",
                         newAssigneeUserId, attendance.EventId);
-                    return Result<TicketAssignmentDto>.Failure(
+                    return Result<TicketAssignmentDto>.Forbidden(
                         "Assignee not vetted",
                         "This event is limited to vetted members only. The assignee is not currently vetted (BR-035).");
                 }
@@ -737,7 +737,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 _logger.LogWarning(
                     "Reassignment denied: Assignee {NewAssigneeUserId} already has active/pending ticket for event {EventId} (BR-012)",
                     newAssigneeUserId, attendance.EventId);
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Conflict(
                     "Assignee already has ticket",
                     "The assignee already has an active or pending ticket for this event/session (BR-012).");
             }
@@ -816,7 +816,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (ticketPurchase == null)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.NotFound(
                     "Ticket not found",
                     "The specified ticket purchase does not exist");
             }
@@ -824,7 +824,7 @@ public class TicketAssignmentService : ITicketAssignmentService
             // 2. Verify the caller is the purchaser
             if (ticketPurchase.UserId != callerUserId)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Forbidden(
                     "Not authorized",
                     "You can only assign tickets you purchased");
             }
@@ -839,7 +839,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (hasActiveAttendance)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Conflict(
                     "Ticket already assigned",
                     "This ticket already has an active attendance record. Use the standard assign endpoint.");
             }
@@ -859,7 +859,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                     _logger.LogWarning(
                         "User {CallerUserId} attempted to assign ticket {TicketPurchaseId} to {AssignToUserId} without authorization",
                         callerUserId, ticketPurchaseId, assignToUserId);
-                    return Result<TicketAssignmentDto>.Failure(
+                    return Result<TicketAssignmentDto>.Forbidden(
                         "Not authorized by contact",
                         "The target user has not authorized you to assign tickets on their behalf");
                 }
@@ -884,7 +884,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (assigneeUser == null)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.NotFound(
                     "Assignee not found",
                     "The target user does not exist");
             }
@@ -1246,7 +1246,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (eventEntity == null)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.NotFound(
                     "Event not found",
                     "The specified event does not exist");
             }
@@ -1258,7 +1258,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (ticketType == null)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.NotFound(
                     "Ticket type not found",
                     "The specified ticket type does not exist or does not belong to this event");
             }
@@ -1270,7 +1270,7 @@ public class TicketAssignmentService : ITicketAssignmentService
 
             if (targetUser == null)
             {
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.NotFound(
                     "User not found",
                     "The specified user does not exist");
             }
@@ -1319,7 +1319,7 @@ public class TicketAssignmentService : ITicketAssignmentService
                 _logger.LogWarning(
                     "Admin assignment denied: User {TargetUserId} already has active/pending ticket for event {EventId} (BR-012)",
                     request.UserId, eventId);
-                return Result<TicketAssignmentDto>.Failure(
+                return Result<TicketAssignmentDto>.Conflict(
                     "User already has ticket",
                     "The target user already has an active or pending ticket for this event/session (BR-012).");
             }

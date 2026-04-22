@@ -11,6 +11,11 @@ namespace WitchCityRope.Api.Features.Shared.Services;
 /// <summary>
 /// Production-ready email service using SendGrid with GlobalEmailTemplates integration
 /// Supports variable substitution, null-safe development mode, and comprehensive logging
+///
+/// Error handling: follows the Error Handling Standard —
+/// <c>docs/standards-processes/backend/error-handling-standard.md</c>. SendGrid failures
+/// use <see cref="Result.Upstream(string, string)"/> (→ HTTP 502); <c>ex.Message</c> never
+/// appears on the wire (full exception logged via <c>_logger.LogError(ex, ...)</c>).
 /// </summary>
 public class EmailService : IEmailService
 {
@@ -183,7 +188,7 @@ public class EmailService : IEmailService
             _logger.LogError(ex,
                 "Error sending templated email: Category={Category}, TemplateType={TemplateType}, ToEmail={ToEmail}, EventId={EventId}",
                 category, templateType, toEmail, eventId);
-            return Result.Failure($"Error sending email: {ex.Message}");
+            return Result.Upstream("Error sending email via SendGrid. See server logs for details.");
         }
     }
 
@@ -261,7 +266,7 @@ public class EmailService : IEmailService
             _logger.LogError(ex,
                 "Error sending email: ToEmail={ToEmail}, Subject={Subject}",
                 toEmail, subject);
-            return Result.Failure($"Error sending email: {ex.Message}");
+            return Result.Upstream("Error sending email via SendGrid. See server logs for details.");
         }
     }
 

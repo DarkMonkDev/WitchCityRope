@@ -243,18 +243,18 @@ public class KioskPaymentEndpoints : ControllerBase
                     "Session token event mismatch: Token for event {TokenEventId}, payment for event {RequestEventId}",
                     tokenData.EventId, eventId);
 
-                return BadRequest("Session token is not valid for this event");
+                return BadRequest("Session token is not valid for this event"); // ARCH-ALLOW: token-scope guard — forbidden, not a service Result
             }
 
             // Validate request
             if (request.Amount < 0.01m)
             {
-                return BadRequest("Amount must be at least $0.01");
+                return BadRequest("Amount must be at least $0.01"); // ARCH-ALLOW: inline validation — MVC controller, simple string body
             }
 
             if (request.Amount > 1000m)
             {
-                return BadRequest("Amount cannot exceed $1,000.00");
+                return BadRequest("Amount cannot exceed $1,000.00"); // ARCH-ALLOW: inline validation — MVC controller, simple string body
             }
 
             // Retrieve session token entity for audit logging
@@ -279,7 +279,7 @@ public class KioskPaymentEndpoints : ControllerBase
                     "Attendee {AttendeeId} not found or not registered for event {EventId}",
                     request.AttendeeId, eventId);
 
-                return NotFound("Attendee not found or not registered for this event");
+                return NotFound("Attendee not found or not registered for this event"); // ARCH-ALLOW: inline query guard — no service Result to route through
             }
 
             // Find or create "Door Sale" ticket type for this event
@@ -395,7 +395,7 @@ public class KioskPaymentEndpoints : ControllerBase
                 "Database error recording cash payment for attendee {AttendeeId} at event {EventId}",
                 request.AttendeeId, eventId);
 
-            return Problem(
+            return Problem( // ARCH-ALLOW: handler catch-all — MVC controller DB error path
                 title: "Database Error",
                 detail: "Failed to save payment record. Please try again.",
                 statusCode: 500);
@@ -406,7 +406,7 @@ public class KioskPaymentEndpoints : ControllerBase
                 "Unexpected error recording cash payment for attendee {AttendeeId} at event {EventId}",
                 request.AttendeeId, eventId);
 
-            return Problem(
+            return Problem( // ARCH-ALLOW: handler catch-all — MVC controller generic exception path
                 title: "Server Error",
                 detail: "An unexpected error occurred while recording payment.",
                 statusCode: 500);

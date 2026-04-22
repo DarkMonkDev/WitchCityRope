@@ -193,11 +193,33 @@ REVIEW CHECKLIST:
 - [ ] Dependency injection used
 - [ ] Async all the way
 - [ ] Proper error handling
+- [ ] Service returns Result<T> with the CORRECT ResultErrorKind factory
+      (Result.NotFound, Conflict, Forbidden, Upstream, Infrastructure — NOT just Failure)
+- [ ] ex.Message is NEVER interpolated into user-facing Result.Error strings —
+      log via _logger.LogError(ex, ...) and pass a static user-facing string.
+      Applies to both service-layer catches and endpoint-level catches that wrap Results.Problem.
 - [ ] Logging uses message templates, not string interpolation
 - [ ] No manual CorrelationId/UserId properties (middleware injects these)
 - [ ] Sensitive data not logged raw (passwords, tokens, keys)
 - [ ] Transactions where needed
 - [ ] Cache invalidation
+```
+
+#### API Endpoints (Error Response Shape)
+```csharp
+REVIEW CHECKLIST:
+- [ ] Error responses go through result.ToProblem(title), NOT direct
+      Results.Problem / Results.BadRequest / Results.NotFound / Results.Conflict.
+      (The arch test EndpointErrorShapeTests fails the build on violations.)
+- [ ] FluentValidation failures use Results.ValidationProblem(...) — whitelisted by the arch test.
+- [ ] Inline per-field guards use Results.ValidationProblem(new Dictionary<string, string[]> {...}),
+      NOT Results.Problem with a free-text detail.
+- [ ] CSRF validation uses await antiforgery.ValidateAsync(context) from AntiforgeryExtensions,
+      NOT a repeated try/catch (AntiforgeryValidationException) block.
+- [ ] Any NEW `// ARCH-ALLOW: <reason>` comment requires a CONCRETE justification —
+      push back if the reason is speculative ("might need this later") or references a non-existent TD.
+- [ ] Endpoints do NOT wrap their entire handler in try/catch { Results.Problem(detail: ex.Message) }:
+      GlobalExceptionHandler handles unhandled exceptions uniformly; redundant try/catch leaks ex.Message.
 ```
 
 #### Database Access

@@ -11,6 +11,11 @@ namespace WitchCityRope.Api.Features.Vetting.Services;
 /// <summary>
 /// Vetting email service using GlobalEmailTemplates system and SendGrid integration
 /// Provides vetting-specific email sending with proper template variable mapping
+///
+/// Error handling: follows the Error Handling Standard —
+/// <c>docs/standards-processes/backend/error-handling-standard.md</c>. SendGrid failures
+/// use <see cref="Result{T}.Upstream"/> (→ HTTP 502); <c>ex.Message</c> never appears on
+/// the wire (full exception logged server-side via <c>_logger.LogError(ex, ...)</c>).
 /// </summary>
 public class VettingEmailService : IVettingEmailService
 {
@@ -81,7 +86,7 @@ public class VettingEmailService : IVettingEmailService
             _logger.LogError(ex,
                 "Error sending application confirmation email: ApplicationNumber={ApplicationNumber}",
                 application.ApplicationNumber);
-            return Result<bool>.Failure($"Error sending email: {ex.Message}");
+            return Result<bool>.Upstream("Error sending email via SendGrid. See server logs for details.");
         }
     }
 
@@ -159,7 +164,7 @@ public class VettingEmailService : IVettingEmailService
             _logger.LogError(ex,
                 "Error sending status update email: ApplicationNumber={ApplicationNumber}, Status={Status}",
                 application.ApplicationNumber, newStatus);
-            return Result<bool>.Failure($"Error sending email: {ex.Message}");
+            return Result<bool>.Upstream("Error sending email via SendGrid. See server logs for details.");
         }
     }
 
@@ -222,7 +227,7 @@ public class VettingEmailService : IVettingEmailService
             _logger.LogError(ex,
                 "Error sending reminder email: ApplicationNumber={ApplicationNumber}",
                 application.ApplicationNumber);
-            return Result<bool>.Failure($"Error sending email: {ex.Message}");
+            return Result<bool>.Upstream("Error sending email via SendGrid. See server logs for details.");
         }
     }
 
@@ -303,7 +308,7 @@ public class VettingEmailService : IVettingEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending new application team notification to VettingTeam members");
-            return Result<bool>.Failure($"Error sending team notification: {ex.Message}");
+            return Result<bool>.Upstream("Error sending team notification via SendGrid. See server logs for details.");
         }
     }
 

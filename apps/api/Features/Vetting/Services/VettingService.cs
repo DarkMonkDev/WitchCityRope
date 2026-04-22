@@ -1950,9 +1950,10 @@ public class VettingService : IVettingService
             _logger.LogError(ex,
                 "Failed to update applicant info for application {ApplicationId}",
                 applicationId);
-            return Result<ApplicationDetailResponse>.Failure(
+            // ex.Message excluded per Error Handling Standard — full exception in the LogError call above.
+            return Result<ApplicationDetailResponse>.Infrastructure(
                 "Update failed",
-                $"Failed to update applicant information: {ex.Message}");
+                "Failed to update applicant information. See server logs for details.");
         }
     }
 
@@ -2080,7 +2081,7 @@ public class VettingService : IVettingService
             if (adminUser == null || (!UserRoleConstants.HasRole(adminUser.Role, "Administrator")
                 && !UserRoleConstants.HasRole(adminUser.Role, "VettingTeam")))
             {
-                return Result<bool>.Failure("Access denied", "Only administrators and vetting team members can delete applications.");
+                return Result<bool>.Forbidden("Access denied", "Only administrators and vetting team members can delete applications.");
             }
 
             // Find the application (must not already be deleted)
@@ -2091,7 +2092,7 @@ public class VettingService : IVettingService
 
             if (application == null)
             {
-                return Result<bool>.Failure("Application not found", $"No active application found with ID {applicationId}");
+                return Result<bool>.NotFound("Application not found", $"No active application found with ID {applicationId}");
             }
 
             // Perform soft delete via domain method

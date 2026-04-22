@@ -137,7 +137,7 @@ public class SafetyService : ISafetyService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to submit safety incident");
-            return Result<SubmissionResponse>.Failure("Failed to submit incident report", ex.Message);
+            return Result<SubmissionResponse>.Infrastructure("Failed to submit incident report. See server logs for details.");
         }
     }
 
@@ -165,7 +165,7 @@ public class SafetyService : ISafetyService
 
             if (incident == null)
             {
-                return Result<IncidentStatusResponse>.Failure("Incident not found");
+                return Result<IncidentStatusResponse>.NotFound("Incident not found");
             }
 
             return Result<IncidentStatusResponse>.Success(incident);
@@ -173,7 +173,7 @@ public class SafetyService : ISafetyService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get incident status for reference: {ReferenceNumber}", referenceNumber);
-            return Result<IncidentStatusResponse>.Failure("Failed to retrieve incident status");
+            return Result<IncidentStatusResponse>.Infrastructure("Failed to retrieve incident status. See server logs for details.");
         }
     }
 
@@ -192,7 +192,7 @@ public class SafetyService : ISafetyService
             var hasAccess = await VerifySafetyTeamAccessAsync(userId, cancellationToken);
             if (!hasAccess)
             {
-                return Result<IncidentResponse>.Failure("Access denied - safety team role required");
+                return Result<IncidentResponse>.Forbidden("Access denied - safety team role required");
             }
 
             // OPTIMIZATION: Already optimized - single query with nested includes
@@ -207,7 +207,7 @@ public class SafetyService : ISafetyService
 
             if (incident == null)
             {
-                return Result<IncidentResponse>.Failure("Incident not found");
+                return Result<IncidentResponse>.NotFound("Incident not found");
             }
 
             // Decrypt sensitive data for safety team
@@ -269,7 +269,7 @@ public class SafetyService : ISafetyService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get incident detail: {IncidentId}", incidentId);
-            return Result<IncidentResponse>.Failure("Failed to retrieve incident details");
+            return Result<IncidentResponse>.Infrastructure("Failed to retrieve incident details. See server logs for details.");
         }
     }
 
@@ -286,7 +286,7 @@ public class SafetyService : ISafetyService
             var hasAccess = await VerifySafetyTeamAccessAsync(userId, cancellationToken);
             if (!hasAccess)
             {
-                return Result<AdminDashboardResponse>.Failure("Access denied - safety team role required");
+                return Result<AdminDashboardResponse>.Forbidden("Access denied - safety team role required");
             }
 
             // Get statistics
@@ -354,7 +354,7 @@ public class SafetyService : ISafetyService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get dashboard data for user: {UserId}", userId);
-            return Result<AdminDashboardResponse>.Failure("Failed to retrieve dashboard data");
+            return Result<AdminDashboardResponse>.Infrastructure("Failed to retrieve dashboard data. See server logs for details.");
         }
     }
 
@@ -391,7 +391,7 @@ public class SafetyService : ISafetyService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get user reports for user: {UserId}", userId);
-            return Result<IEnumerable<IncidentSummaryResponse>>.Failure("Failed to retrieve user reports");
+            return Result<IEnumerable<IncidentSummaryResponse>>.Infrastructure("Failed to retrieve user reports. See server logs for details.");
         }
     }
 

@@ -126,7 +126,7 @@ public class CheckInService : ICheckInService
 
             if (eventInfo == null)
             {
-                return Result<CheckInAttendeesResponse>.Failure("Event not found");
+                return Result<CheckInAttendeesResponse>.NotFound("Event not found");
             }
 
             var capacity = await GetEventCapacityAsync(eventId, cancellationToken);
@@ -270,7 +270,7 @@ public class CheckInService : ICheckInService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting attendees for event {EventId}", eventId);
-            return Result<CheckInAttendeesResponse>.Failure("Failed to retrieve attendees");
+            return Result<CheckInAttendeesResponse>.Infrastructure("Failed to retrieve attendees. See server logs for details.");
         }
     }
 
@@ -306,7 +306,7 @@ public class CheckInService : ICheckInService
 
             if (attendee == null)
             {
-                return Result<CheckInResponse>.Failure("Attendee not found");
+                return Result<CheckInResponse>.NotFound("Attendee not found");
             }
 
             // Get session info for validation and response
@@ -339,7 +339,7 @@ public class CheckInService : ICheckInService
             {
                 _logger.LogWarning("Session not found for token. TokenId={TokenId}, SessionId={SessionId}, TokenSessionsCount={Count}",
                     sessionTokenEntity.Id, sessionTokenEntity.SessionId, sessionTokenEntity.TokenSessions?.Count ?? 0);
-                return Result<CheckInResponse>.Failure("Session not found. Token may not be configured for any sessions.");
+                return Result<CheckInResponse>.NotFound("Session not found. Token may not be configured for any sessions.");
             }
 
             // CRITICAL: Validate that attendee's ticket is valid for THIS session
@@ -390,7 +390,7 @@ public class CheckInService : ICheckInService
             var capacity = await GetEventCapacityAsync(attendee.EventId, cancellationToken);
             if (!request.OverrideCapacity && capacity.IsAtCapacity && string.Equals(attendee.RegistrationStatus, "waitlist", StringComparison.OrdinalIgnoreCase))
             {
-                return Result<CheckInResponse>.Failure("Event at capacity. Override required for waitlist check-in.");
+                return Result<CheckInResponse>.Conflict("Event at capacity. Override required for waitlist check-in.");
             }
 
             // Create check-in record - use token creator's user ID for audit trail
@@ -465,7 +465,7 @@ public class CheckInService : ICheckInService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during check-in for attendee {AttendeeId}", request.AttendeeId);
-            return Result<CheckInResponse>.Failure("Check-in failed. Please try again.");
+            return Result<CheckInResponse>.Infrastructure("Check-in failed. Please try again.");
         }
     }
 
@@ -485,7 +485,7 @@ public class CheckInService : ICheckInService
 
             if (eventInfo == null)
             {
-                return Result<DashboardResponse>.Failure("Event not found");
+                return Result<DashboardResponse>.NotFound("Event not found");
             }
 
             // Get capacity info
@@ -562,7 +562,7 @@ public class CheckInService : ICheckInService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting dashboard for event {EventId}", eventId);
-            return Result<DashboardResponse>.Failure("Failed to retrieve dashboard data");
+            return Result<DashboardResponse>.Infrastructure("Failed to retrieve dashboard data. See server logs for details.");
         }
     }
 
@@ -605,14 +605,14 @@ public class CheckInService : ICheckInService
 
             if (eventInfo == null)
             {
-                return Result<CheckInResponse>.Failure("Event not found");
+                return Result<CheckInResponse>.NotFound("Event not found");
             }
 
             // Check capacity before allowing manual entry
             var capacity = await GetEventCapacityAsync(eventId, cancellationToken);
             if (capacity.IsAtCapacity)
             {
-                return Result<CheckInResponse>.Failure("Event at capacity. Cannot add walk-in attendee.");
+                return Result<CheckInResponse>.Conflict("Event at capacity. Cannot add walk-in attendee.");
             }
 
             // Check if user already exists by email
@@ -634,9 +634,9 @@ public class CheckInService : ICheckInService
                     // If already registered but not checked in, allow check-in
                     if (existingAttendee.CheckIns.Any())
                     {
-                        return Result<CheckInResponse>.Failure("User is already checked in to this event");
+                        return Result<CheckInResponse>.Conflict("User is already checked in to this event");
                     }
-                    return Result<CheckInResponse>.Failure("User is already registered for this event");
+                    return Result<CheckInResponse>.Conflict("User is already registered for this event");
                 }
 
                 user = existingUser;
@@ -772,7 +772,7 @@ public class CheckInService : ICheckInService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating manual entry for event {EventId}", eventId);
-            return Result<CheckInResponse>.Failure("Failed to create manual entry");
+            return Result<CheckInResponse>.Infrastructure("Failed to create manual entry. See server logs for details.");
         }
     }
 
@@ -833,7 +833,7 @@ public class CheckInService : ICheckInService
 
             if (!eventExists)
             {
-                return Result<CashPaymentResponse>.Failure("Event not found");
+                return Result<CashPaymentResponse>.NotFound("Event not found");
             }
 
             // Validate attendee exists and is registered for this event
@@ -858,7 +858,7 @@ public class CheckInService : ICheckInService
 
             if (existingTicket)
             {
-                return Result<CashPaymentResponse>.Failure("Attendee already has a ticket for this event");
+                return Result<CashPaymentResponse>.Conflict("Attendee already has a ticket for this event");
             }
 
             // Validate ticket type exists for this event
@@ -870,7 +870,7 @@ public class CheckInService : ICheckInService
 
             if (ticketType == null)
             {
-                return Result<CashPaymentResponse>.Failure("Ticket type not found for this event");
+                return Result<CashPaymentResponse>.NotFound("Ticket type not found for this event");
             }
 
             // Validate staff member exists
@@ -880,7 +880,7 @@ public class CheckInService : ICheckInService
 
             if (!staffExists)
             {
-                return Result<CashPaymentResponse>.Failure("Staff member not found");
+                return Result<CashPaymentResponse>.NotFound("Staff member not found");
             }
 
             // Create ticket purchase record
@@ -922,7 +922,8 @@ public class CheckInService : ICheckInService
             _logger.LogError(ex,
                 "Error recording cash payment for event {EventId}, attendee {AttendeeId}",
                 eventId, request.AttendeeId);
-            return Result<CashPaymentResponse>.Failure($"Failed to record cash payment: {ex.Message}");
+            // ex.Message excluded per Error Handling Standard — full exception in the LogError call above.
+            return Result<CashPaymentResponse>.Infrastructure("Failed to record cash payment. See server logs for details.");
         }
     }
 

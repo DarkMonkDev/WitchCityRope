@@ -139,7 +139,7 @@ public static class AdminBackupEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to start backup");
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 detail: ex.Message,
                 statusCode: 500,
                 title: "Failed to start backup");
@@ -168,7 +168,7 @@ public static class AdminBackupEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to list backups");
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 detail: ex.Message,
                 statusCode: 500,
                 title: "Failed to list backups");
@@ -186,7 +186,7 @@ public static class AdminBackupEndpoints
             // Validate confirmation
             if (request.Confirmation != "RESTORE")
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                     title: "Bad Request",
                     detail: "Confirmation must be 'RESTORE'",
                     statusCode: 400);
@@ -209,7 +209,7 @@ public static class AdminBackupEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to start restore");
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 detail: ex.Message,
                 statusCode: 500,
                 title: "Failed to start restore");
@@ -228,7 +228,7 @@ public static class AdminBackupEndpoints
         }
         catch (FileNotFoundException)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 title: "Not Found",
                 detail: "Backup not found",
                 statusCode: 404);
@@ -236,7 +236,7 @@ public static class AdminBackupEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to delete backup");
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 detail: ex.Message,
                 statusCode: 500,
                 title: "Failed to delete backup");
@@ -255,7 +255,7 @@ public static class AdminBackupEndpoints
         }
         catch (FileNotFoundException)
         {
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 title: "Not Found",
                 detail: "Backup not found",
                 statusCode: 404);
@@ -263,7 +263,7 @@ public static class AdminBackupEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to download backup");
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 detail: ex.Message,
                 statusCode: 500,
                 title: "Failed to download backup");
@@ -280,7 +280,7 @@ public static class AdminBackupEndpoints
             var jobDetails = monitoringApi.JobDetails(jobId);
             if (jobDetails == null)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                     title: "Not Found",
                     detail: "Job not found",
                     statusCode: 404);
@@ -301,7 +301,7 @@ public static class AdminBackupEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get job status");
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 title: "Not Found",
                 detail: "Job not found or error retrieving status",
                 statusCode: 404);
@@ -320,7 +320,7 @@ public static class AdminBackupEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get storage summary");
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 detail: ex.Message,
                 statusCode: 500,
                 title: "Failed to get storage summary");
@@ -337,7 +337,7 @@ public static class AdminBackupEndpoints
         {
             if (!request.HasFormContentType)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                     title: "Bad Request",
                     detail: "Request must be multipart/form-data",
                     statusCode: 400);
@@ -348,7 +348,7 @@ public static class AdminBackupEndpoints
 
             if (file == null || file.Length == 0)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                     title: "Bad Request",
                     detail: "No file uploaded",
                     statusCode: 400);
@@ -357,7 +357,7 @@ public static class AdminBackupEndpoints
             if (!file.FileName.EndsWith(".dump", StringComparison.OrdinalIgnoreCase) &&
                 !file.FileName.EndsWith(".sql", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                     title: "Bad Request",
                     detail: "File must be a .dump or .sql file",
                     statusCode: 400);
@@ -400,7 +400,7 @@ public static class AdminBackupEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to upload and restore backup");
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: backup feature uses try/catch around Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION
                 detail: ex.Message,
                 statusCode: 500,
                 title: "Upload and restore failed"

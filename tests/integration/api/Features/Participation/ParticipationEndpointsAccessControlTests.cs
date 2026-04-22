@@ -131,8 +131,12 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
         // Act
         var response = await client.PostAsJsonAsync($"/api/events/{eventId}/rsvp", request);
 
-        // Assert — Non-vetted users cannot RSVP for vetted-only events
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+        // Assert — Non-vetted users cannot RSVP for vetted-only events.
+        // 2026-04-21: Updated 400 → 403 as part of the Error Handling Standard migration
+        // (TD-029). The service now uses Result.Forbidden for "permission denied" cases;
+        // Forbidden (403) is semantically correct — the user IS authenticated but lacks
+        // the vetted status required for this specific event.
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
             "Users without vetting (VettingStatus=0) should be blocked from vetted-only events");
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("vetted", "Response should indicate vetting requirement");
@@ -238,8 +242,11 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
         // Act
         var response = await client.PostAsJsonAsync($"/api/events/{eventId}/tickets", request);
 
-        // Assert — Non-vetted users cannot purchase tickets for vetted-only events
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+        // Assert — Non-vetted users cannot purchase tickets for vetted-only events.
+        // 2026-04-21: Updated 400 → 403 as part of the Error Handling Standard migration
+        // (TD-029). The service now uses Result.Forbidden; Forbidden (403) is semantically
+        // correct — user IS authenticated but lacks vetted status for this event.
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
             "Users without vetting (VettingStatus=0) should be blocked from vetted-only events");
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("vetted", "Response should indicate vetting requirement");

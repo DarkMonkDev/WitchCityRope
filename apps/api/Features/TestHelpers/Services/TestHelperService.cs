@@ -13,6 +13,13 @@ namespace WitchCityRope.Api.Features.TestHelpers.Services;
 /// <summary>
 /// Implementation of test helper service for E2E testing
 /// CRITICAL: Only available in Development/Test environments
+///
+/// Error handling: follows the Error Handling Standard —
+/// <c>docs/standards-processes/backend/error-handling-standard.md</c>. This service returns
+/// tuples (pending TD-BE-TUPLE-MIGRATION to <see cref="WitchCityRope.Api.Features.Shared.Models.Result{T}"/>),
+/// so the <c>error</c> string in each tuple is the wire value. Exceptions are logged
+/// server-side via <c>_logger.LogError(ex, ...)</c>; <c>ex.Message</c> is never interpolated
+/// into the returned error string.
 /// </summary>
 public class TestHelperService : ITestHelperService
 {
@@ -105,7 +112,7 @@ public class TestHelperService : ITestHelperService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception creating test user: {Email}", request.Email);
-            return (false, null, $"Internal error: {ex.Message}");
+            return (false, null, "Internal error. See server logs for details.");
         }
     }
 
@@ -143,7 +150,7 @@ public class TestHelperService : ITestHelperService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception in GetOrCreate test user: {Email}", request.Email);
-            return (false, null, $"Internal error: {ex.Message}");
+            return (false, null, "Internal error. See server logs for details.");
         }
     }
 
@@ -187,7 +194,7 @@ public class TestHelperService : ITestHelperService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception deleting test user: {UserId}", userId);
-            return (false, $"Internal error: {ex.Message}");
+            return (false, "Internal error. See server logs for details.");
         }
     }
 
@@ -325,7 +332,7 @@ public class TestHelperService : ITestHelperService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception creating test ticket purchase");
-            return (false, null, $"Internal error: {ex.Message}");
+            return (false, null, "Internal error. See server logs for details.");
         }
     }
 
@@ -359,7 +366,7 @@ public class TestHelperService : ITestHelperService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception deleting test ticket purchase: {Id}", ticketPurchaseId);
-            return (false, $"Internal error: {ex.Message}");
+            return (false, "Internal error. See server logs for details.");
         }
     }
 
@@ -399,7 +406,7 @@ public class TestHelperService : ITestHelperService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception verifying email: {Email}", email);
-            return (false, $"Internal error: {ex.Message}");
+            return (false, "Internal error. See server logs for details.");
         }
     }
 

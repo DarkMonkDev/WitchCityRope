@@ -22,6 +22,12 @@ public interface IPayPalWebhookProcessingService
 /// Handles database updates triggered by PayPal webhook events.
 /// Separated from PayPalService to maintain single responsibility.
 /// Includes idempotency via IMemoryCache with 24-hour TTL.
+///
+/// Error handling: follows the Error Handling Standard —
+/// <c>docs/standards-processes/backend/error-handling-standard.md</c>. Failures processing
+/// a PayPal-sourced payload use <see cref="Result.Upstream(string, string)"/> (→ HTTP 502);
+/// <c>ex.Message</c> never appears on the wire (full exception logged via
+/// <c>_logger.LogError(ex, ...)</c>).
 /// </summary>
 public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
 {
@@ -188,7 +194,7 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error handling PAYMENT.CAPTURE.COMPLETED webhook");
-            return Result.Failure($"Webhook processing error: {ex.Message}");
+            return Result.Upstream("Webhook processing error. See server logs for details.");
         }
     }
 
@@ -221,7 +227,7 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error handling PAYMENT.CAPTURE.DENIED webhook");
-            return Result.Failure($"Webhook processing error: {ex.Message}");
+            return Result.Upstream("Webhook processing error. See server logs for details.");
         }
     }
 
@@ -254,7 +260,7 @@ public class PayPalWebhookProcessingService : IPayPalWebhookProcessingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error handling PAYMENT.CAPTURE.PENDING webhook");
-            return Result.Failure($"Webhook processing error: {ex.Message}");
+            return Result.Upstream("Webhook processing error. See server logs for details.");
         }
     }
 

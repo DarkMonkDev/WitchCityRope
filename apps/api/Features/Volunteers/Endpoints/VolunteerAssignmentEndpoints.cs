@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
+using WitchCityRope.Api.Features.Shared.Extensions;
 using WitchCityRope.Api.Features.Volunteers.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
@@ -29,7 +30,7 @@ public static class VolunteerAssignmentEndpoints
         {
             if (!Guid.TryParse(positionId, out var positionGuid))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Invalid Position ID Format",
                     detail: "Position ID must be a valid GUID",
                     statusCode: 400);
@@ -46,7 +47,7 @@ public static class VolunteerAssignmentEndpoints
 
             var statusCode = error == "Volunteer position not found" ? 404 : 500;
 
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Failed to Retrieve Volunteer Assignments",
                 detail: error ?? "Failed to retrieve volunteer assignments",
                 statusCode: statusCode);
@@ -76,21 +77,13 @@ public static class VolunteerAssignmentEndpoints
                 CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             if (!Guid.TryParse(positionId, out var positionGuid))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Invalid Position ID Format",
                     detail: "Position ID must be a valid GUID",
                     statusCode: 400);
@@ -98,7 +91,7 @@ public static class VolunteerAssignmentEndpoints
 
             if (request.UserId == Guid.Empty)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Invalid User ID",
                     detail: "User ID is required and must be a valid GUID",
                     statusCode: 400);
@@ -126,7 +119,7 @@ public static class VolunteerAssignmentEndpoints
                 _ => 500
             };
 
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Failed to Assign Member",
                 detail: error ?? "Failed to assign member to volunteer position",
                 statusCode: statusCode);
@@ -157,21 +150,13 @@ public static class VolunteerAssignmentEndpoints
                 CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             if (!Guid.TryParse(signupId, out var signupGuid))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Invalid Signup ID Format",
                     detail: "Signup ID must be a valid GUID",
                     statusCode: 400);
@@ -194,7 +179,7 @@ public static class VolunteerAssignmentEndpoints
                 _ => 500
             };
 
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Failed to Remove Volunteer Assignment",
                 detail: error ?? "Failed to remove volunteer assignment",
                 statusCode: statusCode);
@@ -224,7 +209,7 @@ public static class VolunteerAssignmentEndpoints
         {
             if (string.IsNullOrWhiteSpace(q))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Search Query Required",
                     detail: "Provide a search query with at least 3 characters",
                     statusCode: 400);
@@ -241,7 +226,7 @@ public static class VolunteerAssignmentEndpoints
 
             var statusCode = error == "Search query must be at least 3 characters" ? 400 : 500;
 
-            return Results.Problem(
+            return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                 title: "Failed to Search Users",
                 detail: error ?? "Failed to search users",
                 statusCode: statusCode);

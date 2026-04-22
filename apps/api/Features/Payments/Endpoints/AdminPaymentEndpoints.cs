@@ -3,6 +3,7 @@ using WitchCityRope.Api.Features.Payments.Models.Requests;
 using WitchCityRope.Api.Features.Payments.Models.Responses;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Payments.Endpoints;
 
@@ -26,7 +27,7 @@ public static class AdminPaymentEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Get Payments Failed",
                         detail: error,
                         statusCode: 500);

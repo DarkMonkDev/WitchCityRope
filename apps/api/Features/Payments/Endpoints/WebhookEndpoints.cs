@@ -56,7 +56,7 @@ public class WebhookEndpoints : ControllerBase
             if (string.IsNullOrEmpty(transmissionId))
             {
                 _logger.LogWarning("PayPal webhook received without PAYPAL-TRANSMISSION-ID header");
-                return Problem(
+                return Problem( // ARCH-ALLOW: MVC controller webhook — header validation, no service Result to route through
                     title: "Bad Request",
                     detail: "Missing PayPal signature headers",
                     statusCode: 400);
@@ -65,7 +65,7 @@ public class WebhookEndpoints : ControllerBase
             if (string.IsNullOrEmpty(payload))
             {
                 _logger.LogWarning("PayPal webhook received with empty payload");
-                return Problem(
+                return Problem( // ARCH-ALLOW: MVC controller webhook — payload validation, no service Result to route through
                     title: "Bad Request",
                     detail: "Empty webhook payload",
                     statusCode: 400);
@@ -84,7 +84,7 @@ public class WebhookEndpoints : ControllerBase
             {
                 _logger.LogWarning("PayPal webhook signature verification failed for transmission {TransmissionId}",
                     transmissionId);
-                return Problem(
+                return Problem( // ARCH-ALLOW: MVC controller webhook — signature verification, no Result<T> flow
                     title: "Bad Request",
                     detail: "Invalid webhook signature",
                     statusCode: 400);
@@ -100,7 +100,7 @@ public class WebhookEndpoints : ControllerBase
             if (!validationResult.IsSuccess || validationResult.Value == null)
             {
                 _logger.LogWarning("PayPal webhook payload parsing failed: {Error}", validationResult.ErrorMessage);
-                return Problem(
+                return Problem( // ARCH-ALLOW: MVC controller returns IActionResult — ToProblem yields IResult (mismatched types)
                     title: "Bad Request",
                     detail: "Invalid webhook payload",
                     statusCode: 400);
@@ -122,7 +122,7 @@ public class WebhookEndpoints : ControllerBase
                     "Failed to process PayPal webhook event {EventId} of type {EventType}: {Error}",
                     paypalEvent.Id, paypalEvent.EventType, processingResult.ErrorMessage);
 
-                return Problem(
+                return Problem( // ARCH-ALLOW: MVC controller returns IActionResult — ToProblem yields IResult (mismatched types)
                     title: "Server Error",
                     detail: "Failed to process webhook event",
                     statusCode: 500);
@@ -137,7 +137,7 @@ public class WebhookEndpoints : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error processing PayPal webhook");
-            return Problem(
+            return Problem( // ARCH-ALLOW: handler catch-all — MVC controller webhook path
                 title: "Server Error",
                 detail: "Internal server error processing webhook",
                 statusCode: 500);

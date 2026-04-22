@@ -4,6 +4,7 @@ using System.Security.Claims;
 using WitchCityRope.Api.Features.Authentication.Models;
 using WitchCityRope.Api.Features.Authentication.Services;
 using WitchCityRope.Api.Services;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Authentication.Endpoints;
 
@@ -30,7 +31,7 @@ public static class AuthenticationEndpoints
 
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Invalid Token",
                         detail: "User ID not found in token claims",
                         statusCode: 401);
@@ -40,7 +41,7 @@ public static class AuthenticationEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Get Current User Failed",
                         detail: error,
                         statusCode: response == null ? 404 : 500);
@@ -135,7 +136,7 @@ public static class AuthenticationEndpoints
                     _ => 400
                 };
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Login Failed",
                     detail: error,
                     statusCode: statusCode);
@@ -161,7 +162,7 @@ public static class AuthenticationEndpoints
 
                 return success
                     ? Results.Created($"/api/auth/user/{response!.Id}", response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Registration Failed",
                         detail: error,
                         statusCode: 400);
@@ -188,7 +189,7 @@ public static class AuthenticationEndpoints
 
                 if (string.IsNullOrEmpty(serviceSecret) || serviceSecret != expectedSecret)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Invalid Service Credentials",
                         detail: "Service secret is missing or incorrect",
                         statusCode: 401);
@@ -197,7 +198,7 @@ public static class AuthenticationEndpoints
                 // Validate request data
                 if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.Email))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Invalid Request",
                         detail: "User ID and email are required",
                         statusCode: 400);
@@ -210,7 +211,7 @@ public static class AuthenticationEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Service Token Generation Failed",
                         detail: error,
                         statusCode: error.Contains("not found") ? 404 : 400);
@@ -245,7 +246,7 @@ public static class AuthenticationEndpoints
                 catch (AntiforgeryValidationException ex)
                 {
                     logger.LogWarning("CSRF validation failed for logout: {Message}", ex.Message);
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "CSRF Validation Failed",
                         detail: "Antiforgery token validation failed. Please refresh the page and try again.",
                         statusCode: 400);
@@ -337,7 +338,7 @@ public static class AuthenticationEndpoints
                     var token = context.Request.Cookies["auth-token"];
                     if (string.IsNullOrEmpty(token))
                     {
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Not Authenticated",
                             detail: "Authentication cookie not found",
                             statusCode: 401);
@@ -359,7 +360,7 @@ public static class AuthenticationEndpoints
                             Path = "/"
                         });
 
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Invalid Token",
                             detail: "Authentication token is invalid or expired",
                             statusCode: 401);
@@ -372,7 +373,7 @@ public static class AuthenticationEndpoints
 
                     if (string.IsNullOrEmpty(userId))
                     {
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Invalid Token",
                             detail: "User ID not found in token",
                             statusCode: 401);
@@ -382,7 +383,7 @@ public static class AuthenticationEndpoints
 
                     return success
                         ? Results.Ok(response)
-                        : Results.Problem(
+                        : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Get Current User Failed",
                             detail: error,
                             statusCode: response == null ? 404 : 500);
@@ -390,7 +391,7 @@ public static class AuthenticationEndpoints
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "Error getting user from cookie");
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Authentication Error",
                         detail: "Could not validate authentication",
                         statusCode: 500);
@@ -435,7 +436,7 @@ public static class AuthenticationEndpoints
                     var refreshTokenCookie = context.Request.Cookies["refresh-token"];
                     if (string.IsNullOrEmpty(refreshTokenCookie))
                     {
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "No Refresh Token",
                             detail: "No refresh token found",
                             statusCode: 401);
@@ -453,7 +454,7 @@ public static class AuthenticationEndpoints
                         ClearAuthCookies(context);
 
                         logger.LogWarning("Refresh token rotation failed: {Error}", error);
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Refresh Failed",
                             detail: error,
                             statusCode: 401);
@@ -466,7 +467,7 @@ public static class AuthenticationEndpoints
                     if (!userSuccess || userResponse is null)
                     {
                         ClearAuthCookies(context);
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "User Not Found",
                             detail: "Could not find user for token refresh",
                             statusCode: 401);
@@ -479,7 +480,7 @@ public static class AuthenticationEndpoints
                     if (!tokenSuccess || tokenResponse is null)
                     {
                         ClearAuthCookies(context);
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Token Generation Failed",
                             detail: "Could not generate new access token",
                             statusCode: 500);
@@ -537,7 +538,7 @@ public static class AuthenticationEndpoints
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "Token refresh failed");
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Refresh Error",
                         detail: "Could not refresh authentication token",
                         statusCode: 500);
@@ -568,7 +569,7 @@ public static class AuthenticationEndpoints
                         Success = true,
                         Message = "Your email has been verified successfully. You can now log in."
                     })
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Email Verification Failed",
                         detail: error,
                         statusCode: 400);
@@ -646,7 +647,7 @@ public static class AuthenticationEndpoints
                         Success = true,
                         Message = "Your password has been reset successfully. You can now log in with your new password."
                     })
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Password Reset Failed",
                         detail: error,
                         statusCode: 400);

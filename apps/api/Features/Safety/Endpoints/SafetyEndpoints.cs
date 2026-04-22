@@ -7,6 +7,7 @@ using WitchCityRope.Api.Features.Safety.Models;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Users.Constants;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Safety.Endpoints;
 
@@ -45,10 +46,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Incident Submission Failed",
-                    detail: result.Error,
-                    statusCode: 400);
+                : result.ToProblem("Incident Submission Failed");
         })
         .WithName("SubmitIncident")
         .WithSummary("Submit safety incident report")
@@ -68,10 +66,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Resource Not Found",
-                    detail: result.Error,
-                    statusCode: 404);
+                : result.ToProblem("Resource Not Found");
         })
         .WithName("GetIncidentStatus")
         .WithSummary("Get incident status for tracking")
@@ -97,10 +92,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Incident List Retrieval Failed",
-                    detail: result.Error,
-                    statusCode: 500);
+                : result.ToProblem("Incident List Retrieval Failed");
         })
         .WithName("GetAdminIncidentsList")
         .WithSummary("Get paginated incident list with filters")
@@ -126,10 +118,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Dashboard Statistics Failed",
-                    detail: result.Error,
-                    statusCode: 500);
+                : result.ToProblem("Dashboard Statistics Failed");
         })
         .WithName("GetDashboardStatistics")
         .WithSummary("Get dashboard statistics")
@@ -151,10 +140,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "User List Retrieval Failed",
-                    detail: result.Error,
-                    statusCode: 500);
+                : result.ToProblem("User List Retrieval Failed");
         })
         .WithName("GetCoordinatorsList")
         .WithSummary("Get all users for coordinator assignment")
@@ -178,10 +164,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Dashboard Load Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("Access denied") ? 403 : 500);
+                : result.ToProblem("Dashboard Load Failed");
         })
         .WithName("GetSafetyDashboard")
         .WithSummary("Get safety team dashboard data (legacy)")
@@ -208,10 +191,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Incident Retrieval Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("Access denied") ? 403 : 404);
+                : result.ToProblem("Incident Retrieval Failed");
         })
         .WithName("GetIncidentDetail")
         .WithSummary("Get detailed incident information")
@@ -234,17 +214,9 @@ public static class SafetyEndpoints
             CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -257,10 +229,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Assignment Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Assignment Failed");
         })
         .WithName("AssignCoordinator")
         .WithSummary("Assign coordinator to incident")
@@ -285,17 +254,9 @@ public static class SafetyEndpoints
             CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -308,10 +269,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Status Update Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("Access denied") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Status Update Failed");
         })
         .WithName("UpdateIncidentStatus")
         .WithSummary("Update incident status")
@@ -338,17 +296,9 @@ public static class SafetyEndpoints
             CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -363,10 +313,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Google Drive Update Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("Access denied") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Google Drive Update Failed");
         })
         .WithName("UpdateGoogleDriveLinks")
         .WithSummary("Update Google Drive links")
@@ -393,17 +340,9 @@ public static class SafetyEndpoints
             CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -418,10 +357,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "People Update Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("Access denied") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("People Update Failed");
         })
         .WithName("UpdateIncidentPeople")
         .WithSummary("Update involved parties and witnesses")
@@ -448,17 +384,9 @@ public static class SafetyEndpoints
             CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -473,10 +401,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Title Update Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("Access denied") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Title Update Failed");
         })
         .WithName("UpdateIncidentTitle")
         .WithSummary("Update incident title")
@@ -509,10 +434,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Notes Retrieval Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("Access denied") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Notes Retrieval Failed");
         })
         .WithName("GetIncidentNotes")
         .WithSummary("Get all notes for incident")
@@ -538,17 +460,9 @@ public static class SafetyEndpoints
             CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -563,10 +477,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Note Addition Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("Access denied") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Note Addition Failed");
         })
         .WithName("AddIncidentNote")
         .WithSummary("Add manual note to incident")
@@ -593,17 +504,9 @@ public static class SafetyEndpoints
             CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -618,10 +521,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Note Update Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("only edit your own") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Note Update Failed");
         })
         .WithName("UpdateIncidentNote")
         .WithSummary("Update manual note")
@@ -646,17 +546,9 @@ public static class SafetyEndpoints
             CancellationToken cancellationToken) =>
         {
             // Validate CSRF token
-            try
-            {
-                await antiforgery.ValidateRequestAsync(context);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return Results.Problem(
-                    title: "CSRF Validation Failed",
-                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                    statusCode: 400);
-            }
+            var csrfResult = await antiforgery.ValidateAsync(context);
+            if (!csrfResult.IsSuccess)
+                return csrfResult.ToProblem("CSRF Validation Failed");
 
             var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException());
             var isAdmin = user.IsInRole("Administrator");
@@ -665,10 +557,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.NoContent()
-                : Results.Problem(
-                    title: "Note Deletion Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("only delete your own") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Note Deletion Failed");
         })
         .WithName("DeleteIncidentNote")
         .WithSummary("Delete manual note")
@@ -700,10 +589,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "My Reports Retrieval Failed",
-                    detail: result.Error,
-                    statusCode: 500);
+                : result.ToProblem("My Reports Retrieval Failed");
         })
         .WithName("GetMyReports")
         .WithSummary("Get user's own reports (paginated)")
@@ -726,10 +612,7 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Report Detail Retrieval Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("only view your own") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+                : result.ToProblem("Report Detail Retrieval Failed");
         })
         .WithName("GetMyReportDetail")
         .WithSummary("Get user's own report detail")

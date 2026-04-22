@@ -4,6 +4,7 @@ using System.Security.Claims;
 using WitchCityRope.Api.Features.Users.Models;
 using WitchCityRope.Api.Features.Users.Services;
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Users.Endpoints;
 
@@ -30,7 +31,7 @@ public static class UserEndpoints
 
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Invalid Token",
                         detail: "User ID not found in token claims",
                         statusCode: 401);
@@ -40,7 +41,7 @@ public static class UserEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Get Profile Failed",
                         detail: error,
                         statusCode: response == null ? 404 : 500);
@@ -66,7 +67,7 @@ public static class UserEndpoints
 
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Invalid Token",
                         detail: "User ID not found in token claims",
                         statusCode: 401);
@@ -76,7 +77,7 @@ public static class UserEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Get Profile Failed",
                         detail: error,
                         statusCode: response == null ? 404 : 500);
@@ -101,24 +102,16 @@ public static class UserEndpoints
             CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 // Extract user ID from JWT token claims
                 var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Invalid Token",
                         detail: "User ID not found in token claims",
                         statusCode: 401);
@@ -128,7 +121,7 @@ public static class UserEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Update Profile Failed",
                         detail: error,
                         statusCode: error.Contains("Scene name is already taken") ? 409 : 400);
@@ -153,7 +146,7 @@ public static class UserEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Get Users Failed",
                         detail: error,
                         statusCode: 500);
@@ -178,7 +171,7 @@ public static class UserEndpoints
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Get User Failed",
                         detail: error,
                         statusCode: response == null ? 404 : 400);
@@ -204,23 +197,15 @@ public static class UserEndpoints
             CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 var (success, response, error) = await userService.UpdateUserAsync(id, request, cancellationToken);
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Update User Failed",
                         detail: error,
                         statusCode: error.Contains("not found") ? 404 :
@@ -249,23 +234,15 @@ public static class UserEndpoints
             CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first (prevents privilege escalation)
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 var (success, response, error) = await userService.UpdateUserRolesAsync(userId, request, cancellationToken);
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Update User Roles Failed",
                         detail: error,
                         statusCode: error.Contains("not found") ? 404 :
@@ -298,7 +275,7 @@ Role changes are logged for audit purposes.")
 
                 return success
                     ? Results.Ok(response)
-                    : Results.Problem(
+                    : Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Get Users By Role Failed",
                         detail: error,
                         statusCode: 500);
@@ -346,7 +323,7 @@ Role changes are logged for audit purposes.")
 
                 if (!success || response == null)
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Get Profile Failed",
                         detail: error ?? "User not found",
                         statusCode: 404);

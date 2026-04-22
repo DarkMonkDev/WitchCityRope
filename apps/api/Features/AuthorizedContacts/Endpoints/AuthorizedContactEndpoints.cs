@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.AuthorizedContacts.Models;
 using WitchCityRope.Api.Features.AuthorizedContacts.Services;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.AuthorizedContacts.Endpoints;
 
@@ -31,7 +32,7 @@ public static class AuthorizedContactEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -41,10 +42,7 @@ public static class AuthorizedContactEndpoints
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
-                    : Results.Problem(
-                        title: "Failed to retrieve authorized contacts",
-                        detail: result.Error,
-                        statusCode: 500);
+                    : result.ToProblem("Failed to retrieve authorized contacts");
             })
             .RequireAuthorization()
             .WithName("GetAuthorizedContacts")
@@ -69,21 +67,13 @@ public static class AuthorizedContactEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first for state-changing operations
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -96,19 +86,7 @@ public static class AuthorizedContactEndpoints
                     return Results.Created($"/api/authorized-contacts/{result.Value!.Id}", result.Value);
                 }
 
-                // Map service error messages to appropriate HTTP status codes
-                var statusCode = result.Error switch
-                {
-                    "Cannot authorize yourself as a contact" => 400,  // BR-003
-                    "User not found" => 404,                          // BR-006
-                    "Authorization already exists" => 409,             // Duplicate
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: statusCode);
+                return result.ToProblem("Failed to Add Authorized Contact");
             })
             .RequireAuthorization()
             .WithName("AddAuthorizedContact")
@@ -136,21 +114,13 @@ public static class AuthorizedContactEndpoints
                 CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first for state-changing operations
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -163,18 +133,7 @@ public static class AuthorizedContactEndpoints
                     return Results.NoContent();
                 }
 
-                // Map service error messages to appropriate HTTP status codes
-                var statusCode = result.Error switch
-                {
-                    "Authorization not found" => 404,
-                    "Not authorized to revoke" => 403,
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: statusCode);
+                return result.ToProblem("Failed to Revoke Authorized Contact");
             })
             .RequireAuthorization()
             .WithName("RevokeAuthorizedContact")
@@ -201,28 +160,23 @@ public static class AuthorizedContactEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
                 }
 
                 if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
-                {
-                    return Results.Problem(
-                        title: "Query too short",
-                        detail: "Search query must be at least 2 characters",
-                        statusCode: 400);
-                }
+                    return Results.ValidationProblem(new Dictionary<string, string[]>
+                    {
+                        ["q"] = ["Search query must be at least 2 characters"]
+                    });
 
                 var result = await contactService.SearchUsersAsync(userId, q, cancellationToken);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
-                    : Results.Problem(
-                        title: result.Error,
-                        detail: result.Details,
-                        statusCode: result.Error == "Query too short" ? 400 : 500);
+                    : result.ToProblem("Failed to Search Users");
             })
             .RequireAuthorization()
             .WithName("SearchUsersForAuthorizedContacts")
@@ -247,7 +201,7 @@ public static class AuthorizedContactEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: unreachable auth guard — [Authorize] already enforces authentication
                         title: "Unauthorized",
                         detail: "User authentication failed - missing or invalid user identifier",
                         statusCode: 401);
@@ -260,16 +214,7 @@ public static class AuthorizedContactEndpoints
                     return Results.Ok(result.Value);
                 }
 
-                var statusCode = result.Error switch
-                {
-                    "Event not found" => 404,
-                    _ => 500
-                };
-
-                return Results.Problem(
-                    title: result.Error,
-                    detail: result.Details,
-                    statusCode: statusCode);
+                return result.ToProblem("Failed to Retrieve Principals");
             })
             .RequireAuthorization()
             .WithName("GetPrincipalContacts")

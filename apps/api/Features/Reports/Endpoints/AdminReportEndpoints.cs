@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using WitchCityRope.Api.Features.Reports.Models;
 using WitchCityRope.Api.Features.Reports.Services;
 using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Reports.Endpoints;
 
@@ -41,11 +42,17 @@ public static class AdminReportEndpoints
         {
             // Validate date range - dateTo must not precede dateFrom
             if (dateTo < dateFrom)
-                return Results.BadRequest("dateTo must be >= dateFrom");
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["dateTo"] = ["dateTo must be >= dateFrom"]
+                });
 
             // Limit to 365 days to prevent excessive queries and large response payloads
             if (dateTo.DayNumber - dateFrom.DayNumber > 365)
-                return Results.BadRequest("Date range cannot exceed 365 days");
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["dateTo"] = ["Date range cannot exceed 365 days"]
+                });
 
             var result = await reportService.GetDailyTransactionsAsync(dateFrom, dateTo, cancellationToken);
             return Results.Ok(result);

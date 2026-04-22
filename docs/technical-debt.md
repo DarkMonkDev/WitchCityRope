@@ -1230,6 +1230,145 @@ Estimated effort: ~2h once someone with cross-app authority schedules it.
 
 ---
 
+## Error handling standard adoption (TD-029 port from inventory-purchasing-workflow)
+
+### BE-TUPLE-MIGRATION — Tuple-pattern services can't use ToProblem (P2, DEFERRED)
+
+**Discovered**: 2026-04-21 during error handling standard migration
+
+**Impact**: 149 `// ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION` annotations across 12 endpoint files, which are excluded from the uniform `result.ToProblem(title)` helper until the underlying services migrate from `(bool success, T? response, string? error)` tuples to `Result<T>`.
+
+#### Symptom
+
+Endpoints that consume tuple-returning services can't use the new `ToProblem(title)` helper — the helper requires a `Result<T>` receiver. Those call sites currently carry an ARCH-ALLOW comment documenting the tuple dependency. Every new endpoint in these files will have to repeat the ARCH-ALLOW pattern until the service migrates.
+
+#### Root cause
+
+The tuple pattern predates the `Result<T>` vertical-slice convention. Ten services use it: `EventService`, `MemberDetailsService`, `UserManagementService`, `AuthenticationService`, `TestHelperService`, `VolunteerService`, `VolunteerAssignmentService`, `HealthService`, `SettingsService`, `PaymentListService`. A previous orchestrator-driven migration shifted newer services to Result<T> but left the older set.
+
+#### Suggested fix approach
+
+One service at a time (est. 30–60 min per service):
+1. Change interface signature from `Task<(bool, T?, string?)>` → `Task<Result<T>>`.
+2. Update service internals — replace tuple returns with `Result<T>.Success(value)` / `Result<T>.NotFound(...)` / etc. Use the kind-specific factories from the error handling standard.
+3. Update each endpoint handler that consumes the service:
+   - Replace the destructuring with `var result = await svc.Foo(...)`.
+   - Replace the `Results.Problem(...)` call with `result.ToProblem("Title")`.
+   - Remove the ARCH-ALLOW comment.
+4. Re-run the arch test to confirm the ARCH-ALLOW count drops.
+5. Re-run the unit/integration suite to confirm no regressions.
+
+Services should be migrated in order of consumer count (EventService and MemberDetailsService first — they have the most endpoint call sites).
+
+#### Authoritative records
+
+- `docs/standards-processes/backend/error-handling-standard.md` — the standard
+- `tests/WitchCityRope.Core.Tests/Features/Shared/EndpointErrorShapeTests.cs` — the arch test that carries this TD in its allowed-exceptions list
+- Initial migration commit (pending) that landed Phase 1 foundation + ARCH-ALLOW annotations
+
+---
+
+### BE-BACKUP-MIGRATION — AdminBackupEndpoints bypasses Result<T> with try/catch (P3, DEFERRED)
+
+**Discovered**: 2026-04-21 during error handling standard migration
+
+**Impact**: 15 `// ARCH-ALLOW: backup feature uses try/catch wrapping Hangfire/Spaces — pending TD-BE-BACKUP-MIGRATION` annotations in `apps/api/Features/Backup/Endpoints/AdminBackupEndpoints.cs`.
+
+#### Symptom
+
+The backup feature (manual backup trigger, list, restore, delete, download, job status) wraps every handler in a bespoke try/catch with domain-appropriate `Results.Problem` titles and statuses rather than going through `Result<T>` + `ToProblem`. The endpoints work correctly; they just don't participate in the uniform error shape.
+
+#### Root cause
+
+`BackupOrchestrationService` and friends throw exceptions rather than returning `Result<T>` — the feature was built before the Result pattern was adopted repo-wide. The Hangfire/DigitalOcean Spaces integrations surface failures as exceptions naturally, and converting them to Result<T> requires restructuring the orchestration code.
+
+#### Suggested fix approach
+
+Refactor `BackupOrchestrationService` and `SpacesStorageService` to return `Result<T>` instead of throwing. Collapse the 15 endpoint try/catch blocks to `result.ToProblem(title)`. Est. ~2h. Re-evaluate when the backup feature receives substantial new work (current work is infrequent).
+
+#### Authoritative records
+
+- Mirrors inventory-purchasing-workflow's equivalent TD (`AdminBackupEndpoints` 15 ARCH-ALLOW sites) documented in the Error Handling Standard's "Known allowed exceptions" section.
+
+---
+
+### BE-DEDUPE-RESULT — EmailTemplates has its own Result<T> type shadowing Shared.Models.Result (P2, DEFERRED)
+
+**Discovered**: 2026-04-21 during error handling standard migration
+
+**Impact**: 21 `// ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT` annotations in `apps/api/Features/EmailTemplates/Endpoints/EmailTemplateEndpoints.cs`. The EmailTemplates service methods return `WitchCityRope.Api.Features.EmailTemplates.Services.Result<T>` rather than `WitchCityRope.Api.Features.Shared.Models.Result<T>`, so the `ToProblem` extension — which is bound to the Shared.Models type — does not apply.
+
+#### Symptom
+
+Every EmailTemplates endpoint handler carries an ARCH-ALLOW instead of `result.ToProblem(title)`. A developer trying `result.ToProblem(...)` gets a CS1929 compile error with a confusing message about the wrong receiver type.
+
+#### Root cause
+
+`IEmailTemplateService.cs` declares its own `Result<T>` class at lines 205–225 (approximate) — a local definition that duplicates the shape of `Shared.Models.Result<T>` minus `ErrorKind`. The local copy was likely introduced before `Shared.Models.Result<T>` existed or in parallel with it, and never consolidated.
+
+#### Suggested fix approach
+
+1. Delete the local `Result<T>` declaration in `IEmailTemplateService.cs`.
+2. Replace its usages (in `EmailTemplateService.cs` and callers) with `WitchCityRope.Api.Features.Shared.Models.Result<T>`.
+3. Update the 21 endpoint handlers to use `result.ToProblem(title)`; remove ARCH-ALLOW comments.
+4. Verify the arch test count drops by 21.
+5. Run the unit/integration suite.
+
+Est. effort: ~45 min. Low risk — purely additive for callers (the Shared.Models.Result has a superset of API).
+
+#### Authoritative records
+
+- Subagent report (2026-04-21 Phase 3c+3d+3e sweep): "EmailTemplates has its OWN `Result` type (`WitchCityRope.Api.Features.EmailTemplates.Services.Result<T>`, declared in `IEmailTemplateService.cs:205-225`) that is distinct from `Shared.Models.Result`."
+
+---
+
+### BE-EXMESSAGE-LEAK-CATCHALL — Endpoint-level catch-all sites still pass ex.Message to client (P3, DEFERRED)
+
+**Discovered**: 2026-04-21 during error handling standard migration
+
+**Impact**: ~19 sites across various endpoint files where a handler's outer `catch (Exception ex) { return Results.Problem(detail: ex.Message, ...) }` still leaks the exception message to the wire. The arch test's ARCH-ALLOW allows them (subagent annotated them as `// ARCH-ALLOW: catch-all ex.Message leakage`), but they remain a minor security-hygiene issue.
+
+#### Symptom
+
+Raw exception text reaches the client from endpoint-level try/catch blocks that the Phase 3a sweep did not touch (Phase 3a focused on `ex.Message` inside service `Result.Failure(...)` strings; endpoint-level `catch (Exception ex) { Results.Problem(detail: ex.Message) }` were out of scope for that pass).
+
+#### Suggested fix approach
+
+Prefer deleting the endpoint-level try/catch outright: `GlobalExceptionHandler` already catches unhandled exceptions and produces a uniform 500 ProblemDetails. If the endpoint genuinely needs a custom title, convert to `return Result<T>.Infrastructure("<static msg>").ToProblem("<title>")` pattern (same as the `apps/api/Features/Admin/Endpoints/UsersEndpoints.cs` migration in Phase 3a).
+
+Est. effort: ~30 min. Each site is independent; safe to fix opportunistically when touching the file.
+
+#### Authoritative records
+
+- Subagent report (2026-04-21 Phase 3c+3d+3e sweep): "19 handler `catch (Exception ex)` catch-alls (TD-BE-EXMESSAGE-LEAK)".
+
+---
+
+### BE-ENDPOINTS-DIR-OUT-OF-ARCH-SCAN — `apps/api/Endpoints/` has 38 unscanned violations (P3, DEFERRED)
+
+**Discovered**: 2026-04-21 during error handling standard migration
+
+**Impact**: 38 forbidden-call sites in `apps/api/Endpoints/VenueEndpoints.cs` and `apps/api/Endpoints/Admin/` are outside the arch test's scan directory (which only walks `apps/api/Features/*/Endpoints/` + `apps/api/Controllers/`). New drift in these files will not be caught.
+
+#### Symptom
+
+`apps/api/Endpoints/` is an older, pre-vertical-slice convention. These endpoints are actively routed (`app.MapVenueEndpoints()` and `app.MapPublicVenueEndpoints()` in `WebApplicationExtensions.cs`) but live outside the Features/ hierarchy.
+
+#### Suggested fix approach
+
+Two options:
+1. **Move files to `apps/api/Features/Venues/Endpoints/`** (vertical-slice-aligned, preferred long-term). Update namespaces + registration call sites. Est. ~30 min plus a test run.
+2. **Widen the arch test's scan to include `apps/api/Endpoints/`**. 2-line change in `EndpointErrorShapeTests.cs`. Then sweep the 38 violations to `ToProblem` or ARCH-ALLOW. Est. ~30 min plus a test run.
+
+Either option produces uniform coverage. Option 1 is cleaner.
+
+#### Authoritative records
+
+- `apps/api/Features/Shared/Extensions/WebApplicationExtensions.cs` confirms the endpoints are actively routed.
+- Subagent report (2026-04-21 Phase 3c+3d+3e sweep): "`apps/api/Endpoints/` (non-Features) has 38 unannotated violations in `VenueEndpoints.cs` and `Admin/VenueEndpoints.cs`."
+
+---
+
 # Resolved items
 
 These items came up during a previous session and were resolved. Listed here for traceability so future agents don't re-investigate them. Format: `(date resolved) (original item number/ID) — short summary with commit ref`.
@@ -1350,6 +1489,7 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-12 | BE-12 M2a/M2c/M2b fixes landed. M2c: centralized `TicketPurchase.PaymentStatus` sync inside `RefundService.ProcessRefundAsync` via new `SyncPaymentStatusFromRefundsAsync` helper — every caller now gets the status transition automatically (commit `0d0cf6f7`). M2a resolved by consequence. M2b: added new `TicketPurchasePaymentStatus.AwaitingManualRefund` enum value + admin UI badge (pink) + filter option + new skill audit 9.7 to surface the queue of pending manual refunds. `TicketPurchase.IsPaymentCompleted` and `PaymentListService.IsRefundable` extended to include the new status. Remaining: Row B one-off SQL to flip stale status on `e4e24d70-...` (Row A already resolved via admin action). Three pre-existing test failures (unrelated: RefundServiceEmailTests variable-name mismatch + RefundServiceTests failed-refund assertion) surfaced but are not caused by these changes — git diff confirms the affected code paths are untouched. | M2 Strategy B — batch completion before staging deploy |
 | 2026-04-12 | Added BE-15 (PayPal multi-ticket undercharge) — RESOLVED. Mr J reported that credit card correctly charged $40 for 2 tickets but PayPal defaulted to $20. Root cause: (1) `@paypal/react-paypal-js`'s `<PayPalButtons>` caches the `createOrder` closure on mount, so parent prop changes (quantity, slider, ticket type) didn't propagate to the SDK; (2) idempotency key wasn't regenerated on PayPal cancel, so a retry with different cart values received the previously-cached $20 order from the backend. Fix: `forceReRender` on both `<PayPalButtons>` instances + new `handlePayPalCancel` in `EventPaymentPage` that regenerates the idempotency key (mirroring the BE-14 credit-card fix). Forensic audit of all 8 historical PayPal purchases showed no OBVIOUS undercharges but the bug is undetectable in DB data alone — the missing ticket leaves no trace. Entry marked resolved because the forward fix is comprehensive; past harm is a human-comms issue. | BE-15 forensic + forward fix (bundled into M2 deploy) |
 | 2026-04-12 | Added T-8 (no PayPal checkout component tests + no skill wrapper for vitest). Captures the test-coverage gap that let today's four PayPal-adjacent bugs ship past all automated testing (BE-14 credit-card idempotency, BE-15 Fix 1 stale closure, BE-15 Fix 2 cancel-key reuse, and my BE-15 regression that dropped `setCurrentStep(2)`). Also documents the skill/hook gap: `run-test-suite` has no vitest mode, the pre-commit hook blocks direct `npx vitest` invocation, and the test-executor agent (the hook's suggested fallback) doesn't have the Task tool so it can't invoke anything either. Partial fix applied: extracted `handlePayPalSuccess` into a pure function + added 7 regression-guard tests in `tests/unit/web/features/payments/paypalSuccessHandler.test.ts` — type-checked clean but not runtime-verified in-session due to the skill gap. | BE-15 regression + T-8 entry |
+| 2026-04-21 | **Error handling standard adoption (TD-029 port from inventory-purchasing-workflow).** Added five new Active items under a new "Error handling standard adoption" section: BE-TUPLE-MIGRATION (P2, 149 ARCH-ALLOW sites across 12 files pending tuple→Result<T> service migration), BE-BACKUP-MIGRATION (P3, 15 ARCH-ALLOW in AdminBackupEndpoints), BE-DEDUPE-RESULT (P2, 21 ARCH-ALLOW in EmailTemplateEndpoints from duplicate Result<T> type), BE-EXMESSAGE-LEAK-CATCHALL (P3, ~19 endpoint-level catch-alls still leaking ex.Message), BE-ENDPOINTS-DIR-OUT-OF-ARCH-SCAN (P3, apps/api/Endpoints/ has 38 violations outside scan scope). Foundation landed: `Result<T>` + `ResultErrorKind` enum, `ToProblem(title)` extension, `GlobalExceptionHandler`, `AntiforgeryExtensions.ValidateAsync` helper, `EndpointErrorShapeTests` architectural test in Core.Tests, sweep of ~429 forbidden-call sites (Results.Problem/BadRequest/NotFound/Conflict) across 27 endpoint files, ~51 `ex.Message` service-layer leaks cleaned up across 10 services, ProtectedController migrated to Minimal API, ~60 `Result<T>.Failure` calls promoted to kind-specific factories (NotFound/Conflict/Forbidden/Infrastructure/Upstream) across 8 services to produce correct HTTP status codes. Standard doc copied verbatim to `docs/standards-processes/backend/error-handling-standard.md`; CLAUDE.md updated with quick-reference table; code-reviewer agent updated with arch-test checklist; old `error-handling-patterns.md` collapsed to a pointer. Revert anchor: git tag `pre-error-handling-standard-2026-04-21`. | Error handling standard migration session |
 | 2026-04-13 | **Production deploy + Row B backfill.** Bundled fixes shipped to production via `production-deploy` skill at git SHA `94d132f2`: BE-14 (commit `a92b7044`), BE-12 M2a/M2c (commit `0d0cf6f7`), BE-12 M2b (commit `78376f04`), BE-15 forward fix (commit `689136ca`), BE-15 regression repair (commit `897a27ac`), BE-15/T-8 testable handler extraction (commit `94d132f2`), audit 9.1/9.2 DISTINCT-users fix (commit `f52bc8fc`), proxy-RSVP + DailyLogSummaryJob fixes (commit `c5498ad8`). All three prod containers healthy after deploy. Row B one-off SQL executed: `TicketPurchases.Id = e4e24d70-92a4-4550-a439-e497915d18e1` `PaymentStatus` flipped `Completed` → `Refunded`; post-update scan shows zero stale refund rows remaining. BE-12 marked RESOLVED (all three drift rows reconciled — Row A via admin UI on 2026-04-12, Row B via SQL on 2026-04-13, and the underlying classes of drift are closed by the M2a/M2b/M2c code changes). BE-14 stays UNRESOLVED because the Authorize.NET E00114 root cause is still unknown even though the frontend symptom-fix shipped. BE-15 stays RESOLVED. Also: prevalence check on prod confirmed 29 users have both Active RSVP + Active Ticket for same event — expected behavior (AttendanceService auto-creates RSVP on ticket purchase when no RSVP exists, and users who RSVPed before upgrading to a ticket keep both records). Audits use `COUNT(DISTINCT UserId)` so no double-counting. UI correctly prioritizes Ticket > RSVP on both event page and dashboard. No action needed. | Prod deploy session (Strategy B bundle) |
 
 ---

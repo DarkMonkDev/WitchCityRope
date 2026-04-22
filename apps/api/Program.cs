@@ -36,6 +36,7 @@ using NpgsqlTypes;
 using WitchCityRope.Api.Features.Authentication.Jobs;
 using WitchCityRope.Api.Features.Authentication.Services;
 using WitchCityRope.Api.Features.Logging.Infrastructure;
+using WitchCityRope.Api.Features.Shared.Logging;
 
 // Enable Serilog self-diagnostics so sink errors appear in stderr
 Serilog.Debugging.SelfLog.Enable(Console.Error);
@@ -113,6 +114,38 @@ builder.Services.AddSerilog((services, lc) =>
             period: TimeSpan.FromSeconds(5));
     }
 });
+
+// ProblemDetails + global exception handler wiring for the Error Handling Standard.
+// See docs/standards-processes/backend/error-handling-standard.md for the rationale.
+//
+// AddProblemDetails registers the shared IProblemDetailsService that ASP.NET uses for
+// Results.Problem(), Results.ValidationProblem(), and any IExceptionHandler writes.
+// The CustomizeProblemDetails callback fires for EVERY ProblemDetails response in the
+// system and attaches the correlationId (set earlier by CorrelationIdMiddleware on the
+// Response header) plus the ASP.NET traceId. These two extensions let support tie a
+// user-reported error to the exact server log line.
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+    {
+        // CorrelationIdMiddleware sets this on the Response before any endpoint executes,
+        // so reading the Response header is the authoritative source. Fall back to the
+        // Request header in case an edge-case path skipped the middleware.
+        var correlationId =
+            context.HttpContext.Response.Headers["X-Correlation-Id"].FirstOrDefault()
+            ?? context.HttpContext.Request.Headers["X-Correlation-Id"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(correlationId))
+            context.ProblemDetails.Extensions["correlationId"] = correlationId;
+
+        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+    };
+});
+
+// GlobalExceptionHandler (Features/Shared/Logging/GlobalExceptionHandler.cs) implements
+// .NET 10's IExceptionHandler interface. It logs the exception server-side, sets a 500
+// status, and writes a ProblemDetails body via IProblemDetailsService so the
+// CustomizeProblemDetails callback above runs. Activated by app.UseExceptionHandler() below.
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Add services to the container
 builder.Services.AddControllers()
@@ -536,6 +569,16 @@ app.UseRateLimiter();
 // CorrelationId middleware - adds correlation ID to all log entries
 // Placed before auth so unauthenticated requests also get correlation IDs
 app.UseMiddleware<CorrelationIdMiddleware>();
+
+// Global exception handler — converts unhandled exceptions to RFC 7807 ProblemDetails.
+// MUST come AFTER CorrelationIdMiddleware so the X-Correlation-Id header is on the
+// Response when GlobalExceptionHandler writes the PD body (the CustomizeProblemDetails
+// callback registered in AddProblemDetails reads it from there).
+// MUST come BEFORE UseSerilogRequestLogging so the final 500 is logged as a clean
+// request completion rather than an aborted pipeline.
+// See docs/standards-processes/backend/error-handling-standard.md for the full wiring
+// rationale, and Features/Shared/Logging/GlobalExceptionHandler.cs for the handler itself.
+app.UseExceptionHandler();
 
 // CSRF token generation endpoint for React SPA
 // Microsoft standard pattern for .NET 10 Minimal APIs with JSON

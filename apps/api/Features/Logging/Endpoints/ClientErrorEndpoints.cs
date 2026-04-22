@@ -1,4 +1,5 @@
 using WitchCityRope.Api.Features.Logging.Models;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Logging.Endpoints;
 
@@ -20,17 +21,26 @@ public static class ClientErrorEndpoints
                 // Reject oversized payloads
                 if (httpContext.Request.ContentLength > MaxPayloadBytes)
                 {
-                    return Results.BadRequest(new { error = "Payload exceeds maximum size of 100KB." });
+                    return Results.ValidationProblem(new Dictionary<string, string[]>
+                    {
+                        ["payload"] = ["Payload exceeds maximum size of 100KB."]
+                    });
                 }
 
                 if (batch.Errors is not { Count: > 0 })
                 {
-                    return Results.BadRequest(new { error = "Batch must contain at least one error." });
+                    return Results.ValidationProblem(new Dictionary<string, string[]>
+                    {
+                        ["errors"] = ["Batch must contain at least one error."]
+                    });
                 }
 
                 if (batch.Errors.Count > MaxBatchSize)
                 {
-                    return Results.BadRequest(new { error = $"Batch must contain at most {MaxBatchSize} errors." });
+                    return Results.ValidationProblem(new Dictionary<string, string[]>
+                    {
+                        ["errors"] = [$"Batch must contain at most {MaxBatchSize} errors."]
+                    });
                 }
 
                 var isAuthenticated = httpContext.Request.Cookies.ContainsKey("auth-token");

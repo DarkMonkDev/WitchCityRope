@@ -7,6 +7,7 @@ using WitchCityRope.Api.Features.CheckIn.Services;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Shared.Extensions;
 
 namespace WitchCityRope.Api.Features.Events.Endpoints;
 
@@ -40,7 +41,7 @@ public static class EventEndpoints
                     var user = context.User;
                     if (user.Identity?.IsAuthenticated != true)
                     {
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Authentication Required",
                             detail: "Authentication required to access unpublished events",
                             statusCode: 401);
@@ -49,7 +50,7 @@ public static class EventEndpoints
                     // Allow Administrator and EventOrganizer to view unpublished events
                     if (!user.IsInRole("Administrator") && !user.IsInRole("EventOrganizer"))
                     {
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Insufficient Permissions",
                             detail: "Administrator or EventOrganizer role required to access unpublished events",
                             statusCode: 403);
@@ -64,7 +65,7 @@ public static class EventEndpoints
                 }
 
                 // Return proper error - NO FALLBACK DATA
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to retrieve events",
                     detail: error ?? "Unable to retrieve events. Please check if the API database connection is working.",
                     statusCode: 500);
@@ -94,7 +95,7 @@ public static class EventEndpoints
                     var user = context.User;
                     if (user.Identity?.IsAuthenticated != true)
                     {
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Authentication Required",
                             detail: "Authentication required to access unpublished events",
                             statusCode: 401);
@@ -103,7 +104,7 @@ public static class EventEndpoints
                     // Allow Administrator and EventOrganizer to view unpublished events
                     if (!user.IsInRole("Administrator") && !user.IsInRole("EventOrganizer"))
                     {
-                        return Results.Problem(
+                        return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                             title: "Insufficient Permissions",
                             detail: "Administrator or EventOrganizer role required to access unpublished events",
                             statusCode: 403);
@@ -117,7 +118,7 @@ public static class EventEndpoints
                     return Results.Ok(response);
                 }
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to retrieve event list",
                     detail: error ?? "Unable to retrieve event list.",
                     statusCode: 500);
@@ -145,7 +146,7 @@ public static class EventEndpoints
                 }
 
                 // Return proper error - NO FALLBACK DATA
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: response == null ? "Event Not Found" : "Failed to retrieve event",
                     detail: error ?? (response == null ? "Event not found" : "Failed to retrieve event from database"),
                     statusCode: response == null ? 404 : 500);
@@ -168,17 +169,9 @@ public static class EventEndpoints
             CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 // Call service to create event
                 var (success, response, error) = await eventService.CreateEventAsync(request, cancellationToken);
@@ -197,7 +190,7 @@ public static class EventEndpoints
                     _ => 500
                 };
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to create event",
                     detail: error ?? "Failed to create event. Please try again.",
                     statusCode: statusCode);
@@ -224,17 +217,9 @@ public static class EventEndpoints
             CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 var (success, response, error) = await eventService.UpdateEventAsync(id, request, cancellationToken);
 
@@ -255,7 +240,7 @@ public static class EventEndpoints
                     _ => 500
                 };
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to update event",
                     detail: error ?? "Failed to update event",
                     statusCode: statusCode);
@@ -283,17 +268,9 @@ public static class EventEndpoints
             CancellationToken cancellationToken) =>
             {
                 // CSRF validation - MUST be first
-                try
-                {
-                    await antiforgery.ValidateRequestAsync(context);
-                }
-                catch (AntiforgeryValidationException)
-                {
-                    return Results.Problem(
-                        title: "CSRF Validation Failed",
-                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
-                        statusCode: 400);
-                }
+                var csrfResult = await antiforgery.ValidateAsync(context);
+                if (!csrfResult.IsSuccess)
+                    return csrfResult.ToProblem("CSRF Validation Failed");
 
                 // Call service to perform copy operation
                 var (success, response, error) = await eventService.CopyEventAsync(id, request, cancellationToken);
@@ -311,7 +288,7 @@ public static class EventEndpoints
                     _ => 500
                 };
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: statusCode == 404 ? "Event Not Found" : "Failed to copy event",
                     detail: error ?? "Failed to copy event. Please try again.",
                     statusCode: statusCode);
@@ -340,7 +317,7 @@ public static class EventEndpoints
                 var sessionToken = context.Request.Headers["X-CheckIn-Token"].FirstOrDefault();
                 if (string.IsNullOrEmpty(sessionToken))
                 {
-                    return Results.Problem(
+                    return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                         title: "Missing check-in session token",
                         detail: "X-CheckIn-Token header required for kiosk access",
                         statusCode: 401);
@@ -355,7 +332,7 @@ public static class EventEndpoints
                 }
 
                 // Return proper error
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: response == null ? "Event not found" : "Failed to retrieve ticket types",
                     detail: error ?? (response == null ? "Event not found" : "Failed to retrieve ticket types from database"),
                     statusCode: response == null ? 404 : 500);
@@ -382,7 +359,7 @@ public static class EventEndpoints
             // VALIDATE TOKEN FIRST
             if (string.IsNullOrEmpty(token))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Unauthorized",
                     detail: "Check-in token is required",
                     statusCode: 401);
@@ -391,7 +368,7 @@ public static class EventEndpoints
             var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
             if (!validationResult.IsSuccess)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Unauthorized",
                     detail: "Invalid or expired check-in token",
                     statusCode: 401);
@@ -400,7 +377,7 @@ public static class EventEndpoints
             var tokenData = validationResult.Value;
             if (tokenData.EventId != eventId)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Forbidden",
                     detail: "Check-in token is for a different event",
                     statusCode: 403);
@@ -421,11 +398,7 @@ public static class EventEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.Problem(
-                    title: "Cash Payment Failed",
-                    detail: result.Error,
-                    statusCode: result.Error.Contains("not found") ? 404 :
-                               result.Error.Contains("already has a ticket") ? 409 : 500);
+                : result.ToProblem("Cash Payment Failed");
         })
         .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("RecordEventCashPayment")
@@ -448,7 +421,7 @@ public static class EventEndpoints
         {
             if (!Guid.TryParse(eventId, out var eventGuid))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Invalid Event ID",
                     detail: "The event ID must be a valid GUID",
                     statusCode: 400);
@@ -457,7 +430,7 @@ public static class EventEndpoints
             var eventExists = await context.Events.AnyAsync(e => e.Id == eventGuid, cancellationToken);
             if (!eventExists)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Event Not Found",
                     detail: $"Event with ID {eventId} was not found",
                     statusCode: 404);
@@ -491,7 +464,7 @@ public static class EventEndpoints
             // Require Event Organizer or Admin role
             if (!context.User.Identity?.IsAuthenticated ?? false)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Authentication Required",
                     detail: "You must be authenticated to check session deletion",
                     statusCode: 401);
@@ -500,7 +473,7 @@ public static class EventEndpoints
             // Multi-role support: IsInRole checks all role claims in JWT
             if (!context.User.IsInRole("Administrator") && !context.User.IsInRole("EventOrganizer"))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Insufficient Permissions",
                     detail: "Administrator or Event Organizer role required",
                     statusCode: 403);
@@ -510,7 +483,7 @@ public static class EventEndpoints
 
             if (!success || response == null)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to check session deletion",
                     detail: error,
                     statusCode: error.Contains("not found") ? 404 : 500);
@@ -540,7 +513,7 @@ public static class EventEndpoints
             // Require Event Organizer or Admin role
             if (!context.User.Identity?.IsAuthenticated ?? false)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Authentication Required",
                     detail: "You must be authenticated to delete sessions",
                     statusCode: 401);
@@ -549,7 +522,7 @@ public static class EventEndpoints
             // Multi-role support: IsInRole checks all role claims in JWT
             if (!context.User.IsInRole("Administrator") && !context.User.IsInRole("EventOrganizer"))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Insufficient Permissions",
                     detail: "Administrator or Event Organizer role required",
                     statusCode: 403);
@@ -562,7 +535,7 @@ public static class EventEndpoints
                 var statusCode = error.Contains("not found") ? 404 :
                                 error.Contains("Cannot delete") ? 400 : 500;
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to delete session",
                     detail: error,
                     statusCode: statusCode);
@@ -593,7 +566,7 @@ public static class EventEndpoints
             // Require Event Organizer or Admin role
             if (!context.User.Identity?.IsAuthenticated ?? false)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Authentication Required",
                     detail: "You must be authenticated to check ticket type deletion",
                     statusCode: 401);
@@ -602,7 +575,7 @@ public static class EventEndpoints
             // Multi-role support: IsInRole checks all role claims in JWT
             if (!context.User.IsInRole("Administrator") && !context.User.IsInRole("EventOrganizer"))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Insufficient Permissions",
                     detail: "Administrator or Event Organizer role required",
                     statusCode: 403);
@@ -612,7 +585,7 @@ public static class EventEndpoints
 
             if (!success || response == null)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to check ticket type deletion",
                     detail: error,
                     statusCode: error.Contains("not found") ? 404 : 500);
@@ -642,7 +615,7 @@ public static class EventEndpoints
             // Require Event Organizer or Admin role
             if (!context.User.Identity?.IsAuthenticated ?? false)
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Authentication Required",
                     detail: "You must be authenticated to delete ticket types",
                     statusCode: 401);
@@ -651,7 +624,7 @@ public static class EventEndpoints
             // Multi-role support: IsInRole checks all role claims in JWT
             if (!context.User.IsInRole("Administrator") && !context.User.IsInRole("EventOrganizer"))
             {
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Insufficient Permissions",
                     detail: "Administrator or Event Organizer role required",
                     statusCode: 403);
@@ -664,7 +637,7 @@ public static class EventEndpoints
                 var statusCode = error.Contains("not found") ? 404 :
                                 error.Contains("Cannot delete") ? 400 : 500;
 
-                return Results.Problem(
+                return Results.Problem( // ARCH-ALLOW: tuple service — pending TD-BE-TUPLE-MIGRATION
                     title: "Failed to delete ticket type",
                     detail: error,
                     statusCode: statusCode);

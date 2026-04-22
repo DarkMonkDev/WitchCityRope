@@ -284,12 +284,43 @@ export type EventSession = components['schemas']['SessionDto']  // Has registrat
 - ✅ **Pattern**: React → API endpoints → Cookie-based auth
 - ✅ **Use** React Context for auth state management
 
-### 6. E2E Testing - Playwright ONLY
+### 6. Error Responses — RFC 7807 ProblemDetails via `ToProblem`
+
+**Full standard**: `/docs/standards-processes/backend/error-handling-standard.md`
+
+Endpoint handlers MUST emit error responses through `result.ToProblem(title)`, never by calling `Results.Problem` / `Results.BadRequest` / `Results.NotFound` / `Results.Conflict` / `Results.UnprocessableEntity` directly. An architectural test (`EndpointErrorShapeTests` in `tests/WitchCityRope.Core.Tests`) fails the build on violations.
+
+Services classify failures via `ResultErrorKind` → HTTP status:
+
+| `ResultErrorKind` | Factory | HTTP | Use when |
+|---|---|---|---|
+| `BusinessRule` | `Result.Failure(msg)` (default) | 400 | Domain-rule violation (e.g. "cannot update a completed event") |
+| `Validation` | `Result.Validation(msg)` | 400 | Request-shape / input validation beyond FluentValidation |
+| `NotFound` | `Result.NotFound(msg)` | 404 | Referenced resource doesn't exist |
+| `Conflict` | `Result.Conflict(msg)` | 409 | State conflict, duplicate, optimistic concurrency |
+| `Unauthorized` | `Result.Unauthorized(msg)` | 401 | Auth required / failed |
+| `Forbidden` | `Result.Forbidden(msg)` | 403 | Authenticated but lacks permission |
+| `Infrastructure` | `Result.Infrastructure(msg)` | 500 | DB, disk, OUR code (never pass `ex.Message`) |
+| `Upstream` | `Result.Upstream(msg)` | 502 | External service failure (PayPal, SendGrid, etc.) |
+
+**Shape**:
+```csharp
+var result = await svc.DoSomethingAsync(...);
+if (!result.IsSuccess)
+    return result.ToProblem("Failed to Do Something");
+return Results.Ok(result.Value);
+```
+
+**NEVER** put `ex.Message` in a user-facing `Result` error — log it server-side via `_logger.LogError(ex, ...)` and pass a static string. CSRF validation uses `await antiforgery.ValidateAsync(context)` from `AntiforgeryExtensions`.
+
+Unhandled exceptions flow through `GlobalExceptionHandler` (`Features/Shared/Logging/`) which produces a uniform 500 ProblemDetails with a correlation ID — so endpoint-level `try/catch` blocks wrapping everything are usually unnecessary.
+
+### 7. E2E Testing - Playwright ONLY
 - ✅ **Location**: `/tests/playwright/`
 - ✅ **Run**: See Quick Commands section below
 - ❌ **NO Puppeteer**: All tests use Playwright
 
-### 7. Docker Development Build
+### 8. Docker Development Build
 ```bash
 # ❌ WRONG - Will fail:
 docker-compose up
