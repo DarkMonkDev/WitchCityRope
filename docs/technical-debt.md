@@ -1292,9 +1292,10 @@ Refactor `BackupOrchestrationService` and `SpacesStorageService` to return `Resu
 
 ---
 
-### BE-DEDUPE-RESULT — EmailTemplates has its own Result<T> type shadowing Shared.Models.Result (P2, DEFERRED)
+### BE-DEDUPE-RESULT — EmailTemplates has its own Result<T> type shadowing Shared.Models.Result (P2, RESOLVED)
 
 **Discovered**: 2026-04-21 during error handling standard migration
+**Updated**: 2026-04-21 — **RESOLVED** (see "Resolution" sub-section at bottom)
 
 **Impact**: 21 `// ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT` annotations in `apps/api/Features/EmailTemplates/Endpoints/EmailTemplateEndpoints.cs`. The EmailTemplates service methods return `WitchCityRope.Api.Features.EmailTemplates.Services.Result<T>` rather than `WitchCityRope.Api.Features.Shared.Models.Result<T>`, so the `ToProblem` extension — which is bound to the Shared.Models type — does not apply.
 
@@ -1319,6 +1320,14 @@ Est. effort: ~45 min. Low risk — purely additive for callers (the Shared.Model
 #### Authoritative records
 
 - Subagent report (2026-04-21 Phase 3c+3d+3e sweep): "EmailTemplates has its OWN `Result` type (`WitchCityRope.Api.Features.EmailTemplates.Services.Result<T>`, declared in `IEmailTemplateService.cs:205-225`) that is distinct from `Shared.Models.Result`."
+
+#### Resolution (2026-04-21, commit pending)
+
+Deleted the local `Result` / `Result<T>` classes from `IEmailTemplateService.cs`. Added `using WitchCityRope.Api.Features.Shared.Models;` there plus in `EmailTemplateService.cs` (the implementation in the same namespace). Other callers (jobs, other endpoint files) already resolved to `Shared.Models.Result<T>` through their own using directives, so no changes required in those.
+
+Converted the 21 `ARCH-ALLOW` sites in `EmailTemplateEndpoints.cs` to `result.ToProblem(title)`. During that pass, also promoted EmailTemplateService's `.Failure()` calls to kind-specific factories (Rule B'-style): "Template not found" / "Email not found" → `.NotFound(...)` (→ HTTP 404); "Failed to ..." catch-alls → `.Infrastructure(...)` (→ HTTP 500). Pre-sweep these were all emitting 500 at the endpoint level from the old hardcoded `statusCode: 500`; post-sweep they emit the correct status per failure type.
+
+Verified: 0 ARCH-ALLOW remaining in `EmailTemplateEndpoints.cs`, build clean, arch test passes, test suite within baseline range.
 
 ---
 

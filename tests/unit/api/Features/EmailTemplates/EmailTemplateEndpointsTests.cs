@@ -5,6 +5,7 @@ using WitchCityRope.Api.Features.EmailTemplates.Endpoints;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
+using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Models;
 using Xunit;
 using FluentAssertions;

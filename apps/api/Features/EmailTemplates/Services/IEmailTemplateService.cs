@@ -1,5 +1,6 @@
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
+using WitchCityRope.Api.Features.Shared.Models;
 
 namespace WitchCityRope.Api.Features.EmailTemplates.Services;
 
@@ -199,27 +200,12 @@ public interface IEmailTemplateService
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>
-/// Result type for service operations
-/// </summary>
-public class Result
-{
-    public bool IsSuccess { get; set; }
-    public string Error { get; set; } = string.Empty;
-
-    public static Result Success() => new() { IsSuccess = true };
-    public static Result Failure(string error) => new() { IsSuccess = false, Error = error };
-}
-
-/// <summary>
-/// Generic result type for service operations returning data
-/// </summary>
-public class Result<T>
-{
-    public bool IsSuccess { get; set; }
-    public T? Value { get; set; }
-    public string Error { get; set; } = string.Empty;
-
-    public static Result<T> Success(T value) => new() { IsSuccess = true, Value = value };
-    public static Result<T> Failure(string error) => new() { IsSuccess = false, Error = error };
-}
+// NOTE: Previously this file declared its own local Result / Result<T> classes that
+// shadowed WitchCityRope.Api.Features.Shared.Models.Result{T}. That duplicate blocked
+// EmailTemplateEndpoints.cs from using result.ToProblem(title) (the extension is bound
+// to the Shared.Models.Result type, not the local one) — 21 endpoint sites had to be
+// marked // ARCH-ALLOW: local Result type — pending TD-BE-DEDUPE-RESULT.
+//
+// The local classes are now deleted. Signatures above use Shared.Models.Result{T} via
+// the added using directive. Callers outside this file that previously relied on the
+// local type now resolve to Shared.Models via their own using directives.

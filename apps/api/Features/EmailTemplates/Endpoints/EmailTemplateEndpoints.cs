@@ -395,12 +395,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetGlobalTemplatesByCategoryAsync(emailCategory, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Retrieve Templates",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Retrieve Templates");
 
         return Results.Ok(result.Value);
     }
@@ -413,12 +408,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetGlobalTemplateByIdAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Template Not Found",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Template Not Found");
 
         return Results.Ok(result.Value);
     }
@@ -450,12 +440,7 @@ public static class EmailTemplateEndpoints
         var result = await service.UpdateGlobalTemplateAsync(id, request, userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Update Template",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Update Template");
 
         return Results.Ok(result.Value);
     }
@@ -468,12 +453,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetEventTemplatesAsync(eventId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Retrieve Event Templates",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Retrieve Event Templates");
 
         return Results.Ok(result.Value);
     }
@@ -487,12 +467,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetEventTemplateByTypeAsync(eventId, type, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Template Not Found",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Template Not Found");
 
         return Results.Ok(result.Value);
     }
@@ -528,12 +503,7 @@ public static class EmailTemplateEndpoints
         var result = await service.UpdateEventTemplateAsync(eventId, type, request, userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Update Event Template",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Update Event Template");
 
         return Results.Ok(result.Value);
     }
@@ -557,12 +527,7 @@ public static class EmailTemplateEndpoints
         var result = await service.DeleteEventTemplateAsync(eventId, type, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Delete Event Template",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Delete Event Template");
 
         return Results.NoContent();
     }
@@ -593,12 +558,7 @@ public static class EmailTemplateEndpoints
         var result = await service.SendAdHocEmailAsync(request, userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Send Ad-Hoc Email",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Send Ad-Hoc Email");
 
         return Results.Ok(result.Value);
     }
@@ -611,12 +571,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetAdHocEmailHistoryAsync(eventId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Retrieve Ad-Hoc Email History",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Retrieve Ad-Hoc Email History");
 
         return Results.Ok(result.Value);
     }
@@ -629,12 +584,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetAdHocEmailByIdAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Ad-Hoc Email Not Found",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Ad-Hoc Email Not Found");
 
         return Results.Ok(result.Value);
     }
@@ -646,12 +596,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetUserSegmentsAsync(cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Retrieve User Segments",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Retrieve User Segments");
 
         return Results.Ok(result.Value);
     }
@@ -670,12 +615,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetSegmentPreviewAsync(segment, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Retrieve Segment Preview",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Retrieve Segment Preview");
 
         return Results.Ok(result.Value);
     }
@@ -696,12 +636,7 @@ public static class EmailTemplateEndpoints
         var result = await service.UpdateTriggerConfigAsync(id, request, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Update Trigger Configuration",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Update Trigger Configuration");
 
         return Results.Ok(result.Value);
     }
@@ -722,12 +657,7 @@ public static class EmailTemplateEndpoints
         var result = await service.ToggleSendingEnabledAsync(id, request.Enabled, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Toggle Sending Enabled",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Toggle Sending Enabled");
 
         return Results.Ok(result.Value);
     }
@@ -739,12 +669,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetTimeBasedTemplatesAsync(cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Retrieve Time-Based Templates",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Retrieve Time-Based Templates");
 
         return Results.Ok(result.Value);
     }
@@ -756,12 +681,7 @@ public static class EmailTemplateEndpoints
         var result = await service.GetAdHocTemplatesAsync(cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Retrieve Ad-Hoc Templates",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Retrieve Ad-Hoc Templates");
 
         return Results.Ok(result.Value);
     }
@@ -792,12 +712,7 @@ public static class EmailTemplateEndpoints
         var result = await service.SaveAsTemplateAsync(request, userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Save Template",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Save Template");
 
         return Results.Ok(result.Value);
     }
@@ -817,12 +732,7 @@ public static class EmailTemplateEndpoints
         var result = await service.DeleteAdHocTemplateAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Delete Template",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Delete Template");
 
         return Results.NoContent();
     }
@@ -841,12 +751,7 @@ public static class EmailTemplateEndpoints
             eventId, status, templateType, fromDate, toDate, limit ?? 50, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Retrieve Trigger Logs",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Retrieve Trigger Logs");
 
         return Results.Ok(result.Value);
     }
@@ -877,12 +782,7 @@ public static class EmailTemplateEndpoints
         var result = await service.ScheduleAdHocEmailAsync(request, userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-                title: "Failed to Schedule Email",
-                detail: result.Error,
-                statusCode: 500);
-        }
+            return result.ToProblem("Failed to Schedule Email");
 
         return Results.Ok(result.Value);
     }
@@ -1044,9 +944,6 @@ public static class EmailTemplateEndpoints
             });
         }
 
-        return Results.Problem( // ARCH-ALLOW: local Result type (EmailTemplates.Services.Result) — not Shared.Models.Result, pending TD-BE-DEDUPE-RESULT
-            title: "Send Failed",
-            detail: result.Error,
-            statusCode: 500);
+        return result.ToProblem("Send Failed");
     }
 }

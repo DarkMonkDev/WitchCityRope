@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
+using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Shared.Services;
 using Hangfire;
 using WitchCityRope.Api.Features.EmailTemplates.Jobs;
@@ -82,7 +83,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving global templates for category {Category}", category);
-            return Result<List<GlobalEmailTemplateDto>>.Failure("Failed to retrieve templates");
+            return Result<List<GlobalEmailTemplateDto>>.Infrastructure("Failed to retrieve templates. See server logs for details.");
         }
     }
 
@@ -98,7 +99,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (template == null)
             {
-                return Result<GlobalEmailTemplateDto>.Failure("Template not found");
+                return Result<GlobalEmailTemplateDto>.NotFound("Template not found");
             }
 
             var dto = new GlobalEmailTemplateDto
@@ -127,7 +128,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving global template {TemplateId}", id);
-            return Result<GlobalEmailTemplateDto>.Failure("Failed to retrieve template");
+            return Result<GlobalEmailTemplateDto>.Infrastructure("Failed to retrieve template. See server logs for details.");
         }
     }
 
@@ -144,7 +145,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (template == null)
             {
-                return Result<GlobalEmailTemplateDto>.Failure("Template not found");
+                return Result<GlobalEmailTemplateDto>.NotFound("Template not found");
             }
 
             // Sanitize HTML before saving
@@ -187,7 +188,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating global template {TemplateId}", id);
-            return Result<GlobalEmailTemplateDto>.Failure("Failed to update template");
+            return Result<GlobalEmailTemplateDto>.Infrastructure("Failed to update template. See server logs for details.");
         }
     }
 
@@ -206,7 +207,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (template == null)
             {
-                return Result<GlobalEmailTemplateDto>.Failure("Template not found");
+                return Result<GlobalEmailTemplateDto>.NotFound("Template not found");
             }
 
             // Validate category (only Events category supports trigger configuration)
@@ -269,7 +270,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating trigger configuration for template {TemplateId}", templateId);
-            return Result<GlobalEmailTemplateDto>.Failure("Failed to update trigger configuration");
+            return Result<GlobalEmailTemplateDto>.Infrastructure("Failed to update trigger configuration. See server logs for details.");
         }
     }
 
@@ -290,7 +291,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (template == null)
             {
-                return Result<GlobalEmailTemplateDto>.Failure("Template not found");
+                return Result<GlobalEmailTemplateDto>.NotFound("Template not found");
             }
 
             template.SendingEnabled = enabled;
@@ -329,7 +330,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error toggling SendingEnabled for template {TemplateId}", templateId);
-            return Result<GlobalEmailTemplateDto>.Failure("Failed to toggle sending enabled");
+            return Result<GlobalEmailTemplateDto>.Infrastructure("Failed to toggle sending enabled. See server logs for details.");
         }
     }
 
@@ -377,7 +378,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving time-based templates");
-            return Result<List<GlobalEmailTemplateDto>>.Failure("Failed to retrieve time-based templates");
+            return Result<List<GlobalEmailTemplateDto>>.Infrastructure("Failed to retrieve time-based templates. See server logs for details.");
         }
     }
 
@@ -478,7 +479,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving event templates for event {EventId}", eventId);
-            return Result<List<EventEmailTemplateDto>>.Failure("Failed to retrieve event templates");
+            return Result<List<EventEmailTemplateDto>>.Infrastructure("Failed to retrieve event templates. See server logs for details.");
         }
     }
 
@@ -534,7 +535,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (globalTemplate == null)
             {
-                return Result<EventEmailTemplateDto>.Failure("Template not found");
+                return Result<EventEmailTemplateDto>.NotFound("Template not found");
             }
 
             var globalDto = new EventEmailTemplateDto
@@ -564,7 +565,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving event template {TemplateType} for event {EventId}", templateType, eventId);
-            return Result<EventEmailTemplateDto>.Failure("Failed to retrieve template");
+            return Result<EventEmailTemplateDto>.Infrastructure("Failed to retrieve template. See server logs for details.");
         }
     }
 
@@ -675,7 +676,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating event template {TemplateType} for event {EventId}", templateType, eventId);
-            return Result<EventEmailTemplateDto>.Failure("Failed to update event template");
+            return Result<EventEmailTemplateDto>.Infrastructure("Failed to update event template. See server logs for details.");
         }
     }
 
@@ -706,7 +707,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting event template {TemplateType} for event {EventId}", templateType, eventId);
-            return Result.Failure("Failed to delete event template");
+            return Result.Infrastructure("Failed to delete event template. See server logs for details.");
         }
     }
 
@@ -821,7 +822,7 @@ public class EmailTemplateService : IEmailTemplateService
         {
             _logger.LogError(ex, "Ad-hoc email send ERROR: Subject={Subject}, Segment={Segment}",
                 request.Subject, request.Segment?.ToString() ?? "ManualList");
-            return Result<SentAdHocEmailDto>.Failure("Failed to send email");
+            return Result<SentAdHocEmailDto>.Infrastructure("Failed to send email. See server logs for details.");
         }
     }
 
@@ -862,7 +863,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving ad-hoc email history");
-            return Result<List<SentAdHocEmailDto>>.Failure("Failed to retrieve email history");
+            return Result<List<SentAdHocEmailDto>>.Infrastructure("Failed to retrieve email history. See server logs for details.");
         }
     }
 
@@ -878,7 +879,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (email == null)
             {
-                return Result<SentAdHocEmailDto>.Failure("Email not found");
+                return Result<SentAdHocEmailDto>.NotFound("Email not found");
             }
 
             var dto = new SentAdHocEmailDto
@@ -901,7 +902,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving ad-hoc email {EmailId}", id);
-            return Result<SentAdHocEmailDto>.Failure("Failed to retrieve email");
+            return Result<SentAdHocEmailDto>.Infrastructure("Failed to retrieve email. See server logs for details.");
         }
     }
 
@@ -937,7 +938,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving user segments");
-            return Result<List<UserSegmentDto>>.Failure("Failed to retrieve user segments");
+            return Result<List<UserSegmentDto>>.Infrastructure("Failed to retrieve user segments. See server logs for details.");
         }
     }
 
@@ -972,7 +973,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving segment preview for {Segment}", segment);
-            return Result<List<UserPreviewDto>>.Failure("Failed to retrieve segment preview");
+            return Result<List<UserPreviewDto>>.Infrastructure("Failed to retrieve segment preview. See server logs for details.");
         }
     }
 
@@ -1009,7 +1010,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving ad-hoc templates");
-            return Result<List<AdHocEmailTemplateDto>>.Failure("Failed to retrieve ad-hoc templates");
+            return Result<List<AdHocEmailTemplateDto>>.Infrastructure("Failed to retrieve ad-hoc templates. See server logs for details.");
         }
     }
 
@@ -1062,7 +1063,7 @@ public class EmailTemplateService : IEmailTemplateService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error saving ad-hoc template");
-            return Result<AdHocEmailTemplateDto>.Failure("Failed to save template");
+            return Result<AdHocEmailTemplateDto>.Infrastructure("Failed to save template. See server logs for details.");
         }
     }
 
@@ -1077,7 +1078,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (template == null)
             {
-                return Result.Failure("Template not found");
+                return Result.NotFound("Template not found");
             }
 
             _context.AdHocEmailTemplates.Remove(template);
