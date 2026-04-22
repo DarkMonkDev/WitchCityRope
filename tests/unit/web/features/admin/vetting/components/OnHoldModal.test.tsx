@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { MantineProvider } from '@mantine/core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OnHoldModal } from '@/features/admin/vetting/components/OnHoldModal';
 import { vettingAdminApi } from '@/features/admin/vetting/services/vettingAdminApi';
 
@@ -21,11 +22,24 @@ vi.mock('@mantine/notifications', () => ({
 
 const mockVettingAdminApi = vi.mocked(vettingAdminApi);
 
+// OnHoldModal calls useQueryClient() to invalidate the vetting application
+// queries after a successful hold (so the admin grid auto-refreshes). Tests
+// must wrap the component in a QueryClientProvider or React Query throws
+// "No QueryClient set". Each test gets a fresh client so cache state from
+// one test cannot leak into another.
 const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return ({ children }: { children: React.ReactNode }) => (
-    <MantineProvider>
-      {children}
-    </MantineProvider>
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        {children}
+      </MantineProvider>
+    </QueryClientProvider>
   );
 };
 
