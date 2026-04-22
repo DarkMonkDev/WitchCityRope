@@ -128,16 +128,24 @@ builder.Services.AddProblemDetails(options =>
 {
     options.CustomizeProblemDetails = context =>
     {
-        // CorrelationIdMiddleware sets this on the Response before any endpoint executes,
-        // so reading the Response header is the authoritative source. Fall back to the
-        // Request header in case an edge-case path skipped the middleware.
+        // CorrelationIdMiddleware stores the ID in three places, in this priority order:
+        //   1. HttpContext.Items[CorrelationIdItemKey] — SURVIVES response-header reset when
+        //      an exception propagates through the pipeline to GlobalExceptionHandler. This
+        //      is the authoritative source because it's the only one that works on every path
+        //      (success responses, ToProblem, unhandled-exception 500s).
+        //   2. Response.Headers["X-Correlation-Id"] — set by the middleware for clients to read.
+        //      Works on the happy path and on ToProblem paths; gets reset on exceptions.
+        //   3. Request.Headers["X-Correlation-Id"] — edge-case fallback if the middleware was
+        //      somehow skipped AND the client sent a correlation ID.
+        var httpContext = context.HttpContext;
         var correlationId =
-            context.HttpContext.Response.Headers["X-Correlation-Id"].FirstOrDefault()
-            ?? context.HttpContext.Request.Headers["X-Correlation-Id"].FirstOrDefault();
+            httpContext.Items["CorrelationId"] as string
+            ?? httpContext.Response.Headers["X-Correlation-Id"].FirstOrDefault()
+            ?? httpContext.Request.Headers["X-Correlation-Id"].FirstOrDefault();
         if (!string.IsNullOrEmpty(correlationId))
             context.ProblemDetails.Extensions["correlationId"] = correlationId;
 
-        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+        context.ProblemDetails.Extensions["traceId"] = httpContext.TraceIdentifier;
     };
 });
 
