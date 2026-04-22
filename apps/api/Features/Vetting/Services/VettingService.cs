@@ -134,7 +134,10 @@ public class VettingService : IVettingService
                     },
                     HasRecentNotes = false, // Default for now
                     HasPendingActions = app.WorkflowStatus == VettingStatus.UnderReview,
-                    InterviewScheduledFor = app.InterviewScheduledFor
+                    InterviewScheduledFor = app.InterviewScheduledFor,
+                    // Projected from VettingApplication.RemindersSentCount so the admin
+                    // grid can show a "Reminders" column without needing a separate query.
+                    RemindersSentCount = app.RemindersSentCount
                 })
                 .ToListAsync(cancellationToken);
 

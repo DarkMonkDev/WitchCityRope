@@ -8,10 +8,13 @@
 #
 # Arguments:
 #   --mode unit    Run .NET unit/integration tests (host-based dotnet test)
+#   --mode react   Run React/vitest unit tests (host-based npx vitest)
 #   --mode e2e     Run Playwright E2E tests (delegates to test-environment skill)
-#   --mode all     Run both
-#   --verbose      Show detailed dotnet test output
-#   --filter NAME  Filter tests by name (unit mode only)
+#   --mode all     Run all of the above
+#   --verbose      Show detailed test output
+#   --filter NAME  Filter tests by name (unit + react modes); for vitest this
+#                  is forwarded as a positional pattern arg, matching against
+#                  test file paths and test names.
 #
 # Architecture notes:
 # - .NET tests run on the HOST via `dotnet test <csproj>`, not inside a container.
@@ -62,6 +65,11 @@ TEST_PROJECT_LABELS=(
 
 TEST_ENVIRONMENT_SKILL="$PROJECT_ROOT/.claude/skills/test-environment/execute.sh"
 
+# React/vitest tests live in tests/unit/web/ and are configured by
+# apps/web/vitest.config.ts. Vitest is invoked from the apps/web directory
+# (so node_modules and config are picked up correctly).
+REACT_TEST_DIR="$PROJECT_ROOT/apps/web"
+
 # ============================================
 # PARSE ARGUMENTS
 # ============================================
@@ -72,22 +80,34 @@ FILTER=""
 
 print_usage() {
     cat <<EOF
-Usage: $0 --mode unit|e2e|all [--verbose] [--filter NAME]
+Usage: $0 --mode unit|react|e2e|all [--verbose] [--filter NAME]
 
 Options:
   --mode unit    Run .NET unit/integration tests (host dotnet test)
+  --mode react   Run React/vitest unit tests (host npx vitest)
   --mode e2e     Run Playwright E2E tests (via test-environment skill)
-  --mode all     Run both .NET and E2E
-  --verbose      Detailed dotnet output (verbosity=detailed)
-  --filter NAME  dotnet test --filter pattern (unit mode only)
+  --mode all     Run .NET + React + E2E
+  --verbose      Detailed test output (verbosity=detailed for dotnet,
+                 reporter=verbose for vitest)
+  --filter NAME  Filter tests by name. For unit mode this is a dotnet
+                 --filter expression (e.g. VettingService or
+                 "Category!=HealthCheck"). For react mode it is a
+                 positional pattern that vitest matches against test
+                 file paths AND test names.
 
 Examples:
-  $0 --mode unit                          # Run all .NET tests
-  $0 --mode unit --filter VettingService  # Filtered .NET run
-  $0 --mode e2e                           # Playwright only
-  $0 --mode all --verbose                 # Everything with detail
+  $0 --mode unit                            # All .NET tests
+  $0 --mode unit --filter VettingService    # Filtered .NET run
+  $0 --mode react                           # All React/vitest tests
+  $0 --mode react --filter VettingApps      # Filtered vitest run
+  $0 --mode e2e                             # Playwright only
+  $0 --mode all --verbose                   # Everything with detail
 
-Requires: dotnet 10.0+ on PATH, Docker running (for Testcontainers).
+Requires:
+  --mode unit:  dotnet 10.0+ on PATH, Docker running (for Testcontainers)
+  --mode react: node + npm/npx in apps/web (managed by Docker dev workflow,
+                also runs against host node if installed)
+  --mode e2e:   Docker running, test-environment skill present
 EOF
 }
 
@@ -118,14 +138,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ -z "$MODE" ]; then
-    echo "ERROR: Must specify --mode unit, --mode e2e, or --mode all"
+    echo "ERROR: Must specify --mode unit, --mode react, --mode e2e, or --mode all"
     echo ""
     print_usage
     exit 1
 fi
 
-if [[ "$MODE" != "unit" && "$MODE" != "e2e" && "$MODE" != "all" ]]; then
-    echo "ERROR: Mode must be 'unit', 'e2e', or 'all'"
+if [[ "$MODE" != "unit" && "$MODE" != "react" && "$MODE" != "e2e" && "$MODE" != "all" ]]; then
+    echo "ERROR: Mode must be 'unit', 'react', 'e2e', or 'all'"
     print_usage
     exit 1
 fi
@@ -147,6 +167,24 @@ if [[ "$MODE" == "unit" || "$MODE" == "all" ]]; then
     if ! docker info &> /dev/null; then
         echo "ERROR: Docker daemon not reachable"
         echo "  .NET tests use Testcontainers.PostgreSql which needs Docker."
+        exit 1
+    fi
+fi
+
+if [[ "$MODE" == "react" || "$MODE" == "all" ]]; then
+    # Need npx (comes with node) and the apps/web directory
+    if ! command -v npx &> /dev/null; then
+        echo "ERROR: npx not found on PATH"
+        echo "  React/vitest tests need node + npm. Install Node 20+ or add it to PATH."
+        exit 1
+    fi
+    if [ ! -d "$REACT_TEST_DIR" ]; then
+        echo "ERROR: React app directory not found at $REACT_TEST_DIR"
+        exit 1
+    fi
+    if [ ! -f "$REACT_TEST_DIR/vitest.config.ts" ]; then
+        echo "ERROR: vitest.config.ts not found at $REACT_TEST_DIR/vitest.config.ts"
+        echo "  React mode expects vitest config in apps/web/."
         exit 1
     fi
 fi
@@ -408,6 +446,134 @@ run_unit_tests() {
 }
 
 # ============================================
+# REACT/VITEST TEST RUNNER
+# ============================================
+#
+# Runs the WCR React unit tests via vitest. Vitest is invoked from
+# apps/web/ so it picks up vitest.config.ts and node_modules. The config
+# already points include = ['../../tests/unit/web/**/*.test.{ts,tsx}']
+# so we don't need to pass paths.
+#
+# This was added 2026-04-22 after the first attempt to run React unit
+# tests during a vetting admin feature was blocked by
+# block-manual-test-runs.py with no skill alternative. Same pattern as the
+# .NET runner above: capture output, parse counters, set safety nets.
+#
+# Vitest output to parse (standard reporter):
+#     Test Files  3 passed (3)
+#          Tests  47 passed (47)
+# When failures exist:
+#     Test Files  1 failed | 2 passed (3)
+#          Tests  2 failed | 45 passed (47)
+# We pull numbers off the "Tests" line for passed/failed/skipped/total,
+# falling back to counters of 0 and triggering the safety nets if the
+# regex doesn't match anything.
+
+REACT_TOTAL_PASSED=0
+REACT_TOTAL_FAILED=0
+REACT_TOTAL_SKIPPED=0
+REACT_TOTAL_TOTAL=0
+
+run_react_tests() {
+    echo "Running React/vitest Unit Tests"
+    echo "================================"
+    echo ""
+
+    # Build vitest command as a bash array (same rationale as the dotnet
+    # command above — see comment in run_single_project for why eval+string
+    # is dangerous). `vitest run` is the single-shot, non-watch form.
+    local reporter="default"
+    if [ "$VERBOSE" = true ]; then
+        reporter="verbose"
+    fi
+
+    local vitest_cmd=(npx vitest run --reporter="$reporter")
+    if [ -n "$FILTER" ]; then
+        # Vitest treats positional args as file/test name patterns. Passing
+        # the filter as a positional arg matches the user's mental model
+        # from --mode unit (where --filter VettingService matches by class
+        # name). For vitest, "VettingApplicationsList" matches the test
+        # file by path or test name.
+        vitest_cmd+=("$FILTER")
+    fi
+
+    echo "  Running: ${vitest_cmd[*]} (cwd: apps/web)"
+    echo ""
+
+    cd "$REACT_TEST_DIR"
+
+    local react_output react_exit
+    if react_output=$("${vitest_cmd[@]}" 2>&1); then
+        react_exit=0
+    else
+        react_exit=$?
+    fi
+
+    cd "$PROJECT_ROOT"
+
+    echo "$react_output"
+    echo ""
+
+    # Parse the "Tests" summary line. Vitest emits separated counter
+    # phrases like "2 failed", "45 passed", "1 skipped", "3 todo".
+    # We extract each independently from the line that starts with "Tests".
+    local tests_line
+    tests_line=$(echo "$react_output" | grep -E '^\s*Tests\s+' | tail -1)
+
+    local passed failed skipped
+    passed=$(echo "$tests_line" | grep -oP '\d+(?=\s+passed)' | head -1)
+    failed=$(echo "$tests_line" | grep -oP '\d+(?=\s+failed)' | head -1)
+    skipped=$(echo "$tests_line" | grep -oP '\d+(?=\s+skipped)' | head -1)
+
+    passed=${passed:-0}
+    failed=${failed:-0}
+    skipped=${skipped:-0}
+    local total=$((passed + failed + skipped))
+
+    # Safety net #1: exit 0 with all counters zero forces FAIL. Catches
+    # silent test-discovery failures (bad filter, broken include glob,
+    # vitest output format change that breaks our regex).
+    if [ "$react_exit" -eq 0 ] && [ "$total" -eq 0 ]; then
+        echo "[WARN] vitest exited 0 but no test counters parsed — forcing FAIL"
+        echo "       (broken config, --filter matching nothing, or output format change)"
+        react_exit=1
+    fi
+
+    # Safety net #2: TypeScript compile errors. Vitest sometimes exits 0
+    # when transform errors occur in setup files. The phrases below cover
+    # both vitest's own error formatting and the underlying esbuild output.
+    if echo "$react_output" | grep -qE 'Transform failed|Cannot find module|SyntaxError'; then
+        if [ "$react_exit" -eq 0 ]; then
+            echo "[WARN] Transform/import errors detected in vitest output — forcing FAIL"
+            react_exit=1
+        fi
+    fi
+
+    REACT_TOTAL_PASSED=$passed
+    REACT_TOTAL_FAILED=$failed
+    REACT_TOTAL_SKIPPED=$skipped
+    REACT_TOTAL_TOTAL=$total
+
+    echo ""
+    echo "=============================================="
+    echo "  React/vitest Summary"
+    echo "=============================================="
+    echo ""
+    printf "  Passed: %d | Failed: %d | Skipped: %d | Total: %d\n" \
+        "$passed" "$failed" "$skipped" "$total"
+    echo ""
+
+    if [ "$react_exit" -eq 0 ]; then
+        echo "  [OK] React/vitest tests PASSED"
+    else
+        echo "  [FAIL] React/vitest tests FAILED"
+    fi
+    echo ""
+
+    return $react_exit
+}
+
+# ============================================
 # E2E TEST RUNNER
 # ============================================
 #
@@ -446,12 +612,21 @@ run_e2e_tests() {
 # ============================================
 
 UNIT_RESULT=0
+REACT_RESULT=0
 E2E_RESULT=0
 
 if [[ "$MODE" == "unit" || "$MODE" == "all" ]]; then
     set +e
     run_unit_tests
     UNIT_RESULT=$?
+    set -e
+    echo ""
+fi
+
+if [[ "$MODE" == "react" || "$MODE" == "all" ]]; then
+    set +e
+    run_react_tests
+    REACT_RESULT=$?
     set -e
     echo ""
 fi
@@ -477,18 +652,27 @@ OVERALL_STATUS="success"
 
 if [[ "$MODE" == "unit" || "$MODE" == "all" ]]; then
     if [ $UNIT_RESULT -eq 0 ]; then
-        echo "  .NET tests:  PASSED ($UNIT_TOTAL_PASSED passed, $UNIT_TOTAL_FAILED failed, $UNIT_TOTAL_SKIPPED skipped)"
+        echo "  .NET tests:    PASSED ($UNIT_TOTAL_PASSED passed, $UNIT_TOTAL_FAILED failed, $UNIT_TOTAL_SKIPPED skipped)"
     else
-        echo "  .NET tests:  FAILED ($UNIT_TOTAL_PASSED passed, $UNIT_TOTAL_FAILED failed, $UNIT_TOTAL_SKIPPED skipped)"
+        echo "  .NET tests:    FAILED ($UNIT_TOTAL_PASSED passed, $UNIT_TOTAL_FAILED failed, $UNIT_TOTAL_SKIPPED skipped)"
+        OVERALL_STATUS="failure"
+    fi
+fi
+
+if [[ "$MODE" == "react" || "$MODE" == "all" ]]; then
+    if [ $REACT_RESULT -eq 0 ]; then
+        echo "  React tests:   PASSED ($REACT_TOTAL_PASSED passed, $REACT_TOTAL_FAILED failed, $REACT_TOTAL_SKIPPED skipped)"
+    else
+        echo "  React tests:   FAILED ($REACT_TOTAL_PASSED passed, $REACT_TOTAL_FAILED failed, $REACT_TOTAL_SKIPPED skipped)"
         OVERALL_STATUS="failure"
     fi
 fi
 
 if [[ "$MODE" == "e2e" || "$MODE" == "all" ]]; then
     if [ $E2E_RESULT -eq 0 ]; then
-        echo "  E2E tests:   PASSED"
+        echo "  E2E tests:     PASSED"
     else
-        echo "  E2E tests:   FAILED"
+        echo "  E2E tests:     FAILED"
         OVERALL_STATUS="failure"
     fi
 fi
@@ -510,6 +694,13 @@ cat <<EOF
       "failed": $UNIT_TOTAL_FAILED,
       "skipped": $UNIT_TOTAL_SKIPPED,
       "total": $UNIT_TOTAL_TOTAL
+    },
+    "react": {
+      "exitCode": $REACT_RESULT,
+      "passed": $REACT_TOTAL_PASSED,
+      "failed": $REACT_TOTAL_FAILED,
+      "skipped": $REACT_TOTAL_SKIPPED,
+      "total": $REACT_TOTAL_TOTAL
     },
     "e2e": {"exitCode": $E2E_RESULT}
   }

@@ -4,17 +4,38 @@ import { Table, Text, Group, TextInput, MultiSelect, Button, Paper, Stack, Pagin
 import { IconSearch, IconFilter, IconRefresh, IconSortAscending, IconSortDescending } from '@tabler/icons-react';
 import { useVettingApplications } from '../hooks/useVettingApplications';
 import { VettingStatusBadge } from './VettingStatusBadge';
-import type { ApplicationFilterRequest } from '../types/vetting.types';
+import type { ApplicationFilterRequest, ApplicationSummaryDto } from '../types/vetting.types';
 import {
   DEFAULT_VETTING_LIST_FILTERS,
   getStatusOptions,
 } from '../../../../features/vetting/constants/vettingStatusConfig';
 
+/**
+ * Props for VettingApplicationsList.
+ *
+ * Selection is a CONTROLLED concern: the parent owns the set of selected
+ * application IDs and passes it in via `selectedApplicationIds`. The child
+ * does not keep its own selection state. This was changed from an internal-
+ * state design after a UX bug where checkboxes remained checked after a
+ * successful bulk action (Send Reminder / Put On Hold) because the parent
+ * had no way to clear the child's internal Set. Lifting selection up to
+ * the parent is the canonical React fix and naturally clears checkboxes
+ * when the parent resets its state after a successful bulk operation.
+ *
+ * Both props are optional so the component can still be rendered standalone
+ * (e.g., in unit tests or in contexts that don't care about selection).
+ * When `selectedApplicationIds` is undefined, the checkboxes render as
+ * unchecked and selection changes are silently dropped.
+ */
 interface VettingApplicationsListProps {
-  onSelectionChange?: (selectedIds: Set<string>, applicationsData: any[]) => void;
+  selectedApplicationIds?: Set<string>;
+  onSelectionChange?: (selectedIds: Set<string>, applicationsData: ApplicationSummaryDto[]) => void;
 }
 
-export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = ({ onSelectionChange }) => {
+export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = ({
+  selectedApplicationIds,
+  onSelectionChange
+}) => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<ApplicationFilterRequest>(() => ({
     page: 1,
@@ -31,19 +52,28 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
     sortDirection: 'Desc'
   }));
 
-  // Bulk selection state
-  const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set());
-  const [selectAll, setSelectAll] = useState(false);
-
   const { data, isLoading, error, refetch } = useVettingApplications(filters);
 
-  // Notify parent component when selection changes
-  React.useEffect(() => {
-    if (onSelectionChange && data?.items) {
-      const selectedData = data.items.filter(app => selectedApplications.has(app.id ?? ''));
-      onSelectionChange(selectedApplications, selectedData);
-    }
-  }, [selectedApplications, data?.items, onSelectionChange]);
+  // Treat a missing prop as "no selection" so the component still renders
+  // safely in standalone usage (e.g., unit tests). Parents that care about
+  // selection will always pass a Set.
+  const effectiveSelection = selectedApplicationIds ?? new Set<string>();
+
+  // selectAll is derived state, not stored. This avoids the classic problem
+  // where the visible "select all" checkbox falls out of sync with the row
+  // checkboxes (e.g., after the parent clears the selection). It is "true"
+  // only when there is at least one item AND every visible item is selected.
+  const allItemIds = data?.items?.map(app => app.id ?? '').filter(Boolean) ?? [];
+  const selectAll = allItemIds.length > 0 && allItemIds.every(id => effectiveSelection.has(id));
+
+  // Helper that emits a selection change to the parent along with the full
+  // row data for the selected items (computed from the currently-loaded
+  // page so the parent can read fields like `status` for filtering).
+  const emitSelection = useCallback((nextIds: Set<string>) => {
+    if (!onSelectionChange) return;
+    const selectedData = (data?.items ?? []).filter(app => nextIds.has(app.id ?? ''));
+    onSelectionChange(nextIds, selectedData);
+  }, [data?.items, onSelectionChange]);
 
   const handleFilterChange = useCallback((field: keyof ApplicationFilterRequest, value: any) => {
     setFilters(prev => ({
@@ -61,27 +91,24 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
     }));
   }, []);
 
-  // Bulk selection handlers
+  // Bulk selection handlers — these compute the next Set and hand it back
+  // to the parent. The parent decides whether to persist the change.
   const handleSelectAll = useCallback((checked: boolean) => {
-    setSelectAll(checked);
-    if (checked) {
-      const allIds = new Set(data?.items.map(app => app.id ?? '') || []);
-      setSelectedApplications(allIds);
-    } else {
-      setSelectedApplications(new Set());
-    }
-  }, [data?.items]);
+    const nextIds = checked
+      ? new Set(allItemIds)
+      : new Set<string>();
+    emitSelection(nextIds);
+  }, [allItemIds, emitSelection]);
 
   const handleSelectApplication = useCallback((applicationId: string, checked: boolean) => {
-    const newSelected = new Set(selectedApplications);
+    const nextIds = new Set(effectiveSelection);
     if (checked) {
-      newSelected.add(applicationId);
+      nextIds.add(applicationId);
     } else {
-      newSelected.delete(applicationId);
-      setSelectAll(false); // Uncheck "select all" if individual item is unchecked
+      nextIds.delete(applicationId);
     }
-    setSelectedApplications(newSelected);
-  }, [selectedApplications]);
+    emitSelection(nextIds);
+  }, [effectiveSelection, emitSelection]);
 
   const handleRowClick = useCallback((applicationId: string) => {
     navigate(`/admin/vetting/applications/${applicationId}`);
@@ -248,6 +275,27 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                 </Text>
               </Table.Th>
 
+              {/* Reminders column - shows the count of interview reminder emails
+                  sent to the applicant. Not sortable; this is a quick visual
+                  indicator for reviewers to see who has already been pinged
+                  and how many times. Backed by VettingApplication.RemindersSentCount
+                  exposed via ApplicationSummaryDto.remindersSentCount. */}
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
+                <Group gap={4} justify="center">
+                  <Text
+                    fw={600}
+                    size="sm"
+                    style={{
+                      color: 'white',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    REMINDERS
+                  </Text>
+                </Group>
+              </Table.Th>
+
               {/* Application Date column - sortable */}
               <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('SubmittedAt')}>
                 <Group gap={4} justify="center">
@@ -294,13 +342,13 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                 }}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: selectedApplications.has(application.id ?? '') ? '#f0f8ff' : undefined
+                  backgroundColor: effectiveSelection.has(application.id ?? '') ? '#f0f8ff' : undefined
                 }}
               >
                 {/* Checkbox - stopPropagation to prevent row click */}
                 <Table.Td>
                   <Checkbox
-                    checked={selectedApplications.has(application.id ?? '')}
+                    checked={effectiveSelection.has(application.id ?? '')}
                     onChange={(event) => {
                       event.stopPropagation(); // Prevent row click
                       handleSelectApplication(application.id ?? '', event.currentTarget.checked);
@@ -327,6 +375,16 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                 <Table.Td>
                   <Text size="sm" style={{ color: '#2B2B2B' }}>
                     {application.email || 'Not provided'}
+                  </Text>
+                </Table.Td>
+
+                {/* Reminders count - simple integer, center aligned to match
+                    the column header. Defaults to 0 if the field is undefined
+                    (older cached data or DB rows where the column was just
+                    added by migration 20260317180718). */}
+                <Table.Td ta="center">
+                  <Text size="sm" style={{ color: '#2B2B2B' }}>
+                    {application.remindersSentCount ?? 0}
                   </Text>
                 </Table.Td>
 

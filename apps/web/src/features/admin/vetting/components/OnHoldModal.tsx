@@ -9,7 +9,9 @@ import {
   Title
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { useQueryClient } from '@tanstack/react-query';
 import { vettingAdminApi } from '../services/vettingAdminApi';
+import { vettingKeys } from '../hooks/useVettingApplications';
 
 interface OnHoldModalProps {
   opened: boolean;
@@ -32,6 +34,7 @@ export const OnHoldModal: React.FC<OnHoldModalProps> = ({
 }) => {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   // Determine if this is a bulk operation
   const isBulkOperation = applicationIds && applicationIds.length > 0;
@@ -71,6 +74,17 @@ export const OnHoldModal: React.FC<OnHoldModalProps> = ({
           message: `${applicantName}'s application has been put on hold`,
           color: 'blue'
         });
+      }
+
+      // Refresh React Query caches so the admin grid and the affected
+      // application detail pages reflect the new status without a manual
+      // refresh. We invalidate both the list and any open detail queries
+      // for affected IDs. Single-app callers (the detail page) also pass
+      // their own onSuccess handler that calls refetch() — that's
+      // redundant once invalidation is in place but harmless.
+      queryClient.invalidateQueries({ queryKey: vettingKeys.applications() });
+      for (const id of targetApplicationIds) {
+        queryClient.invalidateQueries({ queryKey: vettingKeys.applicationDetail(id) });
       }
 
       setReason('');

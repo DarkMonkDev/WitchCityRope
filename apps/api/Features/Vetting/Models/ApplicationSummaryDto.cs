@@ -30,6 +30,12 @@ public class ApplicationSummaryDto
     public bool HasRecentNotes { get; set; }
     public bool HasPendingActions { get; set; }
     public DateTime? InterviewScheduledFor { get; set; }
+
+    // Number of interview reminder emails sent for this application.
+    // Surfaced in the admin grid so reviewers can see at a glance who has
+    // already been pinged. The detail DTO exposes the same field plus the
+    // LastReminderSentAt timestamp; the grid only needs the count.
+    public int RemindersSentCount { get; set; }
 }
 
 /// <summary>

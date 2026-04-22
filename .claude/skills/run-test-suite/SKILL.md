@@ -1,6 +1,6 @@
 ---
 name: run-test-suite
-description: Run .NET unit/integration tests (host-based dotnet test) or Playwright E2E tests for WitchCityRope. Single source of truth for test execution. Use --mode unit for fast .NET runs, --mode e2e for browser tests (delegates to test-environment skill), --mode all for both.
+description: Run WitchCityRope tests. Single source of truth for test execution. Modes -- `--mode unit` (.NET unit/integration via host dotnet test), `--mode react` (React/vitest unit tests via host npx vitest), `--mode e2e` (Playwright via test-environment skill), `--mode all` (everything).
 ---
 
 # run-test-suite Skill
@@ -23,9 +23,12 @@ This skill is ported from `inventory-purchasing-workflow/.claude/skills/run-test
 
 All three use `Testcontainers.PostgreSql`, which spins up its own per-test postgres container on demand. They don't need the long-running witchcity-test-* containers to be up — each test run manages its own database lifecycle.
 
+**React/vitest tests run ON THE HOST** via `npx vitest run` from `apps/web/`. Vitest's config (`apps/web/vitest.config.ts`) points at `tests/unit/web/**/*.test.{ts,tsx}` and uses jsdom. No containers needed. Added 2026-04-22 after the first attempt to run React unit tests during a vetting admin feature was blocked by `block-manual-test-runs.py` with no skill alternative.
+
 **Prerequisites**:
-- `dotnet` 10.0+ on the host PATH (`/home/chad/.dotnet/dotnet` — already installed)
-- Docker running (for Testcontainers to spin up postgres)
+- `dotnet` 10.0+ on the host PATH (`/home/chad/.dotnet/dotnet` — already installed) — for `--mode unit`
+- Docker running (for Testcontainers to spin up postgres) — for `--mode unit`
+- `node` + `npx` on the host PATH — for `--mode react`
 
 **E2E tests run INSIDE the test-runner container** via the existing `test-environment` skill (unchanged). This skill delegates to it for `--mode e2e` and the E2E portion of `--mode all`.
 
@@ -38,13 +41,21 @@ bash .claude/skills/run-test-suite/execute.sh --mode unit
 # Run a filtered subset of .NET tests (dotnet test --filter)
 bash .claude/skills/run-test-suite/execute.sh --mode unit --filter VettingService
 
+# Run all React/vitest unit tests
+bash .claude/skills/run-test-suite/execute.sh --mode react
+
+# Run a filtered subset of React tests (vitest positional pattern; matches
+# both file paths and test names)
+bash .claude/skills/run-test-suite/execute.sh --mode react --filter VettingApplicationsList
+
 # Run verbose for debugging
 bash .claude/skills/run-test-suite/execute.sh --mode unit --verbose
+bash .claude/skills/run-test-suite/execute.sh --mode react --verbose
 
 # Run Playwright E2E tests only (delegates to test-environment skill)
 bash .claude/skills/run-test-suite/execute.sh --mode e2e
 
-# Run everything (.NET + E2E)
+# Run everything (.NET + React + E2E)
 bash .claude/skills/run-test-suite/execute.sh --mode all
 ```
 
@@ -52,11 +63,12 @@ bash .claude/skills/run-test-suite/execute.sh --mode all
 
 | Option | Description |
 |---|---|
-| `--mode unit` | Run .NET unit/integration tests only (fastest, skips E2E) |
+| `--mode unit` | Run .NET unit/integration tests only (host dotnet test) |
+| `--mode react` | Run React/vitest unit tests only (host npx vitest from apps/web) |
 | `--mode e2e` | Run Playwright E2E tests only (delegates to test-environment skill) |
-| `--mode all` | Run both .NET and E2E tests |
-| `--verbose` | Detailed dotnet test output (verbosity=detailed) |
-| `--filter PATTERN` | dotnet test `--filter` pattern (unit mode only) |
+| `--mode all` | Run all three (.NET + React + E2E) |
+| `--verbose` | Detailed test output (verbosity=detailed for dotnet, reporter=verbose for vitest) |
+| `--filter PATTERN` | unit mode: dotnet `--filter` expression. react mode: vitest positional pattern (matches file paths AND test names). Ignored in e2e mode. |
 
 ## What The Skill Is NOT
 
@@ -66,13 +78,13 @@ bash .claude/skills/run-test-suite/execute.sh --mode all
 
 ## Safety Nets (Important)
 
-The skill has three defensive checks that catch common silent failures:
+The skill has three defensive checks that catch common silent failures, applied to BOTH `--mode unit` (dotnet) and `--mode react` (vitest):
 
-1. **Bash arrays over `eval`** — Earlier versions of the inventory skill built a command as a string and ran it via `eval`. The `--logger "console;verbosity=normal"` argument got split on the semicolon, so `dotnet test` ran without the logger AND a stray `verbosity=normal` shell assignment set `$?` to 0. Tests reported PASSED even when the build was broken. The bash-array form here prevents that.
+1. **Bash arrays over `eval`** — Earlier versions of the inventory skill built a command as a string and ran it via `eval`. The `--logger "console;verbosity=normal"` argument got split on the semicolon, so `dotnet test` ran without the logger AND a stray `verbosity=normal` shell assignment set `$?` to 0. Tests reported PASSED even when the build was broken. The bash-array form here prevents that. The same array form is used for the vitest invocation.
 
-2. **Zero-counter detection** — If `dotnet test` exits 0 but every counter (passed, failed, skipped, total) is 0, the skill forces FAIL. This catches silent test-discovery failures (e.g., a broken regex in the output parser, or a `--filter` that matches nothing, which is almost always a typo).
+2. **Zero-counter detection** — If the runner exits 0 but every counter (passed, failed, skipped, total) is 0, the skill forces FAIL. This catches silent test-discovery failures (e.g., a broken regex in the output parser, or a `--filter` that matches nothing, which is almost always a typo).
 
-3. **Compile-error detection** — If the output contains `error CS\d+` anywhere, the skill forces FAIL. `dotnet test` sometimes exits 0 on compile errors in certain edge cases; this catches those.
+3. **Compile-error detection** — If the dotnet output contains `error CS\d+` OR the vitest output contains `Transform failed` / `Cannot find module` / `SyntaxError`, the skill forces FAIL. Both runners can exit 0 on certain edge-case compile/transform errors; these catch them.
 
 **If you "improve" the skill by converting the bash arrays back to a string + eval, you will re-introduce the false-PASSED bug.** Don't.
 
@@ -89,7 +101,7 @@ The skill has three defensive checks that catch common silent failures:
 
 ## Output
 
-Pass/fail summary for each of the three .NET test projects, aggregated totals, and a structured `=== SKILL_RESULT ===` JSON block at the end for programmatic parsing.
+Pass/fail summary for each runner that was activated (per-project for the .NET projects, single roll-up for vitest, status line for E2E), aggregated totals, and a structured `=== SKILL_RESULT ===` JSON block at the end for programmatic parsing. The JSON includes separate `dotnet`, `react`, and `e2e` sub-objects.
 
 ---
 

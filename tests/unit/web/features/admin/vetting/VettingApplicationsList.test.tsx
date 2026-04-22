@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -247,13 +248,27 @@ describe('VettingApplicationsList', () => {
   });
 
   it('handles bulk selection of applications', async () => {
-    render(<VettingApplicationsList />, { wrapper: createWrapper() });
+    // VettingApplicationsList is now a CONTROLLED component for selection
+    // (see component docstring). The test owns the selection Set and feeds
+    // it back in via props on each change, simulating what AdminVettingPage
+    // does in production.
+    const ControlledWrapper = () => {
+      const [selected, setSelected] = React.useState<Set<string>>(new Set());
+      return (
+        <VettingApplicationsList
+          selectedApplicationIds={selected}
+          onSelectionChange={(ids) => setSelected(ids)}
+        />
+      );
+    };
+
+    render(<ControlledWrapper />, { wrapper: createWrapper() });
 
     // Find "Select all" checkbox
     const selectAllCheckbox = screen.getByLabelText('Select all applications');
-    
+
     await user.click(selectAllCheckbox);
-    
+
     // All individual checkboxes should be checked
     const individualCheckboxes = screen.getAllByLabelText(/Select application for/);
     individualCheckboxes.forEach(checkbox => {
@@ -381,15 +396,28 @@ describe('VettingApplicationsList', () => {
   });
 
   it('prevents row click when checkbox is clicked', async () => {
-    render(<VettingApplicationsList />, { wrapper: createWrapper() });
+    // Same controlled-wrapper pattern as the bulk-selection test —
+    // the checkbox needs the parent to feed updated state back in to
+    // appear "checked" after click.
+    const ControlledWrapper = () => {
+      const [selected, setSelected] = React.useState<Set<string>>(new Set());
+      return (
+        <VettingApplicationsList
+          selectedApplicationIds={selected}
+          onSelectionChange={(ids) => setSelected(ids)}
+        />
+      );
+    };
+
+    render(<ControlledWrapper />, { wrapper: createWrapper() });
 
     const firstRowCheckbox = screen.getAllByLabelText(/Select application for/)[0];
-    
+
     await user.click(firstRowCheckbox);
-    
+
     // Navigation should not have been called
     expect(mockNavigate).not.toHaveBeenCalled();
-    
+
     // But checkbox should be checked
     expect(firstRowCheckbox).toBeChecked();
   });

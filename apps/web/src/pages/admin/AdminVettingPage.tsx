@@ -4,7 +4,7 @@ import { Container, Title, Group, Button, Alert } from '@mantine/core';
 import { IconMail, IconClock, IconLock } from '@tabler/icons-react';
 import { VettingApplicationsList } from '../../features/admin/vetting/components/VettingApplicationsList';
 import { OnHoldModal } from '../../features/admin/vetting/components/OnHoldModal';
-// SendReminderModal is now per-application (on the detail page), not bulk
+import { SendReminderModal } from '../../features/admin/vetting/components/SendReminderModal';
 import { useUser } from '../../stores/authStore';
 import { hasAnyRole } from '../../utils/roleUtils';
 
@@ -21,11 +21,25 @@ import { hasAnyRole } from '../../utils/roleUtils';
  * Route: /admin/vetting
  */
 export const AdminVettingPage: React.FC = () => {
+  // ALL hooks must be declared before any conditional return — this is the
+  // Rules of Hooks. Previously the access-denied early-return sat between
+  // the useEffect and the useState calls below, which meant the useState
+  // hooks were called or skipped depending on whether the user was an admin.
+  // That violates the rule that hooks must be called in the same order on
+  // every render. The fix is to keep ALL hook calls grouped at the top and
+  // do the conditional render afterwards.
   const navigate = useNavigate();
   const user = useUser();
 
-  // Component-level role verification (defense-in-depth)
-  // Allows Administrator and VettingTeam roles
+  // State for selected applications and modals
+  const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set());
+  const [selectedApplicationsData, setSelectedApplicationsData] = useState<any[]>([]);
+  const [onHoldModalOpen, setOnHoldModalOpen] = useState(false);
+  const [reminderModalOpen, setReminderModalOpen] = useState(false);
+
+  // Component-level role verification (defense-in-depth — route guards
+  // already enforce this, but we redirect any non-admin who somehow lands
+  // here client-side).
   useEffect(() => {
     if (user && !hasAnyRole(user, ['Administrator', 'VettingTeam'])) {
       console.error('AdminVettingPage: Unauthorized access attempt by user without vetting access:', user.email);
@@ -44,10 +58,6 @@ export const AdminVettingPage: React.FC = () => {
     );
   }
 
-  // State for selected applications and modals
-  const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set());
-  const [selectedApplicationsData, setSelectedApplicationsData] = useState<any[]>([]);
-  const [onHoldModalOpen, setOnHoldModalOpen] = useState(false);
   const handleEmailTemplatesClick = () => {
     navigate('/admin/email-templates?tab=vetting');
   };
@@ -57,12 +67,28 @@ export const AdminVettingPage: React.FC = () => {
     setOnHoldModalOpen(true);
   };
 
+  const handleSendReminderClick = () => {
+    setReminderModalOpen(true);
+  };
+
   const handleSelectionChange = useCallback((selectedIds: Set<string>, applicationsData: any[]) => {
     setSelectedApplications(selectedIds);
     setSelectedApplicationsData(applicationsData);
   }, []);
 
   const hasSelectedApplications = selectedApplications.size > 0;
+
+  // Reminder eligibility: only applications in InterviewApproved status can
+  // receive an interview reminder (the backend rejects any other status).
+  // We filter the user's selection down to that subset so the bulk send
+  // only targets eligible applications. The Send Reminder button only
+  // appears when the selection contains at least one eligible app — but
+  // mixed selections are allowed (ineligible rows are silently skipped,
+  // which matches the user's stated spec for Q5).
+  const reminderEligibleApplications = selectedApplicationsData.filter(
+    app => app.status === 'InterviewApproved'
+  );
+  const hasReminderEligible = reminderEligibleApplications.length > 0;
 
   return (
     <Container size="xl" py="xl">
@@ -84,6 +110,39 @@ export const AdminVettingPage: React.FC = () => {
 
         {/* Action buttons aligned with title */}
         <Group gap="md">
+          {/* Send Reminder bulk button — only renders when at least one
+              selected application is in InterviewApproved status. The count
+              shown in the label reflects only eligible apps, not the full
+              selection, so reviewers see exactly how many emails will go
+              out. The same SendReminderModal used on the detail page is
+              reused here in bulk mode (see SendReminderModal docstring). */}
+          {hasReminderEligible && (
+            <Button
+              leftSection={<IconMail size={16} />}
+              variant="outline"
+              color="orange"
+              size="md"
+              onClick={handleSendReminderClick}
+              data-testid="bulk-send-reminder-button"
+              styles={{
+                root: {
+                  borderColor: '#FF8C00',
+                  color: '#FF8C00',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
+                }
+              }}
+            >
+              SEND REMINDER ({reminderEligibleApplications.length})
+            </Button>
+          )}
+
           <Button
             leftSection={<IconClock size={16} />}
             variant="outline"
@@ -134,8 +193,13 @@ export const AdminVettingPage: React.FC = () => {
         </Group>
       </Group>
 
-      {/* Applications List */}
-      <VettingApplicationsList onSelectionChange={handleSelectionChange} />
+      {/* Applications List — selection is controlled from this page so
+          the parent can clear checkboxes after a successful bulk action.
+          See VettingApplicationsList docstring for the rationale. */}
+      <VettingApplicationsList
+        selectedApplicationIds={selectedApplications}
+        onSelectionChange={handleSelectionChange}
+      />
 
       {/* Bulk Action Modals */}
       {/* Put on Hold requires selections */}
@@ -150,7 +214,25 @@ export const AdminVettingPage: React.FC = () => {
           onSuccess={() => {
             setSelectedApplications(new Set());
             setSelectedApplicationsData([]);
-            // TODO: Refresh the applications list
+            // List refresh is handled by OnHoldModal via React Query
+            // invalidation — no manual refetch needed here.
+          }}
+        />
+      )}
+
+      {/* Bulk Send Reminder modal — opens with only the InterviewApproved
+          subset of the selection. We deliberately pass the filtered subset
+          (not the full selection) so the modal's recipient list and the
+          fan-out calls only target eligible applications. */}
+      {hasReminderEligible && (
+        <SendReminderModal
+          opened={reminderModalOpen}
+          onClose={() => setReminderModalOpen(false)}
+          applicationIds={reminderEligibleApplications.map(app => app.id)}
+          applicantNames={reminderEligibleApplications.map(app => app.sceneName || 'Unknown')}
+          onSuccess={() => {
+            setSelectedApplications(new Set());
+            setSelectedApplicationsData([]);
           }}
         />
       )}

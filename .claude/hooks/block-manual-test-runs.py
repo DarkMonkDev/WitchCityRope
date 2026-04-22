@@ -38,8 +38,13 @@ ALLOWED (not blocked):
     commit messages mentioning any of the above via heredoc
 
 HOW TO RUN TESTS INSTEAD:
-    - `test-environment` skill (unit / integration / E2E in isolated containers)
-    - `restart-test-containers` skill (lifecycle only)
+    - `run-test-suite` skill — single source of truth for test execution.
+        --mode unit   : .NET unit/integration (host dotnet test)
+        --mode react  : React/vitest unit tests (host npx vitest in apps/web)
+        --mode e2e    : Playwright E2E (delegates to test-environment skill)
+        --mode all    : everything
+    - `test-environment` skill (E2E container lifecycle, called by run-test-suite)
+    - `restart-test-containers` skill (test container lifecycle only)
     - Delegate to `test-executor` agent via Task tool (CLAUDE.md convention:
       "test/testing/debug/fix → Delegate to test-executor agent")
 
@@ -82,11 +87,13 @@ DIRECT_TEST_RUNNERS = {
 
 BLOCK_REASON = (
     "BLOCKED: Direct test-runner invocations are not allowed. "
-    "Use the 'test-environment' skill (for unit/integration/E2E tests in "
-    "isolated containers) or delegate to the 'test-executor' agent via the "
+    "Use the 'run-test-suite' skill instead: "
+    "--mode unit (.NET), --mode react (vitest), --mode e2e (Playwright), "
+    "--mode all (everything). Or delegate to the 'test-executor' agent via the "
     "Task tool. Running `npx vitest`, `dotnet test`, `npm test`, "
-    "`playwright test`, etc. directly skips container isolation, database "
-    "seeding, and health checks — producing unreliable results. "
+    "`playwright test`, etc. directly skips the safety nets (zero-counter "
+    "detection, compile-error detection) and consistent reporting that the "
+    "skill provides. "
     "See CLAUDE.md: 'test/testing/debug/fix → Delegate to test-executor agent'."
 )
 
