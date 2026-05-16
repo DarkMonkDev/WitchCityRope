@@ -52,6 +52,25 @@ public class PaymentRefund
     public string? EncryptedPayPalRefundId { get; set; }
 
     /// <summary>
+    /// Encrypted Authorize.net refund transaction ID (for PCI compliance).
+    /// Mirrors <see cref="EncryptedPayPalRefundId"/> for the Authorize.net payment path —
+    /// previously the Authorize.net refund transaction id was only written to the Serilog
+    /// log and then discarded, leaving no durable reconciliation handle. Null when the
+    /// refund was not processed through Authorize.net (PayPal / manual refunds) or for
+    /// historical rows created before this column existed.
+    /// </summary>
+    public string? EncryptedAuthNetRefundTransactionId { get; set; }
+
+    /// <summary>
+    /// True when the Authorize.net operation that produced this refund was a VOID of an
+    /// unsettled transaction (pre-settlement reversal) rather than a true post-settlement
+    /// refund. Authorize.net automatically voids when the original charge has not yet
+    /// settled; the distinction matters for accounting/reconciliation because a void never
+    /// appears as a separate settlement line. Defaults to false (true refund / non-Authorize.net).
+    /// </summary>
+    public bool WasVoided { get; set; }
+
+    /// <summary>
     /// Idempotency key for the refund request (maps to PayPal-Request-Id header).
     /// Prevents duplicate refunds if the same request is retried.
     /// Should be unique per refund attempt.

@@ -68,6 +68,18 @@ public class PaymentRefundConfiguration : IEntityTypeConfiguration<PaymentRefund
         builder.Property(r => r.EncryptedPayPalRefundId)
                .HasColumnType("text");
 
+        // Encrypted Authorize.net refund transaction id. Encrypted ciphertext is variable
+        // length, so we mirror EncryptedPayPalRefundId exactly (text, nullable — no length cap).
+        builder.Property(r => r.EncryptedAuthNetRefundTransactionId)
+               .HasColumnType("text");
+
+        // Plain bool flag — distinguishes an Authorize.net VOID from a true refund.
+        // Non-nullable with a false default keeps the migration purely additive (no data
+        // rewrite for existing rows, which are all PayPal/manual refunds → false).
+        builder.Property(r => r.WasVoided)
+               .IsRequired()
+               .HasDefaultValue(false);
+
         #endregion
 
         #region DateTime Configuration

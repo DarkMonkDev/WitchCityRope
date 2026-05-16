@@ -167,6 +167,53 @@ A full catalog refresh (listing every test file with current pass/fail per class
 
 ---
 
+## BACKEND UNIT TESTS - Authorize.net Refund Persistence (NEW 2026-05-16)
+
+These three files were added/extended after `AttendanceService` gained an `IEncryptionService`
+constructor parameter and `RefundService` began persisting Authorize.net refund identifiers.
+All use `[Collection("Database")]` + `DatabaseTestFixture` (TestContainers PostgreSQL).
+
+### RefundServiceTests.cs - Authorize.net Integration Tests (3 new tests)
+
+**File**: `tests/unit/api/Services/RefundServiceTests.cs`
+
+**Purpose**: Verifies `RefundService.ProcessRefundAsync` Authorize.net success branch persists
+`EncryptedAuthNetRefundTransactionId`, `WasVoided`, and `Metadata["authnet_response"]`.
+
+| Test | Description | Status |
+|------|-------------|--------|
+| ProcessRefundAsync_WithSuccessfulAuthNetRefund_PersistsEncryptedTransactionIdAndMetadata | Encrypted refund txn id + metadata persisted | NEW |
+| ProcessRefundAsync_WithVoidedAuthNetRefund_PersistsWasVoidedTrue | WasVoided flag persisted from processor response | NEW |
+| ProcessRefundAsync_WithSuccessfulAuthNetRefundButEmptyTransactionId_LeavesEncryptedIdNull | Empty txn id not encrypted, column stays null | NEW |
+
+### GetEventParticipationsRefundOwedTests.cs (1 test) - NEW
+
+**File**: `tests/unit/api/Features/Participation/GetEventParticipationsRefundOwedTests.cs`
+
+**Purpose**: Verifies `AttendanceService.GetEventParticipationsAsync` computes `RefundOwed`
+true only for attendances whose linked `TicketPurchase.PaymentStatus == AwaitingManualRefund`.
+
+| Test | Description | Status |
+|------|-------------|--------|
+| GetEventParticipationsAsync_ComputesRefundOwedFromTicketPurchasePaymentStatus | AwaitingManualRefund=true, Completed=false, RSVP=false | NEW |
+
+### BackfillAuthNetRefundTransactionIdsTests.cs (1 test) - NEW
+
+**File**: `tests/unit/api/Features/Payments/Commands/BackfillAuthNetRefundTransactionIdsTests.cs`
+
+**Purpose**: Verifies the one-off `BackfillAuthNetRefundTransactionIds` command backfills
+NULL `EncryptedAuthNetRefundTransactionId` from `logging.application_logs` rows and is
+idempotent on re-run. Driven via the public `Execute` method (RunAsync is private).
+
+| Test | Description | Status |
+|------|-------------|--------|
+| Execute_BackfillsNullTransactionId_ThenIsIdempotentOnSecondRun | First run updates 1 row; second run updates 0 (already populated) | NEW |
+
+**Note**: Frontend `EventForm.tsx` change (conditional badge) was NOT given a test —
+that suite is `describe.skip`'d (tech-debt T-3). Verified visually by the implementing agent.
+
+---
+
 ## TEST ENVIRONMENT
 
 **Execution Method**: `test-environment` skill (isolated containers)

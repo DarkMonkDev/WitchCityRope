@@ -5,6 +5,7 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
+using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Events;
 using IEventEmailService = WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService;
@@ -65,6 +66,9 @@ public class AttendanceService : IAttendanceService
     private readonly IEventEmailService _eventEmailService;
     private readonly IAttendanceCountService _countService;
     private readonly IAuthorizedContactService _authorizedContactService;
+    // Used to decrypt the stored Authorize.net refund transaction id for the admin
+    // roster view (RefundHistoryDto.AuthNetRefundTransactionId).
+    private readonly IEncryptionService _encryptionService;
     private readonly ILogger<AttendanceService> _logger;
 
     public AttendanceService(
@@ -75,6 +79,7 @@ public class AttendanceService : IAttendanceService
         IEventEmailService eventEmailService,
         IAttendanceCountService countService,
         IAuthorizedContactService authorizedContactService,
+        IEncryptionService encryptionService,
         ILogger<AttendanceService> logger)
     {
         _context = context;
@@ -84,6 +89,7 @@ public class AttendanceService : IAttendanceService
         _eventEmailService = eventEmailService;
         _countService = countService;
         _authorizedContactService = authorizedContactService;
+        _encryptionService = encryptionService;
         _logger = logger;
     }
 
@@ -2421,7 +2427,15 @@ public class AttendanceService : IAttendanceService
                                             .Where(c => c.Session != null)
                                             .Select(c => c.Session.Name)
                                             .ToList()
-                                        : new List<string>()
+                                        : new List<string>(),
+                    // True when the linked TicketPurchase is AwaitingManualRefund — a
+                    // credit-card (Authorize.net) ticket was cancelled but no automatic
+                    // refund could be issued, so an admin still owes the member a refund.
+                    // The roster UI shows this so a cancelled-but-unrefunded ticket is not
+                    // mistaken for a fully-settled cancellation. False when there is no
+                    // linked purchase (RSVP) or the purchase is in any other status.
+                    RefundOwed = x.Attendance.TicketPurchase != null
+                                 && x.Attendance.TicketPurchase.PaymentStatus == TicketPurchasePaymentStatus.AwaitingManualRefund
                 })
                 .ToListAsync(cancellationToken);
 
@@ -2454,15 +2468,47 @@ public class AttendanceService : IAttendanceService
                     {
                         if (refundLookup.TryGetValue(attendance.TicketId.Value, out var refunds))
                         {
-                            attendance.RefundHistory = refunds.Select(r => new Features.Payments.Models.RefundHistoryDto
+                            // Build refund history. Done with an async foreach (not a LINQ
+                            // .Select projection) because decrypting the Authorize.net refund
+                            // transaction id requires an awaitable call into IEncryptionService.
+                            var refundHistory = new List<Features.Payments.Models.RefundHistoryDto>();
+                            foreach (var r in refunds)
                             {
-                                Id = r.Id,
-                                Amount = r.RefundAmountValue,
-                                Reason = r.RefundReason,
-                                Status = r.RefundStatus.ToString(),
-                                ProcessedAt = r.ProcessedAt,
-                                ProcessedByName = r.ProcessedByUser?.SceneName ?? r.ProcessedByUser?.Email ?? "System"
-                            }).ToList();
+                                // Decrypt the Authorize.net refund transaction id for the
+                                // admin-facing reconciliation column. Null for PayPal/manual
+                                // refunds and for historical rows created before the id was
+                                // persisted. Admin-only DTO, so decryption here is acceptable.
+                                string? authNetRefundTransactionId = null;
+                                if (!string.IsNullOrEmpty(r.EncryptedAuthNetRefundTransactionId))
+                                {
+                                    try
+                                    {
+                                        authNetRefundTransactionId =
+                                            await _encryptionService.DecryptAsync(r.EncryptedAuthNetRefundTransactionId);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        // A decryption failure for one historical row must not
+                                        // break the whole roster. Log and leave the field null.
+                                        _logger.LogWarning(ex,
+                                            "Failed to decrypt Authorize.net refund transaction id for refund {RefundId}",
+                                            r.Id);
+                                    }
+                                }
+
+                                refundHistory.Add(new Features.Payments.Models.RefundHistoryDto
+                                {
+                                    Id = r.Id,
+                                    Amount = r.RefundAmountValue,
+                                    Reason = r.RefundReason,
+                                    Status = r.RefundStatus.ToString(),
+                                    ProcessedAt = r.ProcessedAt,
+                                    ProcessedByName = r.ProcessedByUser?.SceneName ?? r.ProcessedByUser?.Email ?? "System",
+                                    AuthNetRefundTransactionId = authNetRefundTransactionId,
+                                    WasVoided = r.WasVoided
+                                });
+                            }
+                            attendance.RefundHistory = refundHistory;
 
                             var completedRefundTotal = refunds
                                 .Where(r => r.RefundStatus == Features.Payments.Models.RefundStatus.Completed)

@@ -8,6 +8,7 @@ using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Features.Payments.Models.PayPal;
+using WitchCityRope.Api.Features.Payments.Models.AuthorizeNet;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Shared.Services;
@@ -30,6 +31,7 @@ public class RefundServiceTests : IAsyncLifetime
 {
     private readonly DatabaseTestFixture _fixture;
     private readonly Mock<IPayPalService> _mockPayPalService;
+    private readonly Mock<IAuthorizeNetService> _mockAuthorizeNetService;
     private readonly Mock<IEncryptionService> _mockEncryptionService;
     private readonly Mock<IVolunteerAssignmentService> _mockVolunteerService;
     private readonly Mock<IEmailService> _mockEmailService;
@@ -43,6 +45,7 @@ public class RefundServiceTests : IAsyncLifetime
     {
         _fixture = fixture;
         _mockPayPalService = new Mock<IPayPalService>();
+        _mockAuthorizeNetService = new Mock<IAuthorizeNetService>();
         _mockEncryptionService = new Mock<IEncryptionService>();
         _mockVolunteerService = new Mock<IVolunteerAssignmentService>();
         _mockEmailService = new Mock<IEmailService>();
@@ -62,7 +65,8 @@ public class RefundServiceTests : IAsyncLifetime
             _mockEncryptionService.Object,
             _mockVolunteerService.Object,
             _mockEmailService.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockAuthorizeNetService.Object);
 
         // Seed test users with new GUIDs for each test
         _testUserId = Guid.NewGuid();
@@ -510,6 +514,135 @@ public class RefundServiceTests : IAsyncLifetime
 
     #endregion
 
+    #region Authorize.net Integration Tests
+
+    /// <summary>
+    /// Authorize.net refund success path (2026-05-16): when IAuthorizeNetService.RefundAsync
+    /// returns Success with a non-empty TransactionId, the persisted PaymentRefund row must
+    /// carry the encrypted Authorize.net refund transaction id, WasVoided, and an
+    /// authnet_response metadata entry — mirroring how PayPal stores EncryptedPayPalRefundId
+    /// + Metadata["paypal_response"].
+    /// </summary>
+    [Fact]
+    public async Task ProcessRefundAsync_WithSuccessfulAuthNetRefund_PersistsEncryptedTransactionIdAndMetadata()
+    {
+        // Arrange
+        var ticketPurchase = await CreateCompletedAuthNetTicketPurchaseWithEntities(100.00m);
+
+        var request = new ProcessRefundRequest
+        {
+            TicketPurchaseId = ticketPurchase.Id,
+            RefundAmount = Money.Create(100.00m, "USD"),
+            RefundReason = "Customer requested refund via Authorize.net card",
+            ProcessedByUserId = _testAdminId,
+            IpAddress = "192.168.1.1"
+        };
+
+        SetupSuccessfulAuthNetRefund(transactionId: "AUTHNET-REFUND-789", wasVoided: false);
+
+        // Act
+        var result = await _sut.ProcessRefundAsync(request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.RefundStatus.Should().Be(RefundStatus.Completed);
+
+        await using var verifyContext = _fixture.CreateDbContext();
+        var persisted = await verifyContext.PaymentRefunds
+            .FirstOrDefaultAsync(r => r.Id == result.Value.Id);
+
+        persisted.Should().NotBeNull();
+        persisted!.EncryptedAuthNetRefundTransactionId.Should().NotBeNullOrEmpty(
+            "a successful Authorize.net refund with a transaction id must persist the encrypted id");
+        persisted.EncryptedAuthNetRefundTransactionId.Should().Be("enc:AUTHNET-REFUND-789",
+            "the deterministic mock encryptor prefixes plaintext with 'enc:'");
+        persisted.WasVoided.Should().BeFalse();
+        persisted.Metadata.Should().ContainKey("authnet_response");
+    }
+
+    /// <summary>
+    /// Authorize.net void path (2026-05-16): when the processor reversed an unsettled
+    /// charge, AuthorizeNetRefundResponse.WasVoided is true and that flag must be
+    /// persisted on the PaymentRefund row.
+    /// </summary>
+    [Fact]
+    public async Task ProcessRefundAsync_WithVoidedAuthNetRefund_PersistsWasVoidedTrue()
+    {
+        // Arrange
+        var ticketPurchase = await CreateCompletedAuthNetTicketPurchaseWithEntities(75.00m);
+
+        var request = new ProcessRefundRequest
+        {
+            TicketPurchaseId = ticketPurchase.Id,
+            RefundAmount = Money.Create(75.00m, "USD"),
+            RefundReason = "Customer requested refund - charge was still unsettled",
+            ProcessedByUserId = _testAdminId,
+            IpAddress = "192.168.1.1"
+        };
+
+        SetupSuccessfulAuthNetRefund(transactionId: "AUTHNET-VOID-456", wasVoided: true);
+
+        // Act
+        var result = await _sut.ProcessRefundAsync(request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.RefundStatus.Should().Be(RefundStatus.Completed);
+
+        await using var verifyContext = _fixture.CreateDbContext();
+        var persisted = await verifyContext.PaymentRefunds
+            .FirstOrDefaultAsync(r => r.Id == result.Value.Id);
+
+        persisted.Should().NotBeNull();
+        persisted!.WasVoided.Should().BeTrue(
+            "WasVoided from the processor response must be persisted on the refund row");
+    }
+
+    /// <summary>
+    /// Authorize.net edge case (2026-05-16): a success response with a null/empty
+    /// TransactionId must NOT attempt to encrypt an empty string — the encrypted column
+    /// stays null and the refund still completes without throwing.
+    /// </summary>
+    [Fact]
+    public async Task ProcessRefundAsync_WithSuccessfulAuthNetRefundButEmptyTransactionId_LeavesEncryptedIdNull()
+    {
+        // Arrange
+        var ticketPurchase = await CreateCompletedAuthNetTicketPurchaseWithEntities(50.00m);
+
+        var request = new ProcessRefundRequest
+        {
+            TicketPurchaseId = ticketPurchase.Id,
+            RefundAmount = Money.Create(50.00m, "USD"),
+            RefundReason = "Refund with processor returning no transaction id",
+            ProcessedByUserId = _testAdminId,
+            IpAddress = "192.168.1.1"
+        };
+
+        SetupSuccessfulAuthNetRefund(transactionId: null, wasVoided: false);
+
+        // Act
+        var result = await _sut.ProcessRefundAsync(request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.RefundStatus.Should().Be(RefundStatus.Completed);
+
+        await using var verifyContext = _fixture.CreateDbContext();
+        var persisted = await verifyContext.PaymentRefunds
+            .FirstOrDefaultAsync(r => r.Id == result.Value.Id);
+
+        persisted.Should().NotBeNull();
+        persisted!.EncryptedAuthNetRefundTransactionId.Should().BeNull(
+            "an empty processor transaction id must not be encrypted/persisted");
+
+        // EncryptAsync must never be invoked with an empty/null transaction id
+        _mockEncryptionService.Verify(
+            x => x.EncryptAsync(It.Is<string>(s => string.IsNullOrEmpty(s))),
+            Times.Never);
+    }
+
+    #endregion
+
     #region Refund Retrieval Tests
 
     /// <summary>
@@ -741,6 +874,118 @@ public class RefundServiceTests : IAsyncLifetime
         await _context.SaveChangesAsync();
 
         return ticketType;
+    }
+
+    /// <summary>
+    /// Creates a completed ticket purchase paid via Authorize.net (credit card).
+    /// Unlike the PayPal helper, this leaves the PayPal capture/order ids null and
+    /// sets EncryptedAuthNetTransactionId so ProcessRefundAsync takes the Authorize.net branch.
+    /// </summary>
+    private async Task<TicketPurchase> CreateCompletedAuthNetTicketPurchaseWithEntities(decimal amount)
+    {
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = $"authnet-user-{Guid.NewGuid()}@example.com",
+            SceneName = $"AuthNetUser{Guid.NewGuid().ToString().Substring(0, 8)}",
+            EncryptedLegalName = "Encrypted Legal Name",
+            DateOfBirth = DateTime.UtcNow.AddYears(-25),
+            Role = "",
+            PronouncedName = "Test User",
+            Pronouns = "they/them",
+            EmailVerificationToken = Guid.NewGuid().ToString()
+        };
+        _context.Users.Add(user);
+
+        var venue = new Venue
+        {
+            Name = $"Venue-{Guid.NewGuid():N}"[..30],
+            Directions = "Test",
+            VenueInformation = "Test",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Venues.Add(venue);
+        await _context.SaveChangesAsync();
+
+        var testEvent = new Event
+        {
+            Id = Guid.NewGuid(),
+            Title = "Authorize.net Refund Test Event",
+            Description = "Test",
+            VenueId = venue.Id,
+            StartDate = DateTime.UtcNow.AddDays(7),
+            EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
+            Capacity = 20,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Events.Add(testEvent);
+
+        var ticketType = new TicketType
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            Name = "Test Ticket",
+            Price = amount,
+            Available = 20,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketTypes.Add(ticketType);
+
+        var ticketPurchase = new TicketPurchase
+        {
+            Id = Guid.NewGuid(),
+            TicketTypeId = ticketType.Id,
+            UserId = user.Id,
+            TotalPrice = amount,
+            PaymentStatus = TicketPurchasePaymentStatus.Completed,
+            PaymentMethod = "CreditCard",
+            ProcessedAt = DateTime.UtcNow,
+            // No PayPal ids → forces the Authorize.net refund branch
+            EncryptedAuthNetTransactionId = "encrypted-authnet-transaction-id",
+            CreditCardLastFour = "4242",
+            CreditCardType = "Visa"
+        };
+        _context.TicketPurchases.Add(ticketPurchase);
+
+        await _context.SaveChangesAsync();
+
+        return ticketPurchase;
+    }
+
+    /// <summary>
+    /// Configures the encryption + Authorize.net mocks for a successful refund.
+    /// EncryptAsync is deterministic (enc:{plaintext}) so the persisted encrypted id is assertable.
+    /// </summary>
+    private void SetupSuccessfulAuthNetRefund(string? transactionId, bool wasVoided)
+    {
+        // Decrypt the stored ticket transaction id (input to RefundAsync)
+        _mockEncryptionService
+            .Setup(x => x.DecryptAsync(It.IsAny<string>()))
+            .ReturnsAsync((string s) => s.StartsWith("enc:") ? s.Substring(4) : s);
+
+        // Deterministic encryption so the persisted refund transaction id is verifiable
+        _mockEncryptionService
+            .Setup(x => x.EncryptAsync(It.IsAny<string>()))
+            .ReturnsAsync((string s) => $"enc:{s}");
+
+        _mockAuthorizeNetService
+            .Setup(x => x.RefundAsync(
+                It.IsAny<string>(),
+                It.IsAny<decimal>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .ReturnsAsync(new AuthorizeNetRefundResponse
+            {
+                Success = true,
+                TransactionId = transactionId,
+                ResponseCode = "1",
+                Message = "Refund processed",
+                WasVoided = wasVoided
+            });
     }
 
     private void SetupSuccessfulPayPalRefund()

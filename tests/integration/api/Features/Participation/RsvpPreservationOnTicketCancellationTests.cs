@@ -104,6 +104,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
         var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
         var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
         var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+        var encryptionService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Safety.Services.IEncryptionService>();
 
         var attendanceService = new AttendanceService(
             serviceContext,
@@ -113,6 +114,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
             eventEmailService,
             countService,
             authorizedContactService,
+            encryptionService,
             logger);
 
         var result = await attendanceService.CancelTicketPurchasesAsync(
@@ -197,6 +199,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
         var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
         var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
         var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+        var encryptionService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Safety.Services.IEncryptionService>();
 
         var attendanceService = new AttendanceService(
             serviceContext,
@@ -206,6 +209,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
             eventEmailService,
             countService,
             authorizedContactService,
+            encryptionService,
             logger);
 
         var result = await attendanceService.CancelTicketPurchasesAsync(
@@ -287,6 +291,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
         var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
         var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
         var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+        var encryptionService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Safety.Services.IEncryptionService>();
 
         var attendanceService = new AttendanceService(
             serviceContext,
@@ -296,6 +301,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
             eventEmailService,
             countService,
             authorizedContactService,
+            encryptionService,
             logger);
 
         var result = await attendanceService.CancelTicketPurchasesAsync(
@@ -387,6 +393,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
         var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
         var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
         var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+        var encryptionService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Safety.Services.IEncryptionService>();
 
         var attendanceService = new AttendanceService(
             serviceContext,
@@ -396,6 +403,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
             eventEmailService,
             countService,
             authorizedContactService,
+            encryptionService,
             logger);
 
         var result = await attendanceService.CancelTicketPurchasesAsync(
@@ -487,6 +495,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
         var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
         var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
         var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+        var encryptionService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Safety.Services.IEncryptionService>();
 
         var attendanceService = new AttendanceService(
             serviceContext,
@@ -496,6 +505,7 @@ public class RsvpPreservationOnTicketCancellationTests : IntegrationTestBase, ID
             eventEmailService,
             countService,
             authorizedContactService,
+            encryptionService,
             logger);
 
         var result = await attendanceService.CancelTicketPurchasesAsync(

@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.Payments.Services;
+using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Features.Vetting.Entities;
@@ -39,6 +40,7 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
     private IEventEmailService _mockEventEmailService = null!;
     private IAttendanceCountService _mockCountService = null!;
     private IAuthorizedContactService _mockAuthorizedContactService = null!;
+    private IEncryptionService _mockEncryptionService = null!;
     private ILogger<AttendanceService> _logger = null!;
 
     // Test entity IDs
@@ -65,6 +67,15 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
         _mockEventEmailService = Substitute.For<IEventEmailService>();
         _mockCountService = Substitute.For<IAttendanceCountService>();
         _mockAuthorizedContactService = Substitute.For<IAuthorizedContactService>();
+        _mockEncryptionService = Substitute.For<IEncryptionService>();
+        _mockEncryptionService.EncryptAsync(Arg.Any<string>())
+            .Returns(args => Task.FromResult($"enc:{(string)args[0]}"));
+        _mockEncryptionService.DecryptAsync(Arg.Any<string>())
+            .Returns(args =>
+            {
+                var s = (string)args[0];
+                return Task.FromResult(s.StartsWith("enc:") ? s.Substring(4) : s);
+            });
 
         // Default: timing checks pass
         _mockTimeZoneService.GetReferenceSessionForTicketType(Arg.Any<TicketType>(), Arg.Any<ICollection<Session>>())
@@ -162,6 +173,7 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
             _mockEventEmailService,
             _mockCountService,
             _mockAuthorizedContactService,
+            _mockEncryptionService,
             _logger);
     }
 

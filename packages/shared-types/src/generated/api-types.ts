@@ -944,6 +944,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/payments/refunds/backfill-authnet-transaction-ids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * One-off backfill of historical Authorize.net refund transaction ids (admin only)
+         * @description Reads the Serilog application log for past Authorize.net refund completions and stores the recovered transaction id on any PaymentRefund rows that are missing it. Idempotent — only fills missing values. Administrator role required.
+         */
+        post: operations["BackfillAuthNetRefundTransactionIds"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/reports/user-summary": {
         parameters: {
             query?: never;
@@ -4710,6 +4730,15 @@ export interface components {
         AvailableRolesResponse: {
             roles?: components["schemas"]["UserRoleDto"][];
         };
+        BackfillReport: {
+            /** Format: int32 */
+            logEntriesFound?: number;
+            /** Format: int32 */
+            refundRowsUpdated?: number;
+            /** Format: int32 */
+            refundRowsAlreadyPopulated?: number;
+            unmatched?: string[];
+        };
         BackupJobResponse: {
             jobId?: string;
             message?: string;
@@ -5412,6 +5441,7 @@ export interface components {
             totalRefunded?: number;
             /** Format: double */
             remainingRefundable?: number;
+            refundOwed?: boolean;
         };
         /** @enum {unknown} */
         EventRecipientGroup: "SessionAttendees" | "RSVPTicketHolders" | "SessionVolunteers" | "Teachers" | "PendingAssignmentHolders" | null;
@@ -6033,6 +6063,8 @@ export interface components {
             /** Format: date-time */
             processedAt?: string;
             processedByName?: string;
+            authNetRefundTransactionId?: null | string;
+            wasVoided?: boolean;
         };
         RegisterRequest: {
             email: string;
@@ -9386,6 +9418,47 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaymentListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BackfillAuthNetRefundTransactionIds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackfillReport"];
                 };
             };
             /** @description Unauthorized */

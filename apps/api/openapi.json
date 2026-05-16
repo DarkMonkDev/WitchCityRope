@@ -2855,6 +2855,38 @@
         }
       }
     },
+    "/api/admin/payments/refunds/backfill-authnet-transaction-ids": {
+      "post": {
+        "tags": [
+          "Admin",
+          "Payments"
+        ],
+        "summary": "One-off backfill of historical Authorize.net refund transaction ids (admin only)",
+        "description": "Reads the Serilog application log for past Authorize.net refund completions and stores the recovered transaction id on any PaymentRefund rows that are missing it. Idempotent — only fills missing values. Administrator role required.",
+        "operationId": "BackfillAuthNetRefundTransactionIds",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackfillReport"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/admin/reports/user-summary": {
       "get": {
         "tags": [
@@ -13494,6 +13526,10 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "remindersSentCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -13810,6 +13846,29 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserRoleDto"
+            }
+          }
+        }
+      },
+      "BackfillReport": {
+        "type": "object",
+        "properties": {
+          "logEntriesFound": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refundRowsUpdated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refundRowsAlreadyPopulated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unmatched": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         }
@@ -16185,6 +16244,9 @@
           "remainingRefundable": {
             "type": "number",
             "format": "double"
+          },
+          "refundOwed": {
+            "type": "boolean"
           }
         }
       },
@@ -18153,6 +18215,15 @@
           },
           "processedByName": {
             "type": "string"
+          },
+          "authNetRefundTransactionId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "wasVoided": {
+            "type": "boolean"
           }
         }
       },

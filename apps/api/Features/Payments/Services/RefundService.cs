@@ -245,6 +245,34 @@ public class RefundService : IRefundService
                             {
                                 refund.RefundStatus = RefundStatus.Completed;
                                 refund.ProcessedAt = DateTime.UtcNow;
+
+                                // Persist the Authorize.net processor identifiers so the refund
+                                // has a durable reconciliation handle. This mirrors what
+                                // LogRefundSuccessAsync does for PayPal (EncryptedPayPalRefundId +
+                                // Metadata["paypal_response"]) — previously the Authorize.net
+                                // transaction id was only logged and then discarded.
+                                //
+                                // Guard the encrypt call: IEncryptionService.EncryptAsync takes a
+                                // non-null string, and Authorize.net can theoretically return a
+                                // success with an empty/missing transaction id. Leave the column
+                                // null in that case rather than encrypting an empty string.
+                                if (!string.IsNullOrEmpty(authNetResult.TransactionId))
+                                {
+                                    refund.EncryptedAuthNetRefundTransactionId =
+                                        await _encryptionService.EncryptAsync(authNetResult.TransactionId);
+                                }
+
+                                // WasVoided records whether Authorize.net reversed an unsettled
+                                // charge (void) instead of issuing a true post-settlement refund.
+                                refund.WasVoided = authNetResult.WasVoided;
+
+                                // Store the full Authorize.net response for debugging, mirroring
+                                // the PayPal Metadata["paypal_response"] line in LogRefundSuccessAsync.
+                                refund.Metadata["authnet_response"] =
+                                    System.Text.Json.JsonSerializer.Serialize(authNetResult);
+
+                                // CRITICAL: explicitly mark the entity modified so EF Core tracks
+                                // the change (same rationale as the PayPal branch above).
                                 _context.PaymentRefunds.Update(refund);
 
                                 _logger.LogWarning(

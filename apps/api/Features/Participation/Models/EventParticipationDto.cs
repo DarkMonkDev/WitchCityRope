@@ -129,4 +129,11 @@ public class EventParticipationDto
     /// 0 for RSVPs, fully refunded tickets, or free tickets.
     /// </summary>
     public decimal RemainingRefundable { get; set; }
+
+    /// <summary>
+    /// True when the linked ticket purchase is in AwaitingManualRefund state — the ticket
+    /// was cancelled but the credit-card refund has not yet been processed by an admin.
+    /// False for RSVPs (no linked purchase) and for any other payment status.
+    /// </summary>
+    public bool RefundOwed { get; set; }
 }

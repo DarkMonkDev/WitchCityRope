@@ -37,4 +37,18 @@ public class RefundHistoryDto
     /// Scene name of the admin/teacher who processed the refund
     /// </summary>
     public string ProcessedByName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Authorize.net refund transaction id, DECRYPTED for admin-facing reconciliation.
+    /// Null for PayPal/manual refunds and for historical Authorize.net refunds created
+    /// before the id was persisted. Decryption is acceptable here because this DTO is
+    /// only ever returned to authenticated Administrator/Teacher users.
+    /// </summary>
+    public string? AuthNetRefundTransactionId { get; set; }
+
+    /// <summary>
+    /// True when the Authorize.net operation was a void of an unsettled charge rather
+    /// than a true post-settlement refund. False for PayPal/manual refunds.
+    /// </summary>
+    public bool WasVoided { get; set; }
 }

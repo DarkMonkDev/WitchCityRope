@@ -6,6 +6,10 @@ import type { components } from '@witchcityrope/shared-types'
 // Use generated type from OpenAPI spec - NEVER manually define this
 export type EventParticipationDto = components['schemas']['EventParticipationDto']
 
+// Refund record type, also sourced from the generated OpenAPI types.
+// Used to render refund sub-rows under a ticket participation (see EventForm).
+export type RefundHistoryDto = components['schemas']['RefundHistoryDto']
+
 /**
  * Hook to fetch all participations (RSVPs and tickets) for a specific event
  * Admin only - requires Admin role

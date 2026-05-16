@@ -539,6 +539,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
         var eventEmailService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.EmailTemplates.Services.IEventEmailService>();
         var countService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Participation.Services.IAttendanceCountService>();
         var authorizedContactService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.AuthorizedContacts.Services.IAuthorizedContactService>();
+        var encryptionService = scope.ServiceProvider.GetRequiredService<WitchCityRope.Api.Features.Safety.Services.IEncryptionService>();
         var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<AttendanceService>>();
 
         return new AttendanceService(
@@ -549,6 +550,7 @@ public class AttendanceServicePurchaseEligibilityTests : IntegrationTestBase, ID
             eventEmailService,
             countService,
             authorizedContactService,
+            encryptionService,
             logger);
     }
 

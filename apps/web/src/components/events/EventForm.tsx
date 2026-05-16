@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Card, Tabs, TextInput, Group, Text, Select, Stack, Title, MultiSelect, Badge, Table, Alert, NumberInput, Box, Checkbox, SimpleGrid } from '@mantine/core'
+import { Card, Tabs, TextInput, Group, Text, Select, Stack, Title, MultiSelect, Badge, Table, Alert, NumberInput, Box, Checkbox, SimpleGrid, Tooltip } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../lib/api/client'
 import { notifications } from '@mantine/notifications'
@@ -22,6 +23,7 @@ import { useTeachers, formatTeachersForMultiSelect } from '../../lib/api/hooks/u
 import {
   useEventParticipations,
   type EventParticipationDto,
+  type RefundHistoryDto,
 } from '../../lib/api/hooks/useEventParticipations'
 import { useUpdateEvent } from '../../lib/api/hooks/useEvents'
 import { eventKeys } from '../../lib/api/utils/cache'
@@ -444,6 +446,9 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const queryClient = useQueryClient()
   const eventTimeZone = useEventTimeZone()
+  // Used to navigate the admin to the Payments page when a cancelled ticket
+  // still owes a refund (refundOwed === true). See the roster action column below.
+  const navigate = useNavigate()
 
   // Fetch teachers from API
   const { data: teachersData, isLoading: teachersLoading, error: teachersError } = useTeachers()
@@ -2454,7 +2459,35 @@ export const EventForm: React.FC<EventFormProps> = ({
                                   </Text>
                                 )}
                                 {participation.status === 'Cancelled' && (
-                                  <Text size="xs" c="dimmed">Cancelled</Text>
+                                  // A cancelled ticket can still owe the member a credit-card refund
+                                  // that an admin must process manually (AwaitingManualRefund state).
+                                  // When refundOwed is true we surface a clickable amber badge so the
+                                  // admin knows action is required and where to go; otherwise we keep
+                                  // the existing silent dimmed "Cancelled" text.
+                                  participation.refundOwed ? (
+                                    <Tooltip
+                                      label="Refund still owed — open Admin Payments to process"
+                                      withArrow
+                                    >
+                                      <Badge
+                                        size="sm"
+                                        color="orange"
+                                        variant="filled"
+                                        // Navigate to the Admin Payments page. That page defaults to
+                                        // showing AwaitingManualRefund rows, so the admin lands on the
+                                        // refunds that still need processing. The payments page filter
+                                        // state is internal useState with no search query-param support,
+                                        // so we cannot pre-fill the member's name via the URL.
+                                        onClick={() => navigate('/admin/reports/payments')}
+                                        style={{ cursor: 'pointer' }}
+                                        data-testid={`refund-owed-${participation.id}`}
+                                      >
+                                        Refund owed
+                                      </Badge>
+                                    </Tooltip>
+                                  ) : (
+                                    <Text size="xs" c="dimmed">Cancelled</Text>
+                                  )
                                 )}
                               </Table.Td>
                             </Table.Tr>
@@ -2462,16 +2495,25 @@ export const EventForm: React.FC<EventFormProps> = ({
 
                           // Refund sub-rows (indented, stay attached to parent)
                           if (participation.refundHistory && participation.refundHistory.length > 0) {
-                            participation.refundHistory.forEach((refund: any, idx: number) => {
+                            participation.refundHistory.forEach((refund: RefundHistoryDto, idx: number) => {
                               rows.push(
                                 <Table.Tr
                                   key={`${participation.id}-refund-${refund.id ?? idx}`}
                                   style={{ backgroundColor: '#FFF8F0' }}
                                 >
                                   <Table.Td>
-                                    <Text size="xs" c="dimmed" pl="md">
-                                      ↳ Refund #{idx + 1}
-                                    </Text>
+                                    <Group gap={4} wrap="nowrap" pl="md">
+                                      <Text size="xs" c="dimmed">
+                                        ↳ Refund #{idx + 1}
+                                      </Text>
+                                      {/* A void reads differently from a real refund (the original
+                                          charge was reversed before settlement), so flag it explicitly. */}
+                                      {refund.wasVoided && (
+                                        <Badge size="xs" color="gray" variant="light">
+                                          Voided
+                                        </Badge>
+                                      )}
+                                    </Group>
                                   </Table.Td>
                                   <Table.Td />
                                   <Table.Td>
@@ -2484,19 +2526,34 @@ export const EventForm: React.FC<EventFormProps> = ({
                                     </Badge>
                                   </Table.Td>
                                   <Table.Td colSpan={2}>
-                                    <Text size="xs" c="dimmed" lineClamp={1} title={refund.reason}>
-                                      {refund.reason}
-                                    </Text>
+                                    <Stack gap={2}>
+                                      <Text size="xs" c="dimmed" lineClamp={1} title={refund.reason}>
+                                        {refund.reason}
+                                      </Text>
+                                      {/* Authorize.net refund transaction id, for admin reconciliation.
+                                          Null for PayPal / manual / historical refunds — render nothing then. */}
+                                      {refund.authNetRefundTransactionId && (
+                                        <Text size="xs" c="dimmed">
+                                          Auth.net txn: {refund.authNetRefundTransactionId}
+                                        </Text>
+                                      )}
+                                    </Stack>
                                   </Table.Td>
                                   <Table.Td>
                                     <Text size="xs" fw={500} c="red">
-                                      -${refund.amount.toFixed(2)}
+                                      {/* amount is optional on the generated RefundHistoryDto;
+                                          fall back to 0 so the cell always renders cleanly. */}
+                                      -${(refund.amount ?? 0).toFixed(2)}
                                     </Text>
                                   </Table.Td>
                                   <Table.Td />
                                   <Table.Td>
                                     <Text size="xs" c="dimmed">
-                                      {new Date(refund.processedAt).toLocaleDateString()}
+                                      {/* processedAt is optional on the generated DTO; guard the
+                                          Date construction so an absent value renders nothing. */}
+                                      {refund.processedAt
+                                        ? new Date(refund.processedAt).toLocaleDateString()
+                                        : ''}
                                     </Text>
                                   </Table.Td>
                                 </Table.Tr>
