@@ -101,7 +101,7 @@ After `execute.sh` completes, read the output file it created. This file contain
    - **9.1 Event Capacity vs Distinct Active Users** — overbooked events. Counts DISTINCT users (not rows) per `GetReservedCountAsync` contract. A user with both an RSVP and a Ticket for the same event is ONE seat, not two.
    - **9.2 Session Capacity vs Distinct Active Users per session** — oversold sessions in multi-session events. Same distinct-user rule.
    - **9.3 Vetting Status Drift** — `VettingApplications.WorkflowStatus` ≠ `Users.VettingStatus`
-   - **9.4 Orphaned Completed Ticket Purchases** — payment completed but no active attendance created
+   - **9.4 Orphaned Completed Ticket Purchases** — payment completed but no valid attendance created. "Valid" = Status 1 (Active) or Status 6 (PendingAcceptance) — gift/proxy tickets sit in PendingAcceptance until the recipient accepts and must NOT be flagged as orphans.
    - **9.5 Active Attendance Without Completed Payment** — inverse of 9.4
    - **9.6 Completed Refunds With Stale Ticket Status** — refund done but `PaymentStatus` not updated
    - **9.7 Ticket Purchases Awaiting Manual Refund** — rows flagged `AwaitingManualRefund` (authnet user-cancel queue). Rows older than ~3 days deserve urgent admin attention.

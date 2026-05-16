@@ -749,18 +749,25 @@ if [ "$SKIP_DB_LOGS" = false ] && [ -n "$DB_HOST" ]; then
         LIMIT 20;
     " >> "$OUTPUT_FILE"
 
-    subsection "9.4 Orphaned Completed Ticket Purchases (no active attendance)"
-    # A completed/confirmed ticket purchase should produce at least one active EventAttendance.
+    subsection "9.4 Orphaned Completed Ticket Purchases (no valid attendance)"
+    # A completed/confirmed ticket purchase should produce at least one valid EventAttendance.
     # Orphans = payment went through but no seat was actually reserved (user paid but no ticket).
+    #
+    # "Valid" = Status 1 (Active) OR Status 6 (PendingAcceptance). PendingAcceptance MUST be
+    # counted: a proxy/gift ticket (buyer purchases for someone else) creates the recipient's
+    # attendance in Status 6 until they accept the waiver/ToS — the seat IS held, the purchase
+    # is NOT orphaned. Counting only Status 1 false-flagged every unaccepted gift ticket
+    # (see production-incident 02, 2026-05-16: rows c1991e3b and 2f7aba6f were both gift
+    # tickets, both false positives). Cancelled (2/3) attendances correctly do NOT count.
     psql_query "
         SELECT tp.\"Id\" as purchase_id, tp.\"UserId\", tp.\"PaymentStatus\", tp.\"ProcessedAt\"::date as processed,
-               tp.\"TotalPrice\", COUNT(ea.\"Id\") FILTER (WHERE ea.\"Status\" = 1) as active_attendances
+               tp.\"TotalPrice\", COUNT(ea.\"Id\") FILTER (WHERE ea.\"Status\" IN (1, 6)) as valid_attendances
         FROM public.\"TicketPurchases\" tp
         LEFT JOIN public.\"EventAttendances\" ea ON tp.\"Id\" = ea.\"TicketPurchaseId\"
         WHERE tp.\"PaymentStatus\" IN ('Completed', 'Confirmed', 'PartiallyRefunded')
             AND tp.\"ProcessedAt\" >= NOW() - INTERVAL '90 days'
         GROUP BY tp.\"Id\", tp.\"UserId\", tp.\"PaymentStatus\", tp.\"ProcessedAt\", tp.\"TotalPrice\"
-        HAVING COUNT(ea.\"Id\") FILTER (WHERE ea.\"Status\" = 1) = 0
+        HAVING COUNT(ea.\"Id\") FILTER (WHERE ea.\"Status\" IN (1, 6)) = 0
         ORDER BY tp.\"ProcessedAt\" DESC
         LIMIT 20;
     " >> "$OUTPUT_FILE"

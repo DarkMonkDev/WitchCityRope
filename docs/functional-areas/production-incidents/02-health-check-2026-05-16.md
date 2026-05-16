@@ -58,7 +58,7 @@ None.
 - **Evidence (the two M1 rows, both confirmed false positives)**:
   - `c1991e3b` — Indigo (`indigokink42@gmail.com`) bought a ticket **for** Anna (`grahamcrackeranna@gmail.com`) for the May Rope Jam. Attendance `019e2d3d-17d4` exists, `Status = 6` PendingAcceptance — Anna simply hasn't accepted yet (event is today). Working as designed.
   - `2f7aba6f` — Derek (`derek2652@gmail.com`) bought a ticket **for** user `92df9d52` for the April Rope Jam. Attendance `019d9d86-5843` exists, `Status = 6`. The recipient never accepted; the April event is over. A real-world "gift ticket never claimed" situation — a customer-service question, not a data defect.
-- **Recommendation**: Fix the audit 9.4 query in the `check-production-server` skill to also count `Status = 6` (PendingAcceptance) as a valid attendance, otherwise every gift/proxy ticket recurs as a false orphan. Separately, the CS team may want to follow up with Derek about the unclaimed April ticket.
+- **Resolution**: FIXED 2026-05-16. The audit 9.4 query in `check-production-server/execute.sh` now counts `Status IN (1, 6)` (Active + PendingAcceptance) as valid attendance. Re-ran the corrected query against production — returns 0 rows (both gift tickets correctly excluded). Separately, the CS team may want to follow up with Derek about the unclaimed April ticket (`2f7aba6f`).
 
 ## System Health Summary
 
@@ -111,7 +111,7 @@ No failed Hangfire jobs in the last 24 hours. All 5 recurring jobs registered an
 |-------|--------|------|----------------|
 | M2: two unprocessed refunds | Small (admin action) | Low | Admin issues the two $20 Authorize.net refunds |
 | L1: BE-5 cancellation 500s | — | Low | No action — tracked as BE-5 |
-| L2: audit 9.4 false positives | Small (skill query fix) | Low | Add `Status=6` to the 9.4 attendance count |
+| L2: audit 9.4 false positives | Small (skill query fix) | Low | FIXED 2026-05-16 — 9.4 now counts `Status IN (1,6)` |
 
 ---
 
