@@ -1108,6 +1108,42 @@ Option 1 is the correct fix. Effort: ~half a day including migration + tests. Co
 
 ---
 
+### BE-18 — Authorize.net ticket cancellations don't auto-refund (PayPal does) (P2, UNRESOLVED)
+
+**Discovered**: 2026-05-16 during the production health-check M2 deep-dive (production-incident `02-health-check-2026-05-16`).
+**Impact**: When a member self-cancels a ticket they paid for by credit card (Authorize.net), no refund is issued automatically. The purchase is flagged `AwaitingManualRefund` and an admin must process it by hand. PayPal cancellations, by contrast, refund automatically. If the manual queue is not worked promptly, members wait days-to-weeks for their money — the 2026-05-16 health check found two members owed $20 each, outstanding 16 and 28 days.
+
+#### Symptom
+
+`AttendanceService.ProcessAutomaticRefundAsync` (the handler that runs on user-initiated cancellation) only auto-refunds when `PaymentMethod == "PayPal"`. For Authorize.net (and any other method) it sets `PaymentStatus = AwaitingManualRefund` and returns without issuing a refund. The member's money stays with the processor until an admin clicks "Process Refund" in the Admin Payments UI.
+
+#### Root cause / context
+
+This is a deliberate gate, not an oversight — added 2026-04-12 as part of BE-12 M2b. Before M2b, non-PayPal cancellations silently left the purchase reading `Completed` forever (money effectively lost track of); M2b at least surfaced them in a visible admin queue.
+
+The capability to refund Authorize.net already exists: `RefundService.ProcessRefundAsync` has a full working Authorize.net branch (`_authorizeNetService.RefundAsync`). It is simply not wired into the self-service cancellation path the way the PayPal branch is.
+
+**Unverified theory for why it was left manual**: Authorize.net transactions settle in nightly batches. A charge cancelled *before* settlement must be **voided**, not **refunded** (a different API call); only *after* settlement can it be **refunded**. A member can cancel on either side of that boundary, so an auto-refund-on-cancel path must choose void vs. refund based on the transaction's settlement state. Whether `AuthorizeNetService.RefundAsync` / `RefundService` already handles that distinction is NOT yet confirmed — that is the first research step.
+
+#### Suggested fix approach
+
+1. Determine whether `AuthorizeNetService` / `RefundService` already handles the void (pre-settlement) vs. refund (post-settlement) distinction.
+2. If void handling is missing, add it — the auto-refund path must pick the correct operation based on transaction state.
+3. Wire the Authorize.net branch into `AttendanceService.ProcessAutomaticRefundAsync` the same way PayPal is, so credit-card cancellations refund automatically.
+4. Keep `AwaitingManualRefund` as the fallback for genuine failures (refund API call errors) so nothing is ever silently dropped.
+5. Test both pre- and post-settlement cancellation timing.
+
+Effort: Medium — mostly Authorize.net settlement-state research + testing, not large code volume.
+
+#### Authoritative records
+
+- `apps/api/Features/Participation/Services/AttendanceService.cs` — `ProcessAutomaticRefundAsync` (the PayPal-only gate, ~line 2663)
+- `apps/api/Features/Payments/Services/RefundService.cs` — existing Authorize.net refund branch (~line 218)
+- `docs/functional-areas/production-incidents/02-health-check-2026-05-16.md` — M2 (the two outstanding refunds that exposed this)
+- Related: **BE-12** (introduced `AwaitingManualRefund`), **BE-14** (Authorize.net E00114 issue)
+
+---
+
 ## Test suite (unit test coverage)
 
 ### T-8 — No PayPal checkout component tests + no skill wrapper for vitest (P2, UNRESOLVED)
@@ -1659,6 +1695,7 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-22 | **Vetting bulk Send Reminder feature + run-test-suite vitest mode.** Shipped commit `a5458644`: bulk Send Reminder action on the admin vetting list (filters selection to InterviewApproved subset, fans out per-app via existing endpoint), new "Reminders" column showing `RemindersSentCount`. Refactors triggered by the work: (1) lifted selection state from `VettingApplicationsList` to `AdminVettingPage` (controlled-component pattern), which fixed the pre-existing UX bug where checkboxes stayed checked after bulk actions — affected both Send Reminder and Put On Hold; (2) reordered hooks in `AdminVettingPage` to satisfy Rules of Hooks (pre-existing violation — useState was below an early-return); (3) added React Query invalidation to `OnHoldModal` so the list auto-refreshes after a hold action (closes the long-standing TODO comment). Skill infra: `run-test-suite` gained `--mode react` (vitest from apps/web with same safety nets as the dotnet path), `block-manual-test-runs.py` BLOCK_REASON updated to point at it. T-3 updated with today's measurement (187 failing, down from 196 baseline, with a specific finding on `OnHoldModal.test.tsx` text drift introduced by commit `395ec740`). Also fixed my own regression in OnHoldModal tests (added QueryClientProvider wrapper). Verified end-to-end on staging via agent-browser. | Vetting bulk reminder feature session |
 | 2026-04-13 | **Production deploy + Row B backfill.** Bundled fixes shipped to production via `production-deploy` skill at git SHA `94d132f2`: BE-14 (commit `a92b7044`), BE-12 M2a/M2c (commit `0d0cf6f7`), BE-12 M2b (commit `78376f04`), BE-15 forward fix (commit `689136ca`), BE-15 regression repair (commit `897a27ac`), BE-15/T-8 testable handler extraction (commit `94d132f2`), audit 9.1/9.2 DISTINCT-users fix (commit `f52bc8fc`), proxy-RSVP + DailyLogSummaryJob fixes (commit `c5498ad8`). All three prod containers healthy after deploy. Row B one-off SQL executed: `TicketPurchases.Id = e4e24d70-92a4-4550-a439-e497915d18e1` `PaymentStatus` flipped `Completed` → `Refunded`; post-update scan shows zero stale refund rows remaining. BE-12 marked RESOLVED (all three drift rows reconciled — Row A via admin UI on 2026-04-12, Row B via SQL on 2026-04-13, and the underlying classes of drift are closed by the M2a/M2b/M2c code changes). BE-14 stays UNRESOLVED because the Authorize.NET E00114 root cause is still unknown even though the frontend symptom-fix shipped. BE-15 stays RESOLVED. Also: prevalence check on prod confirmed 29 users have both Active RSVP + Active Ticket for same event — expected behavior (AttendanceService auto-creates RSVP on ticket purchase when no RSVP exists, and users who RSVPed before upgrading to a ticket keep both records). Audits use `COUNT(DISTINCT UserId)` so no double-counting. UI correctly prioritizes Ticket > RSVP on both event page and dashboard. No action needed. | Prod deploy session (Strategy B bundle) |
 | 2026-05-10 | **Added FE-3** (P2, UNRESOLVED) — Vite dev port has 5 sources of truth that all must agree (`vite.config.ts`, Dockerfile EXPOSE/ENV/CMD, compose `command:`/`ports:`). Cross-repo TD-port: an agent working in the sibling `accounting-automation` repo hit and fixed the same bug there during a port-renumbering exercise. Their fix consolidated their five sources to two; same approach would work here. Currently latent (no incorrect runtime — all five values agree on `5173`), but silent drift on the next port change is the failure mode. Discovered by external agent; entry written by the same agent without modifying any WCR code. | Cross-repo TD-port from accounting-automation |
+| 2026-05-16 | **Added BE-18** (P2, UNRESOLVED) — Authorize.net ticket cancellations don't auto-refund the way PayPal cancellations do; the purchase is flagged `AwaitingManualRefund` for an admin to process by hand. Discovered during the production-incident 02 M2 deep-dive (two members found owed $20 each, outstanding 16/28 days). `RefundService` already has a working Authorize.net refund branch — it's just not wired into `AttendanceService.ProcessAutomaticRefundAsync`. Deferred for later research (likely needs Authorize.net void-vs-refund settlement-state handling). | Health-check M2 deep-dive |
 | 2026-05-16 | **Added + resolved BE-16; added BE-17** — BE-16 (P2, RESOLVED): `EmailSchedulerJob` idempotency check only treated `Status == "Sent"` as handled, so a `Failed` reminder send was re-attempted every hourly run until the event's send window closed (~25 duplicate `Failed` rows observed on the April Rope Jam session). Discovered during a read-only production DB audit of event `cae0d3e3` ("Rope Jam - May") investigating a misdirected volunteer-reminder email. Fixed same session: bounded-retry guard (max 3 attempts) in `ProcessSessionAsync`. Code-review follow-ups also folded in: graceful handling of the concurrent-run idempotency race (`DbUpdateException` / Postgres `23505`), `AsNoTracking()` on the new query, and boundary tests in `EmailSchedulerJobRetryTests.cs`. BE-17 (P3, UNRESOLVED): per-batch trigger logging means a partial recipient failure is logged `Sent` and never retried — split out from BE-16's body during code review so it survives BE-16's resolution. The primary bug from this investigation — `EventEmailService.SendCatchUpRemindersAsync` re-sending `VolunteerReminder` to ticket buyers — was fixed in the same change (catch-up template-type allowlist + `EventEmailServiceCatchUpTests.cs`); active work, not a deferred-debt entry. | Misdirected volunteer-email investigation + code review |
 
 ---
