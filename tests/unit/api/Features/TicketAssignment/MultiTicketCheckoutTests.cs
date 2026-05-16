@@ -256,11 +256,15 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
             .ToListAsync();
         purchases.Should().HaveCount(2);
 
-        // 2+ EventAttendance records (one per ticket per session)
+        // Exactly 1 EventAttendance for the purchaser: only their own ticket
+        // (index 0) gets one. The second ticket is an unassigned "assign later"
+        // extra — tracked by its TicketPurchase row alone, and given an
+        // EventAttendance only when assigned (see AttendanceService
+        // .CreateTicketPurchaseAsync, the isUnassignedExtra branch).
         var attendances = await _context.EventAttendances
             .Where(ea => ea.EventId == _eventId && ea.UserId == _purchaserId && ea.AttendanceType == AttendanceType.Ticket)
             .ToListAsync();
-        attendances.Should().HaveCountGreaterThanOrEqualTo(2);
+        attendances.Should().HaveCount(1);
     }
 
     #endregion
@@ -352,14 +356,24 @@ public class MultiTicketCheckoutTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        // Both tickets should be for the purchaser
+        // The purchaser gets exactly one EventAttendance — for their own ticket
+        // (index 0). The second ticket is an unassigned "assign later" extra: it
+        // exists only as a TicketPurchase row until it is assigned (see
+        // AttendanceService.CreateTicketPurchaseAsync, the isUnassignedExtra branch).
         var purchaserAttendances = await _context.EventAttendances
             .Where(ea =>
                 ea.EventId == _eventId
                 && ea.UserId == _purchaserId
                 && ea.AttendanceType == AttendanceType.Ticket)
             .ToListAsync();
-        purchaserAttendances.Should().HaveCountGreaterThanOrEqualTo(2);
+        purchaserAttendances.Should().HaveCount(1);
+
+        // ...but both tickets exist as TicketPurchase rows — the "extra" is
+        // purchased and assignable, just not yet attended.
+        var purchases = await _context.TicketPurchases
+            .Where(tp => tp.TicketTypeId == _ticketTypeId && tp.UserId == _purchaserId)
+            .ToListAsync();
+        purchases.Should().HaveCount(2);
     }
 
     #endregion

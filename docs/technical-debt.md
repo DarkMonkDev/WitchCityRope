@@ -1258,9 +1258,10 @@ Writing equivalent tests for the other four jobs: estimate 2-4h each depending o
 
 ---
 
-### T-9 — `MultiTicketCheckoutTests` MT_U02 / MT_U04 assert a stale attendance count (P3, UNRESOLVED)
+### T-9 — `MultiTicketCheckoutTests` MT_U02 / MT_U04 assert a stale attendance count (P3, RESOLVED)
 
 **Discovered**: 2026-05-16, triaged during the refund-id / refund-owed feature work (the two tests surfaced as failures in the regression run and were run down to rule out a real bug).
+**Resolved**: 2026-05-16 — both assertions corrected; see Resolution below.
 **Impact**: Two consistently-failing unit tests in `tests/unit/api`. **Not a product bug** — triage confirmed the production code is correct; these are stale test assertions. The cost is pure noise: they inflate the failing-test baseline and could mask a future real regression in multi-ticket checkout.
 
 #### Symptom
@@ -1286,10 +1287,19 @@ Correct the two assertions to match the documented design:
 - MT_U04: assert exactly **1** purchaser `EventAttendance`; optionally also assert 2 `TicketPurchase` rows for completeness.
 Trivial (~2 lines each), low risk. Then both tests pass and the assertion documents the real behavior.
 
+#### Resolution (2026-05-16)
+
+Both assertions corrected to match the documented design:
+- **MT_U02** now asserts the purchaser has exactly **1** `EventAttendance` (it already, correctly, asserted 2 `TicketPurchase` rows).
+- **MT_U04** now asserts exactly **1** purchaser `EventAttendance` **and** 2 `TicketPurchase` rows — so the test actually verifies the "extra ticket" its name claims (the extra exists as a purchase, just not an attendance).
+- Both tests' comments were rewritten to explain the unassigned-extra design and point at `AttendanceService.CreateTicketPurchaseAsync`.
+
+Verified: the full `MultiTicketCheckoutTests` class is now 16/16 passing.
+
 #### Authoritative records
 
 - `apps/api/Features/Participation/Services/AttendanceService.cs:1363-1371` — the deliberate "unassigned extra → no EventAttendance" logic
-- `tests/unit/api/Features/TicketAssignment/MultiTicketCheckoutTests.cs` — MT_U02 (~line 263), MT_U04 (~line 362)
+- `tests/unit/api/Features/TicketAssignment/MultiTicketCheckoutTests.cs` — MT_U02, MT_U04 (corrected)
 
 ---
 
@@ -1732,6 +1742,7 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-05-10 | **Added FE-3** (P2, UNRESOLVED) — Vite dev port has 5 sources of truth that all must agree (`vite.config.ts`, Dockerfile EXPOSE/ENV/CMD, compose `command:`/`ports:`). Cross-repo TD-port: an agent working in the sibling `accounting-automation` repo hit and fixed the same bug there during a port-renumbering exercise. Their fix consolidated their five sources to two; same approach would work here. Currently latent (no incorrect runtime — all five values agree on `5173`), but silent drift on the next port change is the failure mode. Discovered by external agent; entry written by the same agent without modifying any WCR code. | Cross-repo TD-port from accounting-automation |
 | 2026-05-16 | **Added BE-18** (P2, UNRESOLVED) — Authorize.net ticket cancellations don't auto-refund the way PayPal cancellations do; the purchase is flagged `AwaitingManualRefund` for an admin to process by hand. Discovered during the production-incident 02 M2 deep-dive (two members found owed $20 each, outstanding 16/28 days). `RefundService` already has a working Authorize.net refund branch — it's just not wired into `AttendanceService.ProcessAutomaticRefundAsync`. Deferred for later research (likely needs Authorize.net void-vs-refund settlement-state handling). | Health-check M2 deep-dive |
 | 2026-05-16 | **Added T-9** (P3, UNRESOLVED) — `MultiTicketCheckoutTests` MT_U02 / MT_U04 fail consistently because they assert ≥2 `EventAttendance` rows for a buy-2-assign-1-later purchase. Triaged during the refund feature's regression run: confirmed NOT a product bug — `AttendanceService.CreateTicketPurchaseAsync` deliberately creates no `EventAttendance` for an unassigned extra ticket (the `TicketPurchase` row tracks it; comment at lines 1363-1371). The tests have stale assertions; the fix is to expect 1 attendance. Logged rather than fixed inline per the triage request. | MultiTicketCheckout triage |
+| 2026-05-16 | **Resolved T-9** — corrected the MT_U02 / MT_U04 assertions to expect 1 purchaser `EventAttendance` (MT_U04 also now asserts 2 `TicketPurchase` rows). Full `MultiTicketCheckoutTests` class verified 16/16 passing. | MultiTicketCheckout test fix |
 | 2026-05-16 | **Added + resolved BE-16; added BE-17** — BE-16 (P2, RESOLVED): `EmailSchedulerJob` idempotency check only treated `Status == "Sent"` as handled, so a `Failed` reminder send was re-attempted every hourly run until the event's send window closed (~25 duplicate `Failed` rows observed on the April Rope Jam session). Discovered during a read-only production DB audit of event `cae0d3e3` ("Rope Jam - May") investigating a misdirected volunteer-reminder email. Fixed same session: bounded-retry guard (max 3 attempts) in `ProcessSessionAsync`. Code-review follow-ups also folded in: graceful handling of the concurrent-run idempotency race (`DbUpdateException` / Postgres `23505`), `AsNoTracking()` on the new query, and boundary tests in `EmailSchedulerJobRetryTests.cs`. BE-17 (P3, UNRESOLVED): per-batch trigger logging means a partial recipient failure is logged `Sent` and never retried — split out from BE-16's body during code review so it survives BE-16's resolution. The primary bug from this investigation — `EventEmailService.SendCatchUpRemindersAsync` re-sending `VolunteerReminder` to ticket buyers — was fixed in the same change (catch-up template-type allowlist + `EventEmailServiceCatchUpTests.cs`); active work, not a deferred-debt entry. | Misdirected volunteer-email investigation + code review |
 
 ---
