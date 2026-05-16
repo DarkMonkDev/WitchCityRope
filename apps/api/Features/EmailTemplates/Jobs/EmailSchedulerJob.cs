@@ -173,20 +173,45 @@ public class EmailSchedulerJob
     private async Task ProcessSessionAsync(
         Models.GlobalEmailTemplateDto template, SessionInfo session, CancellationToken ct)
     {
-        // Idempotency check
-        var alreadySent = await _context.Set<EmailTriggerLog>()
-            .AnyAsync(log =>
+        // Idempotency + bounded-retry check.
+        //
+        // This job runs hourly. A reminder is considered "handled" — and therefore skipped —
+        // when either:
+        //   1. it has already sent successfully ("Sent"), OR
+        //   2. it has failed MaxSendAttempts times.
+        //
+        // Case 2 is the bounded-retry guard. Without it, a template that fails to send keeps
+        // re-attempting on every hourly run for the entire remaining send window, because a
+        // "Failed" log row never satisfied the old "Status == Sent" check. This produced ~25
+        // hourly "Failed" rows for a single April reminder before the guard existed
+        // (see tech-debt BE-16). Three attempts gives transient SendGrid hiccups room to
+        // recover while stopping a persistent failure from looping.
+        const int MaxSendAttempts = 3;
+
+        var priorStatuses = await _context.Set<EmailTriggerLog>()
+            .AsNoTracking()
+            .Where(log =>
                 log.TemplateId == template.Id
                 && log.SessionId == session.Id
-                && log.TemplateType == template.TemplateType
-                && log.Status == "Sent",
-                ct);
+                && log.TemplateType == template.TemplateType)
+            .Select(log => log.Status)
+            .ToListAsync(ct);
 
-        if (alreadySent)
+        if (priorStatuses.Contains("Sent"))
         {
             _logger.LogDebug(
                 "Template {TemplateType} already sent for session {SessionId}, skipping",
                 template.TemplateType, session.Id);
+            return;
+        }
+
+        var failedAttempts = priorStatuses.Count(status => status == "Failed");
+        if (failedAttempts >= MaxSendAttempts)
+        {
+            _logger.LogWarning(
+                "Template {TemplateType} for session {SessionId} has failed {FailedAttempts} time(s) " +
+                "(>= max {MaxSendAttempts}); giving up — no further retries this send window",
+                template.TemplateType, session.Id, failedAttempts, MaxSendAttempts);
             return;
         }
 
@@ -385,7 +410,7 @@ public class EmailSchedulerJob
 
         // Log the trigger
         var status = successCount > 0 ? "Sent" : "Failed";
-        _context.Set<EmailTriggerLog>().Add(new EmailTriggerLog
+        var triggerLog = new EmailTriggerLog
         {
             TemplateId = template.Id,
             EventId = session.EventId,
@@ -398,8 +423,33 @@ public class EmailSchedulerJob
             SentAt = successCount > 0 ? DateTime.UtcNow : null,
             Status = status,
             ErrorMessage = failCount > 0 ? $"{failCount} of {recipients.Count} sends failed" : null
-        });
-        await _context.SaveChangesAsync(ct);
+        };
+        _context.Set<EmailTriggerLog>().Add(triggerLog);
+
+        try
+        {
+            await _context.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
+        {
+            // Idempotency race: a concurrent scheduler run already wrote a "Sent" row for
+            // this (TemplateId, SessionId, TemplateType) tuple, and the unique filtered index
+            // UQ_EmailTriggerLogs_Idempotency (filter: SessionId IS NOT NULL AND Status = 'Sent')
+            // rejected ours. Swallow it: the reminder is already accounted for, and without
+            // this catch the exception would abort ProcessTemplateAsync's loop over the
+            // remaining sessions. Detach the rejected entity so the next session's
+            // SaveChangesAsync on this shared DbContext doesn't retry the failed INSERT.
+            //
+            // NOTE: this does NOT prevent a duplicate *send* — if two runs both passed the
+            // idempotency check above, both already emailed before reaching this point. True
+            // prevention requires single-instance job execution (see tech-debt BE-16).
+            _context.Entry(triggerLog).State = EntityState.Detached;
+            _logger.LogWarning(
+                "Idempotency race: {TemplateType} for session {SessionId} was already logged "
+                + "as Sent by a concurrent run; duplicate trigger log discarded",
+                template.TemplateType, session.Id);
+        }
 
         _logger.LogInformation(
             "{TemplateType} for session {SessionId}: {Success} sent, {Failed} failed out of {Total} recipients",

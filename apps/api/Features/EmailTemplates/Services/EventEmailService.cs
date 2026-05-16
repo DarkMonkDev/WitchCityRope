@@ -17,6 +17,35 @@ public class EventEmailService : IEventEmailService
     private static readonly TimeZoneInfo EasternTimeZone =
         TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
 
+    /// <summary>
+    /// Template types eligible for the post-purchase "catch-up" send.
+    ///
+    /// When someone buys a ticket late, <see cref="SendCatchUpRemindersAsync"/> replays the
+    /// time-based reminders that already went out for their session(s) so a late registrant
+    /// is not left out. This allowlist is deliberately restrictive — ONLY attendee-facing
+    /// reminders belong here.
+    ///
+    /// Volunteer templates (VolunteerReminder, VolunteerThankYou) must NEVER be caught up:
+    /// they are addressed exclusively to confirmed volunteers and carry volunteer-only merge
+    /// fields ({{volunteer_name}}, {{volunteer_tasks_list}}, {{session_name}}) that the
+    /// catch-up variable set does not populate. ThankYou / cancellation / session-change
+    /// templates are likewise excluded — they are not "reminders you missed".
+    ///
+    /// History: on 2026-05-16 a plain ticket buyer received a VolunteerReminder email with
+    /// unrendered {{...}} placeholders because the catch-up query previously replayed EVERY
+    /// time-based "Sent" log regardless of template type. Do NOT widen this set without
+    /// confirming the template is attendee-facing AND every merge field it uses is supplied
+    /// by the variables dictionary built in SendCatchUpRemindersAsync.
+    /// </summary>
+    private static readonly HashSet<string> CatchUpEligibleTemplateTypes = new()
+    {
+        "Reminder1Week",
+        "Reminder1Day",
+        "Reminder2Hours",
+        "RsvpAcceptanceReminder",
+        "TicketAcceptanceReminder"
+    };
+
     public EventEmailService(
         ApplicationDbContext context,
         IEmailService emailService,
@@ -461,12 +490,16 @@ public class EventEmailService : IEventEmailService
             if (sessionIds.Count == 0)
                 return;
 
-            // Find already-sent batch reminders for these sessions
+            // Find already-sent batch reminders for these sessions.
+            // CatchUpEligibleTemplateTypes filters to attendee-facing reminders only —
+            // a ticket buyer must never be "caught up" on a volunteer-only template
+            // (see CatchUpEligibleTemplateTypes remarks for the 2026-05-16 incident).
             var sentLogs = await _context.Set<EmailTriggerLog>()
                 .AsNoTracking()
                 .Where(log => sessionIds.Contains(log.SessionId!.Value)
                     && log.TriggerType == "TimeBased"
-                    && log.Status == "Sent")
+                    && log.Status == "Sent"
+                    && CatchUpEligibleTemplateTypes.Contains(log.TemplateType))
                 .ToListAsync(ct);
 
             if (sentLogs.Count == 0)

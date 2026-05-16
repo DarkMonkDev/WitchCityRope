@@ -1021,6 +1021,93 @@ The forward-looking fix is deployed (or in-flight to deployment) and comprehensi
 
 ---
 
+### BE-16 — Scheduled-email idempotency check ignores `Failed` logs, causing hourly retry storms (P2, RESOLVED)
+
+**Discovered**: 2026-05-16 while investigating a misdirected volunteer-reminder email (production DB read-only audit of event `cae0d3e3` "Rope Jam - May").
+**Resolved**: 2026-05-16 — bounded-retry guard added; see Resolution below.
+**Impact**: A reminder template that fails to send for a session is re-attempted on every hourly `EmailSchedulerJob` run until the event's send window closes — producing dozens of duplicate `Failed` rows in `EmailTriggerLogs` and dozens of redundant SendGrid attempts. If the underlying send transiently succeeds on a later retry, the recipient gets a late/duplicate email. Observed concretely on the April Rope Jam event.
+
+#### Symptom
+
+Production `EmailTriggerLogs` for the April Rope Jam session (`f63dce54-dae3-4cc6-8c1f-a75e40701ce9`) contains a `RsvpAcceptanceReminder` row that first failed at `2026-04-17 23:00` and then retried **every hour** through `2026-04-18 23:00` — ~25 consecutive rows, all `Status = Failed`, all with empty `SentAt`. The retries stop only when the event ends (the template is no longer "due").
+
+#### Root cause (verified)
+
+`EmailSchedulerJob.ProcessSessionAsync` (`apps/api/Features/EmailTemplates/Jobs/EmailSchedulerJob.cs:177-183`) does its idempotency check as:
+
+```csharp
+var alreadySent = await _context.Set<EmailTriggerLog>()
+    .AnyAsync(log => log.TemplateId == template.Id
+        && log.SessionId == session.Id
+        && log.TemplateType == template.TemplateType
+        && log.Status == "Sent", ct);
+```
+
+It only treats `Status == "Sent"` as "already handled." A row with `Status == "Failed"` (or `"Skipped"`) does not satisfy the predicate, so the next hourly run re-enters the send path and fails again. There is no attempt counter, no backoff, and no terminal "give up after N attempts" state. The job runs hourly, so a persistently-failing template retries ~hourly for the entire remaining send window.
+
+#### Suggested fix approach
+
+1. Decide the intended retry policy with the user — options: (a) at-most-once (count `Failed` as "handled" too — never retry), (b) bounded retry (e.g. max 3 attempts, then mark a terminal `Abandoned` status), or (c) bounded retry with exponential backoff.
+2. Implement in `ProcessSessionAsync` — either widen the idempotency predicate or add an attempt-count guard before re-sending.
+3. Consider a terminal status value so `Failed` permanently-dead sends are distinguishable from `Failed`-but-will-retry.
+4. Backfill is not required — the stale April rows are harmless history.
+
+Effort: ~1-2 hrs once the policy is chosen. Low risk (single method), but needs a deliberate product decision on retry semantics.
+
+#### Resolution (2026-05-16)
+
+Policy chosen: **bounded retry, max 3 attempts**. A transient SendGrid hiccup still gets retried (next hourly run), but a persistently-failing template stops after 3 `Failed` rows instead of looping for the whole send window.
+
+`EmailSchedulerJob.ProcessSessionAsync` (`apps/api/Features/EmailTemplates/Jobs/EmailSchedulerJob.cs`) now fetches all prior `EmailTriggerLog` statuses for the (template, session, type) tuple instead of a single `AnyAsync(Status == "Sent")`. It skips when a `Sent` row exists (unchanged behavior) OR when the `Failed` count has reached `MaxSendAttempts` (3), logging a `Warning` in the give-up case so the dead reminder is visible in logs.
+
+Also added during code review: graceful handling of the concurrent-run idempotency race. The `UQ_EmailTriggerLogs_Idempotency` unique index is filtered to `Status = 'Sent'`, so if two scheduler runs overlap (Hangfire does not guarantee single-instance execution across app restarts / multiple workers) both can pass the idempotency check, both send, and the second `SaveChangesAsync` hits a unique violation. `ProcessSessionAsync` now catches that specific `DbUpdateException` (Postgres `SqlState` `23505`), detaches the rejected log row, and logs a `Warning` — so one session losing the race no longer aborts `ProcessTemplateAsync`'s loop over the sibling sessions. This does NOT prevent the duplicate *send* (both emails already went out before the conflict); true prevention requires single-instance job execution, which remains an accepted limitation of the current Hangfire setup.
+
+Boundary test coverage added: `tests/unit/api/Features/EmailTemplates/EmailSchedulerJobRetryTests.cs` pins the `MaxSendAttempts` boundary (0/2 failures → retry, 3/5 → skip) and the already-`Sent` short-circuit, driven through the job's public `ExecuteAsync`. Broader scheduler-job orchestration coverage remains tracked under **T-7**.
+
+Not changed: the `Skipped`-status hourly re-check (recipients may legitimately materialize later) and the partial-failure case (1 of N recipients fails → row logged `Sent` → no per-recipient retry — now tracked separately as **BE-17**). No data backfill needed; the stale April rows are harmless history.
+
+#### Related
+
+- **BE-9** — No alerting on permanently-Failed Hangfire jobs. Same blind spot from the ops side: these 25 failed rows generated no alert.
+- **T-7** — Recurring Hangfire jobs lack test coverage (covers the missing test for this fix).
+- Same subsystem as the **volunteer-reminder catch-up bug** found in the same 2026-05-16 investigation (`EventEmailService.SendCatchUpRemindersAsync` re-sends *every* logged `TimeBased`/`Sent` reminder type — including `VolunteerReminder` — to new ticket buyers). That bug is being handled as active work, not logged here as deferred debt.
+
+#### Authoritative records
+
+- `apps/api/Features/EmailTemplates/Jobs/EmailSchedulerJob.cs` — `ProcessSessionAsync` idempotency check (now the bounded-retry guard)
+- `tests/unit/api/Features/EmailTemplates/EmailSchedulerJobRetryTests.cs` — boundary tests
+- Production `EmailTriggerLogs`, April Rope Jam session `f63dce54-dae3-4cc6-8c1f-a75e40701ce9`
+
+---
+
+### BE-17 — Scheduled-email trigger log is per-batch, so a partial recipient failure is never retried (P3, UNRESOLVED)
+
+**Discovered**: 2026-05-16 during the BE-16 code review.
+**Impact**: Low-frequency, low-severity. When a time-based reminder goes to N recipients and only some fail, the affected recipients silently never receive the email. No duplicate sends, no crash — just a missed reminder for a subset of attendees.
+
+#### Symptom
+
+`EmailSchedulerJob.ProcessSessionAsync` writes ONE `EmailTriggerLog` row per (template, session) processing run, with `Status = successCount > 0 ? "Sent" : "Failed"`. If 9 of 10 sends succeed and 1 fails, the row is logged `"Sent"`. On the next hourly run the BE-16 idempotency check sees a `"Sent"` row and skips the whole session — so the 1 failed recipient is never retried. The only trace is the `ErrorMessage` field: e.g. `"1 of 10 sends failed"`.
+
+#### Root cause
+
+`EmailTriggerLog` tracks sends at batch granularity, not per-recipient. There is no record of *which* recipient failed, so a targeted retry is impossible without a schema change.
+
+#### Suggested fix approach
+
+A design change, not a one-line fix. Options:
+1. Add per-recipient send tracking (a child table, or a JSON column on `EmailTriggerLog` listing failed recipient IDs), and retry only the failed recipients.
+2. Only log `"Sent"` when ALL recipients succeed — but without per-recipient tracking this re-sends to recipients who already succeeded, causing duplicates.
+
+Option 1 is the correct fix. Effort: ~half a day including migration + tests. Coordinate with BE-16 (same method) and BE-9 (failed-send alerting).
+
+#### Authoritative records
+
+- `apps/api/Features/EmailTemplates/Jobs/EmailSchedulerJob.cs` — `ProcessSessionAsync`, the per-batch log write
+- Related: **BE-16** (bounded-retry guard, same method), **BE-9** (no alerting on failed sends)
+
+---
+
 ## Test suite (unit test coverage)
 
 ### T-8 — No PayPal checkout component tests + no skill wrapper for vitest (P2, UNRESOLVED)
@@ -1181,6 +1268,55 @@ Add a `sanitizeHref()` util that returns `null` for anything not matching `/^\/[
 #### Authoritative records
 
 - Originally documented in the now-consolidated `docs/functional-areas/vetting/vetting-status-cleanup-tech-debt-2026-04-10.md` (item #7)
+
+---
+
+### FE-3 — Vite dev port has 5 sources of truth that all must agree (P2, UNRESOLVED)
+
+**Discovered**: 2026-05-09 by an external agent (working in the sibling `accounting-automation` repo) while researching the same bug in that repo. Cross-repo TD-port — the same multi-SSOT structure exists here verbatim, was almost certainly copied from this repo's pattern.
+**Impact**: Latent. Does not currently produce an incorrect runtime — all five values happen to agree on `5173`. The risk is silent drift during a port change: a future agent edits one or two of the five locations, the container starts cleanly, and "the dev URL just doesn't load" with no log signal pointing at the cause. The accounting-automation repo hit exactly this failure mode while renumbering ports to remove sibling-repo conflicts (first restart attempt brought up the container on the old port because the Dockerfile CMD's `--port` flag overrode the freshly-edited `vite.config.ts`).
+
+#### Symptom
+
+The dev port `5173` is declared in five places, with two distinct override layers stacked on top of each other:
+
+| Location | Value | Effective? |
+|---|---|---|
+| `apps/web/vite.config.ts:32` | `port: parseInt(process.env.VITE_PORT || '5173')` + `strictPort: true` | **Defense-in-depth only.** Never exercised because the compose `command:` always passes `--port 5173` (CLI overrides config). |
+| `apps/web/Dockerfile:53` `EXPOSE 5173 24678` | 5173, 24678 | Informational only. `EXPOSE` doesn't publish; `compose ports:` does. |
+| `apps/web/Dockerfile:57` `ENV VITE_HOST=0.0.0.0` | 0.0.0.0 | Decorative — no consumer reads `VITE_HOST` (vite.config.ts doesn't honor it; the `--host` CLI flag in CMD/command is what binds). |
+| `apps/web/Dockerfile:58` `ENV VITE_PORT=5173` | 5173 | Decorative — vite.config.ts WOULD read it, but the compose `command:` `--port` flag overrides whatever vite.config.ts resolves to. |
+| `apps/web/Dockerfile:61` `CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]` | 5173 | Active in the image baseline, but **superseded** by the compose `command:` block. Only matters if the image is run without compose. |
+| `docker-compose.dev.yml:156` `"5173:5173"` | 5173 (right side) | **Active.** Must match whatever Vite actually binds to inside the container. |
+| `docker-compose.dev.yml:207` `command: ["sh", "-c", "npm run dev:docker-only -- --host 0.0.0.0 --port 5173"]` | 5173 | **Active and authoritative.** This is what actually wins for the running container. |
+
+#### Root cause
+
+Vite CLI flags override `vite.config.ts` settings. The compose `command:` block passes `--port 5173`, which means the env-var-with-default pattern in `vite.config.ts:32` (good code, written defensively) is unreachable in the running container. The HMR EXPOSE on `24678` is also dead — Vite v3+ multiplexes HMR onto the dev server port (5173), so a separate HMR mapping routes to a port nothing is listening on. (Likely the compose `ports:` for HMR was deleted at some point but the EXPOSE was left behind, or HMR was on a separate port in an earlier Vite version.)
+
+The end-result is:
+- Five places nominally declare the port, but only one is actually authoritative for the running container.
+- The defense-in-depth `strictPort: true` guard in `vite.config.ts` is bypassed by the CLI flag, so it's not actually protecting against silent port-collision auto-increment.
+- Future port changes require editing 4–5 files in lockstep with no automated guard against drift.
+
+#### Suggested fix approach
+
+The accounting-automation repo (where this bug was researched) just consolidated the equivalent five sources to two. Same pattern would work here:
+
+1. **`apps/web/Dockerfile`**: drop the `--host` and `--port` flags from the CMD line. Drop `24678` from EXPOSE (dead — HMR is multiplexed). Keep `ENV VITE_HOST=0.0.0.0` and `ENV VITE_PORT=5173` — these become **load-bearing** (vite.config.ts already reads them).
+2. **`docker-compose.dev.yml:207`**: change the compose `command:` to `["npm", "run", "dev:docker-only"]` (no shell wrapper, no flags). Drop the `24678` HMR port mapping if it exists in `ports:`.
+3. **`apps/web/vite.config.ts`**: no change needed — the env-var-with-default pattern + `strictPort: true` is already correct; this fix just makes it actually take effect.
+
+After this change, the SSOT is `Dockerfile ENV` for the container baseline (overridable by compose `environment:` block if needed) and the `vite.config.ts` default for any host-mode usage. `strictPort: true` then reliably fails-fast on port collisions.
+
+Estimate: 30 min including a `--no-cache` rebuild and HMR verification (edit a `.tsx`, watch the browser auto-reload).
+
+**Caveat for fixers**: WCR's `package.json` disables host-mode `npm run dev` entirely, so the only workflow that needs to work is the container. The vite.config.ts code path then becomes the only resolution path — if env vars don't reach it correctly, the container won't start. Test under both `--rebuild` and `--no-cache` paths.
+
+#### Authoritative records
+
+- This entry's research: `accounting-automation` repo at `/home/chad/repos/accounting-automation`, commit history starting around 2026-05-09. The accounting fix landed in commit `748f35c` (port renumbering exposed the bug) and a follow-up consolidation commit (TD-006 in that repo's `docs/technical-debt.md`, deleted on the consolidation commit per their resolved-items policy).
+- Vite docs on CLI flag precedence: https://vitejs.dev/guide/cli.html (CLI flags win over `defineConfig`).
 
 ---
 
@@ -1522,6 +1658,8 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-21 | **Error handling standard adoption (TD-029 port from inventory-purchasing-workflow).** Added five new Active items under a new "Error handling standard adoption" section: BE-TUPLE-MIGRATION (P2, 149 ARCH-ALLOW sites across 12 files pending tuple→Result<T> service migration), BE-BACKUP-MIGRATION (P3, 15 ARCH-ALLOW in AdminBackupEndpoints), BE-DEDUPE-RESULT (P2, 21 ARCH-ALLOW in EmailTemplateEndpoints from duplicate Result<T> type), BE-EXMESSAGE-LEAK-CATCHALL (P3, ~19 endpoint-level catch-alls still leaking ex.Message), BE-ENDPOINTS-DIR-OUT-OF-ARCH-SCAN (P3, apps/api/Endpoints/ has 38 violations outside scan scope). Foundation landed: `Result<T>` + `ResultErrorKind` enum, `ToProblem(title)` extension, `GlobalExceptionHandler`, `AntiforgeryExtensions.ValidateAsync` helper, `EndpointErrorShapeTests` architectural test in Core.Tests, sweep of ~429 forbidden-call sites (Results.Problem/BadRequest/NotFound/Conflict) across 27 endpoint files, ~51 `ex.Message` service-layer leaks cleaned up across 10 services, ProtectedController migrated to Minimal API, ~60 `Result<T>.Failure` calls promoted to kind-specific factories (NotFound/Conflict/Forbidden/Infrastructure/Upstream) across 8 services to produce correct HTTP status codes. Standard doc copied verbatim to `docs/standards-processes/backend/error-handling-standard.md`; CLAUDE.md updated with quick-reference table; code-reviewer agent updated with arch-test checklist; old `error-handling-patterns.md` collapsed to a pointer. Revert anchor: git tag `pre-error-handling-standard-2026-04-21`. | Error handling standard migration session |
 | 2026-04-22 | **Vetting bulk Send Reminder feature + run-test-suite vitest mode.** Shipped commit `a5458644`: bulk Send Reminder action on the admin vetting list (filters selection to InterviewApproved subset, fans out per-app via existing endpoint), new "Reminders" column showing `RemindersSentCount`. Refactors triggered by the work: (1) lifted selection state from `VettingApplicationsList` to `AdminVettingPage` (controlled-component pattern), which fixed the pre-existing UX bug where checkboxes stayed checked after bulk actions — affected both Send Reminder and Put On Hold; (2) reordered hooks in `AdminVettingPage` to satisfy Rules of Hooks (pre-existing violation — useState was below an early-return); (3) added React Query invalidation to `OnHoldModal` so the list auto-refreshes after a hold action (closes the long-standing TODO comment). Skill infra: `run-test-suite` gained `--mode react` (vitest from apps/web with same safety nets as the dotnet path), `block-manual-test-runs.py` BLOCK_REASON updated to point at it. T-3 updated with today's measurement (187 failing, down from 196 baseline, with a specific finding on `OnHoldModal.test.tsx` text drift introduced by commit `395ec740`). Also fixed my own regression in OnHoldModal tests (added QueryClientProvider wrapper). Verified end-to-end on staging via agent-browser. | Vetting bulk reminder feature session |
 | 2026-04-13 | **Production deploy + Row B backfill.** Bundled fixes shipped to production via `production-deploy` skill at git SHA `94d132f2`: BE-14 (commit `a92b7044`), BE-12 M2a/M2c (commit `0d0cf6f7`), BE-12 M2b (commit `78376f04`), BE-15 forward fix (commit `689136ca`), BE-15 regression repair (commit `897a27ac`), BE-15/T-8 testable handler extraction (commit `94d132f2`), audit 9.1/9.2 DISTINCT-users fix (commit `f52bc8fc`), proxy-RSVP + DailyLogSummaryJob fixes (commit `c5498ad8`). All three prod containers healthy after deploy. Row B one-off SQL executed: `TicketPurchases.Id = e4e24d70-92a4-4550-a439-e497915d18e1` `PaymentStatus` flipped `Completed` → `Refunded`; post-update scan shows zero stale refund rows remaining. BE-12 marked RESOLVED (all three drift rows reconciled — Row A via admin UI on 2026-04-12, Row B via SQL on 2026-04-13, and the underlying classes of drift are closed by the M2a/M2b/M2c code changes). BE-14 stays UNRESOLVED because the Authorize.NET E00114 root cause is still unknown even though the frontend symptom-fix shipped. BE-15 stays RESOLVED. Also: prevalence check on prod confirmed 29 users have both Active RSVP + Active Ticket for same event — expected behavior (AttendanceService auto-creates RSVP on ticket purchase when no RSVP exists, and users who RSVPed before upgrading to a ticket keep both records). Audits use `COUNT(DISTINCT UserId)` so no double-counting. UI correctly prioritizes Ticket > RSVP on both event page and dashboard. No action needed. | Prod deploy session (Strategy B bundle) |
+| 2026-05-10 | **Added FE-3** (P2, UNRESOLVED) — Vite dev port has 5 sources of truth that all must agree (`vite.config.ts`, Dockerfile EXPOSE/ENV/CMD, compose `command:`/`ports:`). Cross-repo TD-port: an agent working in the sibling `accounting-automation` repo hit and fixed the same bug there during a port-renumbering exercise. Their fix consolidated their five sources to two; same approach would work here. Currently latent (no incorrect runtime — all five values agree on `5173`), but silent drift on the next port change is the failure mode. Discovered by external agent; entry written by the same agent without modifying any WCR code. | Cross-repo TD-port from accounting-automation |
+| 2026-05-16 | **Added + resolved BE-16; added BE-17** — BE-16 (P2, RESOLVED): `EmailSchedulerJob` idempotency check only treated `Status == "Sent"` as handled, so a `Failed` reminder send was re-attempted every hourly run until the event's send window closed (~25 duplicate `Failed` rows observed on the April Rope Jam session). Discovered during a read-only production DB audit of event `cae0d3e3` ("Rope Jam - May") investigating a misdirected volunteer-reminder email. Fixed same session: bounded-retry guard (max 3 attempts) in `ProcessSessionAsync`. Code-review follow-ups also folded in: graceful handling of the concurrent-run idempotency race (`DbUpdateException` / Postgres `23505`), `AsNoTracking()` on the new query, and boundary tests in `EmailSchedulerJobRetryTests.cs`. BE-17 (P3, UNRESOLVED): per-batch trigger logging means a partial recipient failure is logged `Sent` and never retried — split out from BE-16's body during code review so it survives BE-16's resolution. The primary bug from this investigation — `EventEmailService.SendCatchUpRemindersAsync` re-sending `VolunteerReminder` to ticket buyers — was fixed in the same change (catch-up template-type allowlist + `EventEmailServiceCatchUpTests.cs`); active work, not a deferred-debt entry. | Misdirected volunteer-email investigation + code review |
 
 ---
 
