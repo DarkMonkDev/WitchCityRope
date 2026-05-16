@@ -1258,6 +1258,41 @@ Writing equivalent tests for the other four jobs: estimate 2-4h each depending o
 
 ---
 
+### T-9 — `MultiTicketCheckoutTests` MT_U02 / MT_U04 assert a stale attendance count (P3, UNRESOLVED)
+
+**Discovered**: 2026-05-16, triaged during the refund-id / refund-owed feature work (the two tests surfaced as failures in the regression run and were run down to rule out a real bug).
+**Impact**: Two consistently-failing unit tests in `tests/unit/api`. **Not a product bug** — triage confirmed the production code is correct; these are stale test assertions. The cost is pure noise: they inflate the failing-test baseline and could mask a future real regression in multi-ticket checkout.
+
+#### Symptom
+
+`MultiTicketCheckoutTests.MT_U02_Multi_Ticket_With_Quantity_2_Creates_Two_Purchases` and `MT_U04_Multi_Ticket_With_Null_Assignee_Creates_Extra_For_Purchaser` fail consistently (verified in full-class isolation — not cross-test pollution):
+
+> Expected `attendances`/`purchaserAttendances` to contain at least 2 item(s), but found 1.
+
+Both buy `Quantity = 2` with the second ticket **unassigned** ("assign later" — `Assignees` null or `[null]`), then assert the purchaser ends up with **≥ 2** `EventAttendance` rows.
+
+#### Root cause (verified — tests are wrong, code is right)
+
+`AttendanceService.CreateTicketPurchaseAsync` (`apps/api/Features/Participation/Services/AttendanceService.cs:1363-1371`) deliberately does NOT create an `EventAttendance` for an unassigned extra ticket. The code comment is explicit: *"'Assign later' tickets (unassigned extras) do NOT get EventAttendance records yet because the purchaser already has attendance for these sessions via their own ticket (index 0)… The TicketPurchase record alone tracks the unassigned ticket's existence."* An attendance is created later when the ticket is assigned (UC-007 post-purchase assignment).
+
+So a buy-2-assign-1-later purchase correctly produces **2 `TicketPurchase` rows but 1 `EventAttendance`** (a person cannot hold two active attendances for the same session). MT_U02 / MT_U04 assert `≥ 2` attendances — they predate or misread this design. MT_U02's *other* assertion (2 `TicketPurchase` rows) is correct and passes; only the attendance-count assertion is wrong.
+
+No customer is losing a ticket — the second ticket exists as a `TicketPurchase` and is fully assignable.
+
+#### Suggested fix approach
+
+Correct the two assertions to match the documented design:
+- MT_U02: assert exactly **1** purchaser `EventAttendance` (+ keep the existing "2 `TicketPurchase` rows" assertion).
+- MT_U04: assert exactly **1** purchaser `EventAttendance`; optionally also assert 2 `TicketPurchase` rows for completeness.
+Trivial (~2 lines each), low risk. Then both tests pass and the assertion documents the real behavior.
+
+#### Authoritative records
+
+- `apps/api/Features/Participation/Services/AttendanceService.cs:1363-1371` — the deliberate "unassigned extra → no EventAttendance" logic
+- `tests/unit/api/Features/TicketAssignment/MultiTicketCheckoutTests.cs` — MT_U02 (~line 263), MT_U04 (~line 362)
+
+---
+
 ## Frontend / web app
 
 ### FE-1 — Pre-existing TypeScript errors in `EventForm.tsx` (P2)
@@ -1696,6 +1731,7 @@ Add new area codes as needed (e.g., **DB** for database, **DEP** for deployment,
 | 2026-04-13 | **Production deploy + Row B backfill.** Bundled fixes shipped to production via `production-deploy` skill at git SHA `94d132f2`: BE-14 (commit `a92b7044`), BE-12 M2a/M2c (commit `0d0cf6f7`), BE-12 M2b (commit `78376f04`), BE-15 forward fix (commit `689136ca`), BE-15 regression repair (commit `897a27ac`), BE-15/T-8 testable handler extraction (commit `94d132f2`), audit 9.1/9.2 DISTINCT-users fix (commit `f52bc8fc`), proxy-RSVP + DailyLogSummaryJob fixes (commit `c5498ad8`). All three prod containers healthy after deploy. Row B one-off SQL executed: `TicketPurchases.Id = e4e24d70-92a4-4550-a439-e497915d18e1` `PaymentStatus` flipped `Completed` → `Refunded`; post-update scan shows zero stale refund rows remaining. BE-12 marked RESOLVED (all three drift rows reconciled — Row A via admin UI on 2026-04-12, Row B via SQL on 2026-04-13, and the underlying classes of drift are closed by the M2a/M2b/M2c code changes). BE-14 stays UNRESOLVED because the Authorize.NET E00114 root cause is still unknown even though the frontend symptom-fix shipped. BE-15 stays RESOLVED. Also: prevalence check on prod confirmed 29 users have both Active RSVP + Active Ticket for same event — expected behavior (AttendanceService auto-creates RSVP on ticket purchase when no RSVP exists, and users who RSVPed before upgrading to a ticket keep both records). Audits use `COUNT(DISTINCT UserId)` so no double-counting. UI correctly prioritizes Ticket > RSVP on both event page and dashboard. No action needed. | Prod deploy session (Strategy B bundle) |
 | 2026-05-10 | **Added FE-3** (P2, UNRESOLVED) — Vite dev port has 5 sources of truth that all must agree (`vite.config.ts`, Dockerfile EXPOSE/ENV/CMD, compose `command:`/`ports:`). Cross-repo TD-port: an agent working in the sibling `accounting-automation` repo hit and fixed the same bug there during a port-renumbering exercise. Their fix consolidated their five sources to two; same approach would work here. Currently latent (no incorrect runtime — all five values agree on `5173`), but silent drift on the next port change is the failure mode. Discovered by external agent; entry written by the same agent without modifying any WCR code. | Cross-repo TD-port from accounting-automation |
 | 2026-05-16 | **Added BE-18** (P2, UNRESOLVED) — Authorize.net ticket cancellations don't auto-refund the way PayPal cancellations do; the purchase is flagged `AwaitingManualRefund` for an admin to process by hand. Discovered during the production-incident 02 M2 deep-dive (two members found owed $20 each, outstanding 16/28 days). `RefundService` already has a working Authorize.net refund branch — it's just not wired into `AttendanceService.ProcessAutomaticRefundAsync`. Deferred for later research (likely needs Authorize.net void-vs-refund settlement-state handling). | Health-check M2 deep-dive |
+| 2026-05-16 | **Added T-9** (P3, UNRESOLVED) — `MultiTicketCheckoutTests` MT_U02 / MT_U04 fail consistently because they assert ≥2 `EventAttendance` rows for a buy-2-assign-1-later purchase. Triaged during the refund feature's regression run: confirmed NOT a product bug — `AttendanceService.CreateTicketPurchaseAsync` deliberately creates no `EventAttendance` for an unassigned extra ticket (the `TicketPurchase` row tracks it; comment at lines 1363-1371). The tests have stale assertions; the fix is to expect 1 attendance. Logged rather than fixed inline per the triage request. | MultiTicketCheckout triage |
 | 2026-05-16 | **Added + resolved BE-16; added BE-17** — BE-16 (P2, RESOLVED): `EmailSchedulerJob` idempotency check only treated `Status == "Sent"` as handled, so a `Failed` reminder send was re-attempted every hourly run until the event's send window closed (~25 duplicate `Failed` rows observed on the April Rope Jam session). Discovered during a read-only production DB audit of event `cae0d3e3` ("Rope Jam - May") investigating a misdirected volunteer-reminder email. Fixed same session: bounded-retry guard (max 3 attempts) in `ProcessSessionAsync`. Code-review follow-ups also folded in: graceful handling of the concurrent-run idempotency race (`DbUpdateException` / Postgres `23505`), `AsNoTracking()` on the new query, and boundary tests in `EmailSchedulerJobRetryTests.cs`. BE-17 (P3, UNRESOLVED): per-batch trigger logging means a partial recipient failure is logged `Sent` and never retried — split out from BE-16's body during code review so it survives BE-16's resolution. The primary bug from this investigation — `EventEmailService.SendCatchUpRemindersAsync` re-sending `VolunteerReminder` to ticket buyers — was fixed in the same change (catch-up template-type allowlist + `EventEmailServiceCatchUpTests.cs`); active work, not a deferred-debt entry. | Misdirected volunteer-email investigation + code review |
 
 ---
