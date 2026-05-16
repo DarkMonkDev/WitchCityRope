@@ -458,7 +458,10 @@ SMOKE_PASS=0
 SMOKE_FAIL=0
 
 echo "   Testing homepage..."
-if curl -f -s https://www.witchcityrope.com/ | grep -q "Witch City Rope"; then
+# -L follows redirects: www.witchcityrope.com 301-redirects to the apex domain,
+# so without -L curl returns the redirect page and the content grep fails — a
+# false "Homepage failed" (observed on real production deploys 2026-05-16).
+if curl -fsL https://www.witchcityrope.com/ | grep -q "Witch City Rope"; then
     echo "   ✅ Homepage"
     SMOKE_PASS=$((SMOKE_PASS + 1))
 else
@@ -467,7 +470,8 @@ else
 fi
 
 echo "   Testing API events endpoint..."
-if curl -f -s https://www.witchcityrope.com/api/events > /dev/null; then
+# -L for the same www->apex redirect reason as the homepage check above.
+if curl -fsL https://www.witchcityrope.com/api/events > /dev/null; then
     echo "   ✅ Events API"
     SMOKE_PASS=$((SMOKE_PASS + 1))
 else

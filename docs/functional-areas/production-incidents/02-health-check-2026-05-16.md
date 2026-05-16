@@ -26,7 +26,7 @@ None.
 
 ## MEDIUM Priority Issues (1)
 
-### M2: Two customers owed Authorize.net refunds, never processed (audit 9.7) — CONFIRMED
+### M2: Two customers owed Authorize.net refunds, never processed (audit 9.7) — RESOLVED
 
 - **What**: Two `TicketPurchases` flagged `PaymentStatus = AwaitingManualRefund`, with **no `PaymentRefunds` row** — meaning the refund has not been issued.
 
@@ -43,6 +43,7 @@ None.
 - **Root cause**: Purely operational. The `AwaitingManualRefund` status worked exactly as designed — it flagged the purchases for an admin to action. Nobody worked the queue. This is not a code defect.
 - **Impact**: Two members are out $20 each and have been for 16 and 28 days.
 - **Recommended Next Step**: An admin processes both refunds — issue the $20 back through Authorize.net (admin refund action / Authorize.net merchant portal) and the purchase status moves to `Refunded`. Then re-run audit 9.7 to confirm a clear queue.
+- **Resolution (2026-05-16)**: An admin processed both refunds via the Admin Payments UI the same day. Both `TicketPurchases` are now `Refunded`; both `PaymentRefunds` rows are `Completed` ($20 each, `WasVoided = false`). Audit 9.7 re-run — the `AwaitingManualRefund` queue is empty. Both refunds ran through the post-deploy `RefundService` code and captured their Authorize.net transaction id — a live verification of the refund-transaction-id storage feature shipped in commit `131179d7`.
 
 ## LOW Priority Issues (2)
 

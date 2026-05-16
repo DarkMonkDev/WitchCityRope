@@ -471,7 +471,9 @@ SMOKE_PASS=0
 SMOKE_FAIL=0
 
 echo "   Testing homepage..."
-if curl -f -s https://staging.notfai.com/ | grep -q "Witch City Rope"; then
+# -L follows redirects (consistency with production-deploy — staging.notfai.com
+# does not currently redirect, but -L future-proofs against a canonical redirect).
+if curl -fsL https://staging.notfai.com/ | grep -q "Witch City Rope"; then
     echo "   ✅ Homepage"
     SMOKE_PASS=$((SMOKE_PASS + 1))
 else
@@ -480,7 +482,7 @@ else
 fi
 
 echo "   Testing API events endpoint..."
-if curl -f -s https://staging.notfai.com/api/events > /dev/null; then
+if curl -fsL https://staging.notfai.com/api/events > /dev/null; then
     echo "   ✅ Events API"
     SMOKE_PASS=$((SMOKE_PASS + 1))
 else
