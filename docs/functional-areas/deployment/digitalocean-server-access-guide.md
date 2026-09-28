@@ -2,7 +2,7 @@
 
 **Purpose**: Complete guide for accessing and configuring the WitchCityRope DigitalOcean server for staging and production environments.
 
-**Last Updated**: 2026-03-15
+**Last Updated**: 2026-09-27
 
 ---
 
@@ -46,6 +46,26 @@ ssh root@104.131.165.14
 ```
 
 **Why it fails**: Root user SSH is not configured. The witchcity user is the proper access method.
+
+### Password Login Is Disabled Server-Wide (since 2026-09-27)
+
+SSH accepts **keys only**, for every user. Until 2026-09-27 the server also accepted passwords, despite
+the "key-only" wording above: `/etc/ssh/sshd_config.d/50-cloud-init.conf` enabled them. That file sorts
+before `60-cloudimg-settings.conf`, and sshd uses the first value it reads. The PCI hardening of
+2026-09-27 added `/etc/ssh/sshd_config.d/00-disable-password-auth.conf`
+(`PasswordAuthentication no`, `KbdInteractiveAuthentication no`). It sorts first, so it wins.
+
+- **Unaffected**: key SSH, `doctl compute ssh`, passwordless sudo, GitHub Actions deploys, and the DigitalOcean
+  Droplet Console, which logs in with a temporary key from the Droplet Agent. The Recovery Console uses the
+  root password but is not SSH, so it still works.
+- **A new machine needs a key**: copy your key to it, or add its public key to `~/.ssh/authorized_keys`
+  on the server.
+- **Check what sshd actually does from outside, not by reading config files**: `witchcity` cannot read
+  `50-cloud-init.conf`, so a grep of the config reports a partial picture. Run
+  `ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password nobody@104.131.165.14`. It must
+  answer `Permission denied (publickey)`; `(publickey,password)` means passwords are on.
+- **Undo**: `sudo rm /etc/ssh/sshd_config.d/00-disable-password-auth.conf && sudo systemctl reload ssh`
+  (the `rm` needs the sudo password).
 
 ---
 
