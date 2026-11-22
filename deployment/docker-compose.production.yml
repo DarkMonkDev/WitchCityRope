@@ -112,6 +112,7 @@ services:
       - witchcity-production
     ports:
       - "127.0.0.1:3001:80"  # Localhost only — host nginx reverse-proxies to this port (PCI compliance: prevent direct public access)
+      - "[::1]:3001:80"  # nginx's localhost tries ::1 first
     environment:
       - NODE_ENV=production
       - VITE_API_BASE_URL=/api
